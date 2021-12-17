@@ -12,6 +12,11 @@ import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -21,6 +26,20 @@ public class MainActivity extends AppCompatActivity {
 
         createNotificationChannel("swob_server", "notifies swob", "123456");
         get_messages_old();
+
+        try {
+            DHKeyAgreement2.test();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void get_messages_old() {
