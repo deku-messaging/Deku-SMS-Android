@@ -1,8 +1,13 @@
 package com.example.swob_server;
 
+import android.os.Build;
+import android.util.Base64;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -13,6 +18,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -21,6 +29,7 @@ import javax.crypto.KeyAgreement;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class DHKeyAgreement2 {
@@ -34,7 +43,7 @@ public class DHKeyAgreement2 {
     public byte[] generateKeyEncoded() throws NoSuchAlgorithmException, InvalidKeyException {
         Log.i(this.getClass().getName(), "DHKeyAgreement: Generate DH keypair ...");
         KeyPairGenerator KpairGen = KeyPairGenerator.getInstance("DH");
-        KpairGen.initialize(2048);
+        KpairGen.initialize(512);
         this.keypair = KpairGen.generateKeyPair();
 
         Log.i(this.getClass().getName(), "DHKeyAgreement: Initialization ...");
@@ -97,7 +106,7 @@ public class DHKeyAgreement2 {
     }
 
 
-    public byte[] encryptAES(byte[] bobSharedSecret) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
+    public static List<byte[]> encryptAES(byte[] plainText, byte[] secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
         /*
          * Now let's create a SecretKey object using the shared secret
          * and use it for encryption. First, we generate SecretKeys for the
@@ -118,35 +127,40 @@ public class DHKeyAgreement2 {
          * the (reinstantiated) AlgorithmParameters object must be explicitly
          * passed to the Cipher.init() method.
          */
-        Log.i(this.getClass().getName(), "Use shared secret as SecretKey object ...");
-        SecretKeySpec bobAesKey = new SecretKeySpec(bobSharedSecret, 0, 16, "AES");
+//        Log.i(this.getClass().getName(), "Use shared secret as SecretKey object ...");
+        SecretKeySpec bobAesKey = new SecretKeySpec(secretKey, 0, 16, "AES");
 
         /*
          * Bob encrypts, using AES in CBC mode
          */
         Cipher bobCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         bobCipher.init(Cipher.ENCRYPT_MODE, bobAesKey);
-        byte[] cleartext = "This is just an example".getBytes();
-        byte[] ciphertext = bobCipher.doFinal(cleartext);
+        byte[] ciphertext = bobCipher.doFinal(plainText);
 
         // Retrieve the parameter that was used, and transfer it to Alice in
         // encoded format
-        byte[] encodedParams = bobCipher.getParameters().getEncoded();
-        return encodedParams;
+        // byte[] encodedParams = bobCipher.getParameters().getEncoded();
+        byte[] iv = bobCipher.getIV();
+
+        List<byte[]> ivText = new ArrayList<>();
+        ivText.add(ciphertext);
+        ivText.add(iv);
+
+        return ivText;
     }
 
 
-    public byte[] decryptAES(byte[] encodedParams, SecretKeySpec aliceAesKey, byte[] ciphertext) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    public static byte[] decryptAES(byte[] secretKey, byte[] ciphertext, byte[] iv) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         /*
          * Alice decrypts, using AES in CBC mode
          */
 
         // Instantiate AlgorithmParameters object from parameter encoding
         // obtained from Bob
-        AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
-        aesParams.init(encodedParams);
+        SecretKeySpec sharedKey = new SecretKeySpec(secretKey, 0, 16, "AES");
+        IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
         Cipher aliceCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        aliceCipher.init(Cipher.DECRYPT_MODE, aliceAesKey, aesParams);
+        aliceCipher.init(Cipher.DECRYPT_MODE, sharedKey, ivParameterSpec);
         byte[] recovered = aliceCipher.doFinal(ciphertext);
 
         return recovered;
@@ -164,16 +178,25 @@ public class DHKeyAgreement2 {
         byte[] bobSharedSecret = bob.DHKeyAgreement(alicePubKeyEnc, bob.keypair)
                 .generateSecretKey();
 
-        Log.i(DHKeyAgreement2.class.getName(), "Alice:" + aliceSharedSecret.toString());
-        Log.i(DHKeyAgreement2.class.getName(), "Bob:" + bobSharedSecret.toString());
+        Log.i(DHKeyAgreement2.class.getName(), "Alice secret key:\n" + new String(aliceSharedSecret, "UTF-8"));
+        SecretKeySpec key = new SecretKeySpec(aliceSharedSecret,"AES");
+        Log.i(DHKeyAgreement2.class.getName(), "Alice secret key:\n" + Base64.encodeToString(key.getEncoded(), Base64.DEFAULT));
 
+        /*
         Log.i(DHKeyAgreement2.class.getName(), "Alice secret: " +
                 Helpers.toHexString(aliceSharedSecret));
         Log.i(DHKeyAgreement2.class.getName(), "Bob secret: " +
                 Helpers.toHexString(bobSharedSecret));
+
+         */
         if (!java.util.Arrays.equals(aliceSharedSecret, bobSharedSecret))
             throw new Exception("Shared secrets differ");
         Log.i(DHKeyAgreement2.class.getName(), "Shared secrets are the same");
+
+        List<byte[]> ivText = DHKeyAgreement2.encryptAES("Hello world".getBytes(StandardCharsets.UTF_8), aliceSharedSecret);
+        Log.i(DHKeyAgreement2.class.getName(), "Encrypted Cipher Text: \n" + Base64.encodeToString(ivText.get(0), Base64.DEFAULT));
+        Log.i(DHKeyAgreement2.class.getName(), "Encrypted IV: \n" + Base64.encodeToString(ivText.get(1), Base64.DEFAULT));
+        Log.i(DHKeyAgreement2.class.getName(), "Encrypted String: \n" + new String(DHKeyAgreement2.decryptAES(aliceSharedSecret, ivText.get(0), ivText.get(1)), "UTF-8"));
     }
 
 }
