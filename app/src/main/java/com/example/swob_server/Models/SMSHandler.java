@@ -1,4 +1,4 @@
-package com.example.swob_server;
+package com.example.swob_server.Models;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -37,10 +37,22 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSMessagesThreads(Context context, String threadId) {
+    public static Cursor fetchSMSMessagesAddress(Context context, String address) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Uri.parse("content://sms"),
                 new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
+                "address=?",
+                new String[] { address },
+                "date ASC");
+
+        return smsMessagesCursor;
+    }
+
+    public static Cursor fetchSMSMessagesThread(Context context, String threadId) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                Uri.parse("content://sms"),
+                // new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
+                null,
                 "thread_id=?",
                 new String[] { threadId },
                 null);
@@ -48,6 +60,33 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
+    public static Cursor fetchSMSMessagesThreads(Context context, String threadId) {
+        String targetedURI = String.valueOf(Telephony.Sms.Conversations.CONTENT_URI);
+        Cursor cursor = context.getContentResolver().query(
+                Uri.parse(targetedURI),
+                // new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
+                null,
+                null,
+                null,
+                null);
+
+        return cursor;
+    }
+
+    public static List<SMS> getAddressForThreads(Context context, List<SMS> messagesList) {
+        for(int i=0; i< messagesList.size(); ++i) {
+            String threadId = messagesList.get(i).getThreadId();
+            Log.d("", "searching threadID: " + threadId);
+            Cursor cursor = fetchSMSMessagesThread(context, threadId);
+
+            if(cursor.moveToFirst()) {
+                // assuming all the messages have the same address, just take the first one
+                SMS sms = new SMS(cursor);
+                messagesList.get(i).setAddress(sms.getAddress());
+            }
+        }
+        return messagesList;
+    }
 
     public static Cursor fetchAllSMSMessages(Context context) {
         /*
@@ -63,7 +102,8 @@ public class SMSHandler {
         // Cursor cursor = context.getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
         Cursor cursor = context.getContentResolver().query(
                 Uri.parse("content://sms"),
-                new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
+                // new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
+                null,
                 null,
                 null,
                 "date DESC");

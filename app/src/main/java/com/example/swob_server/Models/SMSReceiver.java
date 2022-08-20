@@ -1,4 +1,4 @@
-package com.example.swob_server;
+package com.example.swob_server.Models;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -14,6 +14,8 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
+import com.example.swob_server.R;
 
 public class SMSReceiver extends BroadcastReceiver {
     private Bundle bundle;

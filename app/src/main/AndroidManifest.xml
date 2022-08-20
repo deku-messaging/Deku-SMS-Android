@@ -16,8 +16,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Swob_server">
         <activity
-            android:name=".SendSMSActivity"
+            android:name=".MessagesThreadsActivity"
             android:exported="false" />
+        <activity
+            android:name=".SendSMSActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -28,7 +32,7 @@
             </intent-filter>
         </activity> <!-- BroadcastReceiver that listens for incoming SMS messages -->
         <receiver
-            android:name=".SMSReceiver"
+            android:name=".Models.SMSReceiver"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />

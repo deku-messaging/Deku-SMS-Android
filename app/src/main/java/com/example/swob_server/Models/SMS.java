@@ -2,6 +2,7 @@ package com.example.swob_server.Models;
 
 import android.database.Cursor;
 import android.provider.Telephony;
+import android.util.Log;
 
 public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
@@ -54,7 +55,8 @@ public class SMS {
     String type;
 
     public SMS(Cursor cursor) {
-        int bodyIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.BODY);
+        int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
+        Log.d("", "body index: " + bodyIndex);
         int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
         int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
         int dateReceivedIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
@@ -65,6 +67,14 @@ public class SMS {
         this.threadId =  String.valueOf(cursor.getString(threadIdIndex));
         this.dateReceived =  String.valueOf(cursor.getString(dateReceivedIndex));
         this.type =  String.valueOf(cursor.getString(typeIndex));
+    }
+
+    public SMS(Cursor cursor, boolean isThread) {
+        int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.SNIPPET);
+        int threadIdIndex = cursor.getColumnIndex(Telephony.Sms.Conversations.THREAD_ID);
+
+        this.body =  String.valueOf(cursor.getString(bodyIndex));
+        this.threadId =  String.valueOf(cursor.getString(threadIdIndex));
     }
 
 }

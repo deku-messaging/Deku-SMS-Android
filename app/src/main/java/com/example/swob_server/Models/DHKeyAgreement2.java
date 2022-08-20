@@ -1,14 +1,10 @@
-package com.example.swob_server;
+package com.example.swob_server.Models;
 
-import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -20,7 +16,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;

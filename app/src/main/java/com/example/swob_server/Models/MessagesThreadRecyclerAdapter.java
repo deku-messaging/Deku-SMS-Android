@@ -1,95 +1,74 @@
 package com.example.swob_server.Models;
 
 import android.content.Context;
-import android.util.Log;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_server.R;
+import com.example.swob_server.SendSMSActivity;
+
 
 import java.util.List;
 
-public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
+public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<MessagesThreadRecyclerAdapter.ViewHolder> {
 
     Context context;
-    List<SMS> messagesList;
-    int renderLayoutReceived, renderLayoutSent;
+    List<SMS> messagesThreadList;
+    int renderLayout;
 
-    public MessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent) {
-        this.context = context;
-        this.messagesList = messagesList;
-        this.renderLayoutReceived = renderLayoutReceived;
-        this.renderLayoutSent = renderLayoutSent;
+    public MessagesThreadRecyclerAdapter(Context context, List<SMS> messagesThreadList, int renderLayout) {
+       this.context = context;
+       this.messagesThreadList = messagesThreadList;
+       this.renderLayout = renderLayout;
     }
 
-
+    @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-
-        switch(viewType) {
-            case 1: {
-                LayoutInflater inflater = LayoutInflater.from(this.context);
-                View view = inflater.inflate(this.renderLayoutReceived, parent, false);
-                return new MessageReceivedViewHandler(view);
-            }
-            case 2: {
-                LayoutInflater inflater = LayoutInflater.from(this.context);
-                View view = inflater.inflate(this.renderLayoutSent, parent, false);
-                return new MessageSentViewHandler(view);
-            }
-        }
-
-        return null;
+    public MessagesThreadRecyclerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(this.context);
+        View view = inflater.inflate(this.renderLayout, parent, false);
+        return new MessagesThreadRecyclerAdapter.ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        switch(messagesList.get(position).getType()) {
-            case "1":
-                MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
-                messageReceivedViewHandler.receivedMessage.setText(messagesList.get(position).getBody());
-                break;
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        holder.snippet.setText(messagesThreadList.get(position).getBody());
+        holder.address.setText(messagesThreadList.get(position).getAddress());
 
-            case "2":
-                Log.i("", String.valueOf(holder));
-                ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
-                break;
-        }
+        holder.layout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent singleMessageThreadIntent = new Intent(context, SendSMSActivity.class);
+                singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, holder.address.getText().toString());
+                context.startActivity(singleMessageThreadIntent);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return this.messagesList.size();
+        return messagesThreadList.size();
     }
 
-    @Override
-    public int getItemViewType(int position)
-    {
-        String messageType = messagesList.get(position).getType();
-        Log.i("", "message type: " + messageType);
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        TextView snippet;
+        TextView address;
 
-        return Integer.parseInt(messagesList.get(position).getType());
-    }
+        ConstraintLayout layout;
 
-    public class MessageSentViewHandler extends RecyclerView.ViewHolder {
-        TextView sentMessage;
-        public MessageSentViewHandler(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            sentMessage = itemView.findViewById(R.id.message_thread_sent_card_text);
-            Log.i("", "sent Message: " + sentMessage);
-        }
-    }
 
-    public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
-        TextView receivedMessage;
-        public MessageReceivedViewHandler(@NonNull View itemView) {
-            super(itemView);
-            receivedMessage = itemView.findViewById(R.id.message_thread_received_card_text);
+            snippet = itemView.findViewById(R.id.messages_thread_text);
+            address = itemView.findViewById(R.id.messages_thread_address_text);
+            layout = itemView.findViewById(R.id.messages_threads_layout);
         }
     }
 }

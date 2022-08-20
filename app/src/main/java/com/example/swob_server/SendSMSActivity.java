@@ -10,34 +10,28 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.swob_server.Models.MessagesThreadRecyclerAdapter;
+import com.example.swob_server.Models.SingleMessagesThreadRecyclerAdapter;
 import com.example.swob_server.Models.SMS;
+import com.example.swob_server.Models.SMSHandler;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class SendSMSActivity extends AppCompatActivity {
 
     List<String> messagesList = new ArrayList();
 
+    public static final String ADDRESS = "address";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
 
-        // Cursor cursor = SMSHandler.fetchSMSMessages(getApplicationContext(), "emulator-5554");
-        String threadId = "2";
-//        Cursor cursor = SMSHandler.fetchSMSMessagesThreads(getApplicationContext(), threadId);
-        Cursor cursor = SMSHandler.fetchAllSMSMessages(getApplicationContext());
-
-        List<SMS> messagesForThread = getMessagesForThread(cursor);
-        populateMessageThread(messagesForThread);
-
+        populateMessageThread();
     }
 
-    List<SMS> getMessagesForThread(Cursor cursor) {
+    List<SMS> getMessagesFromCursor(Cursor cursor) {
         List<SMS> messagesInThread = new ArrayList<>();
         if(cursor.moveToFirst()) {
             do{
@@ -54,24 +48,35 @@ public class SendSMSActivity extends AppCompatActivity {
     }
 
 
-    void populateMessageThread(List<SMS> messagesForThread) {
+    void populateMessageThread() {
+        // Cursor cursor = SMSHandler.fetchSMSMessages(getApplicationContext(), "emulator-5554");
+        String threadId = "2";
+        // String address = "emulator-5554";
+        // String address = "5555215554";
+//        String address = "+15555215554";
+        String address = getIntent().getStringExtra(ADDRESS);
+//        Cursor cursor = SMSHandler.fetchSMSMessagesThreads(getApplicationContext(), threadId);
+//        Cursor cursor = SMSHandler.fetchAllSMSMessages(getApplicationContext());
+        Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
+
+        List<SMS> messagesForThread = getMessagesFromCursor(cursor);
         for(SMS sms: messagesForThread) {
             Log.i("Message: ", "body: " + sms.getBody());
-            Log.i("Type: ", "type: " + sms.getType() + "\n");
+            Log.i("Thread ID: ", "thread_id: " + sms.getThreadId() );
+            Log.i("Type: ", "type: " + sms.getType() );
         }
 
-        RecyclerView messagesThreadRecyclerView = findViewById(R.id.messages_thread_recycler_view);
+        RecyclerView singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
-        MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
+        SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                 this, messagesForThread, R.layout.messages_thread_received_layout, R.layout.messages_thread_sent_layout);
 
-        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
+        singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setReverseLayout(true);
-        linearLayoutManager.setStackFromEnd(false);
 
-        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+        singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+        singleMessagesThreadRecyclerView.scrollToPosition(messagesForThread.size() - 1);
     }
 
     public void sendMessage(View view) {
@@ -79,7 +84,7 @@ public class SendSMSActivity extends AppCompatActivity {
         // TODO: sending
         // TODO: delivered
         // TODO: failed
-        String destinationAddress = "5555215554";
+        String destinationAddress = getIntent().getStringExtra(ADDRESS);
         TextView smsTextView = findViewById(R.id.sms_text);
         String text = smsTextView.getText().toString();
 
@@ -88,6 +93,9 @@ public class SendSMSActivity extends AppCompatActivity {
         }
         catch(IllegalAccessError e ) {
             e.printStackTrace();
+        }
+        finally {
+            smsTextView.setText("");
         }
     }
 

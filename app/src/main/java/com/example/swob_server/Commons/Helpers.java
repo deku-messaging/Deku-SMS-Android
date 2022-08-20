@@ -1,4 +1,4 @@
-package com.example.swob_server;
+package com.example.swob_server.Commons;
 
 public class Helpers {
     /*

@@ -1,6 +1,5 @@
 package com.example.swob_server;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.NotificationChannel;
@@ -12,14 +11,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Log;
-import android.view.View;
+
+import com.example.swob_server.Models.DHKeyAgreement2;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        startActivity(new Intent(this, SendSMSActivity.class));
+        startActivity(new Intent(this, MessagesThreadsActivity.class));
         finish();
     }
 
