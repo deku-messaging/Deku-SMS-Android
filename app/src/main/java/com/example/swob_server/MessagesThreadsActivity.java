@@ -4,9 +4,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
 
 import com.example.swob_server.Models.MessagesThreadRecyclerAdapter;
 import com.example.swob_server.Models.SMS;
@@ -69,5 +75,35 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 //        linearLayoutManager.setStackFromEnd(false);
 
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+    }
+
+    public void onNewMessageClick(View view) {
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+        startActivityForResult(intent, 1);
+    }
+
+
+    @Override
+    public void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+
+        switch (reqCode) {
+            case (1) :
+                if (resultCode == Activity.RESULT_OK) {
+                    Uri contactData = data.getData();
+                    Cursor contactCursor = getApplicationContext().getContentResolver().query(contactData, null, null, null, null);
+                    if(contactCursor != null) {
+                        if (contactCursor.moveToFirst()) {
+                            int contactIndexInformation = contactCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                            String number = contactCursor.getString(contactIndexInformation);
+
+                            Intent singleMessageThreadIntent = new Intent(this, SendSMSActivity.class);
+                            singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, number);
+                            startActivity(singleMessageThreadIntent);
+                        }
+                    }
+                }
+                break;
+        }
     }
 }

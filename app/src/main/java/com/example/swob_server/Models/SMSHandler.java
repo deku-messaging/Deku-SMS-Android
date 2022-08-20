@@ -38,6 +38,9 @@ public class SMSHandler {
     }
 
     public static Cursor fetchSMSMessagesAddress(Context context, String address) {
+        address = address.replaceAll("[\\s-]", "");
+        Log.d("", "Composing to: " + address);
+
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Uri.parse("content://sms"),
                 new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },

@@ -27,7 +27,7 @@ public class SendSMSActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
-
+        Log.d("", "Composing number: " + getIntent().getStringExtra(ADDRESS));
         populateMessageThread();
     }
 
