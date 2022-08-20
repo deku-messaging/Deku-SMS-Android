@@ -7,7 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Telephony;
+import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -21,49 +24,49 @@ public class SMSReceiver extends BroadcastReceiver {
     private Bundle bundle;
     private SmsMessage currentSMS;
     private String message;
+    private Context context;
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        this.context = context;
         if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")) {
+
             bundle = intent.getExtras();
             if (bundle != null) {
                 Object[] pdu_Objects = (Object[]) bundle.get("pdus");
                 if (pdu_Objects != null) {
-
                     for (Object aObject : pdu_Objects) {
-
                         currentSMS = getIncomingMessage(aObject, bundle);
 
-                        String senderNo = currentSMS.getDisplayOriginatingAddress();
+                        // TODO: Fetch address name from contact list if present
+                        String address = currentSMS.getDisplayOriginatingAddress();
 
                         message = currentSMS.getDisplayMessageBody();
-                        sendNotification("123456", context, message);
-                        Log.i(this.getClass().getName(), "senderNum: " + senderNo + " :\n message: " + message);
-
+                        registerMessage(currentSMS);
+                        sendNotification("123456", context, message, address);
                     }
-                    this.abortBroadcast();
                 }
             }
         } // bundle null
     }
 
+    public void registerMessage(SmsMessage currentSMS) {
+    }
+
     private SmsMessage getIncomingMessage(Object aObject, Bundle bundle) {
-        SmsMessage currentSMS;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            String format = bundle.getString("format");
-            currentSMS = SmsMessage.createFromPdu((byte[]) aObject, format);
-        } else {
-            currentSMS = SmsMessage.createFromPdu((byte[]) aObject);
-        }
+        SmsMessage currentSMS = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) ?
+                SmsMessage.createFromPdu((byte[]) aObject, bundle.getString("format")):
+                SmsMessage.createFromPdu((byte[]) aObject);
+
         return currentSMS;
     }
 
 
-    private void sendNotification(String channel_id, Context context, String text) {
+    private void sendNotification(String channel_id, Context context, String text, String address) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channel_id)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("New Message for swob")
+                .setContentTitle("New SMS from " + address)
                 .setContentText(text)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setStyle(new NotificationCompat.BigTextStyle()

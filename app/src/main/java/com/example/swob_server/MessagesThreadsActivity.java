@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
+    // TODO: Change address to friendly name if in phonebook
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
