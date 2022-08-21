@@ -55,9 +55,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     void populateMessageThreads() {
-        String threadId = "2";
-        String address = "+15555215554";
-        Cursor cursor = SMSHandler.fetchSMSMessagesThreads(getApplicationContext(), threadId);
+        Cursor cursor = SMSHandler.fetchSMSMessagesThreads(getApplicationContext());
 //        Cursor cursor = SMSHandler.fetchAllSMSMessages(getApplicationContext());
 //        Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
 

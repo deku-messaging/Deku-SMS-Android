@@ -32,7 +32,7 @@
             </intent-filter>
         </activity> <!-- BroadcastReceiver that listens for incoming SMS messages -->
         <receiver
-            android:name=".Models.SMSReceiver"
+            android:name=".SMSReceiverActivity"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>

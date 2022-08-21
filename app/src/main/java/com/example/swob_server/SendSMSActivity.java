@@ -5,7 +5,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Telephony;
+import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -89,6 +93,8 @@ public class SendSMSActivity extends AppCompatActivity {
         String text = smsTextView.getText().toString();
 
         try {
+            // SMSHandler.registerOutgoingMessage(getApplicationContext(), destinationAddress, text);
+            SMSHandler.registerSentMessage(getApplicationContext(), destinationAddress, text);
             SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text);
         }
         catch(IllegalAccessError e ) {

@@ -1,10 +1,12 @@
-package com.example.swob_server.Models;
+package com.example.swob_server;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -18,9 +20,10 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.swob_server.Models.SMSHandler;
 import com.example.swob_server.R;
 
-public class SMSReceiver extends BroadcastReceiver {
+public class SMSReceiverActivity extends BroadcastReceiver {
     private Bundle bundle;
     private SmsMessage currentSMS;
     private String message;
@@ -42,15 +45,12 @@ public class SMSReceiver extends BroadcastReceiver {
                         String address = currentSMS.getDisplayOriginatingAddress();
 
                         message = currentSMS.getDisplayMessageBody();
-                        registerMessage(currentSMS);
+                        SMSHandler.registerIncomingMessage(context, currentSMS);
                         sendNotification("123456", context, message, address);
                     }
                 }
             }
         } // bundle null
-    }
-
-    public void registerMessage(SmsMessage currentSMS) {
     }
 
     private SmsMessage getIncomingMessage(Object aObject, Bundle bundle) {

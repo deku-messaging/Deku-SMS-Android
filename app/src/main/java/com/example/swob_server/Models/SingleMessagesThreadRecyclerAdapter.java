@@ -1,7 +1,6 @@
 package com.example.swob_server.Models;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,13 +50,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         switch(messagesList.get(position).getType()) {
             case "1":
-                MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
-                messageReceivedViewHandler.receivedMessage.setText(messagesList.get(position).getBody());
+                ((MessageReceivedViewHandler)holder).receivedMessage.setText(messagesList.get(position).getBody());
+                ((MessageReceivedViewHandler)holder).date.setText(messagesList.get(position).getDate());
                 break;
 
             case "2":
-                Log.i("", String.valueOf(holder));
                 ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
+                ((MessageSentViewHandler)holder).date.setText(messagesList.get(position).getDate());
                 break;
         }
     }
@@ -70,26 +69,26 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     @Override
     public int getItemViewType(int position)
     {
-        String messageType = messagesList.get(position).getType();
-        Log.i("", "message type: " + messageType);
-
         return Integer.parseInt(messagesList.get(position).getType());
     }
 
     public class MessageSentViewHandler extends RecyclerView.ViewHolder {
         TextView sentMessage;
+        TextView date;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_thread_sent_card_text);
-            Log.i("", "sent Message: " + sentMessage);
+            date = itemView.findViewById(R.id.message_thread_sent_date_text);
         }
     }
 
     public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
         TextView receivedMessage;
+        TextView date;
         public MessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
             receivedMessage = itemView.findViewById(R.id.message_thread_received_card_text);
+            date = itemView.findViewById(R.id.message_thread_received_date_text);
         }
     }
 }

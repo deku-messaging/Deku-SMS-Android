@@ -1,11 +1,13 @@
 package com.example.swob_server.Models;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 import android.util.Log;
 
 import java.util.List;
@@ -63,7 +65,7 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSMessagesThreads(Context context, String threadId) {
+    public static Cursor fetchSMSMessagesThreads(Context context) {
         String targetedURI = String.valueOf(Telephony.Sms.Conversations.CONTENT_URI);
         Cursor cursor = context.getContentResolver().query(
                 Uri.parse(targetedURI),
@@ -71,7 +73,7 @@ public class SMSHandler {
                 null,
                 null,
                 null,
-                null);
+                "date DESC");
 
         return cursor;
     }
@@ -113,5 +115,27 @@ public class SMSHandler {
 
         return cursor;
 
+    }
+
+
+    public static void registerIncomingMessage(Context context, SmsMessage smsMessage) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("address", smsMessage.getOriginatingAddress());
+        contentValues.put("body", smsMessage.getMessageBody());
+        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Inbox.CONTENT_URI.toString()), contentValues);
+    }
+
+    public static void registerOutgoingMessage(Context context, String destinationAddress, String text) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("address", destinationAddress);
+        contentValues.put("body", text);
+        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Outbox.CONTENT_URI.toString()), contentValues);
+    }
+
+    public static void registerSentMessage(Context context, String destinationAddress, String text) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("address", destinationAddress);
+        contentValues.put("body", text);
+        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Sent.CONTENT_URI.toString()), contentValues);
     }
 }

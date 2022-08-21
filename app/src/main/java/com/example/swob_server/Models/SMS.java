@@ -33,12 +33,12 @@ public class SMS {
         this.threadId = threadId;
     }
 
-    public String getDateReceived() {
-        return dateReceived;
+    public String getDate() {
+        return date;
     }
 
-    public void setDateReceived(String dateReceived) {
-        this.dateReceived = dateReceived;
+    public void setDate(String date) {
+        this.date = date;
     }
 
     public String getType() {
@@ -51,7 +51,7 @@ public class SMS {
 
     String address = new String();
     String threadId = new String();
-    String dateReceived= new String();
+    String date = new String();
     String type;
 
     public SMS(Cursor cursor) {
@@ -59,13 +59,13 @@ public class SMS {
         Log.d("", "body index: " + bodyIndex);
         int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
         int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
-        int dateReceivedIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
+        int dateIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
         int typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE);
 
         this.body =  String.valueOf(cursor.getString(bodyIndex));
         this.address =  String.valueOf(cursor.getString(addressIndex));
         this.threadId =  String.valueOf(cursor.getString(threadIdIndex));
-        this.dateReceived =  String.valueOf(cursor.getString(dateReceivedIndex));
+        this.date =  String.valueOf(cursor.getString(dateIndex));
         this.type =  String.valueOf(cursor.getString(typeIndex));
     }
 
