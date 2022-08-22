@@ -18,28 +18,49 @@
         <activity
             android:name=".MessagesThreadsActivity"
             android:exported="false" />
+
         <activity
             android:name=".SendSMSActivity"
             android:windowSoftInputMode="adjustResize"
-            android:exported="true" />
+            android:exported="true"
+            android:excludeFromRecents="true" >
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SENDTO" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity> <!-- BroadcastReceiver that listens for incoming SMS messages -->
+
         <receiver
             android:name=".SMSReceiverActivity"
             android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:permission="android.permission.BROADCAST_SMS"
+            android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
             </intent-filter>
         </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
+
         <receiver
             android:name=".MmsReceiver"
             android:exported="true"

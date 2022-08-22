@@ -74,10 +74,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     public class MessageSentViewHandler extends RecyclerView.ViewHolder {
         TextView sentMessage;
+        TextView sentMessageStatus;
         TextView date;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_thread_sent_card_text);
+            sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
             date = itemView.findViewById(R.id.message_thread_sent_date_text);
         }
     }

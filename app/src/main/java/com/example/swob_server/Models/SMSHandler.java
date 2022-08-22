@@ -1,10 +1,13 @@
 package com.example.swob_server.Models;
 
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
@@ -14,29 +17,18 @@ import java.util.List;
 
 public class SMSHandler {
 
-    public static void sendSMS(Context context,  String destinationAddress, String text) {
+    public static void sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
             context.getSystemService(SmsManager.class) : SmsManager.getDefault();
 
         try {
-            smsManager.sendTextMessage(destinationAddress, null, text, null, null);
+            smsManager.sendTextMessage(destinationAddress, null, text, sentIntent, deliveryIntent);
+            SMSHandler.registerSentMessage(context, destinationAddress, text);
         }
-        catch(IllegalAccessError e) {
+        catch(Throwable e) {
+            // throw new IllegalArgumentException(e);
             throw e;
         }
-    }
-
-    public static Cursor fetchSMSMessages(Context context, String destinationAddress) {
-        String[] phoneNumber = new String[] { destinationAddress }; //the wanted phone number
-
-        Cursor smsMessagesCursor = context.getContentResolver().query(
-                Uri.parse("content://sms/inbox"),
-                new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
-                "address=?",
-                phoneNumber,
-                null);
-
-        return smsMessagesCursor;
     }
 
     public static Cursor fetchSMSMessagesAddress(Context context, String address) {
@@ -93,43 +85,12 @@ public class SMSHandler {
         return messagesList;
     }
 
-    public static Cursor fetchAllSMSMessages(Context context) {
-        /*
-            MESSAGE_TYPE_ALL    = 0;
-            MESSAGE_TYPE_INBOX  = 1;
-            MESSAGE_TYPE_SENT   = 2;
-            MESSAGE_TYPE_DRAFT  = 3;
-            MESSAGE_TYPE_OUTBOX = 4;
-            MESSAGE_TYPE_FAILED = 5; // for failed outgoing messages
-            MESSAGE_TYPE_QUEUED = 6; // for messages to send later
-        */
-
-        // Cursor cursor = context.getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
-        Cursor cursor = context.getContentResolver().query(
-                Uri.parse("content://sms"),
-                // new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
-                null,
-                null,
-                null,
-                "date DESC");
-
-        return cursor;
-
-    }
-
 
     public static void registerIncomingMessage(Context context, SmsMessage smsMessage) {
         ContentValues contentValues = new ContentValues();
         contentValues.put("address", smsMessage.getOriginatingAddress());
         contentValues.put("body", smsMessage.getMessageBody());
         context.getContentResolver().insert(Uri.parse(Telephony.Sms.Inbox.CONTENT_URI.toString()), contentValues);
-    }
-
-    public static void registerOutgoingMessage(Context context, String destinationAddress, String text) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put("address", destinationAddress);
-        contentValues.put("body", text);
-        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Outbox.CONTENT_URI.toString()), contentValues);
     }
 
     public static void registerSentMessage(Context context, String destinationAddress, String text) {

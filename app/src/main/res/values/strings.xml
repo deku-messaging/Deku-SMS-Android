@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">swob_server</string>
+    <string name="channel_name">deku_incoming_message</string>
+    <string name="channel_description">
+        Gets called when a new message is received.
+    </string>
+    <string name="CHANNEL_ID">
+        696969
+    </string>
 </resources>

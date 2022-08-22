@@ -1,10 +1,13 @@
 package com.example.swob_server;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -31,6 +34,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_messages_threads);
 
         populateMessageThreads();
+        cancelAllNotifications();
+    }
+
+    private void cancelAllNotifications() {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+        notificationManager.cancelAll();
     }
 
     List<SMS> getThreadsFromCursor(Cursor cursor) {
@@ -39,11 +48,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             do{
                 SMS sms = new SMS(cursor, true);
                 threadsInCursor.add(sms);
-                /*
-                for(String colName : cursor.getColumnNames()) {
-                    Log.i("", "col name: " + colName);
-                }
-                 */
             }
             while(cursor.moveToNext());
         }
@@ -56,8 +60,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     void populateMessageThreads() {
         Cursor cursor = SMSHandler.fetchSMSMessagesThreads(getApplicationContext());
-//        Cursor cursor = SMSHandler.fetchAllSMSMessages(getApplicationContext());
-//        Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
 
         List<SMS> messagesForThread = getThreadsFromCursor(cursor);
         messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread);
@@ -70,8 +72,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-//        linearLayoutManager.setReverseLayout(false);
-//        linearLayoutManager.setStackFromEnd(false);
 
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
     }
@@ -90,7 +90,13 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             case (1) :
                 if (resultCode == Activity.RESULT_OK) {
                     Uri contactData = data.getData();
-                    Cursor contactCursor = getApplicationContext().getContentResolver().query(contactData, null, null, null, null);
+                    Cursor contactCursor = getApplicationContext().getContentResolver().query(
+                            contactData,
+                            null,
+                            null,
+                            null,
+                            null);
+
                     if(contactCursor != null) {
                         if (contactCursor.moveToFirst()) {
                             int contactIndexInformation = contactCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
@@ -104,5 +110,13 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 }
                 break;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        populateMessageThreads();
+        cancelAllNotifications();
     }
 }
