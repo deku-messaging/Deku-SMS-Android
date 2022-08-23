@@ -62,7 +62,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             @Override
             public void onClick(View view) {
                 Intent singleMessageThreadIntent = new Intent(context, SendSMSActivity.class);
-                singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, holder.address.getText().toString());
+                singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, messagesThreadList.get(position).getAddress());
                 context.startActivity(singleMessageThreadIntent);
             }
         });
