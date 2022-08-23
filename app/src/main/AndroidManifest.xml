@@ -25,6 +25,7 @@
             android:name=".SendSMSActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="true"
+            android:parentActivityName=".MainActivity"
             android:excludeFromRecents="true" >
 
             <intent-filter>

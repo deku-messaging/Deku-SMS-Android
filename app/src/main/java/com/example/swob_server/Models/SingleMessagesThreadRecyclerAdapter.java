@@ -64,7 +64,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             date = dateFormat.format(new Date(Long.parseLong(date)));
         }
         else {
-            DateFormat format = new SimpleDateFormat("MMMM dd");
+            DateFormat format = new SimpleDateFormat("MMMM dd h:mm a");
 
             Calendar calendar = new GregorianCalendar();
             calendar.setTime(new Date(Long.parseLong(date)));

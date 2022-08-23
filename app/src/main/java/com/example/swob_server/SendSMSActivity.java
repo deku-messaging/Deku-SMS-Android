@@ -1,6 +1,8 @@
 package com.example.swob_server;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -30,6 +32,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.swob_server.Commons.Contacts;
 import com.example.swob_server.Models.SingleMessagesThreadRecyclerAdapter;
 import com.example.swob_server.Models.SMS;
 import com.example.swob_server.Models.SMSHandler;
@@ -57,6 +60,18 @@ public class SendSMSActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+        setSupportActionBar(myToolbar);
+
+        // Get a support ActionBar corresponding to this toolbar
+        ActionBar ab = getSupportActionBar();
+
+        // Enable the Up button
+        ab.setDisplayHomeAsUpEnabled(true);
+
+        String address = getIntent().getStringExtra(ADDRESS);
+        ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
 
         currentlyActive = true;
         if(!checkPermissionToSendSMSMessages())
