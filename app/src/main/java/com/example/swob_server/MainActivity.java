@@ -39,6 +39,7 @@ import java.security.spec.InvalidKeySpecException;
 public class MainActivity extends AppCompatActivity {
 
     public static final int READ_SMS_PERMISSION_REQUEST_CODE = 1;
+    public static final int READ_CONTACTS_PERMISSION_REQUEST_CODE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,16 +69,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onPostCreate(Bundle savedInstanceStates) {
         super.onPostCreate(savedInstanceStates);
 
+        checkIsDefaultApp();
         if(!checkPermissionToReadSMSMessages()) {
             ActivityCompat.requestPermissions(
                     this,
                     new String[]{Manifest.permission.READ_SMS}, READ_SMS_PERMISSION_REQUEST_CODE);
         }
         else {
-            startActivity(new Intent(this, MessagesThreadsActivity.class));
-            finish();
+            if(!checkPermissionToReadContacts()) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{Manifest.permission.READ_CONTACTS}, READ_CONTACTS_PERMISSION_REQUEST_CODE);
+            }
+            else {
+                startActivity(new Intent(this, MessagesThreadsActivity.class));
+                finish();
+            }
         }
-        checkIsDefaultApp();
     }
 
     private void checkIsDefaultApp() {
@@ -130,19 +138,35 @@ public class MainActivity extends AppCompatActivity {
         return (check == PackageManager.PERMISSION_GRANTED);
     }
 
+    public boolean checkPermissionToReadContacts() {
+        int check = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
+
+        return (check == PackageManager.PERMISSION_GRANTED);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
         switch (requestCode) {
             case READ_SMS_PERMISSION_REQUEST_CODE:
                 if (grantResults.length > 0) {
-                    Toast.makeText(this, "Let's do this!!", Toast.LENGTH_LONG).show();
-                    startActivity(new Intent(this, MessagesThreadsActivity.class));
-                    finish();
+                    if(checkPermissionToReadContacts())
+                        startActivity(new Intent(this, MessagesThreadsActivity.class));
+                    else {
+                        ActivityCompat.requestPermissions(
+                                this,
+                                new String[]{Manifest.permission.READ_CONTACTS}, READ_CONTACTS_PERMISSION_REQUEST_CODE);
+                    }
                 } else {
                     Toast.makeText(this, "Permission denied!", Toast.LENGTH_LONG).show();
                     finish();
                 }
                 break;
+
+            case READ_CONTACTS_PERMISSION_REQUEST_CODE:
+                startActivity(new Intent(this, MessagesThreadsActivity.class));
+                finish();
+                break;
+
         }
     }
 

@@ -1,7 +1,9 @@
 package com.example.swob_server.Models;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,8 +11,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_server.Commons.Contacts;
 import com.example.swob_server.R;
 import com.example.swob_server.SendSMSActivity;
 
@@ -37,10 +41,22 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         return new MessagesThreadRecyclerAdapter.ViewHolder(view);
     }
 
+    public boolean checkPermissionToReadContacts() {
+        int check = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS);
+
+        return (check == PackageManager.PERMISSION_GRANTED);
+    }
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.snippet.setText(messagesThreadList.get(position).getBody());
-        holder.address.setText(messagesThreadList.get(position).getAddress());
+
+        String address = messagesThreadList.get(position).getAddress();
+
+        if(checkPermissionToReadContacts())
+            address = Contacts.retrieveContactName(context, address);
+
+        holder.address.setText(address);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
