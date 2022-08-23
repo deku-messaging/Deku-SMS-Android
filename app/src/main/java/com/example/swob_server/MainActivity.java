@@ -7,6 +7,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -70,27 +71,29 @@ public class MainActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceStates);
 
         checkIsDefaultApp();
-        if(!checkPermissionToReadSMSMessages()) {
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{Manifest.permission.READ_SMS}, READ_SMS_PERMISSION_REQUEST_CODE);
-        }
-        else {
-            if(!checkPermissionToReadContacts()) {
-                ActivityCompat.requestPermissions(
-                        this,
-                        new String[]{Manifest.permission.READ_CONTACTS}, READ_CONTACTS_PERMISSION_REQUEST_CODE);
-            }
-            else {
-                startActivity(new Intent(this, MessagesThreadsActivity.class));
-                finish();
-            }
-        }
+//        if(!checkPermissionToReadSMSMessages()) {
+//            ActivityCompat.requestPermissions(
+//                    this,
+//                    new String[]{Manifest.permission.READ_SMS}, READ_SMS_PERMISSION_REQUEST_CODE);
+//        }
+//        else {
+//            if(!checkPermissionToReadContacts()) {
+//                ActivityCompat.requestPermissions(
+//                        this,
+//                        new String[]{Manifest.permission.READ_CONTACTS}, READ_CONTACTS_PERMISSION_REQUEST_CODE);
+//            }
+//            else {
+//                startActivity(new Intent(this, MessagesThreadsActivity.class));
+//                finish();
+//            }
+//        }
     }
 
     private void checkIsDefaultApp() {
         final String myPackageName = getPackageName();
-        if (!Telephony.Sms.getDefaultSmsPackage(this).equals(myPackageName)) {
+        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
+
+        if (defaultPackage == null || !myPackageName.equals(defaultPackage)) {
             Toast.makeText(this, "I'm not your default app.", Toast.LENGTH_LONG).show();
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                 RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
@@ -105,7 +108,26 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         }
+        else {
+            startActivity(new Intent(this, MessagesThreadsActivity.class));
+            finish();
+        }
     }
+
+    @Override
+    public void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+
+        switch (reqCode) {
+            case 0:
+                if(resultCode == Activity.RESULT_OK) {
+                    startActivity(new Intent(this, MessagesThreadsActivity.class));
+                }
+            default:
+                finish();
+        }
+    }
+
 
     private void createNotificationChannel() {
         // TODO: Read more: https://developer.android.com/training/notify-user/channels
