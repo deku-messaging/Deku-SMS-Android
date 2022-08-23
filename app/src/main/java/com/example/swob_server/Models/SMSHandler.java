@@ -23,7 +23,6 @@ public class SMSHandler {
 
         try {
             smsManager.sendTextMessage(destinationAddress, null, text, sentIntent, deliveryIntent);
-            SMSHandler.registerSentMessage(context, destinationAddress, text);
         }
         catch(Throwable e) {
             // throw new IllegalArgumentException(e);
@@ -93,10 +92,35 @@ public class SMSHandler {
         context.getContentResolver().insert(Uri.parse(Telephony.Sms.Inbox.CONTENT_URI.toString()), contentValues);
     }
 
+    public static void registerOutgoingMessage(Context context, String destinationAddress, String text) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("address", destinationAddress);
+        contentValues.put("body", text);
+        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Outbox.CONTENT_URI.toString()), contentValues);
+    }
+
+    public static void registerFailedMessage(Context context, String destinationAddress, String text, int errorCode) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("address", destinationAddress);
+        contentValues.put("body", text);
+        contentValues.put("status", Telephony.TextBasedSmsColumns.STATUS_FAILED);
+        contentValues.put("error_code", errorCode);
+        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Outbox.CONTENT_URI.toString()), contentValues);
+    }
+
     public static void registerSentMessage(Context context, String destinationAddress, String text) {
         ContentValues contentValues = new ContentValues();
         contentValues.put("address", destinationAddress);
         contentValues.put("body", text);
         context.getContentResolver().insert(Uri.parse(Telephony.Sms.Sent.CONTENT_URI.toString()), contentValues);
     }
+
+    public static void registerPendingMessage(Context context, String destinationAddress, String text) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("address", destinationAddress);
+        contentValues.put("body", text);
+        contentValues.put("status", Telephony.TextBasedSmsColumns.STATUS_PENDING);
+        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Outbox.CONTENT_URI.toString()), contentValues);
+    }
+
 }

@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -28,9 +28,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SENDTO" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="sms" />
                 <data android:scheme="smsto" />
@@ -51,13 +48,13 @@
         <receiver
             android:name=".SMSReceiverActivity"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:taskAffinity=""
-            android:permission="android.permission.BROADCAST_SMS"
-            android:excludeFromRecents="true">
+            android:permission="android.permission.BROADCAST_SMS" >
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
             </intent-filter>
         </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
 

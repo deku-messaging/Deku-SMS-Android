@@ -1,6 +1,8 @@
 package com.example.swob_server.Models;
 
 import android.content.Context;
+import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +13,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_server.R;
 
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
@@ -31,11 +38,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
         switch(viewType) {
+            // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
             case 1: {
                 LayoutInflater inflater = LayoutInflater.from(this.context);
                 View view = inflater.inflate(this.renderLayoutReceived, parent, false);
                 return new MessageReceivedViewHandler(view);
             }
+            case 5:
+            case 4:
             case 2: {
                 LayoutInflater inflater = LayoutInflater.from(this.context);
                 View view = inflater.inflate(this.renderLayoutSent, parent, false);
@@ -48,15 +58,34 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        String date = messagesList.get(position).getDate();
+        if (DateUtils.isToday(Long.parseLong(date))) {
+            DateFormat dateFormat = new SimpleDateFormat("h:mm a");
+            date = dateFormat.format(new Date(Long.parseLong(date)));
+        }
+        else {
+            DateFormat format = new SimpleDateFormat("MMMM dd");
+
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(new Date(Long.parseLong(date)));
+            date = format.format(calendar.getTime());
+        }
         switch(messagesList.get(position).getType()) {
             case "1":
                 ((MessageReceivedViewHandler)holder).receivedMessage.setText(messagesList.get(position).getBody());
-                ((MessageReceivedViewHandler)holder).date.setText(messagesList.get(position).getDate());
+                ((MessageReceivedViewHandler)holder).date.setText(date);
                 break;
 
             case "2":
                 ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
-                ((MessageSentViewHandler)holder).date.setText(messagesList.get(position).getDate());
+                ((MessageSentViewHandler) holder).date.setText(date);
+                ((MessageSentViewHandler) holder).sentMessageStatus.setText("Sent");
+                break;
+            case "4":
+            case "5":
+                ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
+                ((MessageSentViewHandler) holder).date.setText(date);
+                ((MessageSentViewHandler) holder).sentMessageStatus.setText("Failed");
                 break;
         }
     }
@@ -69,7 +98,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     @Override
     public int getItemViewType(int position)
     {
-        return Integer.parseInt(messagesList.get(position).getType());
+        int messageType = Integer.parseInt(messagesList.get(position).getType());
+        return (messageType > -1 )? messageType : 0;
     }
 
     public class MessageSentViewHandler extends RecyclerView.ViewHolder {

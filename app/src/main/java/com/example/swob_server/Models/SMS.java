@@ -54,19 +54,44 @@ public class SMS {
     String date = new String();
     String type;
 
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    String errorCode;
+    int statusCode;
+
     public SMS(Cursor cursor) {
         int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
-        Log.d("", "body index: " + bodyIndex);
         int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
         int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
         int dateIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
         int typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE);
+        int errorCodeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ERROR_CODE);
+        int statusCodeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.STATUS);
 
-        this.body =  String.valueOf(cursor.getString(bodyIndex));
-        this.address =  String.valueOf(cursor.getString(addressIndex));
-        this.threadId =  String.valueOf(cursor.getString(threadIdIndex));
-        this.date =  String.valueOf(cursor.getString(dateIndex));
         this.type =  String.valueOf(cursor.getString(typeIndex));
+        this.body = String.valueOf(cursor.getString(bodyIndex));
+        this.address = String.valueOf(cursor.getString(addressIndex));
+        this.threadId = String.valueOf(cursor.getString(threadIdIndex));
+        this.date = String.valueOf(cursor.getString(dateIndex));
+
+        if(errorCodeIndex > -1 )
+            this.errorCode = String.valueOf(cursor.getString(errorCodeIndex));
+        if(statusCodeIndex > -1 )
+            this.statusCode = cursor.getInt(statusCodeIndex);
     }
 
     public SMS(Cursor cursor, boolean isThread) {

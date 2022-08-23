@@ -11,6 +11,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.role.RoleManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -23,6 +24,8 @@ import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.swob_server.Models.DHKeyAgreement2;
@@ -59,6 +62,12 @@ public class MainActivity extends AppCompatActivity {
         createNotificationChannel();
         handleIncomingMessage();
 
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceStates) {
+        super.onPostCreate(savedInstanceStates);
+
         if(!checkPermissionToReadSMSMessages()) {
             ActivityCompat.requestPermissions(
                     this,
@@ -67,6 +76,26 @@ public class MainActivity extends AppCompatActivity {
         else {
             startActivity(new Intent(this, MessagesThreadsActivity.class));
             finish();
+        }
+        checkIsDefaultApp();
+    }
+
+    private void checkIsDefaultApp() {
+        final String myPackageName = getPackageName();
+        if (!Telephony.Sms.getDefaultSmsPackage(this).equals(myPackageName)) {
+            Toast.makeText(this, "I'm not your default app.", Toast.LENGTH_LONG).show();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
+                Intent roleManagerIntent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS);
+                roleManagerIntent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
+                startActivityForResult(roleManagerIntent, 0);
+            }
+            else {
+                Intent intent =
+                        new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+                intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
+                startActivity(intent);
+            }
         }
     }
 
@@ -164,4 +193,5 @@ public class MainActivity extends AppCompatActivity {
         // notificationId is a unique int for each notification that you must define
         notificationManager.notify(8888, builder.build());
     }
+
 }
