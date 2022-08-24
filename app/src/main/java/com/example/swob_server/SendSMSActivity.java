@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,6 +30,8 @@ import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -72,6 +75,8 @@ public class SendSMSActivity extends AppCompatActivity {
 
         String address = getIntent().getStringExtra(ADDRESS);
         ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
+
+        InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 
         currentlyActive = true;
         if(!checkPermissionToSendSMSMessages())

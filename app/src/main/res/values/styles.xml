@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.NoActionBar">
         <item name="android:textColor">#FAFAFA</item>
         <item name="android:navigationBarColor">
             @android:color/transparent
