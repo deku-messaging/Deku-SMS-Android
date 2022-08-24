@@ -219,10 +219,7 @@ public class SendSMSActivity extends AppCompatActivity {
 
 
     public void sendMessage(View view) {
-        // TODO: Have interns for -
-        // TODO: sending
-        // TODO: delivered
-        // TODO: failed
+        // TODO: Don't let sending happen if message box is empty
         String destinationAddress = getIntent().getStringExtra(ADDRESS);
         TextView smsTextView = findViewById(R.id.sms_text);
         String text = smsTextView.getText().toString();

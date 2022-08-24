@@ -25,6 +25,7 @@ public class SMSHandler {
 
         try {
             registerPendingMessage(context, destinationAddress, text, messageId);
+            // TODO: Handle sending multipart messages
             smsManager.sendTextMessage(destinationAddress, null, text, sentIntent, deliveryIntent);
         }
         catch(Throwable e) {
