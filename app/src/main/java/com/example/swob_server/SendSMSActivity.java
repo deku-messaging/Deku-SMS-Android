@@ -124,7 +124,7 @@ public class SendSMSActivity extends AppCompatActivity {
     }
 
     public boolean isCurrentlyActive() {
-        return this.getWindow().getDecorView().isShown();
+        return this.getWindow().getDecorView().getRootView().isShown();
     }
 
     private void handleDeliveredMessages() {
