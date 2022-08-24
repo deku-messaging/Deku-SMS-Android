@@ -13,21 +13,35 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
+import com.example.swob_server.Commons.Helpers;
+
 import java.util.List;
 
 public class SMSHandler {
 
-    public static void sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent) {
+    public static void sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
             context.getSystemService(SmsManager.class) : SmsManager.getDefault();
 
         try {
+            registerPendingMessage(context, destinationAddress, text, messageId);
             smsManager.sendTextMessage(destinationAddress, null, text, sentIntent, deliveryIntent);
         }
         catch(Throwable e) {
             // throw new IllegalArgumentException(e);
             throw e;
         }
+    }
+
+    public static Cursor fetchSMSMessageId(Context context, long id) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                Uri.parse("content://sms"),
+                null,
+                "_id=?",
+                new String[] { Long.toString(id) },
+                null);
+
+        return smsMessagesCursor;
     }
 
     public static Cursor fetchSMSMessagesAddress(Context context, String address) {
@@ -92,35 +106,72 @@ public class SMSHandler {
         context.getContentResolver().insert(Uri.parse(Telephony.Sms.Inbox.CONTENT_URI.toString()), contentValues);
     }
 
-    public static void registerOutgoingMessage(Context context, String destinationAddress, String text) {
+    public static void registerFailedMessage(Context context, long messageId, int errorCode) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put("address", destinationAddress);
-        contentValues.put("body", text);
-        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Outbox.CONTENT_URI.toString()), contentValues);
-    }
-
-    public static void registerFailedMessage(Context context, String destinationAddress, String text, int errorCode) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put("address", destinationAddress);
-        contentValues.put("body", text);
         contentValues.put("status", Telephony.TextBasedSmsColumns.STATUS_FAILED);
         contentValues.put("error_code", errorCode);
-        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Outbox.CONTENT_URI.toString()), contentValues);
+        contentValues.put("type", Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
+
+        Uri failedContentUri = Telephony.Sms.CONTENT_URI;
+        context.getContentResolver().update(failedContentUri, contentValues, "_id=?",
+                new String[] { Long.toString(messageId)});
     }
 
-    public static void registerSentMessage(Context context, String destinationAddress, String text) {
+    public static void registerDeliveredMessage(Context context, long messageId) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put("address", destinationAddress);
-        contentValues.put("body", text);
-        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Sent.CONTENT_URI.toString()), contentValues);
+        contentValues.put("status", Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
+
+        Uri failedContentUri = Telephony.Sms.CONTENT_URI;
+        context.getContentResolver().update(failedContentUri, contentValues, "_id=?",
+                new String[] { Long.toString(messageId)});
     }
 
-    public static void registerPendingMessage(Context context, String destinationAddress, String text) {
+    public static void registerSentMessage(Context context, long messageId) {
+        Uri inboxContentUri = Telephony.Sms.Sent.CONTENT_URI;
+        Uri outboxContentUri = Telephony.Sms.CONTENT_URI;
+
         ContentValues contentValues = new ContentValues();
+        contentValues.put("_id", messageId);
+        contentValues.put("status", Telephony.TextBasedSmsColumns.STATUS_NONE);
+
+        Cursor cursor = fetchSMSMessageId(context, messageId);
+        if(cursor.moveToFirst()) {
+            try {
+                context.getContentResolver().delete(outboxContentUri, "_id=?",
+                        new String[]{Long.toString(messageId)});
+            }
+            catch (Exception e ) {
+                e.printStackTrace();
+            }
+            SMS sms = new SMS(cursor);
+            String destinationAddress = sms.getAddress();
+            String text = sms.getBody();
+
+            contentValues.put("address", destinationAddress);
+            contentValues.put("body", text);
+
+            try {
+                context.getContentResolver().insert(inboxContentUri, contentValues);
+            }
+            catch(Exception e ) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void registerPendingMessage(Context context, String destinationAddress, String text, long messageId) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("_id", messageId);
         contentValues.put("address", destinationAddress);
         contentValues.put("body", text);
         contentValues.put("status", Telephony.TextBasedSmsColumns.STATUS_PENDING);
-        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Outbox.CONTENT_URI.toString()), contentValues);
+        Uri outboxContentUri = Telephony.Sms.Outbox.CONTENT_URI;
+        try {
+            context.getContentResolver().insert(outboxContentUri, contentValues);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

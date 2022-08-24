@@ -3,6 +3,7 @@ package com.example.swob_server.Commons;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 
 public class Helpers {
     /*
@@ -30,5 +31,10 @@ public class Helpers {
             }
         }
         return buf.toString();
+    }
+
+    public static long generateRandomNumber() {
+        Random random = new Random();
+        return random.nextLong();
     }
 }

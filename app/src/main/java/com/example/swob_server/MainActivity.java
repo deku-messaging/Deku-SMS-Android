@@ -62,8 +62,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         createNotificationChannel();
-        handleIncomingMessage();
-
     }
 
     @Override
@@ -190,54 +188,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
         }
-    }
-
-    private void handleIncomingMessage() {
-        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if(intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")) {
-                    for (SmsMessage currentSMS: Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                        // TODO: Fetch address name from contact list if present
-                        String address = currentSMS.getDisplayOriginatingAddress();
-
-                        String message = currentSMS.getDisplayMessageBody();
-                        SMSHandler.registerIncomingMessage(context, currentSMS);
-                        sendNotification(message, address);
-                    }
-                }
-            }
-        };
-        registerReceiver(broadcastReceiver, new IntentFilter("android.provider.Telephony.SMS_RECEIVED"));
-    }
-
-    private void sendNotification(String text, String address) {
-        Intent receivedSmsIntent = new Intent(this, SendSMSActivity.class);
-        receivedSmsIntent.putExtra(SendSMSActivity.ADDRESS, address);
-        receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-        PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity(
-                this, 0, receivedSmsIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                getApplicationContext(), getString(R.string.CHANNEL_ID))
-                .setDefaults(Notification.DEFAULT_ALL)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("New SMS from " + address)
-                .setContentText(text)
-                .setContentIntent(pendingReceivedSmsIntent)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(text))
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_MAX);
-
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
-
-        // notificationId is a unique int for each notification that you must define
-        notificationManager.notify(8888, builder.build());
     }
 
 }

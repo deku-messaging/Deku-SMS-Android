@@ -1,6 +1,7 @@
 package com.example.swob_server.Models;
 
 import android.content.Context;
+import android.provider.Telephony;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -70,22 +71,32 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             calendar.setTime(new Date(Long.parseLong(date)));
             date = format.format(calendar.getTime());
         }
-        switch(messagesList.get(position).getType()) {
+        SMS sms = messagesList.get(position);
+        switch(sms.getType()) {
+//            https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns?hl=en#TYPE
             case "1":
-                ((MessageReceivedViewHandler)holder).receivedMessage.setText(messagesList.get(position).getBody());
+                ((MessageReceivedViewHandler)holder).receivedMessage.setText(sms.getBody());
                 ((MessageReceivedViewHandler)holder).date.setText(date);
                 break;
 
             case "2":
-                ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
+                ((MessageSentViewHandler)holder).sentMessage.setText(sms.getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
-                ((MessageSentViewHandler) holder).sentMessageStatus.setText("Sent");
+
+                int status = sms.getStatusCode();
+                String statusMessage = status == Telephony.Sms.STATUS_COMPLETE ?
+                        "delivered" : "sent";
+                ((MessageSentViewHandler) holder).sentMessageStatus.setText(statusMessage);
                 break;
             case "4":
+                ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
+                ((MessageSentViewHandler) holder).date.setText(date);
+                ((MessageSentViewHandler) holder).sentMessageStatus.setText("sending...");
+                break;
             case "5":
                 ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
-                ((MessageSentViewHandler) holder).sentMessageStatus.setText("Failed");
+                ((MessageSentViewHandler) holder).sentMessageStatus.setText("failed");
                 break;
         }
     }

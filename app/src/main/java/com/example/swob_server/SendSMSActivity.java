@@ -36,6 +36,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.swob_server.Commons.Contacts;
+import com.example.swob_server.Commons.Helpers;
 import com.example.swob_server.Models.SingleMessagesThreadRecyclerAdapter;
 import com.example.swob_server.Models.SMS;
 import com.example.swob_server.Models.SMSHandler;
@@ -49,6 +50,7 @@ public class SendSMSActivity extends AppCompatActivity {
 
     public static final String ADDRESS = "address";
     public static final String BODY = "body";
+    public static final String ID = "_id";
 
     public static final String SMS_SENT_INTENT = "SMS_SENT";
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
@@ -87,21 +89,22 @@ public class SendSMSActivity extends AppCompatActivity {
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
         handleIncomingMessage();
-        handleSentMessages();
-        handleDeliveredMessages();
+//        handleSentMessages();
+//        handleDeliveredMessages();
         populateMessageThread();
+
     }
 
     private void handleSentMessages() {
+//        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
         BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String destinationAddress = intent.getStringExtra(ADDRESS);
-                String text = intent.getStringExtra(BODY);
+                long id = intent.getLongExtra(ID, -1);
                 switch(getResultCode()) {
 
                     case Activity.RESULT_OK:
-                        SMSHandler.registerSentMessage(context, destinationAddress, text);
+                        SMSHandler.registerSentMessage(context, id);
                         break;
 
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
@@ -109,21 +112,37 @@ public class SendSMSActivity extends AppCompatActivity {
                     case SmsManager.RESULT_ERROR_NULL_PDU:
                     case SmsManager.RESULT_ERROR_RADIO_OFF:
                     default:
-                        SMSHandler.registerFailedMessage(context, destinationAddress, text, getResultCode());
+                        SMSHandler.registerFailedMessage(context, id, getResultCode());
                 }
-                if(currentlyActive) {
+                if(isCurrentlyActive()) {
                     updateStack();
+                    unregisterReceiver(this);
                 }
             }
         };
         registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
     }
 
+    public boolean isCurrentlyActive() {
+        return this.getWindow().getDecorView().isShown();
+    }
+
     private void handleDeliveredMessages() {
+//        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
         BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Toast.makeText(context, "SMS Delivered", Toast.LENGTH_SHORT).show();
+                long id = intent.getLongExtra(ID, -1);
+                switch(getResultCode()) {
+
+                    case Activity.RESULT_OK:
+                        SMSHandler.registerDeliveredMessage(context, id);
+                        break;
+                }
+                if(isCurrentlyActive()) {
+                    updateStack();
+                    unregisterReceiver(this);
+                }
             }
         };
         registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
@@ -139,7 +158,7 @@ public class SendSMSActivity extends AppCompatActivity {
 
                     // TODO: Fetch address name from contact list if present
                     String address = currentSMS.getDisplayOriginatingAddress();
-                    if (currentlyActive && address.equals(getIntent().getStringExtra(ADDRESS))) {
+                    if (isCurrentlyActive() && address.equals(getIntent().getStringExtra(ADDRESS))) {
                         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
                                 getApplicationContext());
 
@@ -210,13 +229,12 @@ public class SendSMSActivity extends AppCompatActivity {
 
         try {
 //            SMSHandler.registerOutgoingMessage(getApplicationContext(), destinationAddress, text);
+            long messageId = Helpers.generateRandomNumber();
             Intent sentIntent = new Intent(SMS_SENT_INTENT);
-            sentIntent.putExtra(ADDRESS, destinationAddress);
-            sentIntent.putExtra(BODY, text);
+            sentIntent.putExtra(ID, messageId);
 
             Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
-            deliveredIntent.putExtra(ADDRESS, destinationAddress);
-            deliveredIntent.putExtra(BODY, text);
+            deliveredIntent.putExtra(ID, messageId);
 
              PendingIntent sentPendingIntent = PendingIntent.getBroadcast(this, 200,
                      sentIntent,
@@ -226,8 +244,11 @@ public class SendSMSActivity extends AppCompatActivity {
                     deliveredIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+            handleSentMessages();
+            handleDeliveredMessages();
+
             SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
-                    sentPendingIntent, deliveredPendingIntent);
+                    sentPendingIntent, deliveredPendingIntent, messageId);
 
             smsTextView.setText("");
             updateStack();
