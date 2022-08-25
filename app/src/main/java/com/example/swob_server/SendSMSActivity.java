@@ -89,9 +89,9 @@ public class SendSMSActivity extends AppCompatActivity {
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
         handleIncomingMessage();
-//        handleSentMessages();
-//        handleDeliveredMessages();
         populateMessageThread();
+
+        // TODO: Mark all messages in this thread as {STATUS:SEEN}
 
     }
 

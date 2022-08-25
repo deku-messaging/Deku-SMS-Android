@@ -9,15 +9,41 @@ import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.swob_server.Models.Router;
 import com.example.swob_server.Models.SMSHandler;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.concurrent.TimeUnit;
 
 public class SMSReceiverActivity extends BroadcastReceiver {
     Context context;
+
+    public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -33,9 +59,73 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                         String message = currentSMS.getDisplayMessageBody();
                         SMSHandler.registerIncomingMessage(context, currentSMS);
                         sendNotification(message, address);
+
+                        try {
+//                            routeMessagesToGatewayServers(context, address, message);
+                            Constraints constraints = new Constraints.Builder()
+                                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                                    .build();
+
+                            OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
+                                    .setConstraints(constraints)
+                                    .setBackoffCriteria(
+                                            BackoffPolicy.LINEAR,
+                                            OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                                            TimeUnit.MILLISECONDS
+                                    )
+                                    .addTag(TAG_NAME)
+                                    .addTag(address)
+                                    .setInputData(
+                                            new Data.Builder()
+                                                    .putString("address", address)
+                                                    .putString("text", message)
+                                                    .build()
+                                    )
+                                    .build();
+
+                            String uniqueWorkName = address + message;
+                            WorkManager workManager = WorkManager.getInstance(context);
+                            workManager.enqueueUniqueWork(
+                                            uniqueWorkName,
+                                            ExistingWorkPolicy.KEEP,
+                                            routeMessageWorkRequest);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
             }
         }
+    }
+
+    private void routeMessagesToGatewayServers(Context context, String destinationAddress, String text) throws JSONException {
+        // TODO: Pause to resend if no internet connection
+        // TODO: Pause till routing can happen, but should probably use a broker for this
+        JSONObject jsonBody = new JSONObject( "{\"text\": \"" + text + "\", \"number\": \"" + destinationAddress + "\"}");
+
+        // TODO: make this come from a config file
+        String gatewayServerUrl = "https://developers.smswithoutborders.com:15000/sms/platform/gateway-client";
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
+                gatewayServerUrl,
+                jsonBody, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Toast.makeText(context, "Successfully routed messages online", Toast.LENGTH_LONG).show();
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                // 500 = failed route
+                Toast.makeText(context, "Failed to route messages", Toast.LENGTH_LONG).show();
+                new Throwable(error);
+            }
+        });
+
+        RequestQueue queue = Volley.newRequestQueue(context);
+        queue.add(jsonObjectRequest);
     }
 
     private void sendNotification(String text, String address) {
