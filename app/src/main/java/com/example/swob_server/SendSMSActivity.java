@@ -213,7 +213,7 @@ public class SendSMSActivity extends AppCompatActivity {
         linearLayoutManager.setReverseLayout(true);
 
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
-        singleMessagesThreadRecyclerView.scrollToPosition(messagesForThread.size() - 1);
+//        singleMessagesThreadRecyclerView.scrollToPosition(messagesForThread.size() - 1);
     }
 
 

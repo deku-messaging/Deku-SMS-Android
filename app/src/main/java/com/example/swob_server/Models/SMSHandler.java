@@ -16,6 +16,7 @@ import android.util.Log;
 
 import com.example.swob_server.Commons.Helpers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,7 +29,26 @@ public class SMSHandler {
         try {
             registerPendingMessage(context, destinationAddress, text, messageId);
             // TODO: Handle sending multipart messages
-            smsManager.sendTextMessage(destinationAddress, null, text, sentIntent, deliveryIntent);
+            ArrayList<String> dividedMessage = smsManager.divideMessage(text);
+            if(dividedMessage.size() < 2 )
+                smsManager.sendTextMessage(destinationAddress, null, text, sentIntent, deliveryIntent);
+            else {
+                ArrayList<PendingIntent> sentPendingIntents = new ArrayList<>();
+                ArrayList<PendingIntent> deliveredPendingIntents = new ArrayList<>();
+
+                for(int i=0;i<dividedMessage.size() - 1; i++) {
+                    sentPendingIntents.add(null);
+                    deliveredPendingIntents.add(null);
+                }
+
+                sentPendingIntents.add(sentIntent);
+                deliveredPendingIntents.add(sentIntent);
+
+                smsManager.sendMultipartTextMessage(
+                        destinationAddress,
+                        null,
+                        dividedMessage, sentPendingIntents, deliveredPendingIntents);
+            }
         }
         catch(Throwable e) {
             // throw new IllegalArgumentException(e);
