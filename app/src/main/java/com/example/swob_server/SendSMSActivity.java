@@ -209,7 +209,8 @@ public class SendSMSActivity extends AppCompatActivity {
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setStackFromEnd(true);
+        linearLayoutManager.setStackFromEnd(false);
+        linearLayoutManager.setReverseLayout(true);
 
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         singleMessagesThreadRecyclerView.scrollToPosition(messagesForThread.size() - 1);

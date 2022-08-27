@@ -64,34 +64,45 @@
                 android:id="@+id/constraintLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/constraintLayout2">
+                app:layout_constraintStart_toStartOf="parent">
 
-                <EditText
-                    android:id="@+id/sms_text"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/send_text"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:ems="10"
-                    android:gravity="start|top"
-                    android:inputType="textMultiLine"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="16dp"
+                    android:fontFamily="sans-serif-thin"
+                    app:boxBackgroundColor="@color/black"
+                    app:counterEnabled="true"
+                    app:helperTextEnabled="true"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/send_btn"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:startIconTint="#00BCD4">
 
-                <Button
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/sms_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="90dp"
+                        android:inputType="textMultiLine|textCapSentences|textLongMessage|textAutoCorrect|text" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <ImageButton
                     android:id="@+id/send_btn"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:onClick="sendMessage"
-                    android:text="Send"
+                    android:layout_height="50dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="24dp"
+                    android:background="#00070707"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:srcCompat="@drawable/ic_round_send_24" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
