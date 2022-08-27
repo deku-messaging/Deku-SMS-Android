@@ -49,6 +49,7 @@ public class SendSMSActivity extends AppCompatActivity {
     List<String> messagesList = new ArrayList();
 
     public static final String ADDRESS = "address";
+    public static final String THREAD_ID = "thread_id";
     public static final String BODY = "body";
     public static final String ID = "_id";
 
@@ -193,15 +194,11 @@ public class SendSMSActivity extends AppCompatActivity {
 
     void populateMessageThread() {
         String address = getIntent().getStringExtra(ADDRESS);
-        Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
+        String threadId = getIntent().getStringExtra(THREAD_ID);
+//        Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
+        Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId);
 
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
-        for(SMS sms : messagesForThread) {
-            Log.d(getLocalClassName(), "Message type: " + sms.getType());
-            Log.d(getLocalClassName(), "Message body: " + sms.getBody());
-            Log.d(getLocalClassName(), "Message address: " + sms.getAddress());
-            Log.d(getLocalClassName(), "Message date: " + sms.getDate());
-        }
 
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                 this,

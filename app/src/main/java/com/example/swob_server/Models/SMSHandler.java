@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -16,6 +17,7 @@ import android.util.Log;
 import com.example.swob_server.Commons.Helpers;
 
 import java.util.List;
+import java.util.Locale;
 
 public class SMSHandler {
 
@@ -52,8 +54,8 @@ public class SMSHandler {
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Uri.parse("content://sms"),
                 new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
-                "address=?",
-                new String[] { address },
+                "address like ?",
+                new String[] { "%" + address + "%" },
                 "date ASC");
 
         return smsMessagesCursor;

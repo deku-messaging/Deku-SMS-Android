@@ -5,46 +5,55 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/message_thread_sent_card_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/text_sent_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:background="#98AEB9"
-        android:clickable="false"
-        android:paddingStart="5dp"
-        android:paddingTop="7dp"
-        android:paddingEnd="5dp"
-        android:paddingBottom="7dp"
-        android:textAlignment="textEnd"
-        android:textColor="@color/black"
-        android:textIsSelectable="true"
+        android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/message_thread_sent_card_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#98AEB9"
+            android:clickable="false"
+            android:paddingStart="5dp"
+            android:paddingTop="7dp"
+            android:paddingEnd="5dp"
+            android:paddingBottom="7dp"
+            android:textAlignment="textEnd"
+            android:textColor="@color/black"
+            android:textIsSelectable="false"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
         android:id="@+id/message_thread_sent_date_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
         android:textAlignment="textEnd"
         android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/message_thread_sent_status_text"
-        app:layout_constraintTop_toBottomOf="@+id/message_thread_sent_card_text" />
+        app:layout_constraintTop_toBottomOf="@+id/text_sent_container" />
 
     <TextView
         android:id="@+id/message_thread_sent_status_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="8dp"
         android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/message_thread_sent_card_text"
-        app:layout_constraintTop_toBottomOf="@+id/message_thread_sent_card_text" />
+        app:layout_constraintEnd_toEndOf="@+id/text_sent_container"
+        app:layout_constraintTop_toBottomOf="@+id/text_sent_container" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

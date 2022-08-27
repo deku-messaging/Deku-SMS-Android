@@ -62,6 +62,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         Cursor cursor = SMSHandler.fetchSMSMessagesThreads(getApplicationContext());
 
         List<SMS> messagesForThread = getThreadsFromCursor(cursor);
+
         messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread);
 
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
