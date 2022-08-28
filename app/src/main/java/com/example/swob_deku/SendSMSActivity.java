@@ -91,7 +91,8 @@ public class SendSMSActivity extends AppCompatActivity {
     }
 
     private void processForSharedIntent() {
-        if(getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
+        String indentAction = getIntent().getAction();
+        if(indentAction != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
             String sendToString = getIntent().getDataString();
 
             if(sendToString.indexOf("smsto:") > -1 || sendToString.indexOf("sms:") > -1) {
