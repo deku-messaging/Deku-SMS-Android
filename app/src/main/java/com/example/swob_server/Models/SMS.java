@@ -50,7 +50,7 @@ public class SMS {
     }
 
     String address = new String();
-    String threadId = new String();
+    String threadId = "-1";
     String date = new String();
     String type;
 
@@ -72,6 +72,7 @@ public class SMS {
 
     String errorCode;
     int statusCode;
+    String id;
 
     public SMS(Cursor cursor) {
         int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
@@ -87,6 +88,9 @@ public class SMS {
         this.address = String.valueOf(cursor.getString(addressIndex));
         this.threadId = String.valueOf(cursor.getString(threadIdIndex));
         this.date = String.valueOf(cursor.getString(dateIndex));
+
+        if(threadIdIndex > -1 )
+            this.threadId = String.valueOf(cursor.getString(threadIdIndex));
 
         if(errorCodeIndex > -1 )
             this.errorCode = String.valueOf(cursor.getString(errorCodeIndex));

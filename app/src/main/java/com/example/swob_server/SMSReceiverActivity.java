@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -32,7 +33,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.swob_server.Commons.Contacts;
 import com.example.swob_server.Models.Router;
+import com.example.swob_server.Models.SMS;
 import com.example.swob_server.Models.SMSHandler;
 
 import org.json.JSONException;
@@ -55,10 +58,11 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                     for (SmsMessage currentSMS: Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         // TODO: Fetch address name from contact list if present
                         String address = currentSMS.getDisplayOriginatingAddress();
+                        address = Contacts.retrieveContactName(context, address);
 
                         String message = currentSMS.getDisplayMessageBody();
-                        SMSHandler.registerIncomingMessage(context, currentSMS);
-                        sendNotification(message, address);
+                        long messageId = SMSHandler.registerIncomingMessage(context, currentSMS);
+                        sendNotification(message, address, messageId);
 
                         try {
 //                            routeMessagesToGatewayServers(context, address, message);
@@ -98,39 +102,18 @@ public class SMSReceiverActivity extends BroadcastReceiver {
         }
     }
 
-    private void routeMessagesToGatewayServers(Context context, String destinationAddress, String text) throws JSONException {
-        // TODO: Pause to resend if no internet connection
-        // TODO: Pause till routing can happen, but should probably use a broker for this
-        JSONObject jsonBody = new JSONObject( "{\"text\": \"" + text + "\", \"number\": \"" + destinationAddress + "\"}");
-
-        // TODO: make this come from a config file
-        String gatewayServerUrl = "https://developers.smswithoutborders.com:15000/sms/platform/gateway-client";
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
-                gatewayServerUrl,
-                jsonBody, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Toast.makeText(context, "Successfully routed messages online", Toast.LENGTH_LONG).show();
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
-                // 500 = failed route
-                Toast.makeText(context, "Failed to route messages", Toast.LENGTH_LONG).show();
-                new Throwable(error);
-            }
-        });
-
-        RequestQueue queue = Volley.newRequestQueue(context);
-        queue.add(jsonObjectRequest);
-    }
-
-    private void sendNotification(String text, String address) {
+    private void sendNotification(String text, String address, long messageId) {
         Intent receivedSmsIntent = new Intent(context, SendSMSActivity.class);
-        receivedSmsIntent.putExtra(SendSMSActivity.ADDRESS, address);
+
+        Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, messageId);
+
+        String threadId = "-1";
+        if(cursor.moveToFirst()) {
+            SMS sms = new SMS(cursor);
+            threadId = sms.getThreadId();
+        }
+        receivedSmsIntent.putExtra(SendSMSActivity.THREAD_ID, threadId);
+
         receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
         PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity(
@@ -141,7 +124,7 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                 context, context.getString(R.string.CHANNEL_ID))
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("New SMS from " + address)
+                .setContentTitle(address)
                 .setContentText(text)
                 .setContentIntent(pendingReceivedSmsIntent)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

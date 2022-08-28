@@ -79,8 +79,6 @@ public class SendSMSActivity extends AppCompatActivity {
         String address = getIntent().getStringExtra(ADDRESS);
         ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
 
-        InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-
         currentlyActive = true;
         if(!checkPermissionToSendSMSMessages())
             ActivityCompat.requestPermissions(
@@ -105,7 +103,12 @@ public class SendSMSActivity extends AppCompatActivity {
                 switch(getResultCode()) {
 
                     case Activity.RESULT_OK:
-                        SMSHandler.registerSentMessage(context, id);
+                        try {
+                            SMSHandler.registerSentMessage(context, id);
+                        }
+                        catch(Exception e) {
+                            e.printStackTrace();
+                        }
                         break;
 
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
@@ -159,13 +162,17 @@ public class SendSMSActivity extends AppCompatActivity {
 
                     // TODO: Fetch address name from contact list if present
                     String address = currentSMS.getDisplayOriginatingAddress();
-                    if (isCurrentlyActive() && address.equals(getIntent().getStringExtra(ADDRESS))) {
-                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
-                                getApplicationContext());
+                    Cursor cursor = SMSHandler.fetchSMSMessagesAddress(context, address);
+                    if(cursor.moveToFirst()) {
+                        SMS sms = new SMS(cursor);
+                        if (isCurrentlyActive() && sms.getThreadId().equals(getIntent().getStringExtra(THREAD_ID))) {
+                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
+                                    getApplicationContext());
 
-                        notificationManager.cancel(8888);
+                            notificationManager.cancel(8888);
 
-                        updateStack();
+                            updateStack();
+                        }
                     }
                 }
             }
@@ -193,9 +200,20 @@ public class SendSMSActivity extends AppCompatActivity {
     }
 
     void populateMessageThread() {
-        String address = getIntent().getStringExtra(ADDRESS);
-        String threadId = getIntent().getStringExtra(THREAD_ID);
 //        Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
+
+        String threadId = "-1";
+        if(getIntent().hasExtra(THREAD_ID))
+            threadId = getIntent().getStringExtra(THREAD_ID);
+
+        else if(getIntent().hasExtra(ADDRESS)) {
+            Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), getIntent().getStringExtra(ADDRESS));
+            if(cursor.moveToFirst()) {
+                SMS sms = new SMS(cursor);
+                threadId = sms.getThreadId();
+            }
+        }
+
         Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId);
 
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);

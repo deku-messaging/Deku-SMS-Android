@@ -93,6 +93,18 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
+    public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, long messageId) {
+        Uri targetedURI = Telephony.Sms.Inbox.CONTENT_URI;
+        Cursor cursor = context.getContentResolver().query(
+                targetedURI,
+                 new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
+                "_id=?",
+                new String[] { String.valueOf(messageId)},
+                null);
+
+        return cursor;
+    }
+
     public static Cursor fetchSMSMessagesThreads(Context context) {
         String targetedURI = String.valueOf(Telephony.Sms.Conversations.CONTENT_URI);
         Cursor cursor = context.getContentResolver().query(
@@ -122,11 +134,22 @@ public class SMSHandler {
     }
 
 
-    public static void registerIncomingMessage(Context context, SmsMessage smsMessage) {
+    public static long registerIncomingMessage(Context context, SmsMessage smsMessage) {
+        long messageId = Helpers.generateRandomNumber();
         ContentValues contentValues = new ContentValues();
+
+        contentValues.put("_id", messageId);
         contentValues.put("address", smsMessage.getOriginatingAddress());
         contentValues.put("body", smsMessage.getMessageBody());
-        context.getContentResolver().insert(Uri.parse(Telephony.Sms.Inbox.CONTENT_URI.toString()), contentValues);
+        contentValues.put("type", Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+
+        try {
+            context.getContentResolver().insert(Uri.parse(Telephony.Sms.CONTENT_URI.toString()), contentValues);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+        return messageId;
     }
 
     public static void registerFailedMessage(Context context, long messageId, int errorCode) {

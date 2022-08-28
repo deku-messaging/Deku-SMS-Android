@@ -8,11 +8,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.Telephony;
+import android.telephony.SmsMessage;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -35,6 +40,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         populateMessageThreads();
         cancelAllNotifications();
+        handleIncomingMessage();
     }
 
     private void cancelAllNotifications() {
@@ -80,6 +86,25 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     public void onNewMessageClick(View view) {
         Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
         startActivityForResult(intent, 1);
+    }
+
+    public boolean isCurrentlyActive() {
+        return this.getWindow().getDecorView().getRootView().isShown();
+    }
+
+    private void updateStack() { populateMessageThreads(); }
+
+    private void handleIncomingMessage() {
+        BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if(isCurrentlyActive())
+                    updateStack();
+            }
+        };
+
+        // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
+        registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
     }
 
 
