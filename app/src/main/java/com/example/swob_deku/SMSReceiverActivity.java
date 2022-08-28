@@ -95,6 +95,7 @@ public class SMSReceiverActivity extends BroadcastReceiver {
             SMS sms = new SMS(cursor);
             threadId = sms.getThreadId();
         }
+        receivedSmsIntent.putExtra(SendSMSActivity.ADDRESS, address);
         receivedSmsIntent.putExtra(SendSMSActivity.THREAD_ID, threadId);
 
         receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

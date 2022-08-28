@@ -176,22 +176,23 @@ public class SendSMSActivity extends AppCompatActivity {
         BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals(Telephony.Sms.Intents.SMS_RECEIVED_ACTION)) {
-                for (SmsMessage currentSMS: Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                    // currentSMS = SMSHandler.getIncomingMessage(aObject, bundle);
+                if(intent.getAction().equals(Telephony.Sms.Intents.SMS_RECEIVED_ACTION)) {
+                    for (SmsMessage currentSMS: Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
+                        // currentSMS = SMSHandler.getIncomingMessage(aObject, bundle);
 
-                    // TODO: Fetch address name from contact list if present
-                    String address = currentSMS.getDisplayOriginatingAddress();
-                    Cursor cursor = SMSHandler.fetchSMSMessagesAddress(context, address);
-                    if(cursor.moveToFirst()) {
-                        SMS sms = new SMS(cursor);
-                        if (isCurrentlyActive() && sms.getThreadId().equals(getIntent().getStringExtra(THREAD_ID))) {
-                            cancelNotifications();
-                            updateStack();
+                        // TODO: Fetch address name from contact list if present
+                        String address = currentSMS.getDisplayOriginatingAddress();
+                        Cursor cursor = SMSHandler.fetchSMSMessagesAddress(context, address);
+                        if(cursor.moveToFirst()) {
+                            SMS sms = new SMS(cursor);
+                            if (isCurrentlyActive() && sms.getThreadId().equals(getIntent().getStringExtra(THREAD_ID))) {
+                                getIntent().putExtra(ADDRESS, sms.getAddress());
+                                cancelNotifications();
+                                updateStack();
+                            }
                         }
                     }
                 }
-            }
             }
         };
 
