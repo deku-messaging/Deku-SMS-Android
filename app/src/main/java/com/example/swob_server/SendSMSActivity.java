@@ -89,6 +89,7 @@ public class SendSMSActivity extends AppCompatActivity {
 
         handleIncomingMessage();
         populateMessageThread();
+        cancelNotifications();
 
         // TODO: Mark all messages in this thread as {STATUS:SEEN}
 
@@ -152,6 +153,13 @@ public class SendSMSActivity extends AppCompatActivity {
         registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
     }
 
+    public void cancelNotifications() {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
+                getApplicationContext());
+
+        notificationManager.cancel(Integer.parseInt(getIntent().getStringExtra(THREAD_ID)));
+    }
+
     private void handleIncomingMessage() {
         BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -166,11 +174,7 @@ public class SendSMSActivity extends AppCompatActivity {
                     if(cursor.moveToFirst()) {
                         SMS sms = new SMS(cursor);
                         if (isCurrentlyActive() && sms.getThreadId().equals(getIntent().getStringExtra(THREAD_ID))) {
-                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
-                                    getApplicationContext());
-
-                            notificationManager.cancel(8888);
-
+                            cancelNotifications();
                             updateStack();
                         }
                     }

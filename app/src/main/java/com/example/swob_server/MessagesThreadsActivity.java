@@ -143,6 +143,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onResume();
 
         populateMessageThreads();
-        cancelAllNotifications();
+//        cancelAllNotifications();
     }
 }

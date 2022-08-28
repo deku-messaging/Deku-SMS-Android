@@ -58,7 +58,6 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                     for (SmsMessage currentSMS: Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         // TODO: Fetch address name from contact list if present
                         String address = currentSMS.getDisplayOriginatingAddress();
-                        address = Contacts.retrieveContactName(context, address);
 
                         String message = currentSMS.getDisplayMessageBody();
                         long messageId = SMSHandler.registerIncomingMessage(context, currentSMS);
@@ -124,7 +123,7 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                 context, context.getString(R.string.CHANNEL_ID))
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle(address)
+                .setContentTitle(Contacts.retrieveContactName(context, address))
                 .setContentText(text)
                 .setContentIntent(pendingReceivedSmsIntent)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -137,6 +136,6 @@ public class SMSReceiverActivity extends BroadcastReceiver {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
         // notificationId is a unique int for each notification that you must define
-        notificationManager.notify(8888, builder.build());
+        notificationManager.notify(Integer.parseInt(threadId), builder.build());
     }
 }
