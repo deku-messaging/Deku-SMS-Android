@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
@@ -32,6 +33,7 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.SingleMessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +70,7 @@ public class SendSMSActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
+        processForSharedIntent();
         String address = getIntent().getStringExtra(ADDRESS);
         ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
 
@@ -85,6 +88,21 @@ public class SendSMSActivity extends AppCompatActivity {
 
         // TODO: Mark all messages in this thread as {STATUS:SEEN}
 
+    }
+
+    private void processForSharedIntent() {
+        if(getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
+            String sendToString = getIntent().getDataString();
+
+            if(sendToString.indexOf("smsto:") > -1 || sendToString.indexOf("sms:") > -1) {
+               String address = sendToString.substring(sendToString.indexOf(':') + 1);
+               String text = getIntent().getStringExtra("sms_body");
+
+               getIntent().putExtra(ADDRESS, address);
+               TextInputEditText send_text = findViewById(R.id.sms_text);
+               send_text.setText(text);
+            }
+        }
     }
 
     private void handleSentMessages() {
@@ -149,7 +167,8 @@ public class SendSMSActivity extends AppCompatActivity {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
                 getApplicationContext());
 
-        notificationManager.cancel(Integer.parseInt(getIntent().getStringExtra(THREAD_ID)));
+        if(getIntent().hasExtra(THREAD_ID))
+            notificationManager.cancel(Integer.parseInt(getIntent().getStringExtra(THREAD_ID)));
     }
 
     private void handleIncomingMessage() {
