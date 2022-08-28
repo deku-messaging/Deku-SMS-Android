@@ -1,4 +1,4 @@
-package com.example.swob_server.Models;
+package com.example.swob_deku.Models;
 
 import android.Manifest;
 import android.content.Context;
@@ -14,9 +14,9 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.swob_server.Commons.Contacts;
-import com.example.swob_server.R;
-import com.example.swob_server.SendSMSActivity;
+import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.R;
+import com.example.swob_deku.SendSMSActivity;
 
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.example.swob_server.Commons;
+package com.example.swob_deku.Commons;
 
 import android.content.Context;
 import android.database.Cursor;

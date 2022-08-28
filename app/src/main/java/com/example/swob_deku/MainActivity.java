@@ -1,9 +1,7 @@
-package com.example.swob_server;
+package com.example.swob_deku;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
@@ -11,26 +9,15 @@ import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.role.RoleManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.telephony.SmsMessage;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
-import com.example.swob_server.Models.DHKeyAgreement2;
-import com.example.swob_server.Models.SMSHandler;
+import com.example.swob_deku.Models.DHKeyAgreement2;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;

@@ -1,13 +1,11 @@
-package com.example.swob_server;
+package com.example.swob_deku;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,15 +15,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
-import android.telephony.SmsMessage;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 
-import com.example.swob_server.Models.MessagesThreadRecyclerAdapter;
-import com.example.swob_server.Models.SMS;
-import com.example.swob_server.Models.SMSHandler;
-import com.example.swob_server.Models.SingleMessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.SMS;
+import com.example.swob_deku.Models.SMSHandler;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.example.swob_server.Models;
+package com.example.swob_deku.Models;
 
 import android.util.Base64;
 import android.util.Log;

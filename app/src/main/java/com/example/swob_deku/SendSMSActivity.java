@@ -1,19 +1,16 @@
-package com.example.swob_server;
+package com.example.swob_deku;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -21,25 +18,20 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.service.carrier.CarrierMessagingService;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.swob_server.Commons.Contacts;
-import com.example.swob_server.Commons.Helpers;
-import com.example.swob_server.Models.SingleMessagesThreadRecyclerAdapter;
-import com.example.swob_server.Models.SMS;
-import com.example.swob_server.Models.SMSHandler;
+import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.SingleMessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.SMS;
+import com.example.swob_deku.Models.SMSHandler;
 
 import java.util.ArrayList;
 import java.util.List;

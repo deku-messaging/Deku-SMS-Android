@@ -1,4 +1,4 @@
-package com.example.swob_server.Models;
+package com.example.swob_deku.Models;
 
 import android.content.Context;
 import android.provider.Telephony;
@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.swob_server.R;
+import com.example.swob_deku.R;
 
 import java.sql.Date;
 import java.text.DateFormat;

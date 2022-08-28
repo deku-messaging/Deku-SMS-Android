@@ -1,8 +1,5 @@
-package com.example.swob_server.Commons;
+package com.example.swob_deku.Commons;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Random;
 
 public class Helpers {

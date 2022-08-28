@@ -1,4 +1,4 @@
-package com.example.swob_server;
+package com.example.swob_deku;
 
 import android.app.Activity;
 import android.app.Notification;
@@ -9,37 +9,21 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
-import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.Data;
-import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
-import androidx.work.WorkRequest;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.example.swob_server.Commons.Contacts;
-import com.example.swob_server.Models.Router;
-import com.example.swob_server.Models.SMS;
-import com.example.swob_server.Models.SMSHandler;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.Models.Router;
+import com.example.swob_deku.Models.SMS;
+import com.example.swob_deku.Models.SMSHandler;
 
 import java.util.concurrent.TimeUnit;
 
@@ -122,7 +106,7 @@ public class SMSReceiverActivity extends BroadcastReceiver {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.CHANNEL_ID))
                 .setDefaults(Notification.DEFAULT_ALL)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.ic_round_chat_bubble_24)
                 .setContentTitle(Contacts.retrieveContactName(context, address))
                 .setContentText(text)
                 .setContentIntent(pendingReceivedSmsIntent)

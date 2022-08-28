@@ -1,4 +1,4 @@
-package com.example.swob_server;
+package com.example.swob_deku;
 
 import android.content.Context;
 

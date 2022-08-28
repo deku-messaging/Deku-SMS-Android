@@ -1,24 +1,20 @@
-package com.example.swob_server.Models;
+package com.example.swob_deku.Models;
 
 import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.provider.Telephony;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import com.example.swob_server.Commons.Helpers;
+import com.example.swob_deku.Commons.Helpers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class SMSHandler {
 

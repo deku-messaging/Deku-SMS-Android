@@ -1,8 +1,7 @@
-package com.example.swob_server.Models;
+package com.example.swob_deku.Models;
 
 import android.database.Cursor;
 import android.provider.Telephony;
-import android.util.Log;
 
 public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
