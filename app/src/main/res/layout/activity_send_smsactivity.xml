@@ -74,6 +74,7 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_marginStart="8dp"
                     android:layout_marginEnd="16dp"
                     android:fontFamily="sans-serif-thin"
                     app:boxBackgroundColor="@color/black"

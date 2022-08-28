@@ -318,4 +318,12 @@ public class SendSMSActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        updateStack();
+        cancelNotifications();
+    }
+
 }
