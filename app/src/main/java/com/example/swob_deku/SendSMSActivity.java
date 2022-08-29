@@ -70,7 +70,6 @@ public class SendSMSActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-        processForSharedIntent();
         String address = getIntent().getStringExtra(ADDRESS);
         ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
 
@@ -82,12 +81,18 @@ public class SendSMSActivity extends AppCompatActivity {
 
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
-        handleIncomingMessage();
-        populateMessageThread();
-        cancelNotifications();
 
         // TODO: Mark all messages in this thread as {STATUS:SEEN}
 
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceStates) {
+        super.onPostCreate(savedInstanceStates);
+        processForSharedIntent();
+        populateMessageThread();
+        handleIncomingMessage();
+        cancelNotifications();
     }
 
     private void processForSharedIntent() {
@@ -250,12 +255,20 @@ public class SendSMSActivity extends AppCompatActivity {
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 //        singleMessagesThreadRecyclerView.scrollToPosition(messagesForThread.size() - 1);
 
-        try {
-            SMSHandler.updateSMSMessagesThreadStatus(getApplicationContext(), threadId, "1");
-        }
-        catch(Exception e ) {
-            e.printStackTrace();
-        }
+        String finalThreadId = threadId;
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    SMSHandler.updateSMSMessagesThreadStatus(getApplicationContext(), finalThreadId, "1");
+                }
+                catch(Exception e ) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.start();
     }
 
 

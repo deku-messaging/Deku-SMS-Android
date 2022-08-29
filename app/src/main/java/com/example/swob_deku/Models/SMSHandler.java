@@ -80,8 +80,7 @@ public class SMSHandler {
     public static Cursor fetchSMSMessagesThread(Context context, String threadId) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Uri.parse("content://sms"),
-                // new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
-                null,
+                 new String[] { "_id", "thread_id", "address", "person", "date","body", "type", "read", "status"},
                 "thread_id=?",
                 new String[] { threadId },
                 null);
@@ -248,7 +247,7 @@ public class SMSHandler {
                             Telephony.Sms.Inbox.CONTENT_URI,
                             contentValues,
                             "_id=? AND read=?",
-                            new String[] { String.valueOf(sms.getId()), "false" });
+                            new String[] { String.valueOf(sms.getId()), "0" });
                 }
                 catch(Exception e ) {
                     e.printStackTrace();
