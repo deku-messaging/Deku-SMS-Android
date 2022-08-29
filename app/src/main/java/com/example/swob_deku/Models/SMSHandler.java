@@ -221,9 +221,9 @@ public class SMSHandler {
         try {
             Cursor cursor = context.getContentResolver().query(
                     Telephony.Sms.CONTENT_URI,
-                    null,
+                    new String[] { Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID },
                     "read=? AND thread_id =?",
-                    new String[] { "0", String.valueOf(threadId)}, null);
+                    new String[] { "0", String.valueOf(threadId)}, "date DESC LIMIT 1");
 
             return cursor.getCount() > 0;
         }
@@ -245,10 +245,10 @@ public class SMSHandler {
                 contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
                 try {
                     context.getContentResolver().update(
-                            Telephony.Sms.CONTENT_URI,
+                            Telephony.Sms.Inbox.CONTENT_URI,
                             contentValues,
-                            "_id=?",
-                            new String[] { String.valueOf(sms.getId()) });
+                            "_id=? AND read=?",
+                            new String[] { String.valueOf(sms.getId()), "false" });
                 }
                 catch(Exception e ) {
                     e.printStackTrace();
