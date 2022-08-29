@@ -231,8 +231,8 @@ public class SendSMSActivity extends AppCompatActivity {
             }
         }
 
-        Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId);
 
+        Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId);
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
 
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
@@ -249,6 +249,13 @@ public class SendSMSActivity extends AppCompatActivity {
 
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 //        singleMessagesThreadRecyclerView.scrollToPosition(messagesForThread.size() - 1);
+
+        try {
+            SMSHandler.updateSMSMessagesThreadStatus(getApplicationContext(), threadId, "1");
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
     }
 
 

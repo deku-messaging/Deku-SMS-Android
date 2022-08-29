@@ -23,4 +23,21 @@ public class Contacts {
 
         return displayName;
     }
+
+    public static String retrieveContactPhoto(Context context, String phoneNumber) {
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
+        Cursor cursor = context.getContentResolver().query(
+                uri,
+                new String[]{ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI},
+                null,
+                null, null);
+
+        String contactPhotoThumbUri = "";
+        if(cursor.moveToFirst()) {
+            int displayContactPhoto = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI);
+            contactPhotoThumbUri = String.valueOf(cursor.getString(displayContactPhoto));
+        }
+
+        return contactPhotoThumbUri;
+    }
 }

@@ -4,9 +4,12 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -52,13 +55,28 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         holder.snippet.setText(messagesThreadList.get(position).getBody());
 
         String address = messagesThreadList.get(position).getAddress();
+        String contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
+
         final String finalAddress = address;
         final String finalThreadId = messagesThreadList.get(position).getThreadId();
 
         if(checkPermissionToReadContacts())
             address = Contacts.retrieveContactName(context, address);
 
+        if(!contactPhotoUri.isEmpty() && !contactPhotoUri.equals("null"))
+            holder.contactPhoto.setImageURI(Uri.parse(contactPhotoUri));
+
         holder.address.setText(address);
+
+        if(SMSHandler.hasUnreadMessages(context, finalThreadId)) {
+            // Make bold
+            holder.address.setTypeface(null, Typeface.BOLD);
+            holder.snippet.setTypeface(null, Typeface.BOLD);
+
+            holder.address.setTextColor(context.getResources().getColor(R.color.white));
+            holder.snippet.setTextColor(context.getResources().getColor(R.color.white));
+        }
+
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -79,6 +97,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView snippet;
         TextView address;
+        ImageView contactPhoto;
 
         ConstraintLayout layout;
 
@@ -88,6 +107,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             snippet = itemView.findViewById(R.id.messages_thread_text);
             address = itemView.findViewById(R.id.messages_thread_address_text);
             layout = itemView.findViewById(R.id.messages_threads_layout);
+            contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
         }
     }
 }

@@ -2,6 +2,7 @@ package com.example.swob_deku.Models;
 
 import android.database.Cursor;
 import android.provider.Telephony;
+import android.util.Log;
 
 public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
@@ -71,8 +72,28 @@ public class SMS {
 
     String errorCode;
     int statusCode;
-    String id;
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String isRead() {
+        return read;
+    }
+
+    public void setRead(String read) {
+        this.read = read;
+    }
+
+    public String id;
+
+    public String read;
+
+    // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns
     public SMS(Cursor cursor) {
         int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
         int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
@@ -81,12 +102,24 @@ public class SMS {
         int typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE);
         int errorCodeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ERROR_CODE);
         int statusCodeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.STATUS);
+        int readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ);
+        int idIndex = cursor.getColumnIndex(Telephony.Sms._ID);
 
         this.type =  String.valueOf(cursor.getString(typeIndex));
         this.body = String.valueOf(cursor.getString(bodyIndex));
         this.address = String.valueOf(cursor.getString(addressIndex));
         this.threadId = String.valueOf(cursor.getString(threadIdIndex));
         this.date = String.valueOf(cursor.getString(dateIndex));
+
+        if(idIndex > -1 ) {
+            this.id = String.valueOf(cursor.getString(idIndex));
+            Log.d("", "message id: " + this.id);
+        }
+
+        if(readIndex > -1 ) {
+            this.read = String.valueOf(cursor.getString(readIndex));
+            Log.d("", "message read: " + this.read);
+        }
 
         if(threadIdIndex > -1 )
             this.threadId = String.valueOf(cursor.getString(threadIdIndex));
