@@ -39,48 +39,51 @@ public class SMSReceiverActivity extends BroadcastReceiver {
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             switch (getResultCode()) {
                 case Activity.RESULT_OK:
+                    StringBuffer messageBuffer = new StringBuffer();
+                    String address = new String();
                     for (SmsMessage currentSMS: Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         // TODO: Fetch address name from contact list if present
-                        String address = currentSMS.getDisplayOriginatingAddress();
-
-                        String message = currentSMS.getDisplayMessageBody();
-                        long messageId = SMSHandler.registerIncomingMessage(context, currentSMS);
-                        sendNotification(message, address, messageId);
-
-                        try {
-//                            routeMessagesToGatewayServers(context, address, message);
-                            Constraints constraints = new Constraints.Builder()
-                                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                                    .build();
-
-                            OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
-                                    .setConstraints(constraints)
-                                    .setBackoffCriteria(
-                                            BackoffPolicy.LINEAR,
-                                            OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                                            TimeUnit.MILLISECONDS
-                                    )
-                                    .addTag(TAG_NAME)
-                                    .addTag(address)
-                                    .setInputData(
-                                            new Data.Builder()
-                                                    .putString("address", address)
-                                                    .putString("text", message)
-                                                    .build()
-                                    )
-                                    .build();
-
-                            String uniqueWorkName = address + message;
-                            WorkManager workManager = WorkManager.getInstance(context);
-                            workManager.enqueueUniqueWork(
-                                            uniqueWorkName,
-                                            ExistingWorkPolicy.KEEP,
-                                            routeMessageWorkRequest);
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        address = currentSMS.getDisplayOriginatingAddress();
+                        messageBuffer.append(currentSMS.getDisplayMessageBody());
                     }
+
+                    String message = messageBuffer.toString();
+                    long messageId = SMSHandler.registerIncomingMessage(context, address, message);
+                    sendNotification(message, address, messageId);
+
+                    try {
+                        Constraints constraints = new Constraints.Builder()
+                                .setRequiredNetworkType(NetworkType.CONNECTED)
+                                .build();
+
+                        OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
+                                .setConstraints(constraints)
+                                .setBackoffCriteria(
+                                        BackoffPolicy.LINEAR,
+                                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                                        TimeUnit.MILLISECONDS
+                                )
+                                .addTag(TAG_NAME)
+                                .addTag(address)
+                                .setInputData(
+                                        new Data.Builder()
+                                                .putString("address", address)
+                                                .putString("text", message)
+                                                .build()
+                                )
+                                .build();
+
+                        String uniqueWorkName = address + message;
+                        WorkManager workManager = WorkManager.getInstance(context);
+                        workManager.enqueueUniqueWork(
+                                        uniqueWorkName,
+                                        ExistingWorkPolicy.KEEP,
+                                        routeMessageWorkRequest);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                break;
             }
         }
     }

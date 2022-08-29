@@ -130,13 +130,13 @@ public class SMSHandler {
     }
 
 
-    public static long registerIncomingMessage(Context context, SmsMessage smsMessage) {
+    public static long registerIncomingMessage(Context context, String address, String body) {
         long messageId = Helpers.generateRandomNumber();
         ContentValues contentValues = new ContentValues();
 
         contentValues.put("_id", messageId);
-        contentValues.put("address", smsMessage.getOriginatingAddress());
-        contentValues.put("body", smsMessage.getMessageBody());
+        contentValues.put("address", address);
+        contentValues.put("body", body);
         contentValues.put("type", Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 
         try {
