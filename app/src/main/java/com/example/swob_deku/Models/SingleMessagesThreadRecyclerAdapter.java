@@ -3,6 +3,7 @@ package com.example.swob_deku.Models;
 import android.content.Context;
 import android.provider.Telephony;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.R;
+import com.google.android.material.card.MaterialCardView;
 
 import java.sql.Date;
 import java.text.DateFormat;
@@ -139,7 +141,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         TextView sentMessage;
         TextView sentMessageStatus;
         TextView date;
-        ConstraintLayout layout;
+        MaterialCardView layout;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_thread_sent_card_text);
@@ -152,12 +154,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
         TextView receivedMessage;
         TextView date;
-        ConstraintLayout layout;
         public MessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
             receivedMessage = itemView.findViewById(R.id.message_thread_received_card_text);
             date = itemView.findViewById(R.id.message_thread_received_date_text);
-            layout = itemView.findViewById(R.id.text_received_container);
         }
     }
 }
