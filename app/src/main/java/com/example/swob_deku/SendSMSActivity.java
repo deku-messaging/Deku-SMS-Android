@@ -23,8 +23,10 @@ import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -81,8 +83,8 @@ public class SendSMSActivity extends AppCompatActivity {
 
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
-
-        // TODO: Mark all messages in this thread as {STATUS:SEEN}
+        EditText editText = findViewById(R.id.sms_text);
+        editText.setMovementMethod(new ScrollingMovementMethod());
 
     }
 
