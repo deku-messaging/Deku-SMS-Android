@@ -85,6 +85,9 @@
                     app:boxCornerRadiusTopStart="8dp"
                     app:boxStrokeColor="#E4DADA"
                     app:counterEnabled="true"
+                    android:overScrollMode="always"
+                    android:scrollbars="vertical"
+                    android:scrollbarStyle="insideInset"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/send_btn"
                     app:layout_constraintStart_toStartOf="parent">
@@ -94,9 +97,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:maxLines="7"
-                        android:overScrollMode="always"
-                        android:scrollbars="vertical"
-                        android:scrollbarStyle="insideInset"
                         android:inputType="textMultiLine|textCapSentences|textAutoCorrect"
                         android:isScrollContainer="true"
                         android:textSize="14sp" />

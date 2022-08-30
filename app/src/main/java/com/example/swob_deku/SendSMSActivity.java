@@ -82,10 +82,6 @@ public class SendSMSActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
 
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
-
-        EditText editText = findViewById(R.id.sms_text);
-        editText.setMovementMethod(new ScrollingMovementMethod());
-
     }
 
     @Override
