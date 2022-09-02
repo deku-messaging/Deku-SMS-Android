@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
@@ -59,6 +60,12 @@ public class Router extends Worker {
                     gatewayServerUrl,
                     jsonBody, future, future);
             RequestQueue requestQueue = Volley.newRequestQueue(context);
+
+            jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    0,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
             requestQueue.add(jsonObjectRequest);
             JSONObject response = future.get(30, TimeUnit.SECONDS);
         } catch (ExecutionException e){
