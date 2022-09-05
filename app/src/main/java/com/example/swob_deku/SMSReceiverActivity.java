@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -24,6 +25,8 @@ import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Models.Router;
 import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
+
+import org.apache.commons.codec.binary.Base64;
 
 import java.util.concurrent.TimeUnit;
 
@@ -49,42 +52,48 @@ public class SMSReceiverActivity extends BroadcastReceiver {
 
                     String message = messageBuffer.toString();
                     long messageId = SMSHandler.registerIncomingMessage(context, address, message);
+
+                    if(Base64.isBase64(message))
+                        createWorkForMessage(address, message);
+
                     sendNotification(message, address, messageId);
-
-                    try {
-                        Constraints constraints = new Constraints.Builder()
-                                .setRequiredNetworkType(NetworkType.CONNECTED)
-                                .build();
-
-                        OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
-                                .setConstraints(constraints)
-                                .setBackoffCriteria(
-                                        BackoffPolicy.LINEAR,
-                                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                                        TimeUnit.MILLISECONDS
-                                )
-                                .addTag(TAG_NAME)
-                                .addTag(address)
-                                .setInputData(
-                                        new Data.Builder()
-                                                .putString("address", address)
-                                                .putString("text", message)
-                                                .build()
-                                )
-                                .build();
-
-                        String uniqueWorkName = address + message;
-                        WorkManager workManager = WorkManager.getInstance(context);
-                        workManager.enqueueUniqueWork(
-                                        uniqueWorkName,
-                                        ExistingWorkPolicy.KEEP,
-                                        routeMessageWorkRequest);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
                 break;
             }
+        }
+    }
+
+    private void createWorkForMessage(String address, String message) {
+        try {
+            Constraints constraints = new Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build();
+
+            OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
+                    .setConstraints(constraints)
+                    .setBackoffCriteria(
+                            BackoffPolicy.LINEAR,
+                            OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                            TimeUnit.MILLISECONDS
+                    )
+                    .addTag(TAG_NAME)
+                    .addTag(address)
+                    .setInputData(
+                            new Data.Builder()
+                                    .putString("address", address)
+                                    .putString("text", message)
+                                    .build()
+                    )
+                    .build();
+
+            String uniqueWorkName = address + message;
+            WorkManager workManager = WorkManager.getInstance(context);
+            workManager.enqueueUniqueWork(
+                    uniqueWorkName,
+                    ExistingWorkPolicy.KEEP,
+                    routeMessageWorkRequest);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
