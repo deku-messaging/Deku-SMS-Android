@@ -77,9 +77,6 @@ public class SendSMSActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-        String address = getIntent().getStringExtra(ADDRESS);
-        ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
-
         currentlyActive = true;
         if(!checkPermissionToSendSMSMessages())
             ActivityCompat.requestPermissions(
@@ -99,6 +96,9 @@ public class SendSMSActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                ActionBar ab = getSupportActionBar();
+                String address = getIntent().getStringExtra(ADDRESS);
+                ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
                 populateMessageThread();
             }
         }).start();

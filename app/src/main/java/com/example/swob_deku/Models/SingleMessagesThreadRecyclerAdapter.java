@@ -2,6 +2,7 @@ package com.example.swob_deku.Models;
 
 import android.content.Context;
 import android.provider.Telephony;
+import android.text.Layout;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -89,18 +90,51 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         switch(sms.getType()) {
 //            https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns?hl=en#TYPE
             case "1":
-                ((MessageReceivedViewHandler)holder).receivedMessage.setText(sms.getBody());
-                ((MessageReceivedViewHandler)holder).date.setText(date);
+                TextView receivedMessage = ((MessageReceivedViewHandler)holder).receivedMessage;
+                receivedMessage.setText(sms.getBody());
+
+                TextView dateView = ((MessageReceivedViewHandler)holder).date;
+                dateView.setVisibility(View.INVISIBLE);
+                dateView.setText(date);
+
+                ((MessageReceivedViewHandler)holder).receivedMessage.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(((MessageReceivedViewHandler)holder).date.getVisibility() == View.VISIBLE) {
+                            dateView.setVisibility(View.INVISIBLE);
+                        }
+                        else {
+                            dateView.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
                 break;
 
             case "2":
                 ((MessageSentViewHandler)holder).sentMessage.setText(sms.getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
+                ((MessageSentViewHandler)holder).date.setVisibility(View.INVISIBLE);
 
                 int status = sms.getStatusCode();
                 String statusMessage = status == Telephony.Sms.STATUS_COMPLETE ?
                         "delivered" : "sent";
+                ((MessageSentViewHandler)holder).sentMessageStatus.setVisibility(View.INVISIBLE);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText(statusMessage);
+
+                ((MessageSentViewHandler) holder).sentMessage.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if(((MessageSentViewHandler)holder).date.getVisibility() == View.VISIBLE) {
+                            ((MessageSentViewHandler)holder).date.setVisibility(View.INVISIBLE);
+                            ((MessageSentViewHandler)holder).sentMessageStatus.setVisibility(View.INVISIBLE);
+                        }
+                        else {
+                            ((MessageSentViewHandler)holder).date.setVisibility(View.VISIBLE);
+                            ((MessageSentViewHandler)holder).sentMessageStatus.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
+
                 break;
             case "4":
                 ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
