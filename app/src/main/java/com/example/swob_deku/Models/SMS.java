@@ -93,6 +93,17 @@ public class SMS {
 
     public String read;
 
+    public Boolean datesOnly = false;
+
+    public Boolean isDatesOnly() {
+        return this.datesOnly;
+    }
+
+    public SMS(String dates) {
+        this.date = dates;
+        this.datesOnly = true;
+    }
+
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns
     public SMS(Cursor cursor) {
         int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);

@@ -19,38 +19,42 @@ import com.google.android.material.card.MaterialCardView;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Map;
 
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     Context context;
     List<SMS> messagesList;
-    int renderLayoutReceived, renderLayoutSent;
+    int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
 
-    public SingleMessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent) {
+    public SingleMessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent, int renderLayoutTimestamp) {
         this.context = context;
         this.messagesList = messagesList;
         this.renderLayoutReceived = renderLayoutReceived;
         this.renderLayoutSent = renderLayoutSent;
+        this.renderLayoutTimestamp = renderLayoutTimestamp;
     }
-
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-
+        LayoutInflater inflater = LayoutInflater.from(this.context);
         switch(viewType) {
             // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
+            case 100: {
+                View view = inflater.inflate(this.renderLayoutTimestamp, parent, false);
+                return new MessageTimestampViewerHandler(view);
+            }
             case 1: {
-                LayoutInflater inflater = LayoutInflater.from(this.context);
                 View view = inflater.inflate(this.renderLayoutReceived, parent, false);
                 return new MessageReceivedViewHandler(view);
             }
             case 5:
             case 4:
             case 2: {
-                LayoutInflater inflater = LayoutInflater.from(this.context);
                 View view = inflater.inflate(this.renderLayoutSent, parent, false);
                 return new MessageSentViewHandler(view);
             }
@@ -61,7 +65,15 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+
+        SMS sms = messagesList.get(position);
         String date = messagesList.get(position).getDate();
+
+        if(sms.isDatesOnly()) {
+            ((MessageTimestampViewerHandler)holder).date.setText(date);
+            return;
+        }
+
         if (DateUtils.isToday(Long.parseLong(date))) {
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
             date = dateFormat.format(new Date(Long.parseLong(date)));
@@ -73,7 +85,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             calendar.setTime(new Date(Long.parseLong(date)));
             date = format.format(calendar.getTime());
         }
-        SMS sms = messagesList.get(position);
+
         switch(sms.getType()) {
 //            https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns?hl=en#TYPE
             case "1":
@@ -101,28 +113,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText("failed");
                 break;
         }
-
-//        switch(sms.getType()) {
-//            case "1":
-//                ((MessageReceivedViewHandler) holder).layout.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//
-//                    }
-//                });
-//                break;
-//            case "2":
-//            case"4":
-//            case "5":
-//                ((MessageSentViewHandler) holder).layout.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//
-//                    }
-//                });
-//                break;
-//        }
-
     }
 
     @Override
@@ -133,8 +123,19 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     @Override
     public int getItemViewType(int position)
     {
+        if(messagesList.get(position).isDatesOnly())
+            return 100;
+
         int messageType = Integer.parseInt(messagesList.get(position).getType());
         return (messageType > -1 )? messageType : 0;
+    }
+
+    public class MessageTimestampViewerHandler extends RecyclerView.ViewHolder {
+        TextView date;
+        public MessageTimestampViewerHandler(@NonNull View itemView) {
+            super(itemView);
+            date = itemView.findViewById(R.id.messages_thread_timestamp_textview);
+        }
     }
 
     public class MessageSentViewHandler extends RecyclerView.ViewHolder {

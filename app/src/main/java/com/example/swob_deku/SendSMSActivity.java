@@ -37,8 +37,13 @@ import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
 public class SendSMSActivity extends AppCompatActivity {
 
@@ -88,9 +93,15 @@ public class SendSMSActivity extends AppCompatActivity {
     protected void onPostCreate(Bundle savedInstanceStates) {
         super.onPostCreate(savedInstanceStates);
         processForSharedIntent();
-        populateMessageThread();
         handleIncomingMessage();
         cancelNotifications();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                populateMessageThread();
+            }
+        }).start();
     }
 
     private void processForSharedIntent() {
@@ -204,24 +215,41 @@ public class SendSMSActivity extends AppCompatActivity {
     }
 
     List<SMS> getMessagesFromCursor(Cursor cursor) {
-        List<SMS> messagesInThread = new ArrayList<>();
+        List<SMS> appendedList = new ArrayList<>();
+        Date previousDate = null;
+
+        Calendar calendar1 = Calendar.getInstance();
+        Calendar calendar2 = Calendar.getInstance();
+
+        DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
         if(cursor.moveToFirst()) {
-            do{
+            do {
                 SMS sms = new SMS(cursor);
-                messagesInThread.add(sms);
+                Date date = new Date(Long.parseLong(sms.getDate()));
+                if (previousDate != null) {
+                    calendar1.setTime(date);
+                    calendar2.setTime(previousDate);
+
+                    if (calendar1.get(Calendar.DATE) < calendar2.get(Calendar.DATE)) {
+                        String dateStr = dateFormat.format(previousDate);
+                        appendedList.add(new SMS(dateStr));
+                    }
+                }
+
+                appendedList.add(sms);
+                previousDate = date;
             }
-            while(cursor.moveToNext());
-        }
-        else {
-            Log.i(this.getLocalClassName(), "No messages to show");
+            while (cursor.moveToNext());
+
+            String dateStr = dateFormat.format(previousDate);
+            appendedList.add(new SMS(dateStr));
         }
 
-        return messagesInThread;
+        return appendedList;
     }
 
-    void populateMessageThread() {
-//        Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
 
+    void populateMessageThread() {
         String threadId = "-1";
         if(getIntent().hasExtra(THREAD_ID))
             threadId = getIntent().getStringExtra(THREAD_ID);
@@ -234,7 +262,6 @@ public class SendSMSActivity extends AppCompatActivity {
             }
         }
 
-
         Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId);
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
 
@@ -242,7 +269,8 @@ public class SendSMSActivity extends AppCompatActivity {
                 this,
                 messagesForThread,
                 R.layout.messages_thread_received_layout,
-                R.layout.messages_thread_sent_layout);
+                R.layout.messages_thread_sent_layout,
+                R.layout.messages_thread_timestamp_layout);
 
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
