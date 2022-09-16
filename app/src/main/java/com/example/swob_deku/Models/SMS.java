@@ -122,14 +122,13 @@ public class SMS {
         this.threadId = String.valueOf(cursor.getString(threadIdIndex));
         this.date = String.valueOf(cursor.getString(dateIndex));
 
+
         if(idIndex > -1 ) {
             this.id = String.valueOf(cursor.getString(idIndex));
-            Log.d("", "message id: " + this.id);
         }
 
         if(readIndex > -1 ) {
             this.read = String.valueOf(cursor.getString(readIndex));
-            Log.d("", "message read: " + this.read);
         }
 
         if(threadIdIndex > -1 )

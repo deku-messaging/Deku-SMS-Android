@@ -30,6 +30,9 @@ public class SMSHandler {
             context.getSystemService(SmsManager.class) : SmsManager.getDefault();
 
         try {
+            if(text.isEmpty() || destinationAddress.isEmpty())
+                return;
+
             registerPendingMessage(context, destinationAddress, text, messageId);
             // TODO: Handle sending multipart messages
             ArrayList<String> dividedMessage = smsManager.divideMessage(text);
@@ -87,7 +90,7 @@ public class SMSHandler {
     public static Cursor fetchSMSMessagesThread(Context context, String threadId) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,
-                 new String[] { "_id", "thread_id", "address", "person", "date","body", "type", "read", "status"},
+                 new String[] { "_id", "thread_id", "address", "person", "date","body", "type", "read", "status", "reply_path_present"},
                 "thread_id=?",
                 new String[] { threadId },
                 null);

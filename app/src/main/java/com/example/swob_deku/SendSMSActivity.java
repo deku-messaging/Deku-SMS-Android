@@ -3,6 +3,7 @@ package com.example.swob_deku;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -26,7 +27,9 @@ import android.telephony.SmsMessage;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -98,6 +101,8 @@ public class SendSMSActivity extends AppCompatActivity {
             public void run() {
                 ActionBar ab = getSupportActionBar();
                 String address = getIntent().getStringExtra(ADDRESS);
+
+                // TODO: if has letters, make sure reply cannot happen
                 ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
                 populateMessageThread();
             }
@@ -264,6 +269,14 @@ public class SendSMSActivity extends AppCompatActivity {
 
         Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId);
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
+
+        /*
+        if(messagesForThread.size() > 0 && !messagesForThread.get(0).replyPathPreset) {
+            ConstraintLayout sendlayout = findViewById(R.id.send_message_content_layouts);
+            sendlayout.setVisibility(View.GONE);
+        }
+
+         */
 
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                 this,
