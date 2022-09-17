@@ -244,25 +244,38 @@ public class SMSHandler {
     }
 
     public static void updateSMSMessagesThreadStatus(Context context, String threadId, String read) {
-        Cursor cursor = fetchSMSMessagesThread(context, threadId);
+//        Cursor cursor = fetchSMSMessagesThread(context, threadId);
 
-        if(cursor.moveToFirst()) {
-            do {
-                SMS sms = new SMS(cursor);
-                Log.d("", "updating: " + sms.getBody() + " - " + sms.getId() + " | " + read);
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
-                try {
-                    context.getContentResolver().update(
-                            Telephony.Sms.Inbox.CONTENT_URI,
-                            contentValues,
-                            "_id=? AND read=?",
-                            new String[] { String.valueOf(sms.getId()), "0" });
-                }
-                catch(Exception e ) {
-                    e.printStackTrace();
-                }
-            } while(cursor.moveToNext());
+//        if(cursor.moveToFirst()) {
+//            do {
+//                SMS sms = new SMS(cursor);
+//                Log.d("", "updating: " + sms.getBody() + " - " + sms.getId() + " | " + read);
+//                ContentValues contentValues = new ContentValues();
+//                contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
+//                try {
+//                    context.getContentResolver().update(
+//                            Telephony.Sms.Inbox.CONTENT_URI,
+//                            contentValues,
+//                            "_id=? AND read=?",
+//                            new String[] { String.valueOf(sms.getId()), "0" });
+//                }
+//                catch(Exception e ) {
+//                    e.printStackTrace();
+//                }
+//            } while(cursor.moveToNext());
+//        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
+        try {
+            context.getContentResolver().update(
+                    Telephony.Sms.Inbox.CONTENT_URI,
+                    contentValues,
+                    "thread_id=? AND read=?",
+                    new String[] { threadId, "0" });
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
         }
     }
 
