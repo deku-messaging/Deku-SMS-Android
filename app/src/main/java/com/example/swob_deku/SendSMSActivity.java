@@ -113,6 +113,10 @@ public class SendSMSActivity extends AppCompatActivity {
         String indentAction = getIntent().getAction();
         if(indentAction != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
             String sendToString = getIntent().getDataString();
+            if(sendToString.contains("%2B"))
+                sendToString = sendToString.replace("%2B", "");
+
+            Log.d("", "Working on a shared Intent... " + sendToString);
 
             if(sendToString.indexOf("smsto:") > -1 || sendToString.indexOf("sms:") > -1) {
                String address = sendToString.substring(sendToString.indexOf(':') + 1);
