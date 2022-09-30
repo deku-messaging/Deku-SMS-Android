@@ -80,9 +80,9 @@ public class SMSHandler {
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,
                 new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
-                "address=?",
-                new String[] { address },
-                "date ASC LIMIT 1");
+                "address like ?",
+                new String[] { "%" + address},
+                "date ASC");
 
         return smsMessagesCursor;
     }

@@ -22,6 +22,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.text.method.ScrollingMovementMethod;
@@ -113,6 +114,7 @@ public class SendSMSActivity extends AppCompatActivity {
         String indentAction = getIntent().getAction();
         if(indentAction != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
             String sendToString = getIntent().getDataString();
+            Log.d("", "Processing shared #: " + sendToString);
             if(sendToString.contains("%2B"))
                 sendToString = sendToString.replace("%2B", "");
 
@@ -264,10 +266,19 @@ public class SendSMSActivity extends AppCompatActivity {
             threadId = getIntent().getStringExtra(THREAD_ID);
 
         else if(getIntent().hasExtra(ADDRESS)) {
-            Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), getIntent().getStringExtra(ADDRESS));
+            String address = getIntent().getStringExtra(ADDRESS);
+            Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
             if(cursor.moveToFirst()) {
-                SMS sms = new SMS(cursor);
-                threadId = sms.getThreadId();
+                do {
+                    SMS sms = new SMS(cursor);
+                    String smsThreadId = sms.getThreadId();
+
+                    if(PhoneNumberUtils.compare(address, sms.getAddress()) && !smsThreadId.equals("-1")) {
+                        threadId = smsThreadId;
+                        break;
+                    }
+                }
+                while(cursor.moveToNext());
             }
         }
 
