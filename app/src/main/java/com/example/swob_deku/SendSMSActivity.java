@@ -232,9 +232,6 @@ public class SendSMSActivity extends AppCompatActivity {
         Calendar currentDate = Calendar.getInstance();
         Calendar previousDateCalendar = Calendar.getInstance();
 
-
-        DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
-
         if(cursor.moveToFirst()) {
             do {
                 SMS sms = new SMS(cursor);
@@ -243,8 +240,7 @@ public class SendSMSActivity extends AppCompatActivity {
                     currentDate.setTime(date);
                     previousDateCalendar.setTime(previousDate);
                     if (currentDate.get(Calendar.DATE) != previousDateCalendar.get(Calendar.DATE)) {
-                        // String dateStr = dateFormat.format(previousDate);
-                        appendedList.add(new SMS(sms.getDate()));
+                        appendedList.add(new SMS(appendedList.get(appendedList.size() - 1).getDate()));
                     }
                 }
                 appendedList.add(sms);

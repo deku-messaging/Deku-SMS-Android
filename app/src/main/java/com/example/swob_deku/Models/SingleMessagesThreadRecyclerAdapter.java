@@ -71,22 +71,26 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         String date = messagesList.get(position).getDate();
 
         if(sms.isDatesOnly()) {
-            DateFormat dateFormat = new SimpleDateFormat("EEEE, MMM dd");
-            date = dateFormat.format(new Date(Long.parseLong(date)));
+            if (DateUtils.isToday(Long.parseLong(date))) {
+                DateFormat dateFormat = new SimpleDateFormat("h:mm a");
+                date = "Today " + dateFormat.format(new Date(Long.parseLong(date)));
+            }
+            else {
+                DateFormat dateFormat = new SimpleDateFormat("EEEE, h:mm dd");
+                date = dateFormat.format(new Date(Long.parseLong(date)));
+            }
             ((MessageTimestampViewerHandler)holder).date.setText(date);
             return;
         }
 
         if (DateUtils.isToday(Long.parseLong(date))) {
+            // DateFormat dateFormat = new SimpleDateFormat("h:mm a");
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
-            date = dateFormat.format(new Date(Long.parseLong(date)));
+            date = "Today " + dateFormat.format(new Date(Long.parseLong(date)));
         }
         else {
-            DateFormat format = new SimpleDateFormat("MMMM dd h:mm a");
-
-            Calendar calendar = new GregorianCalendar();
-            calendar.setTime(new Date(Long.parseLong(date)));
-            date = format.format(calendar.getTime());
+            DateFormat dateFormat = new SimpleDateFormat("EE h:mm a");
+            date = dateFormat.format(new Date(Long.parseLong(date)));
         }
 
         switch(sms.getType()) {

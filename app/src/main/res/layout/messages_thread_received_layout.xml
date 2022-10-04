@@ -19,6 +19,7 @@
             android:id="@+id/materialCardView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:cardBackgroundColor="#313639"
             app:cardCornerRadius="25dp"
             app:contentPadding="10dp"
             app:layout_constraintStart_toStartOf="parent"
@@ -28,8 +29,11 @@
                 android:id="@+id/message_thread_received_card_text"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:fontFamily="sans-serif"
                 android:padding="6dp"
-                android:textSize="12sp" />
+                android:textColor="#D1CFCF"
+                android:textSize="16sp"
+                app:fontFamily="sans-serif-thin" />
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
