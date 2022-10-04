@@ -71,6 +71,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         String date = messagesList.get(position).getDate();
 
         if(sms.isDatesOnly()) {
+            DateFormat dateFormat = new SimpleDateFormat("EEEE, MMM dd");
+            date = dateFormat.format(new Date(Long.parseLong(date)));
             ((MessageTimestampViewerHandler)holder).date.setText(date);
             return;
         }

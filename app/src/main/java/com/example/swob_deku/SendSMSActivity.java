@@ -243,15 +243,16 @@ public class SendSMSActivity extends AppCompatActivity {
                     currentDate.setTime(date);
                     previousDateCalendar.setTime(previousDate);
                     if (currentDate.get(Calendar.DATE) != previousDateCalendar.get(Calendar.DATE)) {
-                        String dateStr = dateFormat.format(previousDate);
-                        appendedList.add(new SMS(dateStr));
+                        // String dateStr = dateFormat.format(previousDate);
+                        appendedList.add(new SMS(sms.getDate()));
                     }
                 }
                 appendedList.add(sms);
                 previousDate = date;
             }
             while (cursor.moveToNext());
-
+            cursor.moveToLast();
+            appendedList.add(new SMS(new SMS(cursor).getDate()));
         }
 
         return appendedList;
