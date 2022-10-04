@@ -97,7 +97,7 @@ public class SendSMSActivity extends AppCompatActivity {
         handleIncomingMessage();
         cancelNotifications();
 
-        new Thread(new Runnable() {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 ActionBar ab = getSupportActionBar();
@@ -107,7 +107,7 @@ public class SendSMSActivity extends AppCompatActivity {
                 ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
                 populateMessageThread();
             }
-        }).start();
+        });
     }
 
     private void processForSharedIntent() {
@@ -116,7 +116,8 @@ public class SendSMSActivity extends AppCompatActivity {
             String sendToString = getIntent().getDataString();
             Log.d("", "Processing shared #: " + sendToString);
             if(sendToString.contains("%2B"))
-                sendToString = sendToString.replace("%2B", "");
+                sendToString = sendToString.replace("%2B", "+")
+                                .replace("%20", "");
 
             Log.d("", "Working on a shared Intent... " + sendToString);
 
@@ -228,32 +229,29 @@ public class SendSMSActivity extends AppCompatActivity {
     List<SMS> getMessagesFromCursor(Cursor cursor) {
         List<SMS> appendedList = new ArrayList<>();
         Date previousDate = null;
+        Calendar currentDate = Calendar.getInstance();
+        Calendar previousDateCalendar = Calendar.getInstance();
 
-        Calendar calendar1 = Calendar.getInstance();
-        Calendar calendar2 = Calendar.getInstance();
 
         DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
+
         if(cursor.moveToFirst()) {
             do {
                 SMS sms = new SMS(cursor);
                 Date date = new Date(Long.parseLong(sms.getDate()));
                 if (previousDate != null) {
-                    calendar1.setTime(date);
-                    calendar2.setTime(previousDate);
-
-                    if (calendar1.get(Calendar.DATE) < calendar2.get(Calendar.DATE)) {
+                    currentDate.setTime(date);
+                    previousDateCalendar.setTime(previousDate);
+                    if (currentDate.get(Calendar.DATE) != previousDateCalendar.get(Calendar.DATE)) {
                         String dateStr = dateFormat.format(previousDate);
                         appendedList.add(new SMS(dateStr));
                     }
                 }
-
                 appendedList.add(sms);
                 previousDate = date;
             }
             while (cursor.moveToNext());
 
-            String dateStr = dateFormat.format(previousDate);
-            appendedList.add(new SMS(dateStr));
         }
 
         return appendedList;
