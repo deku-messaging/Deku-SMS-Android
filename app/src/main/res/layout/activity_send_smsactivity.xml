@@ -78,16 +78,13 @@
                     android:layout_marginEnd="16dp"
                     android:fontFamily="sans-serif-thin"
                     android:hint="Text"
-                    app:hintTextColor="#DAD7D7"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
                     app:boxStrokeColor="#E4DADA"
                     app:counterEnabled="true"
-                    android:overScrollMode="always"
-                    android:scrollbars="vertical"
-                    android:scrollbarStyle="insideInset"
+                    app:hintTextColor="#DAD7D7"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/send_btn"
                     app:layout_constraintStart_toStartOf="parent">
@@ -96,9 +93,9 @@
                         android:id="@+id/sms_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:maxLines="7"
                         android:inputType="textMultiLine|textCapSentences|textAutoCorrect"
                         android:isScrollContainer="true"
+                        android:maxLines="7"
                         android:textSize="14sp" />
 
                 </com.google.android.material.textfield.TextInputLayout>
