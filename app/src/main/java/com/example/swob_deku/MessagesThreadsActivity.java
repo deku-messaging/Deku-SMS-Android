@@ -48,6 +48,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         if(cursor.moveToFirst()) {
             do{
                 SMS sms = new SMS(cursor, true);
+                Log.d("", "SMS message: " + sms.getBody());
                 threadsInCursor.add(sms);
             }
             while(cursor.moveToNext());

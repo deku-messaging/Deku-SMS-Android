@@ -66,6 +66,8 @@ public class SMS {
         return statusCode;
     }
 
+    public int messageCount = -1;
+
     public void setStatusCode(int statusCode) {
         this.statusCode = statusCode;
     }
@@ -141,11 +143,25 @@ public class SMS {
     }
 
     public SMS(Cursor cursor, boolean isThread) {
-        int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.SNIPPET);
-        int threadIdIndex = cursor.getColumnIndex(Telephony.Sms.Conversations.THREAD_ID);
+        int bodyIndex = -1;
 
-        this.body =  String.valueOf(cursor.getString(bodyIndex));
-        this.threadId =  String.valueOf(cursor.getString(threadIdIndex));
+        if(isThread) {
+            int messageCountIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.MESSAGE_COUNT);
+            this.messageCount =  cursor.getInt(messageCountIndex);
+
+            bodyIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.SNIPPET);
+            this.body =  String.valueOf(cursor.getString(bodyIndex));
+        }
+        else {
+            int addressIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.ADDRESS);
+            this.address =  String.valueOf(cursor.getString(addressIndex));
+
+            int dateIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.DATE);
+            this.date =  String.valueOf(cursor.getString(dateIndex));
+        }
+
+        int threadIdIndex = cursor.getColumnIndex(Telephony.Sms.Conversations.THREAD_ID);
+        this.threadId = String.valueOf(cursor.getString(threadIdIndex));
     }
 
 }

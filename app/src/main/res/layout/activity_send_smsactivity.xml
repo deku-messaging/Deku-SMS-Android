@@ -41,7 +41,7 @@
                 android:layout_height="0dp"
                 android:layout_alignParentBottom="true"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="8dp"
                 android:fitsSystemWindows="true"
                 app:layout_constraintBottom_toTopOf="@+id/send_message_content_layouts"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -77,12 +77,12 @@
                     android:layout_marginStart="23dp"
                     android:layout_marginEnd="16dp"
                     android:fontFamily="sans-serif-thin"
-                    android:hint="Text"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
-                    app:boxStrokeColor="#E4DADA"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp"
                     app:counterEnabled="true"
                     app:hintTextColor="#DAD7D7"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -96,6 +96,8 @@
                         android:inputType="textMultiLine|textCapSentences|textAutoCorrect"
                         android:isScrollContainer="true"
                         android:maxLines="7"
+                        android:paddingTop="24dp"
+                        android:paddingBottom="12dp"
                         android:textSize="14sp" />
 
                 </com.google.android.material.textfield.TextInputLayout>

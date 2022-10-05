@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,9 @@ import com.example.swob_deku.R;
 import com.example.swob_deku.SendSMSActivity;
 
 
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<MessagesThreadRecyclerAdapter.ViewHolder> {
@@ -68,6 +72,18 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         holder.address.setText(address);
 
+        String date = messagesThreadList.get(position).getDate();
+        if (DateUtils.isToday(Long.parseLong(date))) {
+//            DateFormat dateFormat = new SimpleDateFormat("h:mm a");
+//            date = "Today " + dateFormat.format(new Date(Long.parseLong(date)));
+            date = "Today";
+        }
+        else {
+            DateFormat dateFormat = new SimpleDateFormat("MMM dd");
+            date = dateFormat.format(new Date(Long.parseLong(date)));
+        }
+        holder.date.setText(date);
+
         if(SMSHandler.hasUnreadMessages(context, finalThreadId)) {
             // Make bold
             holder.address.setTypeface(null, Typeface.BOLD);
@@ -97,6 +113,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView snippet;
         TextView address;
+        TextView date;
         ImageView contactPhoto;
 
         ConstraintLayout layout;
@@ -106,6 +123,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
             snippet = itemView.findViewById(R.id.messages_thread_text);
             address = itemView.findViewById(R.id.messages_thread_address_text);
+            date = itemView.findViewById(R.id.messages_thread_date);
             layout = itemView.findViewById(R.id.messages_threads_layout);
             contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
         }

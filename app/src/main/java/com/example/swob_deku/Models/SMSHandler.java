@@ -87,13 +87,19 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSMessagesThread(Context context, String threadId) {
+    public static Cursor fetchSMSMessagesThread(Context context, String threadId, Boolean single) {
+        String sortOrder = single? "date DESC LIMIT 1" : null;
+
+        String[] selection = single?
+                new String[] { "_id", "thread_id", "address", "date"} :
+                new String[] { "_id", "thread_id", "address", "date","body", "type", "read", "status", "reply_path_present"};
+
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,
-                 new String[] { "_id", "thread_id", "address", "person", "date","body", "type", "read", "status", "reply_path_present"},
+                selection,
                 "thread_id=?",
                 new String[] { threadId },
-                null);
+                sortOrder);
 
         return smsMessagesCursor;
     }
@@ -114,8 +120,7 @@ public class SMSHandler {
         String targetedURI = String.valueOf(Telephony.Sms.Conversations.CONTENT_URI);
         Cursor cursor = context.getContentResolver().query(
                 Uri.parse(targetedURI),
-                // new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
-                null,
+                 new String[] { "msg_count", "snippet", "thread_id" },
                 null,
                 null,
                 "date DESC");
@@ -127,12 +132,13 @@ public class SMSHandler {
         for(int i=0; i< messagesList.size(); ++i) {
             String threadId = messagesList.get(i).getThreadId();
             Log.d("", "searching threadID: " + threadId);
-            Cursor cursor = fetchSMSMessagesThread(context, threadId);
+            Cursor cursor = fetchSMSMessagesThread(context, threadId, true);
 
             if(cursor.moveToFirst()) {
                 // assuming all the messages have the same address, just take the first one
-                SMS sms = new SMS(cursor);
+                SMS sms = new SMS(cursor, false);
                 messagesList.get(i).setAddress(sms.getAddress());
+                messagesList.get(i).setDate(sms.getDate());
             }
         }
         return messagesList;
@@ -244,27 +250,6 @@ public class SMSHandler {
     }
 
     public static void updateSMSMessagesThreadStatus(Context context, String threadId, String read) {
-//        Cursor cursor = fetchSMSMessagesThread(context, threadId);
-
-//        if(cursor.moveToFirst()) {
-//            do {
-//                SMS sms = new SMS(cursor);
-//                Log.d("", "updating: " + sms.getBody() + " - " + sms.getId() + " | " + read);
-//                ContentValues contentValues = new ContentValues();
-//                contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
-//                try {
-//                    context.getContentResolver().update(
-//                            Telephony.Sms.Inbox.CONTENT_URI,
-//                            contentValues,
-//                            "_id=? AND read=?",
-//                            new String[] { String.valueOf(sms.getId()), "0" });
-//                }
-//                catch(Exception e ) {
-//                    e.printStackTrace();
-//                }
-//            } while(cursor.moveToNext());
-//        }
-
         ContentValues contentValues = new ContentValues();
         contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
         try {
@@ -277,34 +262,5 @@ public class SMSHandler {
         catch(Exception e ) {
             e.printStackTrace();
         }
-    }
-
-    public static List<SMS> appendDateIndexes(List<SMS> smsMessages ) {
-        List<SMS> appendedList = new ArrayList<>();
-        Date previousDate = null;
-
-        Calendar calendar1 = Calendar.getInstance();
-        Calendar calendar2 = Calendar.getInstance();
-
-        DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
-        for (SMS sms : smsMessages) {
-            Date date = new Date(Long.parseLong(sms.getDate()));
-            if(previousDate != null) {
-                calendar1.setTime(date);
-                calendar2.setTime(previousDate);
-
-                if (calendar1.get(Calendar.DATE) < calendar2.get(Calendar.DATE)) {
-                    String dateStr = dateFormat.format(previousDate);
-                    appendedList.add(new SMS(dateStr));
-                }
-            }
-
-            appendedList.add(sms);
-            previousDate = date;
-        }
-
-        String dateStr = dateFormat.format(previousDate);
-        appendedList.add(new SMS(dateStr));
-        return appendedList;
     }
 }

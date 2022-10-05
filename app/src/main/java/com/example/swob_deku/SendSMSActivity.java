@@ -27,6 +27,7 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -102,6 +103,27 @@ public class SendSMSActivity extends AppCompatActivity {
             public void run() {
                 ActionBar ab = getSupportActionBar();
                 String address = getIntent().getStringExtra(ADDRESS);
+
+                EditText smsText = findViewById(R.id.sms_text);
+                smsText.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
+                smsText.setMovementMethod(ScrollingMovementMethod.getInstance());
+                smsText.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                        view.getParent().requestDisallowInterceptTouchEvent(true);
+                        if ((motionEvent.getAction() & MotionEvent.ACTION_UP) != 0 && (motionEvent.getActionMasked() & MotionEvent.ACTION_UP) != 0)
+                        {
+                            view.getParent().requestDisallowInterceptTouchEvent(false);
+                        }
+                        return false;
+                    }
+                });
+
+                if(!PhoneNumberUtils.isWellFormedSmsAddress(address)) {
+                    ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
+                    smsLayout.setVisibility(View.GONE);
+                }
 
                 // TODO: if has letters, make sure reply cannot happen
                 ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
@@ -277,7 +299,7 @@ public class SendSMSActivity extends AppCompatActivity {
             }
         }
 
-        Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId);
+        Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId, false);
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
 
         /*

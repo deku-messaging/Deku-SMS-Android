@@ -76,7 +76,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 date = "Today " + dateFormat.format(new Date(Long.parseLong(date)));
             }
             else {
-                DateFormat dateFormat = new SimpleDateFormat("EEEE, h:mm dd");
+                DateFormat dateFormat = new SimpleDateFormat("EEEE, MMM d h:mm a");
                 date = dateFormat.format(new Date(Long.parseLong(date)));
             }
             ((MessageTimestampViewerHandler)holder).date.setText(date);
@@ -84,7 +84,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         }
 
         if (DateUtils.isToday(Long.parseLong(date))) {
-            // DateFormat dateFormat = new SimpleDateFormat("h:mm a");
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
             date = "Today " + dateFormat.format(new Date(Long.parseLong(date)));
         }
