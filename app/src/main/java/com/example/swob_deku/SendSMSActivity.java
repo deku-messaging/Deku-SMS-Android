@@ -261,7 +261,8 @@ public class SendSMSActivity extends AppCompatActivity {
                 if (previousDate != null) {
                     currentDate.setTime(date);
                     previousDateCalendar.setTime(previousDate);
-                    if (currentDate.get(Calendar.DATE) != previousDateCalendar.get(Calendar.DATE)) {
+                    if ((currentDate.get(Calendar.DATE) != previousDateCalendar.get(Calendar.DATE)) ||
+                            (currentDate.get(Calendar.HOUR_OF_DAY) != previousDateCalendar.get(Calendar.HOUR_OF_DAY))) {
                         appendedList.add(new SMS(appendedList.get(appendedList.size() - 1).getDate()));
                     }
                 }
@@ -301,14 +302,6 @@ public class SendSMSActivity extends AppCompatActivity {
 
         Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId, false);
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
-
-        /*
-        if(messagesForThread.size() > 0 && !messagesForThread.get(0).replyPathPreset) {
-            ConstraintLayout sendlayout = findViewById(R.id.send_message_content_layouts);
-            sendlayout.setVisibility(View.GONE);
-        }
-
-         */
 
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                 this,
