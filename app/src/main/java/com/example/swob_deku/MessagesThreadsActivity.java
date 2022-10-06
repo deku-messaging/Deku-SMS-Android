@@ -17,10 +17,13 @@ import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +39,22 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         populateMessageThreads();
         cancelAllNotifications();
         handleIncomingMessage();
+
+        TextInputEditText searchTextView = findViewById(R.id.recent_search_edittext);
+        searchTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if(b) {
+                    startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
+                }
+            }
+        });
+        searchTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
+            }
+        });
     }
 
     private void cancelAllNotifications() {
@@ -132,6 +151,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 }
                 break;
         }
+    }
+
+    public void onSearchClick(View view ) {
     }
 
     @Override
