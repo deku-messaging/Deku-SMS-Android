@@ -116,6 +116,27 @@ public class SMSHandler {
         return cursor;
     }
 
+    public static Cursor fetchSMSMessageForAllIds(Context context, ArrayList<Long> messageIds) {
+        Uri targetedURI = Telephony.Sms.Inbox.CONTENT_URI;
+        String selection = "_id=?";
+        String[] selectionArgs = new String[messageIds.size()];
+        selectionArgs[0] = String.valueOf(messageIds.get(0));
+
+        for(int i=1;i<messageIds.size(); ++i) {
+            selection += " OR _id=?";
+            selectionArgs[i] = String.valueOf(messageIds.get(i));
+        }
+
+        Cursor cursor = context.getContentResolver().query(
+                targetedURI,
+                new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
+                selection,
+                selectionArgs,
+                "date DESC");
+
+        return cursor;
+    }
+
     public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, long messageId) {
         Uri targetedURI = Telephony.Sms.Inbox.CONTENT_URI;
         Cursor cursor = context.getContentResolver().query(

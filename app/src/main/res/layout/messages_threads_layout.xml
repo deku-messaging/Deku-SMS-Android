@@ -41,13 +41,14 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="10dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
         android:fontFamily="sans-serif-thin"
+        android:minLines="2"
         android:text="TextView"
         android:textColor="#CDCDCD"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/messages_thread_date"
+        app:layout_constraintEnd_toStartOf="@+id/messages_route_state"
         app:layout_constraintStart_toEndOf="@+id/messages_threads_contact_photo"
         app:layout_constraintTop_toBottomOf="@+id/messages_thread_address_text" />
 
@@ -62,4 +63,15 @@
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/messages_route_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/messages_thread_date" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -11,4 +11,12 @@
     <string name="messages_threads_recents">
         Messages
     </string>
+
+    <string name="router_name">
+        Routed Messages
+    </string>
+
+    <string name="search_messages_text">
+        Search messages...
+    </string>
 </resources>

@@ -101,6 +101,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     public void onRouterClick(View view) {
+        startActivity(new Intent(this, RouterActivity.class));
     }
 
     public boolean isCurrentlyActive() {

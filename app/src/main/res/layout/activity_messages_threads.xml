@@ -51,7 +51,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="28dp"
         android:clickable="true"
-        android:onClick="onNewMessageClick"
+        android:onClick="onRouterClick"
         app:backgroundTint="#03A9F4"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

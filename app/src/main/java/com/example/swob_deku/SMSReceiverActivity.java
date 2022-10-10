@@ -54,7 +54,7 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                     long messageId = SMSHandler.registerIncomingMessage(context, address, message);
 
                     if(Base64.isBase64(message))
-                        createWorkForMessage(address, message);
+                        createWorkForMessage(address, message, messageId);
 
                     sendNotification(message, address, messageId);
                 break;
@@ -62,7 +62,7 @@ public class SMSReceiverActivity extends BroadcastReceiver {
         }
     }
 
-    private void createWorkForMessage(String address, String message) {
+    private void createWorkForMessage(String address, String message, long messageId) {
         try {
             Constraints constraints = new Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -77,6 +77,7 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                     )
                     .addTag(TAG_NAME)
                     .addTag(address)
+                    .addTag("swob.work.id." + messageId)
                     .setInputData(
                             new Data.Builder()
                                     .putString("address", address)
@@ -85,7 +86,8 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                     )
                     .build();
 
-            String uniqueWorkName = address + message;
+            // String uniqueWorkName = address + message;
+            String uniqueWorkName = String.valueOf(messageId);
             WorkManager workManager = WorkManager.getInstance(context);
             workManager.enqueueUniqueWork(
                     uniqueWorkName,

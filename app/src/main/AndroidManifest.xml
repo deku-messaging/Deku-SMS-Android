@@ -19,11 +19,11 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".RouterActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".SearchMessagesThreadsActivity"
             android:exported="false"
-            android:label="Search messages... "
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".MessagesThreadsActivity"

@@ -95,10 +95,20 @@ public class SMS {
 
     public String read;
 
+    public String routerStatus = new String();
+
     public Boolean datesOnly = false;
 
     public Boolean isDatesOnly() {
         return this.datesOnly;
+    }
+
+    public String getRouterStatus() {
+        return this.routerStatus;
+    }
+
+    public void setRouterStatus(String routerStatus) {
+        this.routerStatus = routerStatus;
     }
 
     public SMS(String dates) {
