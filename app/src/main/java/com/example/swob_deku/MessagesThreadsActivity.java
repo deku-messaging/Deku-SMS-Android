@@ -17,13 +17,11 @@ import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
 import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +38,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         cancelAllNotifications();
         handleIncomingMessage();
 
-        TextInputEditText searchTextView = findViewById(R.id.recent_search_edittext);
+        TextInputEditText searchTextView = findViewById(R.id.recent_search_edittext_clickable);
         searchTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
@@ -67,7 +65,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         if(cursor.moveToFirst()) {
             do{
                 SMS sms = new SMS(cursor, true);
-                Log.d("", "SMS message: " + sms.getBody());
                 threadsInCursor.add(sms);
             }
             while(cursor.moveToNext());

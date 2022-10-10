@@ -104,6 +104,18 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
+    public static Cursor fetchSMSMessagesForSearch(Context context, String searchInput) {
+        Uri targetedURI = Telephony.Sms.CONTENT_URI;
+        Cursor cursor = context.getContentResolver().query(
+                targetedURI,
+                new String[] { "_id", "thread_id", "address", "person", "date","body", "type" },
+                "body like '%" + searchInput + "%'",
+                null,
+                "date DESC");
+
+        return cursor;
+    }
+
     public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, long messageId) {
         Uri targetedURI = Telephony.Sms.Inbox.CONTENT_URI;
         Cursor cursor = context.getContentResolver().query(

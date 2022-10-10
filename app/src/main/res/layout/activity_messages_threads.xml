@@ -7,7 +7,7 @@
     tools:context=".MessagesThreadsActivity">
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/search_messages_text"
+        android:id="@+id/search_messages_text_clickable"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -24,7 +24,7 @@
         app:startIconTint="@color/white">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/recent_search_edittext"
+            android:id="@+id/recent_search_edittext_clickable"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clickable="true"
@@ -42,7 +42,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_messages_text" />
+        app:layout_constraintTop_toBottomOf="@+id/search_messages_text_clickable" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/compose_new_message_btn"

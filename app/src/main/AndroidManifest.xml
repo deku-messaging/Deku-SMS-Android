@@ -19,6 +19,8 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".SearchMessagesThreadsActivity"
+            android:parentActivityName=".MainActivity"
+            android:label="Search messages..."
             android:exported="false" />
         <activity
             android:name=".MessagesThreadsActivity"
