@@ -18,10 +18,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".SearchMessagesThreadsActivity"
-            android:parentActivityName=".MainActivity"
-            android:label="Search messages..."
+            android:name=".RouterActivity"
             android:exported="false" />
+        <activity
+            android:name=".SearchMessagesThreadsActivity"
+            android:exported="false"
+            android:label="Search messages... "
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".MessagesThreadsActivity"
             android:exported="false" />

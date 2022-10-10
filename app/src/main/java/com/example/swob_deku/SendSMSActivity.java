@@ -56,7 +56,6 @@ public class SendSMSActivity extends AppCompatActivity {
 
     public static final String ADDRESS = "address";
     public static final String THREAD_ID = "thread_id";
-    public static final String BODY = "body";
     public static final String ID = "_id";
 
     public static final String SMS_SENT_INTENT = "SMS_SENT";

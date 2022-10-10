@@ -100,6 +100,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         startActivityForResult(intent, 1);
     }
 
+    public void onRouterClick(View view) {
+    }
+
     public boolean isCurrentlyActive() {
         return this.getWindow().getDecorView().getRootView().isShown();
     }
