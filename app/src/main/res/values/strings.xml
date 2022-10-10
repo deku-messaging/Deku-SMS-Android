@@ -19,4 +19,8 @@
     <string name="search_messages_text">
         Search messages...
     </string>
+
+    <string name="no_showable_router_message">
+        No routed message to show!
+    </string>
 </resources>

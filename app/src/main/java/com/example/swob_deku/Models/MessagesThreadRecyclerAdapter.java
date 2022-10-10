@@ -57,6 +57,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.snippet.setText(messagesThreadList.get(position).getBody());
+        holder.state.setText(messagesThreadList.get(position).getRouterStatus());
 
         String address = messagesThreadList.get(position).getAddress();
         String contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
@@ -114,6 +115,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         TextView snippet;
         TextView address;
         TextView date;
+        TextView state;
         ImageView contactPhoto;
 
         ConstraintLayout layout;
@@ -125,6 +127,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             address = itemView.findViewById(R.id.messages_thread_address_text);
             date = itemView.findViewById(R.id.messages_thread_date);
             layout = itemView.findViewById(R.id.messages_threads_layout);
+            state = itemView.findViewById(R.id.messages_route_state);
             contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
         }
     }

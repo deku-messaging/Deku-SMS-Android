@@ -75,6 +75,8 @@ public class Router extends Worker {
             throw new VolleyError(e);
         } catch(JSONException e ) {
             throw e;
+        } catch(Exception e ) {
+            throw e;
         }
     }
 }

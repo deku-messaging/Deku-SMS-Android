@@ -12,6 +12,8 @@ import androidx.work.WorkQuery;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS;
@@ -61,11 +63,31 @@ public class RouterActivity extends AppCompatActivity {
     }
 
     void populateRouteJobs() {
-        ArrayList<Long> workerIds = listRouteJobs();
+        ArrayList<ArrayList<String>> workerIdsList = listRouteJobs();
+        if(workerIdsList.isEmpty())
+            return;
+
+        TextView noRoutedMessagesText = findViewById(R.id.router_no_showable_messages_text);
+        noRoutedMessagesText.setVisibility(View.GONE);
+
+        ArrayList<Long> workerIds = new ArrayList<>();
+
+        for(ArrayList workerList : workerIdsList)
+            workerIds.add(Long.valueOf(workerList.get(0).toString()));
 
         Cursor cursor = SMSHandler.fetchSMSMessageForAllIds(getApplicationContext(), workerIds);
         List<SMS> messagesForThread = getThreadsFromCursor(cursor);
-        // TODO: append the status to this list somehow
+
+        for(int j = 0; j < messagesForThread.size(); ++j) {
+            SMS sms = messagesForThread.get(j);
+            for(int i = 0;i< workerIds.size(); ++i ) {
+                if(workerIds.get(i).equals(Long.valueOf(sms.getId()))) {
+                    messagesForThread.get(i).setRouterStatus(workerIdsList.get(i).get(1));
+                    Log.d("", "Found matches...");
+                    break;
+                }
+            }
+        }
 
         messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread);
 
@@ -97,7 +119,7 @@ public class RouterActivity extends AppCompatActivity {
         return arrayOfString;
     }
 
-    public ArrayList<Long> listRouteJobs() {
+    public ArrayList<ArrayList<String>> listRouteJobs() {
 
         WorkQuery workQuery = WorkQuery.Builder
                 .fromTags(Arrays.asList(SMSReceiverActivity.TAG_NAME))
@@ -107,7 +129,7 @@ public class RouterActivity extends AppCompatActivity {
         WorkManager workManager = WorkManager.getInstance(getApplicationContext());
         ListenableFuture<List<WorkInfo>> workInfos = workManager.getWorkInfos(workQuery);
 
-        ArrayList<Long> workerIds = new ArrayList<>();
+        ArrayList<ArrayList<String>> workerIds = new ArrayList<>();
         try {
             List<WorkInfo> workInfoList = workInfos.get();
 
@@ -121,8 +143,13 @@ public class RouterActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                Log.d("", "Work info: " + messageId + " : " + workInfo.getState().name());
-                workerIds.add(Long.valueOf(messageId));
+                if(!messageId.isEmpty()) {
+                    Log.d("", "Work info: " + messageId + " : " + workInfo.getState().name());
+                    ArrayList<String> routeJobState = new ArrayList<>();
+                    routeJobState.add(messageId);
+                    routeJobState.add(workInfo.getState().name());
+                    workerIds.add(routeJobState);
+                }
             }
         } catch (ExecutionException e) {
             e.printStackTrace();
