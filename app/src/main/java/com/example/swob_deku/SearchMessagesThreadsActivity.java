@@ -88,7 +88,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.search_results_recycler_view);
 
         MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, messagesForThread, R.layout.messages_threads_layout);
+                this, messagesForThread, R.layout.messages_threads_layout, true);
 
         messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 

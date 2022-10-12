@@ -60,8 +60,6 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                     try {
                         CharsetDecoder charsetDecoder = Charset.forName("UTF-8").newDecoder();
                         charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
-                        // TODO: check for other messages, for now validating for swob
-                        Log.d("", "Proceeding with routing message");
                         createWorkForMessage(address, message, messageId);
                     } catch (Exception e) {
                         e.printStackTrace();

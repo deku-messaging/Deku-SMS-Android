@@ -302,12 +302,23 @@ public class SendSMSActivity extends AppCompatActivity {
         Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId, false);
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
 
-        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
-                this,
-                messagesForThread,
-                R.layout.messages_thread_received_layout,
-                R.layout.messages_thread_sent_layout,
-                R.layout.messages_thread_timestamp_layout);
+        if(getIntent().hasExtra(ID)) {
+            singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
+                    this,
+                    messagesForThread,
+                    R.layout.messages_thread_received_layout,
+                    R.layout.messages_thread_sent_layout,
+                    R.layout.messages_thread_timestamp_layout,
+                    Long.valueOf(getIntent().getStringExtra(ID)));
+            singleMessagesThreadRecyclerAdapter.setView(singleMessagesThreadRecyclerView);
+        }
+        else
+            singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
+                    this,
+                    messagesForThread,
+                    R.layout.messages_thread_received_layout,
+                    R.layout.messages_thread_sent_layout,
+                    R.layout.messages_thread_timestamp_layout);
 
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
@@ -316,7 +327,6 @@ public class SendSMSActivity extends AppCompatActivity {
         linearLayoutManager.setReverseLayout(true);
 
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
-//        singleMessagesThreadRecyclerView.scrollToPosition(messagesForThread.size() - 1);
 
         String finalThreadId = threadId;
         Thread thread = new Thread(new Runnable() {

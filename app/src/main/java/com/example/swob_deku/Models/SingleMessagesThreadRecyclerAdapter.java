@@ -30,7 +30,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     Context context;
     List<SMS> messagesList;
-    int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
+    int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp, focusPosition;
+    long focusId;
+    RecyclerView view;
 
     public SingleMessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent, int renderLayoutTimestamp) {
         this.context = context;
@@ -38,6 +40,15 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         this.renderLayoutReceived = renderLayoutReceived;
         this.renderLayoutSent = renderLayoutSent;
         this.renderLayoutTimestamp = renderLayoutTimestamp;
+    }
+
+    public SingleMessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent, int renderLayoutTimestamp, long focusId) {
+        this.context = context;
+        this.messagesList = messagesList;
+        this.renderLayoutReceived = renderLayoutReceived;
+        this.renderLayoutSent = renderLayoutSent;
+        this.renderLayoutTimestamp = renderLayoutTimestamp;
+        this.focusId = focusId;
     }
 
     @Override
@@ -64,12 +75,29 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         return null;
     }
 
+    public void setView(RecyclerView view) {
+        this.view = view;
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+
+        if(holder.getAdapterPosition() == focusPosition)
+            this.view.scrollToPosition(focusPosition);
+    }
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
         SMS sms = messagesList.get(position);
-        String date = messagesList.get(position).getDate();
 
+        if(focusId != -1 && sms.getId() != null && Long.valueOf(sms.getId()) == focusId) {
+            final int finalPosition = position;
+            this.focusPosition = finalPosition;
+        }
+
+        String date = sms.getDate();
         if(sms.isDatesOnly()) {
             if (DateUtils.isToday(Long.parseLong(date))) {
                 DateFormat dateFormat = new SimpleDateFormat("h:mm a");

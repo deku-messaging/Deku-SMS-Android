@@ -33,11 +33,19 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     Context context;
     List<SMS> messagesThreadList;
     int renderLayout;
+    Boolean isSearch = false;
 
     public MessagesThreadRecyclerAdapter(Context context, List<SMS> messagesThreadList, int renderLayout) {
        this.context = context;
        this.messagesThreadList = messagesThreadList;
        this.renderLayout = renderLayout;
+    }
+
+    public MessagesThreadRecyclerAdapter(Context context, List<SMS> messagesThreadList, int renderLayout, Boolean isSearch ) {
+        this.context = context;
+        this.messagesThreadList = messagesThreadList;
+        this.renderLayout = renderLayout;
+        this.isSearch = isSearch;
     }
 
     @NonNull
@@ -56,14 +64,13 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.snippet.setText(messagesThreadList.get(position).getBody());
-        holder.state.setText(messagesThreadList.get(position).getRouterStatus());
+        SMS sms = messagesThreadList.get(position);
 
-        String address = messagesThreadList.get(position).getAddress();
+        holder.snippet.setText(sms.getBody());
+        holder.state.setText(sms.getRouterStatus());
+
+        String address = sms.getAddress();
         String contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
-
-        final String finalAddress = address;
-        final String finalThreadId = messagesThreadList.get(position).getThreadId();
 
         if(checkPermissionToReadContacts())
             address = Contacts.retrieveContactName(context, address);
@@ -73,10 +80,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         holder.address.setText(address);
 
-        String date = messagesThreadList.get(position).getDate();
+        String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
-//            DateFormat dateFormat = new SimpleDateFormat("h:mm a");
-//            date = "Today " + dateFormat.format(new Date(Long.parseLong(date)));
             date = "Today";
         }
         else {
@@ -85,7 +90,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
         holder.date.setText(date);
 
-        if(SMSHandler.hasUnreadMessages(context, finalThreadId)) {
+        if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
             // Make bold
             holder.address.setTypeface(null, Typeface.BOLD);
             holder.snippet.setTypeface(null, Typeface.BOLD);
@@ -99,8 +104,12 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             @Override
             public void onClick(View view) {
                 Intent singleMessageThreadIntent = new Intent(context, SendSMSActivity.class);
-                singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, finalAddress);
-                singleMessageThreadIntent.putExtra(SendSMSActivity.THREAD_ID, finalThreadId);
+                singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, sms.getAddress());
+                singleMessageThreadIntent.putExtra(SendSMSActivity.THREAD_ID, sms.getThreadId());
+
+                if(isSearch)
+                    singleMessageThreadIntent.putExtra(SendSMSActivity.ID, sms.getId());
+
                 context.startActivity(singleMessageThreadIntent);
             }
         });
