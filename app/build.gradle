@@ -53,5 +53,4 @@ dependencies {
 
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'commons-codec:commons-codec:1.9'
-
 }

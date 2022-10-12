@@ -126,6 +126,9 @@ public class SMSHandler {
             selection += " OR _id=?";
             selectionArgs[i] = String.valueOf(messageIds.get(i));
         }
+        Log.d("", "selection query: " + selection);
+        for(String selectionArg : selectionArgs)
+            Log.d("", "selection query list: " + selectionArg);
 
         Cursor cursor = context.getContentResolver().query(
                 targetedURI,

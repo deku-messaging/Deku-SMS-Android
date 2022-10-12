@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.util.Base64;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -26,8 +27,9 @@ import com.example.swob_deku.Models.Router;
 import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
 
-import org.apache.commons.codec.binary.Base64;
-
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.util.concurrent.TimeUnit;
 
 public class SMSReceiverActivity extends BroadcastReceiver {
@@ -53,10 +55,17 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                     String message = messageBuffer.toString();
                     long messageId = SMSHandler.registerIncomingMessage(context, address, message);
 
-                    if(Base64.isBase64(message))
-                        createWorkForMessage(address, message, messageId);
-
                     sendNotification(message, address, messageId);
+
+                    try {
+                        CharsetDecoder charsetDecoder = Charset.forName("UTF-8").newDecoder();
+                        charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
+                        // TODO: check for other messages, for now validating for swob
+                        Log.d("", "Proceeding with routing message");
+                        createWorkForMessage(address, message, messageId);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 break;
             }
         }

@@ -82,7 +82,7 @@ public class RouterActivity extends AppCompatActivity {
             SMS sms = messagesForThread.get(j);
             for(int i = 0;i< workerIds.size(); ++i ) {
                 if(workerIds.get(i).equals(Long.valueOf(sms.getId()))) {
-                    messagesForThread.get(i).setRouterStatus(workerIdsList.get(i).get(1));
+                    messagesForThread.get(j).setRouterStatus(workerIdsList.get(i).get(1));
                     Log.d("", "Found matches...");
                     break;
                 }
