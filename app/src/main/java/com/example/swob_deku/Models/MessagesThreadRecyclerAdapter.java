@@ -72,7 +72,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SMS sms = messagesThreadList.get(position);
 
-        if(isSearch) {
+        if(isSearch && !searchString.isEmpty()) {
 
             Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
             for(int index = sms.getBody().indexOf(searchString); index >=0; index = sms.getBody().indexOf(searchString, index + 1)) {
@@ -127,10 +127,10 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                 singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, sms.getAddress());
                 singleMessageThreadIntent.putExtra(SendSMSActivity.THREAD_ID, sms.getThreadId());
 
-                if(isSearch) {
+                if(isSearch)
                     singleMessageThreadIntent.putExtra(SendSMSActivity.ID, sms.getId());
+                if(!searchString.isEmpty())
                     singleMessageThreadIntent.putExtra(SendSMSActivity.SEARCH_STRING, searchString);
-                }
 
                 context.startActivity(singleMessageThreadIntent);
             }

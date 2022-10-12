@@ -92,26 +92,29 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
 
         if(focusPosition != -1 && holder.getAdapterPosition() == focusPosition) {
-            String text = messagesList.get(focusPosition).getBody();
-            Spannable spannable = Spannable.Factory.getInstance().newSpannable(text);
+            if(!searchString.isEmpty()) {
+                Log.d("", "Focus not empty..");
+                String text = messagesList.get(focusPosition).getBody();
+                Spannable spannable = Spannable.Factory.getInstance().newSpannable(text);
 
-            for(int index = text.indexOf(searchString); index >=0; index = text.indexOf(searchString, index + 1)) {
-                spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
-                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
-                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-
-            switch(holder.getItemViewType()) {
-                case 1: {
-                    ((MessageReceivedViewHandler)holder).receivedMessage.setText(spannable);
-                    break;
+                for (int index = text.indexOf(searchString); index >= 0; index = text.indexOf(searchString, index + 1)) {
+                    spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
+                            index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
+                            index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
-                case 5:
-                case 4:
-                case 2: {
-                    ((MessageSentViewHandler)holder).sentMessage.setText(spannable);
-                    break;
+
+                switch (holder.getItemViewType()) {
+                    case 1: {
+                        ((MessageReceivedViewHandler) holder).receivedMessage.setText(spannable);
+                        break;
+                    }
+                    case 5:
+                    case 4:
+                    case 2: {
+                        ((MessageSentViewHandler) holder).sentMessage.setText(spannable);
+                        break;
+                    }
                 }
             }
             this.view.scrollToPosition(focusPosition);
