@@ -3,7 +3,11 @@ package com.example.swob_deku.Models;
 import android.content.Context;
 import android.provider.Telephony;
 import android.text.Layout;
+import android.text.Spannable;
+import android.text.Spanned;
 import android.text.format.DateUtils;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,9 +34,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     Context context;
     List<SMS> messagesList;
-    int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp, focusPosition;
+    int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
+    int focusPosition = -1;
     long focusId;
     RecyclerView view;
+    String searchString;
 
     public SingleMessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent, int renderLayoutTimestamp) {
         this.context = context;
@@ -42,13 +48,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         this.renderLayoutTimestamp = renderLayoutTimestamp;
     }
 
-    public SingleMessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent, int renderLayoutTimestamp, long focusId) {
+    public SingleMessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent, int renderLayoutTimestamp, long focusId, String searchString) {
         this.context = context;
         this.messagesList = messagesList;
         this.renderLayoutReceived = renderLayoutReceived;
         this.renderLayoutSent = renderLayoutSent;
         this.renderLayoutTimestamp = renderLayoutTimestamp;
         this.focusId = focusId;
+        this.searchString = searchString;
     }
 
     @Override
@@ -83,8 +90,32 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
 
-        if(holder.getAdapterPosition() == focusPosition)
+
+        if(focusPosition != -1 && holder.getAdapterPosition() == focusPosition) {
+            String text = messagesList.get(focusPosition).getBody();
+            Spannable spannable = Spannable.Factory.getInstance().newSpannable(text);
+
+            for(int index = text.indexOf(searchString); index >=0; index = text.indexOf(searchString, index + 1)) {
+                spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
+                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
+                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            switch(holder.getItemViewType()) {
+                case 1: {
+                    ((MessageReceivedViewHandler)holder).receivedMessage.setText(spannable);
+                    break;
+                }
+                case 5:
+                case 4:
+                case 2: {
+                    ((MessageSentViewHandler)holder).sentMessage.setText(spannable);
+                    break;
+                }
+            }
             this.view.scrollToPosition(focusPosition);
+        }
     }
 
     @Override

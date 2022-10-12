@@ -164,7 +164,7 @@ public class SMSHandler {
         return cursor;
     }
 
-    public static List<SMS> getAddressForThreads(Context context, List<SMS> messagesList) {
+    public static List<SMS> getAddressForThreads(Context context, List<SMS> messagesList, boolean getDates) {
         for(int i=0; i< messagesList.size(); ++i) {
             String threadId = messagesList.get(i).getThreadId();
             Log.d("", "searching threadID: " + threadId);
@@ -174,7 +174,9 @@ public class SMSHandler {
                 // assuming all the messages have the same address, just take the first one
                 SMS sms = new SMS(cursor, false);
                 messagesList.get(i).setAddress(sms.getAddress());
-                messagesList.get(i).setDate(sms.getDate());
+
+                if(getDates)
+                    messagesList.get(i).setDate(sms.getDate());
             }
         }
         return messagesList;

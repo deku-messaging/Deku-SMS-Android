@@ -57,6 +57,7 @@ public class SendSMSActivity extends AppCompatActivity {
     public static final String ADDRESS = "address";
     public static final String THREAD_ID = "thread_id";
     public static final String ID = "_id";
+    public static final String SEARCH_STRING = "search_string";
 
     public static final String SMS_SENT_INTENT = "SMS_SENT";
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
@@ -302,14 +303,15 @@ public class SendSMSActivity extends AppCompatActivity {
         Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId, false);
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
 
-        if(getIntent().hasExtra(ID)) {
+        if(getIntent().hasExtra(ID) && getIntent().hasExtra(SEARCH_STRING)) {
             singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                     this,
                     messagesForThread,
                     R.layout.messages_thread_received_layout,
                     R.layout.messages_thread_sent_layout,
                     R.layout.messages_thread_timestamp_layout,
-                    Long.valueOf(getIntent().getStringExtra(ID)));
+                    Long.valueOf(getIntent().getStringExtra(ID)),
+                    getIntent().getStringExtra(SEARCH_STRING));
             singleMessagesThreadRecyclerAdapter.setView(singleMessagesThreadRecyclerView);
         }
         else

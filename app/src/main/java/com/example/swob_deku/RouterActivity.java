@@ -89,7 +89,7 @@ public class RouterActivity extends AppCompatActivity {
             }
         }
 
-        messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread);
+        messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread, false);
 
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.routed_messages_recycler_view);
 

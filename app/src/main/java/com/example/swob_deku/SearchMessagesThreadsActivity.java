@@ -6,11 +6,13 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
@@ -50,8 +52,12 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             public boolean onEditorAction(TextView searchView, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_GO) {
                     String searchInput = searchView.getText().toString();
-                    Log.d("", "initiating searching: " + searchInput);
+                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                    imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
                     populateMessageThreads(searchInput);
+
+                    findViewById(R.id.search_results_recycler_view).requestFocus();
 
                     return true;
                 }
@@ -83,12 +89,12 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
         Log.d("", "Found search: " + messagesForThread.size());
 
-        messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread);
+        messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread, false);
 
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.search_results_recycler_view);
 
         MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, messagesForThread, R.layout.messages_threads_layout, true);
+                this, messagesForThread, R.layout.messages_threads_layout, true, searchInput);
 
         messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 
