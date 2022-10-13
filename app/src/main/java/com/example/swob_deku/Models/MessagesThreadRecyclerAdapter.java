@@ -11,6 +11,7 @@ import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,15 +22,21 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+import androidx.work.WorkQuery;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.R;
+import com.example.swob_deku.SMSReceiverActivity;
 import com.example.swob_deku.SendSMSActivity;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.List;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<MessagesThreadRecyclerAdapter.ViewHolder> {
@@ -119,22 +126,55 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             holder.snippet.setTextColor(context.getResources().getColor(R.color.white));
         }
 
-
-        holder.layout.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent singleMessageThreadIntent = new Intent(context, SendSMSActivity.class);
                 singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, sms.getAddress());
                 singleMessageThreadIntent.putExtra(SendSMSActivity.THREAD_ID, sms.getThreadId());
 
-                if(isSearch)
+                if (isSearch)
                     singleMessageThreadIntent.putExtra(SendSMSActivity.ID, sms.getId());
-                if(!searchString.isEmpty())
+                if (!searchString.isEmpty())
                     singleMessageThreadIntent.putExtra(SendSMSActivity.SEARCH_STRING, searchString);
 
                 context.startActivity(singleMessageThreadIntent);
             }
-        });
+        };
+
+        if(sms.getRouterStatus().equals(WorkInfo.State.FAILED.name())) {
+            holder.snippet.setOnClickListener(onClickListener);
+            holder.state.setText( holder.state.getText().toString() + " click to retry!");
+
+            holder.state.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // TODO: restart the work
+                    WorkQuery workQuery = WorkQuery.Builder
+                            .fromTags(Arrays.asList(SMSReceiverActivity.TAG_NAME))
+                            .addStates(Arrays.asList(WorkInfo.State.FAILED))
+                            .addUniqueWorkNames(Arrays.asList(sms.getId()))
+                            .build();
+
+                    WorkManager workManager = WorkManager.getInstance(context);
+                    ListenableFuture<List<WorkInfo>> workInfos = workManager.getWorkInfos(workQuery);
+
+                    try {
+                        List<WorkInfo> workInfoList = workInfos.get();
+
+                        for(WorkInfo workInfo: workInfoList) {
+                            Log.d("", "Retrying work: " + workInfo.getTags());
+                            // TODO: unless bug, failure cannot happen - task requeues if conditions are not met.
+                            // TODO: not totally sure to proceed.
+                        }
+                    } catch(Exception e ) {
+                        e.printStackTrace();
+                    }
+
+                }
+            });
+        }
+        else holder.layout.setOnClickListener(onClickListener);
     }
 
     @Override
@@ -143,6 +183,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
+        String id;
         TextView snippet;
         TextView address;
         TextView date;

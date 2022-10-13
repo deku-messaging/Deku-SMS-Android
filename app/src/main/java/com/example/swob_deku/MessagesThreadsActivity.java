@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.WorkInfo;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -17,6 +18,7 @@ import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS;
@@ -53,6 +55,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
             }
         });
+
     }
 
     private void cancelAllNotifications() {
@@ -154,14 +157,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         }
     }
 
-    public void onSearchClick(View view ) {
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
 
         populateMessageThreads();
-//        cancelAllNotifications();
+        findViewById(R.id.messages_threads_recycler_view).requestFocus();
     }
 }

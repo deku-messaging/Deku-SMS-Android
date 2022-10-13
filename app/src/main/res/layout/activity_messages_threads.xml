@@ -21,7 +21,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/messages_title"
         app:startIconDrawable="@drawable/ic_round_search_24"
-        app:startIconTint="@color/white">
+        app:startIconTint="#2D2F31">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/recent_search_edittext_clickable"
