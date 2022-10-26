@@ -11,45 +11,55 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/messages_threads_contact_photo"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_round_person_24"
+    <FrameLayout
+        android:id="@+id/messages_threads_contact_photo_id"
+        android:layout_width="55dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/circle_background"
+        android:padding="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/messages_threads_contact_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_round_person_24" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/messages_thread_address_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="16dp"
-        android:fontFamily="sans-serif-light"
+        android:fontFamily="sans-serif"
         android:text="TextView"
-        android:textColor="#CDCDCD"
-        android:textSize="16sp"
-        app:layout_constraintStart_toEndOf="@+id/messages_threads_contact_photo"
+        android:textColor="#e1e2e4"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@+id/messages_threads_contact_photo_id"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/messages_thread_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:fontFamily="sans-serif-thin"
+        android:fontFamily="sans-serif"
         android:maxLines="2"
         android:text="TextView"
-        android:textColor="#CDCDCD"
+        android:textColor="#84898e"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/messages_route_state"
-        app:layout_constraintStart_toEndOf="@+id/messages_threads_contact_photo"
+        app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
         app:layout_constraintTop_toBottomOf="@+id/messages_thread_address_text" />
 
     <TextView
@@ -58,8 +68,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:fontFamily="sans-serif-light"
-        android:textColor="#CDCDCD"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#e1e2e4"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -71,6 +81,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        android:textColor="#e1e2e4"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/messages_thread_date" />

@@ -77,14 +77,15 @@
                     android:layout_marginStart="23dp"
                     android:layout_marginEnd="16dp"
                     android:fontFamily="sans-serif-thin"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxCornerRadiusBottomEnd="25dp"
+                    app:boxCornerRadiusBottomStart="25dp"
+                    app:boxCornerRadiusTopEnd="25dp"
+                    app:boxCornerRadiusTopStart="25dp"
                     app:boxStrokeWidth="0dp"
                     app:boxStrokeWidthFocused="0dp"
                     app:counterEnabled="true"
                     app:hintTextColor="#DAD7D7"
+                    app:boxBackgroundColor="#242f35"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/send_btn"
                     app:layout_constraintStart_toStartOf="parent">
@@ -97,8 +98,8 @@
                         android:isScrollContainer="true"
                         android:maxLines="7"
                         android:paddingTop="24dp"
-                        android:paddingBottom="12dp"
-                        android:textSize="14sp" />
+                        android:paddingBottom="24dp"
+                        android:textSize="20sp" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -109,6 +110,8 @@
                     android:layout_marginEnd="8dp"
                     android:layout_marginBottom="32dp"
                     android:background="#00070707"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
                     android:onClick="sendMessage"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"

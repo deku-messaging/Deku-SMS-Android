@@ -20,8 +20,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SMSHandler {
 
@@ -270,13 +272,40 @@ public class SMSHandler {
         }
     }
 
+    public static Set<String> hasUnreadMessagesAll(Context context) {
+        
+        Set<String> threadIdSet = new HashSet<>();
+        try {
+            Cursor cursor = context.getContentResolver().query(
+                    Telephony.Sms.Inbox.CONTENT_URI,
+                    new String[] { Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID },
+                    "read=? and type=?",
+                    new String[] { "0", "1"}, "date DESC LIMIT 1");
+            
+            if(cursor.moveToFirst()) {
+                do {
+                    int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+                    String threadId = String.valueOf(cursor.getString(threadIdIndex));
+                    
+                    threadIdSet.add(threadId);
+                } while(cursor.moveToNext());
+            }
+
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+
+        return threadIdSet;
+    }
+
     public static boolean hasUnreadMessages(Context context, String threadId) {
         try {
             Cursor cursor = context.getContentResolver().query(
-                    Telephony.Sms.CONTENT_URI,
+                    Telephony.Sms.Inbox.CONTENT_URI,
                     new String[] { Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID },
-                    "read=? AND thread_id =?",
-                    new String[] { "0", String.valueOf(threadId)}, "date DESC LIMIT 1");
+                    "read=? AND thread_id =? AND type != ?",
+                    new String[] { "0", String.valueOf(threadId), "2"}, "date DESC LIMIT 1");
 
             return cursor.getCount() > 0;
         }

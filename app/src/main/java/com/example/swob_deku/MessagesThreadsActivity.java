@@ -161,6 +161,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        Log.d("", "resuming...");
         populateMessageThreads();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
     }

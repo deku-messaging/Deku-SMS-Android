@@ -12,16 +12,23 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:fontFamily="sans-serif-thin"
+        app:boxBackgroundColor="#242f35"
+        app:boxBackgroundMode="outline"
+        app:boxCornerRadiusBottomEnd="20dp"
+        app:boxCornerRadiusBottomStart="20dp"
+        app:boxCornerRadiusTopEnd="20dp"
+        app:boxCornerRadiusTopStart="20dp"
+        app:boxStrokeColor="@null"
         app:helperTextEnabled="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/messages_title"
-        app:startIconDrawable="@drawable/ic_round_search_24"
-        app:startIconTint="#2D2F31">
+        app:layout_constraintTop_toTopOf="parent"
+        app:startIconCheckable="false"
+        app:startIconTint="@android:color/transparent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/recent_search_edittext_clickable"
@@ -52,11 +59,11 @@
         android:layout_marginBottom="28dp"
         android:clickable="true"
         android:onClick="onRouterClick"
-        app:backgroundTint="#03A9F4"
+        app:backgroundTint="#004d61"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_baseline_router_24"
-        app:tint="@color/white" />
+        app:srcCompat="@drawable/ic_outline_router_24"
+        app:tint="#b4ebff" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/compose_new_message_btn2"
@@ -66,25 +73,10 @@
         android:layout_marginBottom="8dp"
         android:clickable="true"
         android:onClick="onNewMessageClick"
-        app:backgroundTint="#03A9F4"
+        app:backgroundTint="#004d61"
         app:layout_constraintBottom_toTopOf="@+id/router_messages_btn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_round_edit_24"
-        app:tint="@color/white" />
+        app:srcCompat="@drawable/ic_outline_message_24"
+        app:tint="#b4ebff" />
 
-    <TextView
-        android:id="@+id/messages_title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="17dp"
-        android:layout_marginEnd="16dp"
-        android:fontFamily="sans-serif-medium"
-        android:text="@string/messages_threads_recents"
-        android:textColor="@color/white"
-        android:textSize="34sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

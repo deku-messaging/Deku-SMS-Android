@@ -8,4 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="highlight_yellow">#fde293</color>
+    <color name="theme_dark">#181c1f</color>
+    <color name="read_text">#e2e3e5</color>
+    <color name="text_box">#242f35</color>
 </resources>

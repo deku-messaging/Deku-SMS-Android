@@ -30,10 +30,11 @@
                 android:id="@+id/message_thread_sent_card_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
                 android:padding="6dp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textColor="@color/black"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 app:fontFamily="sans-serif-thin" />
         </com.google.android.material.card.MaterialCardView>
 

@@ -37,7 +37,9 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<MessagesThreadRecyclerAdapter.ViewHolder> {
 
@@ -47,10 +49,14 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     Boolean isSearch = false;
     String searchString = new String();
 
+    Set<String> threadIdSet = new HashSet<>();
+
     public MessagesThreadRecyclerAdapter(Context context, List<SMS> messagesThreadList, int renderLayout) {
        this.context = context;
        this.messagesThreadList = messagesThreadList;
        this.renderLayout = renderLayout;
+
+       this.threadIdSet = SMSHandler.hasUnreadMessagesAll(context);
     }
 
     public MessagesThreadRecyclerAdapter(Context context, List<SMS> messagesThreadList, int renderLayout, Boolean isSearch, String searchString) {
@@ -117,13 +123,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
         holder.date.setText(date);
 
-        if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+        //if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+        if(this.threadIdSet.contains(sms.getThreadId())) {
             // Make bold
             holder.address.setTypeface(null, Typeface.BOLD);
             holder.snippet.setTypeface(null, Typeface.BOLD);
 
-            holder.address.setTextColor(context.getResources().getColor(R.color.white));
-            holder.snippet.setTextColor(context.getResources().getColor(R.color.white));
+            holder.address.setTextColor(context.getResources().getColor(R.color.read_text));
+            holder.snippet.setTextColor(context.getResources().getColor(R.color.read_text));
+            holder.date.setTextColor(context.getResources().getColor(R.color.read_text));
         }
 
         View.OnClickListener onClickListener = new View.OnClickListener() {

@@ -29,11 +29,12 @@
                 android:id="@+id/message_thread_received_card_text"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:background="@android:color/transparent"
                 android:fontFamily="sans-serif"
                 android:padding="6dp"
                 android:textColor="#D1CFCF"
-                android:textSize="16sp"
-                app:fontFamily="sans-serif-thin" />
+                android:textSize="18sp"
+                app:fontFamily="sans-serif" />
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
