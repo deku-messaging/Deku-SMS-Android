@@ -105,8 +105,8 @@ public class SendSMSActivity extends AppCompatActivity {
                 String address = getIntent().getStringExtra(ADDRESS);
 
                 EditText smsText = findViewById(R.id.sms_text);
-                smsText.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
-                smsText.setMovementMethod(ScrollingMovementMethod.getInstance());
+//                smsText.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
+//                smsText.setMovementMethod(ScrollingMovementMethod.getInstance());
                 smsText.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View view, MotionEvent motionEvent) {

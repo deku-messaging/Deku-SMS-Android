@@ -2,6 +2,8 @@
 <resources>
     <style name="AppTheme" parent="Theme.MaterialComponents.NoActionBar">
         <item name="android:textColor">#FAFAFA</item>
+        <item name="android:colorPressedHighlight">#FAFAFA</item>
+
         <item name="android:navigationBarColor">
             @android:color/transparent
         </item>
@@ -21,10 +23,5 @@
         <item name="android:background">@color/theme_dark</item>
 
     </style>
-
-    <style name="TextInputLayoutTheme" parent="Widget.Design.TextInputLayout">
-        <item name="colorOnSurface">@android:color/transparent</item>
-    </style>
-
 
 </resources>

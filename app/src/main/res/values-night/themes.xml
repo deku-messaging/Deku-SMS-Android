@@ -1,6 +1,6 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
-    <style name="Theme.night" parent="AppTheme">
+    <style name="Theme.night" parent="Theme.AppCompat.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/read_text</item>
         <item name="colorPrimaryVariant">@color/white</item>
@@ -11,6 +11,7 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <!-- Customize your theme here. -->
-        <item name="android:background">@color/theme_dark</item>
+<!--        <item name="android:background">@color/theme_dark</item>-->
+        <item name="android:background">@color/white</item>
     </style>
 </resources>
