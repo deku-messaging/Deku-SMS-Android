@@ -27,8 +27,8 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:startIconCheckable="false"
-        app:startIconTint="@android:color/transparent">
+        app:startIconDrawable="@drawable/ic_outline_search_24"
+        app:startIconTint="@android:color/darker_gray">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/recent_search_edittext_clickable"
