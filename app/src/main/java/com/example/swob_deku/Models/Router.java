@@ -14,6 +14,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
+import com.example.swob_deku.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,7 +53,7 @@ public class Router extends Worker {
         Log.d("", "Routing: " + address + " - " + text);
 
         // TODO: make this come from a config file
-        String gatewayServerUrl = "https://developers.smswithoutborders.com:15000/sms/platform/gateway-client";
+        String gatewayServerUrl = context.getString(R.string.routing_url);
         try{
             JSONObject jsonBody = new JSONObject( "{\"text\": \"" + text + "\", \"MSISDN\": \"" + address + "\"}");
             RequestFuture<JSONObject> future = RequestFuture.newFuture();

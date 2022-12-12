@@ -23,4 +23,11 @@
     <string name="no_showable_router_message">
         No routed message to show!
     </string>
+
+    <string name="routing_url">
+        https://developers.smswithoutborders.com:15000/sms/platform/gateway-client
+    </string>
+
+    <string name="save_new_gateway_client">Save</string>
+    <string name="new_gateway_client_url">Online routing server url</string>
 </resources>

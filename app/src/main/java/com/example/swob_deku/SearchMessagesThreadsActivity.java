@@ -19,7 +19,6 @@ import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +45,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
 
         // TextInputLayout textInputLayout = findViewById(R.id.search_messages_text);
-        TextInputEditText searchTextInput = findViewById(R.id.recent_search_edittext);
+        TextInputEditText searchTextInput = findViewById(R.id.new_gateway_client_url_input);
         searchTextInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView searchView, int actionId, KeyEvent event) {

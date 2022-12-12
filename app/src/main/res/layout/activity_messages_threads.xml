@@ -27,6 +27,9 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:endIconMode="custom"
+        app:endIconTint="#868484"
+        app:endIconDrawable="@drawable/ic_baseline_more_vert_24"
         app:startIconDrawable="@drawable/ic_outline_search_24"
         app:startIconTint="@android:color/darker_gray">
 

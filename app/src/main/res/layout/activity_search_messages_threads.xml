@@ -26,7 +26,7 @@
         app:layout_constraintTop_toBottomOf="@+id/search_messages_toolbar">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/search_messages_text"
+            android:id="@+id/new_gateway_client_url_holder"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -49,7 +49,7 @@
             app:startIconTint="@null">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/recent_search_edittext"
+                android:id="@+id/new_gateway_client_url_input"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:imeOptions="actionGo"
