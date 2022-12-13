@@ -18,7 +18,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppTheme">
         <activity
-            android:name=".GatewayClientActivity"
+            android:name=".GatewayServerListingActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".GatewayServersListingActivitiy"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".GatewayServerAddActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

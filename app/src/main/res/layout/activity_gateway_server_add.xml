@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GatewayClientActivity">
+    tools:context=".GatewayServerAddActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/new_gateway_client_toolbar"
@@ -69,6 +69,7 @@
         android:layout_marginTop="45dp"
         android:layout_marginEnd="64dp"
         android:backgroundTint="#673AB7"
+        android:onClick="onSaveGatewayServer"
         android:text="@string/save_new_gateway_client"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"

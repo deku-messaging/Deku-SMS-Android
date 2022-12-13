@@ -8,9 +8,14 @@ import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
 import com.example.swob_deku.Models.GatewayServer.GatewayServer;
+import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
 
 @Database(entities = {GatewayServer.class}, version = 0)
-public class Datastore extends RoomDatabase {
+public abstract class Datastore extends RoomDatabase {
+    public static String databaseName = "SMSWithoutBorders-Messaging-DB";
+
+    public abstract GatewayServerDAO gatewayServerDAO();
+
     @Override
     public void clearAllTables() {
 
