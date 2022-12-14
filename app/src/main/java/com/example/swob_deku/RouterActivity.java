@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
@@ -103,27 +104,17 @@ public class RouterActivity extends AppCompatActivity {
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
     }
 
-    public static String[] convertSetToStringArray(Set<String> setOfString)
-    {
-
-        // Create String[] of size of setOfString
-        String[] arrayOfString = new String[setOfString.size()];
-
-        // Copy elements from set to string array
-        // using advanced for loop
-        int index = 0;
-        for (String str : setOfString)
-            arrayOfString[index++] = str;
-
-        // return the formed String[]
-        return arrayOfString;
-    }
 
     public ArrayList<ArrayList<String>> listRouteJobs() {
 
         WorkQuery workQuery = WorkQuery.Builder
                 .fromTags(Arrays.asList(SMSReceiverActivity.TAG_NAME))
-                .addStates(Arrays.asList(WorkInfo.State.SUCCEEDED, WorkInfo.State.FAILED, WorkInfo.State.CANCELLED))
+                .addStates(Arrays.asList(
+                        WorkInfo.State.SUCCEEDED,
+                        WorkInfo.State.ENQUEUED,
+                        WorkInfo.State.FAILED,
+                        WorkInfo.State.RUNNING,
+                        WorkInfo.State.CANCELLED))
                 .build();
 
         WorkManager workManager = WorkManager.getInstance(getApplicationContext());
@@ -135,7 +126,7 @@ public class RouterActivity extends AppCompatActivity {
 
             String messageId = new String();
             for(WorkInfo workInfo : workInfoList) {
-                String[] tags = convertSetToStringArray(workInfo.getTags());
+                String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
                 for(int i = 0; i< tags.length; ++i) {
                     if (tags[i].contains("swob.work.id")) {
                         tags = tags[i].split("\\.");

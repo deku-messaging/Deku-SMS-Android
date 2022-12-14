@@ -27,6 +27,7 @@ import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
 import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSReceiverActivity;
 import com.example.swob_deku.SendSMSActivity;
@@ -150,7 +151,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             }
         };
 
-        if(sms.getRouterStatus().equals(WorkInfo.State.FAILED.name())) {
+        if(sms.getRouterStatus().equals(WorkInfo.State.ENQUEUED.name())) {
             holder.snippet.setOnClickListener(onClickListener);
             holder.state.setText( holder.state.getText().toString() + " click to retry!");
 
@@ -160,7 +161,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                     // TODO: restart the work
                     WorkQuery workQuery = WorkQuery.Builder
                             .fromTags(Arrays.asList(SMSReceiverActivity.TAG_NAME))
-                            .addStates(Arrays.asList(WorkInfo.State.FAILED))
+                            .addStates(Arrays.asList(WorkInfo.State.ENQUEUED))
                             .addUniqueWorkNames(Arrays.asList(sms.getId()))
                             .build();
 
@@ -171,9 +172,21 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                         List<WorkInfo> workInfoList = workInfos.get();
 
                         for(WorkInfo workInfo: workInfoList) {
-                            Log.d("", "Retrying work: " + workInfo.getTags());
                             // TODO: unless bug, failure cannot happen - task requeues if conditions are not met.
                             // TODO: not totally sure to proceed.
+                            String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
+                            String messageId = new String();
+                            for(int i = 0; i< tags.length; ++i) {
+                                if (tags[i].contains("swob.work.id")) {
+                                    tags = tags[i].split("\\.");
+                                    messageId = tags[tags.length - 1];
+                                    break;
+                                }
+                            }
+                            if(sms.getId().equals(messageId)) {
+                                // workManager.
+                                // TODO: cancel the work and start a new one.
+                            }
                         }
                     } catch(Exception e ) {
                         e.printStackTrace();

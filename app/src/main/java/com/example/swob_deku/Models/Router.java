@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.android.volley.ClientError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -36,8 +37,14 @@ public class Router extends Worker {
             String address = getInputData().getString("address");
             String text = getInputData().getString("text");
             routeMessagesToGatewayServers(address, text);
-        } catch(ExecutionException e ) {
-            e.printStackTrace();
+        } catch (ExecutionException | TimeoutException | InterruptedException e){
+            if(e.getCause() instanceof ClientError) {
+                ClientError error = (ClientError) e;
+                int statusCode = error.networkResponse.statusCode;
+                if(statusCode >=400 && statusCode < 500)
+                    return Result.failure();
+            }
+            return Result.retry();
         } catch (Exception e ) {
             e.printStackTrace();
             return Result.failure();
@@ -45,7 +52,7 @@ public class Router extends Worker {
         return Result.success();
     }
 
-    private void routeMessagesToGatewayServers(String address, String text) throws JSONException, VolleyError, ExecutionException {
+    private void routeMessagesToGatewayServers(String address, String text) throws JSONException, VolleyError, ExecutionException, InterruptedException, TimeoutException {
         // TODO: Pause to resend if no internet connection
         // TODO: Pause till routing can happen, but should probably use a broker for this
         Context context = getApplicationContext();
@@ -69,14 +76,11 @@ public class Router extends Worker {
 
             requestQueue.add(jsonObjectRequest);
             JSONObject response = future.get(30, TimeUnit.SECONDS);
-        } catch (ExecutionException e){
+        } catch (ExecutionException | TimeoutException | InterruptedException e){
+            // Hit the server and came back with error code
            throw e;
-        } catch(InterruptedException  | TimeoutException e ) {
-            e.printStackTrace();
-            throw new VolleyError(e);
-        } catch(JSONException e ) {
-            throw e;
         } catch(Exception e ) {
+            // Fuck
             throw e;
         }
     }

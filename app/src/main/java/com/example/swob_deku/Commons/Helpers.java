@@ -1,6 +1,7 @@
 package com.example.swob_deku.Commons;
 
 import java.util.Random;
+import java.util.Set;
 
 public class Helpers {
     /*
@@ -33,5 +34,22 @@ public class Helpers {
     public static long generateRandomNumber() {
         Random random = new Random();
         return random.nextLong();
+    }
+
+
+    public static String[] convertSetToStringArray(Set<String> setOfString)
+    {
+
+        // Create String[] of size of setOfString
+        String[] arrayOfString = new String[setOfString.size()];
+
+        // Copy elements from set to string array
+        // using advanced for loop
+        int index = 0;
+        for (String str : setOfString)
+            arrayOfString[index++] = str;
+
+        // return the formed String[]
+        return arrayOfString;
     }
 }
