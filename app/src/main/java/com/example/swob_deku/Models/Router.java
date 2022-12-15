@@ -11,6 +11,8 @@ import com.android.volley.ClientError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.ServerError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
@@ -38,10 +40,12 @@ public class Router extends Worker {
             String text = getInputData().getString("text");
             routeMessagesToGatewayServers(address, text);
         } catch (ExecutionException | TimeoutException | InterruptedException e){
-            if(e.getCause() instanceof ClientError) {
-                ClientError error = (ClientError) e;
+            e.printStackTrace();
+            Throwable cause = e.getCause();
+            if(cause instanceof ServerError){
+                ServerError error = (ServerError) cause;
                 int statusCode = error.networkResponse.statusCode;
-                if(statusCode >=400 && statusCode < 500)
+                if(statusCode >=400)
                     return Result.failure();
             }
             return Result.retry();
@@ -63,6 +67,7 @@ public class Router extends Worker {
         String gatewayServerUrl = context.getString(R.string.routing_url);
         try{
             JSONObject jsonBody = new JSONObject( "{\"text\": \"" + text + "\", \"MSISDN\": \"" + address + "\"}");
+
             RequestFuture<JSONObject> future = RequestFuture.newFuture();
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
                     gatewayServerUrl,
@@ -75,10 +80,11 @@ public class Router extends Worker {
                     DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
             requestQueue.add(jsonObjectRequest);
-            JSONObject response = future.get(30, TimeUnit.SECONDS);
-        } catch (ExecutionException | TimeoutException | InterruptedException e){
+            future.get(30, TimeUnit.SECONDS);
+        }
+        catch (ExecutionException | TimeoutException | InterruptedException e){
             // Hit the server and came back with error code
-           throw e;
+            throw e;
         } catch(Exception e ) {
             // Fuck
             throw e;
