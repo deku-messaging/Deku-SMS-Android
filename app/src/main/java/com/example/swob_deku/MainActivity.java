@@ -34,19 +34,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        try {
-            DHKeyAgreement2.test();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
-            e.printStackTrace();
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            DHKeyAgreement2.test();
+//        } catch (InvalidKeyException e) {
+//            e.printStackTrace();
+//        } catch (NoSuchAlgorithmException e) {
+//            e.printStackTrace();
+//        } catch (InvalidKeySpecException e) {
+//            e.printStackTrace();
+//        } catch (InvalidAlgorithmParameterException e) {
+//            e.printStackTrace();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
         createNotificationChannel();
     }
@@ -153,10 +153,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case READ_SMS_PERMISSION_REQUEST_CODE:
                 if (grantResults.length > 0) {
-                    if(checkPermissionToReadContacts())
+                    if (checkPermissionToReadContacts())
                         startActivity(new Intent(this, MessagesThreadsActivity.class));
                     else {
                         ActivityCompat.requestPermissions(

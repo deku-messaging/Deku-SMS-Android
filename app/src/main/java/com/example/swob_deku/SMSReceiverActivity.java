@@ -46,16 +46,21 @@ public class SMSReceiverActivity extends BroadcastReceiver {
                 case Activity.RESULT_OK:
                     StringBuffer messageBuffer = new StringBuffer();
                     String address = new String();
+
                     for (SmsMessage currentSMS: Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         // TODO: Fetch address name from contact list if present
                         address = currentSMS.getDisplayOriginatingAddress();
                         messageBuffer.append(currentSMS.getDisplayMessageBody());
+
+                        if(BuildConfig.DEBUG) {
+                            Log.d(getClass().getName(), "Data received.: " + new String(currentSMS.getUserData()));
+                        }
                     }
 
                     String message = messageBuffer.toString();
                     long messageId = SMSHandler.registerIncomingMessage(context, address, message);
 
-                    sendNotification(message, address, messageId);
+                    sendNotification(context, message, address, messageId);
 
                     try {
                         CharsetDecoder charsetDecoder = Charset.forName("UTF-8").newDecoder();
@@ -106,7 +111,7 @@ public class SMSReceiverActivity extends BroadcastReceiver {
         }
     }
 
-    private void sendNotification(String text, String address, long messageId) {
+    public static void sendNotification(Context context, String text, String address, long messageId) {
         Intent receivedSmsIntent = new Intent(context, SendSMSActivity.class);
 
         Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, messageId);

@@ -26,6 +26,7 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Base64;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,6 +43,7 @@ import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -96,7 +98,7 @@ public class SendSMSActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceStates);
         processForSharedIntent();
         handleIncomingMessage();
-        cancelNotifications();
+        cancelNotifications(getIntent().getStringExtra(THREAD_ID));
 
         runOnUiThread(new Runnable() {
             @Override
@@ -147,6 +149,14 @@ public class SendSMSActivity extends AppCompatActivity {
                String address = sendToString.substring(sendToString.indexOf(':') + 1);
                String text = getIntent().getStringExtra("sms_body");
 
+               byte[] bytesData = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
+               if(bytesData != null) {
+                   Log.d(getClass().getName(), "Byte data: " + bytesData);
+                   Log.d(getClass().getName(), "Byte data: " + new String(bytesData, StandardCharsets.UTF_8));
+
+                   text = new String(bytesData, StandardCharsets.UTF_8);
+               }
+
                getIntent().putExtra(ADDRESS, address);
                TextInputEditText send_text = findViewById(R.id.sms_text);
                send_text.setText(text);
@@ -154,7 +164,7 @@ public class SendSMSActivity extends AppCompatActivity {
         }
     }
 
-    private void handleSentMessages() {
+    public void handleSentMessages() {
 //        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
         BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -177,6 +187,11 @@ public class SendSMSActivity extends AppCompatActivity {
                     case SmsManager.RESULT_ERROR_RADIO_OFF:
                     default:
                         SMSHandler.registerFailedMessage(context, id, getResultCode());
+                        if(BuildConfig.DEBUG) {
+                            Log.d(getLocalClassName(), "Failed to send: " + getResultCode());
+                            Log.d(getLocalClassName(), "Failed to send: " + getResultData());
+                            Log.d(getLocalClassName(), "Failed to send: " + intent.getData());
+                        }
                 }
                 if(isCurrentlyActive()) {
                     updateStack();
@@ -191,7 +206,7 @@ public class SendSMSActivity extends AppCompatActivity {
         return this.getWindow().getDecorView().getRootView().isShown();
     }
 
-    private void handleDeliveredMessages() {
+    public void handleDeliveredMessages() {
 //        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
         BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -202,6 +217,9 @@ public class SendSMSActivity extends AppCompatActivity {
                     case Activity.RESULT_OK:
                         SMSHandler.registerDeliveredMessage(context, id);
                         break;
+                    default:
+                        if(BuildConfig.DEBUG)
+                            Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
                 if(isCurrentlyActive()) {
                     updateStack();
@@ -212,12 +230,12 @@ public class SendSMSActivity extends AppCompatActivity {
         registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
     }
 
-    public void cancelNotifications() {
+    public void cancelNotifications(String threadId) {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
                 getApplicationContext());
 
         if(getIntent().hasExtra(THREAD_ID))
-            notificationManager.cancel(Integer.parseInt(getIntent().getStringExtra(THREAD_ID)));
+            notificationManager.cancel(Integer.parseInt(threadId));
     }
 
     private void handleIncomingMessage() {
@@ -235,7 +253,7 @@ public class SendSMSActivity extends AppCompatActivity {
                             SMS sms = new SMS(cursor);
                             if (isCurrentlyActive() && sms.getThreadId().equals(getIntent().getStringExtra(THREAD_ID))) {
                                 getIntent().putExtra(ADDRESS, sms.getAddress());
-                                cancelNotifications();
+                                cancelNotifications(sms.getThreadId());
                                 updateStack();
                             }
                         }
@@ -373,8 +391,19 @@ public class SendSMSActivity extends AppCompatActivity {
             handleSentMessages();
             handleDeliveredMessages();
 
-            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
+//            if(getIntent().hasExtra(Intent.EXTRA_STREAM)) {
+//                byte[] data = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
+//                SMSHandler.sendSMS(getApplicationContext(), destinationAddress, data,
+//                        sentPendingIntent, deliveredPendingIntent, messageId);
+//                getIntent().removeExtra(Intent.EXTRA_STREAM);
+//            }
+//            else
+//                SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
+//                        sentPendingIntent, deliveredPendingIntent, messageId);
+
+            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text.getBytes(StandardCharsets.UTF_8),
                     sentPendingIntent, deliveredPendingIntent, messageId);
+
 
             smsTextView.setText("");
             updateStack();
@@ -403,6 +432,7 @@ public class SendSMSActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case SEND_SMS_PERMISSION_REQUEST_CODE:
                 if (grantResults.length > 0) {
@@ -419,7 +449,7 @@ public class SendSMSActivity extends AppCompatActivity {
         super.onResume();
 
         updateStack();
-        cancelNotifications();
+        cancelNotifications(getIntent().getStringExtra(THREAD_ID));
     }
 
 }
