@@ -382,11 +382,11 @@ public class SendSMSActivity extends AppCompatActivity {
 
              PendingIntent sentPendingIntent = PendingIntent.getBroadcast(this, 200,
                      sentIntent,
-                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
             PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(this, 150,
                     deliveredIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
             handleSentMessages();
             handleDeliveredMessages();

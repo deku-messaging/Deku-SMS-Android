@@ -33,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 //        try {
 //            DHKeyAgreement2.test();
 //        } catch (InvalidKeyException e) {
@@ -48,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
 //            e.printStackTrace();
 //        }
 
-        createNotificationChannel();
     }
 
     @Override
@@ -56,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceStates);
 
         checkIsDefaultApp();
+        createNotificationChannel();
 //        if(!checkPermissionToReadSMSMessages()) {
 //            ActivityCompat.requestPermissions(
 //                    this,
