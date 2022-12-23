@@ -35,7 +35,7 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textColor="@color/black"
                 android:textSize="18sp"
-                app:fontFamily="sans-serif-thin" />
+                app:fontFamily="sans-serif" />
         </com.google.android.material.card.MaterialCardView>
 
         <TextView

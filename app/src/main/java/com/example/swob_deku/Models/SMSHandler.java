@@ -10,10 +10,13 @@ import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.text.format.DateUtils;
+import android.util.Base64;
 import android.util.Log;
 
+import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -26,6 +29,39 @@ import java.util.Map;
 import java.util.Set;
 
 public class SMSHandler {
+    static final short DATA_TRANSMISSION_PORT = 8901;
+
+    public static void sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
+        try {
+            if(data == null)
+                return;
+
+            // registerPendingMessage(context, destinationAddress, text, messageId);
+            // TODO: Handle sending multipart messages
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Sending data: " + data);
+
+//            registerPendingMessage(context, destinationAddress, new String(data, StandardCharsets.UTF_8), messageId);
+            registerPendingMessage(context, destinationAddress, Base64.encodeToString(data, Base64.DEFAULT), messageId);
+            smsManager.sendDataMessage(
+                    destinationAddress,
+                    null,
+                    DATA_TRANSMISSION_PORT,
+                    data,
+                    sentIntent,
+                    deliveryIntent);
+            if(BuildConfig.DEBUG) {
+                Log.d(SMSHandler.class.getName(), "Data message sent...");
+            }
+        }
+        catch(Throwable e) {
+            // throw new IllegalArgumentException(e);
+            throw e;
+        }
+    }
 
     public static void sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
