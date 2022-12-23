@@ -17,13 +17,18 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +61,32 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             }
         });
 
+        TextInputLayout searchTextViewLayout = findViewById(R.id.search_messages_text_clickable);
+        searchTextViewLayout.setEndIconOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu popup = new PopupMenu(getApplicationContext(), v);
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.messages_threads_menu_item_settings: {
+                                Intent settingsIntent = new Intent(getApplicationContext(),
+                                        GatewayServerListingActivity.class);
+                                settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(settingsIntent);
+                                return true;
+                            }
+                            default:
+                                return false;
+                        }
+                    }
+                });
+                MenuInflater inflater = popup.getMenuInflater();
+                inflater.inflate(R.menu.main_menu, popup.getMenu());
+                popup.show();
+            }
+        });
     }
 
     private void cancelAllNotifications() {

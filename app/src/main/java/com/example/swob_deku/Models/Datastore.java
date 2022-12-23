@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteOpenHelper;
 import com.example.swob_deku.Models.GatewayServer.GatewayServer;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
 
-@Database(entities = {GatewayServer.class}, version = 0)
+@Database(entities = {GatewayServer.class}, version = 1)
 public abstract class Datastore extends RoomDatabase {
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
 

@@ -17,7 +17,8 @@
         android:theme="?attr/actionBarTheme"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="@string/add_new_gateway_server_toolbar_title" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/new_gateway_client_url_holder"

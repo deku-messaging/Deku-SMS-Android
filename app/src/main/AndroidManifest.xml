@@ -19,13 +19,8 @@
         android:theme="@style/Theme.AppTheme">
         <activity
             android:name=".GatewayServerListingActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".GatewayServersListingActivitiy"
+            android:parentActivityName=".MainActivity"
+            android:launchMode="singleTask"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -33,6 +28,7 @@
         </activity>
         <activity
             android:name=".GatewayServerAddActivity"
+            android:parentActivityName=".GatewayServerListingActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

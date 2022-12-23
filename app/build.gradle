@@ -55,5 +55,6 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'commons-codec:commons-codec:1.11'
 
-    implementation "androidx.room:room-runtime:2.5.0-rc01"
-}
+    def room_version = "2.5.0-alpha01"
+    implementation "androidx.room:room-runtime:2.4.3"
+    annotationProcessor "androidx.room:room-compiler:2.4.3"}
