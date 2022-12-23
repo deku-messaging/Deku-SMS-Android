@@ -27,6 +27,8 @@
         </activity>
         <activity
             android:name=".GatewayServerListingActivity"
+            android:launchMode="singleTask"
+            android:parentActivityName=".MessagesThreadsActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -34,7 +36,8 @@
         </activity>
         <activity
             android:name=".GatewayServerAddActivity"
-            android:exported="false"></activity>
+            android:parentActivityName=".GatewayServerListingActivity"
+            android:exported="false" />
         <activity
             android:name=".RouterActivity"
             android:exported="false"
