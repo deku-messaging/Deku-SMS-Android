@@ -29,6 +29,8 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
         this.recentsRenderLayout = recentsRenderLayout;
     }
 
+    public GatewayServerRecyclerAdapter() {}
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

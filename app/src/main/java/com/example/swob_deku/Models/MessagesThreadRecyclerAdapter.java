@@ -52,6 +52,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     Set<String> threadIdSet = new HashSet<>();
 
+    public MessagesThreadRecyclerAdapter() {}
+
     public MessagesThreadRecyclerAdapter(Context context, List<SMS> messagesThreadList, int renderLayout) {
        this.context = context;
        this.messagesThreadList = messagesThreadList;

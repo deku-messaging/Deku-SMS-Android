@@ -35,6 +35,8 @@ import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
     // TODO: Change address to friendly name if in phonebook
+    public List<SMS> messagesForThread = new ArrayList<>();
+    MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +89,15 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 popup.show();
             }
         });
+
+        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
+                this, messagesForThread, R.layout.messages_threads_layout);
+
+        RecyclerView messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
+        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
     }
 
     private void cancelAllNotifications() {
@@ -113,20 +124,10 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     void populateMessageThreads() {
         Cursor cursor = SMSHandler.fetchSMSMessagesThreads(getApplicationContext());
 
-        List<SMS> messagesForThread = getThreadsFromCursor(cursor);
-
+        messagesForThread = getThreadsFromCursor(cursor);
         messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread, true);
 
-        RecyclerView messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
-
-        MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, messagesForThread, R.layout.messages_threads_layout);
-
-        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-
-        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+        messagesThreadRecyclerAdapter.notifyDataSetChanged();
     }
 
     public void onNewMessageClick(View view) {
@@ -191,7 +192,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
         Log.d("", "resuming...");
         populateMessageThreads();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();

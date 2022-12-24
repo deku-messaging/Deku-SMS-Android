@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,9 +20,14 @@ import com.example.swob_deku.Models.GatewayServer.GatewayServer;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerHandler;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerRecyclerAdapter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GatewayServerListingActivity extends AppCompatActivity {
+    public List<GatewayServer> gatewayServerList = new ArrayList<>();
+    public GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter();
+    public RecyclerView recentsRecyclerView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +44,16 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
+
+        recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
+        gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter(this,
+                gatewayServerList, R.layout.layout_gateway_server_list);
+
+        recentsRecyclerView.setAdapter(gatewayServerRecyclerAdapter);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        recentsRecyclerView.setLayoutManager(linearLayoutManager);
+
+        populateGatewayServers();
     }
 
     @Override
@@ -48,28 +65,20 @@ public class GatewayServerListingActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        populateGatewayServers();
     }
 
     public void populateGatewayServers() {
-        RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
         // recentsRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
 
         try {
-            List<GatewayServer> gatewayServerList = GatewayServerHandler.fetchAll(getApplicationContext());
+            gatewayServerList = GatewayServerHandler.fetchAll(getApplicationContext());
 
             if(gatewayServerList.size() < 1 ) {
                 findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
                 return;
             }
 
-            GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter(this,
-                    gatewayServerList, R.layout.layout_gateway_server_list);
-
-            recentsRecyclerView.setAdapter(gatewayServerRecyclerAdapter);
-            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-            recentsRecyclerView.setLayoutManager(linearLayoutManager);
-
+            gatewayServerRecyclerAdapter.notifyDataSetChanged();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -84,5 +93,11 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                 break;
         }
         return false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        populateGatewayServers();
     }
 }
