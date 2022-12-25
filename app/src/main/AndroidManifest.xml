@@ -17,6 +17,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.AppTheme">
         <activity
             android:name=".RespondViaMessageActivity"
@@ -27,7 +28,6 @@
         </activity>
         <activity
             android:name=".GatewayServerListingActivity"
-            android:launchMode="singleTask"
             android:parentActivityName=".MessagesThreadsActivity"
             android:exported="false">
             <meta-data

@@ -1,5 +1,6 @@
 package com.example.swob_deku.Models.GatewayServer;
 
+import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Index;
@@ -48,4 +49,17 @@ public class GatewayServer {
 
     @PrimaryKey(autoGenerate = true)
     public long id;
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+//        return super.equals(obj);
+        if(obj instanceof GatewayServer) {
+            GatewayServer gatewayServer = (GatewayServer) obj;
+            return gatewayServer.id == this.id &&
+                    gatewayServer.URL.equals(this.URL) &&
+                    gatewayServer.method.equals(this.method) &&
+                    gatewayServer.date.equals(this.date);
+        }
+        return false;
+    }
 }

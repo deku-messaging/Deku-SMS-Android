@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.R;
@@ -19,13 +21,13 @@ import java.util.List;
 
 public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewayServerRecyclerAdapter.ViewHolder> {
 
+    private final AsyncListDiffer<GatewayServer> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
+
     int recentsRenderLayout;
     Context context;
-    List<GatewayServer> gatewayServerList;
 
-    public GatewayServerRecyclerAdapter(Context context, List<GatewayServer> gatewayServerList, int recentsRenderLayout) {
+    public GatewayServerRecyclerAdapter(Context context, int recentsRenderLayout) {
         this.context = context;
-        this.gatewayServerList = gatewayServerList;
         this.recentsRenderLayout = recentsRenderLayout;
     }
 
@@ -41,7 +43,8 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        GatewayServer gatewayServer = gatewayServerList.get(position);
+//        GatewayServer gatewayServer = gatewayServerList.get(position);
+        GatewayServer gatewayServer = mDiffer.getCurrentList().get(position);
         holder.url.setText(gatewayServer.getURL());
         holder.method.setText(gatewayServer.getMethod());
         holder.date.setText(Long.toString(gatewayServer.getDate()));
@@ -49,9 +52,12 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
 
     @Override
     public int getItemCount() {
-        return this.gatewayServerList.size();
+        return mDiffer.getCurrentList().size();
     }
 
+    public void submitList(List<GatewayServer> list) {
+        mDiffer.submitList(list);
+    }
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView url;
         TextView method;
@@ -64,4 +70,17 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
             this.date = itemView.findViewById(R.id.gateway_server_date);
         }
     }
+
+    public static final DiffUtil.ItemCallback<GatewayServer> DIFF_CALLBACK =
+        new DiffUtil.ItemCallback<GatewayServer>() {
+            @Override
+            public boolean areItemsTheSame(@NonNull GatewayServer oldItem, @NonNull GatewayServer newItem) {
+                return oldItem.id == newItem.id;
+            }
+
+            @Override
+            public boolean areContentsTheSame(@NonNull GatewayServer oldItem, @NonNull GatewayServer newItem) {
+                return oldItem.equals(newItem);
+            }
+        };
 }

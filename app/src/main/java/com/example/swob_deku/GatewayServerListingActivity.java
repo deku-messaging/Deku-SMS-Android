@@ -4,8 +4,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.content.Intent;
 import android.database.DataSetObserver;
@@ -16,18 +21,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServer.GatewayServer;
+import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerHandler;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerRecyclerAdapter;
+import com.example.swob_deku.Models.GatewayServer.GatewayServerViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GatewayServerListingActivity extends AppCompatActivity {
-    public List<GatewayServer> gatewayServerList = new ArrayList<>();
-    public GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter();
-    public RecyclerView recentsRecyclerView;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,15 +49,36 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-        recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
-        gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter(this,
-                gatewayServerList, R.layout.layout_gateway_server_list);
-
-        recentsRecyclerView.setAdapter(gatewayServerRecyclerAdapter);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
         recentsRecyclerView.setLayoutManager(linearLayoutManager);
 
-        populateGatewayServers();
+        GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter(this,
+                R.layout.layout_gateway_server_list);
+        recentsRecyclerView.setAdapter(gatewayServerRecyclerAdapter);
+
+        GatewayServerViewModel gatewayServerViewModel = new ViewModelProvider(this).get(
+                GatewayServerViewModel.class);
+
+
+        Datastore databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                Datastore.databaseName).build();
+        GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
+
+//        gatewayServerViewModel.getGatewayServers(gatewayServerDAO).observe(this,
+//                list -> gatewayServerRecyclerAdapter.submitList(list));
+
+        gatewayServerViewModel.getGatewayServers(gatewayServerDAO).observe(this,
+                new Observer<List<GatewayServer>>() {
+                    @Override
+                    public void onChanged(List<GatewayServer> gatewayServerList) {
+                        Log.d(getLocalClassName(), "Changed happening....");
+                        if(gatewayServerList.size() < 1 )
+                            findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
+                        gatewayServerRecyclerAdapter.submitList(gatewayServerList);
+                    }
+                });
+
     }
 
     @Override
@@ -67,23 +92,6 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceState);
     }
 
-    public void populateGatewayServers() {
-        // recentsRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-
-        try {
-            gatewayServerList = GatewayServerHandler.fetchAll(getApplicationContext());
-
-            if(gatewayServerList.size() < 1 ) {
-                findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
-                return;
-            }
-
-            gatewayServerRecyclerAdapter.notifyDataSetChanged();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
@@ -94,10 +102,5 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         }
         return false;
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        populateGatewayServers();
-    }
 }
+
