@@ -33,6 +33,10 @@ import java.util.List;
 
 public class GatewayServerListingActivity extends AppCompatActivity {
 
+    LiveData<List<GatewayServer>> gatewayServerLiveData;
+    Datastore databaseConnector;
+    GatewayServerDAO gatewayServerDAO;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,15 +64,17 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         GatewayServerViewModel gatewayServerViewModel = new ViewModelProvider(this).get(
                 GatewayServerViewModel.class);
 
-
-        Datastore databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                Datastore.databaseName).build();
-        GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
-
 //        gatewayServerViewModel.getGatewayServers(gatewayServerDAO).observe(this,
 //                list -> gatewayServerRecyclerAdapter.submitList(list));
 
-        gatewayServerViewModel.getGatewayServers(gatewayServerDAO).observe(this,
+        databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                Datastore.databaseName).build();
+
+        gatewayServerDAO = databaseConnector.gatewayServerDAO();
+
+        gatewayServerLiveData = gatewayServerDAO.getAll();
+
+        gatewayServerViewModel.getGatewayServers(gatewayServerDAO, gatewayServerLiveData).observe(this,
                 new Observer<List<GatewayServer>>() {
                     @Override
                     public void onChanged(List<GatewayServer> gatewayServerList) {
@@ -78,7 +84,6 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                         gatewayServerRecyclerAdapter.submitList(gatewayServerList);
                     }
                 });
-
     }
 
     @Override
@@ -101,6 +106,12 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                 break;
         }
         return false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        gatewayServerLiveData = gatewayServerDAO.getAll();
     }
 }
 
