@@ -10,8 +10,7 @@ import java.util.List;
 public class GatewayServerViewModel extends ViewModel {
     private LiveData<List<GatewayServer>> gatewayServersList;
 
-    public LiveData<List<GatewayServer>> getGatewayServers(GatewayServerDAO gatewayServerDAO, LiveData<List<GatewayServer>> gatewayServerLiveData){
-        this.gatewayServersList = gatewayServerLiveData;
+    public LiveData<List<GatewayServer>> getGatewayServers(GatewayServerDAO gatewayServerDAO){
         loadGatewayServers(gatewayServerDAO);
         return gatewayServersList;
     }

@@ -32,8 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GatewayServerListingActivity extends AppCompatActivity {
-
-    LiveData<List<GatewayServer>> gatewayServerLiveData;
     Datastore databaseConnector;
     GatewayServerDAO gatewayServerDAO;
 
@@ -72,9 +70,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
         gatewayServerDAO = databaseConnector.gatewayServerDAO();
 
-        gatewayServerLiveData = gatewayServerDAO.getAll();
-
-        gatewayServerViewModel.getGatewayServers(gatewayServerDAO, gatewayServerLiveData).observe(this,
+        gatewayServerViewModel.getGatewayServers(gatewayServerDAO).observe(this,
                 new Observer<List<GatewayServer>>() {
                     @Override
                     public void onChanged(List<GatewayServer> gatewayServerList) {
@@ -111,7 +107,6 @@ public class GatewayServerListingActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        gatewayServerLiveData = gatewayServerDAO.getAll();
     }
 }
 

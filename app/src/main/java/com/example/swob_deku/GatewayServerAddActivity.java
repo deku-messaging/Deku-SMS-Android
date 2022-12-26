@@ -4,6 +4,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -40,9 +41,9 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         } catch(InterruptedException e) {
             e.printStackTrace();
         } finally {
-            finish();
+            Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
+            gatewayServerListIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(gatewayServerListIntent);
         }
-
-        // TODO: add logs to debug mode
     }
 }
