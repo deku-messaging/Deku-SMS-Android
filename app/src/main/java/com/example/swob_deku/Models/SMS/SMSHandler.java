@@ -122,7 +122,7 @@ public class SMSHandler {
                 selection,
                 "thread_id=?",
                 new String[] { threadId },
-                "date ASC");
+                null);
 
         return smsMessagesCursor;
     }

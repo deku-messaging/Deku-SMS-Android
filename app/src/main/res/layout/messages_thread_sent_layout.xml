@@ -20,8 +20,9 @@
             android:layout_height="wrap_content"
             android:paddingRight="10dp"
             app:cardBackgroundColor="#A2C4D6"
-            app:cardCornerRadius="15dp"
+            app:cardCornerRadius="25dp"
             app:cardPreventCornerOverlap="false"
+            app:cardUseCompatPadding="false"
             app:contentPadding="10dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -32,7 +33,6 @@
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
                 android:padding="6dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 app:fontFamily="sans-serif" />
