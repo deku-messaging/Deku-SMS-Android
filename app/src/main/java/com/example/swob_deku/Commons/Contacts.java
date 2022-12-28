@@ -4,10 +4,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.util.Log;
+
+import com.example.swob_deku.BuildConfig;
 
 public class Contacts {
 
     public static String retrieveContactName(Context context, String phoneNumber) {
+        if(BuildConfig.DEBUG)
+            Log.d(Contacts.class.getName(), "Phone number: " + phoneNumber);
         Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
         Cursor cursor = context.getContentResolver().query(
                 uri,

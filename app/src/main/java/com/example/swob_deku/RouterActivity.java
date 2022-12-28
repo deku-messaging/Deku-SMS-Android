@@ -90,12 +90,12 @@ public class RouterActivity extends AppCompatActivity {
             }
         }
 
-        messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread, false);
+//        messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread, false);
 
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.routed_messages_recycler_view);
 
         MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, messagesForThread, R.layout.messages_threads_layout, true, "");
+                this, R.layout.messages_threads_layout, true, "");
 
         messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 

@@ -88,12 +88,12 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
         Log.d("", "Found search: " + messagesForThread.size());
 
-        messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread, false);
+//        messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread, false);
 
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.search_results_recycler_view);
 
         MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, messagesForThread, R.layout.messages_threads_layout, true, searchInput);
+                this, R.layout.messages_threads_layout, true, searchInput);
 
         messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 

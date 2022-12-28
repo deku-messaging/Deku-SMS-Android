@@ -8,24 +8,15 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
-import android.text.format.DateUtils;
 import android.util.Base64;
 import android.util.Log;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 
-import java.nio.charset.StandardCharsets;
-import java.sql.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class SMSHandler {
@@ -125,19 +116,29 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSMessagesThread(Context context, String threadId, Boolean single) {
-        String sortOrder = single? "date DESC LIMIT 1" : null;
-
-        String[] selection = single?
-                new String[] { "_id", "thread_id", "address", "date"} :
-                new String[] { "_id", "thread_id", "address", "date","body", "type", "read", "status", "reply_path_present"};
+    public static Cursor fetchSMSForThread(Context context, String threadId) {
+        String[] selection = new String[] { "_id", "thread_id", "address", "date"};
 
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,
                 selection,
                 "thread_id=?",
                 new String[] { threadId },
-                sortOrder);
+                "date ASC");
+
+        return smsMessagesCursor;
+    }
+
+    public static Cursor fetchSMSForThreading(Context context) {
+        String[] projection = new String[] {
+                "_id", "thread_id", "address", "body", "type", "MAX(date) as date"};
+
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                Telephony.Sms.CONTENT_URI,
+                projection,
+                "thread_id IS NOT NULL) GROUP BY (thread_id",
+                null,
+                "date DESC");
 
         return smsMessagesCursor;
     }
@@ -191,33 +192,14 @@ public class SMSHandler {
     }
 
     public static Cursor fetchSMSMessagesThreads(Context context) {
-        String targetedURI = String.valueOf(Telephony.Sms.Conversations.CONTENT_URI);
         Cursor cursor = context.getContentResolver().query(
-                Uri.parse(targetedURI),
+                Telephony.Sms.Conversations.CONTENT_URI,
                  new String[] { "msg_count", "snippet", "thread_id" },
                 null,
                 null,
                 "date DESC");
 
         return cursor;
-    }
-
-    public static List<SMS> getAddressForThreads(Context context, List<SMS> messagesList, boolean getDates) {
-        for(int i=0; i< messagesList.size(); ++i) {
-            String threadId = messagesList.get(i).getThreadId();
-            Log.d("", "searching threadID: " + threadId);
-            Cursor cursor = fetchSMSMessagesThread(context, threadId, true);
-
-            if(cursor.moveToFirst()) {
-                // assuming all the messages have the same address, just take the first one
-                SMS sms = new SMS(cursor, false);
-                messagesList.get(i).setAddress(sms.getAddress());
-
-                if(getDates)
-                    messagesList.get(i).setDate(sms.getDate());
-            }
-        }
-        return messagesList;
     }
 
 

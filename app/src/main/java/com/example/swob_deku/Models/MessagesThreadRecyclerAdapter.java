@@ -21,6 +21,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
@@ -28,6 +30,7 @@ import androidx.work.WorkQuery;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.GatewayServer.GatewayServer;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSReceiverActivity;
 import com.example.swob_deku.SendSMSActivity;
@@ -44,8 +47,9 @@ import java.util.Set;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<MessagesThreadRecyclerAdapter.ViewHolder> {
 
+    private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
+
     Context context;
-    List<SMS> messagesThreadList;
     int renderLayout;
     Boolean isSearch = false;
     String searchString = new String();
@@ -54,17 +58,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     public MessagesThreadRecyclerAdapter() {}
 
-    public MessagesThreadRecyclerAdapter(Context context, List<SMS> messagesThreadList, int renderLayout) {
+    public MessagesThreadRecyclerAdapter(Context context, int renderLayout) {
        this.context = context;
-       this.messagesThreadList = messagesThreadList;
        this.renderLayout = renderLayout;
 
        this.threadIdSet = SMSHandler.hasUnreadMessagesAll(context);
     }
 
-    public MessagesThreadRecyclerAdapter(Context context, List<SMS> messagesThreadList, int renderLayout, Boolean isSearch, String searchString) {
+    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch, String searchString) {
         this.context = context;
-        this.messagesThreadList = messagesThreadList;
         this.renderLayout = renderLayout;
         this.isSearch = isSearch;
         this.searchString = searchString;
@@ -86,7 +88,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        SMS sms = messagesThreadList.get(position);
+        SMS sms = mDiffer.getCurrentList().get(position);
 
         if(isSearch && !searchString.isEmpty()) {
 
@@ -106,10 +108,12 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         holder.state.setText(sms.getRouterStatus());
 
         String address = sms.getAddress();
-        String contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
+        String contactPhotoUri = "";
 
-        if(checkPermissionToReadContacts())
+        if(checkPermissionToReadContacts() && !address.isEmpty()) {
+            contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
             address = Contacts.retrieveContactName(context, address);
+        }
 
         if(!contactPhotoUri.isEmpty() && !contactPhotoUri.equals("null"))
             holder.contactPhoto.setImageURI(Uri.parse(contactPhotoUri));
@@ -202,7 +206,11 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     @Override
     public int getItemCount() {
-        return messagesThreadList.size();
+        return mDiffer.getCurrentList().size();
+    }
+
+    public void submitList(List<SMS> list) {
+        mDiffer.submitList(list);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -226,4 +234,18 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
         }
     }
+
+    // TODO:
+    public static final DiffUtil.ItemCallback<SMS> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<SMS>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
+                    return oldItem.id == newItem.id;
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
+                    return oldItem.equals(newItem);
+                }
+            };
 }

@@ -19,20 +19,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
-import android.text.method.ScrollingMovementMethod;
-import android.util.Base64;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,12 +40,9 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 
 public class SendSMSActivity extends AppCompatActivity {
 
@@ -318,7 +310,7 @@ public class SendSMSActivity extends AppCompatActivity {
             }
         }
 
-        Cursor cursor = SMSHandler.fetchSMSMessagesThread(getApplicationContext(), threadId, false);
+        Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId);
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
 
         if(getIntent().hasExtra(ID) && getIntent().hasExtra(SEARCH_STRING)) {

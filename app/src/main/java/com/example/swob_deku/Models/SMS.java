@@ -4,6 +4,8 @@ import android.database.Cursor;
 import android.provider.Telephony;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
 
@@ -152,26 +154,19 @@ public class SMS {
             this.statusCode = cursor.getInt(statusCodeIndex);
     }
 
-    public SMS(Cursor cursor, boolean isThread) {
-        int bodyIndex = -1;
 
-        if(isThread) {
-            int messageCountIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.MESSAGE_COUNT);
-            this.messageCount =  cursor.getInt(messageCountIndex);
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if(obj instanceof SMS) {
+            SMS sms = (SMS) obj;
 
-            bodyIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.SNIPPET);
-            this.body =  String.valueOf(cursor.getString(bodyIndex));
+            return sms.getId().equals(this.id) &&
+                    sms.threadId.equals(this.threadId) &&
+                    sms.getStatusCode() == this.statusCode &&
+                    sms.address.equals(this.address) &&
+                    sms.body.equals(this.body) &&
+                    sms.date.equals(this.date);
         }
-        else {
-            int addressIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.ADDRESS);
-            this.address =  String.valueOf(cursor.getString(addressIndex));
-
-            int dateIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.DATE);
-            this.date =  String.valueOf(cursor.getString(dateIndex));
-        }
-
-        int threadIdIndex = cursor.getColumnIndex(Telephony.Sms.Conversations.THREAD_ID);
-        this.threadId = String.valueOf(cursor.getString(threadIdIndex));
+        return false;
     }
-
 }

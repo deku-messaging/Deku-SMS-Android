@@ -2,6 +2,8 @@ package com.example.swob_deku;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.WorkInfo;
@@ -24,7 +26,10 @@ import android.view.View;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.example.swob_deku.Models.GatewayServer.GatewayServer;
+import com.example.swob_deku.Models.GatewayServer.GatewayServerViewModel;
 import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS;
 import com.example.swob_deku.Models.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
@@ -35,7 +40,6 @@ import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
     // TODO: Change address to friendly name if in phonebook
-    public List<SMS> messagesForThread = new ArrayList<>();
     MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter();
 
     @Override
@@ -43,8 +47,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages_threads);
 
-        populateMessageThreads();
-        cancelAllNotifications();
+//        cancelAllNotifications();
         handleIncomingMessage();
 
         TextInputEditText searchTextView = findViewById(R.id.recent_search_edittext_clickable);
@@ -90,14 +93,28 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             }
         });
 
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, messagesForThread, R.layout.messages_threads_layout);
+                this, R.layout.messages_threads_layout);
 
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
+        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+
+        MessagesThreadViewModel messagesThreadViewModel = new ViewModelProvider(this).get(
+                MessagesThreadViewModel.class);
+
+        messagesThreadViewModel.getMessages(getApplicationContext()).observe(this,
+                new Observer<List<SMS>>() {
+                    @Override
+                    public void onChanged(List<SMS> smsList) {
+                        Log.d(getLocalClassName(), "Changed happening....");
+//                        if(smsList.size() < 1 )
+//                            findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
+                        messagesThreadRecyclerAdapter.submitList(smsList);
+                    }
+                });
     }
 
     private void cancelAllNotifications() {
@@ -109,7 +126,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         List<SMS> threadsInCursor = new ArrayList<>();
         if(cursor.moveToFirst()) {
             do{
-                SMS sms = new SMS(cursor, true);
+                SMS sms = new SMS(cursor);
                 threadsInCursor.add(sms);
             }
             while(cursor.moveToNext());
@@ -119,15 +136,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         }
 
         return threadsInCursor;
-    }
-
-    void populateMessageThreads() {
-        Cursor cursor = SMSHandler.fetchSMSMessagesThreads(getApplicationContext());
-
-        messagesForThread = getThreadsFromCursor(cursor);
-        messagesForThread = SMSHandler.getAddressForThreads(getApplicationContext(), messagesForThread, true);
-
-        messagesThreadRecyclerAdapter.notifyDataSetChanged();
     }
 
     public void onNewMessageClick(View view) {
@@ -143,14 +151,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         return this.getWindow().getDecorView().getRootView().isShown();
     }
 
-    private void updateStack() { populateMessageThreads(); }
-
     private void handleIncomingMessage() {
         BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if(isCurrentlyActive())
-                    updateStack();
+                    messagesThreadRecyclerAdapter.notifyDataSetChanged();
             }
         };
 
@@ -192,8 +198,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("", "resuming...");
-        populateMessageThreads();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
     }
 }
