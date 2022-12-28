@@ -1,4 +1,4 @@
-package com.example.swob_deku.Models;
+package com.example.swob_deku.Models.Messages;
 
 import android.Manifest;
 import android.content.Context;
@@ -11,7 +11,6 @@ import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +29,8 @@ import androidx.work.WorkQuery;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.GatewayServer.GatewayServer;
+import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSReceiverActivity;
 import com.example.swob_deku.SendSMSActivity;
@@ -54,7 +54,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     Boolean isSearch = false;
     String searchString = new String();
 
-    Set<String> threadIdSet = new HashSet<>();
+//    Set<String> threadIdSet = new HashSet<>();
 
     public MessagesThreadRecyclerAdapter() {}
 
@@ -62,7 +62,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
        this.context = context;
        this.renderLayout = renderLayout;
 
-       this.threadIdSet = SMSHandler.hasUnreadMessagesAll(context);
+//       this.threadIdSet = SMSHandler.hasUnreadMessagesAll(context);
     }
 
     public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch, String searchString) {
@@ -131,15 +131,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         holder.date.setText(date);
 
         //if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
-        if(this.threadIdSet.contains(sms.getThreadId())) {
-            // Make bold
-            holder.address.setTypeface(null, Typeface.BOLD);
-            holder.snippet.setTypeface(null, Typeface.BOLD);
-
-            holder.address.setTextColor(context.getResources().getColor(R.color.read_text));
-            holder.snippet.setTextColor(context.getResources().getColor(R.color.read_text));
-            holder.date.setTextColor(context.getResources().getColor(R.color.read_text));
-        }
+//        if(this.threadIdSet.contains(sms.getThreadId())) {
+//            // Make bold
+//            holder.address.setTypeface(null, Typeface.BOLD);
+//            holder.snippet.setTypeface(null, Typeface.BOLD);
+//
+//            holder.address.setTextColor(context.getResources().getColor(R.color.read_text));
+//            holder.snippet.setTextColor(context.getResources().getColor(R.color.read_text));
+//            holder.date.setTextColor(context.getResources().getColor(R.color.read_text));
+//        }
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
@@ -240,7 +240,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             new DiffUtil.ItemCallback<SMS>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
-                    return oldItem.id == newItem.id;
+                    return oldItem.id.equals(newItem.id);
                 }
 
                 @Override

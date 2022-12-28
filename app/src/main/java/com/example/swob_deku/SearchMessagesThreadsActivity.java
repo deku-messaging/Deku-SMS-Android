@@ -15,9 +15,9 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
-import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
-import com.example.swob_deku.Models.SMS;
-import com.example.swob_deku.Models.SMSHandler;
+import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;

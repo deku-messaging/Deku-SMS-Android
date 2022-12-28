@@ -16,15 +16,14 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
-import com.example.swob_deku.Models.SMS;
-import com.example.swob_deku.Models.SMSHandler;
+import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public class RouterActivity extends AppCompatActivity {

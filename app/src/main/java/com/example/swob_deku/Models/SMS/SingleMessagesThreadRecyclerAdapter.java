@@ -1,8 +1,7 @@
-package com.example.swob_deku.Models;
+package com.example.swob_deku.Models.SMS;
 
 import android.content.Context;
 import android.provider.Telephony;
-import android.text.Layout;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.format.DateUtils;
@@ -15,20 +14,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.R;
 import com.google.android.material.card.MaterialCardView;
 
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Map;
 
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 

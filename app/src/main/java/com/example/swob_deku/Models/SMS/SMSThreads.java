@@ -1,4 +1,4 @@
-package com.example.swob_deku.Models;
+package com.example.swob_deku.Models.SMS;
 
 import android.database.Cursor;
 import android.provider.Telephony;

@@ -1,8 +1,7 @@
-package com.example.swob_deku.Models;
+package com.example.swob_deku.Models.SMS;
 
 import android.database.Cursor;
 import android.provider.Telephony;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 

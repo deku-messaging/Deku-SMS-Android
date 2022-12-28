@@ -6,7 +6,6 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.work.WorkInfo;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -19,19 +18,14 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 
-import com.example.swob_deku.Models.GatewayServer.GatewayServer;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerViewModel;
-import com.example.swob_deku.Models.MessagesThreadRecyclerAdapter;
-import com.example.swob_deku.Models.MessagesThreadViewModel;
-import com.example.swob_deku.Models.SMS;
-import com.example.swob_deku.Models.SMSHandler;
+import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
+import com.example.swob_deku.Models.SMS.SMS;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -41,6 +35,7 @@ import java.util.List;
 public class MessagesThreadsActivity extends AppCompatActivity {
     // TODO: Change address to friendly name if in phonebook
     MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter();
+    MessagesThreadViewModel messagesThreadViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +44,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
 //        cancelAllNotifications();
         handleIncomingMessage();
+
+        messagesThreadViewModel = new ViewModelProvider(this).get(
+                MessagesThreadViewModel.class);
 
         TextInputEditText searchTextView = findViewById(R.id.recent_search_edittext_clickable);
         searchTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -101,10 +99,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 
-
-        MessagesThreadViewModel messagesThreadViewModel = new ViewModelProvider(this).get(
-                MessagesThreadViewModel.class);
-
         messagesThreadViewModel.getMessages(getApplicationContext()).observe(this,
                 new Observer<List<SMS>>() {
                     @Override
@@ -155,8 +149,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(isCurrentlyActive())
-                    messagesThreadRecyclerAdapter.notifyDataSetChanged();
+                messagesThreadViewModel.informChanges(getApplicationContext());
             }
         };
 

@@ -1,4 +1,4 @@
-package com.example.swob_deku.Models;
+package com.example.swob_deku.Models.SMS;
 
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -16,7 +16,6 @@ import com.example.swob_deku.Commons.Helpers;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class SMSHandler {
@@ -133,14 +132,12 @@ public class SMSHandler {
         String[] projection = new String[] {
                 "_id", "thread_id", "address", "body", "type", "MAX(date) as date"};
 
-        Cursor smsMessagesCursor = context.getContentResolver().query(
+        return context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,
                 projection,
                 "thread_id IS NOT NULL) GROUP BY (thread_id",
                 null,
                 "date DESC");
-
-        return smsMessagesCursor;
     }
 
     public static Cursor fetchSMSMessagesForSearch(Context context, String searchInput) {

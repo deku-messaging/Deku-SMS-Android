@@ -8,7 +8,7 @@ import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import com.example.swob_deku.Models.SMSHandler;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.nio.charset.StandardCharsets;
 

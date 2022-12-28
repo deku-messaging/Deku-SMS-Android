@@ -33,9 +33,9 @@ import android.widget.Toast;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.SingleMessagesThreadRecyclerAdapter;
-import com.example.swob_deku.Models.SMS;
-import com.example.swob_deku.Models.SMSHandler;
+import com.example.swob_deku.Models.SMS.SingleMessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.nio.charset.StandardCharsets;
