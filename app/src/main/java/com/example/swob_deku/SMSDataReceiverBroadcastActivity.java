@@ -12,7 +12,7 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.nio.charset.StandardCharsets;
 
-public class SMSDataReceiverActivity extends BroadcastReceiver {
+public class SMSDataReceiverBroadcastActivity extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -41,7 +41,7 @@ public class SMSDataReceiverActivity extends BroadcastReceiver {
                     String stringMessage = messageStringBuffer.toString();
                     long messageId = SMSHandler.registerIncomingMessage(context, address, stringMessage);
 
-                    SMSReceiverActivity.sendNotification(context, stringMessage, address, messageId);
+                    SMSTextReceiverBroadcastActivity.sendNotification(context, stringMessage, address, messageId);
                     break;
             }
         }

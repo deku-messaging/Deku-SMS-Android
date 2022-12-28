@@ -1,4 +1,4 @@
-package com.example.swob_deku.Models.SMS;
+package com.example.swob_deku.Models.Messages;
 
 import android.content.Context;
 import android.provider.Telephony;
@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.Models.SMS.SMS;
@@ -28,24 +30,19 @@ import java.util.List;
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     Context context;
-    List<SMS> messagesList;
     int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
     int focusPosition = -1;
-    long focusId;
+    Long focusId;
     RecyclerView view;
     String searchString;
 
-    public SingleMessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent, int renderLayoutTimestamp) {
-        this.context = context;
-        this.messagesList = messagesList;
-        this.renderLayoutReceived = renderLayoutReceived;
-        this.renderLayoutSent = renderLayoutSent;
-        this.renderLayoutTimestamp = renderLayoutTimestamp;
-    }
+    private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
 
-    public SingleMessagesThreadRecyclerAdapter(Context context, List<SMS> messagesList, int renderLayoutReceived, int renderLayoutSent, int renderLayoutTimestamp, long focusId, String searchString) {
+    public SingleMessagesThreadRecyclerAdapter(Context context, int renderLayoutReceived,
+                                               int renderLayoutSent,
+                                               int renderLayoutTimestamp,
+                                               Long focusId, String searchString) {
         this.context = context;
-        this.messagesList = messagesList;
         this.renderLayoutReceived = renderLayoutReceived;
         this.renderLayoutSent = renderLayoutSent;
         this.renderLayoutTimestamp = renderLayoutTimestamp;
@@ -85,11 +82,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
 
-
         if(focusPosition != -1 && holder.getAdapterPosition() == focusPosition) {
             if(!searchString.isEmpty()) {
                 Log.d("", "Focus not empty..");
-                String text = messagesList.get(focusPosition).getBody();
+                String text = mDiffer.getCurrentList().get(focusPosition).getBody();
                 Spannable spannable = Spannable.Factory.getInstance().newSpannable(text);
 
                 for (int index = text.indexOf(searchString); index >= 0; index = text.indexOf(searchString, index + 1)) {
@@ -119,12 +115,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
-        SMS sms = messagesList.get(position);
+        SMS sms = mDiffer.getCurrentList().get(position);
 
-        if(focusId != -1 && sms.getId() != null && Long.valueOf(sms.getId()) == focusId) {
-            final int finalPosition = position;
-            this.focusPosition = finalPosition;
-        }
+        // TODO: for search
+//        if(focusId != -1 && sms.getId() != null && Long.valueOf(sms.getId()) == focusId) {
+//            final int finalPosition = position;
+//            this.focusPosition = finalPosition;
+//        }
 
         String date = sms.getDate();
         if(sms.isDatesOnly()) {
@@ -199,12 +196,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
                 break;
             case "4":
-                ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
+                ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText("sending...");
                 break;
             case "5":
-                ((MessageSentViewHandler)holder).sentMessage.setText(messagesList.get(position).getBody());
+                ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText("failed");
                 break;
@@ -213,16 +210,20 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     @Override
     public int getItemCount() {
-        return this.messagesList.size();
+        return mDiffer.getCurrentList().size();
+    }
+
+    public void submitList(List<SMS> list) {
+        mDiffer.submitList(list);
     }
 
     @Override
     public int getItemViewType(int position)
     {
-        if(messagesList.get(position).isDatesOnly())
+        if(mDiffer.getCurrentList().get(position).isDatesOnly())
             return 100;
 
-        int messageType = Integer.parseInt(messagesList.get(position).getType());
+        int messageType = Integer.parseInt(mDiffer.getCurrentList().get(position).getType());
         return (messageType > -1 )? messageType : 0;
     }
 
@@ -257,4 +258,17 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             date = itemView.findViewById(R.id.message_thread_received_date_text);
         }
     }
+
+    public static final DiffUtil.ItemCallback<SMS> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<SMS>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
+                    return oldItem.id.equals(newItem.id);
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
+                    return oldItem.equals(newItem);
+                }
+            };
 }

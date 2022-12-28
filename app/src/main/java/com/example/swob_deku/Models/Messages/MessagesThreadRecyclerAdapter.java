@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.text.Spannable;
 import android.text.Spanned;
@@ -30,10 +29,9 @@ import androidx.work.WorkQuery;
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.SMS.SMS;
-import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
-import com.example.swob_deku.SMSReceiverActivity;
-import com.example.swob_deku.SendSMSActivity;
+import com.example.swob_deku.SMSTextReceiverBroadcastActivity;
+import com.example.swob_deku.SMSSendActivity;
 import com.google.common.util.concurrent.ListenableFuture;
 
 
@@ -41,9 +39,7 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<MessagesThreadRecyclerAdapter.ViewHolder> {
 
@@ -52,17 +48,11 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     Context context;
     int renderLayout;
     Boolean isSearch = false;
-    String searchString = new String();
-
-//    Set<String> threadIdSet = new HashSet<>();
-
-    public MessagesThreadRecyclerAdapter() {}
+    String searchString = "";
 
     public MessagesThreadRecyclerAdapter(Context context, int renderLayout) {
        this.context = context;
        this.renderLayout = renderLayout;
-
-//       this.threadIdSet = SMSHandler.hasUnreadMessagesAll(context);
     }
 
     public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch, String searchString) {
@@ -130,6 +120,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
         holder.date.setText(date);
 
+        // TODO: change color of unread messages in thread
         //if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
 //        if(this.threadIdSet.contains(sms.getThreadId())) {
 //            // Make bold
@@ -144,14 +135,14 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent singleMessageThreadIntent = new Intent(context, SendSMSActivity.class);
-                singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, sms.getAddress());
-                singleMessageThreadIntent.putExtra(SendSMSActivity.THREAD_ID, sms.getThreadId());
+                Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+                singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
+                singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
 
                 if (isSearch)
-                    singleMessageThreadIntent.putExtra(SendSMSActivity.ID, sms.getId());
+                    singleMessageThreadIntent.putExtra(SMSSendActivity.ID, sms.getId());
                 if (!searchString.isEmpty())
-                    singleMessageThreadIntent.putExtra(SendSMSActivity.SEARCH_STRING, searchString);
+                    singleMessageThreadIntent.putExtra(SMSSendActivity.SEARCH_STRING, searchString);
 
                 context.startActivity(singleMessageThreadIntent);
             }
@@ -166,7 +157,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                 public void onClick(View view) {
                     // TODO: restart the work
                     WorkQuery workQuery = WorkQuery.Builder
-                            .fromTags(Arrays.asList(SMSReceiverActivity.TAG_NAME))
+                            .fromTags(Arrays.asList(SMSTextReceiverBroadcastActivity.TAG_NAME))
                             .addStates(Arrays.asList(WorkInfo.State.ENQUEUED))
                             .addUniqueWorkNames(Arrays.asList(sms.getId()))
                             .build();

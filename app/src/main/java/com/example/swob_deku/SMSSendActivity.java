@@ -1,5 +1,6 @@
 package com.example.swob_deku;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -7,10 +8,13 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -33,7 +37,9 @@ import android.widget.Toast;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.SMS.SingleMessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
+import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
+import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
@@ -44,9 +50,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class SendSMSActivity extends AppCompatActivity {
+public class SMSSendActivity extends AppCompatActivity {
 
-    List<String> messagesList = new ArrayList();
+    // TODO: incoming message MessagesThread
+    // TODO: incoming message from notification
+    // TODO: incoming message from shared intent
+
+    SingleMessageViewModel singleMessageViewModel;
 
     public static final String ADDRESS = "address";
     public static final String THREAD_ID = "thread_id";
@@ -57,10 +67,8 @@ public class SendSMSActivity extends AppCompatActivity {
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
 
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
-    boolean currentlyActive = false;
 
-    SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
-    RecyclerView singleMessagesThreadRecyclerView;
+    String threadId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,37 +84,88 @@ public class SendSMSActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-        currentlyActive = true;
-        if(!checkPermissionToSendSMSMessages())
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
+        getMessagesThreadId();
 
-        singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
+        // TODO: should be used when message is about to be sent
+//        if(!checkPermissionToSendSMSMessages())
+//            ActivityCompat.requestPermissions(
+//                    this,
+//                    new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setStackFromEnd(false);
+        linearLayoutManager.setReverseLayout(true);
+
+        RecyclerView singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
+
+        SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
+                this,
+                R.layout.messages_thread_received_layout,
+                R.layout.messages_thread_sent_layout,
+                R.layout.messages_thread_timestamp_layout,
+                null,
+                null);
+        singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+        singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
+
+        singleMessageViewModel = new ViewModelProvider(this).get(
+                SingleMessageViewModel.class);
+
+        singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this,
+                new Observer<List<SMS>>() {
+                    @Override
+                    public void onChanged(List<SMS> smsList) {
+                        singleMessagesThreadRecyclerAdapter.submitList(smsList);
+                    }
+                });
+
+//        processForSharedIntent();
+//
+//        handleIncomingMessage();
+//
+//        cancelNotifications(getIntent().getStringExtra(THREAD_ID));
+//
+//        improveMessagingUX();
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceStates) {
-        super.onPostCreate(savedInstanceStates);
-        processForSharedIntent();
-        handleIncomingMessage();
-        cancelNotifications(getIntent().getStringExtra(THREAD_ID));
+    private void getMessagesThreadId() {
+        if(getIntent().hasExtra(THREAD_ID))
+            threadId = getIntent().getStringExtra(THREAD_ID);
 
+        else if(getIntent().hasExtra(ADDRESS)) {
+            String address = getIntent().getStringExtra(ADDRESS);
+            Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
+            if(cursor.moveToFirst()) {
+                do {
+                    SMS sms = new SMS(cursor);
+                    String smsThreadId = sms.getThreadId();
+
+                    if(PhoneNumberUtils.compare(address, sms.getAddress()) && !smsThreadId.equals("-1")) {
+                        threadId = smsThreadId;
+                        break;
+                    }
+                }
+                while(cursor.moveToNext());
+            }
+        }
+    }
+
+    private void improveMessagingUX() {
         runOnUiThread(new Runnable() {
+            @SuppressLint("ClickableViewAccessibility")
             @Override
             public void run() {
                 ActionBar ab = getSupportActionBar();
                 String address = getIntent().getStringExtra(ADDRESS);
 
                 EditText smsText = findViewById(R.id.sms_text);
-//                smsText.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
-//                smsText.setMovementMethod(ScrollingMovementMethod.getInstance());
                 smsText.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View view, MotionEvent motionEvent) {
 
                         view.getParent().requestDisallowInterceptTouchEvent(true);
-                        if ((motionEvent.getAction() & MotionEvent.ACTION_UP) != 0 && (motionEvent.getActionMasked() & MotionEvent.ACTION_UP) != 0)
+                        if ((motionEvent.getAction() & MotionEvent.ACTION_UP) != 0 &&
+                                (motionEvent.getActionMasked() & MotionEvent.ACTION_UP) != 0)
                         {
                             view.getParent().requestDisallowInterceptTouchEvent(false);
                         }
@@ -121,7 +180,6 @@ public class SendSMSActivity extends AppCompatActivity {
 
                 // TODO: if has letters, make sure reply cannot happen
                 ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
-                populateMessageThread();
             }
         });
     }
@@ -130,12 +188,16 @@ public class SendSMSActivity extends AppCompatActivity {
         String indentAction = getIntent().getAction();
         if(indentAction != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
             String sendToString = getIntent().getDataString();
-            Log.d("", "Processing shared #: " + sendToString);
+
+            if(BuildConfig.DEBUG)
+                Log.d("", "Processing shared #: " + sendToString);
+
             if(sendToString.contains("%2B"))
                 sendToString = sendToString.replace("%2B", "+")
                                 .replace("%20", "");
 
-            Log.d("", "Working on a shared Intent... " + sendToString);
+            if(BuildConfig.DEBUG)
+                Log.d("", "Working on a shared Intent... " + sendToString);
 
             if(sendToString.indexOf("smsto:") > -1 || sendToString.indexOf("sms:") > -1) {
                String address = sendToString.substring(sendToString.indexOf(':') + 1);
@@ -160,7 +222,7 @@ public class SendSMSActivity extends AppCompatActivity {
 //        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
         BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(Context context, Intent intent) {
+            public void onReceive(Context context, @NonNull Intent intent) {
                 long id = intent.getLongExtra(ID, -1);
                 switch(getResultCode()) {
 
@@ -186,7 +248,6 @@ public class SendSMSActivity extends AppCompatActivity {
                         }
                 }
                 if(isCurrentlyActive()) {
-                    updateStack();
                     unregisterReceiver(this);
                 }
             }
@@ -214,7 +275,6 @@ public class SendSMSActivity extends AppCompatActivity {
                             Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
                 if(isCurrentlyActive()) {
-                    updateStack();
                     unregisterReceiver(this);
                 }
             }
@@ -246,7 +306,6 @@ public class SendSMSActivity extends AppCompatActivity {
                             if (isCurrentlyActive() && sms.getThreadId().equals(getIntent().getStringExtra(THREAD_ID))) {
                                 getIntent().putExtra(ADDRESS, sms.getAddress());
                                 cancelNotifications(sms.getThreadId());
-                                updateStack();
                             }
                         }
                     }
@@ -258,7 +317,7 @@ public class SendSMSActivity extends AppCompatActivity {
          registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
     }
 
-    List<SMS> getMessagesFromCursor(Cursor cursor) {
+    List<SMS> getMessagesFromCursor(@NonNull Cursor cursor) {
         List<SMS> appendedList = new ArrayList<>();
         Date previousDate = null;
         Calendar currentDate = Calendar.getInstance();
@@ -287,7 +346,6 @@ public class SendSMSActivity extends AppCompatActivity {
         return appendedList;
     }
 
-
     void populateMessageThread() {
         String threadId = "-1";
         if(getIntent().hasExtra(THREAD_ID))
@@ -313,33 +371,6 @@ public class SendSMSActivity extends AppCompatActivity {
         Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId);
         List<SMS> messagesForThread = getMessagesFromCursor(cursor);
 
-        if(getIntent().hasExtra(ID) && getIntent().hasExtra(SEARCH_STRING)) {
-            singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
-                    this,
-                    messagesForThread,
-                    R.layout.messages_thread_received_layout,
-                    R.layout.messages_thread_sent_layout,
-                    R.layout.messages_thread_timestamp_layout,
-                    Long.valueOf(getIntent().getStringExtra(ID)),
-                    getIntent().getStringExtra(SEARCH_STRING));
-            singleMessagesThreadRecyclerAdapter.setView(singleMessagesThreadRecyclerView);
-        }
-        else
-            singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
-                    this,
-                    messagesForThread,
-                    R.layout.messages_thread_received_layout,
-                    R.layout.messages_thread_sent_layout,
-                    R.layout.messages_thread_timestamp_layout);
-
-        singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setStackFromEnd(false);
-        linearLayoutManager.setReverseLayout(true);
-
-        singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
-
         String finalThreadId = threadId;
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -355,7 +386,6 @@ public class SendSMSActivity extends AppCompatActivity {
 
         thread.start();
     }
-
 
     public void sendMessage(View view) {
         // TODO: Don't let sending happen if message box is empty
@@ -398,7 +428,6 @@ public class SendSMSActivity extends AppCompatActivity {
 
 
             smsTextView.setText("");
-            updateStack();
         }
 
         catch(IllegalArgumentException e ) {
@@ -410,10 +439,6 @@ public class SendSMSActivity extends AppCompatActivity {
             Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
         }
 
-    }
-
-    private void updateStack() {
-       populateMessageThread();
     }
 
     public boolean checkPermissionToSendSMSMessages() {
@@ -439,9 +464,7 @@ public class SendSMSActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        updateStack();
-        cancelNotifications(getIntent().getStringExtra(THREAD_ID));
+        // cancelNotifications(getIntent().getStringExtra(THREAD_ID));
     }
 
 }

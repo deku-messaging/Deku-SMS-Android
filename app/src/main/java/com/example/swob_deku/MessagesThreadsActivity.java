@@ -34,7 +34,6 @@ import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
     // TODO: Change address to friendly name if in phonebook
-    MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter();
     MessagesThreadViewModel messagesThreadViewModel;
 
     @Override
@@ -92,7 +91,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         });
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
+        MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
                 this, R.layout.messages_threads_layout);
 
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
@@ -178,8 +177,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                             int contactIndexInformation = contactCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
                             String number = contactCursor.getString(contactIndexInformation);
 
-                            Intent singleMessageThreadIntent = new Intent(this, SendSMSActivity.class);
-                            singleMessageThreadIntent.putExtra(SendSMSActivity.ADDRESS, number);
+                            Intent singleMessageThreadIntent = new Intent(this, SMSSendActivity.class);
+                            singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, number);
                             startActivity(singleMessageThreadIntent);
                         }
                     }

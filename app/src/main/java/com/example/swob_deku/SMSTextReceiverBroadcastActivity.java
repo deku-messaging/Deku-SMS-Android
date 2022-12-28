@@ -32,7 +32,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.concurrent.TimeUnit;
 
-public class SMSReceiverActivity extends BroadcastReceiver {
+public class SMSTextReceiverBroadcastActivity extends BroadcastReceiver {
     Context context;
 
     public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
@@ -112,7 +112,7 @@ public class SMSReceiverActivity extends BroadcastReceiver {
     }
 
     public static void sendNotification(Context context, String text, String address, long messageId) {
-        Intent receivedSmsIntent = new Intent(context, SendSMSActivity.class);
+        Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
 
         Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, messageId);
 
@@ -121,8 +121,8 @@ public class SMSReceiverActivity extends BroadcastReceiver {
             SMS sms = new SMS(cursor);
             threadId = sms.getThreadId();
         }
-        receivedSmsIntent.putExtra(SendSMSActivity.ADDRESS, address);
-        receivedSmsIntent.putExtra(SendSMSActivity.THREAD_ID, threadId);
+        receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
+        receivedSmsIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
         receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 

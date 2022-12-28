@@ -103,7 +103,6 @@ public class SMSHandler {
 
     public static Cursor fetchSMSMessagesAddress(Context context, String address) {
         address = address.replaceAll("[\\s-]", "");
-        Log.d("", "Composing to: " + address);
 
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,
@@ -116,7 +115,7 @@ public class SMSHandler {
     }
 
     public static Cursor fetchSMSForThread(Context context, String threadId) {
-        String[] selection = new String[] { "_id", "thread_id", "address", "date"};
+        String[] selection = new String[] { "_id", "thread_id", "address", "person", "date","body", "type" };
 
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,

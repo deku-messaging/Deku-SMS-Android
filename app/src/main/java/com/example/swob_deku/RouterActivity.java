@@ -107,7 +107,7 @@ public class RouterActivity extends AppCompatActivity {
     public ArrayList<ArrayList<String>> listRouteJobs() {
 
         WorkQuery workQuery = WorkQuery.Builder
-                .fromTags(Arrays.asList(SMSReceiverActivity.TAG_NAME))
+                .fromTags(Arrays.asList(SMSTextReceiverBroadcastActivity.TAG_NAME))
                 .addStates(Arrays.asList(
                         WorkInfo.State.SUCCEEDED,
                         WorkInfo.State.ENQUEUED,

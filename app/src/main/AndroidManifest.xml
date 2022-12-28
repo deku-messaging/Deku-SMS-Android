@@ -50,7 +50,7 @@
             android:name=".MessagesThreadsActivity"
             android:exported="false" />
         <activity
-            android:name=".SendSMSActivity"
+            android:name=".SMSSendActivity"
             android:excludeFromRecents="true"
             android:exported="true"
             android:parentActivityName=".MessagesThreadsActivity"
@@ -79,7 +79,7 @@
         </activity>
 
         <receiver
-            android:name=".SMSDataReceiverActivity"
+            android:name=".SMSDataReceiverBroadcastActivity"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -90,7 +90,7 @@
         </receiver>
 
         <receiver
-            android:name=".SMSReceiverActivity"
+            android:name=".SMSTextReceiverBroadcastActivity"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
