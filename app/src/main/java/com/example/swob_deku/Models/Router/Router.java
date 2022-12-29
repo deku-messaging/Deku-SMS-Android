@@ -1,4 +1,4 @@
-package com.example.swob_deku.Models;
+package com.example.swob_deku.Models.Router;
 
 import android.content.Context;
 import android.util.Log;

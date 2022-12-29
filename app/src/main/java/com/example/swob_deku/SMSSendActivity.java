@@ -426,8 +426,8 @@ public class SMSSendActivity extends AppCompatActivity {
             SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text.getBytes(StandardCharsets.UTF_8),
                     sentPendingIntent, deliveredPendingIntent, messageId);
 
-
             smsTextView.setText("");
+            singleMessageViewModel.informChanges(getApplicationContext());
         }
 
         catch(IllegalArgumentException e ) {
