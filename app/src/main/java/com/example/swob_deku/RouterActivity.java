@@ -97,7 +97,7 @@ public class RouterActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 routerViewModel.informChanges(getApplicationContext());
-                routedMessageRecyclerView.smoothScrollToPosition(0);
+//                routedMessageRecyclerView.smoothScrollToPosition(0);
             }
         };
 

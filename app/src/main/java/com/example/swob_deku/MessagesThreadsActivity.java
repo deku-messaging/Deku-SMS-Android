@@ -106,7 +106,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 //                        if(smsList.size() < 1 )
 //                            findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
                         messagesThreadRecyclerAdapter.submitList(smsList);
-                        messagesThreadRecyclerView.smoothScrollToPosition(0);
+//                        messagesThreadRecyclerView.smoothScrollToPosition(0);
                     }
                 });
     }
