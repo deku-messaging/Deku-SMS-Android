@@ -81,6 +81,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                 .addStates(Arrays.asList(
                         WorkInfo.State.ENQUEUED,
                         WorkInfo.State.FAILED,
+                        WorkInfo.State.SUCCEEDED,
                         WorkInfo.State.RUNNING))
                 .addUniqueWorkNames(ids)
                 .build();
