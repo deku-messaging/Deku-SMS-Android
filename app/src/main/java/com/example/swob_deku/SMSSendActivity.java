@@ -5,7 +5,6 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
@@ -15,7 +14,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -32,7 +30,6 @@ import android.telephony.SmsMessage;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
@@ -41,7 +38,6 @@ import android.widget.Toast;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -50,9 +46,6 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class SMSSendActivity extends AppCompatActivity {
@@ -61,6 +54,7 @@ public class SMSSendActivity extends AppCompatActivity {
     // TODO: incoming message from notification
     // TODO: incoming message from shared intent
 
+    SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
     SingleMessageViewModel singleMessageViewModel;
     TextInputEditText smsTextView;
     TextInputLayout smsTextInputLayout;
@@ -108,7 +102,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
         RecyclerView singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
-        SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
+        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                 this,
                 R.layout.messages_thread_received_layout,
                 R.layout.messages_thread_sent_layout,
@@ -130,12 +124,11 @@ public class SMSSendActivity extends AppCompatActivity {
                 });
 
 //        processForSharedIntent();
-//
 //        handleIncomingMessage();
-//
 //        cancelNotifications(getIntent().getStringExtra(THREAD_ID));
-//
+
         improveMessagingUX();
+
         if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
             smsTextInputLayout.setEndIconVisible(false);
     }
@@ -268,7 +261,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
-    public void handleSentMessages() {
+    public void handleBroadcast() {
 //        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
         BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -297,26 +290,19 @@ public class SMSSendActivity extends AppCompatActivity {
                             Log.d(getLocalClassName(), "Failed to send: " + intent.getData());
                         }
                 }
-                if(isCurrentlyActive()) {
-                    unregisterReceiver(this);
-                }
+
+                singleMessageViewModel.informChanges(getApplicationContext());
+                unregisterReceiver(this);
             }
         };
-        registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
-    }
-
-    public boolean isCurrentlyActive() {
-        return this.getWindow().getDecorView().getRootView().isShown();
-    }
-
-    public void handleDeliveredMessages() {
-//        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
         BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Broadcast delivered just came!");
+
                 long id = intent.getLongExtra(ID, -1);
                 switch(getResultCode()) {
-
                     case Activity.RESULT_OK:
                         SMSHandler.registerDeliveredMessage(context, id);
                         break;
@@ -324,12 +310,13 @@ public class SMSSendActivity extends AppCompatActivity {
                         if(BuildConfig.DEBUG)
                             Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
-                if(isCurrentlyActive()) {
-                    unregisterReceiver(this);
-                }
+                singleMessageViewModel.informChanges(getApplicationContext());
+                unregisterReceiver(this);
             }
         };
+
         registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
+        registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
     }
 
     public void cancelNotifications(String threadId) {
@@ -353,7 +340,7 @@ public class SMSSendActivity extends AppCompatActivity {
                         Cursor cursor = SMSHandler.fetchSMSMessagesAddress(context, address);
                         if(cursor.moveToFirst()) {
                             SMS sms = new SMS(cursor);
-                            if (isCurrentlyActive() && sms.getThreadId().equals(getIntent().getStringExtra(THREAD_ID))) {
+                            if (sms.getThreadId().equals(getIntent().getStringExtra(THREAD_ID))) {
                                 getIntent().putExtra(ADDRESS, sms.getAddress());
                                 cancelNotifications(sms.getThreadId());
                             }
@@ -374,7 +361,6 @@ public class SMSSendActivity extends AppCompatActivity {
         String text = smsTextView.getText().toString();
 
         try {
-//            SMSHandler.registerOutgoingMessage(getApplicationContext(), destinationAddress, text);
             long messageId = Helpers.generateRandomNumber();
             Intent sentIntent = new Intent(SMS_SENT_INTENT);
             sentIntent.putExtra(ID, messageId);
@@ -390,20 +376,13 @@ public class SMSSendActivity extends AppCompatActivity {
                     deliveredIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
-            handleSentMessages();
-            handleDeliveredMessages();
+            handleBroadcast();
 
-//            if(getIntent().hasExtra(Intent.EXTRA_STREAM)) {
-//                byte[] data = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
-//                SMSHandler.sendSMS(getApplicationContext(), destinationAddress, data,
-//                        sentPendingIntent, deliveredPendingIntent, messageId);
-//                getIntent().removeExtra(Intent.EXTRA_STREAM);
-//            }
-//            else
-//                SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
-//                        sentPendingIntent, deliveredPendingIntent, messageId);
+            // TODO: if data
+//            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text.getBytes(StandardCharsets.UTF_8),
+//                    sentPendingIntent, deliveredPendingIntent, messageId);
 
-            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text.getBytes(StandardCharsets.UTF_8),
+            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
                     sentPendingIntent, deliveredPendingIntent, messageId);
 
             smsTextView.setText("");
