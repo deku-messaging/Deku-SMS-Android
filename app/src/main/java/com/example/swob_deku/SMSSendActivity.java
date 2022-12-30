@@ -8,6 +8,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,7 +29,10 @@ import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
@@ -43,6 +47,7 @@ import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
@@ -57,6 +62,10 @@ public class SMSSendActivity extends AppCompatActivity {
     // TODO: incoming message from shared intent
 
     SingleMessageViewModel singleMessageViewModel;
+    TextInputEditText smsTextView;
+    TextInputLayout smsTextInputLayout;
+
+    MutableLiveData<String> mutableLiveDataComposeMessage = new MutableLiveData<>();
 
     public static final String ADDRESS = "address";
     public static final String THREAD_ID = "thread_id";
@@ -85,6 +94,7 @@ public class SMSSendActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         getMessagesThreadId();
+
 
         // TODO: should be used when message is about to be sent
 //        if(!checkPermissionToSendSMSMessages())
@@ -126,6 +136,8 @@ public class SMSSendActivity extends AppCompatActivity {
 //        cancelNotifications(getIntent().getStringExtra(THREAD_ID));
 //
         improveMessagingUX();
+        if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
+            smsTextInputLayout.setEndIconVisible(false);
     }
 
     private void getMessagesThreadId() {
@@ -166,6 +178,45 @@ public class SMSSendActivity extends AppCompatActivity {
                     view.getParent().requestDisallowInterceptTouchEvent(false);
                 }
                 return false;
+            }
+        });
+
+        smsTextView = findViewById(R.id.sms_text);
+        smsTextInputLayout = findViewById(R.id.send_text);
+
+        mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                if(s.isEmpty()) {
+                    smsTextInputLayout.setEndIconVisible(false);
+                }
+                else {
+                    smsTextInputLayout.setEndIconVisible(true);
+                }
+            }
+        });
+
+        smsTextInputLayout.setEndIconOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessage(v);
+            }
+        });
+
+        smsTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                mutableLiveDataComposeMessage.setValue(smsTextView.getText().toString());
             }
         });
 
@@ -314,76 +365,6 @@ public class SMSSendActivity extends AppCompatActivity {
 
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
          registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
-    }
-
-    List<SMS> getMessagesFromCursor(@NonNull Cursor cursor) {
-        List<SMS> appendedList = new ArrayList<>();
-        Date previousDate = null;
-        Calendar currentDate = Calendar.getInstance();
-        Calendar previousDateCalendar = Calendar.getInstance();
-
-        if(cursor.moveToFirst()) {
-            do {
-                SMS sms = new SMS(cursor);
-                Date date = new Date(Long.parseLong(sms.getDate()));
-                if (previousDate != null) {
-                    currentDate.setTime(date);
-                    previousDateCalendar.setTime(previousDate);
-                    if ((currentDate.get(Calendar.DATE) != previousDateCalendar.get(Calendar.DATE)) ||
-                            (currentDate.get(Calendar.HOUR_OF_DAY) != previousDateCalendar.get(Calendar.HOUR_OF_DAY))) {
-                        appendedList.add(new SMS(appendedList.get(appendedList.size() - 1).getDate()));
-                    }
-                }
-                appendedList.add(sms);
-                previousDate = date;
-            }
-            while (cursor.moveToNext());
-            cursor.moveToLast();
-            appendedList.add(new SMS(new SMS(cursor).getDate()));
-        }
-
-        return appendedList;
-    }
-
-    void populateMessageThread() {
-        String threadId = "-1";
-        if(getIntent().hasExtra(THREAD_ID))
-            threadId = getIntent().getStringExtra(THREAD_ID);
-
-        else if(getIntent().hasExtra(ADDRESS)) {
-            String address = getIntent().getStringExtra(ADDRESS);
-            Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
-            if(cursor.moveToFirst()) {
-                do {
-                    SMS sms = new SMS(cursor);
-                    String smsThreadId = sms.getThreadId();
-
-                    if(PhoneNumberUtils.compare(address, sms.getAddress()) && !smsThreadId.equals("-1")) {
-                        threadId = smsThreadId;
-                        break;
-                    }
-                }
-                while(cursor.moveToNext());
-            }
-        }
-
-        Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId);
-        List<SMS> messagesForThread = getMessagesFromCursor(cursor);
-
-        String finalThreadId = threadId;
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SMSHandler.updateSMSMessagesThreadStatus(getApplicationContext(), finalThreadId, "1");
-                }
-                catch(Exception e ) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        thread.start();
     }
 
     public void sendMessage(View view) {
