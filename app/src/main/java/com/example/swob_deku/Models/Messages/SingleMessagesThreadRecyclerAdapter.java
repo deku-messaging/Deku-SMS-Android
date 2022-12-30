@@ -111,6 +111,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 //                    }
 //                }
 //                break;
+                this.view.smoothScrollToPosition(i);
             }
         }
     }
