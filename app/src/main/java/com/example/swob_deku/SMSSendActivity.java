@@ -124,9 +124,8 @@ public class SMSSendActivity extends AppCompatActivity {
                 });
 
 //        processForSharedIntent();
-//        handleIncomingMessage();
-//        cancelNotifications(getIntent().getStringExtra(THREAD_ID));
 
+        handleIncomingBroadcast();
         improveMessagingUX();
 
         if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
@@ -261,8 +260,22 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
+    public void handleIncomingBroadcast() {
+        BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                singleMessageViewModel.informChanges(context);
+                cancelNotifications(getIntent().getStringExtra(THREAD_ID));
+            }
+        };
+
+        // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
+        registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
+    }
+
     public void handleBroadcast() {
 //        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
+
         BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
@@ -316,7 +329,9 @@ public class SMSSendActivity extends AppCompatActivity {
         };
 
         registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
+
         registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
+
     }
 
     public void cancelNotifications(String threadId) {
@@ -325,33 +340,6 @@ public class SMSSendActivity extends AppCompatActivity {
 
         if(getIntent().hasExtra(THREAD_ID))
             notificationManager.cancel(Integer.parseInt(threadId));
-    }
-
-    private void handleIncomingMessage() {
-        BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if(intent.getAction().equals(Telephony.Sms.Intents.SMS_RECEIVED_ACTION)) {
-                    for (SmsMessage currentSMS: Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                        // currentSMS = SMSHandler.getIncomingMessage(aObject, bundle);
-
-                        // TODO: Fetch address name from contact list if present
-                        String address = currentSMS.getDisplayOriginatingAddress();
-                        Cursor cursor = SMSHandler.fetchSMSMessagesAddress(context, address);
-                        if(cursor.moveToFirst()) {
-                            SMS sms = new SMS(cursor);
-                            if (sms.getThreadId().equals(getIntent().getStringExtra(THREAD_ID))) {
-                                getIntent().putExtra(ADDRESS, sms.getAddress());
-                                cancelNotifications(sms.getThreadId());
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
-        // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
-         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
     }
 
     public void sendMessage(View view) {
