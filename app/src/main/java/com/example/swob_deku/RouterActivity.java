@@ -13,9 +13,13 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -37,6 +41,8 @@ import java.util.concurrent.ExecutionException;
 public class RouterActivity extends AppCompatActivity {
 
     RouterViewModel routerViewModel;
+    public MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter;
+    RecyclerView routedMessageRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,16 +60,17 @@ public class RouterActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-        RecyclerView messagesThreadRecyclerView = findViewById(R.id.routed_messages_recycler_view);
+        routedMessageRecyclerView = findViewById(R.id.routed_messages_recycler_view);
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,
+                LinearLayoutManager.VERTICAL, false);
+        routedMessageRecyclerView.setLayoutManager(linearLayoutManager);
 
         // TODO: search - and goto message in adapter
-        MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, R.layout.messages_threads_layout);
+        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
+                this, R.layout.messages_threads_layout, true, "", this);
 
-        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
+        routedMessageRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 
         routerViewModel = new ViewModelProvider(this).get(
                 RouterViewModel.class);
@@ -75,10 +82,27 @@ public class RouterActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.submitList(smsList);
                         if(!smsList.isEmpty())
                             findViewById(R.id.router_no_showable_messages_text).setVisibility(View.GONE);
-                        else
+                        else {
                             findViewById(R.id.router_no_showable_messages_text).setVisibility(View.VISIBLE);
+                            routedMessageRecyclerView.smoothScrollToPosition(0);
+                        }
                     }
                 });
+
+        handleIncomingMessage();
+    }
+
+    private void handleIncomingMessage() {
+        BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                routerViewModel.informChanges(getApplicationContext());
+                routedMessageRecyclerView.smoothScrollToPosition(0);
+            }
+        };
+
+        // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
+        registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
     }
 
 }

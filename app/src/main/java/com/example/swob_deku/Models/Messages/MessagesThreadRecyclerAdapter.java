@@ -10,6 +10,7 @@ import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,10 +29,13 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
+import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.MessagesThreadsActivity;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.R;
+import com.example.swob_deku.RouterActivity;
 import com.example.swob_deku.SMSTextReceiverBroadcastActivity;
 import com.example.swob_deku.SMSSendActivity;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -38,7 +44,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<MessagesThreadRecyclerAdapter.ViewHolder> {
@@ -49,6 +57,58 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     int renderLayout;
     Boolean isSearch = false;
     String searchString = "";
+    RouterActivity routerActivity;
+
+    WorkManager workManager;
+    LiveData<List<WorkInfo>> workers;
+
+    private String getSMSFromWorkInfo(WorkInfo workInfo) {
+        String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
+        String messageId = "";
+        for(int i = 0; i< tags.length; ++i) {
+            if (tags[i].contains("swob.work.id")) {
+                tags = tags[i].split("\\.");
+                messageId = tags[tags.length - 1];
+                return messageId;
+            }
+        }
+        return messageId;
+    }
+
+    private void workManagerFactories(List<String> ids) {
+        WorkQuery workQuery = WorkQuery.Builder
+                .fromTags(Collections.singletonList(SMSTextReceiverBroadcastActivity.TAG_NAME))
+                .addStates(Arrays.asList(
+                        WorkInfo.State.ENQUEUED,
+                        WorkInfo.State.FAILED,
+                        WorkInfo.State.RUNNING))
+                .addUniqueWorkNames(ids)
+                .build();
+
+        workers = workManager.getWorkInfosLiveData(workQuery);
+        workers.observe(routerActivity, new Observer<List<WorkInfo>>() {
+            @Override
+            public void onChanged(List<WorkInfo> workInfos) {
+                if(workInfos.isEmpty())
+                    return;
+
+                List<SMS> smsList = new ArrayList<>(mDiffer.getCurrentList());
+
+                for(WorkInfo workInfo: workInfos) {
+                    String messageId = getSMSFromWorkInfo(workInfo);
+                    for(int i=0;i<mDiffer.getCurrentList().size();++i)
+                        if(mDiffer.getCurrentList().get(i).id.equals(messageId)) {
+                            SMS sms = smsList.get(i);
+                            sms.routerStatus = workInfo.getState().name();
+                            smsList.set(i, sms);
+                            break;
+                        }
+                }
+                mDiffer.submitList(smsList);
+                notifyDataSetChanged();
+            }
+        });
+    }
 
     public MessagesThreadRecyclerAdapter(Context context, int renderLayout) {
        this.context = context;
@@ -60,6 +120,17 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         this.renderLayout = renderLayout;
         this.isSearch = isSearch;
         this.searchString = searchString;
+    }
+
+    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch, String searchString,
+                                         RouterActivity routerActivity) {
+        this.context = context;
+        this.renderLayout = renderLayout;
+        this.isSearch = isSearch;
+        this.searchString = searchString;
+        this.routerActivity = routerActivity;
+
+        workManager = WorkManager.getInstance(context);
     }
 
     @NonNull
@@ -148,6 +219,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             }
         };
 
+
         if(sms.getRouterStatus().equals(WorkInfo.State.ENQUEUED.name())) {
             holder.snippet.setOnClickListener(onClickListener);
             holder.state.setText( holder.state.getText().toString() + " click to retry!");
@@ -156,38 +228,32 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                 @Override
                 public void onClick(View view) {
                     // TODO: restart the work
-                    WorkQuery workQuery = WorkQuery.Builder
-                            .fromTags(Arrays.asList(SMSTextReceiverBroadcastActivity.TAG_NAME))
-                            .addStates(Arrays.asList(WorkInfo.State.ENQUEUED))
-                            .addUniqueWorkNames(Arrays.asList(sms.getId()))
-                            .build();
 
-                    WorkManager workManager = WorkManager.getInstance(context);
-                    ListenableFuture<List<WorkInfo>> workInfos = workManager.getWorkInfos(workQuery);
-
-                    try {
-                        List<WorkInfo> workInfoList = workInfos.get();
-
-                        for(WorkInfo workInfo: workInfoList) {
-                            // TODO: unless bug, failure cannot happen - task requeues if conditions are not met.
-                            // TODO: not totally sure to proceed.
-                            String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
-                            String messageId = new String();
-                            for(int i = 0; i< tags.length; ++i) {
-                                if (tags[i].contains("swob.work.id")) {
-                                    tags = tags[i].split("\\.");
-                                    messageId = tags[tags.length - 1];
-                                    break;
-                                }
-                            }
-                            if(sms.getId().equals(messageId)) {
-                                // workManager.
-                                // TODO: cancel the work and start a new one.
-                            }
-                        }
-                    } catch(Exception e ) {
-                        e.printStackTrace();
-                    }
+//                    ListenableFuture<List<WorkInfo>> workInfos = workManager.getWorkInfos(workQuery);
+//
+//                    try {
+//                        List<WorkInfo> workInfoList = workInfos.get();
+//
+//                        for(WorkInfo workInfo: workInfoList) {
+//                            // TODO: unless bug, failure cannot happen - task requeues if conditions are not met.
+//                            // TODO: not totally sure to proceed.
+//                            String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
+//                            String messageId = new String();
+//                            for(int i = 0; i< tags.length; ++i) {
+//                                if (tags[i].contains("swob.work.id")) {
+//                                    tags = tags[i].split("\\.");
+//                                    messageId = tags[tags.length - 1];
+//                                    break;
+//                                }
+//                            }
+//                            if(sms.getId().equals(messageId)) {
+//                                // workManager.
+//                                // TODO: cancel the work and start a new one.
+//                            }
+//                        }
+//                    } catch(Exception e ) {
+//                        e.printStackTrace();
+//                    }
 
                 }
             });
@@ -201,6 +267,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     }
 
     public void submitList(List<SMS> list) {
+        if(routerActivity != null) {
+            List<String> smsList = new ArrayList<>();
+
+            for (SMS sms : list)
+                smsList.add(sms.id);
+
+            workManagerFactories(smsList);
+        }
+
         mDiffer.submitList(list);
     }
 

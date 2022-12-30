@@ -90,7 +90,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             }
         });
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,
+                LinearLayoutManager.VERTICAL, false);
         MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
                 this, R.layout.messages_threads_layout);
 
@@ -102,10 +103,10 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 new Observer<List<SMS>>() {
                     @Override
                     public void onChanged(List<SMS> smsList) {
-                        Log.d(getLocalClassName(), "Changed happening....");
 //                        if(smsList.size() < 1 )
 //                            findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
                         messagesThreadRecyclerAdapter.submitList(smsList);
+                        messagesThreadRecyclerView.smoothScrollToPosition(0);
                     }
                 });
     }
@@ -115,22 +116,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         notificationManager.cancelAll();
     }
 
-    List<SMS> getThreadsFromCursor(Cursor cursor) {
-        List<SMS> threadsInCursor = new ArrayList<>();
-        if(cursor.moveToFirst()) {
-            do{
-                SMS sms = new SMS(cursor);
-                threadsInCursor.add(sms);
-            }
-            while(cursor.moveToNext());
-        }
-        else {
-            Log.i(this.getLocalClassName(), "No threads in cursor");
-        }
-
-        return threadsInCursor;
-    }
-
     public void onNewMessageClick(View view) {
         Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
         startActivityForResult(intent, 1);
@@ -138,10 +123,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     public void onRouterClick(View view) {
         startActivity(new Intent(this, RouterActivity.class));
-    }
-
-    public boolean isCurrentlyActive() {
-        return this.getWindow().getDecorView().getRootView().isShown();
     }
 
     private void handleIncomingMessage() {

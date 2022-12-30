@@ -100,7 +100,6 @@ public class RouterViewModel extends ViewModel {
                     }
                 }
                 if(!messageId.isEmpty()) {
-                    Log.d("", "Work info: " + messageId + " : " + workInfo.getState().name());
                     ArrayList<String> routeJobState = new ArrayList<>();
                     routeJobState.add(messageId);
                     routeJobState.add(workInfo.getState().name());

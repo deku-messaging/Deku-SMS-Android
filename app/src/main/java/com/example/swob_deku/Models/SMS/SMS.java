@@ -164,6 +164,7 @@ public class SMS {
                     sms.getStatusCode() == this.statusCode &&
                     sms.address.equals(this.address) &&
                     sms.body.equals(this.body) &&
+                    sms.routerStatus.equals(this.routerStatus) &&
                     sms.date.equals(this.date);
         }
         return false;
