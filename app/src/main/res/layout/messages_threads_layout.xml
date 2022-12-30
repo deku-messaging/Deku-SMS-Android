@@ -17,10 +17,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
         android:background="@drawable/circle_background"
         android:padding="4dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -52,12 +50,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
         android:fontFamily="sans-serif"
-        android:maxLines="2"
+        android:maxLines="3"
         android:text="TextView"
         android:textColor="#84898e"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/messages_route_state"
         app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
         app:layout_constraintTop_toBottomOf="@+id/messages_thread_address_text" />
@@ -78,11 +74,33 @@
         android:id="@+id/messages_route_state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
         android:textColor="#e1e2e4"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/messages_thread_date" />
+        app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
+
+    <TextView
+        android:id="@+id/message_route_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/route_state"
+        android:textSize="10dp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@+id/messages_thread_text"
+        app:layout_constraintTop_toBottomOf="@+id/messages_thread_text" />
+
+    <TextView
+        android:id="@+id/message_route_url"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="3dp"
+        android:text="TextView"
+        android:textColor="#84898f"
+        android:textSize="11dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/message_route_status"
+        app:layout_constraintTop_toBottomOf="@+id/message_route_status" />
 </androidx.constraintlayout.widget.ConstraintLayout>

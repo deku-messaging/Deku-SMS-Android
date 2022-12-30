@@ -102,13 +102,18 @@ public class SMSSendActivity extends AppCompatActivity {
 
         RecyclerView singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
+        Long focusId = getIntent().hasExtra(ID) ? Long.parseLong(getIntent().getStringExtra(ID)) : null;
+        String searchString = getIntent().hasExtra(SEARCH_STRING) ? getIntent().getStringExtra(SEARCH_STRING) : null;
+        Log.d(getLocalClassName(), "Search string: " + searchString);
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                 this,
                 R.layout.messages_thread_received_layout,
                 R.layout.messages_thread_sent_layout,
                 R.layout.messages_thread_timestamp_layout,
-                null,
-                null);
+                focusId,
+                searchString,
+                singleMessagesThreadRecyclerView);
+
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
@@ -123,13 +128,22 @@ public class SMSSendActivity extends AppCompatActivity {
                     }
                 });
 
-//        processForSharedIntent();
-
         handleIncomingBroadcast();
         improveMessagingUX();
 
         if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
             smsTextInputLayout.setEndIconVisible(false);
+        processForSharedIntent();
+        updateMessagesToRead();
+    }
+
+    private void updateMessagesToRead() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+               SMSHandler.updateThreadMessagesThread(getApplicationContext(), threadId);
+            }
+        }).start();
     }
 
     private void getMessagesThreadId() {
@@ -245,12 +259,16 @@ public class SMSSendActivity extends AppCompatActivity {
                String address = sendToString.substring(sendToString.indexOf(':') + 1);
                String text = getIntent().getStringExtra("sms_body");
 
-               byte[] bytesData = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
-               if(bytesData != null) {
-                   Log.d(getClass().getName(), "Byte data: " + bytesData);
-                   Log.d(getClass().getName(), "Byte data: " + new String(bytesData, StandardCharsets.UTF_8));
+               // TODO: should inform view about data being available
+               if(getIntent().hasExtra(Intent.EXTRA_INTENT)) {
+                   byte[] bytesData = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
+                   if (bytesData != null) {
+                       Log.d(getClass().getName(), "Byte data: " + bytesData);
+                       Log.d(getClass().getName(), "Byte data: " + new String(bytesData, StandardCharsets.UTF_8));
 
-                   text = new String(bytesData, StandardCharsets.UTF_8);
+                       text = new String(bytesData, StandardCharsets.UTF_8);
+                       getIntent().putExtra(Intent.EXTRA_INTENT, getIntent().getByteArrayExtra(Intent.EXTRA_INTENT));
+                   }
                }
 
                getIntent().putExtra(ADDRESS, address);

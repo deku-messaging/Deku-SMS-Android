@@ -2,7 +2,6 @@ package com.example.swob_deku.Models.Router;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -14,7 +13,7 @@ import androidx.work.WorkQuery;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.SMSTextReceiverBroadcastActivity;
+import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
@@ -73,7 +72,7 @@ public class RouterViewModel extends ViewModel {
     public ArrayList<ArrayList<String>> listRouteJobs(Context context) {
 
         WorkQuery workQuery = WorkQuery.Builder
-                .fromTags(Arrays.asList(SMSTextReceiverBroadcastActivity.TAG_NAME))
+                .fromTags(Arrays.asList(BroadcastSMSTextActivity.TAG_NAME))
                 .addStates(Arrays.asList(
                         WorkInfo.State.SUCCEEDED,
                         WorkInfo.State.ENQUEUED,

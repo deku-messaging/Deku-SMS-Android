@@ -79,7 +79,7 @@
         </activity>
 
         <receiver
-            android:name=".SMSDataReceiverBroadcastActivity"
+            android:name=".BroadcastSMSDataActivity"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -90,7 +90,7 @@
         </receiver>
 
         <receiver
-            android:name=".SMSTextReceiverBroadcastActivity"
+            android:name=".BroadcastSMSTextActivity"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>

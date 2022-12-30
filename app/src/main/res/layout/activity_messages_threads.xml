@@ -28,10 +28,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:endIconMode="custom"
-        app:endIconTint="#868484"
+        app:endIconTint="#5fd4fd"
         app:endIconDrawable="@drawable/ic_baseline_more_vert_24"
-        app:startIconDrawable="@drawable/ic_outline_search_24"
-        app:startIconTint="@android:color/darker_gray">
+        app:startIconDrawable="@drawable/ic_round_view_headline_24"
+        app:startIconTint="#e1e2e4">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/recent_search_edittext_clickable"
@@ -40,7 +40,7 @@
             android:clickable="true"
             android:cursorVisible="false"
             android:focusableInTouchMode="true"
-            android:hint="Search in messages..."
+            android:hint="@string/search_messages_text"
             android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 

@@ -17,7 +17,7 @@
     </string>
 
     <string name="search_messages_text">
-        Search messages...
+        Search messages
     </string>
 
     <string name="no_showable_router_message">
@@ -34,4 +34,5 @@
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">Available Gateway Servers</string>
     <string name="add_new_gateway_server_toolbar_title">New Gateway Server</string>
+    <string name="route_state">Routing URL</string>
 </resources>

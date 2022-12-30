@@ -32,7 +32,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.concurrent.TimeUnit;
 
-public class SMSTextReceiverBroadcastActivity extends BroadcastReceiver {
+public class BroadcastSMSTextActivity extends BroadcastReceiver {
     Context context;
 
     public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";

@@ -4,13 +4,13 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,16 +29,14 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
-import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.MessagesThreadsActivity;
 import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.example.swob_deku.RouterActivity;
-import com.example.swob_deku.SMSTextReceiverBroadcastActivity;
+import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.SMSSendActivity;
-import com.google.common.util.concurrent.ListenableFuture;
 
 
 import java.sql.Date;
@@ -77,7 +75,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     private void workManagerFactories(List<String> ids) {
         WorkQuery workQuery = WorkQuery.Builder
-                .fromTags(Collections.singletonList(SMSTextReceiverBroadcastActivity.TAG_NAME))
+                .fromTags(Collections.singletonList(BroadcastSMSTextActivity.TAG_NAME))
                 .addStates(Arrays.asList(
                         WorkInfo.State.ENQUEUED,
                         WorkInfo.State.FAILED,
@@ -148,11 +146,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         return (check == PackageManager.PERMISSION_GRANTED);
     }
 
+    public void setSearchString(String searchString) {
+        this.searchString = searchString;
+    }
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
 
-        if(isSearch && !searchString.isEmpty()) {
+        if(isSearch && searchString != null && !searchString.isEmpty()) {
 
             Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
             for(int index = sms.getBody().indexOf(searchString); index >=0; index = sms.getBody().indexOf(searchString, index + 1)) {
@@ -192,17 +194,25 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
         holder.date.setText(date);
 
+        if(routerActivity != null) {
+            holder.routingURLText.setVisibility(View.VISIBLE);
+            holder.routingUrl.setVisibility(View.VISIBLE);
+            holder.routingUrl.setText("https://example.com");
+        }
+        else {
+            holder.routingURLText.setVisibility(View.GONE);
+        }
+
         // TODO: change color of unread messages in thread
-        //if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
-//        if(this.threadIdSet.contains(sms.getThreadId())) {
-//            // Make bold
-//            holder.address.setTypeface(null, Typeface.BOLD);
-//            holder.snippet.setTypeface(null, Typeface.BOLD);
-//
-//            holder.address.setTextColor(context.getResources().getColor(R.color.read_text));
-//            holder.snippet.setTextColor(context.getResources().getColor(R.color.read_text));
-//            holder.date.setTextColor(context.getResources().getColor(R.color.read_text));
-//        }
+        if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+            // Make bold
+            holder.address.setTypeface(null, Typeface.BOLD);
+            holder.snippet.setTypeface(null, Typeface.BOLD);
+
+            holder.address.setTextColor(context.getResources().getColor(R.color.read_text));
+            holder.snippet.setTextColor(context.getResources().getColor(R.color.read_text));
+            holder.date.setTextColor(context.getResources().getColor(R.color.read_text));
+        }
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
@@ -213,8 +223,9 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
                 if (isSearch)
                     singleMessageThreadIntent.putExtra(SMSSendActivity.ID, sms.getId());
-                if (!searchString.isEmpty())
+                if (searchString != null && !searchString.isEmpty()) {
                     singleMessageThreadIntent.putExtra(SMSSendActivity.SEARCH_STRING, searchString);
+                }
 
                 context.startActivity(singleMessageThreadIntent);
             }
@@ -223,7 +234,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         if(sms.getRouterStatus().equals(WorkInfo.State.ENQUEUED.name())) {
             holder.snippet.setOnClickListener(onClickListener);
-            holder.state.setText( holder.state.getText().toString() + " click to retry!");
+            holder.state.setTextSize(11);
+            holder.state.setText( holder.state.getText().toString());
 
             holder.state.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -286,6 +298,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         TextView address;
         TextView date;
         TextView state;
+        TextView routingUrl;
+        TextView routingURLText;
         ImageView contactPhoto;
 
         ConstraintLayout layout;
@@ -298,6 +312,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             date = itemView.findViewById(R.id.messages_thread_date);
             layout = itemView.findViewById(R.id.messages_threads_layout);
             state = itemView.findViewById(R.id.messages_route_state);
+            routingUrl = itemView.findViewById(R.id.message_route_url);
+            routingURLText = itemView.findViewById(R.id.message_route_status);
             contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
         }
     }

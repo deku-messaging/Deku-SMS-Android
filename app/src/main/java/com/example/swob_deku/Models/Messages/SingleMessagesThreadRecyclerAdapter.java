@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.R;
 import com.google.android.material.card.MaterialCardView;
@@ -31,7 +32,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     Context context;
     int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
-    int focusPosition = -1;
     Long focusId;
     RecyclerView view;
     String searchString;
@@ -41,13 +41,16 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     public SingleMessagesThreadRecyclerAdapter(Context context, int renderLayoutReceived,
                                                int renderLayoutSent,
                                                int renderLayoutTimestamp,
-                                               Long focusId, String searchString) {
+                                               Long focusId,
+                                               String searchString,
+                                               RecyclerView view) {
         this.context = context;
         this.renderLayoutReceived = renderLayoutReceived;
         this.renderLayoutSent = renderLayoutSent;
         this.renderLayoutTimestamp = renderLayoutTimestamp;
         this.focusId = focusId;
         this.searchString = searchString;
+        this.view = view;
     }
 
     @Override
@@ -74,18 +77,17 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         return null;
     }
 
-    public void setView(RecyclerView view) {
-        this.view = view;
-    }
-
     @Override
     public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
 
-        if(focusPosition != -1 && holder.getAdapterPosition() == focusPosition) {
-            if(!searchString.isEmpty()) {
-                Log.d("", "Focus not empty..");
-                String text = mDiffer.getCurrentList().get(focusPosition).getBody();
+        for(int i=0;i<mDiffer.getCurrentList().size();++i) {
+            SMS sms = mDiffer.getCurrentList().get(i);
+            if (focusId!=null
+                    && searchString!=null
+                    && sms.id.equals(Long.toString(focusId))
+                    && !searchString.isEmpty()) {
+                String text = sms.getBody();
                 Spannable spannable = Spannable.Factory.getInstance().newSpannable(text);
 
                 for (int index = text.indexOf(searchString); index >= 0; index = text.indexOf(searchString, index + 1)) {
@@ -95,20 +97,21 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                             index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
 
-                switch (holder.getItemViewType()) {
-                    case 1: {
-                        ((MessageReceivedViewHandler) holder).receivedMessage.setText(spannable);
-                        break;
-                    }
-                    case 5:
-                    case 4:
-                    case 2: {
-                        ((MessageSentViewHandler) holder).sentMessage.setText(spannable);
-                        break;
-                    }
-                }
+                // TODO: not working
+//                switch (holder.getItemViewType()) {
+//                    case 1: {
+//                        ((MessageReceivedViewHandler) holder).receivedMessage.setText(spannable);
+//                        break;
+//                    }
+//                    case 5:
+//                    case 4:
+//                    case 2: {
+//                        ((MessageSentViewHandler) holder).sentMessage.setText(spannable);
+//                        break;
+//                    }
+//                }
+//                break;
             }
-            this.view.scrollToPosition(focusPosition);
         }
     }
 
@@ -177,6 +180,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 int status = sms.getStatusCode();
                 String statusMessage = status == Telephony.Sms.STATUS_COMPLETE ?
                         "delivered" : "sent";
+                statusMessage = "• " + statusMessage;
+
                 ((MessageSentViewHandler)holder).sentMessageStatus.setVisibility(View.INVISIBLE);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText(statusMessage);
 
@@ -198,12 +203,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             case "4":
                 ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
-                ((MessageSentViewHandler) holder).sentMessageStatus.setText("sending...");
+                ((MessageSentViewHandler) holder).sentMessageStatus.setText("• sending...");
                 break;
             case "5":
                 ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
-                ((MessageSentViewHandler) holder).sentMessageStatus.setText("failed");
+                ((MessageSentViewHandler) holder).sentMessageStatus.setText("• failed");
                 break;
         }
     }
@@ -218,8 +223,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     }
 
     @Override
-    public int getItemViewType(int position)
-    {
+    public int getItemViewType(int position) {
         if(mDiffer.getCurrentList().get(position).isDatesOnly())
             return 100;
 

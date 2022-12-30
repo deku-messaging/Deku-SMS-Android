@@ -50,9 +50,8 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 MessagesSearchViewModel.class);
 
         MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, R.layout.messages_threads_layout, true, "");
+                this, R.layout.messages_threads_layout, true, searchString.getValue());
 
-        // TextInputLayout textInputLayout = findViewById(R.id.search_messages_text);
         TextInputEditText searchTextInput = findViewById(R.id.new_gateway_client_url_input);
         searchTextInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -60,6 +59,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 if (actionId == EditorInfo.IME_ACTION_GO) {
                     String searchInput = searchView.getText().toString();
                     searchString.setValue(searchInput);
+                    messagesThreadRecyclerAdapter.setSearchString(searchInput);
 
                     InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 

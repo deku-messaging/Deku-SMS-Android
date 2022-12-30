@@ -11,7 +11,10 @@ public class GatewayServerViewModel extends ViewModel {
     private LiveData<List<GatewayServer>> gatewayServersList;
 
     public LiveData<List<GatewayServer>> getGatewayServers(GatewayServerDAO gatewayServerDAO){
-        loadGatewayServers(gatewayServerDAO);
+        if(gatewayServersList == null) {
+            gatewayServersList = new MutableLiveData<>();
+            loadGatewayServers(gatewayServerDAO);
+        }
         return gatewayServersList;
     }
 

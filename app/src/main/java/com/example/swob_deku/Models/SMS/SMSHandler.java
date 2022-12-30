@@ -184,18 +184,6 @@ public class SMSHandler {
         return cursor;
     }
 
-    public static Cursor fetchSMSMessagesThreads(Context context) {
-        Cursor cursor = context.getContentResolver().query(
-                Telephony.Sms.Conversations.CONTENT_URI,
-                 new String[] { "msg_count", "snippet", "thread_id" },
-                null,
-                null,
-                "date DESC");
-
-        return cursor;
-    }
-
-
     public static long registerIncomingMessage(Context context, String address, String body) {
         long messageId = Helpers.generateRandomNumber();
         ContentValues contentValues = new ContentValues();
@@ -283,40 +271,14 @@ public class SMSHandler {
         }
     }
 
-    public static Set<String> hasUnreadMessagesAll(Context context) {
-        
-        Set<String> threadIdSet = new HashSet<>();
-        try {
-            Cursor cursor = context.getContentResolver().query(
-                    Telephony.Sms.Inbox.CONTENT_URI,
-                    new String[] { Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID },
-                    "read=? and type=?",
-                    new String[] { "0", "1"}, "date DESC LIMIT 1");
-            
-            if(cursor.moveToFirst()) {
-                do {
-                    int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
-                    String threadId = String.valueOf(cursor.getString(threadIdIndex));
-                    
-                    threadIdSet.add(threadId);
-                } while(cursor.moveToNext());
-            }
-
-        }
-        catch(Exception e ) {
-            e.printStackTrace();
-        }
-
-        return threadIdSet;
-    }
-
     public static boolean hasUnreadMessages(Context context, String threadId) {
         try {
             Cursor cursor = context.getContentResolver().query(
                     Telephony.Sms.Inbox.CONTENT_URI,
                     new String[] { Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID },
                     "read=? AND thread_id =? AND type != ?",
-                    new String[] { "0", String.valueOf(threadId), "2"}, "date DESC LIMIT 1");
+                    new String[] { "0", String.valueOf(threadId), "2"},
+                    "date DESC LIMIT 1");
 
             return cursor.getCount() > 0;
         }
@@ -327,9 +289,9 @@ public class SMSHandler {
         return false;
     }
 
-    public static void updateSMSMessagesThreadStatus(Context context, String threadId, String read) {
+    public static void updateThreadMessagesThread(Context context, String threadId) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
+        contentValues.put(Telephony.TextBasedSmsColumns.READ, Telephony.Sms.READ);
         try {
             context.getContentResolver().update(
                     Telephony.Sms.Inbox.CONTENT_URI,
