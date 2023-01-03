@@ -76,6 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:textColor="#e1e2e4"
+        android:textSize="11dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
 

@@ -119,8 +119,6 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 
                         // String uniqueWorkName = address + message;
                         String uniqueWorkName = messageId + ":" + gatewayServer.getURL();
-                        if(BuildConfig.DEBUG)
-                            Log.d(getClass().getName(), "Unique work name starting: " + uniqueWorkName);
                         WorkManager workManager = WorkManager.getInstance(context);
                         workManager.enqueueUniqueWork(
                                 uniqueWorkName,

@@ -73,15 +73,16 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         return messageId;
     }
 
-    private void workManagerFactories(List<String> ids) {
+    private void workManagerFactories() {
+
         WorkQuery workQuery = WorkQuery.Builder
                 .fromTags(Collections.singletonList(BroadcastSMSTextActivity.TAG_NAME))
                 .addStates(Arrays.asList(
                         WorkInfo.State.ENQUEUED,
                         WorkInfo.State.FAILED,
+                        WorkInfo.State.CANCELLED,
                         WorkInfo.State.SUCCEEDED,
                         WorkInfo.State.RUNNING))
-                .addUniqueWorkNames(ids)
                 .build();
 
         workers = workManager.getWorkInfosLiveData(workQuery);
@@ -194,7 +195,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
         holder.date.setText(date);
 
-        if(routerActivity != null) {
+        if(routerActivity != null && !sms.routingUrls.isEmpty()) {
             holder.routingURLText.setVisibility(View.VISIBLE);
             holder.routingUrl.setVisibility(View.VISIBLE);
 
@@ -241,7 +242,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         if(sms.getRouterStatus().equals(WorkInfo.State.ENQUEUED.name())) {
             holder.snippet.setOnClickListener(onClickListener);
-            holder.state.setTextSize(11);
             holder.state.setText( holder.state.getText().toString());
 
             holder.state.setOnClickListener(new View.OnClickListener() {
@@ -288,12 +288,13 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     public void submitList(List<SMS> list) {
         if(routerActivity != null) {
-            List<String> smsList = new ArrayList<>();
+//            List<String> smsList = new ArrayList<>();
+//
+//            for (SMS sms : list)
+//                smsList.add(sms.id);
 
-            for (SMS sms : list)
-                smsList.add(sms.id);
-
-            workManagerFactories(smsList);
+//            workManagerFactories(smsList);
+            workManagerFactories();
         }
 
         mDiffer.submitList(list);
