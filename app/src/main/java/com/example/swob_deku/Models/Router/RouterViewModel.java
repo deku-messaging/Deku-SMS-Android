@@ -2,6 +2,7 @@ package com.example.swob_deku.Models.Router;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -10,6 +11,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
+import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 
 public class RouterViewModel extends ViewModel {
     private MutableLiveData<List<SMS>> messagesList;
@@ -64,6 +67,12 @@ public class RouterViewModel extends ViewModel {
                         break;
                     }
                 }
+                for(int i = 0;i< workerIds.size(); ++i ) {
+                    if(workerIds.get(i).equals(Long.valueOf(sms.getId()))) {
+                        if(routerJobs.get(i).size() > 2)
+                            smsList.get(j).addRoutingUrl(routerJobs.get(i).get(2));
+                    }
+                }
             }
             messagesList.setValue(smsList);
         }
@@ -72,7 +81,8 @@ public class RouterViewModel extends ViewModel {
     public ArrayList<ArrayList<String>> listRouteJobs(Context context) {
 
         WorkQuery workQuery = WorkQuery.Builder
-                .fromTags(Arrays.asList(BroadcastSMSTextActivity.TAG_NAME))
+                .fromTags(Arrays.asList(
+                        BroadcastSMSTextActivity.TAG_NAME))
                 .addStates(Arrays.asList(
                         WorkInfo.State.SUCCEEDED,
                         WorkInfo.State.ENQUEUED,
@@ -89,21 +99,31 @@ public class RouterViewModel extends ViewModel {
             List<WorkInfo> workInfoList = workInfos.get();
 
             String messageId = "";
+            String gatewayServerUrl = "";
+            // TODO: add multiple urls to an SMS message
             for(WorkInfo workInfo : workInfoList) {
-                String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
-                for(int i = 0; i< tags.length; ++i) {
-                    if (tags[i].contains("swob.work.id")) {
-                        tags = tags[i].split("\\.");
+                String[] Alltags = Helpers.convertSetToStringArray(workInfo.getTags());
+                for(int i = 0; i< Alltags.length; ++i) {
+                    if (Alltags[i].contains(BroadcastSMSTextActivity.TAG_WORKER_ID)) {
+                        String[] tags = Alltags[i].split("\\.");
                         messageId = tags[tags.length - 1];
-                        break;
+                    }
+                    if (Alltags[i].contains(BroadcastSMSTextActivity.TAG_ROUTING_URL)) {
+                        String[] tags = Alltags[i].split(",");
+                        gatewayServerUrl = tags[tags.length - 1];
                     }
                 }
+
+                ArrayList<String> routeJobState = new ArrayList<>();
                 if(!messageId.isEmpty()) {
-                    ArrayList<String> routeJobState = new ArrayList<>();
                     routeJobState.add(messageId);
                     routeJobState.add(workInfo.getState().name());
-                    workerIds.add(routeJobState);
                 }
+                if(!gatewayServerUrl.isEmpty()) {
+                    routeJobState.add(gatewayServerUrl);
+                }
+                if(!routeJobState.isEmpty())
+                    workerIds.add(routeJobState);
             }
         } catch (ExecutionException e) {
             e.printStackTrace();

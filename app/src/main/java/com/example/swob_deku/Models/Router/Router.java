@@ -19,6 +19,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
+import com.example.swob_deku.Models.GatewayServer.GatewayServer;
 import com.example.swob_deku.R;
 
 import org.json.JSONException;
@@ -40,7 +41,8 @@ public class Router extends Worker {
         try {
             String address = getInputData().getString("address");
             String text = getInputData().getString("text");
-            routeMessagesToGatewayServers(address, text);
+            String gatewayServerUrl = getInputData().getString("gatewayServerUrl");
+            routeMessagesToGatewayServers(address, text, gatewayServerUrl);
         } catch (ExecutionException | TimeoutException | InterruptedException e){
             e.printStackTrace();
             Throwable cause = e.getCause();
@@ -58,7 +60,9 @@ public class Router extends Worker {
         return Result.success();
     }
 
-    private void routeMessagesToGatewayServers(String address, String text) throws JSONException, VolleyError, ExecutionException, InterruptedException, TimeoutException {
+    private void routeMessagesToGatewayServers(String address, String text,
+                                               String gatewayServerUrl)
+            throws JSONException, ExecutionException, InterruptedException, TimeoutException {
         // TODO: Pause to resend if no internet connection
         // TODO: Pause till routing can happen, but should probably use a broker for this
         Context context = getApplicationContext();
@@ -66,7 +70,7 @@ public class Router extends Worker {
         Log.d("", "Routing: " + address + " - " + text);
 
         // TODO: make this come from a config file
-        String gatewayServerUrl = context.getString(R.string.routing_url);
+//        String gatewayServerUrl = context.getString(R.string.routing_url);
         try{
             JSONObject jsonBody = new JSONObject( "{\"text\": \"" + text + "\", \"MSISDN\": \"" + address + "\"}");
 

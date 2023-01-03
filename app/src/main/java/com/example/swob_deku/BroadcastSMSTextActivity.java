@@ -14,6 +14,8 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.lifecycle.LiveData;
+import androidx.room.Room;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.Data;
@@ -23,6 +25,9 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.Models.Datastore;
+import com.example.swob_deku.Models.GatewayServer.GatewayServer;
+import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
 import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -30,12 +35,15 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class BroadcastSMSTextActivity extends BroadcastReceiver {
     Context context;
 
     public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
+    public static final String TAG_ROUTING_URL = "swob.work.route.url,";
+    public static final String TAG_WORKER_ID = "swob.work.id.";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -75,40 +83,56 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
     }
 
     private void createWorkForMessage(String address, String message, long messageId) {
-        try {
-            Constraints constraints = new Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build();
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
 
-            OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
-                    .setConstraints(constraints)
-                    .setBackoffCriteria(
-                            BackoffPolicy.LINEAR,
-                            OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                            TimeUnit.MILLISECONDS
-                    )
-                    .addTag(TAG_NAME)
-                    .addTag(address)
-                    .addTag("swob.work.id." + messageId)
-                    .setInputData(
-                            new Data.Builder()
-                                    .putString("address", address)
-                                    .putString("text", message)
-                                    .build()
-                    )
-                    .build();
+        Datastore databaseConnector = Room.databaseBuilder(this.context, Datastore.class,
+                Datastore.databaseName).build();
 
-            // String uniqueWorkName = address + message;
-            String uniqueWorkName = String.valueOf(messageId);
-            WorkManager workManager = WorkManager.getInstance(context);
-            workManager.enqueueUniqueWork(
-                    uniqueWorkName,
-                    ExistingWorkPolicy.KEEP,
-                    routeMessageWorkRequest);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
+                List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                for(GatewayServer gatewayServer: gatewayServerList) {
+                    try {
+                        OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
+                                .setConstraints(constraints)
+                                .setBackoffCriteria(
+                                        BackoffPolicy.LINEAR,
+                                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                                        TimeUnit.MILLISECONDS
+                                )
+                                .addTag(TAG_NAME)
+                                .addTag(TAG_WORKER_ID + messageId)
+                                .addTag(TAG_ROUTING_URL + gatewayServer.getURL())
+                                .setInputData(
+                                        new Data.Builder()
+                                                .putString("address", address)
+                                                .putString("text", message)
+                                                .putString("gatewayServerUrl", gatewayServer.getURL())
+                                                .build()
+                                )
+                                .build();
+
+                        // String uniqueWorkName = address + message;
+                        String uniqueWorkName = messageId + ":" + gatewayServer.getURL();
+                        if(BuildConfig.DEBUG)
+                            Log.d(getClass().getName(), "Unique work name starting: " + uniqueWorkName);
+                        WorkManager workManager = WorkManager.getInstance(context);
+                        workManager.enqueueUniqueWork(
+                                uniqueWorkName,
+                                ExistingWorkPolicy.KEEP,
+                                routeMessageWorkRequest);
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
     }
 
     public static void sendNotification(Context context, String text, String address, long messageId) {

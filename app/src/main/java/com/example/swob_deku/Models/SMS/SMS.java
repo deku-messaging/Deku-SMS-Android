@@ -5,6 +5,8 @@ import android.provider.Telephony;
 
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+
 public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
 
@@ -110,6 +112,16 @@ public class SMS {
 
     public void setRouterStatus(String routerStatus) {
         this.routerStatus = routerStatus;
+    }
+
+    public ArrayList<String> routingUrls = new ArrayList<>();
+
+    public void setRoutingUrls(ArrayList<String> routingUrls) {
+        this.routingUrls = routingUrls;
+    }
+
+    public void addRoutingUrl(String routingUrl) {
+        this.routingUrls.add(routingUrl);
     }
 
     public SMS(String dates) {

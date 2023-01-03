@@ -197,7 +197,14 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         if(routerActivity != null) {
             holder.routingURLText.setVisibility(View.VISIBLE);
             holder.routingUrl.setVisibility(View.VISIBLE);
-            holder.routingUrl.setText("https://example.com");
+
+            StringBuilder routingUrl = new StringBuilder();
+            for(int i=0;i<sms.routingUrls.size(); ++i) {
+                if (routingUrl.length() > 0)
+                    routingUrl.append(", ");
+                routingUrl.append(sms.routingUrls.get(i));
+            }
+            holder.routingUrl.setText(routingUrl);
         }
         else {
             holder.routingURLText.setVisibility(View.GONE);

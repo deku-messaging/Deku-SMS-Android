@@ -13,6 +13,9 @@ public interface GatewayServerDAO {
     @Query("SELECT * FROM GatewayServer")
     LiveData<List<GatewayServer>> getAll();
 
+    @Query("SELECT * FROM GatewayServer")
+    List<GatewayServer> getAllList();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(GatewayServer gatewayServer);
 }
