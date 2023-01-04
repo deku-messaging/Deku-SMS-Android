@@ -11,6 +11,7 @@ import androidx.work.WorkerParameters;
 
 import com.android.volley.ClientError;
 import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -19,6 +20,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
+import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Models.GatewayServer.GatewayServer;
 import com.example.swob_deku.R;
 
@@ -43,14 +45,17 @@ public class Router extends Worker {
             String text = getInputData().getString("text");
             String gatewayServerUrl = getInputData().getString("gatewayServerUrl");
             routeMessagesToGatewayServers(address, text, gatewayServerUrl);
-        } catch (ExecutionException | TimeoutException | InterruptedException e){
+        } catch (ExecutionException | TimeoutException | InterruptedException e) {
             e.printStackTrace();
             Throwable cause = e.getCause();
-            if(cause instanceof ServerError){
+            if (cause instanceof ServerError) {
                 ServerError error = (ServerError) cause;
                 int statusCode = error.networkResponse.statusCode;
-                if(statusCode >=400)
+                if (statusCode >= 400)
                     return Result.failure();
+            }
+            else if(cause instanceof ParseError) {
+                return Result.success();
             }
             return Result.retry();
         } catch (Exception e ) {
@@ -67,7 +72,8 @@ public class Router extends Worker {
         // TODO: Pause till routing can happen, but should probably use a broker for this
         Context context = getApplicationContext();
         // Toast.makeText(context, "Routing messages using workers!", Toast.LENGTH_SHORT).show();
-        Log.d("", "Routing: " + address + " - " + text);
+        if(BuildConfig.DEBUG)
+            Log.d("", "Routing: " + address + " - " + text);
 
         // TODO: make this come from a config file
 //        String gatewayServerUrl = context.getString(R.string.routing_url);
@@ -91,7 +97,9 @@ public class Router extends Worker {
         catch (ExecutionException | TimeoutException | InterruptedException e){
             // Hit the server and came back with error code
             throw e;
-        } catch(Exception e ) {
+        } // Because the server could return a string...
+        // TODO: be sure o fthis cases
+        catch(Exception e ) {
             // Fuck
             throw e;
         }
