@@ -173,10 +173,8 @@ public class SMS {
 
             return sms.getId().equals(this.id) &&
                     sms.threadId.equals(this.threadId) &&
-                    sms.getStatusCode() == this.statusCode &&
                     sms.address.equals(this.address) &&
                     sms.body.equals(this.body) &&
-                    sms.routerStatus.equals(this.routerStatus) &&
                     sms.date.equals(this.date);
         }
         return false;

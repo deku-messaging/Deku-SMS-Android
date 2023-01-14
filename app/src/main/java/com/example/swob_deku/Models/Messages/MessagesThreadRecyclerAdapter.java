@@ -147,16 +147,12 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         return (check == PackageManager.PERMISSION_GRANTED);
     }
 
-    public void setSearchString(String searchString) {
-        this.searchString = searchString;
-    }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
 
         if(isSearch && searchString != null && !searchString.isEmpty()) {
-
             Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
             for(int index = sms.getBody().indexOf(searchString); index >=0; index = sms.getBody().indexOf(searchString, index + 1)) {
                 spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
