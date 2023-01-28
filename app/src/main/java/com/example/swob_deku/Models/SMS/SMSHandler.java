@@ -69,7 +69,12 @@ public class SMSHandler {
             if(text.isEmpty() || destinationAddress.isEmpty())
                 return "";
 
-            threadId = registerPendingMessage(context, destinationAddress, text, messageId);
+            try {
+                threadId = registerPendingMessage(context, destinationAddress, text, messageId);
+            } catch(Exception e ) {
+                e.printStackTrace();
+            }
+
             // TODO: Handle sending multipart messages
             ArrayList<String> dividedMessage = smsManager.divideMessage(text);
             if(dividedMessage.size() < 2 )
@@ -196,9 +201,8 @@ public class SMSHandler {
     }
 
     public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, long messageId) {
-        Uri targetedURI = Telephony.Sms.Inbox.CONTENT_URI;
         Cursor cursor = context.getContentResolver().query(
-                targetedURI,
+                smsUri,
                  new String[] { Telephony.Sms._ID,
                          Telephony.TextBasedSmsColumns.THREAD_ID,
                          Telephony.TextBasedSmsColumns.ADDRESS,
@@ -206,7 +210,7 @@ public class SMSHandler {
                          Telephony.TextBasedSmsColumns.DATE,
                          Telephony.TextBasedSmsColumns.BODY,
                          Telephony.TextBasedSmsColumns.TYPE },
-                "_id=?",
+                Telephony.Sms._ID + "=?",
                 new String[] { String.valueOf(messageId)},
                 "date DESC");
 
@@ -237,7 +241,7 @@ public class SMSHandler {
         contentValues.put(Telephony.TextBasedSmsColumns.ERROR_CODE, errorCode);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
 
-        context.getContentResolver().update(outboxContentUri, contentValues, "_id=?",
+        context.getContentResolver().update(smsUri, contentValues, "_id=?",
                 new String[] { Long.toString(messageId)});
     }
 
@@ -250,31 +254,16 @@ public class SMSHandler {
     }
 
     public static void registerSentMessage(Context context, long messageId) {
-        // TODO: try updating this from pending messages rather than deleting and reinserting
-        Cursor cursor = fetchSMSMessageId(context, messageId);
-
-        String destinationAddress = "";
-        String text = "";
-        if(cursor.moveToFirst()) {
-            SMS sms = new SMS(cursor);
-            destinationAddress = sms.getAddress();
-            text = sms.getBody();
-            try {
-                context.getContentResolver().delete(smsUri, "_id=?",
-                        new String[]{Long.toString(messageId)});
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.Sms.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT);
         contentValues.put(Telephony.Sms.STATUS, Telephony.TextBasedSmsColumns.STATUS_NONE);
-        contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
-        contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
+
         try {
-            context.getContentResolver().insert(sentContentUri, contentValues);
+            context.getContentResolver().update(
+                    smsUri,
+                    contentValues,
+                    Telephony.Sms._ID + "=?",
+                    new String[] {String.valueOf(messageId)});
         }
         catch(Exception e ) {
             e.printStackTrace();
@@ -287,14 +276,15 @@ public class SMSHandler {
         String threadId = "";
         ContentValues contentValues = new ContentValues();
         contentValues.put(Telephony.Sms._ID, messageId);
+        contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
-        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
-        contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
 
         try {
             ContentResolver contentResolver = context.getContentResolver();
             Uri uri = contentResolver.insert(outboxContentUri, contentValues);
+
             Cursor cursor = context.getContentResolver().query(
                     uri,
                     new String[] {Telephony.TextBasedSmsColumns.THREAD_ID},
@@ -318,8 +308,13 @@ public class SMSHandler {
             Cursor cursor = context.getContentResolver().query(
                     inboxContentUri,
                     new String[] { Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID },
-                    "read=? AND thread_id =? AND type != ?",
-                    new String[] { "0", String.valueOf(threadId), "2"},
+//                    "read=? AND thread_id =? AND type != ?",
+                    Telephony.TextBasedSmsColumns.READ + "=? AND " +
+                            Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " +
+                            Telephony.TextBasedSmsColumns.TYPE + "!=?",
+                    new String[] { "0",
+                            String.valueOf(threadId),
+                            String.valueOf(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT)},
                     "date DESC LIMIT 1");
 
             return cursor.getCount() > 0;
@@ -338,7 +333,7 @@ public class SMSHandler {
             context.getContentResolver().update(
                     inboxContentUri,
                     contentValues,
-                    "thread_id=? AND read=?",
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.TextBasedSmsColumns.READ +"=?",
                     new String[] { threadId, "0" });
         }
         catch(Exception e ) {

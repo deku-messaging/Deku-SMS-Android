@@ -129,7 +129,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 });
 
         handleIncomingBroadcast();
-        handleBroadcast();
 
         processForSharedIntent();
         improveMessagingUX();
@@ -303,8 +302,9 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
                 long id = intent.getLongExtra(ID, -1);
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Broadcast received for sent: " + id);
                 switch(getResultCode()) {
-
                     case Activity.RESULT_OK:
                         try {
                             SMSHandler.registerSentMessage(getApplicationContext(), id);
@@ -327,7 +327,7 @@ public class SMSSendActivity extends AppCompatActivity {
                         }
                 }
 
-                singleMessageViewModel.informChanges(getApplicationContext(), threadId);
+                singleMessageViewModel.informChanges(getApplicationContext(), id);
                 unregisterReceiver(this);
             }
         };
@@ -345,7 +345,7 @@ public class SMSSendActivity extends AppCompatActivity {
                         Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
 
-                singleMessageViewModel.informChanges(getApplicationContext(), threadId);
+                singleMessageViewModel.informChanges(getApplicationContext(), id);
                 unregisterReceiver(this);
             }
         };
@@ -386,18 +386,19 @@ public class SMSSendActivity extends AppCompatActivity {
                     deliveredIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
-
-            // TODO: if data
-//            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text.getBytes(StandardCharsets.UTF_8),
-//                    sentPendingIntent, deliveredPendingIntent, messageId);
-
+            handleBroadcast();
             String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
                     sentPendingIntent, deliveredPendingIntent, messageId);
-            if(threadId.equals("null") && !tmpThreadId.equals("null"))
-                threadId = tmpThreadId;
 
             smsTextView.setText("");
-            singleMessageViewModel.informChanges(getApplicationContext(), threadId);
+            if(threadId.equals("null") && !tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
+                threadId = tmpThreadId;
+                singleMessageViewModel.informChanges(getApplicationContext(), threadId);
+            }
+            else {
+//                singleMessageViewModel.informChanges(getApplicationContext());
+                singleMessageViewModel.informChanges(getApplicationContext(), messageId);
+            }
         }
 
         catch(IllegalArgumentException e ) {
