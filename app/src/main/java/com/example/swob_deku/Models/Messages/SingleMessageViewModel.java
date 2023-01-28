@@ -2,6 +2,7 @@ package com.example.swob_deku.Models.Messages;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -25,6 +26,12 @@ public class SingleMessageViewModel extends ViewModel {
             loadSMSThreads(context);
         }
         return messagesList;
+    }
+
+    public void informChanges(Context context, String threadId) {
+        Log.d(getClass().getName(), "Informing changes for: " + threadId);
+        this.threadId = threadId;
+        loadSMSThreads(context);
     }
 
     public void informChanges(Context context) {

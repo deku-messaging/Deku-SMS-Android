@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +31,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
+import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -39,6 +42,8 @@ import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.SMSSendActivity;
 
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -46,6 +51,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import io.getstream.avatarview.AvatarView;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<MessagesThreadRecyclerAdapter.ViewHolder> {
 
@@ -172,12 +179,26 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         String contactPhotoUri = "";
 
         if(checkPermissionToReadContacts() && !address.isEmpty()) {
+            if(BuildConfig.DEBUG)
+                Log.d(getClass().getName(), "Address: " + address);
             contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
-            address = Contacts.retrieveContactName(context, address);
+            String addressInPhone = Contacts.retrieveContactName(context, address);
+
+            if(!contactPhotoUri.isEmpty() && !contactPhotoUri.equals("null")) {
+                try {
+                    InputStream inputStream = context.getContentResolver().openInputStream(Uri.parse(contactPhotoUri));
+                    holder.contactPhoto.setPlaceholder(Drawable.createFromStream(inputStream, null));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if(!addressInPhone.isEmpty()) {
+                address = addressInPhone;
+                holder.contactPhoto.setAvatarInitials(address.substring(0, 1));
+            }
         }
 
-        if(!contactPhotoUri.isEmpty() && !contactPhotoUri.equals("null"))
-            holder.contactPhoto.setImageURI(Uri.parse(contactPhotoUri));
 
         holder.address.setText(address);
 
@@ -304,7 +325,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         TextView state;
         TextView routingUrl;
         TextView routingURLText;
-        ImageView contactPhoto;
+        AvatarView contactPhoto;
 
         ConstraintLayout layout;
 

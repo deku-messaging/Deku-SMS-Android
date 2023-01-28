@@ -54,6 +54,7 @@ dependencies {
 
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'commons-codec:commons-codec:1.11'
+    implementation "io.getstream:avatarview-coil:1.0.7"
 
     def room_version = "2.5.0-alpha01"
     implementation "androidx.room:room-runtime:2.4.3"

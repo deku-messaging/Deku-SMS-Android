@@ -129,11 +129,13 @@ public class SMSSendActivity extends AppCompatActivity {
                 });
 
         handleIncomingBroadcast();
+        handleBroadcast();
+
+        processForSharedIntent();
         improveMessagingUX();
 
         if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
             smsTextInputLayout.setEndIconVisible(false);
-        processForSharedIntent();
         updateMessagesToRead();
     }
 
@@ -229,9 +231,13 @@ public class SMSSendActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if(!PhoneNumberUtils.isWellFormedSmsAddress(address)) {
-                    ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
-                    smsLayout.setVisibility(View.GONE);
+                try {
+                    if (!PhoneNumberUtils.isWellFormedSmsAddress(address)) {
+                        ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
+                        smsLayout.setVisibility(View.GONE);
+                    }
+                } catch(Exception e) {
+                    e.printStackTrace();
                 }
             }
         }).start();
@@ -248,9 +254,8 @@ public class SMSSendActivity extends AppCompatActivity {
             if(BuildConfig.DEBUG)
                 Log.d("", "Processing shared #: " + sendToString);
 
-            if(sendToString.contains("%2B"))
-                sendToString = sendToString.replace("%2B", "+")
-                                .replace("%20", "");
+            sendToString = sendToString.replace("%2B", "+")
+                            .replace("%20", "");
 
             if(BuildConfig.DEBUG)
                 Log.d("", "Working on a shared Intent... " + sendToString);
@@ -302,7 +307,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
                     case Activity.RESULT_OK:
                         try {
-                            SMSHandler.registerSentMessage(context, id);
+                            SMSHandler.registerSentMessage(getApplicationContext(), id);
                         }
                         catch(Exception e) {
                             e.printStackTrace();
@@ -322,7 +327,7 @@ public class SMSSendActivity extends AppCompatActivity {
                         }
                 }
 
-                singleMessageViewModel.informChanges(getApplicationContext());
+                singleMessageViewModel.informChanges(getApplicationContext(), threadId);
                 unregisterReceiver(this);
             }
         };
@@ -333,15 +338,14 @@ public class SMSSendActivity extends AppCompatActivity {
                     Log.d(getLocalClassName(), "Broadcast delivered just came!");
 
                 long id = intent.getLongExtra(ID, -1);
-                switch(getResultCode()) {
-                    case Activity.RESULT_OK:
-                        SMSHandler.registerDeliveredMessage(context, id);
-                        break;
-                    default:
-                        if(BuildConfig.DEBUG)
-                            Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
+                if (getResultCode() == Activity.RESULT_OK) {
+                    SMSHandler.registerDeliveredMessage(context, id);
+                } else {
+                    if (BuildConfig.DEBUG)
+                        Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
-                singleMessageViewModel.informChanges(getApplicationContext());
+
+                singleMessageViewModel.informChanges(getApplicationContext(), threadId);
                 unregisterReceiver(this);
             }
         };
@@ -382,17 +386,18 @@ public class SMSSendActivity extends AppCompatActivity {
                     deliveredIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
-            handleBroadcast();
 
             // TODO: if data
 //            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text.getBytes(StandardCharsets.UTF_8),
 //                    sentPendingIntent, deliveredPendingIntent, messageId);
 
-            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
+            String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
                     sentPendingIntent, deliveredPendingIntent, messageId);
+            if(threadId.equals("null") && !tmpThreadId.equals("null"))
+                threadId = tmpThreadId;
 
             smsTextView.setText("");
-            singleMessageViewModel.informChanges(getApplicationContext());
+            singleMessageViewModel.informChanges(getApplicationContext(), threadId);
         }
 
         catch(IllegalArgumentException e ) {
