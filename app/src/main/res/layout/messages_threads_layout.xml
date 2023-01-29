@@ -24,8 +24,8 @@
 
         <io.getstream.avatarview.AvatarView
             android:id="@+id/messages_threads_contact_photo"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             app:avatarViewBorderWidth="0dp"
             app:avatarViewInitialsBackgroundColor="@color/purple_500"
             app:avatarViewInitialsTextColor="@color/white"

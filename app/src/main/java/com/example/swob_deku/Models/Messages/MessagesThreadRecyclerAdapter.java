@@ -158,6 +158,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
+        final String smsThreadId = sms.getThreadId();
 
         if(isSearch && searchString != null && !searchString.isEmpty()) {
             Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
@@ -181,24 +182,29 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         if(checkPermissionToReadContacts() && !address.isEmpty()) {
             if(BuildConfig.DEBUG)
                 Log.d(getClass().getName(), "Address: " + address);
-            contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
+
+//            contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
             String addressInPhone = Contacts.retrieveContactName(context, address);
 
-            if(!contactPhotoUri.isEmpty() && !contactPhotoUri.equals("null")) {
-                try {
-                    InputStream inputStream = context.getContentResolver().openInputStream(Uri.parse(contactPhotoUri));
-                    holder.contactPhoto.setPlaceholder(Drawable.createFromStream(inputStream, null));
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
+
+//            if(!contactPhotoUri.isEmpty() && !contactPhotoUri.equals("null")) {
+//                try {
+//                    if(BuildConfig.DEBUG)
+//                        Log.d(getClass().getName(), "URI for image: " + contactPhotoUri);
+//                    InputStream inputStream = context.getContentResolver().openInputStream(Uri.parse(contactPhotoUri));
+//                    holder.contactPhoto.setPlaceholder(Drawable.createFromStream(inputStream, null));
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                }
+//            }
 
             if(!addressInPhone.isEmpty()) {
                 address = addressInPhone;
+//                if(contactPhotoUri.isEmpty() || contactPhotoUri.equals("null"))
+//                    holder.contactPhoto.setAvatarInitials(address.substring(0, 1));
                 holder.contactPhoto.setAvatarInitials(address.substring(0, 1));
             }
         }
-
 
         holder.address.setText(address);
 
@@ -229,7 +235,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
 
         // TODO: change color of unread messages in thread
-        if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+        if(SMSHandler.hasUnreadMessages(context, smsThreadId)) {
             // Make bold
             holder.address.setTypeface(null, Typeface.BOLD);
             holder.snippet.setTypeface(null, Typeface.BOLD);
@@ -242,6 +248,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(BuildConfig.DEBUG)
+                    Log.d(getClass().getName(), "View clicked!");
                 Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
                 singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
                 singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
@@ -256,46 +264,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             }
         };
 
-
-        if(sms.getRouterStatus().equals(WorkInfo.State.ENQUEUED.name())) {
-            holder.snippet.setOnClickListener(onClickListener);
-            holder.state.setText( holder.state.getText().toString());
-
-            holder.state.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // TODO: restart the work
-
-//                    ListenableFuture<List<WorkInfo>> workInfos = workManager.getWorkInfos(workQuery);
-//
-//                    try {
-//                        List<WorkInfo> workInfoList = workInfos.get();
-//
-//                        for(WorkInfo workInfo: workInfoList) {
-//                            // TODO: unless bug, failure cannot happen - task requeues if conditions are not met.
-//                            // TODO: not totally sure to proceed.
-//                            String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
-//                            String messageId = new String();
-//                            for(int i = 0; i< tags.length; ++i) {
-//                                if (tags[i].contains("swob.work.id")) {
-//                                    tags = tags[i].split("\\.");
-//                                    messageId = tags[tags.length - 1];
-//                                    break;
-//                                }
-//                            }
-//                            if(sms.getId().equals(messageId)) {
-//                                // workManager.
-//                                // TODO: cancel the work and start a new one.
-//                            }
-//                        }
-//                    } catch(Exception e ) {
-//                        e.printStackTrace();
-//                    }
-
-                }
-            });
-        }
-        else holder.layout.setOnClickListener(onClickListener);
+        holder.layout.setOnClickListener(onClickListener);
     }
 
     @Override
@@ -305,12 +274,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     public void submitList(List<SMS> list) {
         if(routerActivity != null) {
-//            List<String> smsList = new ArrayList<>();
-//
-//            for (SMS sms : list)
-//                smsList.add(sms.id);
-
-//            workManagerFactories(smsList);
             workManagerFactories();
         }
 
@@ -348,6 +311,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             new DiffUtil.ItemCallback<SMS>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
+//                    return oldItem.id.equals(newItem.id) &&
+//                            oldItem.isRead().equals(newItem.isRead());
                     return oldItem.id.equals(newItem.id);
                 }
 
