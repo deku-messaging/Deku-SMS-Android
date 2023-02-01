@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +31,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
+import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -39,6 +42,8 @@ import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.SMSSendActivity;
 
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -46,6 +51,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import io.getstream.avatarview.AvatarView;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<MessagesThreadRecyclerAdapter.ViewHolder> {
 
@@ -151,6 +158,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
+        final String smsThreadId = sms.getThreadId();
 
         if(isSearch && searchString != null && !searchString.isEmpty()) {
             Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
@@ -169,15 +177,18 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         holder.state.setText(sms.getRouterStatus());
 
         String address = sms.getAddress();
-        String contactPhotoUri = "";
 
         if(checkPermissionToReadContacts() && !address.isEmpty()) {
-            contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
-            address = Contacts.retrieveContactName(context, address);
-        }
+            if(BuildConfig.DEBUG)
+                Log.d(getClass().getName(), "Address: " + address);
 
-        if(!contactPhotoUri.isEmpty() && !contactPhotoUri.equals("null"))
-            holder.contactPhoto.setImageURI(Uri.parse(contactPhotoUri));
+            String addressInPhone = Contacts.retrieveContactName(context, address);
+
+            if(!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
+                address = addressInPhone;
+                holder.contactPhoto.setAvatarInitials(address.substring(0, 1));
+            }
+        }
 
         holder.address.setText(address);
 
@@ -208,7 +219,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
 
         // TODO: change color of unread messages in thread
-        if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+        if(SMSHandler.hasUnreadMessages(context, smsThreadId)) {
             // Make bold
             holder.address.setTypeface(null, Typeface.BOLD);
             holder.snippet.setTypeface(null, Typeface.BOLD);
@@ -221,6 +232,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(BuildConfig.DEBUG)
+                    Log.d(getClass().getName(), "View clicked!");
                 Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
                 singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
                 singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
@@ -235,46 +248,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             }
         };
 
-
-        if(sms.getRouterStatus().equals(WorkInfo.State.ENQUEUED.name())) {
-            holder.snippet.setOnClickListener(onClickListener);
-            holder.state.setText( holder.state.getText().toString());
-
-            holder.state.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // TODO: restart the work
-
-//                    ListenableFuture<List<WorkInfo>> workInfos = workManager.getWorkInfos(workQuery);
-//
-//                    try {
-//                        List<WorkInfo> workInfoList = workInfos.get();
-//
-//                        for(WorkInfo workInfo: workInfoList) {
-//                            // TODO: unless bug, failure cannot happen - task requeues if conditions are not met.
-//                            // TODO: not totally sure to proceed.
-//                            String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
-//                            String messageId = new String();
-//                            for(int i = 0; i< tags.length; ++i) {
-//                                if (tags[i].contains("swob.work.id")) {
-//                                    tags = tags[i].split("\\.");
-//                                    messageId = tags[tags.length - 1];
-//                                    break;
-//                                }
-//                            }
-//                            if(sms.getId().equals(messageId)) {
-//                                // workManager.
-//                                // TODO: cancel the work and start a new one.
-//                            }
-//                        }
-//                    } catch(Exception e ) {
-//                        e.printStackTrace();
-//                    }
-
-                }
-            });
-        }
-        else holder.layout.setOnClickListener(onClickListener);
+        holder.layout.setOnClickListener(onClickListener);
     }
 
     @Override
@@ -284,12 +258,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     public void submitList(List<SMS> list) {
         if(routerActivity != null) {
-//            List<String> smsList = new ArrayList<>();
-//
-//            for (SMS sms : list)
-//                smsList.add(sms.id);
-
-//            workManagerFactories(smsList);
             workManagerFactories();
         }
 
@@ -304,7 +272,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         TextView state;
         TextView routingUrl;
         TextView routingURLText;
-        ImageView contactPhoto;
+        AvatarView contactPhoto;
 
         ConstraintLayout layout;
 
@@ -327,6 +295,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             new DiffUtil.ItemCallback<SMS>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
+//                    return oldItem.id.equals(newItem.id) &&
+//                            oldItem.isRead().equals(newItem.isRead());
                     return oldItem.id.equals(newItem.id);
                 }
 

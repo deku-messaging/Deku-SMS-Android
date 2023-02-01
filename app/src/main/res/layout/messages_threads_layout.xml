@@ -13,22 +13,34 @@
 
     <FrameLayout
         android:id="@+id/messages_threads_contact_photo_id"
-        android:layout_width="55dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:background="@drawable/circle_background"
         android:padding="4dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <io.getstream.avatarview.AvatarView
             android:id="@+id/messages_threads_contact_photo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_round_person_24" />
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            app:avatarViewBorderWidth="0dp"
+            app:avatarViewInitialsBackgroundColor="@color/purple_500"
+            app:avatarViewInitialsTextColor="@color/white"
+            app:avatarViewInitialsTextSize="21sp"
+            app:avatarViewInitialsTextSizeRatio="0.33"
+            app:avatarViewInitialsTextStyle="normal"
+            app:srcCompat="@drawable/ic_round_person_24" />
+
+        <!--        <de.hdodenhof.circleimageview.CircleImageView-->
+        <!--            android:id="@+id/messages_threads_contact_photo"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:background="@null"-->
+        <!--            android:scaleType="centerCrop"-->
+        <!--            android:src="@drawable/ic_round_person_24" />-->
     </FrameLayout>
 
     <TextView

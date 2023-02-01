@@ -129,11 +129,12 @@ public class SMSSendActivity extends AppCompatActivity {
                 });
 
         handleIncomingBroadcast();
+
+        processForSharedIntent();
         improveMessagingUX();
 
         if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
             smsTextInputLayout.setEndIconVisible(false);
-        processForSharedIntent();
         updateMessagesToRead();
     }
 
@@ -229,9 +230,13 @@ public class SMSSendActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if(!PhoneNumberUtils.isWellFormedSmsAddress(address)) {
-                    ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
-                    smsLayout.setVisibility(View.GONE);
+                try {
+                    if (!PhoneNumberUtils.isWellFormedSmsAddress(address)) {
+                        ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
+                        smsLayout.setVisibility(View.GONE);
+                    }
+                } catch(Exception e) {
+                    e.printStackTrace();
                 }
             }
         }).start();
@@ -248,9 +253,8 @@ public class SMSSendActivity extends AppCompatActivity {
             if(BuildConfig.DEBUG)
                 Log.d("", "Processing shared #: " + sendToString);
 
-            if(sendToString.contains("%2B"))
-                sendToString = sendToString.replace("%2B", "+")
-                                .replace("%20", "");
+            sendToString = sendToString.replace("%2B", "+")
+                            .replace("%20", "");
 
             if(BuildConfig.DEBUG)
                 Log.d("", "Working on a shared Intent... " + sendToString);
@@ -298,11 +302,12 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
                 long id = intent.getLongExtra(ID, -1);
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Broadcast received for sent: " + id);
                 switch(getResultCode()) {
-
                     case Activity.RESULT_OK:
                         try {
-                            SMSHandler.registerSentMessage(context, id);
+                            SMSHandler.registerSentMessage(getApplicationContext(), id);
                         }
                         catch(Exception e) {
                             e.printStackTrace();
@@ -314,7 +319,12 @@ public class SMSSendActivity extends AppCompatActivity {
                     case SmsManager.RESULT_ERROR_NULL_PDU:
                     case SmsManager.RESULT_ERROR_RADIO_OFF:
                     default:
-                        SMSHandler.registerFailedMessage(context, id, getResultCode());
+                        try {
+                            SMSHandler.registerFailedMessage(context, id, getResultCode());
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+
                         if(BuildConfig.DEBUG) {
                             Log.d(getLocalClassName(), "Failed to send: " + getResultCode());
                             Log.d(getLocalClassName(), "Failed to send: " + getResultData());
@@ -322,32 +332,32 @@ public class SMSSendActivity extends AppCompatActivity {
                         }
                 }
 
-                singleMessageViewModel.informChanges(getApplicationContext());
+                singleMessageViewModel.informChanges(getApplicationContext(), id);
                 unregisterReceiver(this);
             }
         };
+
         BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Broadcast delivered just came!");
-
                 long id = intent.getLongExtra(ID, -1);
-                switch(getResultCode()) {
-                    case Activity.RESULT_OK:
-                        SMSHandler.registerDeliveredMessage(context, id);
-                        break;
-                    default:
-                        if(BuildConfig.DEBUG)
-                            Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
+
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Registered broadcast delivered just came: " + id);
+
+                if (getResultCode() == Activity.RESULT_OK) {
+                    SMSHandler.registerDeliveredMessage(context, id);
+                } else {
+                    if (BuildConfig.DEBUG)
+                        Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
-                singleMessageViewModel.informChanges(getApplicationContext());
+
+                singleMessageViewModel.informChanges(getApplicationContext(), id);
                 unregisterReceiver(this);
             }
         };
 
         registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
-
         registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
 
     }
@@ -383,16 +393,21 @@ public class SMSSendActivity extends AppCompatActivity {
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
             handleBroadcast();
-
-            // TODO: if data
-//            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text.getBytes(StandardCharsets.UTF_8),
-//                    sentPendingIntent, deliveredPendingIntent, messageId);
-
-            SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
+            String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
                     sentPendingIntent, deliveredPendingIntent, messageId);
 
             smsTextView.setText("");
-            singleMessageViewModel.informChanges(getApplicationContext());
+            if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
+                threadId = tmpThreadId;
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Refreshing with threadId: " + threadId);
+                singleMessageViewModel.informChanges(getApplicationContext(), threadId);
+            }
+            else {
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Refreshing with messageId: " + messageId);
+                singleMessageViewModel.informChanges(getApplicationContext(), messageId);
+            }
         }
 
         catch(IllegalArgumentException e ) {
@@ -424,12 +439,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
                 break;
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // cancelNotifications(getIntent().getStringExtra(THREAD_ID));
     }
 
 }

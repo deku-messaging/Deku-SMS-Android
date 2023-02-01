@@ -38,6 +38,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
 
+    final int MESSAGE_TYPE_ALL = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL;
+    final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
+    final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
+    final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
+    final int MESSAGE_TYPE_OUTBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
+    final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
+    final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
+
     public SingleMessagesThreadRecyclerAdapter(Context context, int renderLayoutReceived,
                                                int renderLayoutSent,
                                                int renderLayoutTimestamp,
@@ -56,19 +64,21 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
+
         switch(viewType) {
             // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
             case 100: {
                 View view = inflater.inflate(this.renderLayoutTimestamp, parent, false);
                 return new MessageTimestampViewerHandler(view);
             }
-            case 1: {
+            case MESSAGE_TYPE_INBOX: {
                 View view = inflater.inflate(this.renderLayoutReceived, parent, false);
                 return new MessageReceivedViewHandler(view);
             }
-            case 5:
-            case 4:
-            case 2: {
+            case MESSAGE_TYPE_QUEUED:
+            case MESSAGE_TYPE_FAILED:
+            case MESSAGE_TYPE_OUTBOX:
+            case MESSAGE_TYPE_SENT: {
                 View view = inflater.inflate(this.renderLayoutSent, parent, false);
                 return new MessageSentViewHandler(view);
             }
@@ -118,8 +128,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-
-        SMS sms = mDiffer.getCurrentList().get(position);
+        final SMS sms = mDiffer.getCurrentList().get(position);
 
         // TODO: for search
 //        if(focusId != -1 && sms.getId() != null && Long.valueOf(sms.getId()) == focusId) {
@@ -152,7 +161,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
         switch(sms.getType()) {
 //            https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns?hl=en#TYPE
-            case "1":
+            case MESSAGE_TYPE_INBOX:
                 TextView receivedMessage = ((MessageReceivedViewHandler)holder).receivedMessage;
                 receivedMessage.setText(sms.getBody());
 
@@ -173,17 +182,19 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 });
                 break;
 
-            case "2":
-                ((MessageSentViewHandler)holder).sentMessage.setText(sms.getBody());
+            case MESSAGE_TYPE_SENT:
+                if(BuildConfig.DEBUG)
+                    Log.d(getClass().getName(), "Registered type: " + sms.getType());
+                ((MessageSentViewHandler) holder).sentMessage.setText(sms.getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
-                ((MessageSentViewHandler)holder).date.setVisibility(View.INVISIBLE);
+                ((MessageSentViewHandler) holder).date.setVisibility(View.INVISIBLE);
 
-                int status = sms.getStatusCode();
-                String statusMessage = status == Telephony.Sms.STATUS_COMPLETE ?
+                final int status = sms.getStatusCode();
+                String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?
                         "delivered" : "sent";
                 statusMessage = "• " + statusMessage;
 
-                ((MessageSentViewHandler)holder).sentMessageStatus.setVisibility(View.INVISIBLE);
+                ((MessageSentViewHandler) holder).sentMessageStatus.setVisibility(View.INVISIBLE);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText(statusMessage);
 
                 ((MessageSentViewHandler) holder).sentMessage.setOnClickListener(new View.OnClickListener() {
@@ -201,12 +212,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 });
 
                 break;
-            case "4":
+            case MESSAGE_TYPE_OUTBOX:
                 ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText("• sending...");
                 break;
-            case "5":
+            case MESSAGE_TYPE_FAILED:
                 ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText("• failed");
@@ -228,7 +239,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         if(mDiffer.getCurrentList().get(position).isDatesOnly())
             return 100;
 
-        int messageType = Integer.parseInt(mDiffer.getCurrentList().get(position).getType());
+        int messageType = mDiffer.getCurrentList().get(position).getType();
         return (messageType > -1 )? messageType : 0;
     }
 

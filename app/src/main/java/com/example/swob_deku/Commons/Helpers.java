@@ -33,7 +33,7 @@ public class Helpers {
 
     public static long generateRandomNumber() {
         Random random = new Random();
-        return random.nextLong();
+        return random.nextInt(Integer.MAX_VALUE);
     }
 
 

@@ -18,7 +18,7 @@ public class Contacts {
                 null,
                 null, null);
 
-        String displayName = phoneNumber;
+        String displayName = "";
         if(cursor.moveToFirst()) {
             int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
             displayName = String.valueOf(cursor.getString(displayNameIndex));
