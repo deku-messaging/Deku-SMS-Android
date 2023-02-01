@@ -312,7 +312,7 @@ public class SMSHandler {
 
         List<SMS> copysmsList = new ArrayList<>(smsList);
 
-        for(int i=smsList.size() - 1, j = 0; i> -1; --i, ++j) {
+        for(int i=smsList.size() - 1, j = i; i> -1; --i, --j) {
             SMS currentSMS = smsList.get(i);
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "sms date: " + currentSMS.getDate() + " - " + currentSMS.getBody());
@@ -333,7 +333,7 @@ public class SMSHandler {
                     Log.d(SMSHandler.class.getName(), prevCalendar.getTime().toString() + ":" + calendar.getTime().toString());
 
                 if (prevCalendar.get(Calendar.HOUR) < calendar.get(Calendar.HOUR)) {
-                    copysmsList.add(copysmsList.size() - j, new SMS(currentSMS.getDate()));
+                    copysmsList.add(j, new SMS(currentSMS.getDate()));
                     ++j;
                 }
             }
