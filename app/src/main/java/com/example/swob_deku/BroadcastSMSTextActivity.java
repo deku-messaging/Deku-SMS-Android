@@ -35,6 +35,7 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -71,7 +72,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     sendNotification(context, message, address, messageId);
 
                     try {
-                        CharsetDecoder charsetDecoder = Charset.forName("UTF-8").newDecoder();
+                        CharsetDecoder charsetDecoder = StandardCharsets.UTF_8.newDecoder();
                         charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
                         createWorkForMessage(address, message, messageId);
                     } catch (Exception e) {

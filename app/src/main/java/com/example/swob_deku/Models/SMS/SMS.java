@@ -44,18 +44,18 @@ public class SMS {
         this.date = date;
     }
 
-    public String getType() {
+    public int getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(int type) {
         this.type = type;
     }
 
     String address = new String();
     String threadId = "-1";
     String date = new String();
-    String type;
+    int type;
 
     public String getErrorCode() {
         return errorCode;
@@ -141,7 +141,7 @@ public class SMS {
         int readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ);
         int idIndex = cursor.getColumnIndex(Telephony.Sms._ID);
 
-        this.type =  String.valueOf(cursor.getString(typeIndex));
+        this.type =  cursor.getInt(typeIndex);
         this.body = String.valueOf(cursor.getString(bodyIndex));
         this.address = String.valueOf(cursor.getString(addressIndex));
         this.threadId = String.valueOf(cursor.getString(threadIdIndex));
@@ -175,6 +175,7 @@ public class SMS {
                     sms.threadId.equals(this.threadId) &&
                     sms.address.equals(this.address) &&
                     sms.body.equals(this.body) &&
+                    sms.statusCode == this.statusCode &&
                     sms.date.equals(this.date);
         }
         return false;

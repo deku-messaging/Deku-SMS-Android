@@ -174,4 +174,10 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onResume();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
     }
+
+    @Override
+    public void onBackPressed() {
+        messagesThreadViewModel.informChanges(getApplicationContext());
+        super.onBackPressed();
+    }
 }

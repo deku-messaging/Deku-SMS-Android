@@ -42,8 +42,7 @@ public class SingleMessageViewModel extends ViewModel {
             this.threadId = sms.getThreadId();
         }
 
-        Log.d(getClass().getName(), "Informing changes for message: " + messageId);
-        Log.d(getClass().getName(), this.threadId);
+        Log.d(getClass().getName(), "Informing changes for message: " + messageId + " and threadID: " + this.threadId);
         loadSMSThreads(context);
     }
 

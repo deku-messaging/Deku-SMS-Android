@@ -1,7 +1,6 @@
 package com.example.swob_deku.Models.SMS;
 
 import android.app.PendingIntent;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -12,24 +11,24 @@ import android.telephony.SmsManager;
 import android.util.Base64;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class SMSHandler {
     static final short DATA_TRANSMISSION_PORT = 8901;
 
-    public static final Uri smsUri = Telephony.Sms.CONTENT_URI;
+    public static final Uri SMS_CONTENT_URI = Telephony.Sms.CONTENT_URI;
 
-    public static final Uri inboxContentUri = Telephony.Sms.Inbox.CONTENT_URI;
-    public static final Uri outboxContentUri = Telephony.Sms.Outbox.CONTENT_URI;
-    public static final Uri sentContentUri = Telephony.Sms.Sent.CONTENT_URI;
+    public static final Uri SMS_INBOX_CONTENT_URI = Telephony.Sms.Inbox.CONTENT_URI;
+    public static final Uri SMS_OUTBOX_CONTENT_URI = Telephony.Sms.Outbox.CONTENT_URI;
+    public static final Uri SMS_SENT_CONTENT_URI = Telephony.Sms.Sent.CONTENT_URI;
 
     public static void sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
@@ -92,7 +91,7 @@ public class SMSHandler {
                 }
 
                 sentPendingIntents.add(sentIntent);
-                deliveredPendingIntents.add(sentIntent);
+                deliveredPendingIntents.add(deliveryIntent);
 
                 smsManager.sendMultipartTextMessage(
                         destinationAddress,
@@ -108,22 +107,11 @@ public class SMSHandler {
         return threadId;
     }
 
-    public static Cursor fetchSMSMessageId(Context context, long id) {
-        Cursor smsMessagesCursor = context.getContentResolver().query(
-                Uri.parse("content://sms"),
-                null,
-                "_id=?",
-                new String[] { Long.toString(id) },
-                null);
-
-        return smsMessagesCursor;
-    }
-
-    public static Cursor fetchSMSMessagesAddress(Context context, String address) {
+    public static Cursor fetchSMSMessagesAddress(@NonNull Context context, String address) {
         address = address.replaceAll("[\\s-]", "");
 
         Cursor smsMessagesCursor = context.getContentResolver().query(
-                smsUri,
+                SMS_CONTENT_URI,
                 new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID, Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON, Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY, Telephony.TextBasedSmsColumns.TYPE },
                 "address like ?",
                 new String[] { "%" + address},
@@ -132,8 +120,9 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSForThread(Context context, String threadId) {
+    public static Cursor fetchSMSForThread(@NonNull Context context, String threadId) {
         String[] selection = new String[] { Telephony.Sms._ID,
+                Telephony.TextBasedSmsColumns.STATUS,
                 Telephony.TextBasedSmsColumns.THREAD_ID,
                 Telephony.TextBasedSmsColumns.ADDRESS,
                 Telephony.TextBasedSmsColumns.PERSON,
@@ -142,7 +131,7 @@ public class SMSHandler {
                 Telephony.TextBasedSmsColumns.TYPE };
 
         Cursor smsMessagesCursor = context.getContentResolver().query(
-                smsUri,
+                SMS_CONTENT_URI,
                 selection,
                 Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
                 new String[] { threadId },
@@ -154,10 +143,14 @@ public class SMSHandler {
     public static Cursor fetchSMSForThreading(Context context) {
         String[] projection = new String[] {
                 Telephony.Sms._ID,
-                Telephony.TextBasedSmsColumns.THREAD_ID, Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.BODY, Telephony.TextBasedSmsColumns.TYPE, "MAX(date) as date"};
+                Telephony.TextBasedSmsColumns.THREAD_ID,
+                Telephony.TextBasedSmsColumns.ADDRESS,
+                Telephony.TextBasedSmsColumns.BODY,
+                Telephony.TextBasedSmsColumns.TYPE,
+                "MAX(date) as date"};
 
         return context.getContentResolver().query(
-                Telephony.Sms.CONTENT_URI,
+                SMS_CONTENT_URI,
                 projection,
                 "thread_id IS NOT NULL) GROUP BY (thread_id",
                 null,
@@ -190,6 +183,7 @@ public class SMSHandler {
         Cursor cursor = context.getContentResolver().query(
                 targetedURI,
                 new String[] { Telephony.Sms._ID,
+                        Telephony.TextBasedSmsColumns.STATUS,
                         Telephony.TextBasedSmsColumns.THREAD_ID,
                         Telephony.TextBasedSmsColumns.ADDRESS,
                         Telephony.TextBasedSmsColumns.PERSON,
@@ -205,7 +199,7 @@ public class SMSHandler {
 
     public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, long messageId) {
         Cursor cursor = context.getContentResolver().query(
-                smsUri,
+                SMS_CONTENT_URI,
                  new String[] { Telephony.Sms._ID,
                          Telephony.TextBasedSmsColumns.THREAD_ID,
                          Telephony.TextBasedSmsColumns.ADDRESS,
@@ -230,7 +224,7 @@ public class SMSHandler {
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 
         try {
-            context.getContentResolver().insert(inboxContentUri, contentValues);
+            context.getContentResolver().insert(SMS_INBOX_CONTENT_URI, contentValues);
         }
         catch(Exception e ) {
             e.printStackTrace();
@@ -244,31 +238,46 @@ public class SMSHandler {
         contentValues.put(Telephony.TextBasedSmsColumns.ERROR_CODE, errorCode);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
 
-        context.getContentResolver().update(smsUri, contentValues, "_id=?",
-                new String[] { Long.toString(messageId)});
+        try {
+            context.getContentResolver().update(SMS_SENT_CONTENT_URI, contentValues, "_id=?",
+                    new String[]{Long.toString(messageId)});
+        } catch (Exception e ) {
+            e.printStackTrace();
+        }
     }
 
-    public static void registerDeliveredMessage(Context context, long messageId) {
+    public static void registerDeliveredMessage(@NonNull Context context, long messageId) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS,
+                Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
 
-        context.getContentResolver().update(sentContentUri, contentValues, "_id=?",
-                new String[] { Long.toString(messageId)});
+        try {
+            context.getContentResolver().update(
+                    SMS_SENT_CONTENT_URI,
+                    contentValues,
+                    Telephony.Sms._ID + "=?",
+                    new String[]{Long.toString(messageId)});
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void registerSentMessage(Context context, long messageId) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Telephony.Sms.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT);
-        contentValues.put(Telephony.Sms.STATUS, Telephony.TextBasedSmsColumns.STATUS_NONE);
+
+        contentValues.put(Telephony.TextBasedSmsColumns.TYPE,
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT);
+
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS,
+                Telephony.TextBasedSmsColumns.STATUS_NONE);
 
         try {
             context.getContentResolver().update(
-                    smsUri,
+                    SMS_SENT_CONTENT_URI,
                     contentValues,
                     Telephony.Sms._ID + "=?",
-                    new String[] {String.valueOf(messageId)});
-        }
-        catch(Exception e ) {
+                    new String[] {Long.toString(messageId)});
+        } catch(Exception e ) {
             e.printStackTrace();
         }
     }
@@ -276,8 +285,11 @@ public class SMSHandler {
     public static String registerPendingMessage(Context context, String destinationAddress, String text, long messageId) {
         if(BuildConfig.DEBUG)
             Log.d(SMSHandler.class.getName(), "sending message id: " + messageId);
+
         String threadId = "";
+
         ContentValues contentValues = new ContentValues();
+
         contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
         contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
@@ -285,8 +297,13 @@ public class SMSHandler {
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
 
         try {
-            ContentResolver contentResolver = context.getContentResolver();
-            Uri uri = contentResolver.insert(outboxContentUri, contentValues);
+
+            Uri uri = context.getContentResolver().insert(
+                    SMS_OUTBOX_CONTENT_URI,
+                    contentValues );
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Outbox URI: " + uri.toString());
 
             Cursor cursor = context.getContentResolver().query(
                     uri,
@@ -309,18 +326,19 @@ public class SMSHandler {
     public static boolean hasUnreadMessages(Context context, String threadId) {
         try {
             Cursor cursor = context.getContentResolver().query(
-                    inboxContentUri,
+                    SMS_INBOX_CONTENT_URI,
                     new String[] { Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID },
 //                    "read=? AND thread_id =? AND type != ?",
                     Telephony.TextBasedSmsColumns.READ + "=? AND " +
-                            Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " +
-                            Telephony.TextBasedSmsColumns.TYPE + "!=?",
+                            Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
                     new String[] { "0",
-                            String.valueOf(threadId),
-                            String.valueOf(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT)},
+                            String.valueOf(threadId) },
                     "date DESC LIMIT 1");
 
-            return cursor.getCount() > 0;
+            boolean hasUnread = cursor.getCount() > 0;
+            cursor.close();
+
+            return hasUnread;
         }
         catch(Exception e ) {
             e.printStackTrace();
@@ -331,10 +349,10 @@ public class SMSHandler {
 
     public static void updateThreadMessagesThread(Context context, String threadId) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(Telephony.TextBasedSmsColumns.READ, Telephony.Sms.READ);
+        contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");
         try {
             context.getContentResolver().update(
-                    inboxContentUri,
+                    SMS_INBOX_CONTENT_URI,
                     contentValues,
                     Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.TextBasedSmsColumns.READ +"=?",
                     new String[] { threadId, "0" });
@@ -351,9 +369,6 @@ public class SMSHandler {
 
         for(int i=smsList.size() - 1, j = i; i> -1; --i, --j) {
             SMS currentSMS = smsList.get(i);
-            if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "sms date: " + currentSMS.getDate() + " - " + currentSMS.getBody());
-
             Date date = new Date(Long.parseLong(currentSMS.getDate()));
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(date);
@@ -366,8 +381,6 @@ public class SMSHandler {
                 Date previousDate = new Date(Long.parseLong(smsList.get(i + 1).getDate()));
                 Calendar prevCalendar = Calendar.getInstance();
                 prevCalendar.setTime(previousDate);
-                if(BuildConfig.DEBUG)
-                    Log.d(SMSHandler.class.getName(), prevCalendar.getTime().toString() + ":" + calendar.getTime().toString());
 
                 if (prevCalendar.get(Calendar.HOUR) < calendar.get(Calendar.HOUR)) {
                     copysmsList.add(j, new SMS(currentSMS.getDate()));

@@ -319,7 +319,12 @@ public class SMSSendActivity extends AppCompatActivity {
                     case SmsManager.RESULT_ERROR_NULL_PDU:
                     case SmsManager.RESULT_ERROR_RADIO_OFF:
                     default:
-                        SMSHandler.registerFailedMessage(context, id, getResultCode());
+                        try {
+                            SMSHandler.registerFailedMessage(context, id, getResultCode());
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+
                         if(BuildConfig.DEBUG) {
                             Log.d(getLocalClassName(), "Failed to send: " + getResultCode());
                             Log.d(getLocalClassName(), "Failed to send: " + getResultData());
@@ -331,13 +336,15 @@ public class SMSSendActivity extends AppCompatActivity {
                 unregisterReceiver(this);
             }
         };
+
         BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Broadcast delivered just came!");
-
                 long id = intent.getLongExtra(ID, -1);
+
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Registered broadcast delivered just came: " + id);
+
                 if (getResultCode() == Activity.RESULT_OK) {
                     SMSHandler.registerDeliveredMessage(context, id);
                 } else {
@@ -351,7 +358,6 @@ public class SMSSendActivity extends AppCompatActivity {
         };
 
         registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
-
         registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
 
     }
@@ -391,12 +397,15 @@ public class SMSSendActivity extends AppCompatActivity {
                     sentPendingIntent, deliveredPendingIntent, messageId);
 
             smsTextView.setText("");
-            if(threadId.equals("null") && !tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
+            if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
                 threadId = tmpThreadId;
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Refreshing with threadId: " + threadId);
                 singleMessageViewModel.informChanges(getApplicationContext(), threadId);
             }
             else {
-//                singleMessageViewModel.informChanges(getApplicationContext());
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Refreshing with messageId: " + messageId);
                 singleMessageViewModel.informChanges(getApplicationContext(), messageId);
             }
         }
@@ -430,12 +439,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
                 break;
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // cancelNotifications(getIntent().getStringExtra(THREAD_ID));
     }
 
 }

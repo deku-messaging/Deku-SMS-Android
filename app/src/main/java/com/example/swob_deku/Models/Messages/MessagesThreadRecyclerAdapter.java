@@ -177,31 +177,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         holder.state.setText(sms.getRouterStatus());
 
         String address = sms.getAddress();
-        String contactPhotoUri = "";
 
         if(checkPermissionToReadContacts() && !address.isEmpty()) {
             if(BuildConfig.DEBUG)
                 Log.d(getClass().getName(), "Address: " + address);
 
-//            contactPhotoUri = Contacts.retrieveContactPhoto(context, address);
             String addressInPhone = Contacts.retrieveContactName(context, address);
 
-
-//            if(!contactPhotoUri.isEmpty() && !contactPhotoUri.equals("null")) {
-//                try {
-//                    if(BuildConfig.DEBUG)
-//                        Log.d(getClass().getName(), "URI for image: " + contactPhotoUri);
-//                    InputStream inputStream = context.getContentResolver().openInputStream(Uri.parse(contactPhotoUri));
-//                    holder.contactPhoto.setPlaceholder(Drawable.createFromStream(inputStream, null));
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-
-            if(!addressInPhone.isEmpty()) {
+            if(!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
                 address = addressInPhone;
-//                if(contactPhotoUri.isEmpty() || contactPhotoUri.equals("null"))
-//                    holder.contactPhoto.setAvatarInitials(address.substring(0, 1));
                 holder.contactPhoto.setAvatarInitials(address.substring(0, 1));
             }
         }
