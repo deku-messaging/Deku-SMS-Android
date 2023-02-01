@@ -59,6 +59,7 @@ public class SingleMessageViewModel extends ViewModel {
                 SMS sms = new SMS(cursor);
                 smsList.add(sms);
             } while(cursor.moveToNext());
+            smsList = SMSHandler.dateSegmentations(smsList);
             messagesList.setValue(smsList);
         }
     }
