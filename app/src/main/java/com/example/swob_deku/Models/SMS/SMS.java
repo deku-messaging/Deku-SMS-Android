@@ -86,17 +86,17 @@ public class SMS {
         this.id = id;
     }
 
-    public String isRead() {
+    public int isRead() {
         return read;
     }
 
-    public void setRead(String read) {
+    public void setRead(int read) {
         this.read = read;
     }
 
     public String id = "";
 
-    public String read;
+    public int read;
 
     public String routerStatus = new String();
 
@@ -153,7 +153,7 @@ public class SMS {
         }
 
         if(readIndex > -1 ) {
-            this.read = String.valueOf(cursor.getString(readIndex));
+            this.read = cursor.getInt(readIndex);
         }
 
         if(threadIdIndex > -1 )
@@ -176,6 +176,7 @@ public class SMS {
                     sms.address.equals(this.address) &&
                     sms.body.equals(this.body) &&
                     sms.statusCode == this.statusCode &&
+                    sms.read == this.read &&
                     sms.date.equals(this.date);
         }
         return false;

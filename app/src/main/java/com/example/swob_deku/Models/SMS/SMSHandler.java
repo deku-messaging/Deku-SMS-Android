@@ -143,6 +143,7 @@ public class SMSHandler {
     public static Cursor fetchSMSForThreading(Context context) {
         String[] projection = new String[] {
                 Telephony.Sms._ID,
+                Telephony.TextBasedSmsColumns.READ,
                 Telephony.TextBasedSmsColumns.THREAD_ID,
                 Telephony.TextBasedSmsColumns.ADDRESS,
                 Telephony.TextBasedSmsColumns.BODY,
