@@ -94,7 +94,7 @@ public class SMS {
         this.read = read;
     }
 
-    public String id;
+    public String id = "";
 
     public String read;
 

@@ -14,8 +14,11 @@ import android.util.Log;
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class SMSHandler {
@@ -122,7 +125,7 @@ public class SMSHandler {
                 selection,
                 "thread_id=?",
                 new String[] { threadId },
-                null);
+                "date DESC");
 
         return smsMessagesCursor;
     }
@@ -303,4 +306,40 @@ public class SMSHandler {
             e.printStackTrace();
         }
     }
+
+    public static List<SMS> dateSegmentations(List<SMS> smsList) {
+
+
+        List<SMS> copysmsList = new ArrayList<>(smsList);
+
+        for(int i=smsList.size() - 1, j = 0; i> -1; --i, ++j) {
+            SMS currentSMS = smsList.get(i);
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "sms date: " + currentSMS.getDate() + " - " + currentSMS.getBody());
+
+            Date date = new Date(Long.parseLong(currentSMS.getDate()));
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+
+            if(i == smsList.size() - 1 ) {
+                copysmsList.add(new SMS(currentSMS.getDate()));
+                ++j;
+            }
+            else {
+                Date previousDate = new Date(Long.parseLong(smsList.get(i + 1).getDate()));
+                Calendar prevCalendar = Calendar.getInstance();
+                prevCalendar.setTime(previousDate);
+                if(BuildConfig.DEBUG)
+                    Log.d(SMSHandler.class.getName(), prevCalendar.getTime().toString() + ":" + calendar.getTime().toString());
+
+                if (prevCalendar.get(Calendar.HOUR) < calendar.get(Calendar.HOUR)) {
+                    copysmsList.add(copysmsList.size() - j, new SMS(currentSMS.getDate()));
+                    ++j;
+                }
+            }
+        }
+
+        return copysmsList;
+    }
+
 }
