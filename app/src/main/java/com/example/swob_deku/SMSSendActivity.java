@@ -247,7 +247,11 @@ public class SMSSendActivity extends AppCompatActivity {
         String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
                 address: contactName;
-        ab.setTitle(contactName);
+        try {
+            ab.setTitle(contactName);
+        } catch(Exception e ) {
+            e.printStackTrace();
+        }
     }
 
     private void processForSharedIntent() {
