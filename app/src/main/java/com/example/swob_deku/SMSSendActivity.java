@@ -32,6 +32,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -73,6 +74,10 @@ public class SMSSendActivity extends AppCompatActivity {
 
     String threadId = "";
 
+    int defaultTextBoxHeight;
+    int defaultTextBoxWidth;
+    ViewGroup.LayoutParams smsTextViewLayoutParams;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +94,11 @@ public class SMSSendActivity extends AppCompatActivity {
 
         getMessagesThreadId();
 
+        smsTextView = findViewById(R.id.sms_text);
+        smsTextViewLayoutParams = getSmsTextViewPadding();
+
+        defaultTextBoxHeight = smsTextView.getHeight();
+        defaultTextBoxWidth = smsTextView.getWidth();
 
         // TODO: should be used when message is about to be sent
 //        if(!checkPermissionToSendSMSMessages())
@@ -175,8 +185,7 @@ public class SMSSendActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         String address = getIntent().getStringExtra(ADDRESS);
 
-        EditText smsText = findViewById(R.id.sms_text);
-        smsText.setOnTouchListener(new View.OnTouchListener() {
+        smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
 
@@ -379,7 +388,6 @@ public class SMSSendActivity extends AppCompatActivity {
     public void sendMessage(View view) {
         // TODO: Don't let sending happen if message box is empty
         String destinationAddress = getIntent().getStringExtra(ADDRESS);
-        TextView smsTextView = findViewById(R.id.sms_text);
         String text = smsTextView.getText().toString();
 
         try {
@@ -402,7 +410,7 @@ public class SMSSendActivity extends AppCompatActivity {
             String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
                     sentPendingIntent, deliveredPendingIntent, messageId);
 
-            smsTextView.setText("");
+            resetSmsTextView();
             if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
                 threadId = tmpThreadId;
                 if(BuildConfig.DEBUG)
@@ -425,6 +433,25 @@ public class SMSSendActivity extends AppCompatActivity {
             Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
         }
 
+    }
+
+    private ViewGroup.LayoutParams getSmsTextViewPadding() {
+
+//        return new int[]{ smsTextView.getPaddingLeft(),
+//                smsTextView.getPaddingTop(),
+//                smsTextView.getPaddingRight(),
+//                smsTextView.getPaddingBottom(),
+//                smsTextView.getPaddingEnd(),
+//                smsTextView.getPaddingStart()};
+
+//        return new int[] {smsTextView.getHeight()};
+//        return smsTextView.getLayoutParams();
+        return findViewById(R.id.send_text).getLayoutParams();
+    }
+
+    private void resetSmsTextView() {
+//        smsTextView.setText(null);
+        smsTextView.getText().clear();
     }
 
     public boolean checkPermissionToSendSMSMessages() {
