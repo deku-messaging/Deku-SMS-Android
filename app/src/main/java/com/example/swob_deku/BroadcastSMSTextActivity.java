@@ -153,11 +153,15 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                 context, 0, receivedSmsIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        String contactName = Contacts.retrieveContactName(context, address);
+        contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                address: contactName;
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.CHANNEL_ID))
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_round_chat_bubble_24)
-                .setContentTitle(Contacts.retrieveContactName(context, address))
+                .setContentTitle(contactName)
                 .setContentText(text)
                 .setContentIntent(pendingReceivedSmsIntent)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

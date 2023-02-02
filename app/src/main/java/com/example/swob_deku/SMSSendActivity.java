@@ -244,7 +244,10 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
 
         // TODO: if has letters, make sure reply cannot happen
-        ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
+        String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                address: contactName;
+        ab.setTitle(contactName);
     }
 
     private void processForSharedIntent() {
@@ -440,4 +443,11 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        startActivity(new Intent(this, MessagesThreadsActivity.class));
+        finish();
+    }
 }
