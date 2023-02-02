@@ -142,6 +142,8 @@ public class SMSSendActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Updating read for threadID: " + threadId);
                SMSHandler.updateThreadMessagesThread(getApplicationContext(), threadId);
             }
         }).start();
@@ -341,9 +343,6 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 long id = intent.getLongExtra(ID, -1);
-
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Registered broadcast delivered just came: " + id);
 
                 if (getResultCode() == Activity.RESULT_OK) {
                     SMSHandler.registerDeliveredMessage(context, id);
