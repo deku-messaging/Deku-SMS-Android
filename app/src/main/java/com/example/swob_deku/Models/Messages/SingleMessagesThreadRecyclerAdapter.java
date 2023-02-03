@@ -183,8 +183,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 break;
 
             case MESSAGE_TYPE_SENT:
-                if(BuildConfig.DEBUG)
-                    Log.d(getClass().getName(), "Registered type: " + sms.getType());
                 ((MessageSentViewHandler) holder).sentMessage.setText(sms.getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
                 ((MessageSentViewHandler) holder).date.setVisibility(View.INVISIBLE);

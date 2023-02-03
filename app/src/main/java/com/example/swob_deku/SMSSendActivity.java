@@ -32,6 +32,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -73,6 +74,10 @@ public class SMSSendActivity extends AppCompatActivity {
 
     String threadId = "";
 
+    int defaultTextBoxHeight;
+    int defaultTextBoxWidth;
+    ViewGroup.LayoutParams smsTextViewLayoutParams;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +94,11 @@ public class SMSSendActivity extends AppCompatActivity {
 
         getMessagesThreadId();
 
+        smsTextView = findViewById(R.id.sms_text);
+        smsTextViewLayoutParams = getSmsTextViewPadding();
+
+        defaultTextBoxHeight = smsTextView.getHeight();
+        defaultTextBoxWidth = smsTextView.getWidth();
 
         // TODO: should be used when message is about to be sent
 //        if(!checkPermissionToSendSMSMessages())
@@ -142,6 +152,8 @@ public class SMSSendActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Updating read for threadID: " + threadId);
                SMSHandler.updateThreadMessagesThread(getApplicationContext(), threadId);
             }
         }).start();
@@ -173,8 +185,7 @@ public class SMSSendActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         String address = getIntent().getStringExtra(ADDRESS);
 
-        EditText smsText = findViewById(R.id.sms_text);
-        smsText.setOnTouchListener(new View.OnTouchListener() {
+        smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
 
@@ -242,7 +253,14 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
 
         // TODO: if has letters, make sure reply cannot happen
-        ab.setTitle(Contacts.retrieveContactName(getApplicationContext(), address));
+        String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                address: contactName;
+        try {
+            ab.setTitle(contactName);
+        } catch(Exception e ) {
+            e.printStackTrace();
+        }
     }
 
     private void processForSharedIntent() {
@@ -342,9 +360,6 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 long id = intent.getLongExtra(ID, -1);
 
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Registered broadcast delivered just came: " + id);
-
                 if (getResultCode() == Activity.RESULT_OK) {
                     SMSHandler.registerDeliveredMessage(context, id);
                 } else {
@@ -373,7 +388,6 @@ public class SMSSendActivity extends AppCompatActivity {
     public void sendMessage(View view) {
         // TODO: Don't let sending happen if message box is empty
         String destinationAddress = getIntent().getStringExtra(ADDRESS);
-        TextView smsTextView = findViewById(R.id.sms_text);
         String text = smsTextView.getText().toString();
 
         try {
@@ -396,7 +410,7 @@ public class SMSSendActivity extends AppCompatActivity {
             String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
                     sentPendingIntent, deliveredPendingIntent, messageId);
 
-            smsTextView.setText("");
+            resetSmsTextView();
             if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
                 threadId = tmpThreadId;
                 if(BuildConfig.DEBUG)
@@ -421,6 +435,25 @@ public class SMSSendActivity extends AppCompatActivity {
 
     }
 
+    private ViewGroup.LayoutParams getSmsTextViewPadding() {
+
+//        return new int[]{ smsTextView.getPaddingLeft(),
+//                smsTextView.getPaddingTop(),
+//                smsTextView.getPaddingRight(),
+//                smsTextView.getPaddingBottom(),
+//                smsTextView.getPaddingEnd(),
+//                smsTextView.getPaddingStart()};
+
+//        return new int[] {smsTextView.getHeight()};
+//        return smsTextView.getLayoutParams();
+        return findViewById(R.id.send_text).getLayoutParams();
+    }
+
+    private void resetSmsTextView() {
+//        smsTextView.setText(null);
+        smsTextView.getText().clear();
+    }
+
     public boolean checkPermissionToSendSMSMessages() {
         int check = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS);
 
@@ -441,4 +474,11 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        startActivity(new Intent(this, MessagesThreadsActivity.class));
+        finish();
+    }
 }

@@ -175,4 +175,5 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
         messagesThreadViewModel.informChanges(getApplicationContext());
     }
+
 }

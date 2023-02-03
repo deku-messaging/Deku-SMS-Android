@@ -352,11 +352,14 @@ public class SMSHandler {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");
         try {
-            context.getContentResolver().update(
-                    SMS_INBOX_CONTENT_URI,
+            int updateCount = context.getContentResolver().update(
+                    SMS_CONTENT_URI,
                     contentValues,
                     Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.TextBasedSmsColumns.READ +"=?",
                     new String[] { threadId, "0" });
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
         }
         catch(Exception e ) {
             e.printStackTrace();
