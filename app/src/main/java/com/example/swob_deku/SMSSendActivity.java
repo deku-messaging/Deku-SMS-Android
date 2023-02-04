@@ -476,9 +476,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-
         startActivity(new Intent(this, MessagesThreadsActivity.class));
         finish();
+        super.onBackPressed();
     }
 }
