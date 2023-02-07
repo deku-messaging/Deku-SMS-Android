@@ -12,6 +12,7 @@ import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -85,8 +86,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
         if (toolbar != null) {
             toolbar.setVisibility(View.VISIBLE);
+            toolbar.inflateMenu(R.menu.default_menu);
         }
-//
+
 
         switch(viewType) {
             // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
@@ -240,10 +242,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
                         toolbar.setBackgroundResource(R.drawable.light_grey );
 
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
+
                         toolbar.inflateMenu(R.menu.toolbar_copy);
 
                         highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
-
                         return false;
                     }
                 });
@@ -260,7 +264,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                     public boolean onLongClick(View view) {
 
                         toolbar.setBackgroundResource(R.drawable.light_grey );
-
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
                         toolbar.inflateMenu(R.menu.toolbar_copy);
 
                         return false;
@@ -277,10 +282,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
-//
-                        toolbar.setBackgroundResource(R.drawable.light_grey );
-                        toolbar.inflateMenu(R.menu.toolbar_copy);
 
+                        toolbar.setBackgroundResource(R.drawable.light_grey );
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
+                        toolbar.inflateMenu(R.menu.toolbar_copy);
                         return false;
                     }
                 });
@@ -288,15 +294,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 break;
         }
 
-
-//        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View view) {
-//
-//                toolbar.setBackgroundColor(Color.RED);
-//                return false;
-//            }
-//        });
     }
 
     @Override
@@ -375,21 +372,26 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                             ClipData clip = ClipData.newPlainText("label", highlightedText);
                                 clipboard.setPrimaryClip(clip);
                             Toast.makeText(context, "Saved to clip board", Toast.LENGTH_SHORT).show();
+
                         }
 
                     case R.id.close_toolbar:
-                        toolbar.setVisibility(View.VISIBLE);
-                        toolbar.removeViewAt(0);
-                        toolbar.removeViewAt(1);
 
+                        toolbar.setBackgroundColor(Color.TRANSPARENT);
 
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
+                        toolbar.inflateMenu(R.menu.default_menu);
 
                 }
+
 
                 return false;
             }
         });
     }
+
+
 
 
 }

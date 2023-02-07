@@ -32,6 +32,7 @@ import android.telephony.SmsMessage;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -81,7 +82,7 @@ public class SMSSendActivity extends AppCompatActivity {
     int defaultTextBoxWidth;
     ViewGroup.LayoutParams smsTextViewLayoutParams;
 
-    Toolbar myToolbar;
+//    Toolbar myToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +90,8 @@ public class SMSSendActivity extends AppCompatActivity {
         setContentView(R.layout.activity_send_smsactivity);
 
 
-        myToolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
-        myToolbar.inflateMenu(R.menu.toolbar_copy);
+       Toolbar myToolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+//        myToolbar.inflateMenu(R.menu.default_menu);
         setSupportActionBar(myToolbar);
 
         // Get a support ActionBar corresponding to this toolbar
@@ -490,6 +491,11 @@ public class SMSSendActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.default_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
 
 }
