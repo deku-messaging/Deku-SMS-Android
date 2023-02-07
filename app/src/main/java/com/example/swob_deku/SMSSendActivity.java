@@ -17,6 +17,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -30,6 +32,7 @@ import android.telephony.SmsMessage;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,13 +81,20 @@ public class SMSSendActivity extends AppCompatActivity {
     int defaultTextBoxWidth;
     ViewGroup.LayoutParams smsTextViewLayoutParams;
 
+    Toolbar myToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+
+        myToolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+        myToolbar.inflateMenu(R.menu.toolbar_copy);
         setSupportActionBar(myToolbar);
+        copyContent(myToolbar);
+
+
 
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
@@ -122,7 +132,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 R.layout.messages_thread_timestamp_layout,
                 focusId,
                 searchString,
-                singleMessagesThreadRecyclerView);
+                singleMessagesThreadRecyclerView, myToolbar);
 
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
@@ -480,4 +490,29 @@ public class SMSSendActivity extends AppCompatActivity {
         finish();
         super.onBackPressed();
     }
+    public void copyContent(Toolbar myToolbar){
+        myToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+
+
+                switch (item.getItemId()){
+                    case R.id.copy_text:
+                        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        ClipData clip = ClipData.newPlainText("label",  R.layout.messages_thread_sent_layout.getText().tostring());
+                        if (clipboard == null || clip == null)
+
+                        clipboard.setPrimaryClip(clip);
+                    case R.id.close_toolbar:
+                        myToolbar.setVisibility(View.GONE);
+
+
+                }
+
+                return false;
+            }
+        });
+    }
+
+
 }

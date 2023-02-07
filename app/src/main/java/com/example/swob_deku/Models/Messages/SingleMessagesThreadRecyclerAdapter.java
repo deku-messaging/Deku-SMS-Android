@@ -1,24 +1,26 @@
 package com.example.swob_deku.Models.Messages;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.provider.Telephony;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.R;
 import com.google.android.material.card.MaterialCardView;
@@ -35,6 +37,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     Long focusId;
     RecyclerView view;
     String searchString;
+    Toolbar toolbar;
 
     private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
 
@@ -51,7 +54,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                                                int renderLayoutTimestamp,
                                                Long focusId,
                                                String searchString,
-                                               RecyclerView view) {
+                                               RecyclerView view, Toolbar toolbar) {
         this.context = context;
         this.renderLayoutReceived = renderLayoutReceived;
         this.renderLayoutSent = renderLayoutSent;
@@ -59,11 +62,19 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         this.focusId = focusId;
         this.searchString = searchString;
         this.view = view;
+        this.toolbar = toolbar;
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
+
+        Toolbar toolbar = view.findViewById(R.id.send_smsactivity_toolbar);
+
+        if (toolbar != null) {
+            toolbar.setVisibility(View.VISIBLE);
+        }
+//        copyContent(toolbar);
 
         switch(viewType) {
             // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
@@ -207,6 +218,20 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                             ((MessageSentViewHandler)holder).sentMessageStatus.setVisibility(View.VISIBLE);
                         }
                     }
+
+
+                });
+
+                ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+
+                        toolbar.setBackgroundResource(R.drawable.light_grey );
+
+                        toolbar.inflateMenu(R.menu.toolbar_copy);
+
+                        return false;
+                    }
                 });
 
                 break;
@@ -214,13 +239,49 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText("• sending...");
+
+
+                ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+
+                        toolbar.setBackgroundResource(R.drawable.light_grey );
+
+                        toolbar.inflateMenu(R.menu.toolbar_copy);
+
+                        return false;
+                    }
+                });
+
                 break;
             case MESSAGE_TYPE_FAILED:
                 ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText("• failed");
+
+                ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+//
+                        toolbar.setBackgroundResource(R.drawable.light_grey );
+                        toolbar.inflateMenu(R.menu.toolbar_copy);
+
+                        return false;
+                    }
+                });
+
                 break;
         }
+
+
+//        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View view) {
+//
+//                toolbar.setBackgroundColor(Color.RED);
+//                return false;
+//            }
+//        });
     }
 
     @Override
@@ -285,4 +346,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                     return oldItem.equals(newItem);
                 }
             };
+
+
 }
