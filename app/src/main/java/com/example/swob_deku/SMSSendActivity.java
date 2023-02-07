@@ -92,9 +92,6 @@ public class SMSSendActivity extends AppCompatActivity {
         myToolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
         myToolbar.inflateMenu(R.menu.toolbar_copy);
         setSupportActionBar(myToolbar);
-        copyContent(myToolbar);
-
-
 
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
@@ -121,6 +118,8 @@ public class SMSSendActivity extends AppCompatActivity {
         linearLayoutManager.setReverseLayout(true);
 
         RecyclerView singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
+
+
 
         Long focusId = getIntent().hasExtra(ID) ? Long.parseLong(getIntent().getStringExtra(ID)) : null;
         String searchString = getIntent().hasExtra(SEARCH_STRING) ? getIntent().getStringExtra(SEARCH_STRING) : null;
@@ -490,29 +489,7 @@ public class SMSSendActivity extends AppCompatActivity {
         finish();
         super.onBackPressed();
     }
-    public void copyContent(Toolbar myToolbar){
-        myToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
 
-
-                switch (item.getItemId()){
-                    case R.id.copy_text:
-                        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                        ClipData clip = ClipData.newPlainText("label",  R.layout.messages_thread_sent_layout.getText().tostring());
-                        if (clipboard == null || clip == null)
-
-                        clipboard.setPrimaryClip(clip);
-                    case R.id.close_toolbar:
-                        myToolbar.setVisibility(View.GONE);
-
-
-                }
-
-                return false;
-            }
-        });
-    }
 
 
 }

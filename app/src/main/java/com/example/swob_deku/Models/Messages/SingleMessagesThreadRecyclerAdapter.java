@@ -1,5 +1,7 @@
 package com.example.swob_deku.Models.Messages;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -14,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -23,14 +26,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.R;
+import com.example.swob_deku.SMSSendActivity;
 import com.google.android.material.card.MaterialCardView;
 
 import java.sql.Date;
+import java.text.BreakIterator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
+
+
 
     Context context;
     int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
@@ -38,6 +45,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     RecyclerView view;
     String searchString;
     Toolbar toolbar;
+
+    String highlightedText;
 
     private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
 
@@ -63,18 +72,21 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         this.searchString = searchString;
         this.view = view;
         this.toolbar = toolbar;
+
+        enableToolbar();
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
+        context = parent.getContext();
         Toolbar toolbar = view.findViewById(R.id.send_smsactivity_toolbar);
 
         if (toolbar != null) {
             toolbar.setVisibility(View.VISIBLE);
         }
-//        copyContent(toolbar);
+//
 
         switch(viewType) {
             // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
@@ -230,6 +242,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
                         toolbar.inflateMenu(R.menu.toolbar_copy);
 
+                        highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
+
                         return false;
                     }
                 });
@@ -252,6 +266,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         return false;
                     }
                 });
+
 
                 break;
             case MESSAGE_TYPE_FAILED:
@@ -346,6 +361,35 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                     return oldItem.equals(newItem);
                 }
             };
+
+    public void enableToolbar(){
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.copy_text:
+                        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+
+                        // TODO: use an actual label
+                        if(!highlightedText.equals("null") && !highlightedText.isEmpty()) {
+                            ClipData clip = ClipData.newPlainText("label", highlightedText);
+                                clipboard.setPrimaryClip(clip);
+                            Toast.makeText(context, "Saved to clip board", Toast.LENGTH_SHORT).show();
+                        }
+
+                    case R.id.close_toolbar:
+                        toolbar.setVisibility(View.VISIBLE);
+                        toolbar.removeViewAt(0);
+                        toolbar.removeViewAt(1);
+
+
+
+                }
+
+                return false;
+            }
+        });
+    }
 
 
 }
