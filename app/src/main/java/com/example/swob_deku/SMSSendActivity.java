@@ -17,6 +17,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -30,6 +32,8 @@ import android.telephony.SmsMessage;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,12 +82,16 @@ public class SMSSendActivity extends AppCompatActivity {
     int defaultTextBoxWidth;
     ViewGroup.LayoutParams smsTextViewLayoutParams;
 
+//    Toolbar myToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+
+       Toolbar myToolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+//        myToolbar.inflateMenu(R.menu.default_menu);
         setSupportActionBar(myToolbar);
 
         // Get a support ActionBar corresponding to this toolbar
@@ -112,6 +120,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
         RecyclerView singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
+
+
         Long focusId = getIntent().hasExtra(ID) ? Long.parseLong(getIntent().getStringExtra(ID)) : null;
         String searchString = getIntent().hasExtra(SEARCH_STRING) ? getIntent().getStringExtra(SEARCH_STRING) : null;
         Log.d(getLocalClassName(), "Search string: " + searchString);
@@ -122,7 +132,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 R.layout.messages_thread_timestamp_layout,
                 focusId,
                 searchString,
-                singleMessagesThreadRecyclerView);
+                singleMessagesThreadRecyclerView, myToolbar);
 
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
@@ -480,4 +490,12 @@ public class SMSSendActivity extends AppCompatActivity {
         finish();
         super.onBackPressed();
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.default_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+
 }

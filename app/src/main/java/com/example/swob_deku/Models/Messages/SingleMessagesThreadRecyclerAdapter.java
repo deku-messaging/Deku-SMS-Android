@@ -1,40 +1,55 @@
 package com.example.swob_deku.Models.Messages;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.provider.Telephony;
+import android.text.Layout;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.R;
+import com.example.swob_deku.SMSSendActivity;
 import com.google.android.material.card.MaterialCardView;
 
 import java.sql.Date;
+import java.text.BreakIterator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
+
+
     Context context;
     int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
     Long focusId;
     RecyclerView view;
     String searchString;
+    Toolbar toolbar;
+    String highlightedText;
+    View highlightedView;
 
     private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
 
@@ -51,7 +66,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                                                int renderLayoutTimestamp,
                                                Long focusId,
                                                String searchString,
-                                               RecyclerView view) {
+                                               RecyclerView view, Toolbar toolbar) {
         this.context = context;
         this.renderLayoutReceived = renderLayoutReceived;
         this.renderLayoutSent = renderLayoutSent;
@@ -59,11 +74,25 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         this.focusId = focusId;
         this.searchString = searchString;
         this.view = view;
+        this.toolbar = toolbar;
+
+
+        enableToolbar();
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
+
+        context = parent.getContext();
+        Toolbar toolbar = view.findViewById(R.id.send_smsactivity_toolbar);
+
+
+        if (toolbar != null) {
+            toolbar.setVisibility(View.VISIBLE);
+            toolbar.inflateMenu(R.menu.default_menu);
+        }
+
 
         switch(viewType) {
             // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
@@ -136,6 +165,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 //            this.focusPosition = finalPosition;
 //        }
 
+
+
+
+
         String date = sms.getDate();
         if(sms.isDatesOnly()) {
             if (DateUtils.isToday(Long.parseLong(date))) {
@@ -207,6 +240,28 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                             ((MessageSentViewHandler)holder).sentMessageStatus.setVisibility(View.VISIBLE);
                         }
                     }
+
+
+                });
+
+                ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+
+                        toolbar.setBackgroundResource(R.drawable.light_grey );
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
+                        toolbar.inflateMenu(R.menu.toolbar_copy);
+                        highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
+
+                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
+
+
+                        highlightedView = holder.itemView;
+
+
+                        return false;
+                    }
                 });
 
                 break;
@@ -214,13 +269,55 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText("• sending...");
+
+
+                ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view ) {
+
+                        toolbar.setBackgroundResource(R.drawable.light_grey );
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
+                        toolbar.inflateMenu(R.menu.toolbar_copy);
+                        highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
+
+                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
+
+                        highlightedView = holder.itemView;
+
+
+
+                        return false;
+                    }
+                });
+
+
                 break;
             case MESSAGE_TYPE_FAILED:
                 ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
                 ((MessageSentViewHandler) holder).date.setText(date);
                 ((MessageSentViewHandler) holder).sentMessageStatus.setText("• failed");
+
+                ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+
+                        toolbar.setBackgroundResource(R.drawable.light_grey );
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
+                        toolbar.inflateMenu(R.menu.toolbar_copy);
+                        highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
+                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
+
+                        highlightedView = holder.itemView;
+
+                        return false;
+                    }
+                });
+
                 break;
         }
+
     }
 
     @Override
@@ -285,4 +382,44 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                     return oldItem.equals(newItem);
                 }
             };
+
+    public void enableToolbar(){
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.copy_text:
+
+                        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+
+                        // TODO: use an actual label
+                        if(!highlightedText.equals("null") && !highlightedText.isEmpty()) {
+                            ClipData clip = ClipData.newPlainText("label", highlightedText);
+                                clipboard.setPrimaryClip(clip);
+                            Toast.makeText(context, "Saved to clip board", Toast.LENGTH_SHORT).show();
+
+                        }
+
+                        break;
+
+                    case R.id.close_toolbar:
+
+                        toolbar.setBackgroundColor(Color.TRANSPARENT);
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
+                        toolbar.inflateMenu(R.menu.default_menu);
+                        highlightedView.setBackgroundColor(Color.TRANSPARENT);
+
+                        break;
+
+                }
+
+
+                return false;
+            }
+        });
+    }
+
+
+
 }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:icon="@drawable/ic_baseline_call_24"
+        android:title="Call"
+        app:showAsAction="always" />
+    <item
+        android:icon="@drawable/ic_outline_search_24"
+        android:title="Search"
+        app:showAsAction="always" />
+    <item android:title="Item" />
+</menu>
