@@ -48,8 +48,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     RecyclerView view;
     String searchString;
     Toolbar toolbar;
-
     String highlightedText;
+    View highlightedView;
 
     private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
 
@@ -253,7 +253,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         menu.clear();
                         toolbar.inflateMenu(R.menu.toolbar_copy);
                         highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
+
                         holder.itemView.setBackgroundResource(R.drawable.light_grey );
+
+
+                        highlightedView = holder.itemView;
+
 
                         return false;
                     }
@@ -277,6 +282,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
 
                         holder.itemView.setBackgroundResource(R.drawable.light_grey );
+
+                        highlightedView = holder.itemView;
+
+
+
                         return false;
                     }
                 });
@@ -298,6 +308,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         toolbar.inflateMenu(R.menu.toolbar_copy);
                         highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
                         holder.itemView.setBackgroundResource(R.drawable.light_grey );
+
+                        highlightedView = holder.itemView;
 
                         return false;
                     }
@@ -385,15 +397,20 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                             ClipData clip = ClipData.newPlainText("label", highlightedText);
                                 clipboard.setPrimaryClip(clip);
                             Toast.makeText(context, "Saved to clip board", Toast.LENGTH_SHORT).show();
+
                         }
+
+                        break;
 
                     case R.id.close_toolbar:
 
                         toolbar.setBackgroundColor(Color.TRANSPARENT);
-
                         Menu menu = toolbar.getMenu();
                         menu.clear();
                         toolbar.inflateMenu(R.menu.default_menu);
+                        highlightedView.setBackgroundColor(Color.TRANSPARENT);
+
+                        break;
 
                 }
 
