@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -74,6 +75,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         this.searchString = searchString;
         this.view = view;
         this.toolbar = toolbar;
+
 
         enableToolbar();
     }
@@ -163,6 +165,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 //            this.focusPosition = finalPosition;
 //        }
 
+
+
+
+
         String date = sms.getDate();
         if(sms.isDatesOnly()) {
             if (DateUtils.isToday(Long.parseLong(date))) {
@@ -243,15 +249,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                     public boolean onLongClick(View view) {
 
                         toolbar.setBackgroundResource(R.drawable.light_grey );
-
                         Menu menu = toolbar.getMenu();
                         menu.clear();
-
                         toolbar.inflateMenu(R.menu.toolbar_copy);
-
                         highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
-
-//                        layout.setBackgroundColor(Color.RED);
+                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
 
                         return false;
                     }
@@ -267,11 +269,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                 ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view ) {
+
                         toolbar.setBackgroundResource(R.drawable.light_grey );
                         Menu menu = toolbar.getMenu();
                         menu.clear();
                         toolbar.inflateMenu(R.menu.toolbar_copy);
+                        highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
 
+                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
                         return false;
                     }
                 });
@@ -291,6 +296,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         Menu menu = toolbar.getMenu();
                         menu.clear();
                         toolbar.inflateMenu(R.menu.toolbar_copy);
+                        highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
+                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
 
                         return false;
                     }
@@ -395,10 +402,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             }
         });
     }
-
-public void cardHighlight(){
-
-}
 
 
 
