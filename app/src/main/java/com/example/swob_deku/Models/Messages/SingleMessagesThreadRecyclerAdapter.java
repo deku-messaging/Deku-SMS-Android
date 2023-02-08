@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.provider.Telephony;
+import android.text.Layout;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.format.DateUtils;
@@ -83,6 +84,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
         context = parent.getContext();
         Toolbar toolbar = view.findViewById(R.id.send_smsactivity_toolbar);
+
 
         if (toolbar != null) {
             toolbar.setVisibility(View.VISIBLE);
@@ -248,6 +250,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         toolbar.inflateMenu(R.menu.toolbar_copy);
 
                         highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
+
+//                        layout.setBackgroundColor(Color.RED);
+
                         return false;
                     }
                 });
@@ -261,8 +266,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
                 ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
-                    public boolean onLongClick(View view) {
-
+                    public boolean onLongClick(View view ) {
                         toolbar.setBackgroundResource(R.drawable.light_grey );
                         Menu menu = toolbar.getMenu();
                         menu.clear();
@@ -287,6 +291,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         Menu menu = toolbar.getMenu();
                         menu.clear();
                         toolbar.inflateMenu(R.menu.toolbar_copy);
+
                         return false;
                     }
                 });
@@ -365,6 +370,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
                     case R.id.copy_text:
+
                         ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
 
                         // TODO: use an actual label
@@ -372,7 +378,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                             ClipData clip = ClipData.newPlainText("label", highlightedText);
                                 clipboard.setPrimaryClip(clip);
                             Toast.makeText(context, "Saved to clip board", Toast.LENGTH_SHORT).show();
-
                         }
 
                     case R.id.close_toolbar:
@@ -391,6 +396,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         });
     }
 
+public void cardHighlight(){
+
+}
 
 
 
