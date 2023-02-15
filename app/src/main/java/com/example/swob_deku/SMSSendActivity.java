@@ -143,8 +143,8 @@ public class SMSSendActivity extends AppCompatActivity {
         processForSharedIntent();
         improveMessagingUX();
 
-        if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
-            smsTextInputLayout.setEndIconVisible(false);
+//        if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
+//            smsTextInputLayout.setEndIconVisible(false);
         updateMessagesToRead();
     }
 
@@ -205,12 +205,7 @@ public class SMSSendActivity extends AppCompatActivity {
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                if(s.isEmpty()) {
-                    smsTextInputLayout.setEndIconVisible(false);
-                }
-                else {
-                    smsTextInputLayout.setEndIconVisible(true);
-                }
+//                smsTextInputLayout.setEndIconVisible(!s.isEmpty());
             }
         });
 
@@ -234,7 +229,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mutableLiveDataComposeMessage.setValue(smsTextView.getText().toString());
+                mutableLiveDataComposeMessage.setValue(s.toString());
             }
         });
 
