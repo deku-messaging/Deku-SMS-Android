@@ -210,6 +210,22 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         }
                     }
                 });
+
+                messageReceivedViewHandler.receivedMessage.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+
+                        toolbar.setBackgroundResource(R.drawable.light_grey );
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
+                        toolbar.inflateMenu(R.menu.toolbar_copy);
+                        highlightedText = messageReceivedViewHandler.receivedMessage.getText().toString();
+
+                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
+                        highlightedView = holder.itemView;
+                        return false;
+                    }
+                });
                 break;
 
             case MESSAGE_TYPE_SENT:
