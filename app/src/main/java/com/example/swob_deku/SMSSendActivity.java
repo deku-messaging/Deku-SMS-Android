@@ -143,8 +143,8 @@ public class SMSSendActivity extends AppCompatActivity {
         processForSharedIntent();
         improveMessagingUX();
 
-//        if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
-//            smsTextInputLayout.setEndIconVisible(false);
+        if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
+            findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
         updateMessagesToRead();
     }
 
@@ -206,13 +206,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onChanged(String s) {
 //                smsTextInputLayout.setEndIconVisible(!s.isEmpty());
-            }
-        });
-
-        smsTextInputLayout.setEndIconOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendMessage(v);
+                findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
             }
         });
 
