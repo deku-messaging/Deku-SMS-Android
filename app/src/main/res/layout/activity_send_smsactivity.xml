@@ -63,9 +63,13 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/send_message_content_layouts"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginBottom="4dp"
+                android:background="@drawable/rectangle"
+                android:backgroundTint="@color/text_box"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
@@ -75,27 +79,24 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginEnd="8dp"
                     android:backgroundTintMode="add"
                     android:fontFamily="sans-serif-thin"
                     android:hint="Text Message"
                     app:boxBackgroundColor="@color/text_box"
-                    app:boxCornerRadiusBottomEnd="25dp"
-                    app:boxCornerRadiusBottomStart="25dp"
-                    app:boxCornerRadiusTopEnd="25dp"
-                    app:boxCornerRadiusTopStart="25dp"
+                    app:boxBackgroundMode="filled"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopStart="10dp"
                     app:boxStrokeWidth="0dp"
                     app:boxStrokeWidthFocused="0dp"
-                    app:counterEnabled="true"
-                    app:endIconDrawable="@drawable/ic_round_send_24"
+                    app:counterEnabled="false"
                     app:endIconMode="custom"
-                    app:endIconTint="@color/white"
                     app:hintAnimationEnabled="true"
                     app:hintEnabled="true"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent">
+                    app:layout_constraintEnd_toStartOf="@+id/sms_send_button"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/sms_text"
@@ -103,11 +104,20 @@
                         android:layout_height="wrap_content"
                         android:inputType="textLongMessage|textAutoCorrect|textMultiLine|textCapSentences"
                         android:maxLines="7"
-                        android:paddingTop="24dp"
-                        android:paddingBottom="24dp"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
 
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <ImageButton
+                    android:id="@+id/sms_send_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:backgroundTint="@android:color/transparent"
+                    android:onClick="sendMessage"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:srcCompat="@drawable/ic_round_send_24" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
