@@ -74,10 +74,6 @@ public class SMSSendActivity extends AppCompatActivity {
 
     String threadId = "";
 
-    int defaultTextBoxHeight;
-    int defaultTextBoxWidth;
-    ViewGroup.LayoutParams smsTextViewLayoutParams;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,16 +91,6 @@ public class SMSSendActivity extends AppCompatActivity {
         getMessagesThreadId();
 
         smsTextView = findViewById(R.id.sms_text);
-        smsTextViewLayoutParams = getSmsTextViewPadding();
-
-        defaultTextBoxHeight = smsTextView.getHeight();
-        defaultTextBoxWidth = smsTextView.getWidth();
-
-        // TODO: should be used when message is about to be sent
-//        if(!checkPermissionToSendSMSMessages())
-//            ActivityCompat.requestPermissions(
-//                    this,
-//                    new String[]{Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setStackFromEnd(false);
@@ -114,7 +100,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
         Long focusId = getIntent().hasExtra(ID) ? Long.parseLong(getIntent().getStringExtra(ID)) : null;
         String searchString = getIntent().hasExtra(SEARCH_STRING) ? getIntent().getStringExtra(SEARCH_STRING) : null;
-        Log.d(getLocalClassName(), "Search string: " + searchString);
+
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                 this,
                 R.layout.messages_thread_received_layout,
@@ -218,7 +204,6 @@ public class SMSSendActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
             }
 
             @Override
@@ -283,8 +268,8 @@ public class SMSSendActivity extends AppCompatActivity {
                }
 
                getIntent().putExtra(ADDRESS, address);
-               TextInputEditText send_text = findViewById(R.id.sms_text);
-               send_text.setText(text);
+               smsTextView.setText(text);
+               mutableLiveDataComposeMessage.setValue(text);
             }
         }
     }
@@ -422,20 +407,6 @@ public class SMSSendActivity extends AppCompatActivity {
             Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
         }
 
-    }
-
-    private ViewGroup.LayoutParams getSmsTextViewPadding() {
-
-//        return new int[]{ smsTextView.getPaddingLeft(),
-//                smsTextView.getPaddingTop(),
-//                smsTextView.getPaddingRight(),
-//                smsTextView.getPaddingBottom(),
-//                smsTextView.getPaddingEnd(),
-//                smsTextView.getPaddingStart()};
-
-//        return new int[] {smsTextView.getHeight()};
-//        return smsTextView.getLayoutParams();
-        return findViewById(R.id.send_text).getLayoutParams();
     }
 
     private void resetSmsTextView() {
