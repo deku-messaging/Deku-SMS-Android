@@ -39,9 +39,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
-
-
-
     Context context;
     int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
     Long focusId;
@@ -86,7 +83,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
         context = parent.getContext();
         Toolbar toolbar = view.findViewById(R.id.send_smsactivity_toolbar);
-
 
         if (toolbar != null) {
             toolbar.setVisibility(View.VISIBLE);
@@ -384,7 +380,4 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             }
         });
     }
-
-
-
 }

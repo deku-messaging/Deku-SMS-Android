@@ -104,10 +104,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 new Observer<List<SMS>>() {
                     @Override
                     public void onChanged(List<SMS> smsList) {
-//                        if(smsList.size() < 1 )
-//                            findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
+                        messagesThreadRecyclerView.setItemViewCacheSize(smsList.size());
                         messagesThreadRecyclerAdapter.submitList(smsList);
-//                        messagesThreadRecyclerView.smoothScrollToPosition(0);
                     }
                 });
     }
