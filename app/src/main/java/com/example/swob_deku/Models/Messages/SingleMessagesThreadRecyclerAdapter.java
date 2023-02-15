@@ -39,9 +39,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
-
-
-
     Context context;
     int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
     Long focusId;
@@ -86,7 +83,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
         context = parent.getContext();
         Toolbar toolbar = view.findViewById(R.id.send_smsactivity_toolbar);
-
 
         if (toolbar != null) {
             toolbar.setVisibility(View.VISIBLE);
@@ -158,16 +154,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final SMS sms = mDiffer.getCurrentList().get(position);
-
         // TODO: for search
 //        if(focusId != -1 && sms.getId() != null && Long.valueOf(sms.getId()) == focusId) {
 //            final int finalPosition = position;
 //            this.focusPosition = finalPosition;
 //        }
-
-
-
-
 
         String date = sms.getDate();
         if(sms.isDatesOnly()) {
@@ -195,17 +186,19 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         switch(sms.getType()) {
 //            https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns?hl=en#TYPE
             case MESSAGE_TYPE_INBOX:
-                TextView receivedMessage = ((MessageReceivedViewHandler)holder).receivedMessage;
+                MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
+
+                TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
                 receivedMessage.setText(sms.getBody());
 
-                TextView dateView = ((MessageReceivedViewHandler)holder).date;
+                TextView dateView = messageReceivedViewHandler.date;
                 dateView.setVisibility(View.INVISIBLE);
                 dateView.setText(date);
 
-                ((MessageReceivedViewHandler)holder).receivedMessage.setOnClickListener(new View.OnClickListener() {
+                messageReceivedViewHandler.receivedMessage.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(((MessageReceivedViewHandler)holder).date.getVisibility() == View.VISIBLE) {
+                        if(messageReceivedViewHandler.date.getVisibility() == View.VISIBLE) {
                             dateView.setVisibility(View.INVISIBLE);
                         }
                         else {
@@ -213,38 +206,65 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         }
                     }
                 });
+
+                messageReceivedViewHandler.receivedMessage.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+
+                        toolbar.setBackgroundResource(R.drawable.light_grey );
+                        Menu menu = toolbar.getMenu();
+                        menu.clear();
+                        toolbar.inflateMenu(R.menu.toolbar_copy);
+                        highlightedText = messageReceivedViewHandler.receivedMessage.getText().toString();
+
+                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
+                        highlightedView = holder.itemView;
+                        return false;
+                    }
+                });
                 break;
 
             case MESSAGE_TYPE_SENT:
-                ((MessageSentViewHandler) holder).sentMessage.setText(sms.getBody());
-                ((MessageSentViewHandler) holder).date.setText(date);
-                ((MessageSentViewHandler) holder).date.setVisibility(View.INVISIBLE);
+            case MESSAGE_TYPE_OUTBOX:
+            case MESSAGE_TYPE_FAILED:
+                MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
+
+                messageSentViewHandler.sentMessage.setText(sms.getBody());
+                messageSentViewHandler.date.setText(date);
+                messageSentViewHandler.date.setVisibility(View.INVISIBLE);
 
                 final int status = sms.getStatusCode();
                 String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?
                         "delivered" : "sent";
+
+                statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_PENDING ?
+                        "sending..." : statusMessage;
+
+                statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_FAILED ?
+                        "failed!" : statusMessage;
+
                 statusMessage = "• " + statusMessage;
 
-                ((MessageSentViewHandler) holder).sentMessageStatus.setVisibility(View.INVISIBLE);
-                ((MessageSentViewHandler) holder).sentMessageStatus.setText(statusMessage);
+                if(mDiffer.getCurrentList().size() != (position -1) && status != Telephony.TextBasedSmsColumns.STATUS_FAILED) {
+                    messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
+                    messageSentViewHandler.sentMessageStatus.setText(statusMessage);
+                }
 
-                ((MessageSentViewHandler) holder).sentMessage.setOnClickListener(new View.OnClickListener() {
+                messageSentViewHandler.sentMessage.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(((MessageSentViewHandler)holder).date.getVisibility() == View.VISIBLE) {
-                            ((MessageSentViewHandler)holder).date.setVisibility(View.INVISIBLE);
-                            ((MessageSentViewHandler)holder).sentMessageStatus.setVisibility(View.INVISIBLE);
+                        if(messageSentViewHandler.date.getVisibility() == View.VISIBLE) {
+                            messageSentViewHandler.date.setVisibility(View.INVISIBLE);
+                            messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
                         }
                         else {
-                            ((MessageSentViewHandler)holder).date.setVisibility(View.VISIBLE);
-                            ((MessageSentViewHandler)holder).sentMessageStatus.setVisibility(View.VISIBLE);
+                            messageSentViewHandler.date.setVisibility(View.VISIBLE);
+                            messageSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
                         }
                     }
-
-
                 });
 
-                ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
+                messageSentViewHandler.sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
 
@@ -252,65 +272,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         Menu menu = toolbar.getMenu();
                         menu.clear();
                         toolbar.inflateMenu(R.menu.toolbar_copy);
-                        highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
+                        highlightedText = messageSentViewHandler.sentMessage.getText().toString();
 
                         holder.itemView.setBackgroundResource(R.drawable.light_grey );
-
-
                         highlightedView = holder.itemView;
-
-
-                        return false;
-                    }
-                });
-
-                break;
-            case MESSAGE_TYPE_OUTBOX:
-                ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
-                ((MessageSentViewHandler) holder).date.setText(date);
-                ((MessageSentViewHandler) holder).sentMessageStatus.setText("• sending...");
-
-
-                ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View view ) {
-
-                        toolbar.setBackgroundResource(R.drawable.light_grey );
-                        Menu menu = toolbar.getMenu();
-                        menu.clear();
-                        toolbar.inflateMenu(R.menu.toolbar_copy);
-                        highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
-
-                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
-
-                        highlightedView = holder.itemView;
-
-
-
-                        return false;
-                    }
-                });
-
-
-                break;
-            case MESSAGE_TYPE_FAILED:
-                ((MessageSentViewHandler)holder).sentMessage.setText(mDiffer.getCurrentList().get(position).getBody());
-                ((MessageSentViewHandler) holder).date.setText(date);
-                ((MessageSentViewHandler) holder).sentMessageStatus.setText("• failed");
-
-                ((MessageSentViewHandler)holder).sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View view) {
-
-                        toolbar.setBackgroundResource(R.drawable.light_grey );
-                        Menu menu = toolbar.getMenu();
-                        menu.clear();
-                        toolbar.inflateMenu(R.menu.toolbar_copy);
-                        highlightedText = ((MessageSentViewHandler)holder).sentMessage.getText().toString();
-                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
-
-                        highlightedView = holder.itemView;
-
                         return false;
                     }
                 });
@@ -397,9 +362,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                             ClipData clip = ClipData.newPlainText("label", highlightedText);
                                 clipboard.setPrimaryClip(clip);
                             Toast.makeText(context, "Saved to clip board", Toast.LENGTH_SHORT).show();
-
                         }
-
                         break;
 
                     case R.id.close_toolbar:
@@ -413,13 +376,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         break;
 
                 }
-
-
                 return false;
             }
         });
     }
-
-
-
 }
