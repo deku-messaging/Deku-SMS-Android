@@ -87,28 +87,12 @@ public class ImageViewActivity extends AppCompatActivity {
     }
 
     public void imageSend(View view) {
-        long messageId = Helpers.generateRandomNumber();
-        Intent sentIntent = new Intent(SMS_SENT_INTENT);
-        sentIntent.putExtra(ID, messageId);
+        Intent intent = new Intent(this, SMSSendActivity.class);
+        intent.putExtra(SMSSendActivity.COMPRESSED_IMAGE_BYTES, compressedBytes);
+        intent.putExtra(SMSSendActivity.ADDRESS, address);
 
-        Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
-        deliveredIntent.putExtra(ID, messageId);
-
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(this, 200,
-                sentIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
-
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(this, 150,
-                deliveredIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
-
-        try {
-            SMSHandler.sendSMS(getApplicationContext(), address, compressedBytes,
-                    sentPendingIntent, deliveredPendingIntent, messageId);
-            if(BuildConfig.DEBUG)
-                Log.d(getLocalClassName(), "Image sent successfully!");
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+        startActivity(intent);
+        finish();
     }
+
 }

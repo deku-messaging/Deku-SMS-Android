@@ -31,21 +31,23 @@ public class SMSHandler {
     public static final Uri SMS_OUTBOX_CONTENT_URI = Telephony.Sms.Outbox.CONTENT_URI;
     public static final Uri SMS_SENT_CONTENT_URI = Telephony.Sms.Sent.CONTENT_URI;
 
-    public static void sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
+    public static String sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
 
-        try {
-            if(data == null)
-                return;
+        if(data == null)
+            return "";
 
-            // registerPendingMessage(context, destinationAddress, text, messageId);
-            // TODO: Handle sending multipart messages
+        String threadId = "";
+        try {
+            threadId = registerPendingMessage(context, destinationAddress, new String(data, StandardCharsets.UTF_8), messageId);
+        } catch(Exception e ) {
+            e.printStackTrace();
+        }
+
+        try {
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Sending data: " + data);
-
-            registerPendingMessage(context, destinationAddress, new String(data, StandardCharsets.UTF_8), messageId);
-//            registerPendingMessage(context, destinationAddress, Base64.encodeToString(data, Base64.DEFAULT), messageId);
 
             smsManager.sendDataMessage(
                     destinationAddress,
@@ -62,6 +64,8 @@ public class SMSHandler {
             // throw new IllegalArgumentException(e);
             throw e;
         }
+
+        return threadId;
     }
 
     public static String sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {

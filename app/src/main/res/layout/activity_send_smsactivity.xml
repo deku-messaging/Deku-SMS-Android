@@ -128,7 +128,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="4dp"
                     android:backgroundTint="@android:color/transparent"
-                    android:onClick="sendMessage"
+                    android:onClick="sendTextMessage"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:srcCompat="@drawable/ic_round_send_24" />
