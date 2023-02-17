@@ -384,7 +384,8 @@ public class SMSHandler {
                 Calendar prevCalendar = Calendar.getInstance();
                 prevCalendar.setTime(previousDate);
 
-                if (prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)) {
+                if ((prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)
+                || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE)))) {
                     copysmsList.add(i+1, new SMS(currentSMS.getDate()));
                 }
             }
