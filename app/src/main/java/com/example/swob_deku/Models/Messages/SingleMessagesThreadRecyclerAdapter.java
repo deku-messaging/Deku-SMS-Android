@@ -12,6 +12,7 @@ import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -81,15 +82,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
-        context = parent.getContext();
-        Toolbar toolbar = view.findViewById(R.id.send_smsactivity_toolbar);
-
-        if (toolbar != null) {
-            toolbar.setVisibility(View.VISIBLE);
-            toolbar.inflateMenu(R.menu.default_menu);
-        }
-
-
+//        context = parent.getContext();
         switch(viewType) {
             // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
             case 100: {
@@ -116,39 +109,39 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
 
-        for(int i=0;i<mDiffer.getCurrentList().size();++i) {
-            SMS sms = mDiffer.getCurrentList().get(i);
-            if (focusId!=null
-                    && searchString!=null
-                    && sms.id.equals(Long.toString(focusId))
-                    && !searchString.isEmpty()) {
-                String text = sms.getBody();
-                Spannable spannable = Spannable.Factory.getInstance().newSpannable(text);
-
-                for (int index = text.indexOf(searchString); index >= 0; index = text.indexOf(searchString, index + 1)) {
-                    spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
-                            index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
-                            index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
-
-                // TODO: not working
-//                switch (holder.getItemViewType()) {
-//                    case 1: {
-//                        ((MessageReceivedViewHandler) holder).receivedMessage.setText(spannable);
-//                        break;
-//                    }
-//                    case 5:
-//                    case 4:
-//                    case 2: {
-//                        ((MessageSentViewHandler) holder).sentMessage.setText(spannable);
-//                        break;
-//                    }
+//        for(int i=0;i<mDiffer.getCurrentList().size();++i) {
+//            SMS sms = mDiffer.getCurrentList().get(i);
+//            if (focusId!=null
+//                    && searchString!=null
+//                    && sms.id.equals(Long.toString(focusId))
+//                    && !searchString.isEmpty()) {
+//                String text = sms.getBody();
+//                Spannable spannable = Spannable.Factory.getInstance().newSpannable(text);
+//
+//                for (int index = text.indexOf(searchString); index >= 0; index = text.indexOf(searchString, index + 1)) {
+//                    spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
+//                            index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//                    spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
+//                            index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 //                }
-//                break;
-                this.view.smoothScrollToPosition(i);
-            }
-        }
+//
+//                // TODO: not working
+////                switch (holder.getItemViewType()) {
+////                    case 1: {
+////                        ((MessageReceivedViewHandler) holder).receivedMessage.setText(spannable);
+////                        break;
+////                    }
+////                    case 5:
+////                    case 4:
+////                    case 2: {
+////                        ((MessageSentViewHandler) holder).sentMessage.setText(spannable);
+////                        break;
+////                    }
+////                }
+////                break;
+//                this.view.smoothScrollToPosition(i);
+//            }
+//        }
     }
 
     @Override
@@ -161,19 +154,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 //        }
 
         String date = sms.getDate();
-        if(sms.isDatesOnly()) {
-            if (DateUtils.isToday(Long.parseLong(date))) {
-                DateFormat dateFormat = new SimpleDateFormat("h:mm a");
-                date = "Today " + dateFormat.format(new Date(Long.parseLong(date)));
-            }
-            else {
-                DateFormat dateFormat = new SimpleDateFormat("EEEE, MMM d h:mm a");
-                date = dateFormat.format(new Date(Long.parseLong(date)));
-            }
-            ((MessageTimestampViewerHandler)holder).date.setText(date);
-            return;
-        }
-
         if (DateUtils.isToday(Long.parseLong(date))) {
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
             date = "Today " + dateFormat.format(new Date(Long.parseLong(date)));
@@ -185,6 +165,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
         switch(sms.getType()) {
 //            https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns?hl=en#TYPE
+            case 100:
+                MessageTimestampViewerHandler messageTimestampViewerHandler = (MessageTimestampViewerHandler) holder;
+                messageTimestampViewerHandler.date.setText(date);
+                break;
+
             case MESSAGE_TYPE_INBOX:
                 MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
 

@@ -179,9 +179,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         String address = sms.getAddress();
 
         if(checkPermissionToReadContacts() && !address.isEmpty()) {
-            if(BuildConfig.DEBUG)
-                Log.d(getClass().getName(), "Address: " + address);
-
             String addressInPhone = Contacts.retrieveContactName(context, address);
 
             if(!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {

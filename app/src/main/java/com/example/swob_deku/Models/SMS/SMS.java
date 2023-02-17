@@ -127,6 +127,7 @@ public class SMS {
     public SMS(String dates) {
         this.date = dates;
         this.datesOnly = true;
+        this.type = 100;
     }
 
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns
