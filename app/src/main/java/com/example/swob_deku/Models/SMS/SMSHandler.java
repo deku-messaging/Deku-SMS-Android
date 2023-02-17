@@ -137,6 +137,19 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
+    public static Cursor fetchSMSAddressFromThreadId(@NonNull Context context, String threadId) {
+        String[] selection = new String[]{Telephony.TextBasedSmsColumns.ADDRESS};
+
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_CONTENT_URI,
+                selection,
+                Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                new String[]{threadId},
+                null);
+
+        return smsMessagesCursor;
+    }
+
     public static Cursor fetchSMSForThread(@NonNull Context context, String threadId) {
         String[] selection = new String[] { Telephony.Sms._ID,
                 Telephony.TextBasedSmsColumns.STATUS,

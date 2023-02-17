@@ -13,12 +13,16 @@
 
     <application
         android:allowBackup="false"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.AppTheme">
+        <activity
+            android:name=".ImageViewActivity"
+            android:parentActivityName=".SMSSendActivity"
+            android:exported="false" />
         <activity
             android:name=".RespondViaMessageActivity"
             android:exported="false">
@@ -28,16 +32,16 @@
         </activity>
         <activity
             android:name=".GatewayServerListingActivity"
-            android:parentActivityName=".MessagesThreadsActivity"
-            android:exported="false">
+            android:exported="false"
+            android:parentActivityName=".MessagesThreadsActivity">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
             android:name=".GatewayServerAddActivity"
-            android:parentActivityName=".GatewayServerListingActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".GatewayServerListingActivity" />
         <activity
             android:name=".RouterActivity"
             android:exported="false"
@@ -84,11 +88,11 @@
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
+
                 <data android:scheme="sms" />
                 <data android:port="8901" />
             </intent-filter>
         </receiver>
-
         <receiver
             android:name=".BroadcastSMSTextActivity"
             android:exported="true"
@@ -96,11 +100,10 @@
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
-<!--                <category android:name="android.intent.category.DEFAULT" />-->
-<!--                <category android:name="android.intent.category.BROWSABLE" />-->
+                <!-- <category android:name="android.intent.category.DEFAULT" /> -->
+                <!-- <category android:name="android.intent.category.BROWSABLE" /> -->
             </intent-filter>
         </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
-
         <receiver
             android:name=".MMSReceiverActivity"
             android:exported="true"

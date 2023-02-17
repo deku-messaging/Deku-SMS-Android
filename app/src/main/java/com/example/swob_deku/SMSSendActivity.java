@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
@@ -75,6 +76,8 @@ public class SMSSendActivity extends AppCompatActivity {
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
 
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
+
+    private final int RESULT_GALLERY = 100;
 
     String threadId = "";
     String address = "";
@@ -154,8 +157,20 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void getMessagesThreadId() {
-        if(getIntent().hasExtra(THREAD_ID))
+        if(getIntent().hasExtra(THREAD_ID)) {
             threadId = getIntent().getStringExtra(THREAD_ID);
+            Cursor cursor = SMSHandler.fetchSMSAddressFromThreadId(getApplicationContext(), threadId);
+
+            if(cursor.moveToFirst()) {
+                int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+                address = String.valueOf(cursor.getString(addressIndex));
+
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Found Address: " + address);
+            }
+
+            cursor.close();
+        }
 
         else if(getIntent().hasExtra(ADDRESS) || !address.isEmpty()) {
             if(address.isEmpty())
@@ -451,5 +466,24 @@ public class SMSSendActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    public void uploadImage(View view) {
+        Intent galleryIntent = new Intent(
+                Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(galleryIntent , RESULT_GALLERY );
+    }
 
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RESULT_GALLERY) {
+            if (null != data) {
+                Uri imageUri = data.getData();
+
+                Intent intent = new Intent(this, ImageViewActivity.class);
+                intent.putExtra("image_uri", imageUri.toString());
+                startActivity(intent);
+            }
+        }
+    }
 }
