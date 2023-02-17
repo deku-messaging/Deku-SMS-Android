@@ -1,17 +1,27 @@
 package com.example.swob_deku;
 
+import static com.example.swob_deku.SMSSendActivity.ID;
+import static com.example.swob_deku.SMSSendActivity.SMS_DELIVERED_INTENT;
+import static com.example.swob_deku.SMSSendActivity.SMS_SENT_INTENT;
+
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Images.ImageHandler;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.io.IOException;
 
@@ -21,6 +31,11 @@ public class ImageViewActivity extends AppCompatActivity {
     ImageView imageView;
 
     TextView imageDescription;
+
+    Bitmap compressedBitmap;
+    byte[] compressedBytes;
+
+    String address;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,7 +51,8 @@ public class ImageViewActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-        imageUri = Uri.parse(getIntent().getStringExtra("image_uri"));
+        address = getIntent().getStringExtra(SMSSendActivity.ADDRESS);
+        imageUri = Uri.parse(getIntent().getStringExtra(SMSSendActivity.IMAGE_URI));
         imageView = findViewById(R.id.compressed_image_holder);
         imageDescription = findViewById(R.id.image_details);
 
@@ -60,13 +76,39 @@ public class ImageViewActivity extends AppCompatActivity {
         description += "\n\n- Resize scale: " + resizeScale;
         description += "\n- Resize resolution: " + imageBitmap.getWidth() + "x" + imageBitmap.getHeight();
 
-        byte[] compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
+        compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
         description += "\n\n- Compressed bytes: " + compressedBytes.length;
         description += "\n- Approx #SMS: " + compressedBytes.length / 140;
 
-        imageBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
+        compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
 
         imageDescription.setText(description);
-        imageView.setImageBitmap(imageBitmap);
+        imageView.setImageBitmap(compressedBitmap);
+    }
+
+    public void imageSend(View view) {
+        long messageId = Helpers.generateRandomNumber();
+        Intent sentIntent = new Intent(SMS_SENT_INTENT);
+        sentIntent.putExtra(ID, messageId);
+
+        Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
+        deliveredIntent.putExtra(ID, messageId);
+
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(this, 200,
+                sentIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
+
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(this, 150,
+                deliveredIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
+
+        try {
+            SMSHandler.sendSMS(getApplicationContext(), address, compressedBytes,
+                    sentPendingIntent, deliveredPendingIntent, messageId);
+            if(BuildConfig.DEBUG)
+                Log.d(getLocalClassName(), "Image sent successfully!");
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 }

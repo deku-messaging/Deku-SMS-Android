@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -43,8 +44,9 @@ public class SMSHandler {
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Sending data: " + data);
 
-//            registerPendingMessage(context, destinationAddress, new String(data, StandardCharsets.UTF_8), messageId);
-            registerPendingMessage(context, destinationAddress, Base64.encodeToString(data, Base64.DEFAULT), messageId);
+            registerPendingMessage(context, destinationAddress, new String(data, StandardCharsets.UTF_8), messageId);
+//            registerPendingMessage(context, destinationAddress, Base64.encodeToString(data, Base64.DEFAULT), messageId);
+
             smsManager.sendDataMessage(
                     destinationAddress,
                     null,

@@ -67,6 +67,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
     MutableLiveData<String> mutableLiveDataComposeMessage = new MutableLiveData<>();
 
+    public static final String IMAGE_URI = "IMAGE_URI";
     public static final String ADDRESS = "address";
     public static final String THREAD_ID = "thread_id";
     public static final String ID = "_id";
@@ -481,7 +482,8 @@ public class SMSSendActivity extends AppCompatActivity {
                 Uri imageUri = data.getData();
 
                 Intent intent = new Intent(this, ImageViewActivity.class);
-                intent.putExtra("image_uri", imageUri.toString());
+                intent.putExtra(IMAGE_URI, imageUri.toString());
+                intent.putExtra(ADDRESS, address);
                 startActivity(intent);
             }
         }
