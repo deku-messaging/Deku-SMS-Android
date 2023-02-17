@@ -367,28 +367,25 @@ public class SMSHandler {
     }
 
     public static List<SMS> dateSegmentations(List<SMS> smsList) {
-
-
         List<SMS> copysmsList = new ArrayList<>(smsList);
 
-        for(int i=smsList.size() - 1, j = i; i> -1; --i, --j) {
+        for(int i=smsList.size()-1;i>-1; --i) {
             SMS currentSMS = smsList.get(i);
             Date date = new Date(Long.parseLong(currentSMS.getDate()));
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
+            Calendar currentCalendar = Calendar.getInstance();
+            currentCalendar.setTime(date);
 
-            if(i == smsList.size() - 1 ) {
+            if(i==smsList.size() -1 ) {
                 copysmsList.add(new SMS(currentSMS.getDate()));
-                ++j;
             }
             else {
-                Date previousDate = new Date(Long.parseLong(smsList.get(i + 1).getDate()));
+                String previousDateString = smsList.get(i + 1).getDate();
+                Date previousDate = new Date(Long.parseLong(previousDateString));
                 Calendar prevCalendar = Calendar.getInstance();
                 prevCalendar.setTime(previousDate);
 
-                if (prevCalendar.get(Calendar.HOUR) < calendar.get(Calendar.HOUR)) {
-                    copysmsList.add(j, new SMS(currentSMS.getDate()));
-                    ++j;
+                if (prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)) {
+                    copysmsList.add(i+1, new SMS(currentSMS.getDate()));
                 }
             }
         }
