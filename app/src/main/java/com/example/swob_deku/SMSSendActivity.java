@@ -77,6 +77,9 @@ public class SMSSendActivity extends AppCompatActivity {
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
     String threadId = "";
+    String address = "";
+
+    String contactName = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,17 +97,18 @@ public class SMSSendActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-        getMessagesThreadId();
-
         smsTextView = findViewById(R.id.sms_text);
+
+        processForSharedIntent();
+        getMessagesThreadId();
+        handleIncomingBroadcast();
+        improveMessagingUX();
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setStackFromEnd(false);
         linearLayoutManager.setReverseLayout(true);
 
         RecyclerView singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
-
-
 
         Long focusId = getIntent().hasExtra(ID) ? Long.parseLong(getIntent().getStringExtra(ID)) : null;
         String searchString = getIntent().hasExtra(SEARCH_STRING) ? getIntent().getStringExtra(SEARCH_STRING) : null;
@@ -132,10 +136,6 @@ public class SMSSendActivity extends AppCompatActivity {
                     }
                 });
 
-        handleIncomingBroadcast();
-
-        processForSharedIntent();
-        improveMessagingUX();
 
         if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
             findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
@@ -157,27 +157,27 @@ public class SMSSendActivity extends AppCompatActivity {
         if(getIntent().hasExtra(THREAD_ID))
             threadId = getIntent().getStringExtra(THREAD_ID);
 
-        else if(getIntent().hasExtra(ADDRESS)) {
-            String address = getIntent().getStringExtra(ADDRESS);
-            Cursor cursor = SMSHandler.fetchSMSMessagesAddress(getApplicationContext(), address);
-            if(cursor.moveToFirst()) {
-                do {
-                    SMS sms = new SMS(cursor);
-                    String smsThreadId = sms.getThreadId();
+        else if(getIntent().hasExtra(ADDRESS) || !address.isEmpty()) {
+            if(address.isEmpty())
+                address = getIntent().getStringExtra(ADDRESS);
 
-                    if(PhoneNumberUtils.compare(address, sms.getAddress()) && !smsThreadId.equals("-1")) {
-                        threadId = smsThreadId;
-                        break;
-                    }
-                }
-                while(cursor.moveToNext());
+            if(BuildConfig.DEBUG)
+                Log.d(getLocalClassName(), "Searching thread ID with address: " + address);
+
+            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), address);
+            if(cursor.moveToFirst()) {
+                int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+                threadId = String.valueOf(cursor.getString(threadIdIndex));
+
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Found thread ID: " + threadId);
             }
+            cursor.close();
         }
     }
 
     private void improveMessagingUX() {
         ActionBar ab = getSupportActionBar();
-        String address = getIntent().getStringExtra(ADDRESS);
 
         smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -235,7 +235,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
 
         // TODO: if has letters, make sure reply cannot happen
-        String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        contactName = Contacts.retrieveContactName(getApplicationContext(), address);
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
                 address: contactName;
         try {
@@ -247,6 +247,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
     private void processForSharedIntent() {
         String indentAction = getIntent().getAction();
+
         if(indentAction != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
             String sendToString = getIntent().getDataString();
 
@@ -256,11 +257,8 @@ public class SMSSendActivity extends AppCompatActivity {
             sendToString = sendToString.replace("%2B", "+")
                             .replace("%20", "");
 
-            if(BuildConfig.DEBUG)
-                Log.d("", "Working on a shared Intent... " + sendToString);
-
             if(sendToString.indexOf("smsto:") > -1 || sendToString.indexOf("sms:") > -1) {
-               String address = sendToString.substring(sendToString.indexOf(':') + 1);
+               address = sendToString.substring(sendToString.indexOf(':') + 1);
                String text = getIntent().getStringExtra("sms_body");
 
                // TODO: should inform view about data being available
@@ -275,7 +273,6 @@ public class SMSSendActivity extends AppCompatActivity {
                    }
                }
 
-               getIntent().putExtra(ADDRESS, address);
                smsTextView.setText(text);
                mutableLiveDataComposeMessage.setValue(text);
             }
@@ -369,7 +366,6 @@ public class SMSSendActivity extends AppCompatActivity {
 
     public void sendMessage(View view) {
         // TODO: Don't let sending happen if message box is empty
-        String destinationAddress = getIntent().getStringExtra(ADDRESS);
         String text = smsTextView.getText().toString();
 
         try {
@@ -389,7 +385,7 @@ public class SMSSendActivity extends AppCompatActivity {
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
             handleBroadcast();
-            String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), destinationAddress, text,
+            String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), address, text,
                     sentPendingIntent, deliveredPendingIntent, messageId);
 
             resetSmsTextView();

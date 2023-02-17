@@ -107,12 +107,29 @@ public class SMSHandler {
         return threadId;
     }
 
+
+    public static Cursor fetchSMSThreadIdFromAddress(@NonNull Context context, String address) {
+        address = address.replaceAll("[\\s-]", "");
+
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_CONTENT_URI,
+                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID },
+                "address like ?",
+                new String[] { "%" + address},
+                null);
+
+        return smsMessagesCursor;
+    }
+
     public static Cursor fetchSMSMessagesAddress(@NonNull Context context, String address) {
         address = address.replaceAll("[\\s-]", "");
 
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 SMS_CONTENT_URI,
-                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID, Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON, Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY, Telephony.TextBasedSmsColumns.TYPE },
+                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE },
                 "address like ?",
                 new String[] { "%" + address},
                 "date ASC");
