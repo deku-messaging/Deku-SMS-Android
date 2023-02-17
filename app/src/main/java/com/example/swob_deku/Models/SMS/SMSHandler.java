@@ -8,6 +8,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
 import android.util.Base64;
 import android.util.Log;
 
@@ -23,7 +25,7 @@ import java.util.Calendar;
 import java.util.List;
 
 public class SMSHandler {
-    static final short DATA_TRANSMISSION_PORT = 8901;
+    static final short DATA_TRANSMISSION_PORT = 8200;
 
     public static final Uri SMS_CONTENT_URI = Telephony.Sms.CONTENT_URI;
 
@@ -31,7 +33,7 @@ public class SMSHandler {
     public static final Uri SMS_OUTBOX_CONTENT_URI = Telephony.Sms.Outbox.CONTENT_URI;
     public static final Uri SMS_SENT_CONTENT_URI = Telephony.Sms.Sent.CONTENT_URI;
 
-    public static String sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
+    public static String sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
 
@@ -39,33 +41,60 @@ public class SMSHandler {
             return "";
 
         String threadId = "";
+
+        String dataString = new String(data);
         try {
-            threadId = registerPendingMessage(context, destinationAddress, new String(data, StandardCharsets.UTF_8), messageId);
+//            data = copyBytes(data, 0, 200);
+            threadId = registerPendingMessage(context, destinationAddress, dataString, messageId);
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Sending data: " + new String(data));
+
+//            dataString = "hello world";
+            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
+
+            for(int i=0;i<dividedMessage.size();++i) {
+                String message = dividedMessage.get(i);
+                data = message.getBytes();
+
+                PendingIntent sentIntentFinal = i == dividedMessage.size() -1 ?
+                        sentIntent : null;
+
+                PendingIntent deliveryIntentFinal = i == dividedMessage.size() -1 ?
+                        deliveryIntent : null;
+
+                smsManager.sendDataMessage(
+                        destinationAddress,
+                        null,
+                        DATA_TRANSMISSION_PORT,
+                        data,
+                        sentIntentFinal,
+                        deliveryIntentFinal);
+
+                if(BuildConfig.DEBUG)
+                    Log.d(SMSHandler.class.getName(), "Sent counter: " + i);
+                Thread.sleep(500);
+            }
         } catch(Exception e ) {
             e.printStackTrace();
         }
 
-        try {
-            if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "Sending data: " + data);
-
-            smsManager.sendDataMessage(
-                    destinationAddress,
-                    null,
-                    DATA_TRANSMISSION_PORT,
-                    data,
-                    sentIntent,
-                    deliveryIntent);
-            if(BuildConfig.DEBUG) {
-                Log.d(SMSHandler.class.getName(), "Data message sent...");
-            }
-        }
-        catch(Throwable e) {
-            // throw new IllegalArgumentException(e);
-            throw e;
-        }
-
         return threadId;
+    }
+
+    public static int countMessages(Context context, byte[] data) {
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
+        ArrayList<String> dividedMessage = smsManager.divideMessage(new String(data));
+        return dividedMessage.size();
+    }
+
+    public static byte[] copyBytes(byte[] src, int startPos, int len) {
+        byte[] dest = new byte[len];
+        for(int i=startPos, j=0; i<src.length && j<len; ++i, j++)
+            dest[j] = src[i];
+        return dest;
     }
 
     public static String sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
@@ -354,7 +383,8 @@ public class SMSHandler {
             }
         }
         catch(Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            throw e;
         }
 
         return threadId;

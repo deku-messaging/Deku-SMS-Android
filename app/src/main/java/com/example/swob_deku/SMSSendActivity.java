@@ -101,7 +101,11 @@ public class SMSSendActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                determineAddress();
+                try {
+                    determineAddress();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 improveMessagingUX();
 
                 contactName = Contacts.retrieveContactName(getApplicationContext(), address);
@@ -128,7 +132,7 @@ public class SMSSendActivity extends AppCompatActivity {
         });
     }
 
-    private void determineAddress() {
+    private void determineAddress() throws InterruptedException {
         processForSharedIntent();
         checkSendingImage();
         getMessagesThreadId();
@@ -176,10 +180,12 @@ public class SMSSendActivity extends AppCompatActivity {
         updateMessagesToRead();
     }
 
-    private void checkSendingImage() {
+    private void checkSendingImage() throws InterruptedException {
         if(getIntent().hasExtra(COMPRESSED_IMAGE_BYTES)) {
+            byte[] compressedImageByte = getIntent().getByteArrayExtra(COMPRESSED_IMAGE_BYTES);
+            getIntent().removeExtra(COMPRESSED_IMAGE_BYTES);
             address = getIntent().getStringExtra(ADDRESS);
-            sendImageMessage(getIntent().getByteArrayExtra(COMPRESSED_IMAGE_BYTES));
+            sendImageMessage(compressedImageByte);
         }
     }
     private void updateMessagesToRead() {
@@ -305,7 +311,13 @@ public class SMSSendActivity extends AppCompatActivity {
                }
 
                smsTextView.setText(text);
-               mutableLiveDataComposeMessage.setValue(text);
+                String finalText = text;
+                runOnUiThread(new Runnable() {
+                   @Override
+                   public void run() {
+                       mutableLiveDataComposeMessage.setValue(finalText);
+                   }
+               });
             }
         }
     }
@@ -413,7 +425,7 @@ public class SMSSendActivity extends AppCompatActivity {
         return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
     }
 
-    public void sendImageMessage(byte[] imageBytes) {
+    public void sendImageMessage(byte[] imageBytes) throws InterruptedException {
         long messageId = Helpers.generateRandomNumber();
         PendingIntent[] pendingIntents = getPendingIntents(messageId);
 
@@ -529,6 +541,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 intent.putExtra(IMAGE_URI, imageUri.toString());
                 intent.putExtra(ADDRESS, address);
                 startActivity(intent);
+                finish();
             }
         }
     }

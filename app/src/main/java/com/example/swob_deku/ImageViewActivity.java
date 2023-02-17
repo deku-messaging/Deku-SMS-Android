@@ -78,7 +78,7 @@ public class ImageViewActivity extends AppCompatActivity {
 
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
         description += "\n\n- Compressed bytes: " + compressedBytes.length;
-        description += "\n- Approx #SMS: " + compressedBytes.length / 140;
+        description += "\n- Approx #SMS: " + SMSHandler.countMessages(getApplicationContext(), compressedBytes);
 
         compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
 
