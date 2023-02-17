@@ -123,4 +123,15 @@ public class ImageHandler {
         byte[] compressedBitmapBytes = byteArrayOutputStream.toByteArray();
         return compressedBitmapBytes;
     }
+
+    public byte[] compressImage(int compressionRatio, Bitmap imageBitmap) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        Bitmap.CompressFormat bitmapCompressionFormat = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ?
+                Bitmap.CompressFormat.WEBP_LOSSY : Bitmap.CompressFormat.WEBP;
+
+        imageBitmap.compress(bitmapCompressionFormat, compressionRatio, byteArrayOutputStream);
+
+        return byteArrayOutputStream.toByteArray();
+    }
 }
