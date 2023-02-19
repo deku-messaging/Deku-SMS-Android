@@ -23,9 +23,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
+import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -107,6 +109,19 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
+
+
+        // TODO: remove
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int[] pdu = { 0x07, 0x91, 0x32, 0x67, 0x49, 0x0, 0x0, 0x71, 0x24, 0xC, 0x91, 0x32,
+                        0x67, 0x9, 0x28, 0x26, 0x24, 0x0, 0x0, 0x32, 0x20, 0x91, 0x1, 0x73, 0x74,
+                        0x40, 0x7, 0xE8, 0x72, 0x1E, 0xD4, 0x2E, 0xBB, 0x1};
+
+                SMSHandler.intepret_PDU(DataHelper.intArrayToByteArray(pdu));
+            }
+        }).start();
     }
 
     private void cancelAllNotifications() {

@@ -471,31 +471,54 @@ public class SMSHandler {
         String pduHex = DataHelper.getHexOfByte(pdu);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pduHex);
 
-        byte SMSC_length = pdu[0];
-        byte SMSC_address_format = pdu[1];
+        int pduIterator = 0;
+        byte SMSC_length = pdu[pduIterator];
+        byte SMSC_address_format = pdu[++pduIterator];
         String SMSC_address_format_binary = DataHelper.byteToBinary(new byte[]{SMSC_address_format});
         parse_address_format(SMSC_address_format_binary.substring(SMSC_address_format_binary.length() - 7));
 
-        byte[] SMSC_address = SMSHandler.copyBytes(pdu, 2, SMSC_length - 1);
+        byte[] SMSC_address = SMSHandler.copyBytes(pdu, ++pduIterator, SMSC_length - 1);
+        pduIterator += SMSC_length - 2;
 
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_length: " + (int) SMSC_length);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format: " +
                 Integer.toHexString(SMSC_address_format));
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format - binary: " + SMSC_address_format_binary);
 
-        int[] addressHolder = new int[SMSC_address.length * 2];
-        for(int i=0, j=0;i<SMSC_address.length; ++i, j+=2) {
-            int[] data = getNibbleFromByte(SMSC_address[i]);
-            addressHolder[j] = data[0];
-            addressHolder[j+1] = data[1];
-        }
-        String address = Arrays.toString(addressHolder);
+        int[] addressHolder = DataHelper.nibbleToIntArray(SMSC_address);
+        String address = DataHelper.arrayToString(addressHolder);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address: " + address);
+
+        // TPDU begins
+        byte first_octet = pdu[++pduIterator];
+        String first_octet_binary = Integer.toBinaryString(first_octet);
+//        parse_first_octet(first_octet_binary.substring(8));
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU First octet binary: " + first_octet_binary);
+
+
+        byte sender_address_length = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address length: " + sender_address_length);
+
+        byte sender_address_type = pdu[++pduIterator];
+        byte[] sender_address = copyBytes(pdu, ++pduIterator, sender_address_length - (sender_address_length/2));
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address: " +
+                DataHelper.getHexOfByte(sender_address));
+        pduIterator += sender_address_length / 2;
+
+        addressHolder = DataHelper.nibbleToIntArray(sender_address);
+        address = DataHelper.arrayToString(addressHolder);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMS_Sender_address: " + address);
+
+        byte PID = pdu[++pduIterator];
+        byte DSC = pdu[++pduIterator];
+        String time_stamp = DataHelper.arrayToString(DataHelper.nibbleToIntArray(copyBytes(pdu, ++pduIterator, 7)));
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Timestamp: " + time_stamp);
     }
 
     public static void parse_address_format(String SMSC_address_format) {
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU parsing address format: " + SMSC_address_format);
 
+        // TODO: compare and match the different TON and NPI values
         final String TON_INTERNATIONAL = "001";
         final String TON_NATIONAL = "010";
 
@@ -505,5 +528,9 @@ public class SMSHandler {
         String SMSC_NPI = SMSC_address_format.substring(3);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_TON: " + SMSC_TON);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_NPI: " + SMSC_NPI);
+    }
+
+    public static void parse_first_octet(String SMS_first_octet) {
+        // TODO: parse
     }
 }
