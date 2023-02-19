@@ -1,5 +1,7 @@
 package com.example.swob_deku.Models.SMS;
 
+import static com.example.swob_deku.Commons.DataHelper.getNibbleFromByte;
+
 import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
@@ -15,12 +17,15 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.BuildConfig;
+import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -50,7 +55,7 @@ public class SMSHandler {
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Sending data: " + new String(data));
 
-//            dataString = "hello world";
+            dataString = "hello world";
             ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
 
             for(int i=0;i<dividedMessage.size();++i) {
@@ -460,4 +465,45 @@ public class SMSHandler {
         return copysmsList;
     }
 
+    public static void intepret_PDU(byte[] pdu) {
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pdu.length);
+
+        String pduHex = DataHelper.getHexOfByte(pdu);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pduHex);
+
+        byte SMSC_length = pdu[0];
+        byte SMSC_address_format = pdu[1];
+        String SMSC_address_format_binary = DataHelper.byteToBinary(new byte[]{SMSC_address_format});
+        parse_address_format(SMSC_address_format_binary.substring(SMSC_address_format_binary.length() - 7));
+
+        byte[] SMSC_address = SMSHandler.copyBytes(pdu, 2, SMSC_length - 1);
+
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_length: " + (int) SMSC_length);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format: " +
+                Integer.toHexString(SMSC_address_format));
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format - binary: " + SMSC_address_format_binary);
+
+        int[] addressHolder = new int[SMSC_address.length * 2];
+        for(int i=0, j=0;i<SMSC_address.length; ++i, j+=2) {
+            int[] data = getNibbleFromByte(SMSC_address[i]);
+            addressHolder[j] = data[0];
+            addressHolder[j+1] = data[1];
+        }
+        String address = Arrays.toString(addressHolder);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address: " + address);
+    }
+
+    public static void parse_address_format(String SMSC_address_format) {
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU parsing address format: " + SMSC_address_format);
+
+        final String TON_INTERNATIONAL = "001";
+        final String TON_NATIONAL = "010";
+
+        final String NPI_ISDN = "0001";
+
+        String SMSC_TON = SMSC_address_format.substring(0, 3);
+        String SMSC_NPI = SMSC_address_format.substring(3);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_TON: " + SMSC_TON);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_NPI: " + SMSC_NPI);
+    }
 }

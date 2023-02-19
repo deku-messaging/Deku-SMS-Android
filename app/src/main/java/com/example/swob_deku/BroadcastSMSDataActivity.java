@@ -1,5 +1,9 @@
 package com.example.swob_deku;
 
+import static com.example.swob_deku.Commons.DataHelper.byteToBinary;
+import static com.example.swob_deku.Commons.DataHelper.byteToChar;
+import static com.example.swob_deku.Commons.DataHelper.getHexOfByte;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,6 +18,8 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import java.nio.charset.StandardCharsets;
 
 public class BroadcastSMSDataActivity extends BroadcastReceiver {
+
+
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -29,9 +35,15 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                     for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         address = currentSMS.getDisplayOriginatingAddress();
+                        byte[] pdu = currentSMS.getPdu();
                         // messageBuffer = currentSMS.getPdu();
                         // messageStringBuffer.append(new String(currentSMS.getUserData(), StandardCharsets.UTF_8));
                         messageBuffer = currentSMS.getUserData();
+
+                        Log.d(getClass().getName(), "PDU: " + getHexOfByte(pdu));
+                        Log.d(getClass().getName(), "PDU: " + byteToChar(pdu));
+                        Log.d(getClass().getName(), "PDU: " + byteToBinary(pdu));
+
                     }
 
                     if(BuildConfig.DEBUG) {
