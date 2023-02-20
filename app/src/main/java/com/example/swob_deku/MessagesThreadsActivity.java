@@ -111,20 +111,20 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
 
         // TODO: remove
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int[] pdu = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
-                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
-                        0x1e,0xd4,0x2e,0xbb,0x01};
-
-                try {
-                    SMSHandler.interpret_PDU(DataHelper.intArrayToByteArray(pdu));
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                int[] pdu = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
+//                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
+//                        0x1e,0xd4,0x2e,0xbb,0x01};
+//
+//                try {
+//                    SMSHandler.interpret_PDU(DataHelper.intArrayToByteArray(pdu));
+//                } catch (ParseException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//        }).start();
     }
 
     private void cancelAllNotifications() {

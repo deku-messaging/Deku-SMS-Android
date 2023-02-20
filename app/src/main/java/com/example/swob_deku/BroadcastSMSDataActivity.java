@@ -53,6 +53,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
 //                    String b64Message = new String(Base64.encode(messageBuffer, Base64.DEFAULT), StandardCharsets.UTF_8);
                     String strMessage = new String(messageBuffer, StandardCharsets.UTF_8);
+                    Log.d(getClass().getName(), "PDU data incoming: " + strMessage);
                     long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
                     String notificationNote = "New image data!";

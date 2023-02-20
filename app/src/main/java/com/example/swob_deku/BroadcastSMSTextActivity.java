@@ -61,7 +61,11 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         // TODO: Fetch address name from contact list if present
                         address = currentSMS.getDisplayOriginatingAddress();
-                        messageBuffer.append(currentSMS.getDisplayMessageBody());
+                        String displayMessage = currentSMS.getDisplayMessageBody();
+                        displayMessage = displayMessage == null ?
+                                new String(currentSMS.getUserData(), StandardCharsets.UTF_8) :
+                                displayMessage;
+                        messageBuffer.append(displayMessage);
 
                         byte[] pdu = currentSMS.getPdu();
 
