@@ -1,5 +1,7 @@
 package com.example.swob_deku;
 
+import static com.example.swob_deku.Models.SMS.SMSHandler.interpret_PDU;
+
 import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -14,7 +16,6 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.lifecycle.LiveData;
 import androidx.room.Room;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
@@ -33,9 +34,9 @@ import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -45,6 +46,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
     public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
     public static final String TAG_ROUTING_URL = "swob.work.route.url,";
     public static final String TAG_WORKER_ID = "swob.work.id.";
+
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -56,12 +58,26 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     StringBuffer messageBuffer = new StringBuffer();
                     String address = new String();
 
-                    for (SmsMessage currentSMS: Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
+                    for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         // TODO: Fetch address name from contact list if present
                         address = currentSMS.getDisplayOriginatingAddress();
                         messageBuffer.append(currentSMS.getDisplayMessageBody());
 
+                        byte[] pdu = currentSMS.getPdu();
+
                         if(BuildConfig.DEBUG) {
+                            try {
+                                interpret_PDU((pdu));
+                            } catch (ParseException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+
+                        if (BuildConfig.DEBUG) {
+                            Log.d(getClass().getName(), "PDU android studio: " + currentSMS.getServiceCenterAddress());
+                        }
+
+                        if (BuildConfig.DEBUG) {
                             Log.d(getClass().getName(), "Data received.: " + new String(currentSMS.getUserData()));
                         }
                     }
@@ -78,7 +94,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                break;
+                    break;
             }
         }
     }
@@ -97,7 +113,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                 GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
                 List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
 
-                for(GatewayServer gatewayServer: gatewayServerList) {
+                for (GatewayServer gatewayServer : gatewayServerList) {
                     try {
                         OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
                                 .setConstraints(constraints)
@@ -125,8 +141,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                                 uniqueWorkName,
                                 ExistingWorkPolicy.KEEP,
                                 routeMessageWorkRequest);
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -140,7 +155,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
         Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, messageId);
 
         String threadId = "-1";
-        if(cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
             threadId = sms.getThreadId();
         }
@@ -155,7 +170,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 
         String contactName = Contacts.retrieveContactName(context, address);
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
-                address: contactName;
+                address : contactName;
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.CHANNEL_ID))
@@ -172,8 +187,6 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-
-        // notificationId is a unique int for each notification that you must define
         notificationManager.notify(Integer.parseInt(threadId), builder.build());
     }
 }

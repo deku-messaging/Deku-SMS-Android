@@ -1,18 +1,26 @@
 package com.example.swob_deku;
 
+import static com.example.swob_deku.Commons.DataHelper.byteToBinary;
+import static com.example.swob_deku.Commons.DataHelper.byteToChar;
+import static com.example.swob_deku.Commons.DataHelper.getHexOfByte;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.util.Base64;
 import android.util.Log;
 
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 
 public class BroadcastSMSDataActivity extends BroadcastReceiver {
+
+
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -28,20 +36,27 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                     for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         address = currentSMS.getDisplayOriginatingAddress();
-                        messageBuffer = currentSMS.getPdu();
-                        messageStringBuffer.append(new String(currentSMS.getUserData(), StandardCharsets.UTF_8));
+                        byte[] pdu = currentSMS.getPdu();
+                        messageBuffer = currentSMS.getUserData();
+
+//                        try {
+//                            SMSHandler.interpret_PDU(pdu);
+//                        } catch (ParseException e) {
+//                            throw new RuntimeException(e);
+//                        }
                     }
 
                     if(BuildConfig.DEBUG) {
                         Log.d(getClass().getName(), "Message Address: " + address);
-                        Log.d(getClass().getName(), "Message bytes: " + new String(messageBuffer, StandardCharsets.UTF_8));
-                        Log.d(getClass().getName(), "Message string: " + messageStringBuffer);
+                        Log.d(getClass().getName(), "Message bytes: " + messageBuffer);
                     }
 
-                    String stringMessage = messageStringBuffer.toString();
-                    long messageId = SMSHandler.registerIncomingMessage(context, address, stringMessage);
+//                    String b64Message = new String(Base64.encode(messageBuffer, Base64.DEFAULT), StandardCharsets.UTF_8);
+                    String strMessage = new String(messageBuffer, StandardCharsets.UTF_8);
+                    long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
-                    BroadcastSMSTextActivity.sendNotification(context, stringMessage, address, messageId);
+                    String notificationNote = "New image data!";
+                    BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
                     break;
             }
         }

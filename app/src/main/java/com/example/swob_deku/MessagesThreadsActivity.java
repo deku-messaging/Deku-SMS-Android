@@ -17,19 +17,20 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
-import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
+import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.util.ArrayList;
+import java.text.ParseException;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -104,10 +105,26 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 new Observer<List<SMS>>() {
                     @Override
                     public void onChanged(List<SMS> smsList) {
-                        messagesThreadRecyclerView.setItemViewCacheSize(smsList.size());
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
+
+
+        // TODO: remove
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int[] pdu = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
+                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
+                        0x1e,0xd4,0x2e,0xbb,0x01};
+
+                try {
+                    SMSHandler.interpret_PDU(DataHelper.intArrayToByteArray(pdu));
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
     }
 
     private void cancelAllNotifications() {

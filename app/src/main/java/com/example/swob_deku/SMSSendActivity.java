@@ -1,6 +1,7 @@
 package com.example.swob_deku;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -17,28 +18,22 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.swob_deku.Commons.Contacts;
@@ -66,6 +61,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
     MutableLiveData<String> mutableLiveDataComposeMessage = new MutableLiveData<>();
 
+    public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
+    public static final String IMAGE_URI = "IMAGE_URI";
     public static final String ADDRESS = "address";
     public static final String THREAD_ID = "thread_id";
     public static final String ID = "_id";
@@ -76,20 +73,21 @@ public class SMSSendActivity extends AppCompatActivity {
 
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
+    private final int RESULT_GALLERY = 100;
+
     String threadId = "";
     String address = "";
 
     String contactName = "";
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
-
-
-       Toolbar myToolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
-//        myToolbar.inflateMenu(R.menu.default_menu);
-        setSupportActionBar(myToolbar);
+        toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+        setSupportActionBar(toolbar);
 
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
@@ -99,10 +97,50 @@ public class SMSSendActivity extends AppCompatActivity {
 
         smsTextView = findViewById(R.id.sms_text);
 
-        processForSharedIntent();
-        getMessagesThreadId();
         handleIncomingBroadcast();
-        improveMessagingUX();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    determineAddress();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                improveMessagingUX();
+
+                contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+                contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                        address: contactName;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            ab.setTitle(contactName);
+                        } catch(Exception e ) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        }).start();
+
+        mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+            }
+        });
+    }
+
+    private void determineAddress() throws InterruptedException {
+        processForSharedIntent();
+        checkSendingImage();
+        getMessagesThreadId();
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setStackFromEnd(false);
@@ -120,7 +158,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 R.layout.messages_thread_timestamp_layout,
                 focusId,
                 searchString,
-                singleMessagesThreadRecyclerView, myToolbar);
+                singleMessagesThreadRecyclerView, toolbar);
 
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
@@ -142,6 +180,14 @@ public class SMSSendActivity extends AppCompatActivity {
         updateMessagesToRead();
     }
 
+    private void checkSendingImage() throws InterruptedException {
+        if(getIntent().hasExtra(COMPRESSED_IMAGE_BYTES)) {
+            byte[] compressedImageByte = getIntent().getByteArrayExtra(COMPRESSED_IMAGE_BYTES);
+            getIntent().removeExtra(COMPRESSED_IMAGE_BYTES);
+            address = getIntent().getStringExtra(ADDRESS);
+            sendImageMessage(compressedImageByte);
+        }
+    }
     private void updateMessagesToRead() {
         new Thread(new Runnable() {
             @Override
@@ -154,8 +200,20 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void getMessagesThreadId() {
-        if(getIntent().hasExtra(THREAD_ID))
+        if(getIntent().hasExtra(THREAD_ID)) {
             threadId = getIntent().getStringExtra(THREAD_ID);
+            Cursor cursor = SMSHandler.fetchSMSAddressFromThreadId(getApplicationContext(), threadId);
+
+            if(cursor.moveToFirst()) {
+                int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+                address = String.valueOf(cursor.getString(addressIndex));
+
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Found Address: " + address);
+            }
+
+            cursor.close();
+        }
 
         else if(getIntent().hasExtra(ADDRESS) || !address.isEmpty()) {
             if(address.isEmpty())
@@ -177,7 +235,6 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void improveMessagingUX() {
-        ActionBar ab = getSupportActionBar();
 
         smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -193,16 +250,6 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         });
 
-        smsTextView = findViewById(R.id.sms_text);
-        smsTextInputLayout = findViewById(R.id.send_text);
-
-        mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-//                smsTextInputLayout.setEndIconVisible(!s.isEmpty());
-                findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-            }
-        });
 
         smsTextView.addTextChangedListener(new TextWatcher() {
             @Override
@@ -233,16 +280,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             }
         }).start();
-
-        // TODO: if has letters, make sure reply cannot happen
-        contactName = Contacts.retrieveContactName(getApplicationContext(), address);
-        contactName = (contactName.equals("null") || contactName.isEmpty()) ?
-                address: contactName;
-        try {
-            ab.setTitle(contactName);
-        } catch(Exception e ) {
-            e.printStackTrace();
-        }
     }
 
     private void processForSharedIntent() {
@@ -274,7 +311,13 @@ public class SMSSendActivity extends AppCompatActivity {
                }
 
                smsTextView.setText(text);
-               mutableLiveDataComposeMessage.setValue(text);
+                String finalText = text;
+                runOnUiThread(new Runnable() {
+                   @Override
+                   public void run() {
+                       mutableLiveDataComposeMessage.setValue(finalText);
+                   }
+               });
             }
         }
     }
@@ -364,29 +407,58 @@ public class SMSSendActivity extends AppCompatActivity {
             notificationManager.cancel(Integer.parseInt(threadId));
     }
 
-    public void sendMessage(View view) {
+    public PendingIntent[] getPendingIntents(long messageId) {
+        Intent sentIntent = new Intent(SMS_SENT_INTENT);
+        sentIntent.putExtra(ID, messageId);
+
+        Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
+        deliveredIntent.putExtra(ID, messageId);
+
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(this, 200,
+                sentIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
+
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(this, 150,
+                deliveredIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
+
+        return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
+    }
+
+    public void sendImageMessage(byte[] imageBytes) throws InterruptedException {
+        long messageId = Helpers.generateRandomNumber();
+        PendingIntent[] pendingIntents = getPendingIntents(messageId);
+
+        handleBroadcast();
+
+        String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), address, imageBytes,
+                pendingIntents[0], pendingIntents[1], messageId);
+
+        try {
+            SMSHandler.sendSMS(getApplicationContext(), address, imageBytes,
+                    pendingIntents[0], pendingIntents[1], messageId);
+            if(BuildConfig.DEBUG)
+                Log.d(getLocalClassName(), "Image sent successfully!");
+
+            if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty())
+                threadId = tmpThreadId;
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendTextMessage(View view) {
         // TODO: Don't let sending happen if message box is empty
         String text = smsTextView.getText().toString();
 
         try {
             long messageId = Helpers.generateRandomNumber();
-            Intent sentIntent = new Intent(SMS_SENT_INTENT);
-            sentIntent.putExtra(ID, messageId);
-
-            Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
-            deliveredIntent.putExtra(ID, messageId);
-
-             PendingIntent sentPendingIntent = PendingIntent.getBroadcast(this, 200,
-                     sentIntent,
-                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
-
-            PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(this, 150,
-                    deliveredIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
+            PendingIntent[] pendingIntents = getPendingIntents(messageId);
 
             handleBroadcast();
+
             String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), address, text,
-                    sentPendingIntent, deliveredPendingIntent, messageId);
+                    pendingIntents[0], pendingIntents[1], messageId);
 
             resetSmsTextView();
             if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
@@ -451,5 +523,26 @@ public class SMSSendActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    public void uploadImage(View view) {
+        Intent galleryIntent = new Intent(
+                Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(galleryIntent , RESULT_GALLERY );
+    }
 
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RESULT_GALLERY) {
+            if (null != data) {
+                Uri imageUri = data.getData();
+
+                Intent intent = new Intent(this, ImageViewActivity.class);
+                intent.putExtra(IMAGE_URI, imageUri.toString());
+                intent.putExtra(ADDRESS, address);
+                startActivity(intent);
+                finish();
+            }
+        }
+    }
 }

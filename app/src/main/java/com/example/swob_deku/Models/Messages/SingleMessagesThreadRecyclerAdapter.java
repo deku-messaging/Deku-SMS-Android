@@ -230,9 +230,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
                 statusMessage = "• " + statusMessage;
 
-                if(mDiffer.getCurrentList().size() != (position -1) && status != Telephony.TextBasedSmsColumns.STATUS_FAILED) {
+                messageSentViewHandler.sentMessageStatus.setText(statusMessage);
+
+                if(mDiffer.getCurrentList().size() -1 != position ) {
                     messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
-                    messageSentViewHandler.sentMessageStatus.setText(statusMessage);
                 }
 
                 messageSentViewHandler.sentMessage.setOnClickListener(new View.OnClickListener() {

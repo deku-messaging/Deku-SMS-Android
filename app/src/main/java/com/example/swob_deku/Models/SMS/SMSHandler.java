@@ -8,21 +8,25 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
-import android.util.Base64;
 import android.util.Log;
+
 
 import androidx.annotation.NonNull;
 
+import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.BuildConfig;
+import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
 
-import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class SMSHandler {
-    static final short DATA_TRANSMISSION_PORT = 8901;
+    static final short DATA_TRANSMISSION_PORT = 8200;
 
     public static final Uri SMS_CONTENT_URI = Telephony.Sms.CONTENT_URI;
 
@@ -30,36 +34,68 @@ public class SMSHandler {
     public static final Uri SMS_OUTBOX_CONTENT_URI = Telephony.Sms.Outbox.CONTENT_URI;
     public static final Uri SMS_SENT_CONTENT_URI = Telephony.Sms.Sent.CONTENT_URI;
 
-    public static void sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
+    public static String sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
 
+        if(data == null)
+            return "";
+
+        String threadId = "";
+
+        String dataString = new String(data);
         try {
-            if(data == null)
-                return;
+//            data = copyBytes(data, 0, 200);
+            threadId = registerPendingMessage(context, destinationAddress, dataString, messageId);
 
-            // registerPendingMessage(context, destinationAddress, text, messageId);
-            // TODO: Handle sending multipart messages
             if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "Sending data: " + data);
+                Log.d(SMSHandler.class.getName(), "Sending data: " + new String(data));
 
-//            registerPendingMessage(context, destinationAddress, new String(data, StandardCharsets.UTF_8), messageId);
-            registerPendingMessage(context, destinationAddress, Base64.encodeToString(data, Base64.DEFAULT), messageId);
-            smsManager.sendDataMessage(
-                    destinationAddress,
-                    null,
-                    DATA_TRANSMISSION_PORT,
-                    data,
-                    sentIntent,
-                    deliveryIntent);
-            if(BuildConfig.DEBUG) {
-                Log.d(SMSHandler.class.getName(), "Data message sent...");
+//            dataString = "hello world";
+            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
+
+            for(int i=0;i<dividedMessage.size();++i) {
+                String message = dividedMessage.get(i);
+                data = message.getBytes();
+
+                PendingIntent sentIntentFinal = i == dividedMessage.size() -1 ?
+                        sentIntent : null;
+
+                PendingIntent deliveryIntentFinal = i == dividedMessage.size() -1 ?
+                        deliveryIntent : null;
+
+                smsManager.sendDataMessage(
+                        destinationAddress,
+                        null,
+                        DATA_TRANSMISSION_PORT,
+                        data,
+                        sentIntentFinal,
+                        deliveryIntentFinal);
+
+                if(BuildConfig.DEBUG)
+                    Log.d(SMSHandler.class.getName(), "Sent counter: " + i);
+                Thread.sleep(500);
             }
+        } catch(Exception e ) {
+            e.printStackTrace();
         }
-        catch(Throwable e) {
-            // throw new IllegalArgumentException(e);
-            throw e;
-        }
+
+        return threadId;
+    }
+
+    public static int countMessages(Context context, byte[] data) {
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
+        ArrayList<String> dividedMessage = smsManager.divideMessage(new String(data));
+        return dividedMessage.size();
+    }
+
+    public static byte[] copyBytes(byte[] src, int startPos, int len) {
+        byte[] dest = new byte[len];
+        for(int i=startPos, j=0; i<src.length && j<len; ++i, j++)
+            dest[j] = src[i];
+        return dest;
     }
 
     public static String sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
@@ -133,6 +169,19 @@ public class SMSHandler {
                 "address like ?",
                 new String[] { "%" + address},
                 "date ASC");
+
+        return smsMessagesCursor;
+    }
+
+    public static Cursor fetchSMSAddressFromThreadId(@NonNull Context context, String threadId) {
+        String[] selection = new String[]{Telephony.TextBasedSmsColumns.ADDRESS};
+
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_CONTENT_URI,
+                selection,
+                Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                new String[]{threadId},
+                null);
 
         return smsMessagesCursor;
     }
@@ -335,7 +384,8 @@ public class SMSHandler {
             }
         }
         catch(Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            throw e;
         }
 
         return threadId;
@@ -411,4 +461,105 @@ public class SMSHandler {
         return copysmsList;
     }
 
+    public static void interpret_PDU(byte[] pdu) throws ParseException {
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pdu.length);
+
+        String pduHex = DataHelper.getHexOfByte(pdu);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pduHex);
+
+        int pduIterator = 0;
+
+        byte SMSC_length = pdu[pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_length: " + (int) SMSC_length);
+
+        byte SMSC_address_format = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format: " +
+                Integer.toHexString(SMSC_address_format));
+
+        String SMSC_address_format_binary = DataHelper.byteToBinary(new byte[]{SMSC_address_format});
+        parse_address_format(SMSC_address_format_binary.substring(SMSC_address_format_binary.length() - 7));
+
+        byte[] SMSC_address = SMSHandler.copyBytes(pdu, ++pduIterator, --SMSC_length);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format - binary: " + SMSC_address_format_binary);
+
+        int[] addressHolder = DataHelper.nibbleToIntArray(SMSC_address);
+        String address = DataHelper.arrayToString(addressHolder);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address: " + address);
+
+        pduIterator += --SMSC_length;
+
+        // TPDU begins
+        byte first_octet = pdu[++pduIterator];
+        String first_octet_binary = Integer.toBinaryString(first_octet);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU First octet binary: " + first_octet_binary);
+
+        byte sender_address_length = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address length: " + (int)sender_address_length);
+
+        byte sender_address_type = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address type: " +
+                DataHelper.getHexOfByte(new byte[]{sender_address_type}));
+
+        byte[] sender_address = copyBytes(pdu, ++pduIterator, sender_address_length / 2);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address: " +
+                DataHelper.getHexOfByte(sender_address));
+
+        addressHolder = DataHelper.nibbleToIntArray(sender_address);
+        address = DataHelper.arrayToString(addressHolder);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMS_Sender_address: " + address);
+
+        pduIterator += (sender_address_length / 2)-1;
+
+        byte PID = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU PID: " +
+                DataHelper.getHexOfByte(new byte[]{PID}));
+
+        byte DCS = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU DCS: " +
+                DataHelper.getHexOfByte(new byte[]{DCS}));
+
+        byte[] SCTS = copyBytes(pdu, ++pduIterator, 7);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " +
+                DataHelper.getHexOfByte(SCTS));
+        String timestamp = DataHelper.arrayToString(DataHelper.nibbleToIntArray(SCTS));
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " + timestamp);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
+        Date date = sdf.parse(timestamp);
+
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Timestamp: " + date.toString());
+
+        pduIterator += 7;
+
+        byte UDL = pdu[pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU UDL: " +
+                DataHelper.getHexOfByte(new byte[]{UDL}));
+
+        byte[] user_data = copyBytes(pdu, ++pduIterator, UDL);
+        String hex_user_data = DataHelper.getHexOfByte(user_data);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " + hex_user_data);
+
+        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
+
+    }
+
+    public static void parse_address_format(String SMSC_address_format) {
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU parsing address format: " + SMSC_address_format);
+
+        // TODO: compare and match the different TON and NPI values
+        final String TON_INTERNATIONAL = "001";
+        final String TON_NATIONAL = "010";
+
+        final String NPI_ISDN = "0001";
+
+        String SMSC_TON = SMSC_address_format.substring(0, 3);
+        String SMSC_NPI = SMSC_address_format.substring(3);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_TON: " + SMSC_TON);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_NPI: " + SMSC_NPI);
+    }
+
+    public static void parse_first_octet(String SMS_first_octet) {
+        // TODO: parse
+    }
 }
