@@ -10,6 +10,7 @@ import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+
 import androidx.annotation.NonNull;
 
 import com.example.swob_deku.BroadcastSMSTextActivity;
@@ -467,27 +468,29 @@ public class SMSHandler {
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pduHex);
 
         int pduIterator = 0;
+
         byte SMSC_length = pdu[pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_length: " + (int) SMSC_length);
+
         byte SMSC_address_format = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format: " +
+                Integer.toHexString(SMSC_address_format));
+
         String SMSC_address_format_binary = DataHelper.byteToBinary(new byte[]{SMSC_address_format});
         parse_address_format(SMSC_address_format_binary.substring(SMSC_address_format_binary.length() - 7));
 
-        byte[] SMSC_address = SMSHandler.copyBytes(pdu, ++pduIterator, SMSC_length - 1);
-        pduIterator += SMSC_length - 2;
-
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_length: " + (int) SMSC_length);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format: " +
-                Integer.toHexString(SMSC_address_format));
+        byte[] SMSC_address = SMSHandler.copyBytes(pdu, ++pduIterator, --SMSC_length);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format - binary: " + SMSC_address_format_binary);
 
         int[] addressHolder = DataHelper.nibbleToIntArray(SMSC_address);
         String address = DataHelper.arrayToString(addressHolder);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address: " + address);
 
+        pduIterator += --SMSC_length;
+
         // TPDU begins
         byte first_octet = pdu[++pduIterator];
         String first_octet_binary = Integer.toBinaryString(first_octet);
-//        parse_first_octet(first_octet_binary.substring(8));
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU First octet binary: " + first_octet_binary);
 
         byte sender_address_length = pdu[++pduIterator];
@@ -500,43 +503,45 @@ public class SMSHandler {
         byte[] sender_address = copyBytes(pdu, ++pduIterator, sender_address_length / 2);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address: " +
                 DataHelper.getHexOfByte(sender_address));
-        pduIterator += sender_address_length + 1;
 
         addressHolder = DataHelper.nibbleToIntArray(sender_address);
         address = DataHelper.arrayToString(addressHolder);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMS_Sender_address: " + address);
 
+        pduIterator += (sender_address_length / 2)-1;
+
         byte PID = pdu[++pduIterator];
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU PID: " +
                 DataHelper.getHexOfByte(new byte[]{PID}));
 
-//        byte DSC = pdu[++pduIterator];
-        byte UDL = pdu[++pduIterator];
+        byte DCS = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU DCS: " +
+                DataHelper.getHexOfByte(new byte[]{DCS}));
+
+        byte[] SCTS = copyBytes(pdu, ++pduIterator, 7);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " +
+                DataHelper.getHexOfByte(SCTS));
+        String timestamp = DataHelper.arrayToString(DataHelper.nibbleToIntArray(SCTS));
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " + timestamp);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
+        Date date = sdf.parse(timestamp);
+
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Timestamp: " + date.toString());
+
+        pduIterator += 7;
+
+        byte UDL = pdu[pduIterator];
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU UDL: " +
                 DataHelper.getHexOfByte(new byte[]{UDL}));
 
-//        byte[] time_stamp_raw = copyBytes(pdu, ++pduIterator, 4);
-//        int[] time_stamp_holder = DataHelper.nibbleToIntArray(time_stamp_raw);
-//        String time_stamp = DataHelper.arrayToString(time_stamp_holder);
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Timestamp: " + time_stamp);
-//
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
-//        Date date = sdf.parse(time_stamp);
-//
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Timestamp: " + date.toString());
+        byte[] user_data = copyBytes(pdu, ++pduIterator, UDL);
+        String hex_user_data = DataHelper.getHexOfByte(user_data);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " + hex_user_data);
 
-//        byte user_data_length = pdu[++pduIterator];
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user length: " + user_data_length);
+        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
 
-//        byte[] user_data = copyBytes(pdu, ++pduIterator, pdu.length);
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " +
-//                DataHelper.getHexOfByte(user_data));
-//
-//        String hex_user_data = DataHelper.getHexOfByte(user_data)
-//                .replaceAll("\\s", "");
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data hex: " + hex_user_data);
-//        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
     }
 
     public static void parse_address_format(String SMSC_address_format) {
