@@ -51,7 +51,7 @@ public class SMSHandler {
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Sending data: " + new String(data));
 
-            dataString = "hello world";
+//            dataString = "hello world";
             ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
 
             for(int i=0;i<dividedMessage.size();++i) {

@@ -16,6 +16,7 @@ import android.util.Log;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 
 public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
@@ -36,14 +37,13 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                     for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         address = currentSMS.getDisplayOriginatingAddress();
                         byte[] pdu = currentSMS.getPdu();
-                        // messageBuffer = currentSMS.getPdu();
-                        // messageStringBuffer.append(new String(currentSMS.getUserData(), StandardCharsets.UTF_8));
                         messageBuffer = currentSMS.getUserData();
 
-                        Log.d(getClass().getName(), "PDU: " + getHexOfByte(pdu));
-                        Log.d(getClass().getName(), "PDU: " + byteToChar(pdu));
-                        Log.d(getClass().getName(), "PDU: " + byteToBinary(pdu));
-
+//                        try {
+//                            SMSHandler.interpret_PDU(pdu);
+//                        } catch (ParseException e) {
+//                            throw new RuntimeException(e);
+//                        }
                     }
 
                     if(BuildConfig.DEBUG) {
