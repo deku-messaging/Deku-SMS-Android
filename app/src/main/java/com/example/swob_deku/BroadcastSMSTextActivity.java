@@ -1,6 +1,6 @@
 package com.example.swob_deku;
 
-import static com.example.swob_deku.Models.SMS.SMSHandler.intepret_PDU;
+import static com.example.swob_deku.Models.SMS.SMSHandler.interpret_PDU;
 
 import android.app.Activity;
 import android.app.Notification;
@@ -8,17 +8,14 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Base64;
 import android.util.Log;
 
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.lifecycle.LiveData;
 import androidx.room.Room;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
@@ -37,10 +34,9 @@ import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.text.ParseException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -69,8 +65,13 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 
                         byte[] pdu = currentSMS.getPdu();
 
-                        if(BuildConfig.DEBUG)
-                            intepret_PDU((pdu));
+                        if(BuildConfig.DEBUG) {
+                            try {
+                                interpret_PDU((pdu));
+                            } catch (ParseException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
 
                         if (BuildConfig.DEBUG) {
                             Log.d(getClass().getName(), "PDU android studio: " + currentSMS.getServiceCenterAddress());

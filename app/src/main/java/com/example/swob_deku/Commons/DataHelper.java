@@ -35,7 +35,7 @@ public class DataHelper {
     public static String getHexOfByte(byte[] b) {
         String hexString = "";
         for(byte b1 : b)
-            hexString += Integer.toHexString(b1 & 0xFF).toUpperCase() + " ";
+            hexString += Integer.toHexString(b1 & 0xFF).toUpperCase();
         return hexString;
     }
 
@@ -56,5 +56,14 @@ public class DataHelper {
             ints[j+1] = data[1];
         }
         return ints;
+    }
+
+    public static String hexToAscii(String hexStr) {
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < hexStr.length(); i += 2) {
+            String str = hexStr.substring(i, i + 2);
+            output.append((char) Integer.parseInt(str, 16));
+        }
+        return output.toString();
     }
 }

@@ -17,7 +17,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
-import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,7 +30,7 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.util.ArrayList;
+import java.text.ParseException;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -119,7 +118,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         0x67, 0x9, 0x28, 0x26, 0x24, 0x0, 0x0, 0x32, 0x20, 0x91, 0x1, 0x73, 0x74,
                         0x40, 0x7, 0xE8, 0x72, 0x1E, 0xD4, 0x2E, 0xBB, 0x1};
 
-                SMSHandler.intepret_PDU(DataHelper.intArrayToByteArray(pdu));
+                try {
+                    SMSHandler.interpret_PDU(DataHelper.intArrayToByteArray(pdu));
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }).start();
     }
