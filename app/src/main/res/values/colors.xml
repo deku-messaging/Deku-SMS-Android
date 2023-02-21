@@ -11,4 +11,7 @@
     <color name="theme_dark">#181c1f</color>
     <color name="read_text">#e2e3e5</color>
     <color name="text_box">#242f35</color>
+    <color name="blue">#A2C4D6</color>
+    <color name="light_blue"> #FF219BCC </color>
+    <color name="sent_blue">#A2C4D6</color>
 </resources>
