@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 import android.util.Log;
 
 
@@ -18,6 +19,7 @@ import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
 
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ import java.util.Date;
 import java.util.List;
 
 public class SMSHandler {
-    static final short DATA_TRANSMISSION_PORT = 8200;
+    public static final short DATA_TRANSMISSION_PORT = 8200;
 
     public static final Uri SMS_CONTENT_URI = Telephony.Sms.CONTENT_URI;
 
@@ -462,6 +464,10 @@ public class SMSHandler {
     }
 
     public static void interpret_PDU(byte[] pdu) throws ParseException {
+
+//                int[] receivedPDU = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
+//                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
+//                        0x1e,0xd4,0x2e,0xbb,0x01};
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pdu.length);
 
         String pduHex = DataHelper.getHexOfByte(pdu);
@@ -561,5 +567,55 @@ public class SMSHandler {
 
     public static void parse_first_octet(String SMS_first_octet) {
         // TODO: parse
+    }
+
+    public static void bad_experiments(Context context) {
+        String DA = "+237690816242";
+        PDUConverter.PDUEncoded pduEncoded = PDUConverter.encode("", DA, "", "hello_world");
+        String encoded = pduEncoded.getPduEncoded();
+//        Log.d(getLocalClassName(), "PDU encoded: " + encoded);
+
+        SmsMessage smsMessage = SmsMessage.createFromPdu(DataHelper.hexStringToByteArray(encoded));
+//        Log.d(getLocalClassName(), "PDU SMSC address: " + smsMessage.getMessageBody());
+
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
+        SmsMessage.SubmitPdu submitPdu = SmsMessage.getSubmitPdu(null,
+                DA,
+                SMSHandler.DATA_TRANSMISSION_PORT, "hello world".getBytes(StandardCharsets.UTF_8),
+                true);
+
+//        submitPdu.encodedMessage = smsMessage.getPdu();
+
+        Log.d(SMSHandler.class.getName(), "PDU message: " + DataHelper.toHexString(submitPdu.encodedMessage));
+
+        /*
+        * This shit is intended for rooted phones only
+        // Get method "sendRawPdu"
+        byte[] bb = new byte[1];
+        SmsMessage.SubmitPdu mypdu = SmsMessage.getSubmitPdu(null, pNo, msg, true);
+        size = (int) mypdu.encodedMessage[2];
+        size = (size / 2) + (size % 2);
+
+        mypdu.encodedMessage[size + 5] = (byte) 0xF0;
+
+        Log.d(TAG, dumpHexString(mypdu.encodedMessage, 0, mypdu.encodedMessage.toString().length()));
+
+        Method m2 = SmsManager.class.getDeclaredMethod("sendRawPdu", bb.getClass(),bb.getClass(),PendingIntent.class,PendingIntent.class,boolean.class,boolean.class);
+        Log.d("success", "success getting sendRawPdu");
+
+        m2.setAccessible(true);
+
+        int length = msg.length();
+        count = length / 160;
+        int m = length % 160;
+        if (m != 0) {
+            count++;
+        }
+
+        m2.invoke(sm, mypdu.encodedScAddress,mypdu.encodedMessage,sentPI,deliveredPI, Boolean.valueOf(true),Boolean.valueOf(true));
+        Log.d("success", "success sending message");
+        */
     }
 }
