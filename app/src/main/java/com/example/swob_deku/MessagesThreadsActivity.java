@@ -1,9 +1,11 @@
 package com.example.swob_deku;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -125,6 +127,20 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 }
             }
         }).start();
+
+
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(RecyclerView messagesThreadRecyclerView, RecyclerView.ViewHolder viewHolder) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                messagesThreadRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
+
+            }
+        };
     }
 
     private void cancelAllNotifications() {
