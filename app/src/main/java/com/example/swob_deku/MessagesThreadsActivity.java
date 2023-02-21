@@ -125,7 +125,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                // SMSHandler.bad_experiments(getApplicationContext());
+                 SMSHandler.bad_experiments(getApplicationContext());
             }
         }).start();
     }

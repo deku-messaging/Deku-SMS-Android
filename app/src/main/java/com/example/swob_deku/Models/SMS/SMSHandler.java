@@ -570,6 +570,10 @@ public class SMSHandler {
     }
 
     public static void bad_experiments(Context context) {
+        /**
+         * The issue being faced is that they simply don't wanna let developers do this!
+         * https://issuetracker.google.com/issues/36917186
+         */
         String DA = "+237690816242";
         PDUConverter.PDUEncoded pduEncoded = PDUConverter.encode("", DA, "", "hello_world");
         String encoded = pduEncoded.getPduEncoded();
