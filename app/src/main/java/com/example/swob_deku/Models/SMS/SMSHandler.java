@@ -482,7 +482,7 @@ public class SMSHandler {
         byte[] SMSC_address = SMSHandler.copyBytes(pdu, ++pduIterator, --SMSC_length);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format - binary: " + SMSC_address_format_binary);
 
-        int[] addressHolder = DataHelper.nibbleToIntArray(SMSC_address);
+        int[] addressHolder = DataHelper.bytesToNibbleArray(SMSC_address);
         String address = DataHelper.arrayToString(addressHolder);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address: " + address);
 
@@ -504,7 +504,7 @@ public class SMSHandler {
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address: " +
                 DataHelper.getHexOfByte(sender_address));
 
-        addressHolder = DataHelper.nibbleToIntArray(sender_address);
+        addressHolder = DataHelper.bytesToNibbleArray(sender_address);
         address = DataHelper.arrayToString(addressHolder);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMS_Sender_address: " + address);
 
@@ -521,7 +521,7 @@ public class SMSHandler {
         byte[] SCTS = copyBytes(pdu, ++pduIterator, 7);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " +
                 DataHelper.getHexOfByte(SCTS));
-        String timestamp = DataHelper.arrayToString(DataHelper.nibbleToIntArray(SCTS));
+        String timestamp = DataHelper.arrayToString(DataHelper.bytesToNibbleArray(SCTS));
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " + timestamp);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");

@@ -1,5 +1,9 @@
 package com.example.swob_deku.Commons;
 
+import android.util.Log;
+
+import java.io.ByteArrayOutputStream;
+
 public class DataHelper {
 
     public static int[] getNibbleFromByte(byte b) {
@@ -32,11 +36,19 @@ public class DataHelper {
         return stringBuilder.toString();
     }
 
+    public static String toHexString(byte[] bytes) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(byte b: bytes)
+            stringBuilder.append(Integer.toHexString(b));
+        return stringBuilder.toString();
+    }
+
     public static String getHexOfByte(byte[] bytes) {
-        StringBuffer buffer = new StringBuffer();
-        for(int i=0; i < bytes.length; i++){
-            buffer.append(Character.forDigit((bytes[i] >> 4) & 0xF, 16));
-            buffer.append(Character.forDigit((bytes[i] & 0xF), 16));
+        StringBuilder buffer = new StringBuilder();
+        for (byte aByte : bytes) {
+            buffer.append(Character.forDigit((aByte >> 4) & 0xF, 16));
+            buffer.append(Character.forDigit((aByte & 0xF), 16));
         }
         return buffer.toString();
     }
@@ -50,7 +62,18 @@ public class DataHelper {
         return array;
     }
 
-    public static int[] nibbleToIntArray(byte[] bytes) {
+    public static byte[] stringToNibble(String strData) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        for(int i=0; i<strData.length(); i+=2 ) {
+            int val1 = Integer.parseInt(strData.substring(i, i+1));
+            int val2 = Integer.parseInt(strData.substring(i+1, i+2));
+            byteArrayOutputStream.write((byte) ((val1 << 4) | val2 ));
+        }
+
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    public static int[] bytesToNibbleArray(byte[] bytes) {
         int ints[] = new int[bytes.length * 2];
         for(int i=0, j=0;i<bytes.length; ++i, j+=2) {
             int[] data = getNibbleFromByte(bytes[i]);
@@ -68,4 +91,24 @@ public class DataHelper {
         }
         return output.toString();
     }
+
+    private static String destinationNumberLength(String number) {
+        number = number.replace("[^\\d]", "");
+        return stringHexLength(number.length());
+    }
+
+    /**
+     * returns the length of given length l as hexvalue String.
+     *
+     * @param l
+     * @return
+     */
+    private static String stringHexLength(int l) {
+        String length = Integer.toHexString(l);
+        if (length.length() < 2)
+            length = "0" + length;
+
+        return length;
+    }
+
 }

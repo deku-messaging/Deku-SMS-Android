@@ -17,6 +17,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
+import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
+import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,12 +28,15 @@ import android.widget.PopupMenu;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
+import com.example.swob_deku.Models.SMS.PDUConverter;
 import com.example.swob_deku.Models.SMS.SMS;
-import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.text.ParseException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -111,20 +117,47 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
 
         // TODO: remove
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                int[] pdu = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+//                int[] receivedPDU = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
 //                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
 //                        0x1e,0xd4,0x2e,0xbb,0x01};
-//
+
+//                String DA = "+237652156811";
+//                String encodedPhoneNumber = PDUConverter.encodePhoneNumber(DA);
+//                Log.d(getLocalClassName(), "PDU encoded phonenumber: " + encodedPhoneNumber);
+
+                /*
+0011000c91326709282624 00 00 322012208360040BE 8329BFD6DDDF723619
+0011000C91326709282624 00 00 0B0BE 8329BFD06DDDF723619
+0011000C91326709282624 00 00 FF0BE 8329BFD06DDDF723619
+                 */
+
+//                PDUConverter.PDUEncoded pduEncoded = PDUConverter.encode("", "+237690826242", "", "hello world");
+                PDUConverter.PDUEncoded pduEncoded = PDUConverter.encode("", "+237690826242", "", "hello world now");
+                String encoded = pduEncoded.getPduEncoded();
+                Log.d(getLocalClassName(), "PDU encoded: " + encoded);
+
+//                encoded = encoded.replaceFirst("01", "00");
+//                Log.d(getLocalClassName(), "PDU encoded: " + encoded);
+//                ByteArrayOutputStream sendingPDU = new ByteArrayOutputStream();
+//                try {
+//                    sendingPDU.write(new byte[]{0x00, 0x11, 0x00, 0x0B});
+//                    SmsMessage smsMessage = SmsMessage.createFromPdu(sendingPDU.toByteArray());
+////                    sendingPDU.write(encodedPhoneNumber.getBytes(StandardCharsets.UTF_8));
+//                    Log.d(getLocalClassName(), "PDU: " + Integer.parseInt(encodedPhoneNumber));
+//                } catch (IOException e) {
+//                    throw new RuntimeException(e);
+//                }
+
 //                try {
 //                    SMSHandler.interpret_PDU(DataHelper.intArrayToByteArray(pdu));
 //                } catch (ParseException e) {
 //                    throw new RuntimeException(e);
 //                }
-//            }
-//        }).start();
+            }
+        }).start();
     }
 
     private void cancelAllNotifications() {
