@@ -129,7 +129,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         }).start();
 
 
-        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(RecyclerView messagesThreadRecyclerView, RecyclerView.ViewHolder viewHolder) {
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
@@ -137,10 +137,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                messagesThreadRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
+//                messagesThreadRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
 
             }
         };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(messagesThreadRecyclerView);
     }
 
     private void cancelAllNotifications() {
