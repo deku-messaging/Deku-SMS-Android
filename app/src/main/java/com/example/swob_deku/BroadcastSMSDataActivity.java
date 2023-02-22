@@ -36,9 +36,9 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                     for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         address = currentSMS.getDisplayOriginatingAddress();
+
                         byte[] pdu = currentSMS.getPdu();
                         messageBuffer = currentSMS.getUserData();
-
 //                        try {
 //                            SMSHandler.interpret_PDU(pdu);
 //                        } catch (ParseException e) {

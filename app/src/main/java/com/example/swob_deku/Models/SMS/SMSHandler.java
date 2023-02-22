@@ -54,11 +54,11 @@ public class SMSHandler {
                 Log.d(SMSHandler.class.getName(), "Sending data: " + new String(data));
 
 //            dataString = "hello world";
-            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
+//            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
+            ArrayList<byte[]> dividedMessage = divideMessage(data);
 
             for(int i=0;i<dividedMessage.size();++i) {
-                String message = dividedMessage.get(i);
-                data = message.getBytes();
+                data = dividedMessage.get(i);
 
                 PendingIntent sentIntentFinal = i == dividedMessage.size() -1 ?
                         sentIntent : null;
@@ -573,6 +573,8 @@ public class SMSHandler {
         /**
          * The issue being faced is that they simply don't wanna let developers do this!
          * https://issuetracker.google.com/issues/36917186
+         * https://pastebin.com/6uueFLCU
+         * https://stackoverflow.com/questions/24464237/send-sms-in-pdu-mode-in-android
          */
         String DA = "+237690816242";
         PDUConverter.PDUEncoded pduEncoded = PDUConverter.encode("", DA, "", "hello_world");
@@ -621,5 +623,21 @@ public class SMSHandler {
         m2.invoke(sm, mypdu.encodedScAddress,mypdu.encodedMessage,sentPI,deliveredPI, Boolean.valueOf(true),Boolean.valueOf(true));
         Log.d("success", "success sending message");
         */
+    }
+
+    public static ArrayList<byte[]> divideMessage(byte[] bytes) {
+        final int DIVIDE_CONST = 130;
+
+        ArrayList<byte[]> messages = new ArrayList<>();
+
+        if(bytes.length < DIVIDE_CONST)
+            messages.add(bytes);
+        else {
+            for(int i=0;i<bytes.length; i+=DIVIDE_CONST) {
+                messages.add(copyBytes(bytes, i, DIVIDE_CONST));
+            }
+        }
+
+        return messages;
     }
 }

@@ -119,15 +119,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
-
-
-        // TODO: remove
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                 SMSHandler.bad_experiments(getApplicationContext());
-            }
-        }).start();
     }
 
     private void cancelAllNotifications() {
