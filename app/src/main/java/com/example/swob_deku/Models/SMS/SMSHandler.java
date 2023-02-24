@@ -57,25 +57,33 @@ public class SMSHandler {
 //            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
             ArrayList<byte[]> dividedMessage = divideMessage(data);
 
-            for(int i=0;i<dividedMessage.size();++i) {
-                data = dividedMessage.get(i);
+            byte sendingReferenceId = 0;
+            for(byte sendingMessageId =0; sendingMessageId<dividedMessage.size();++sendingMessageId) {
+                byte[] rawData = dividedMessage.get(sendingMessageId);
 
-                PendingIntent sentIntentFinal = i == dividedMessage.size() -1 ?
+                byte[] sendingData = new byte[rawData.length + 2];
+                sendingData[0] = sendingReferenceId;
+                sendingData[1] = sendingMessageId;
+
+                // TODO: put this information before dividing it
+                System.arraycopy(rawData, 0, sendingData, 2, rawData.length);
+
+                PendingIntent sentIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
                         sentIntent : null;
 
-                PendingIntent deliveryIntentFinal = i == dividedMessage.size() -1 ?
+                PendingIntent deliveryIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
                         deliveryIntent : null;
 
                 smsManager.sendDataMessage(
                         destinationAddress,
                         null,
                         DATA_TRANSMISSION_PORT,
-                        data,
+                        sendingData,
                         sentIntentFinal,
                         deliveryIntentFinal);
 
                 if(BuildConfig.DEBUG)
-                    Log.d(SMSHandler.class.getName(), "Sent counter: " + i);
+                    Log.d(SMSHandler.class.getName(), "Sent counter: " + sendingMessageId);
                 Thread.sleep(500);
             }
         } catch(Exception e ) {
@@ -541,12 +549,12 @@ public class SMSHandler {
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU UDL: " +
                 DataHelper.getHexOfByte(new byte[]{UDL}));
 
-        byte[] user_data = copyBytes(pdu, ++pduIterator, UDL);
-        String hex_user_data = DataHelper.getHexOfByte(user_data);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " + hex_user_data);
-
-        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
+//        byte[] user_data = copyBytes(pdu, ++pduIterator, UDL);
+//        String hex_user_data = DataHelper.getHexOfByte(user_data);
+//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " + hex_user_data);
+//
+//        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
+//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
 
     }
 

@@ -39,19 +39,24 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                         byte[] pdu = currentSMS.getPdu();
                         messageBuffer = currentSMS.getUserData();
-//                        try {
-//                            SMSHandler.interpret_PDU(pdu);
-//                        } catch (ParseException e) {
-//                            throw new RuntimeException(e);
-//                        }
+                        try {
+                            SMSHandler.interpret_PDU(pdu);
+                        } catch (ParseException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
 
                     if(BuildConfig.DEBUG) {
                         Log.d(getClass().getName(), "Message Address: " + address);
                         Log.d(getClass().getName(), "Message bytes: " + messageBuffer);
                     }
-
 //                    String b64Message = new String(Base64.encode(messageBuffer, Base64.DEFAULT), StandardCharsets.UTF_8);
+                    int[] extractedMeta = extractMessageMeta(messageBuffer);
+                    if(extractedMeta != null)
+                        Log.d(getClass().getName(), "PDU Extracted meta: " + extractedMeta[0] + ":" + extractedMeta[1]);
+                    else
+                        Log.d(getClass().getName(), "PDU extracted was null");
+
                     String strMessage = new String(messageBuffer, StandardCharsets.UTF_8);
                     Log.d(getClass().getName(), "PDU data incoming: " + strMessage);
                     long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
@@ -61,5 +66,12 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                     break;
             }
         }
+    }
+
+    public int[] extractMessageMeta(byte[] data) {
+        if(data.length < 2)
+            return null;
+
+        return new int[]{data[0], data[1]};
     }
 }

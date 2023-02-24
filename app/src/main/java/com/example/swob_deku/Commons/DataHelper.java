@@ -123,4 +123,14 @@ public class DataHelper {
         return length;
     }
 
+    public static int intToNibble(int value1, int value2) {
+        int nibble = (value1 & 0xF0) | (value2 & 0x0F);
+        return nibble;
+    }
+
+
+    public static byte intToByte(int data) {
+        return (byte) (data & 0xFF);
+    }
+
 }
