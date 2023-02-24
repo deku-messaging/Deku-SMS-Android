@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,9 +22,13 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
+import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,12 +38,18 @@ import android.widget.PopupMenu;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
+import com.example.swob_deku.Models.SMS.PDUConverter;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.text.ParseException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -117,20 +128,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     }
                 });
 
-
-        // TODO: remove
         new Thread(new Runnable() {
             @Override
             public void run() {
-                int[] pdu = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
-                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
-                        0x1e,0xd4,0x2e,0xbb,0x01};
-
-                try {
-                    SMSHandler.interpret_PDU(DataHelper.intArrayToByteArray(pdu));
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
+                byte val = 0x00;
+                Log.d(getLocalClassName(), "Maths: " + ++val);
+                Log.d(getLocalClassName(), "Maths: " + ++val);
             }
         }).start();
 

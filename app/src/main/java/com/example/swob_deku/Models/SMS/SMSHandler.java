@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 import android.util.Log;
 
 
@@ -18,6 +19,7 @@ import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
 
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ import java.util.Date;
 import java.util.List;
 
 public class SMSHandler {
-    static final short DATA_TRANSMISSION_PORT = 8200;
+    public static final short DATA_TRANSMISSION_PORT = 8200;
 
     public static final Uri SMS_CONTENT_URI = Telephony.Sms.CONTENT_URI;
 
@@ -52,28 +54,42 @@ public class SMSHandler {
                 Log.d(SMSHandler.class.getName(), "Sending data: " + new String(data));
 
 //            dataString = "hello world";
-            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
+//            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
+            ArrayList<byte[]> dividedMessage = divideMessage(data);
 
-            for(int i=0;i<dividedMessage.size();++i) {
-                String message = dividedMessage.get(i);
-                data = message.getBytes();
+            final byte sendingReferenceId = 0x00;
+            for(byte sendingMessageId = 0x00; sendingMessageId<dividedMessage.size();++sendingMessageId) {
+                int dest = 0;
+                byte[] rawData = dividedMessage.get(sendingMessageId);
 
-                PendingIntent sentIntentFinal = i == dividedMessage.size() -1 ?
+                int totalSendingLength = sendingMessageId == 0x00 ? rawData.length + 3 :
+                        rawData.length + 2;
+                byte[] sendingData = new byte[totalSendingLength];
+                sendingData[dest] = sendingReferenceId;
+                sendingData[++dest] = sendingMessageId;
+
+                // TODO: put this information before dividing it
+                if(sendingMessageId == 0x00)
+                    sendingData[++dest] = DataHelper.intToByte(dividedMessage.size());
+
+                System.arraycopy(rawData, 0, sendingData, ++dest, rawData.length);
+
+                PendingIntent sentIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
                         sentIntent : null;
 
-                PendingIntent deliveryIntentFinal = i == dividedMessage.size() -1 ?
+                PendingIntent deliveryIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
                         deliveryIntent : null;
 
                 smsManager.sendDataMessage(
                         destinationAddress,
                         null,
                         DATA_TRANSMISSION_PORT,
-                        data,
+                        sendingData,
                         sentIntentFinal,
                         deliveryIntentFinal);
 
                 if(BuildConfig.DEBUG)
-                    Log.d(SMSHandler.class.getName(), "Sent counter: " + i);
+                    Log.d(SMSHandler.class.getName(), "Sent counter: " + sendingMessageId);
                 Thread.sleep(500);
             }
         } catch(Exception e ) {
@@ -96,6 +112,24 @@ public class SMSHandler {
         for(int i=startPos, j=0; i<src.length && j<len; ++i, j++)
             dest[j] = src[i];
         return dest;
+    }
+
+    public static ArrayList<byte[]> divideMessage(byte[] bytes) {
+        final int FIRST_DIVIDE_CONST = 130;
+        final int DIVIDE_CONST = 130;
+
+        ArrayList<byte[]> messages = new ArrayList<>();
+
+        if(bytes.length < DIVIDE_CONST)
+            messages.add(bytes);
+        else {
+            messages.add(copyBytes(bytes, 0, FIRST_DIVIDE_CONST));
+            for(int i=FIRST_DIVIDE_CONST;i<bytes.length; i+=DIVIDE_CONST) {
+                messages.add(copyBytes(bytes, i, DIVIDE_CONST));
+            }
+        }
+
+        return messages;
     }
 
     public static String sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
@@ -462,6 +496,10 @@ public class SMSHandler {
     }
 
     public static void interpret_PDU(byte[] pdu) throws ParseException {
+
+//                int[] receivedPDU = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
+//                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
+//                        0x1e,0xd4,0x2e,0xbb,0x01};
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pdu.length);
 
         String pduHex = DataHelper.getHexOfByte(pdu);
@@ -482,7 +520,7 @@ public class SMSHandler {
         byte[] SMSC_address = SMSHandler.copyBytes(pdu, ++pduIterator, --SMSC_length);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format - binary: " + SMSC_address_format_binary);
 
-        int[] addressHolder = DataHelper.nibbleToIntArray(SMSC_address);
+        int[] addressHolder = DataHelper.bytesToNibbleArray(SMSC_address);
         String address = DataHelper.arrayToString(addressHolder);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address: " + address);
 
@@ -504,7 +542,7 @@ public class SMSHandler {
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address: " +
                 DataHelper.getHexOfByte(sender_address));
 
-        addressHolder = DataHelper.nibbleToIntArray(sender_address);
+        addressHolder = DataHelper.bytesToNibbleArray(sender_address);
         address = DataHelper.arrayToString(addressHolder);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMS_Sender_address: " + address);
 
@@ -521,7 +559,7 @@ public class SMSHandler {
         byte[] SCTS = copyBytes(pdu, ++pduIterator, 7);
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " +
                 DataHelper.getHexOfByte(SCTS));
-        String timestamp = DataHelper.arrayToString(DataHelper.nibbleToIntArray(SCTS));
+        String timestamp = DataHelper.arrayToString(DataHelper.bytesToNibbleArray(SCTS));
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " + timestamp);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
@@ -535,12 +573,12 @@ public class SMSHandler {
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU UDL: " +
                 DataHelper.getHexOfByte(new byte[]{UDL}));
 
-        byte[] user_data = copyBytes(pdu, ++pduIterator, UDL);
-        String hex_user_data = DataHelper.getHexOfByte(user_data);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " + hex_user_data);
-
-        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
+//        byte[] user_data = copyBytes(pdu, ++pduIterator, UDL);
+//        String hex_user_data = DataHelper.getHexOfByte(user_data);
+//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " + hex_user_data);
+//
+//        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
+//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
 
     }
 
@@ -562,4 +600,61 @@ public class SMSHandler {
     public static void parse_first_octet(String SMS_first_octet) {
         // TODO: parse
     }
+
+    public static void bad_experiments(Context context) {
+        /**
+         * The issue being faced is that they simply don't wanna let developers do this!
+         * https://issuetracker.google.com/issues/36917186
+         * https://pastebin.com/6uueFLCU
+         * https://stackoverflow.com/questions/24464237/send-sms-in-pdu-mode-in-android
+         */
+        String DA = "+237690816242";
+        PDUConverter.PDUEncoded pduEncoded = PDUConverter.encode("", DA, "", "hello_world");
+        String encoded = pduEncoded.getPduEncoded();
+//        Log.d(getLocalClassName(), "PDU encoded: " + encoded);
+
+        SmsMessage smsMessage = SmsMessage.createFromPdu(DataHelper.hexStringToByteArray(encoded));
+//        Log.d(getLocalClassName(), "PDU SMSC address: " + smsMessage.getMessageBody());
+
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
+        SmsMessage.SubmitPdu submitPdu = SmsMessage.getSubmitPdu(null,
+                DA,
+                SMSHandler.DATA_TRANSMISSION_PORT, "hello world".getBytes(StandardCharsets.UTF_8),
+                true);
+
+//        submitPdu.encodedMessage = smsMessage.getPdu();
+
+        Log.d(SMSHandler.class.getName(), "PDU message: " + DataHelper.toHexString(submitPdu.encodedMessage));
+
+        /*
+        * This shit is intended for rooted phones only
+        // Get method "sendRawPdu"
+        byte[] bb = new byte[1];
+        SmsMessage.SubmitPdu mypdu = SmsMessage.getSubmitPdu(null, pNo, msg, true);
+        size = (int) mypdu.encodedMessage[2];
+        size = (size / 2) + (size % 2);
+
+        mypdu.encodedMessage[size + 5] = (byte) 0xF0;
+
+        Log.d(TAG, dumpHexString(mypdu.encodedMessage, 0, mypdu.encodedMessage.toString().length()));
+
+        Method m2 = SmsManager.class.getDeclaredMethod("sendRawPdu", bb.getClass(),bb.getClass(),PendingIntent.class,PendingIntent.class,boolean.class,boolean.class);
+        Log.d("success", "success getting sendRawPdu");
+
+        m2.setAccessible(true);
+
+        int length = msg.length();
+        count = length / 160;
+        int m = length % 160;
+        if (m != 0) {
+            count++;
+        }
+
+        m2.invoke(sm, mypdu.encodedScAddress,mypdu.encodedMessage,sentPI,deliveredPI, Boolean.valueOf(true),Boolean.valueOf(true));
+        Log.d("success", "success sending message");
+        */
+    }
+
 }

@@ -36,23 +36,31 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                     for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         address = currentSMS.getDisplayOriginatingAddress();
+
                         byte[] pdu = currentSMS.getPdu();
                         messageBuffer = currentSMS.getUserData();
-
-//                        try {
-//                            SMSHandler.interpret_PDU(pdu);
-//                        } catch (ParseException e) {
-//                            throw new RuntimeException(e);
-//                        }
+                        try {
+                            SMSHandler.interpret_PDU(pdu);
+                        } catch (ParseException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
 
                     if(BuildConfig.DEBUG) {
                         Log.d(getClass().getName(), "Message Address: " + address);
                         Log.d(getClass().getName(), "Message bytes: " + messageBuffer);
                     }
-
 //                    String b64Message = new String(Base64.encode(messageBuffer, Base64.DEFAULT), StandardCharsets.UTF_8);
+                    byte[] extractedMeta = extractMessageMeta(messageBuffer);
+                    if(extractedMeta != null)
+                        for(int i=0;i<extractedMeta.length;++i) {
+                            Log.d(getClass().getName(), "PDU Extracted meta: " + i + "-> " + extractedMeta[i]);
+                        }
+                    else
+                        Log.d(getClass().getName(), "PDU extracted was null");
+
                     String strMessage = new String(messageBuffer, StandardCharsets.UTF_8);
+                    Log.d(getClass().getName(), "PDU data incoming: " + strMessage);
                     long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
                     String notificationNote = "New image data!";
@@ -60,5 +68,19 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                     break;
             }
         }
+    }
+
+    public byte[] extractMessageMeta(byte[] data) {
+        if(data.length < 2)
+            return null;
+
+        /**
+         * 0 = Reference ID
+         * 1 = Message ID
+         * 2 = Total number of messages
+         */
+        if(data[1] == (byte) 0)
+            return new byte[]{data[0], data[1], data[2]};
+        return new byte[]{data[0], data[1]};
     }
 }

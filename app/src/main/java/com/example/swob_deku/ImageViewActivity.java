@@ -64,6 +64,7 @@ public class ImageViewActivity extends AppCompatActivity {
     }
 
     private void buildImage() throws IOException {
+        // TODO: messages >40 trigger large message warning...
         ImageHandler imageHandler = new ImageHandler(getApplicationContext(), imageUri);
 
         final int SCALE_DOWN_RATIO = 3;
@@ -72,14 +73,15 @@ public class ImageViewActivity extends AppCompatActivity {
         int resizeScale = imageHandler.bitmap.getWidth() / SCALE_DOWN_RATIO;
 
         Bitmap imageBitmap = imageHandler.resizeImage(resizeScale);
-        String description = "- Original resolution: " + imageHandler.bitmap.getWidth() + "x" + imageHandler.bitmap.getHeight();
-        description += "\n\n- Resize scale: " + resizeScale;
-        description += "\n- Resize resolution: " + imageBitmap.getWidth() + "x" + imageBitmap.getHeight();
 
+        String description = "- Original resolution: " + imageHandler.bitmap.getWidth() + "x"
+                + imageHandler.bitmap.getHeight();
+        description += "\n\n- Resize scale: " + resizeScale;
+        description += "\n- Resize resolution: " + imageBitmap.getWidth()
+                + "x" + imageBitmap.getHeight();
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
         description += "\n\n- Compressed bytes: " + compressedBytes.length;
-        description += "\n- Approx #SMS: " + SMSHandler.countMessages(getApplicationContext(), compressedBytes);
-
+        description += "\n- Approx #SMS: " + SMSHandler.divideMessage(compressedBytes).size();
         compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
 
         imageDescription.setText(description);
