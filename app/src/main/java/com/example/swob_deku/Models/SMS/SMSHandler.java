@@ -57,16 +57,22 @@ public class SMSHandler {
 //            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
             ArrayList<byte[]> dividedMessage = divideMessage(data);
 
-            byte sendingReferenceId = 0;
-            for(byte sendingMessageId =0; sendingMessageId<dividedMessage.size();++sendingMessageId) {
+            final byte sendingReferenceId = 0x00;
+            for(byte sendingMessageId = 0x00; sendingMessageId<dividedMessage.size();++sendingMessageId) {
+                int dest = 0;
                 byte[] rawData = dividedMessage.get(sendingMessageId);
 
-                byte[] sendingData = new byte[rawData.length + 2];
-                sendingData[0] = sendingReferenceId;
-                sendingData[1] = sendingMessageId;
+                int totalSendingLength = sendingMessageId == 0x00 ? rawData.length + 3 :
+                        rawData.length + 2;
+                byte[] sendingData = new byte[totalSendingLength];
+                sendingData[dest] = sendingReferenceId;
+                sendingData[++dest] = sendingMessageId;
 
                 // TODO: put this information before dividing it
-                System.arraycopy(rawData, 0, sendingData, 2, rawData.length);
+                if(sendingMessageId == 0x00)
+                    sendingData[++dest] = DataHelper.intToByte(dividedMessage.size());
+
+                System.arraycopy(rawData, 0, sendingData, ++dest, rawData.length);
 
                 PendingIntent sentIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
                         sentIntent : null;
@@ -106,6 +112,24 @@ public class SMSHandler {
         for(int i=startPos, j=0; i<src.length && j<len; ++i, j++)
             dest[j] = src[i];
         return dest;
+    }
+
+    public static ArrayList<byte[]> divideMessage(byte[] bytes) {
+        final int FIRST_DIVIDE_CONST = 130;
+        final int DIVIDE_CONST = 130;
+
+        ArrayList<byte[]> messages = new ArrayList<>();
+
+        if(bytes.length < DIVIDE_CONST)
+            messages.add(bytes);
+        else {
+            messages.add(copyBytes(bytes, 0, FIRST_DIVIDE_CONST));
+            for(int i=FIRST_DIVIDE_CONST;i<bytes.length; i+=DIVIDE_CONST) {
+                messages.add(copyBytes(bytes, i, DIVIDE_CONST));
+            }
+        }
+
+        return messages;
     }
 
     public static String sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
@@ -633,19 +657,4 @@ public class SMSHandler {
         */
     }
 
-    public static ArrayList<byte[]> divideMessage(byte[] bytes) {
-        final int DIVIDE_CONST = 130;
-
-        ArrayList<byte[]> messages = new ArrayList<>();
-
-        if(bytes.length < DIVIDE_CONST)
-            messages.add(bytes);
-        else {
-            for(int i=0;i<bytes.length; i+=DIVIDE_CONST) {
-                messages.add(copyBytes(bytes, i, DIVIDE_CONST));
-            }
-        }
-
-        return messages;
-    }
 }

@@ -51,9 +51,11 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                         Log.d(getClass().getName(), "Message bytes: " + messageBuffer);
                     }
 //                    String b64Message = new String(Base64.encode(messageBuffer, Base64.DEFAULT), StandardCharsets.UTF_8);
-                    int[] extractedMeta = extractMessageMeta(messageBuffer);
+                    byte[] extractedMeta = extractMessageMeta(messageBuffer);
                     if(extractedMeta != null)
-                        Log.d(getClass().getName(), "PDU Extracted meta: " + extractedMeta[0] + ":" + extractedMeta[1]);
+                        for(int i=0;i<extractedMeta.length;++i) {
+                            Log.d(getClass().getName(), "PDU Extracted meta: " + i + "-> " + extractedMeta[i]);
+                        }
                     else
                         Log.d(getClass().getName(), "PDU extracted was null");
 
@@ -68,10 +70,17 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
         }
     }
 
-    public int[] extractMessageMeta(byte[] data) {
+    public byte[] extractMessageMeta(byte[] data) {
         if(data.length < 2)
             return null;
 
-        return new int[]{data[0], data[1]};
+        /**
+         * 0 = Reference ID
+         * 1 = Message ID
+         * 2 = Total number of messages
+         */
+        if(data[1] == (byte) 0)
+            return new byte[]{data[0], data[1], data[2]};
+        return new byte[]{data[0], data[1]};
     }
 }

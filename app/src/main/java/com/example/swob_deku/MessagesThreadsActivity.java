@@ -119,6 +119,15 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                byte val = 0x00;
+                Log.d(getLocalClassName(), "Maths: " + ++val);
+                Log.d(getLocalClassName(), "Maths: " + ++val);
+            }
+        }).start();
     }
 
     private void cancelAllNotifications() {
