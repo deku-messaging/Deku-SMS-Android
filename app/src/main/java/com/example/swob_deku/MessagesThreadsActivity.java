@@ -1,9 +1,12 @@
 package com.example.swob_deku;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -14,6 +17,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +29,7 @@ import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -128,6 +136,56 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 Log.d(getLocalClassName(), "Maths: " + ++val);
             }
         }).start();
+
+
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                messagesThreadRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
+
+            }
+            @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView,
+                                    RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+
+                final ColorDrawable background = new ColorDrawable(Color.RED);
+                background.setBounds(viewHolder.itemView.getLeft(), viewHolder.itemView.getTop(),
+                        viewHolder.itemView.getRight(), viewHolder.itemView.getBottom());
+                background.draw(c);
+
+
+                // draw delete icon
+                Drawable deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_delete_24);
+                int itemHeight = viewHolder.itemView.getBottom() - viewHolder.itemView.getTop();
+                int intrinsicWidth = deleteIcon.getIntrinsicWidth();
+                int intrinsicHeight = deleteIcon.getIntrinsicHeight();
+
+
+                int xMarkMargin;
+                xMarkMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+                int xMarkLeft = viewHolder.itemView.getRight() - xMarkMargin - intrinsicWidth;
+                int xMarkRight = viewHolder.itemView.getRight() - xMarkMargin;
+
+                int xMarkTop = viewHolder.itemView.getTop() + (itemHeight - intrinsicHeight) / 2;
+                int xMarkBottom = xMarkTop + intrinsicHeight;
+
+
+                deleteIcon.setBounds(xMarkLeft, xMarkTop + 16, xMarkRight, xMarkBottom);
+                deleteIcon.draw(c);
+
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+
+
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(messagesThreadRecyclerView);
     }
 
     private void cancelAllNotifications() {

@@ -260,8 +260,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         toolbar.inflateMenu(R.menu.toolbar_copy);
                         highlightedText = messageSentViewHandler.sentMessage.getText().toString();
 
-                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
-                        highlightedView = holder.itemView;
+                      ((MessageSentViewHandler) holder).layout.setBackgroundResource(R.drawable.light_blue);
+//                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
+                        highlightedView = ((MessageSentViewHandler) holder).layout;
                         return false;
                     }
                 });
@@ -347,7 +348,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         if(!highlightedText.equals("null") && !highlightedText.isEmpty()) {
                             ClipData clip = ClipData.newPlainText("label", highlightedText);
                                 clipboard.setPrimaryClip(clip);
-                            Toast.makeText(context, "Saved to clip board", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Message copied", Toast.LENGTH_SHORT).show();
                         }
                         break;
 
@@ -357,7 +358,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         Menu menu = toolbar.getMenu();
                         menu.clear();
                         toolbar.inflateMenu(R.menu.default_menu);
-                        highlightedView.setBackgroundColor(Color.TRANSPARENT);
+
+                        highlightedView.setBackgroundResource(R.drawable.sent_blue);
 
                         break;
 
