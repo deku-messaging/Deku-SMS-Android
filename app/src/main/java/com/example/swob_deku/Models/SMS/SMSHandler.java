@@ -36,69 +36,6 @@ public class SMSHandler {
     public static final Uri SMS_OUTBOX_CONTENT_URI = Telephony.Sms.Outbox.CONTENT_URI;
     public static final Uri SMS_SENT_CONTENT_URI = Telephony.Sms.Sent.CONTENT_URI;
 
-    public static String sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
-        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
-                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
-
-        if(data == null)
-            return "";
-
-        String threadId = "";
-
-        String dataString = new String(data);
-        try {
-//            data = copyBytes(data, 0, 200);
-            threadId = registerPendingMessage(context, destinationAddress, dataString, messageId);
-
-            if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "Sending data: " + new String(data));
-
-//            dataString = "hello world";
-//            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
-            ArrayList<byte[]> dividedMessage = divideMessage(data);
-
-            final byte sendingReferenceId = 0x00;
-            for(byte sendingMessageId = 0x00; sendingMessageId<dividedMessage.size();++sendingMessageId) {
-                int dest = 0;
-                byte[] rawData = dividedMessage.get(sendingMessageId);
-
-                int totalSendingLength = sendingMessageId == 0x00 ? rawData.length + 3 :
-                        rawData.length + 2;
-                byte[] sendingData = new byte[totalSendingLength];
-                sendingData[dest] = sendingReferenceId;
-                sendingData[++dest] = sendingMessageId;
-
-                // TODO: put this information before dividing it
-                if(sendingMessageId == 0x00)
-                    sendingData[++dest] = DataHelper.intToByte(dividedMessage.size());
-
-                System.arraycopy(rawData, 0, sendingData, ++dest, rawData.length);
-
-                PendingIntent sentIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
-                        sentIntent : null;
-
-                PendingIntent deliveryIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
-                        deliveryIntent : null;
-
-                smsManager.sendDataMessage(
-                        destinationAddress,
-                        null,
-                        DATA_TRANSMISSION_PORT,
-                        sendingData,
-                        sentIntentFinal,
-                        deliveryIntentFinal);
-
-                if(BuildConfig.DEBUG)
-                    Log.d(SMSHandler.class.getName(), "Sent counter: " + sendingMessageId);
-                Thread.sleep(500);
-            }
-        } catch(Exception e ) {
-            e.printStackTrace();
-        }
-
-        return threadId;
-    }
-
     public static int countMessages(Context context, byte[] data) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
@@ -132,51 +69,144 @@ public class SMSHandler {
         return messages;
     }
 
-    public static String sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
-        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
-            context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+    public static List<SMS> dateSegmentations(List<SMS> smsList) {
+        List<SMS> copysmsList = new ArrayList<>(smsList);
 
-        String threadId = "";
-        try {
-            if(text.isEmpty() || destinationAddress.isEmpty())
-                return "";
+        for(int i=smsList.size()-1;i>-1; --i) {
+            SMS currentSMS = smsList.get(i);
+            Date date = new Date(Long.parseLong(currentSMS.getDate()));
+            Calendar currentCalendar = Calendar.getInstance();
+            currentCalendar.setTime(date);
 
-            try {
-                threadId = registerPendingMessage(context, destinationAddress, text, messageId);
-            } catch(Exception e ) {
-                e.printStackTrace();
+            if(i==smsList.size() -1 ) {
+                copysmsList.add(new SMS(currentSMS.getDate()));
             }
-
-            // TODO: Handle sending multipart messages
-            ArrayList<String> dividedMessage = smsManager.divideMessage(text);
-            if(dividedMessage.size() < 2 )
-                smsManager.sendTextMessage(destinationAddress, null, text, sentIntent, deliveryIntent);
             else {
-                ArrayList<PendingIntent> sentPendingIntents = new ArrayList<>();
-                ArrayList<PendingIntent> deliveredPendingIntents = new ArrayList<>();
+                String previousDateString = smsList.get(i + 1).getDate();
+                Date previousDate = new Date(Long.parseLong(previousDateString));
+                Calendar prevCalendar = Calendar.getInstance();
+                prevCalendar.setTime(previousDate);
 
-                for(int i=0;i<dividedMessage.size() - 1; i++) {
-                    sentPendingIntents.add(null);
-                    deliveredPendingIntents.add(null);
+                if ((prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)
+                        || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE)))) {
+                    copysmsList.add(i+1, new SMS(currentSMS.getDate()));
                 }
-
-                sentPendingIntents.add(sentIntent);
-                deliveredPendingIntents.add(deliveryIntent);
-
-                smsManager.sendMultipartTextMessage(
-                        destinationAddress,
-                        null,
-                        dividedMessage, sentPendingIntents, deliveredPendingIntents);
             }
         }
-        catch(Throwable e) {
-            // throw new IllegalArgumentException(e);
-            throw e;
-        }
 
-        return threadId;
+        return copysmsList;
     }
 
+    public static void interpret_PDU(byte[] pdu) throws ParseException {
+
+//                int[] receivedPDU = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
+//                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
+//                        0x1e,0xd4,0x2e,0xbb,0x01};
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pdu.length);
+
+        String pduHex = DataHelper.getHexOfByte(pdu);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pduHex);
+
+        int pduIterator = 0;
+
+        byte SMSC_length = pdu[pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_length: " + (int) SMSC_length);
+
+        byte SMSC_address_format = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format: " +
+                Integer.toHexString(SMSC_address_format));
+
+        String SMSC_address_format_binary = DataHelper.byteToBinary(new byte[]{SMSC_address_format});
+        parse_address_format(SMSC_address_format_binary.substring(SMSC_address_format_binary.length() - 7));
+
+        byte[] SMSC_address = SMSHandler.copyBytes(pdu, ++pduIterator, --SMSC_length);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format - binary: " + SMSC_address_format_binary);
+
+        int[] addressHolder = DataHelper.bytesToNibbleArray(SMSC_address);
+        String address = DataHelper.arrayToString(addressHolder);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address: " + address);
+
+        pduIterator += --SMSC_length;
+
+        // TPDU begins
+        byte first_octet = pdu[++pduIterator];
+        String first_octet_binary = Integer.toBinaryString(first_octet);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU First octet binary: " + first_octet_binary);
+
+        byte sender_address_length = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address length: " + (int)sender_address_length);
+
+        byte sender_address_type = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address type: " +
+                DataHelper.getHexOfByte(new byte[]{sender_address_type}));
+
+        byte[] sender_address = copyBytes(pdu, ++pduIterator, sender_address_length / 2);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address: " +
+                DataHelper.getHexOfByte(sender_address));
+
+        addressHolder = DataHelper.bytesToNibbleArray(sender_address);
+        address = DataHelper.arrayToString(addressHolder);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMS_Sender_address: " + address);
+
+        pduIterator += (sender_address_length / 2)-1;
+
+        byte PID = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU PID: " +
+                DataHelper.getHexOfByte(new byte[]{PID}));
+
+        byte DCS = pdu[++pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU DCS: " +
+                DataHelper.getHexOfByte(new byte[]{DCS}));
+
+        byte[] SCTS = copyBytes(pdu, ++pduIterator, 7);
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " +
+                DataHelper.getHexOfByte(SCTS));
+        String timestamp = DataHelper.arrayToString(DataHelper.bytesToNibbleArray(SCTS));
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " + timestamp);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
+        Date date = sdf.parse(timestamp);
+
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Timestamp: " + date.toString());
+
+        pduIterator += 7;
+
+        byte UDL = pdu[pduIterator];
+        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU UDL: " +
+                DataHelper.getHexOfByte(new byte[]{UDL}));
+
+//        byte[] user_data = copyBytes(pdu, ++pduIterator, UDL);
+//        String hex_user_data = DataHelper.getHexOfByte(user_data);
+//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " + hex_user_data);
+//
+//        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
+//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
+
+    }
+
+    public static boolean hasUnreadMessages(Context context, String threadId) {
+        try {
+            Cursor cursor = context.getContentResolver().query(
+                    SMS_INBOX_CONTENT_URI,
+                    new String[] { Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID },
+//                    "read=? AND thread_id =? AND type != ?",
+                    Telephony.TextBasedSmsColumns.READ + "=? AND " +
+                            Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                    new String[] { "0",
+                            String.valueOf(threadId) },
+                    "date DESC LIMIT 1");
+
+            boolean hasUnread = cursor.getCount() > 0;
+            cursor.close();
+
+            return hasUnread;
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 
     public static Cursor fetchSMSThreadIdFromAddress(@NonNull Context context, String address) {
         address = address.replaceAll("[\\s-]", "");
@@ -425,163 +455,6 @@ public class SMSHandler {
         return threadId;
     }
 
-    public static boolean hasUnreadMessages(Context context, String threadId) {
-        try {
-            Cursor cursor = context.getContentResolver().query(
-                    SMS_INBOX_CONTENT_URI,
-                    new String[] { Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID },
-//                    "read=? AND thread_id =? AND type != ?",
-                    Telephony.TextBasedSmsColumns.READ + "=? AND " +
-                            Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
-                    new String[] { "0",
-                            String.valueOf(threadId) },
-                    "date DESC LIMIT 1");
-
-            boolean hasUnread = cursor.getCount() > 0;
-            cursor.close();
-
-            return hasUnread;
-        }
-        catch(Exception e ) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public static void updateThreadMessagesThread(Context context, String threadId) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");
-        try {
-            int updateCount = context.getContentResolver().update(
-                    SMS_CONTENT_URI,
-                    contentValues,
-                    Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.TextBasedSmsColumns.READ +"=?",
-                    new String[] { threadId, "0" });
-
-            if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
-        }
-        catch(Exception e ) {
-            e.printStackTrace();
-        }
-    }
-
-    public static List<SMS> dateSegmentations(List<SMS> smsList) {
-        List<SMS> copysmsList = new ArrayList<>(smsList);
-
-        for(int i=smsList.size()-1;i>-1; --i) {
-            SMS currentSMS = smsList.get(i);
-            Date date = new Date(Long.parseLong(currentSMS.getDate()));
-            Calendar currentCalendar = Calendar.getInstance();
-            currentCalendar.setTime(date);
-
-            if(i==smsList.size() -1 ) {
-                copysmsList.add(new SMS(currentSMS.getDate()));
-            }
-            else {
-                String previousDateString = smsList.get(i + 1).getDate();
-                Date previousDate = new Date(Long.parseLong(previousDateString));
-                Calendar prevCalendar = Calendar.getInstance();
-                prevCalendar.setTime(previousDate);
-
-                if ((prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)
-                || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE)))) {
-                    copysmsList.add(i+1, new SMS(currentSMS.getDate()));
-                }
-            }
-        }
-
-        return copysmsList;
-    }
-
-    public static void interpret_PDU(byte[] pdu) throws ParseException {
-
-//                int[] receivedPDU = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
-//                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
-//                        0x1e,0xd4,0x2e,0xbb,0x01};
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pdu.length);
-
-        String pduHex = DataHelper.getHexOfByte(pdu);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pduHex);
-
-        int pduIterator = 0;
-
-        byte SMSC_length = pdu[pduIterator];
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_length: " + (int) SMSC_length);
-
-        byte SMSC_address_format = pdu[++pduIterator];
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format: " +
-                Integer.toHexString(SMSC_address_format));
-
-        String SMSC_address_format_binary = DataHelper.byteToBinary(new byte[]{SMSC_address_format});
-        parse_address_format(SMSC_address_format_binary.substring(SMSC_address_format_binary.length() - 7));
-
-        byte[] SMSC_address = SMSHandler.copyBytes(pdu, ++pduIterator, --SMSC_length);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address_format - binary: " + SMSC_address_format_binary);
-
-        int[] addressHolder = DataHelper.bytesToNibbleArray(SMSC_address);
-        String address = DataHelper.arrayToString(addressHolder);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMSC_address: " + address);
-
-        pduIterator += --SMSC_length;
-
-        // TPDU begins
-        byte first_octet = pdu[++pduIterator];
-        String first_octet_binary = Integer.toBinaryString(first_octet);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU First octet binary: " + first_octet_binary);
-
-        byte sender_address_length = pdu[++pduIterator];
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address length: " + (int)sender_address_length);
-
-        byte sender_address_type = pdu[++pduIterator];
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address type: " +
-                DataHelper.getHexOfByte(new byte[]{sender_address_type}));
-
-        byte[] sender_address = copyBytes(pdu, ++pduIterator, sender_address_length / 2);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Sender address: " +
-                DataHelper.getHexOfByte(sender_address));
-
-        addressHolder = DataHelper.bytesToNibbleArray(sender_address);
-        address = DataHelper.arrayToString(addressHolder);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SMS_Sender_address: " + address);
-
-        pduIterator += (sender_address_length / 2)-1;
-
-        byte PID = pdu[++pduIterator];
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU PID: " +
-                DataHelper.getHexOfByte(new byte[]{PID}));
-
-        byte DCS = pdu[++pduIterator];
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU DCS: " +
-                DataHelper.getHexOfByte(new byte[]{DCS}));
-
-        byte[] SCTS = copyBytes(pdu, ++pduIterator, 7);
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " +
-                DataHelper.getHexOfByte(SCTS));
-        String timestamp = DataHelper.arrayToString(DataHelper.bytesToNibbleArray(SCTS));
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU SCTS: " + timestamp);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
-        Date date = sdf.parse(timestamp);
-
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU Timestamp: " + date.toString());
-
-        pduIterator += 7;
-
-        byte UDL = pdu[pduIterator];
-        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU UDL: " +
-                DataHelper.getHexOfByte(new byte[]{UDL}));
-
-//        byte[] user_data = copyBytes(pdu, ++pduIterator, UDL);
-//        String hex_user_data = DataHelper.getHexOfByte(user_data);
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " + hex_user_data);
-//
-//        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
-
-    }
-
     public static void parse_address_format(String SMSC_address_format) {
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU parsing address format: " + SMSC_address_format);
 
@@ -657,4 +530,129 @@ public class SMSHandler {
         */
     }
 
+    public static String sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
+        String threadId = "";
+        try {
+            if(text.isEmpty() || destinationAddress.isEmpty())
+                return "";
+
+            try {
+                threadId = registerPendingMessage(context, destinationAddress, text, messageId);
+            } catch(Exception e ) {
+                e.printStackTrace();
+            }
+
+            // TODO: Handle sending multipart messages
+            ArrayList<String> dividedMessage = smsManager.divideMessage(text);
+            if(dividedMessage.size() < 2 )
+                smsManager.sendTextMessage(destinationAddress, null, text, sentIntent, deliveryIntent);
+            else {
+                ArrayList<PendingIntent> sentPendingIntents = new ArrayList<>();
+                ArrayList<PendingIntent> deliveredPendingIntents = new ArrayList<>();
+
+                for(int i=0;i<dividedMessage.size() - 1; i++) {
+                    sentPendingIntents.add(null);
+                    deliveredPendingIntents.add(null);
+                }
+
+                sentPendingIntents.add(sentIntent);
+                deliveredPendingIntents.add(deliveryIntent);
+
+                smsManager.sendMultipartTextMessage(
+                        destinationAddress,
+                        null,
+                        dividedMessage, sentPendingIntents, deliveredPendingIntents);
+            }
+        }
+        catch(Throwable e) {
+            // throw new IllegalArgumentException(e);
+            throw e;
+        }
+
+        return threadId;
+    }
+
+    public static String sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
+        if(data == null)
+            return "";
+
+        String threadId = "";
+
+        String dataString = new String(data);
+        try {
+//            data = copyBytes(data, 0, 200);
+            threadId = registerPendingMessage(context, destinationAddress, dataString, messageId);
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Sending data: " + new String(data));
+
+//            dataString = "hello world";
+//            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
+            ArrayList<byte[]> dividedMessage = divideMessage(data);
+
+            final byte sendingReferenceId = 0x00;
+            for(byte sendingMessageId = 0x00; sendingMessageId<dividedMessage.size();++sendingMessageId) {
+                int dest = 0;
+                byte[] rawData = dividedMessage.get(sendingMessageId);
+
+                int totalSendingLength = sendingMessageId == 0x00 ? rawData.length + 3 :
+                        rawData.length + 2;
+                byte[] sendingData = new byte[totalSendingLength];
+                sendingData[dest] = sendingReferenceId;
+                sendingData[++dest] = sendingMessageId;
+
+                // TODO: put this information before dividing it
+                if(sendingMessageId == 0x00)
+                    sendingData[++dest] = DataHelper.intToByte(dividedMessage.size());
+
+                System.arraycopy(rawData, 0, sendingData, ++dest, rawData.length);
+
+                PendingIntent sentIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
+                        sentIntent : null;
+
+                PendingIntent deliveryIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
+                        deliveryIntent : null;
+
+                smsManager.sendDataMessage(
+                        destinationAddress,
+                        null,
+                        DATA_TRANSMISSION_PORT,
+                        sendingData,
+                        sentIntentFinal,
+                        deliveryIntentFinal);
+
+                if(BuildConfig.DEBUG)
+                    Log.d(SMSHandler.class.getName(), "Sent counter: " + sendingMessageId);
+                Thread.sleep(500);
+            }
+        } catch(Exception e ) {
+            e.printStackTrace();
+        }
+
+        return threadId;
+    }
+
+    public static void updateThreadMessagesThread(Context context, String threadId) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");
+        try {
+            int updateCount = context.getContentResolver().update(
+                    SMS_CONTENT_URI,
+                    contentValues,
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.TextBasedSmsColumns.READ +"=?",
+                    new String[] { threadId, "0" });
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
 }

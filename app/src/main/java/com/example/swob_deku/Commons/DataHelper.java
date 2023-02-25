@@ -2,12 +2,21 @@ package com.example.swob_deku.Commons;
 
 import android.util.Log;
 
+import com.example.swob_deku.Models.SMS.SMSHandler;
+
 import java.io.ByteArrayOutputStream;
 
 public class DataHelper {
 
-    public static int[] getNibbleFromByte(byte b) {
-        return new int[]{(b & 0x0F), ((b >> 4) & 0x0F)};
+    public static String arrayToString(int[] intArray) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (intArray.length > 0) {
+            stringBuilder.append(intArray[0]);
+            for (int i = 1; i < intArray.length; i++) {
+                stringBuilder.append(intArray[i]);
+            }
+        }
+        return stringBuilder.toString();
     }
 
     public static String byteToBinary(byte[] bytes) {
@@ -25,15 +34,20 @@ public class DataHelper {
         return chars;
     }
 
-    public static String arrayToString(int[] intArray) {
-        StringBuilder stringBuilder = new StringBuilder();
-        if (intArray.length > 0) {
-            stringBuilder.append(intArray[0]);
-            for (int i = 1; i < intArray.length; i++) {
-                stringBuilder.append(intArray[i]);
-            }
-        }
-        return stringBuilder.toString();
+    public static int findInBytes(String searchQuery, byte[] bytes) {
+        int returnValue = -1;
+        int searchLen = searchQuery.length();
+
+        if(bytes.length < searchLen)
+            return returnValue;
+
+        String window = new String(byteToChar(bytes));
+
+        return window.indexOf(searchQuery);
+    }
+
+    public static int[] getNibbleFromByte(byte b) {
+        return new int[]{(b & 0x0F), ((b >> 4) & 0x0F)};
     }
 
     public static String toHexString(byte[] bytes) {
