@@ -1,5 +1,7 @@
 package com.example.swob_deku.Models.SMS;
 
+import static java.time.Instant.now;
+
 import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
@@ -26,8 +28,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 public class SMSHandler {
+    public static final int ASCII_MAGIC_NUMBER = 0x7F;
     public static final short DATA_TRANSMISSION_PORT = 8200;
 
     public static final Uri SMS_CONTENT_URI = Telephony.Sms.CONTENT_URI;
@@ -596,27 +600,31 @@ public class SMSHandler {
 //            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
             ArrayList<byte[]> dividedMessage = divideMessage(data);
 
-            final byte sendingReferenceId = 0x00;
-            for(byte sendingMessageId = 0x00; sendingMessageId<dividedMessage.size();++sendingMessageId) {
-                int dest = 0;
-                byte[] rawData = dividedMessage.get(sendingMessageId);
+            // TODO: randomly generated number from 0 - 255
 
-                int totalSendingLength = sendingMessageId == 0x00 ? rawData.length + 3 :
+            // final byte sendingReferenceId = 0x00;
+
+            final byte sendingReferenceId = (byte) (ASCII_MAGIC_NUMBER + new Random().nextInt(256));
+            for(byte sendingMessageCounter = 0x00; sendingMessageCounter<dividedMessage.size(); ++sendingMessageCounter) {
+                int dest = 0;
+                byte[] rawData = dividedMessage.get(sendingMessageCounter);
+
+                int totalSendingLength = sendingMessageCounter == 0x00 ? rawData.length + 3 :
                         rawData.length + 2;
                 byte[] sendingData = new byte[totalSendingLength];
                 sendingData[dest] = sendingReferenceId;
-                sendingData[++dest] = sendingMessageId;
+                sendingData[++dest] = sendingMessageCounter;
 
                 // TODO: put this information before dividing it
-                if(sendingMessageId == 0x00)
+                if(sendingMessageCounter == 0x00)
                     sendingData[++dest] = DataHelper.intToByte(dividedMessage.size());
 
                 System.arraycopy(rawData, 0, sendingData, ++dest, rawData.length);
 
-                PendingIntent sentIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
+                PendingIntent sentIntentFinal = sendingMessageCounter == dividedMessage.size() -1 ?
                         sentIntent : null;
 
-                PendingIntent deliveryIntentFinal = sendingMessageId == dividedMessage.size() -1 ?
+                PendingIntent deliveryIntentFinal = sendingMessageCounter == dividedMessage.size() -1 ?
                         deliveryIntent : null;
 
                 smsManager.sendDataMessage(
@@ -628,7 +636,7 @@ public class SMSHandler {
                         deliveryIntentFinal);
 
                 if(BuildConfig.DEBUG)
-                    Log.d(SMSHandler.class.getName(), "Sent counter: " + sendingMessageId);
+                    Log.d(SMSHandler.class.getName(), "Sent counter: " + sendingMessageCounter);
                 Thread.sleep(500);
             }
         } catch(Exception e ) {

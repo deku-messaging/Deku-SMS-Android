@@ -29,10 +29,12 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
 import com.google.android.material.card.MaterialCardView;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.text.BreakIterator;
 import java.text.DateFormat;
@@ -281,10 +283,29 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         mDiffer.submitList(list);
     }
 
+    private boolean isImage(SMS sms) {
+        byte[] data = sms.getBody().getBytes(StandardCharsets.UTF_8);
+
+        if(data.length < 2 || data[0] < SMSHandler.ASCII_MAGIC_NUMBER || data[1] < 0)
+            return false;
+
+        if(data.length < 3 ) {
+            // TODO: should check if matches any other starting message before deciding it's message
+            return true;
+        }
+
+        return Character.isDigit(data[2]);
+    }
+
     @Override
     public int getItemViewType(int position) {
         if(mDiffer.getCurrentList().get(position).isDatesOnly())
             return 100;
+
+        else if(isImage(mDiffer.getCurrentList().get(position))) {
+            Log.d(getClass().getName(), "SMS data image found!");
+            return 200;
+        }
 
         int messageType = mDiffer.getCurrentList().get(position).getType();
         return (messageType > -1 )? messageType : 0;

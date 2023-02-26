@@ -63,6 +63,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                     Log.d(getClass().getName(), "PDU data incoming: " + strMessage);
                     long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
+                    // TODO: silence for now
                     String notificationNote = "New image data!";
                     BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
                     break;
