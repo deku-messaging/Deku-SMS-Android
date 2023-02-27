@@ -310,14 +310,16 @@ public class SMSSendActivity extends AppCompatActivity {
                    }
                }
 
-               smsTextView.setText(text);
-                String finalText = text;
-                runOnUiThread(new Runnable() {
-                   @Override
-                   public void run() {
-                       mutableLiveDataComposeMessage.setValue(finalText);
-                   }
-               });
+               if(text != null && !text.isEmpty()) {
+                   smsTextView.setText(text);
+                   String finalText = text;
+                   runOnUiThread(new Runnable() {
+                       @Override
+                       public void run() {
+                           mutableLiveDataComposeMessage.setValue(finalText);
+                       }
+                   });
+               }
             }
         }
     }
