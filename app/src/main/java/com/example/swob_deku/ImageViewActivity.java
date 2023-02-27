@@ -73,10 +73,7 @@ public class ImageViewActivity extends AppCompatActivity {
             if(cursor.moveToFirst()) {
                 SMS sms = new SMS(cursor);
 
-                byte[] body = Base64.decode(sms.getBody(), Base64.DEFAULT);
-
-                int refId = Byte.toUnsignedInt(body[0]);
-                int msgId = Byte.toUnsignedInt(body[1]);
+                byte[] body = Base64.decode(sms.getBody(), Base64.NO_PADDING);
                 int len = Byte.toUnsignedInt(body[2]);
 
                 // TODO: build for len so not to waste compute
@@ -89,44 +86,18 @@ public class ImageViewActivity extends AppCompatActivity {
                         RIL, sms.getThreadId());
                 Log.d(getLocalClassName(), "Image # Found: " + cursorImageCursor.getCount() + ":" + len);
 
-                String[] imageString = new String[len];
-
                 byte[][] imagesBytes = new byte[len][];
 
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 if(cursorImageCursor.moveToFirst()) {
                     do {
                         SMS imageSMS = new SMS(cursorImageCursor);
 
                         byte[] imgBody = Base64.decode(imageSMS.getBody(), Base64.NO_PADDING);
                         int id = Byte.toUnsignedInt(imgBody[1]);
-//                        if(id == 0) {
-//                            Log.d(getLocalClassName(), "Image first one found!");
-////                            imageString[Byte.toUnsignedInt(imgBody[1])] = Base64.encodeToString(
-////                                    SMSHandler.copyBytes(imgBody, 3, imgBody.length), Base64.DEFAULT)
-////                                    .replaceAll("\\n", "");
-//                            imagesBytes[id] = imgBody;
-//                        }
-//                        else {
-//                            imageString[Byte.toUnsignedInt(imgBody[1])] = Base64.encodeToString(
-//                                    SMSHandler.copyBytes(imgBody, 2, imgBody.length), Base64.DEFAULT)
-//                                    .replaceAll("\\n", "");
-//                        }
-////                        Log.d(getLocalClassName(), "Image REF: " + Byte.toUnsignedInt(imgBody[0]));
                         imagesBytes[id] = imgBody;
-                        Log.d(getLocalClassName(), "Image COUNTER: " + Byte.toUnsignedInt(imgBody[1]));
-                        Log.d(getLocalClassName(), "Image details: " + imageString[Byte.toUnsignedInt(imgBody[1])]);
                     } while(cursorImageCursor.moveToNext());
                 }
 
-//                for(int i=0;i<len;++i) {
-//                    try {
-//                        byteArrayOutputStream.write(Base64.decode(imageString[i], Base64.DEFAULT));
-//                    } catch (IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                }
-//                Log.d(getLocalClassName(), "Image Header: " + byteArrayOutputStream.size());
                 try {
                     buildImage(imagesBytes);
                 } catch (IOException e) {
@@ -148,18 +119,15 @@ public class ImageViewActivity extends AppCompatActivity {
         }
     }
 
-    private void buildImage(byte[][] data ) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        for(byte[] seg : data ) {
-            Log.d(getLocalClassName(), "Image data: " + seg[0] + ":" + seg[1] + ":" + seg[2]);
-            seg = SMSHandler.copyBytes(seg, 2, seg.length);
-            Log.d(getLocalClassName(), "Image data: " + seg[0] + ":" + seg[1] + ":" + seg[2]);
-            byteArrayOutputStream.write(seg);
-        }
-        Bitmap bitmap = BitmapFactory.decodeByteArray(byteArrayOutputStream.toByteArray(), 1, data.length);
-        if(bitmap == null)
-            Log.d(getLocalClassName(), "Header image is null...");
-        imageView.setImageBitmap(bitmap);
+    private void buildImage(byte[][] unstructuredImageBytes ) throws IOException {
+        byte[] structuredImageBytes = SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
+        Log.d(getLocalClassName(), "Received divide: " + structuredImageBytes.length);
+
+        compressedBitmap = BitmapFactory.decodeByteArray(structuredImageBytes, 0,
+                structuredImageBytes.length);
+
+//        imageDescription.setText(description);
+        imageView.setImageBitmap(compressedBitmap);
     }
 
     private void buildImage() throws IOException {
@@ -180,7 +148,7 @@ public class ImageViewActivity extends AppCompatActivity {
                 + "x" + imageBitmap.getHeight();
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
         description += "\n\n- Compressed bytes: " + compressedBytes.length;
-        description += "\n- Approx #SMS: " + SMSHandler.divideMessage(compressedBytes).size();
+        description += "\n- Approx #SMS: " + SMSHandler.structureSMSMessage(compressedBytes).size();
 
         Log.d(getLocalClassName(), "Google loc RIFF: " + DataHelper.findInBytes("RIFF", compressedBytes));
         Log.d(getLocalClassName(), "Google loc Google: " + DataHelper.findInBytes("Google", compressedBytes));
@@ -213,8 +181,18 @@ public class ImageViewActivity extends AppCompatActivity {
         for(int i=0;i<header.length; ++i)
             Log.d(getLocalClassName(), "image meta:" + i + ": " + header[i]);
 
-        compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
+        ArrayList<byte[]> structuredMessage = SMSHandler.structureSMSMessage(compressedBytes);
 
+        byte[][] unstructuredImageBytes = new byte[structuredMessage.size()][];
+
+        for(int i=0;i<structuredMessage.size();++i)
+            unstructuredImageBytes[i] = structuredMessage.get(i);
+
+        Log.d(getLocalClassName(), "Before structure: " + compressedBytes.length);
+        byte[] unstructuredMessage = SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
+        Log.d(getLocalClassName(), "After structure: " + unstructuredMessage.length);
+
+        compressedBitmap = BitmapFactory.decodeByteArray(unstructuredMessage, 0, unstructuredMessage.length);
         imageDescription.setText(description);
         imageView.setImageBitmap(compressedBitmap);
     }

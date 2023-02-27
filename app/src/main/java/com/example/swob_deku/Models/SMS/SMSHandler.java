@@ -11,6 +11,7 @@ import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.util.Base64;
 import android.util.Log;
 
 
@@ -21,6 +22,8 @@ import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -49,10 +52,10 @@ public class SMSHandler {
     }
 
     public static byte[] copyBytes(byte[] src, int startPos, int len) {
-        byte[] dest = new byte[len];
-        for(int i=startPos, j=0; i<src.length && j<len; ++i, j++)
-            dest[j] = src[i];
-        return dest;
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        for(int i=startPos, j=0; i<src.length && j < len; ++i, ++j)
+            byteArrayOutputStream.write(src[i]);
+        return byteArrayOutputStream.toByteArray();
     }
 
     public static ArrayList<byte[]> divideMessage(byte[] bytes) {
@@ -61,14 +64,24 @@ public class SMSHandler {
 
         ArrayList<byte[]> messages = new ArrayList<>();
 
+        int totalLen = 0;
         if(bytes.length < DIVIDE_CONST)
             messages.add(bytes);
         else {
-            messages.add(copyBytes(bytes, 0, FIRST_DIVIDE_CONST));
+            byte[] b = copyBytes(bytes, 0, FIRST_DIVIDE_CONST);
+            messages.add(b);
+            totalLen += b.length;
+
             for(int i=FIRST_DIVIDE_CONST;i<bytes.length; i+=DIVIDE_CONST) {
-                messages.add(copyBytes(bytes, i, DIVIDE_CONST));
+                b = copyBytes(bytes, i, DIVIDE_CONST);
+                messages.add(b);
+                totalLen += b.length;
+//                Log.d(SMSHandler.class.getName(), "In divide: " + i);
             }
         }
+
+        Log.d(SMSHandler.class.getName(), "Before divide: " + bytes.length);
+        Log.d(SMSHandler.class.getName(), "After divide: " + totalLen);
 
         return messages;
     }
@@ -608,33 +621,16 @@ public class SMSHandler {
         return threadId;
     }
 
-    public static String sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
-        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
-                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
-
-        if(data == null)
-            return "";
-
-        String threadId = "";
-
-        String dataString = new String(data);
+    public static ArrayList<byte[]> structureSMSMessage(byte[] data) {
+        ArrayList<byte[]> structuredMessage = new ArrayList<>();
         try {
-//            data = copyBytes(data, 0, 200);
-            threadId = registerPendingMessage(context, destinationAddress, dataString, messageId);
-
-//            dataString = "hello world";
-//            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
             ArrayList<byte[]> dividedMessage = divideMessage(data);
 
             // TODO: randomly generated number from 0 - 255
-
             // final byte sendingReferenceId = 0x00;
             final Integer sendingReferenceId = (ASCII_MAGIC_NUMBER
                     + new Random().nextInt(ASCII_MAGIC_NUMBER));
 
-            Log.d(SMSHandler.class.getName(), "Image sending RIF: " + sendingReferenceId);
-
-            int totalLen = 0;
             for(Integer sendingMessageCounter = 0; sendingMessageCounter<dividedMessage.size(); ++sendingMessageCounter) {
                 int dest = 0;
                 byte[] rawData = dividedMessage.get(sendingMessageCounter);
@@ -648,32 +644,64 @@ public class SMSHandler {
                 sendingData[++dest] = sendingMessageCounter.byteValue();
 
                 // TODO: put this information before dividing it
-                if(sendingMessageCounter == 0)
+                if (sendingMessageCounter == 0)
                     sendingData[++dest] = DataHelper.intToByte(dividedMessage.size());
 
                 System.arraycopy(rawData, 0, sendingData, ++dest, rawData.length);
-                totalLen += sendingData.length;
 
-                PendingIntent sentIntentFinal = sendingMessageCounter == dividedMessage.size() -1 ?
+                structuredMessage.add(sendingData);
+            }
+        } catch(Exception e ) {
+            e.printStackTrace();
+        }
+        return structuredMessage;
+    }
+
+    public static byte[] rebuildStructuredSMSMessage(byte[][] data) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        for(byte[] seg: data) {
+            // 0 - Ref ID
+            // 1 - Msg ID
+            // 2 - Len
+            byteArrayOutputStream.write(copyBytes(seg, 2, seg.length));
+        }
+        return copyBytes(byteArrayOutputStream.toByteArray(), 1,
+                byteArrayOutputStream.toByteArray().length);
+    }
+
+    public static String sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
+        if(data == null)
+            return "";
+
+        String threadId = "";
+
+        ArrayList<byte[]> dividedMessage = structureSMSMessage(data);
+        Log.d(SMSHandler.class.getName(), "Sending divided count: " + dividedMessage.size());
+        try {
+            // If this crashes and sends twice, Primary key stops any action
+            threadId = registerPendingMessage(context, destinationAddress,
+                    new String(data, StandardCharsets.UTF_8), messageId);
+
+            for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
+                PendingIntent sentIntentFinal = sendingMessageCounter == dividedMessage.size() - 1 ?
                         sentIntent : null;
 
-                PendingIntent deliveryIntentFinal = sendingMessageCounter == dividedMessage.size() -1 ?
+                PendingIntent deliveryIntentFinal = sendingMessageCounter == dividedMessage.size() - 1 ?
                         deliveryIntent : null;
 
                 smsManager.sendDataMessage(
                         destinationAddress,
                         null,
                         DATA_TRANSMISSION_PORT,
-                        sendingData,
+                        dividedMessage.get(sendingMessageCounter),
                         sentIntentFinal,
                         deliveryIntentFinal);
-
-                if(BuildConfig.DEBUG)
-                    Log.d(SMSHandler.class.getName(), "Sent counter: " + sendingMessageCounter);
                 Thread.sleep(500);
             }
-            Log.d(SMSHandler.class.getName(), "Image sending size: " + totalLen);
-        } catch(Exception e ) {
+        } catch(Exception e) {
             e.printStackTrace();
         }
 
