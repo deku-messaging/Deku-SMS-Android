@@ -68,7 +68,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                     Log.d(getClass().getName(), "Data Header raw: " + Byte.toUnsignedInt(messageBuffer.toByteArray()[0]));
 
-                    String strMessage = Base64.encodeToString(messageBuffer.toByteArray(), Base64.DEFAULT);
+                    String strMessage = Base64.encodeToString(messageBuffer.toByteArray(), Base64.NO_PADDING);
                     Log.d(getClass().getName(), "Data Header storing: " + strMessage);
 
                     long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);

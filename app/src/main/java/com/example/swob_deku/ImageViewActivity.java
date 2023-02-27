@@ -85,42 +85,53 @@ public class ImageViewActivity extends AppCompatActivity {
 
 //                String RIL = "vg";
                 Log.d(getLocalClassName(), "Image Header RIL: " + RIL + ":" + RIL.length());
-                Cursor cursorImageCursor = SMSHandler.fetchSMSInboxByForImages(getApplicationContext(), RIL);
+                Cursor cursorImageCursor = SMSHandler.fetchSMSInboxByForImages(getApplicationContext(),
+                        RIL, sms.getThreadId());
                 Log.d(getLocalClassName(), "Image # Found: " + cursorImageCursor.getCount() + ":" + len);
 
                 String[] imageString = new String[len];
+
+                byte[][] imagesBytes = new byte[len][];
+
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 if(cursorImageCursor.moveToFirst()) {
                     do {
                         SMS imageSMS = new SMS(cursorImageCursor);
 
-                        byte[] imgBody = Base64.decode(imageSMS.getBody(), Base64.DEFAULT);
-                        if(Byte.toUnsignedInt(imgBody[1]) == 0) {
-                            Log.d(getLocalClassName(), "Image first one found!");
-                            imageString[Byte.toUnsignedInt(imgBody[1])] = Base64.encodeToString(
-                                    SMSHandler.copyBytes(imgBody, 3, imgBody.length), Base64.NO_PADDING)
-                                    .replaceAll("\\n", "");
-                        }
-                        else {
-                            imageString[Byte.toUnsignedInt(imgBody[1])] = Base64.encodeToString(
-                                    SMSHandler.copyBytes(imgBody, 2, imgBody.length), Base64.NO_PADDING)
-                                    .replaceAll("\\n", "");
-                        }
-//                        Log.d(getLocalClassName(), "Image REF: " + Byte.toUnsignedInt(imgBody[0]));
+                        byte[] imgBody = Base64.decode(imageSMS.getBody(), Base64.NO_PADDING);
+                        int id = Byte.toUnsignedInt(imgBody[1]);
+//                        if(id == 0) {
+//                            Log.d(getLocalClassName(), "Image first one found!");
+////                            imageString[Byte.toUnsignedInt(imgBody[1])] = Base64.encodeToString(
+////                                    SMSHandler.copyBytes(imgBody, 3, imgBody.length), Base64.DEFAULT)
+////                                    .replaceAll("\\n", "");
+//                            imagesBytes[id] = imgBody;
+//                        }
+//                        else {
+//                            imageString[Byte.toUnsignedInt(imgBody[1])] = Base64.encodeToString(
+//                                    SMSHandler.copyBytes(imgBody, 2, imgBody.length), Base64.DEFAULT)
+//                                    .replaceAll("\\n", "");
+//                        }
+////                        Log.d(getLocalClassName(), "Image REF: " + Byte.toUnsignedInt(imgBody[0]));
+                        imagesBytes[id] = imgBody;
                         Log.d(getLocalClassName(), "Image COUNTER: " + Byte.toUnsignedInt(imgBody[1]));
                         Log.d(getLocalClassName(), "Image details: " + imageString[Byte.toUnsignedInt(imgBody[1])]);
                     } while(cursorImageCursor.moveToNext());
                 }
 
-                for(int i=0;i<len;++i) {
-                    try {
-                        byteArrayOutputStream.write(Base64.decode(imageString[i], Base64.NO_PADDING));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+//                for(int i=0;i<len;++i) {
+//                    try {
+//                        byteArrayOutputStream.write(Base64.decode(imageString[i], Base64.DEFAULT));
+//                    } catch (IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                }
+//                Log.d(getLocalClassName(), "Image Header: " + byteArrayOutputStream.size());
+                try {
+                    buildImage(imagesBytes);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-                Log.d(getLocalClassName(), "Image Header: " + byteArrayOutputStream.size());
-                buildImage(byteArrayOutputStream.toByteArray());
                 cursorImageCursor.close();
             }
             cursor.close();
@@ -137,8 +148,15 @@ public class ImageViewActivity extends AppCompatActivity {
         }
     }
 
-    private void buildImage(byte[] data ) {
-        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+    private void buildImage(byte[][] data ) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        for(byte[] seg : data ) {
+            Log.d(getLocalClassName(), "Image data: " + seg[0] + ":" + seg[1] + ":" + seg[2]);
+            seg = SMSHandler.copyBytes(seg, 2, seg.length);
+            Log.d(getLocalClassName(), "Image data: " + seg[0] + ":" + seg[1] + ":" + seg[2]);
+            byteArrayOutputStream.write(seg);
+        }
+        Bitmap bitmap = BitmapFactory.decodeByteArray(byteArrayOutputStream.toByteArray(), 1, data.length);
         if(bitmap == null)
             Log.d(getLocalClassName(), "Header image is null...");
         imageView.setImageBitmap(bitmap);

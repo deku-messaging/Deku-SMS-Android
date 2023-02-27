@@ -225,15 +225,16 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSInboxByForImages(@NonNull Context context, String RIL) {
+    public static Cursor fetchSMSInboxByForImages(@NonNull Context context, String RIL, String threadId) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 SMS_INBOX_CONTENT_URI,
                 new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
                         Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
                         Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
                         Telephony.TextBasedSmsColumns.TYPE },
-                Telephony.TextBasedSmsColumns.BODY +  " like ?",
-                new String[]{ RIL + "%" },
+                Telephony.TextBasedSmsColumns.THREAD_ID
+                        + " =? and " + Telephony.TextBasedSmsColumns.BODY +  " like ?",
+                new String[]{ threadId, RIL + "%" },
                 null);
 
         return smsMessagesCursor;
