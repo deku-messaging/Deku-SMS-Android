@@ -3,15 +3,11 @@ package com.example.swob_deku.Models.Messages;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.provider.Telephony;
-import android.text.Layout;
-import android.text.Spannable;
-import android.text.Spanned;
 import android.text.format.DateUtils;
-import android.text.style.BackgroundColorSpan;
-import android.text.style.ForegroundColorSpan;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,20 +19,19 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_deku.Commons.DataHelper;
+import com.example.swob_deku.ImageViewActivity;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
-import com.example.swob_deku.SMSSendActivity;
 import com.google.android.material.card.MaterialCardView;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
-import java.text.BreakIterator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -191,6 +186,15 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                         else {
                             dateView.setVisibility(View.VISIBLE);
                         }
+
+                        if(isImageHeader(sms)) {
+                            Intent intent = new Intent(context, ImageViewActivity.class);
+                            intent.putExtra("image_sms_id", sms.id);
+                            context.startActivity(intent);
+                        }
+                        else {
+                            Log.d(getClass().getName(), "Header is not image header");
+                        }
                     }
                 });
 
@@ -283,29 +287,24 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         mDiffer.submitList(list);
     }
 
-    private boolean isImage(SMS sms) {
-        byte[] data = sms.getBody().getBytes(StandardCharsets.UTF_8);
+    private boolean isImageHeader(SMS sms) {
+//        byte[] data = sms.getBody().getBytes(StandardCharsets.UTF_8);
+//        byte[] data = sms.getBody().getBytes();
+//        byte[] data = sms.getBody();
+        byte[] data = Base64.decode(sms.getBody(), Base64.DEFAULT);
 
-        if(data.length < 2 || data[0] < SMSHandler.ASCII_MAGIC_NUMBER || data[1] < 0)
-            return false;
+        Log.d(getClass().getName(), "Data Header 0: " + Byte.toUnsignedInt(data[0]));
+        Log.d(getClass().getName(), "Data Header 1: " + Byte.toUnsignedInt(data[1]));
 
-        if(data.length < 3 ) {
-            // TODO: should check if matches any other starting message before deciding it's message
-            return true;
-        }
-
-        return Character.isDigit(data[2]);
+        return (data.length > 3
+                && Byte.toUnsignedInt(data[0]) >= SMSHandler.ASCII_MAGIC_NUMBER
+                && Byte.toUnsignedInt(data[1]) >= 0);
     }
 
     @Override
     public int getItemViewType(int position) {
         if(mDiffer.getCurrentList().get(position).isDatesOnly())
             return 100;
-
-        else if(isImage(mDiffer.getCurrentList().get(position))) {
-            Log.d(getClass().getName(), "SMS data image found!");
-            return 200;
-        }
 
         int messageType = mDiffer.getCurrentList().get(position).getType();
         return (messageType > -1 )? messageType : 0;

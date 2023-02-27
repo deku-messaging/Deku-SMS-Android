@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Random;
 
 public class SMSHandler {
-    public static final int ASCII_MAGIC_NUMBER = 0x7F;
+    public static final int ASCII_MAGIC_NUMBER = 127;
     public static final short DATA_TRANSMISSION_PORT = 8200;
 
     public static final Uri SMS_CONTENT_URI = Telephony.Sms.CONTENT_URI;
@@ -220,6 +220,34 @@ public class SMSHandler {
                 new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID },
                 "address like ?",
                 new String[] { "%" + address},
+                null);
+
+        return smsMessagesCursor;
+    }
+
+    public static Cursor fetchSMSInboxByForImages(@NonNull Context context, String RIL) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_INBOX_CONTENT_URI,
+                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE },
+                Telephony.TextBasedSmsColumns.BODY +  " like ?",
+                new String[]{ RIL + "%" },
+                null);
+
+        return smsMessagesCursor;
+    }
+
+    public static Cursor fetchSMSInboxById(@NonNull Context context, String id) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_INBOX_CONTENT_URI,
+                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE },
+                Telephony.Sms._ID + "=?",
+                new String[] { id },
                 null);
 
         return smsMessagesCursor;
@@ -593,9 +621,6 @@ public class SMSHandler {
 //            data = copyBytes(data, 0, 200);
             threadId = registerPendingMessage(context, destinationAddress, dataString, messageId);
 
-            if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "Sending data: " + new String(data));
-
 //            dataString = "hello world";
 //            ArrayList<String> dividedMessage = smsManager.divideMessage(dataString);
             ArrayList<byte[]> dividedMessage = divideMessage(data);
@@ -603,23 +628,30 @@ public class SMSHandler {
             // TODO: randomly generated number from 0 - 255
 
             // final byte sendingReferenceId = 0x00;
+            final Integer sendingReferenceId = (ASCII_MAGIC_NUMBER
+                    + new Random().nextInt(ASCII_MAGIC_NUMBER));
 
-            final byte sendingReferenceId = (byte) (ASCII_MAGIC_NUMBER + new Random().nextInt(256));
-            for(byte sendingMessageCounter = 0x00; sendingMessageCounter<dividedMessage.size(); ++sendingMessageCounter) {
+            Log.d(SMSHandler.class.getName(), "Image sending RIF: " + sendingReferenceId);
+
+            int totalLen = 0;
+            for(Integer sendingMessageCounter = 0; sendingMessageCounter<dividedMessage.size(); ++sendingMessageCounter) {
                 int dest = 0;
                 byte[] rawData = dividedMessage.get(sendingMessageCounter);
 
-                int totalSendingLength = sendingMessageCounter == 0x00 ? rawData.length + 3 :
+                int totalSendingLength = sendingMessageCounter == 0 ? rawData.length + 3 :
                         rawData.length + 2;
+
                 byte[] sendingData = new byte[totalSendingLength];
-                sendingData[dest] = sendingReferenceId;
-                sendingData[++dest] = sendingMessageCounter;
+
+                sendingData[dest] = sendingReferenceId.byteValue();
+                sendingData[++dest] = sendingMessageCounter.byteValue();
 
                 // TODO: put this information before dividing it
-                if(sendingMessageCounter == 0x00)
+                if(sendingMessageCounter == 0)
                     sendingData[++dest] = DataHelper.intToByte(dividedMessage.size());
 
                 System.arraycopy(rawData, 0, sendingData, ++dest, rawData.length);
+                totalLen += sendingData.length;
 
                 PendingIntent sentIntentFinal = sendingMessageCounter == dividedMessage.size() -1 ?
                         sentIntent : null;
@@ -639,6 +671,7 @@ public class SMSHandler {
                     Log.d(SMSHandler.class.getName(), "Sent counter: " + sendingMessageCounter);
                 Thread.sleep(500);
             }
+            Log.d(SMSHandler.class.getName(), "Image sending size: " + totalLen);
         } catch(Exception e ) {
             e.printStackTrace();
         }

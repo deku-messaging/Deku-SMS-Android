@@ -131,9 +131,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                byte val = 0x00;
-                Log.d(getLocalClassName(), "Maths: " + ++val);
-                Log.d(getLocalClassName(), "Maths: " + ++val);
+                byte b = (byte) 69;
+
+//                Log.d(getLocalClassName(), "Header greater: " + );
             }
         }).start();
 

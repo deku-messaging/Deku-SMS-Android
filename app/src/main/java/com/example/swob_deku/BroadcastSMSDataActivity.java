@@ -15,6 +15,9 @@ import android.util.Log;
 
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 
@@ -30,16 +33,20 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
             switch (getResultCode()) {
                 case Activity.RESULT_OK:
-                    byte[] messageBuffer = new byte[]{};
-                    StringBuffer messageStringBuffer = new StringBuffer();
+                    ByteArrayOutputStream messageBuffer = new ByteArrayOutputStream();
                     String address = new String();
 
                     for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         address = currentSMS.getDisplayOriginatingAddress();
 
-                        byte[] pdu = currentSMS.getPdu();
-                        messageBuffer = currentSMS.getUserData();
                         try {
+                            messageBuffer.write(currentSMS.getUserData());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        try {
+                            byte[] pdu = currentSMS.getPdu();
                             SMSHandler.interpret_PDU(pdu);
                         } catch (ParseException e) {
                             throw new RuntimeException(e);
@@ -51,7 +58,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                         Log.d(getClass().getName(), "Message bytes: " + messageBuffer);
                     }
 //                    String b64Message = new String(Base64.encode(messageBuffer, Base64.DEFAULT), StandardCharsets.UTF_8);
-                    byte[] extractedMeta = extractMessageMeta(messageBuffer);
+                    byte[] extractedMeta = extractMessageMeta(messageBuffer.toByteArray());
                     if(extractedMeta != null)
                         for(int i=0;i<extractedMeta.length;++i) {
                             Log.d(getClass().getName(), "PDU Extracted meta: " + i + "-> " + extractedMeta[i]);
@@ -59,8 +66,11 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                     else
                         Log.d(getClass().getName(), "PDU extracted was null");
 
-                    String strMessage = new String(messageBuffer, StandardCharsets.UTF_8);
-                    Log.d(getClass().getName(), "PDU data incoming: " + strMessage);
+                    Log.d(getClass().getName(), "Data Header raw: " + Byte.toUnsignedInt(messageBuffer.toByteArray()[0]));
+
+                    String strMessage = Base64.encodeToString(messageBuffer.toByteArray(), Base64.DEFAULT);
+                    Log.d(getClass().getName(), "Data Header storing: " + strMessage);
+
                     long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
                     // TODO: silence for now
