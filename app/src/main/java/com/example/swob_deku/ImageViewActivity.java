@@ -14,7 +14,9 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -141,6 +143,9 @@ public class ImageViewActivity extends AppCompatActivity {
 
         Bitmap imageBitmap = imageHandler.resizeImage(resizeScale);
 
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                getSystemService(SmsManager.class) : SmsManager.getDefault();
+
         String description = "- Original resolution: " + imageHandler.bitmap.getWidth() + "x"
                 + imageHandler.bitmap.getHeight();
         description += "\n\n- Resize scale: " + resizeScale;
@@ -148,7 +153,9 @@ public class ImageViewActivity extends AppCompatActivity {
                 + "x" + imageBitmap.getHeight();
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
         description += "\n\n- Compressed bytes: " + compressedBytes.length;
-        description += "\n- Approx #SMS: " + SMSHandler.structureSMSMessage(compressedBytes).size();
+        description += "\n- Approx # Data SMS: " + SMSHandler.structureSMSMessage(compressedBytes).size();
+        description += "\n- Approx # B64 SMS: " + smsManager.divideMessage(
+                Base64.encodeToString(compressedBytes, Base64.NO_PADDING)).size();
 
         Log.d(getLocalClassName(), "Google loc RIFF: " + DataHelper.findInBytes("RIFF", compressedBytes));
         Log.d(getLocalClassName(), "Google loc Google: " + DataHelper.findInBytes("Google", compressedBytes));
