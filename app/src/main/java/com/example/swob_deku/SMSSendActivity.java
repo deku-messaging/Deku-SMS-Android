@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -182,6 +184,51 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void checkSendingImage() throws InterruptedException {
+        if(getIntent().hasExtra(THREAD_ID) || (this.threadId != null && !this.threadId.isEmpty())) {
+            this.threadId = getIntent().getStringExtra(THREAD_ID);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    /**
+                     * TODO: check if message in OUTBOX status PENDING
+                     * TODO: send message to smshandler to handle sending them out.
+                     */
+
+                    Cursor cursor = SMSHandler.fetchSMSOutboxPendingForThread(getApplicationContext(), threadId);
+                    Log.d(getLocalClassName(), "SMS Outbox found: " + cursor.getCount());
+
+                    if(cursor.moveToFirst()) {
+                        do {
+                            SMS sms = new SMS(cursor);
+                            /**
+                             * TODO: check if can base64 and bitmap - then data
+                             * TODO: else text
+                             */
+                            try {
+                                byte[] data = Base64.decode(sms.getBody(), Base64.NO_PADDING);
+                                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+
+                                if(bitmap != null) {
+                                    SMSHandler.sendDataSMS(getApplicationContext(), sms.getAddress(), data,
+                                            null, null, Long.parseLong(sms.getId()));
+                                    continue;
+                                }
+                            } catch(Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            SMSHandler.sendTextSMS(getApplicationContext(), sms.getAddress(), sms.getBody(),
+                                    null, null, Long.parseLong(sms.getId()));
+                        } while(cursor.moveToNext());
+                    }
+                    cursor.close();
+                }
+            }).start();
+
+        }
+
+        if(getIntent().hasExtra(ADDRESS))
+            this.address = getIntent().getStringExtra(ADDRESS);
     }
 
     private void updateMessagesToRead() {
@@ -423,29 +470,6 @@ public class SMSSendActivity extends AppCompatActivity {
         return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
     }
 
-    public void sendImageMessage(byte[] imageBytes) throws InterruptedException {
-        long messageId = Helpers.generateRandomNumber();
-        PendingIntent[] pendingIntents = getPendingIntents(messageId);
-
-        handleBroadcast();
-
-        try {
-//            String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), address, imageBytes,
-//                    pendingIntents[0], pendingIntents[1], messageId);
-
-            String b64Image = Base64.encodeToString(imageBytes, Base64.DEFAULT);
-            String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), address, b64Image,
-                    pendingIntents[0], pendingIntents[1], messageId);
-            if(BuildConfig.DEBUG)
-                Log.d(getLocalClassName(), "Image sent successfully!");
-
-            if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty())
-                threadId = tmpThreadId;
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void sendTextMessage(View view) {
         // TODO: Don't let sending happen if message box is empty
         String text = smsTextView.getText().toString();
@@ -456,7 +480,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
             handleBroadcast();
 
-            String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), address, text,
+            String tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
                     pendingIntents[0], pendingIntents[1], messageId);
 
             resetSmsTextView();

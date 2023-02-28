@@ -10,17 +10,27 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
-import android.util.Base64;
 import android.util.Log;
 
 
 import androidx.annotation.NonNull;
+import androidx.room.Room;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.Datastore;
+import com.example.swob_deku.Models.GatewayServer.GatewayServer;
+import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
+import com.example.swob_deku.Models.Router.Router;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,6 +42,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class SMSHandler {
     public static final int ASCII_MAGIC_NUMBER = 127;
@@ -42,6 +53,8 @@ public class SMSHandler {
     public static final Uri SMS_INBOX_CONTENT_URI = Telephony.Sms.Inbox.CONTENT_URI;
     public static final Uri SMS_OUTBOX_CONTENT_URI = Telephony.Sms.Outbox.CONTENT_URI;
     public static final Uri SMS_SENT_CONTENT_URI = Telephony.Sms.Sent.CONTENT_URI;
+
+    public static final String DATA_SMS_WORK_MANAGER_TAG_NAME = "DATA_SMS_ROUTING";
 
     public static int countMessages(Context context, byte[] data) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
@@ -267,6 +280,22 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
+
+    public static Cursor fetchSMSOutboxPendingForThread(@NonNull Context context, String threadId) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_OUTBOX_CONTENT_URI,
+                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE },
+                Telephony.TextBasedSmsColumns.THREAD_ID + "=? and "
+                        + Telephony.TextBasedSmsColumns.STATUS + "=?",
+                new String[]{threadId, String.valueOf(Telephony.Sms.STATUS_NONE)},
+                null);
+
+        return smsMessagesCursor;
+    }
+
     public static Cursor fetchSMSOutboxPending(@NonNull Context context) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 SMS_OUTBOX_CONTENT_URI,
@@ -275,7 +304,7 @@ public class SMSHandler {
                         Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
                         Telephony.TextBasedSmsColumns.TYPE },
                 Telephony.TextBasedSmsColumns.STATUS + "=?",
-                new String[]{String.valueOf(Telephony.Sms.STATUS_PENDING)},
+                new String[]{String.valueOf(Telephony.Sms.STATUS_NONE)},
                 null);
 
         return smsMessagesCursor;
@@ -473,6 +502,7 @@ public class SMSHandler {
         }
     }
 
+
     public static String registerPendingMessage(Context context, String destinationAddress, String text, long messageId) {
         if(BuildConfig.DEBUG)
             Log.d(SMSHandler.class.getName(), "sending message id: " + messageId);
@@ -483,7 +513,7 @@ public class SMSHandler {
 
         contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
-        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_NONE);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
 
@@ -536,7 +566,7 @@ public class SMSHandler {
 
     
 
-    public static String sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
+    public static String sendTextSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
 
@@ -629,45 +659,29 @@ public class SMSHandler {
                 byteArrayOutputStream.toByteArray().length);
     }
 
-    public static String sendSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
-        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
-                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
-
+    public static void sendDataSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
         if(data == null)
-            return "";
-
-        String threadId = "";
+            return;
 
         ArrayList<byte[]> dividedMessage = structureSMSMessage(data);
         Log.d(SMSHandler.class.getName(), "Sending divided count: " + dividedMessage.size());
         try {
-            // If this crashes and sends twice, Primary key stops any action
-            threadId = registerPendingMessage(context, destinationAddress,
-                    new String(data, StandardCharsets.UTF_8), messageId);
+            /**
+             * Navigating away from activity which triggered this causes it to end
+             * Therefore this should be moved into a WorkManager.
+             * A WorkManager is created for each message and the constrains help manage the network
+             * possible issues.
+             * TODO: if bits failed - on retry on the failed bits should be reset
+             */
 
             for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
-                PendingIntent sentIntentFinal = sendingMessageCounter == dividedMessage.size() - 1 ?
-                        sentIntent : null;
-
-                PendingIntent deliveryIntentFinal = sendingMessageCounter == dividedMessage.size() - 1 ?
-                        deliveryIntent : null;
-
-                smsManager.sendDataMessage(
-                        destinationAddress,
-                        null,
-                        DATA_TRANSMISSION_PORT,
-                        dividedMessage.get(sendingMessageCounter),
-                        sentIntentFinal,
-                        deliveryIntentFinal);
-
-                int minSleepTime = 500;
-                Thread.sleep(minSleepTime);
+                boolean hasPendingIntent = sendingMessageCounter == dividedMessage.size() - 1;
+                createWorkManagersForDataMessages(context, destinationAddress,
+                        dividedMessage.get(sendingMessageCounter), messageId, hasPendingIntent, sendingMessageCounter);
             }
         } catch(Exception e) {
             e.printStackTrace();
         }
-
-        return threadId;
     }
 
     public static void clearOutboxPending(Context context) {
@@ -701,5 +715,59 @@ public class SMSHandler {
         catch(Exception e ) {
             e.printStackTrace();
         }
+    }
+
+    public static void registerPendingBroadcastMessage(Context context, long messageId) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.Sms.STATUS_PENDING);
+        try {
+            int updateCount = context.getContentResolver().update(
+                    SMS_OUTBOX_CONTENT_URI,
+                    contentValues,
+                    Telephony.Sms._ID +"=?",
+                    new String[] {String.valueOf(messageId)});
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void createWorkManagersForDataMessages(Context context, String address, byte[] data,
+                                                   long messageId, boolean hasPendingIntents, int iterator) {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        final String DATA_SMS_WORK_MANAGER_ID = String.valueOf(messageId);
+        OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(SMSWorkManager.class)
+                .setConstraints(constraints)
+                .setBackoffCriteria(
+                        BackoffPolicy.LINEAR,
+                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                        TimeUnit.MILLISECONDS
+                )
+                .addTag(DATA_SMS_WORK_MANAGER_TAG_NAME)
+                .addTag(DATA_SMS_WORK_MANAGER_ID)
+                .setInputData(
+                        new Data.Builder()
+                                .putString("address", address)
+                                .putLong("message_id", messageId)
+                                .putByteArray("data", data)
+                                .putBoolean("pending_intents", hasPendingIntents)
+                                .build()
+                )
+                .build();
+
+        // String uniqueWorkName = address + message;
+        String uniqueWorkName = DATA_SMS_WORK_MANAGER_ID + "_" + iterator;
+        WorkManager workManager = WorkManager.getInstance(context);
+        workManager.enqueueUniqueWork(
+                uniqueWorkName,
+                ExistingWorkPolicy.KEEP,
+                routeMessageWorkRequest);
+        Log.d(SMSHandler.class.getName(), "Send data sms workmanager created" + DATA_SMS_WORK_MANAGER_ID);
     }
 }
