@@ -1,14 +1,9 @@
 package com.example.swob_deku;
 
-import static com.example.swob_deku.SMSSendActivity.ID;
-import static com.example.swob_deku.SMSSendActivity.SMS_DELIVERED_INTENT;
-import static com.example.swob_deku.SMSSendActivity.SMS_SENT_INTENT;
-
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.app.PendingIntent;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -29,11 +24,9 @@ import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class ImageViewActivity extends AppCompatActivity {
 
@@ -76,36 +69,44 @@ public class ImageViewActivity extends AppCompatActivity {
                 SMS sms = new SMS(cursor);
 
                 byte[] body = Base64.decode(sms.getBody(), Base64.NO_PADDING);
-                int len = Byte.toUnsignedInt(body[2]);
+                if(body.length <= 133) {
+                    int len = Byte.toUnsignedInt(body[2]);
 
-                // TODO: build for len so not to waste compute
-                String RIL = Base64.encodeToString(new byte[]{body[0]}, Base64.NO_PADDING)
-                        .replaceAll("\\n", "");
+                    // TODO: build for len so not to waste compute
+                    String RIL = Base64.encodeToString(new byte[]{body[0]}, Base64.NO_PADDING)
+                            .replaceAll("\\n", "");
 
-//                String RIL = "vg";
-                Log.d(getLocalClassName(), "Image Header RIL: " + RIL + ":" + RIL.length());
-                Cursor cursorImageCursor = SMSHandler.fetchSMSInboxByForImages(getApplicationContext(),
-                        RIL, sms.getThreadId());
-                Log.d(getLocalClassName(), "Image # Found: " + cursorImageCursor.getCount() + ":" + len);
+                    //                String RIL = "vg";
+                    Log.d(getLocalClassName(), "Image Header RIL: " + RIL + ":" + RIL.length());
+                    Cursor cursorImageCursor = SMSHandler.fetchSMSInboxByForImages(getApplicationContext(),
+                            RIL, sms.getThreadId());
+                    Log.d(getLocalClassName(), "Image # Found: " + cursorImageCursor.getCount() + ":" + len);
 
-                byte[][] imagesBytes = new byte[len][];
+                    byte[][] imagesBytes = new byte[len][];
 
-                if(cursorImageCursor.moveToFirst()) {
-                    do {
-                        SMS imageSMS = new SMS(cursorImageCursor);
+                    if (cursorImageCursor.moveToFirst()) {
+                        do {
+                            SMS imageSMS = new SMS(cursorImageCursor);
 
-                        byte[] imgBody = Base64.decode(imageSMS.getBody(), Base64.NO_PADDING);
-                        int id = Byte.toUnsignedInt(imgBody[1]);
-                        imagesBytes[id] = imgBody;
-                    } while(cursorImageCursor.moveToNext());
+                            byte[] imgBody = Base64.decode(imageSMS.getBody(), Base64.NO_PADDING);
+                            int id = Byte.toUnsignedInt(imgBody[1]);
+                            imagesBytes[id] = imgBody;
+                        } while (cursorImageCursor.moveToNext());
+                    }
+                    try {
+                        buildImage(imagesBytes);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    cursorImageCursor.close();
                 }
-
-                try {
-                    buildImage(imagesBytes);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                else {
+                    try {
+                        buildImage(body);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-                cursorImageCursor.close();
             }
             cursor.close();
         }
@@ -119,6 +120,12 @@ public class ImageViewActivity extends AppCompatActivity {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private void buildImage(byte[] data ) throws IOException {
+        compressedBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+//        imageDescription.setText(description);
+        imageView.setImageBitmap(compressedBitmap);
     }
 
     private void buildImage(byte[][] unstructuredImageBytes ) throws IOException {
@@ -157,21 +164,10 @@ public class ImageViewActivity extends AppCompatActivity {
         description += "\n- Approx # B64 SMS: " + smsManager.divideMessage(
                 Base64.encodeToString(compressedBytes, Base64.NO_PADDING)).size();
 
-        Log.d(getLocalClassName(), "Google loc RIFF: " + DataHelper.findInBytes("RIFF", compressedBytes));
-        Log.d(getLocalClassName(), "Google loc Google: " + DataHelper.findInBytes("Google", compressedBytes));
-        Log.d(getLocalClassName(), "Google loc VP8: " + DataHelper.findInBytes("VP8", compressedBytes));
-        Log.d(getLocalClassName(), "Google loc enUS: " + DataHelper.findInBytes("enUS", compressedBytes));
-        Log.d(getLocalClassName(), "Google loc desc: " + DataHelper.findInBytes("desc", compressedBytes));
-        Log.d(getLocalClassName(), "Google loc 2016: " + DataHelper.findInBytes("2016", compressedBytes));
-
         byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
         byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
 
-        Log.d(getLocalClassName(), "Header RIFF: " + Arrays.toString(DataHelper.byteToChar(riffHeader)));
-        Log.d(getLocalClassName(), "Header VP8: " + Arrays.toString(DataHelper.byteToChar(vp8Header)));
-
         int locEnUS = DataHelper.findInBytes("enUS", compressedBytes);
-        int stdLen = 200;
         byte[] deepsearchByte = SMSHandler.copyBytes(compressedBytes, locEnUS, 400) ;
         char[] deepsearch = DataHelper.byteToChar(deepsearchByte);
 
@@ -204,10 +200,15 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
     }
 
-    public void imageSend(View view) {
+    public void sendImage(View view) {
+        long messageId = Helpers.generateRandomNumber();
+
+        String threadId = SMSHandler.registerPendingMessage(getApplicationContext(), address,
+                Base64.encodeToString(compressedBytes, Base64.NO_PADDING),  messageId);
+
         Intent intent = new Intent(this, SMSSendActivity.class);
-        intent.putExtra(SMSSendActivity.COMPRESSED_IMAGE_BYTES, compressedBytes);
         intent.putExtra(SMSSendActivity.ADDRESS, address);
+        intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
         startActivity(intent);
         finish();

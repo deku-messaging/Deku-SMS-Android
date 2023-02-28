@@ -267,6 +267,20 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
+    public static Cursor fetchSMSOutboxPending(@NonNull Context context) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_OUTBOX_CONTENT_URI,
+                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE },
+                Telephony.TextBasedSmsColumns.STATUS + "=?",
+                new String[]{String.valueOf(Telephony.Sms.STATUS_PENDING)},
+                null);
+
+        return smsMessagesCursor;
+    }
+
     public static Cursor fetchSMSMessagesAddress(@NonNull Context context, String address) {
         address = address.replaceAll("[\\s-]", "");
 
@@ -520,61 +534,7 @@ public class SMSHandler {
         // TODO: parse
     }
 
-    public static void bad_experiments(Context context) {
-        /**
-         * The issue being faced is that they simply don't wanna let developers do this!
-         * https://issuetracker.google.com/issues/36917186
-         * https://pastebin.com/6uueFLCU
-         * https://stackoverflow.com/questions/24464237/send-sms-in-pdu-mode-in-android
-         */
-        String DA = "+237690816242";
-        PDUConverter.PDUEncoded pduEncoded = PDUConverter.encode("", DA, "", "hello_world");
-        String encoded = pduEncoded.getPduEncoded();
-//        Log.d(getLocalClassName(), "PDU encoded: " + encoded);
-
-        SmsMessage smsMessage = SmsMessage.createFromPdu(DataHelper.hexStringToByteArray(encoded));
-//        Log.d(getLocalClassName(), "PDU SMSC address: " + smsMessage.getMessageBody());
-
-        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
-                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
-
-        SmsMessage.SubmitPdu submitPdu = SmsMessage.getSubmitPdu(null,
-                DA,
-                SMSHandler.DATA_TRANSMISSION_PORT, "hello world".getBytes(StandardCharsets.UTF_8),
-                true);
-
-//        submitPdu.encodedMessage = smsMessage.getPdu();
-
-        Log.d(SMSHandler.class.getName(), "PDU message: " + DataHelper.toHexString(submitPdu.encodedMessage));
-
-        /*
-        * This shit is intended for rooted phones only
-        // Get method "sendRawPdu"
-        byte[] bb = new byte[1];
-        SmsMessage.SubmitPdu mypdu = SmsMessage.getSubmitPdu(null, pNo, msg, true);
-        size = (int) mypdu.encodedMessage[2];
-        size = (size / 2) + (size % 2);
-
-        mypdu.encodedMessage[size + 5] = (byte) 0xF0;
-
-        Log.d(TAG, dumpHexString(mypdu.encodedMessage, 0, mypdu.encodedMessage.toString().length()));
-
-        Method m2 = SmsManager.class.getDeclaredMethod("sendRawPdu", bb.getClass(),bb.getClass(),PendingIntent.class,PendingIntent.class,boolean.class,boolean.class);
-        Log.d("success", "success getting sendRawPdu");
-
-        m2.setAccessible(true);
-
-        int length = msg.length();
-        count = length / 160;
-        int m = length % 160;
-        if (m != 0) {
-            count++;
-        }
-
-        m2.invoke(sm, mypdu.encodedScAddress,mypdu.encodedMessage,sentPI,deliveredPI, Boolean.valueOf(true),Boolean.valueOf(true));
-        Log.d("success", "success sending message");
-        */
-    }
+    
 
     public static String sendSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
@@ -699,13 +659,30 @@ public class SMSHandler {
                         dividedMessage.get(sendingMessageCounter),
                         sentIntentFinal,
                         deliveryIntentFinal);
-                Thread.sleep(500);
+
+                int minSleepTime = 500;
+                Thread.sleep(minSleepTime);
             }
         } catch(Exception e) {
             e.printStackTrace();
         }
 
         return threadId;
+    }
+
+    public static void clearOutboxPending(Context context) {
+        try {
+            int updateCount = context.getContentResolver().delete(
+                    SMS_CONTENT_URI,
+                    Telephony.TextBasedSmsColumns.STATUS + "=?",
+                    new String[]{String.valueOf(Telephony.Sms.STATUS_PENDING)});
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
     }
 
     public static void updateThreadMessagesThread(Context context, String threadId) {

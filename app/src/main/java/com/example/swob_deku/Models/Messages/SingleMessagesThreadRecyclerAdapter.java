@@ -4,6 +4,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.provider.Telephony;
 import android.text.format.DateUtils;
@@ -296,7 +298,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         Log.d(getClass().getName(), "Data Header 0: " + Byte.toUnsignedInt(data[0]));
         Log.d(getClass().getName(), "Data Header 1: " + Byte.toUnsignedInt(data[1]));
 
-        return (data.length > 3
+        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+
+        return bitmap != null || (data.length > 3
                 && Byte.toUnsignedInt(data[0]) >= SMSHandler.ASCII_MAGIC_NUMBER
                 && Byte.toUnsignedInt(data[1]) >= 0);
     }

@@ -47,7 +47,7 @@
         android:layout_marginStart="156dp"
         android:layout_marginEnd="167dp"
         android:layout_marginBottom="22dp"
-        android:onClick="imageSend"
+        android:onClick="sendImage"
         android:text="Send"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

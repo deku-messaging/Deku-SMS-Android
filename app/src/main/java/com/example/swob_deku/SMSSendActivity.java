@@ -30,6 +30,7 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -181,13 +182,8 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void checkSendingImage() throws InterruptedException {
-        if(getIntent().hasExtra(COMPRESSED_IMAGE_BYTES)) {
-            byte[] compressedImageByte = getIntent().getByteArrayExtra(COMPRESSED_IMAGE_BYTES);
-            getIntent().removeExtra(COMPRESSED_IMAGE_BYTES);
-            address = getIntent().getStringExtra(ADDRESS);
-            sendImageMessage(compressedImageByte);
-        }
     }
+
     private void updateMessagesToRead() {
         new Thread(new Runnable() {
             @Override
@@ -433,11 +429,12 @@ public class SMSSendActivity extends AppCompatActivity {
 
         handleBroadcast();
 
-        String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), address, imageBytes,
-                pendingIntents[0], pendingIntents[1], messageId);
-
         try {
-            SMSHandler.sendSMS(getApplicationContext(), address, imageBytes,
+//            String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), address, imageBytes,
+//                    pendingIntents[0], pendingIntents[1], messageId);
+
+            String b64Image = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+            String tmpThreadId = SMSHandler.sendSMS(getApplicationContext(), address, b64Image,
                     pendingIntents[0], pendingIntents[1], messageId);
             if(BuildConfig.DEBUG)
                 Log.d(getLocalClassName(), "Image sent successfully!");

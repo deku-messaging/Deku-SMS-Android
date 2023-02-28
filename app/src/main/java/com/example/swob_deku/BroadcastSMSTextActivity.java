@@ -69,13 +69,13 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 
                         byte[] pdu = currentSMS.getPdu();
 
-                        if(BuildConfig.DEBUG) {
-                            try {
-                                interpret_PDU((pdu));
-                            } catch (ParseException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
+//                        if(BuildConfig.DEBUG) {
+//                            try {
+//                                interpret_PDU((pdu));
+//                            } catch (ParseException e) {
+//                                throw new RuntimeException(e);
+//                            }
+//                        }
 
                         if (BuildConfig.DEBUG) {
                             Log.d(getClass().getName(), "PDU android studio: " + currentSMS.getServiceCenterAddress());

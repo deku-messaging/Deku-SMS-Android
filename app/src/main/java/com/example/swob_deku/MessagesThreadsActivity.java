@@ -1,6 +1,7 @@
 package com.example.swob_deku;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -38,7 +39,6 @@ import android.widget.PopupMenu;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
-import com.example.swob_deku.Models.SMS.PDUConverter;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
@@ -56,6 +56,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     // TODO: Change address to friendly name if in phonebook
     MessagesThreadViewModel messagesThreadViewModel;
     MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter;
+    RecyclerView messagesThreadRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +117,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
                 this, R.layout.messages_threads_layout);
 
-        RecyclerView messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
+        messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 
@@ -127,17 +128,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
+    }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                byte b = (byte) 69;
-
-//                Log.d(getLocalClassName(), "Header greater: " + );
-            }
-        }).start();
-
-
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
