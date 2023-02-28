@@ -671,7 +671,9 @@ public class SMSHandler {
              * Therefore this should be moved into a WorkManager.
              * A WorkManager is created for each message and the constrains help manage the network
              * possible issues.
-             * TODO: if bits failed - on retry on the failed bits should be reset
+             * TODO: - If bits failed - on retry on the failed bits should be reset
+             * TODO: - Figure out the failedStatusCode for the MTN failed messages and set protocol
+             * TODO: to handle them
              */
 
             for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
