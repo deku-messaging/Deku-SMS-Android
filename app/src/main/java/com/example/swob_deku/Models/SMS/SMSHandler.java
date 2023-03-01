@@ -665,21 +665,36 @@ public class SMSHandler {
 
         ArrayList<byte[]> dividedMessage = structureSMSMessage(data);
         Log.d(SMSHandler.class.getName(), "Sending divided count: " + dividedMessage.size());
-        try {
-            /**
-             * Navigating away from activity which triggered this causes it to end
-             * Therefore this should be moved into a WorkManager.
-             * A WorkManager is created for each message and the constrains help manage the network
-             * possible issues.
-             * TODO: - If bits failed - on retry on the failed bits should be reset
-             * TODO: - Figure out the failedStatusCode for the MTN failed messages and set protocol
-             * TODO: to handle them
-             */
 
-            for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
-                boolean hasPendingIntent = sendingMessageCounter == dividedMessage.size() - 1;
-                createWorkManagersForDataMessages(context, destinationAddress,
-                        dividedMessage.get(sendingMessageCounter), messageId, hasPendingIntent, sendingMessageCounter);
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+        try {
+            if(dividedMessage.size() == 1) {
+                smsManager.sendDataMessage(
+                        destinationAddress,
+                        null,
+                        DATA_TRANSMISSION_PORT,
+                        data,
+                        sentIntent,
+                        deliveryIntent);
+            }
+            else {
+
+                /**
+                 * Navigating away from activity which triggered this causes it to end
+                 * Therefore this should be moved into a WorkManager.
+                 * A WorkManager is created for each message and the constrains help manage the network
+                 * possible issues.
+                 * TODO: - If bits failed - on retry on the failed bits should be reset
+                 * TODO: - Figure out the failedStatusCode for the MTN failed messages and set protocol
+                 * TODO: to handle them
+                 */
+//                for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
+//                    boolean hasPendingIntent = sendingMessageCounter == dividedMessage.size() - 1;
+//                    createWorkManagersForDataMessages(context, destinationAddress,
+//                            dividedMessage.get(sendingMessageCounter), messageId, hasPendingIntent, sendingMessageCounter);
+//                }
+                createWorkManagersForDataMessages(context, destinationAddress, data, messageId);
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -738,9 +753,9 @@ public class SMSHandler {
     }
 
     public static void createWorkManagersForDataMessages(Context context, String address, byte[] data,
-                                                   long messageId, boolean hasPendingIntents, int iterator) {
+                                                   long messageId) {
         Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
                 .build();
 
         final String DATA_SMS_WORK_MANAGER_ID = String.valueOf(messageId);
@@ -756,15 +771,13 @@ public class SMSHandler {
                 .setInputData(
                         new Data.Builder()
                                 .putString("address", address)
-                                .putLong("message_id", messageId)
                                 .putByteArray("data", data)
-                                .putBoolean("pending_intents", hasPendingIntents)
                                 .build()
                 )
                 .build();
 
         // String uniqueWorkName = address + message;
-        String uniqueWorkName = DATA_SMS_WORK_MANAGER_ID + "_" + iterator;
+        String uniqueWorkName = DATA_SMS_WORK_MANAGER_ID;
         WorkManager workManager = WorkManager.getInstance(context);
         workManager.enqueueUniqueWork(
                 uniqueWorkName,

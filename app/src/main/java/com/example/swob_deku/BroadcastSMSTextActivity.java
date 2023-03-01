@@ -156,15 +156,8 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
     public static void sendNotification(Context context, String text, String address, long messageId) {
         Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
 
-        Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, messageId);
-
-        String threadId = "-1";
-        if (cursor.moveToFirst()) {
-            SMS sms = new SMS(cursor);
-            threadId = sms.getThreadId();
-        }
         receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
-        receivedSmsIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+//        receivedSmsIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
         receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
@@ -191,6 +184,6 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.notify(Integer.parseInt(threadId), builder.build());
+        notificationManager.notify(Integer.parseInt(String.valueOf(messageId)), builder.build());
     }
 }

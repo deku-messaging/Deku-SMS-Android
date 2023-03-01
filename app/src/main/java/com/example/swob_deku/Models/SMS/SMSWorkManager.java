@@ -10,8 +10,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.telephony.SmsManager;
+import android.util.Base64;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -19,12 +22,14 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.example.swob_deku.BuildConfig;
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.SMSSendActivity;
+
+import java.util.ArrayList;
 
 public class SMSWorkManager extends Worker {
     Context context;
     String address;
-    long messageId;
     byte[] data;
     boolean hasPendingIntents;
 
@@ -33,7 +38,6 @@ public class SMSWorkManager extends Worker {
         this.context = context;
 
         this.address = getInputData().getString("address");
-        this.messageId = getInputData().getLong("message_id", -1);
         this.data = getInputData().getByteArray("data");
         this.hasPendingIntents = getInputData().getBoolean("pending_intents", true);
 
@@ -43,9 +47,10 @@ public class SMSWorkManager extends Worker {
     @Override
     public Result doWork() {
         try {
-            sendDataMessages(address, data, messageId, hasPendingIntents);
+            sendDataMessages(address, data, hasPendingIntents);
         } catch(Exception e) {
             // TODO: figure out the reasons why it might fail and decide if to retry
+            e.printStackTrace();
             return Result.failure();
         }
 
@@ -73,6 +78,11 @@ public class SMSWorkManager extends Worker {
                         }
                         break;
 
+                    case SmsManager.RESULT_RIL_SMS_SEND_FAIL_RETRY:
+                        // TODO: handle the bits and pieces that fail here -
+                        Log.d(getClass().getName(), "Broadcast should retry this message.." + id);
+                        break;
+
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
                     case SmsManager.RESULT_ERROR_NO_SERVICE:
                     case SmsManager.RESULT_ERROR_NULL_PDU:
@@ -85,12 +95,10 @@ public class SMSWorkManager extends Worker {
                         }
 
                         if(BuildConfig.DEBUG) {
-                            Log.d(getClass().getName(), "Failed to send: " + getResultCode());
-                            Log.d(getClass().getName(), "Failed to send: " + getResultData());
-                            Log.d(getClass().getName(), "Failed to send: " + intent.getData());
+                            Log.d(getClass().getName(), "Broadcast Failed to send: " + getResultCode());
                         }
                 }
-                context.unregisterReceiver(this);
+//                context.unregisterReceiver(this);
             }
         };
 
@@ -106,12 +114,12 @@ public class SMSWorkManager extends Worker {
                         Log.d(getClass().getName(), "Failed to deliver: " + getResultCode());
                 }
 
-                context.unregisterReceiver(this);
+//                context.unregisterReceiver(this);
             }
         };
 
-        context.registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
-        context.registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
+        getApplicationContext().registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
+        getApplicationContext().registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
     }
 
     public PendingIntent[] getPendingIntents(long messageId) {
@@ -121,50 +129,56 @@ public class SMSWorkManager extends Worker {
         Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
         deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
 
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context, 200,
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), Integer.parseInt(String.valueOf(messageId)),
                 sentIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context, 150,
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), Integer.parseInt(String.valueOf(messageId)),
                 deliveredIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
         return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
     }
 
-    public void sendDataMessages(String address, byte[] data, long messageId, boolean hasPendingIntents) {
+    public void sendDataMessages(String address, byte[] data, boolean hasPendingIntents) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
 
-        handleBroadcast();
 
-        if(hasPendingIntents) {
+        ArrayList<byte[]> dividedMessage = SMSHandler.structureSMSMessage(data);
+        handleBroadcast();
+        for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
+            long messageId = Helpers.generateRandomNumber();
+
+            SMSHandler.registerPendingMessage(context,
+                    address,
+                    Base64.encodeToString(dividedMessage.get(sendingMessageCounter), Base64.NO_PADDING),
+                    messageId);
+
             PendingIntent[] pendingIntents = getPendingIntents(messageId);
             try {
+                Log.d(getClass().getName(), "Sending new message: " + messageId);
                 smsManager.sendDataMessage(
                         address,
                         null,
                         DATA_TRANSMISSION_PORT,
-                        data,
+                        dividedMessage.get(sendingMessageCounter),
                         pendingIntents[0],
                         pendingIntents[1]);
+
+                SMSHandler.registerPendingBroadcastMessage(context, messageId);
+                Log.d(getClass().getName(), "Sent new message: " + messageId);
             } catch(Exception e) {
-                throw e;
-            }
-        } else {
-            try {
-                smsManager.sendDataMessage(
-                        address,
-                        null,
-                        DATA_TRANSMISSION_PORT,
-                        data,
-                        null,
-                        null);
-            } catch(Exception e) {
-                throw e;
+                e.printStackTrace();
+                try {
+                    SMSHandler.registerFailedMessage(context, messageId,
+                            SmsManager.RESULT_ERROR_GENERIC_FAILURE);
+                } catch(Exception e1) {
+                    e1.printStackTrace();
+                    throw e1;
+                }
             }
         }
 
-        SMSHandler.registerPendingBroadcastMessage(context, messageId);
     }
 }

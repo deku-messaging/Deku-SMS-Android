@@ -49,27 +49,27 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                             byte[] pdu = currentSMS.getPdu();
                             SMSHandler.interpret_PDU(pdu);
                         } catch (ParseException e) {
-                            throw new RuntimeException(e);
+                            e.printStackTrace();
                         }
                     }
 
-                    if(BuildConfig.DEBUG) {
-                        Log.d(getClass().getName(), "Message Address: " + address);
-                        Log.d(getClass().getName(), "Message bytes: " + messageBuffer);
-                    }
+//                    if(BuildConfig.DEBUG) {
+//                        Log.d(getClass().getName(), "Message Address: " + address);
+//                        Log.d(getClass().getName(), "Message bytes: " + messageBuffer);
+//                    }
 //                    String b64Message = new String(Base64.encode(messageBuffer, Base64.DEFAULT), StandardCharsets.UTF_8);
-                    byte[] extractedMeta = extractMessageMeta(messageBuffer.toByteArray());
-                    if(extractedMeta != null)
-                        for(int i=0;i<extractedMeta.length;++i) {
-                            Log.d(getClass().getName(), "PDU Extracted meta: " + i + "-> " + extractedMeta[i]);
-                        }
-                    else
-                        Log.d(getClass().getName(), "PDU extracted was null");
-
-                    Log.d(getClass().getName(), "Data Header raw: " + Byte.toUnsignedInt(messageBuffer.toByteArray()[0]));
-
+//                    byte[] extractedMeta = extractMessageMeta(messageBuffer.toByteArray());
+//                    if(extractedMeta != null)
+//                        for(int i=0;i<extractedMeta.length;++i) {
+//                            Log.d(getClass().getName(), "PDU Extracted meta: " + i + "-> " + extractedMeta[i]);
+//                        }
+//                    else
+//                        Log.d(getClass().getName(), "PDU extracted was null");
+//
+//                    Log.d(getClass().getName(), "Data Header raw: " + Byte.toUnsignedInt(messageBuffer.toByteArray()[0]));
+//
                     String strMessage = Base64.encodeToString(messageBuffer.toByteArray(), Base64.NO_PADDING);
-                    Log.d(getClass().getName(), "Data Header storing: " + strMessage);
+//                    Log.d(getClass().getName(), "Data Header storing: " + strMessage);
 
                     long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 

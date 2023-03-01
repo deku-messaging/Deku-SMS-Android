@@ -200,17 +200,15 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
     }
 
-    public void sendImage(View view) {
-        long messageId = Helpers.generateRandomNumber();
-
-        String threadId = SMSHandler.registerPendingMessage(getApplicationContext(), address,
-                Base64.encodeToString(compressedBytes, Base64.NO_PADDING),  messageId);
-
+    public void sendImage(View view) throws InterruptedException {
         Intent intent = new Intent(this, SMSSendActivity.class);
         intent.putExtra(SMSSendActivity.ADDRESS, address);
-        intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
         startActivity(intent);
+
+        long messageId = Helpers.generateRandomNumber();
+        SMSHandler.sendDataSMS(getApplicationContext(), address, compressedBytes,
+                null, null, messageId);
         finish();
     }
 

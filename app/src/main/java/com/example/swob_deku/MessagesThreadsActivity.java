@@ -22,6 +22,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -128,6 +131,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
+
     }
 
     @Override

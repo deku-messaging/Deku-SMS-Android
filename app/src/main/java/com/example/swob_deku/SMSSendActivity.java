@@ -186,45 +186,45 @@ public class SMSSendActivity extends AppCompatActivity {
     private void checkSendingImage() throws InterruptedException {
         if(getIntent().hasExtra(THREAD_ID) || (this.threadId != null && !this.threadId.isEmpty())) {
             this.threadId = getIntent().getStringExtra(THREAD_ID);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    /**
-                     * TODO: check if message in OUTBOX status PENDING
-                     * TODO: send message to smshandler to handle sending them out.
-                     */
-
-                    Cursor cursor = SMSHandler.fetchSMSOutboxPendingForThread(getApplicationContext(), threadId);
-                    Log.d(getLocalClassName(), "SMS Outbox found: " + cursor.getCount());
-
-                    if(cursor.moveToFirst()) {
-                        do {
-                            SMS sms = new SMS(cursor);
-                            /**
-                             * TODO: check if can base64 and bitmap - then data
-                             * TODO: else text
-                             */
-                            try {
-                                byte[] data = Base64.decode(sms.getBody(), Base64.NO_PADDING);
-                                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-
-                                if(bitmap != null) {
-                                    SMSHandler.sendDataSMS(getApplicationContext(), sms.getAddress(), data,
-                                            null, null, Long.parseLong(sms.getId()));
-                                    continue;
-                                }
-                            } catch(Exception e) {
-                                e.printStackTrace();
-                            }
-
-                            SMSHandler.sendTextSMS(getApplicationContext(), sms.getAddress(), sms.getBody(),
-                                    null, null, Long.parseLong(sms.getId()));
-                        } while(cursor.moveToNext());
-                    }
-                    cursor.close();
-                }
-            }).start();
-
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    /**
+//                     * TODO: check if message in OUTBOX status PENDING
+//                     * TODO: send message to smshandler to handle sending them out.
+//                     */
+//
+//                    Cursor cursor = SMSHandler.fetchSMSOutboxPendingForThread(getApplicationContext(), threadId);
+//                    Log.d(getLocalClassName(), "SMS Outbox found: " + cursor.getCount());
+//
+//                    if(cursor.moveToFirst()) {
+//                        do {
+//                            SMS sms = new SMS(cursor);
+//                            /**
+//                             * TODO: check if can base64 and bitmap - then data
+//                             * TODO: else text
+//                             */
+//                            try {
+//                                byte[] data = Base64.decode(sms.getBody(), Base64.NO_PADDING);
+//                                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+//
+//                                if(bitmap != null) {
+//                                    SMSHandler.sendDataSMS(getApplicationContext(), sms.getAddress(), data,
+//                                            null, null, Long.parseLong(sms.getId()));
+//                                    continue;
+//                                }
+//                            } catch(Exception e) {
+//                                e.printStackTrace();
+//                            }
+//
+//                            SMSHandler.sendTextSMS(getApplicationContext(), sms.getAddress(), sms.getBody(),
+//                                    null, null, Long.parseLong(sms.getId()));
+//                        } while(cursor.moveToNext());
+//                    }
+//                    cursor.close();
+//                }
+//            }).start();
+//
         }
 
         if(getIntent().hasExtra(ADDRESS))
