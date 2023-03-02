@@ -280,6 +280,19 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
+    public static Cursor fetchSMSOutboxById(@NonNull Context context, String id) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_OUTBOX_CONTENT_URI,
+                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE },
+                Telephony.Sms._ID + "=?",
+                new String[] { id },
+                null);
+
+        return smsMessagesCursor;
+    }
 
     public static Cursor fetchSMSOutboxPendingForThread(@NonNull Context context, String threadId) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
@@ -694,7 +707,7 @@ public class SMSHandler {
 //                    createWorkManagersForDataMessages(context, destinationAddress,
 //                            dividedMessage.get(sendingMessageCounter), messageId, hasPendingIntent, sendingMessageCounter);
 //                }
-                createWorkManagersForDataMessages(context, destinationAddress, data, messageId);
+                createWorkManagersForDataMessages(context, destinationAddress, data, -1);
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -725,6 +738,25 @@ public class SMSHandler {
                     contentValues,
                     Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.TextBasedSmsColumns.READ +"=?",
                     new String[] { threadId, "0" });
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void updateMessageStatus(Context context, String messageId, String status) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, status);
+
+        try {
+            int updateCount = context.getContentResolver().update(
+                    SMS_CONTENT_URI,
+                    contentValues,
+                    Telephony.Sms._ID + "=?",
+                    new String[] { messageId });
 
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
@@ -772,6 +804,7 @@ public class SMSHandler {
                         new Data.Builder()
                                 .putString("address", address)
                                 .putByteArray("data", data)
+                                .putLong("message_id", messageId)
                                 .build()
                 )
                 .build();

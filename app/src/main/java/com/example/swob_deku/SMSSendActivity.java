@@ -454,17 +454,17 @@ public class SMSSendActivity extends AppCompatActivity {
 
     public PendingIntent[] getPendingIntents(long messageId) {
         Intent sentIntent = new Intent(SMS_SENT_INTENT);
-        sentIntent.putExtra(ID, messageId);
+        sentIntent.putExtra(SMSSendActivity.ID, messageId);
 
         Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
-        deliveredIntent.putExtra(ID, messageId);
+        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
 
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(this, 200,
-                sentIntent,
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                Integer.parseInt(String.valueOf(messageId)), sentIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(this, 150,
-                deliveredIntent,
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                Integer.parseInt(String.valueOf(messageId)), deliveredIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
         return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
