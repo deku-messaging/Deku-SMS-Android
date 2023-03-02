@@ -1,0 +1,30 @@
+<resources>
+
+    <string name="routing_url">
+        https://staging.smswithoutborders.com:15000/sms/platform/gateway-client
+    </string>
+
+    <string name="official_site">
+        https://staging.smswithoutborders.com
+    </string>
+
+    <string name="privacy_policy">
+        https://staging.smswithoutborders.com/privacy-policy
+    </string>
+
+    <string name="smswithoutborders_official_site_login">
+        https://staging.smswithoutborders.com/login
+    </string>
+
+    <string name="smswithoutborders_official_site_signup">
+        https://staging.smswithoutborders.com/sign-up
+    </string>
+
+    <string name="smswithoutborders_official_site_signup_intent">
+        intent://staging.smswithoutborders.com/sign-up
+    </string>
+
+    <string name="default_seeds_url">
+        http://seeds.smswithoutborders.com
+    </string>
+</resources>
