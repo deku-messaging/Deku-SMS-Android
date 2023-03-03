@@ -159,8 +159,17 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
         receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
 //        receivedSmsIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
+        Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, String.valueOf(messageId));
+        String threadId = "";
+        if(cursor.moveToFirst()) {
+            int indexOfThreadId = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+            threadId = cursor.getString(indexOfThreadId);
+        }
+        cursor.close();
+
         receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
+        // TODO: check request code and make some changes
         PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity(
                 context, 0, receivedSmsIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
@@ -182,8 +191,12 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_MAX);
 
-
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.notify(Integer.parseInt(String.valueOf(messageId)), builder.build());
+
+        /**
+         * TODO: Using the same ID leaves notifications updated (not appended).
+         * TODO: Recommendation: use groups for notifications to allow for appending them.
+         */
+        notificationManager.notify(Integer.parseInt(threadId), builder.build());
     }
 }

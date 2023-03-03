@@ -447,6 +447,18 @@ public class SMSHandler {
         return cursor;
     }
 
+    public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, String messageId) {
+        Cursor cursor = context.getContentResolver().query(
+                SMS_CONTENT_URI,
+                new String[] { Telephony.Sms._ID,
+                        Telephony.TextBasedSmsColumns.THREAD_ID},
+                Telephony.Sms._ID + "=?",
+                new String[] { messageId },
+               null);
+
+        return cursor;
+    }
+
     public static long registerIncomingMessage(Context context, String address, String body) {
         long messageId = Helpers.generateRandomNumber();
         ContentValues contentValues = new ContentValues();
@@ -791,6 +803,9 @@ public class SMSHandler {
                 .build();
 
         final String DATA_SMS_WORK_MANAGER_ID = String.valueOf(messageId);
+        /**
+         * 10240 bytes too large to fit into workManger - find what the actual limit is
+         */
         OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(SMSWorkManager.class)
                 .setConstraints(constraints)
                 .setBackoffCriteria(
