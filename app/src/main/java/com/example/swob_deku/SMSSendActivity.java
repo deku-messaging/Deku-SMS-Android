@@ -1,7 +1,6 @@
 package com.example.swob_deku;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -23,8 +22,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -32,7 +29,6 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -84,6 +80,10 @@ public class SMSSendActivity extends AppCompatActivity {
     String contactName = "";
 
     Toolbar toolbar;
+    ActionBar ab;
+
+    LinearLayoutManager linearLayoutManager;
+    RecyclerView singleMessagesThreadRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,39 +93,18 @@ public class SMSSendActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
+        ab = getSupportActionBar();
 
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
         smsTextView = findViewById(R.id.sms_text);
 
-        handleIncomingBroadcast();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    determineAddress();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                improveMessagingUX();
+        linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setStackFromEnd(false);
+        linearLayoutManager.setReverseLayout(true);
 
-                contactName = Contacts.retrieveContactName(getApplicationContext(), address);
-                contactName = (contactName.equals("null") || contactName.isEmpty()) ?
-                        address: contactName;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            ab.setTitle(contactName);
-                        } catch(Exception e ) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
-        }).start();
+        singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
@@ -133,24 +112,35 @@ public class SMSSendActivity extends AppCompatActivity {
                 findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
             }
         });
+
+        buildViewModels();
+
+        singleMessageViewModel = new ViewModelProvider(this).get(
+                SingleMessageViewModel.class);
+
+        if(threadId.isEmpty()) {
+            try {
+                getAddressAndThreadId();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this,
+                new Observer<List<SMS>>() {
+                    @Override
+                    public void onChanged(List<SMS> smsList) {
+                        singleMessagesThreadRecyclerAdapter.submitList(smsList);
+                    }
+                });
+
     }
 
-    private void determineAddress() throws InterruptedException {
+    private void getAddressAndThreadId() throws InterruptedException {
         processForSharedIntent();
-        checkSendingImage();
         getMessagesThreadId();
     }
 
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setStackFromEnd(false);
-        linearLayoutManager.setReverseLayout(true);
-
-        RecyclerView singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
-
+    private void buildViewModels() {
         Long focusId = getIntent().hasExtra(ID) ? Long.parseLong(getIntent().getStringExtra(ID)) : null;
         String searchString = getIntent().hasExtra(SEARCH_STRING) ? getIntent().getStringExtra(SEARCH_STRING) : null;
 
@@ -166,69 +156,9 @@ public class SMSSendActivity extends AppCompatActivity {
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
-        singleMessageViewModel = new ViewModelProvider(this).get(
-                SingleMessageViewModel.class);
-
-        singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this,
-                new Observer<List<SMS>>() {
-                    @Override
-                    public void onChanged(List<SMS> smsList) {
-                        singleMessagesThreadRecyclerAdapter.submitList(smsList);
-                    }
-                });
-
 
         if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
             findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
-        updateMessagesToRead();
-    }
-
-    private void checkSendingImage() throws InterruptedException {
-        if(getIntent().hasExtra(THREAD_ID) || (this.threadId != null && !this.threadId.isEmpty())) {
-            this.threadId = getIntent().getStringExtra(THREAD_ID);
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    /**
-//                     * TODO: check if message in OUTBOX status PENDING
-//                     * TODO: send message to smshandler to handle sending them out.
-//                     */
-//
-//                    Cursor cursor = SMSHandler.fetchSMSOutboxPendingForThread(getApplicationContext(), threadId);
-//                    Log.d(getLocalClassName(), "SMS Outbox found: " + cursor.getCount());
-//
-//                    if(cursor.moveToFirst()) {
-//                        do {
-//                            SMS sms = new SMS(cursor);
-//                            /**
-//                             * TODO: check if can base64 and bitmap - then data
-//                             * TODO: else text
-//                             */
-//                            try {
-//                                byte[] data = Base64.decode(sms.getBody(), Base64.NO_PADDING);
-//                                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-//
-//                                if(bitmap != null) {
-//                                    SMSHandler.sendDataSMS(getApplicationContext(), sms.getAddress(), data,
-//                                            null, null, Long.parseLong(sms.getId()));
-//                                    continue;
-//                                }
-//                            } catch(Exception e) {
-//                                e.printStackTrace();
-//                            }
-//
-//                            SMSHandler.sendTextSMS(getApplicationContext(), sms.getAddress(), sms.getBody(),
-//                                    null, null, Long.parseLong(sms.getId()));
-//                        } while(cursor.moveToNext());
-//                    }
-//                    cursor.close();
-//                }
-//            }).start();
-//
-        }
-
-        if(getIntent().hasExtra(ADDRESS))
-            this.address = getIntent().getStringExtra(ADDRESS);
     }
 
     private void updateMessagesToRead() {
@@ -278,7 +208,6 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void improveMessagingUX() {
-
         smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -323,6 +252,11 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             }
         }).start();
+
+
+        contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                address: contactName;
     }
 
     private void processForSharedIntent() {
@@ -371,6 +305,7 @@ public class SMSSendActivity extends AppCompatActivity {
         BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                Log.d(getLocalClassName(), "Broadcast received!");
                 singleMessageViewModel.informChanges(context);
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
@@ -378,6 +313,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
+        registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
     }
 
     public void handleBroadcast() {
@@ -534,6 +470,24 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        handleIncomingBroadcast();
+        try {
+            if(threadId.isEmpty())
+                getAddressAndThreadId();
+            Log.d(getLocalClassName(), "Resuming...\nThreadID: " + this.threadId + "\nAddress:" + this.address);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        improveMessagingUX();
+        updateMessagesToRead();
+
+        ab.setTitle(contactName);
+    }
+
+    @Override
     public void onBackPressed() {
         startActivity(new Intent(this, MessagesThreadsActivity.class));
         finish();
@@ -563,6 +517,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, ImageViewActivity.class);
                 intent.putExtra(IMAGE_URI, imageUri.toString());
                 intent.putExtra(ADDRESS, address);
+                intent.putExtra(THREAD_ID, threadId);
                 startActivity(intent);
                 finish();
             }

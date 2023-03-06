@@ -39,6 +39,7 @@ public class ImageViewActivity extends AppCompatActivity {
     byte[] compressedBytes;
 
     String address = "";
+    String threadId = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,6 +113,7 @@ public class ImageViewActivity extends AppCompatActivity {
         }
         else {
             address = getIntent().getStringExtra(SMSSendActivity.ADDRESS);
+            threadId = getIntent().getStringExtra(SMSSendActivity.THREAD_ID);
             imageUri = Uri.parse(getIntent().getStringExtra(SMSSendActivity.IMAGE_URI));
 
             try {
@@ -203,6 +205,7 @@ public class ImageViewActivity extends AppCompatActivity {
     public void sendImage(View view) throws InterruptedException {
         Intent intent = new Intent(this, SMSSendActivity.class);
         intent.putExtra(SMSSendActivity.ADDRESS, address);
+        intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
         startActivity(intent);
 

@@ -128,10 +128,6 @@ public class SMSHandler {
     }
 
     public static void interpret_PDU(byte[] pdu) throws ParseException {
-
-//                int[] receivedPDU = {0x07,0x91,0x32,0x67,0x49,0x00,0x00,0x71,0x24,0x0c,0x91,0x32,0x67,0x09,
-//                        0x28,0x26,0x24,0x00,0x00,0x32,0x20,0x91,0x01,0x73,0x74,0x40,0x07,0xe8,0x72,
-//                        0x1e,0xd4,0x2e,0xbb,0x01};
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU: " + pdu.length);
 
         String pduHex = DataHelper.getHexOfByte(pdu);
@@ -204,14 +200,6 @@ public class SMSHandler {
         byte UDL = pdu[pduIterator];
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU UDL: " +
                 DataHelper.getHexOfByte(new byte[]{UDL}));
-
-//        byte[] user_data = copyBytes(pdu, ++pduIterator, UDL);
-//        String hex_user_data = DataHelper.getHexOfByte(user_data);
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data: " + hex_user_data);
-//
-//        String ascii_user_data = DataHelper.hexToAscii(hex_user_data);
-//        Log.d(BroadcastSMSTextActivity.class.getName(), "PDU user data ascii: " + ascii_user_data);
-
     }
 
     public static boolean hasUnreadMessages(Context context, String threadId) {
