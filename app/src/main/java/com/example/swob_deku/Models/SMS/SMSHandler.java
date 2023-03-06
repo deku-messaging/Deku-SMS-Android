@@ -563,9 +563,8 @@ public class SMSHandler {
         // TODO: parse
     }
 
-    
-
-    public static String sendTextSMS(Context context, String destinationAddress, String text, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
+    public static String sendTextSMS(Context context, String destinationAddress, String text,
+                                     PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
 
@@ -658,7 +657,8 @@ public class SMSHandler {
                 byteArrayOutputStream.toByteArray().length);
     }
 
-    public static void sendDataSMS(Context context, String destinationAddress, byte[] data, PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
+    public static void sendDataSMS(Context context, String destinationAddress, byte[] data,
+                                   PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
         if(data == null)
             return;
 

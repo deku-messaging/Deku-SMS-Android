@@ -52,6 +52,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     final int MESSAGE_TYPE_ALL = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
+
+    final int TIMESTAMP_MESSAGE_TYPE_INBOX = 600;
+    final int TIMESTAMP_MESSAGE_TYPE_OUTBOX = 700;
+
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
     final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
     final int MESSAGE_TYPE_OUTBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
@@ -79,22 +83,24 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
-//        context = parent.getContext();
-        if( viewType == 100) {
-            View view = inflater.inflate(this.renderLayoutTimestamp, parent, false);
-            return new MessageTimestampViewerHandler(view);
+        if( viewType == TIMESTAMP_MESSAGE_TYPE_INBOX ) {
+            View view = inflater.inflate(this.renderLayoutReceived, parent, false);
+            return new TimestampMessageReceivedViewHandler(view);
         }
-        else if(viewType == MESSAGE_TYPE_INBOX){
+        else if( viewType == MESSAGE_TYPE_INBOX ) {
             View view = inflater.inflate(this.renderLayoutReceived, parent, false);
             return new MessageReceivedViewHandler(view);
+        }
+        else if( viewType == TIMESTAMP_MESSAGE_TYPE_OUTBOX ) {
+            View view = inflater.inflate(this.renderLayoutSent, parent, false);
+            return new TimestampMessageSentViewHandler(view);
         }
 
         View view = inflater.inflate(this.renderLayoutSent, parent, false);
         return new MessageSentViewHandler(view);
-
-        // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
     }
 
     @Override
@@ -155,12 +161,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             date = dateFormat.format(new Date(Long.parseLong(date)));
         }
 
-        if(holder instanceof MessageTimestampViewerHandler) {
-            MessageTimestampViewerHandler messageTimestampViewerHandler = (MessageTimestampViewerHandler) holder;
-            messageTimestampViewerHandler.date.setText(date);
-        }
-        else if(holder instanceof MessageReceivedViewHandler) {
+        if(holder instanceof MessageReceivedViewHandler) {
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
+            if(holder instanceof TimestampMessageReceivedViewHandler)
+                messageReceivedViewHandler.timestamp.setText(date);
+            else
+                messageReceivedViewHandler.timestamp.setVisibility(View.GONE);
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
             receivedMessage.setText(sms.getBody());
@@ -171,9 +177,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-
             messageSentViewHandler.sentMessage.setText(sms.getBody());
             messageSentViewHandler.date.setText(date);
+
+            if(holder instanceof TimestampMessageSentViewHandler)
+                messageSentViewHandler.timestamp.setText(date);
+            else
+                messageSentViewHandler.timestamp.setVisibility(View.GONE);
+
             messageSentViewHandler.date.setVisibility(View.INVISIBLE);
 
             final int status = sms.getStatusCode();
@@ -195,123 +206,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             }
 
         }
-
-//        switch(sms.getType()) {
-////            https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns?hl=en#TYPE
-//            case 100:
-//                MessageTimestampViewerHandler messageTimestampViewerHandler = (MessageTimestampViewerHandler) holder;
-//                messageTimestampViewerHandler.date.setText(date);
-//                break;
-//
-//            case MESSAGE_TYPE_INBOX:
-//                MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
-//
-//                TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
-//                receivedMessage.setText(sms.getBody());
-//
-//                TextView dateView = messageReceivedViewHandler.date;
-//                dateView.setVisibility(View.INVISIBLE);
-//                dateView.setText(date);
-//
-//                messageReceivedViewHandler.receivedMessage.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//                        if(messageReceivedViewHandler.date.getVisibility() == View.VISIBLE) {
-//                            dateView.setVisibility(View.INVISIBLE);
-//                        }
-//                        else {
-//                            dateView.setVisibility(View.VISIBLE);
-//                        }
-//
-//                        if(isImageHeader(sms)) {
-//                            Intent intent = new Intent(context, ImageViewActivity.class);
-//                            intent.putExtra("image_sms_id", sms.id);
-//                            context.startActivity(intent);
-//                        }
-//                        else {
-//                            Log.d(getClass().getName(), "Header is not image header");
-//                        }
-//                    }
-//                });
-//
-//                messageReceivedViewHandler.receivedMessage.setOnLongClickListener(new View.OnLongClickListener() {
-//                    @Override
-//                    public boolean onLongClick(View view) {
-//
-//                        toolbar.setBackgroundResource(R.drawable.light_grey );
-//                        Menu menu = toolbar.getMenu();
-//                        menu.clear();
-//                        toolbar.inflateMenu(R.menu.toolbar_copy);
-//                        highlightedText = messageReceivedViewHandler.receivedMessage.getText().toString();
-//
-//                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
-//                        highlightedView = holder.itemView;
-//                        return false;
-//                    }
-//                });
-//                break;
-//
-//            case MESSAGE_TYPE_SENT:
-//            case MESSAGE_TYPE_OUTBOX:
-//            case MESSAGE_TYPE_FAILED:
-//                MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-//
-//                messageSentViewHandler.sentMessage.setText(sms.getBody());
-//                messageSentViewHandler.date.setText(date);
-//                messageSentViewHandler.date.setVisibility(View.INVISIBLE);
-//
-//                final int status = sms.getStatusCode();
-//                String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?
-//                        "delivered" : "sent";
-//
-//                statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_PENDING ?
-//                        "sending..." : statusMessage;
-//
-//                statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_FAILED ?
-//                        "failed!" : statusMessage;
-//
-//                statusMessage = "• " + statusMessage;
-//
-//                messageSentViewHandler.sentMessageStatus.setText(statusMessage);
-//
-//                if(mDiffer.getCurrentList().size() -1 != position ) {
-//                    messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
-//                }
-//
-//                messageSentViewHandler.sentMessage.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//                        if(messageSentViewHandler.date.getVisibility() == View.VISIBLE) {
-//                            messageSentViewHandler.date.setVisibility(View.INVISIBLE);
-//                            messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
-//                        }
-//                        else {
-//                            messageSentViewHandler.date.setVisibility(View.VISIBLE);
-//                            messageSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
-//                        }
-//                    }
-//                });
-//
-//                messageSentViewHandler.sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
-//                    @Override
-//                    public boolean onLongClick(View view) {
-//
-//                        toolbar.setBackgroundResource(R.drawable.light_grey );
-//                        Menu menu = toolbar.getMenu();
-//                        menu.clear();
-//                        toolbar.inflateMenu(R.menu.toolbar_copy);
-//                        highlightedText = messageSentViewHandler.sentMessage.getText().toString();
-//
-//                      ((MessageSentViewHandler) holder).layout.setBackgroundResource(R.drawable.light_blue);
-////                        holder.itemView.setBackgroundResource(R.drawable.light_grey );
-//                        highlightedView = ((MessageSentViewHandler) holder).layout;
-//                        return false;
-//                    }
-//                });
-//
-//                break;
-//        }
-//
     }
 
     @Override
@@ -321,22 +215,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     public void submitList(List<SMS> list) {
         mDiffer.submitList(list);
-    }
-
-    private boolean isImageHeader(SMS sms) {
-//        byte[] data = sms.getBody().getBytes(StandardCharsets.UTF_8);
-//        byte[] data = sms.getBody().getBytes();
-//        byte[] data = sms.getBody();
-        byte[] data = Base64.decode(sms.getBody(), Base64.DEFAULT);
-
-        Log.d(getClass().getName(), "Data Header 0: " + Byte.toUnsignedInt(data[0]));
-        Log.d(getClass().getName(), "Data Header 1: " + Byte.toUnsignedInt(data[1]));
-
-        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-
-        return bitmap != null || (data.length > 3
-                && Byte.toUnsignedInt(data[0]) >= SMSHandler.ASCII_MAGIC_NUMBER
-                && Byte.toUnsignedInt(data[1]) >= 0);
     }
 
     @Override
@@ -349,45 +227,53 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
         if (position != 0 && (position == mDiffer.getCurrentList().size() - 1 ||
                 !SMSHandler.isSameHour(mDiffer.getCurrentList().get(position),
-                        mDiffer.getCurrentList().get(position - 1)))) {
-//            if(position == 0)
-//                Log.d(getClass().getName(), "Yes 0 at: " + mDiffer.getCurrentList().get(position).getDate());
-                return 100;
+                        mDiffer.getCurrentList().get(position + 1)))) {
+            return (mDiffer.getCurrentList().get(position).getType() == MESSAGE_TYPE_INBOX) ?
+                    TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
         } else {
             int messageType = mDiffer.getCurrentList().get(position).getType();
             return (messageType > -1 )? messageType : 0;
         }
     }
 
-    public class MessageTimestampViewerHandler extends RecyclerView.ViewHolder {
-        TextView date;
-        public MessageTimestampViewerHandler(@NonNull View itemView) {
-            super(itemView);
-            date = itemView.findViewById(R.id.messages_thread_timestamp_textview);
-        }
-    }
 
     public class MessageSentViewHandler extends RecyclerView.ViewHolder {
-        TextView sentMessage;
-        TextView sentMessageStatus;
-        TextView date;
-        MaterialCardView layout;
+         TextView sentMessage;
+         TextView sentMessageStatus;
+         TextView date;
+         TextView timestamp;
+         MaterialCardView layout;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_thread_sent_card_text);
             sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
             date = itemView.findViewById(R.id.message_thread_sent_date_text);
             layout = itemView.findViewById(R.id.text_sent_container);
+            timestamp = itemView.findViewById(R.id.sent_message_date_segment);
+        }
+    }
+
+    public class TimestampMessageSentViewHandler extends MessageSentViewHandler {
+        public TimestampMessageSentViewHandler(@NonNull View itemView) {
+            super(itemView);
         }
     }
 
     public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
-        TextView receivedMessage;
-        TextView date;
+         TextView receivedMessage;
+         TextView date;
+        TextView timestamp;
+
         public MessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
             receivedMessage = itemView.findViewById(R.id.message_thread_received_card_text);
             date = itemView.findViewById(R.id.message_thread_received_date_text);
+            timestamp = itemView.findViewById(R.id.received_message_date_segment);
+        }
+    }
+    public class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
+        public TimestampMessageReceivedViewHandler(@NonNull View itemView) {
+            super(itemView);
         }
     }
 

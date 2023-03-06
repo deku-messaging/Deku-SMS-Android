@@ -5,67 +5,66 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/sent"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_marginStart="67dp"
-        android:layout_marginEnd="16dp"
+    <TextView
+        android:id="@+id/sent_message_date_segment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/text_sent_container"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/text_sent_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:paddingRight="10dp"
+        app:cardBackgroundColor="#A2C4D6"
+        app:cardCornerRadius="25dp"
+        app:cardPreventCornerOverlap="false"
+        app:cardUseCompatPadding="false"
+        app:contentPadding="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sent_message_date_segment">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/message_thread_sent_card_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingRight="10dp"
-            app:cardBackgroundColor="#A2C4D6"
-            app:cardCornerRadius="25dp"
-            app:cardPreventCornerOverlap="false"
-            app:cardUseCompatPadding="false"
-            app:contentPadding="10dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:background="@android:color/transparent"
+            android:padding="6dp"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            app:fontFamily="sans-serif" />
+    </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/message_thread_sent_card_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:padding="6dp"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                app:fontFamily="sans-serif" />
-        </com.google.android.material.card.MaterialCardView>
+    <TextView
+        android:id="@+id/message_thread_sent_date_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="3dp"
+        android:fontFamily="sans-serif"
+        android:textAlignment="textEnd"
+        android:textColor="#BDBBBB"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/message_thread_sent_status_text"
+        app:layout_constraintTop_toBottomOf="@+id/text_sent_container" />
 
-        <TextView
-            android:id="@+id/message_thread_sent_date_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:layout_marginEnd="3dp"
-            android:fontFamily="sans-serif"
-            android:textAlignment="textEnd"
-            android:textColor="#BDBBBB"
-            android:textSize="10sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/message_thread_sent_status_text"
-            app:layout_constraintTop_toBottomOf="@+id/text_sent_container" />
-
-        <TextView
-            android:id="@+id/message_thread_sent_status_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:fontFamily="sans-serif"
-            android:textColor="#BDBBBB"
-            android:textSize="10sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/text_sent_container"
-            app:layout_constraintTop_toBottomOf="@+id/text_sent_container" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:id="@+id/message_thread_sent_status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:fontFamily="sans-serif"
+        android:textColor="#BDBBBB"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/text_sent_container"
+        app:layout_constraintTop_toBottomOf="@+id/text_sent_container" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
