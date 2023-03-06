@@ -85,6 +85,9 @@ public class SMSSendActivity extends AppCompatActivity {
     LinearLayoutManager linearLayoutManager;
     RecyclerView singleMessagesThreadRecyclerView;
 
+    BroadcastReceiver incomingDataBroadcastReceiver;
+    BroadcastReceiver incomingBroadcastReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,6 +116,7 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         });
 
+        handleIncomingBroadcast();
         buildViewModels();
 
         singleMessageViewModel = new ViewModelProvider(this).get(
@@ -125,6 +129,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 throw new RuntimeException(e);
             }
         }
+        Log.d(getLocalClassName(), "Fetching view model starting");
         singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this,
                 new Observer<List<SMS>>() {
                     @Override
@@ -302,7 +307,7 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     public void handleIncomingBroadcast() {
-        BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
+        incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(getLocalClassName(), "Broadcast received!");
@@ -311,9 +316,17 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         };
 
+        incomingDataBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(getLocalClassName(), "Broadcast received data!");
+            }
+        };
+
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
-        registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
+        registerReceiver(incomingDataBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
+
     }
 
     public void handleBroadcast() {
@@ -472,19 +485,18 @@ public class SMSSendActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        handleIncomingBroadcast();
         try {
             if(threadId.isEmpty())
                 getAddressAndThreadId();
-            Log.d(getLocalClassName(), "Resuming...\nThreadID: " + this.threadId + "\nAddress:" + this.address);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
         improveMessagingUX();
-        updateMessagesToRead();
+//        updateMessagesToRead();
 
         ab.setTitle(contactName);
+        Log.d(getLocalClassName(), "Fetching Resuming...\nThreadID: " + this.threadId + "\nAddress:" + this.address);
     }
 
     @Override

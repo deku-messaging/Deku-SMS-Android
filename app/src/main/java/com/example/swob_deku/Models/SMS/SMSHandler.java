@@ -99,32 +99,18 @@ public class SMSHandler {
         return messages;
     }
 
-    public static List<SMS> dateSegmentations(List<SMS> smsList) {
-        List<SMS> copysmsList = new ArrayList<>(smsList);
+    public static boolean isSameHour(SMS sms1, SMS sms2) {
+        Date date = new Date(Long.parseLong(sms1.getDate()));
+        Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.setTime(date);
 
-        for(int i=smsList.size()-1;i>-1; --i) {
-            SMS currentSMS = smsList.get(i);
-            Date date = new Date(Long.parseLong(currentSMS.getDate()));
-            Calendar currentCalendar = Calendar.getInstance();
-            currentCalendar.setTime(date);
+        String previousDateString = sms2.getDate();
+        Date previousDate = new Date(Long.parseLong(previousDateString));
+        Calendar prevCalendar = Calendar.getInstance();
+        prevCalendar.setTime(previousDate);
 
-            if(i==smsList.size() -1 ) {
-                copysmsList.add(new SMS(currentSMS.getDate()));
-            }
-            else {
-                String previousDateString = smsList.get(i + 1).getDate();
-                Date previousDate = new Date(Long.parseLong(previousDateString));
-                Calendar prevCalendar = Calendar.getInstance();
-                prevCalendar.setTime(previousDate);
-
-                if ((prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)
-                        || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE)))) {
-                    copysmsList.add(i+1, new SMS(currentSMS.getDate()));
-                }
-            }
-        }
-
-        return copysmsList;
+        return !((prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)
+                || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE))));
     }
 
     public static void interpret_PDU(byte[] pdu) throws ParseException {

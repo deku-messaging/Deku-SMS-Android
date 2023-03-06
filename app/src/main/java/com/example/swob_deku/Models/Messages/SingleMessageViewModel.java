@@ -51,16 +51,23 @@ public class SingleMessageViewModel extends ViewModel {
     }
 
     private void loadSMSThreads(Context context) {
+        Log.d(getClass().getName(), "Fetching sms for threads...");
         Cursor cursor = SMSHandler.fetchSMSForThread(context, this.threadId);
-        if(cursor.moveToFirst()) {
-            List<SMS> smsList = new ArrayList<>();
-            do {
-                SMS sms = new SMS(cursor);
-                smsList.add(sms);
-            } while(cursor.moveToNext());
-            smsList = SMSHandler.dateSegmentations(smsList);
-            messagesList.setValue(smsList);
-        }
-        cursor.close();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(cursor.moveToFirst()) {
+                    List<SMS> smsList = new ArrayList<>();
+                    do {
+                        SMS sms = new SMS(cursor);
+                        smsList.add(sms);
+                    } while(cursor.moveToNext());
+//                    smsList = SMSHandler.dateSegmentations(smsList);
+                    messagesList.postValue(smsList);
+                }
+                Log.d(getClass().getName(), "Fetching sms for threads is done...");
+                cursor.close();
+            }
+        }).start();
     }
 }

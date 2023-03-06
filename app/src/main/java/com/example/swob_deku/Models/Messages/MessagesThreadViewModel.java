@@ -38,13 +38,13 @@ public class MessagesThreadViewModel extends ViewModel {
             do {
                 SMS sms = new SMS(cursor);
                 smsList.add(sms);
+                messagesList.postValue(smsList);
             } while(cursor.moveToNext());
 
             // Because meain thread
 //            messagesList.setValue(smsList);
 
             // Because background thread
-            messagesList.postValue(smsList);
         }
         cursor.close();
     }
