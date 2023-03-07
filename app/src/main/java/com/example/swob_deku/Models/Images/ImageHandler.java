@@ -202,11 +202,18 @@ public class ImageHandler {
                 SMS sms = new SMS(cursor);
                 Log.d(ImageHandler.class.getName(), "Data image compose raw: " + sms.getBody());
 
-                String body = sms.getBody().replace(defaultRIL, "")
-                        .substring(1);
-
-                if(body.charAt(0) == '0')
-                    body = body.substring(1);
+                String body = sms.getBody();
+                if(sms.getBody().contains(defaultRIL + "0" + len)) {
+                    body = body.replace(defaultRIL + "0" + len, "");
+                }
+                else {
+                    for (int i = len -1; i > -1; --i) {
+                        if(sms.getBody().contains(defaultRIL + i)) {
+                            body = sms.getBody().replace(defaultRIL + i, "");
+                            break;
+                        }
+                    }
+                }
 
                 Log.d(ImageHandler.class.getName(), "Data image compose formatted: " + body);
 
