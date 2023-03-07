@@ -94,7 +94,7 @@ public class ImageViewActivity extends AppCompatActivity {
                         } while (cursorImageCursor.moveToNext());
                     }
                     try {
-                        buildImage(imagesBytes);
+                        ImageHandler.buildImage(imagesBytes);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -129,16 +129,6 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
     }
 
-    private void buildImage(byte[][] unstructuredImageBytes ) throws IOException {
-        byte[] structuredImageBytes = SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
-        Log.d(getLocalClassName(), "Received divide: " + structuredImageBytes.length);
-
-        compressedBitmap = BitmapFactory.decodeByteArray(structuredImageBytes, 0,
-                structuredImageBytes.length);
-
-//        imageDescription.setText(description);
-        imageView.setImageBitmap(compressedBitmap);
-    }
 
     private void buildImage() throws IOException {
         // TODO: messages >40 trigger large message warning...
@@ -204,7 +194,9 @@ public class ImageViewActivity extends AppCompatActivity {
     public void sendImage(View view) throws InterruptedException {
         Intent intent = new Intent(this, SMSSendActivity.class);
         intent.putExtra(SMSSendActivity.ADDRESS, address);
-        intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+
+        if(!threadId.isEmpty())
+            intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
         startActivity(intent);
 

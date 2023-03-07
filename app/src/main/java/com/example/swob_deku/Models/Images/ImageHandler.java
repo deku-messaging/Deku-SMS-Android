@@ -169,13 +169,70 @@ public class ImageHandler {
     }
 
     public static boolean canComposeImage(Context context, String RIL) {
+        Cursor cursor = getImagesCursor(context, RIL);
+        boolean canCompose = false;
+        if(cursor != null) {
+            canCompose = true;
+            cursor.close();
+        }
+        return canCompose;
+    }
+
+    public static String composeImage(Context context, String RIL, int ref) throws IOException {
+        Cursor cursor = getImagesCursor(context, RIL);
+
+        String defaultRIL = IMAGE_HEADER + ref;
+
+        Cursor headerCursor = getImagesCursorAtIndex(context, RIL , 0);
+        int len = 0;
+
+        if(headerCursor != null) {
+            SMS sms = new SMS(headerCursor);
+            String body = sms.getBody().replace(defaultRIL + 0, "");
+            Log.d(ImageHandler.class.getName(), "Data image compose first body: " + body);
+            len = Byte.toUnsignedInt(Base64.decode(body, Base64.DEFAULT)[2]);
+            headerCursor.close();
+        }
+        Log.d(ImageHandler.class.getName(), "Data image compose len: " + len);
+        byte[][] imageData = new byte[len][];
+
+        if(cursor.moveToFirst()) {
+            do {
+                // remove header
+                SMS sms = new SMS(cursor);
+                Log.d(ImageHandler.class.getName(), "Data image compose raw: " + sms.getBody());
+
+                String body = sms.getBody().replace(defaultRIL, "")
+                        .substring(1);
+
+                if(body.charAt(0) == '0')
+                    body = body.substring(1);
+
+                Log.d(ImageHandler.class.getName(), "Data image compose formatted: " + body);
+
+                byte[] data = Base64.decode(body, Base64.DEFAULT);
+                int index = Byte.toUnsignedInt(data[1]);
+                Log.d(ImageHandler.class.getName(), "Data image compose index: " + index);
+                Log.d(ImageHandler.class.getName(), "Data image compose data: " + data);
+                imageData[index] = data;
+            } while(cursor.moveToNext());
+        }
+        cursor.close();
+        byte[] imageBytes = buildImage(imageData);
+
+        return Base64.encodeToString(imageBytes, Base64.DEFAULT);
+    }
+
+    public static Cursor getImagesCursor(Context context, String RIL) {
         RIL = IMAGE_HEADER + RIL;
 
         Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByRIL(context, RIL);
         Log.d(ImageHandler.class.getName(), "Data image header RIL: " + RIL);
         Log.d(ImageHandler.class.getName(), "Data image header counter: " + cursorImageCursor.getCount());
         if(cursorImageCursor.moveToFirst()) {
+
             SMS sms = new SMS(cursorImageCursor);
+            cursorImageCursor.close();
 
             String body = sms.getBody().replace(RIL, "");
 
@@ -200,49 +257,26 @@ public class ImageHandler {
             Cursor cursor = SMSHandler.fetchSMSForImages(context, query.toString(), parameters, sms.getThreadId());
             Log.d(ImageHandler.class.getName(), "Data image founder counter: " + cursor.getCount() + "/" + len);
             if(cursor.getCount() >= len) {
-                cursor.close();
-                return true;
+                return cursor;
             }
         }
-        cursorImageCursor.close();
-        return false;
+        return null;
     }
 
-    public static String composeImage(Context context, String RIL) {
-        StringBuilder imageString = new StringBuilder();
+
+    public static Cursor getImagesCursorAtIndex(Context context, String RIL, int index) {
         RIL = IMAGE_HEADER + RIL;
+
+        Log.d(ImageHandler.class.getName(), "Data image compose first index: " + RIL);
 
         Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByRIL(context, RIL);
         if(cursorImageCursor.moveToFirst()) {
-            SMS sms = new SMS(cursorImageCursor);
-
-            String body = sms.getBody().replace(RIL, "");
-
-            byte[] data = Base64.decode(body, Base64.DEFAULT);
-
-            // TODO: check if data is image
-            int len = Byte.toUnsignedInt(data[2]);
-
-            StringBuilder query = new StringBuilder();
-            String[] parameters = new String[len];
-
-            for(Integer i=0; i<len; ++i ) {
-                if(i + 1 == len)
-                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ?");
-                else
-                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ? OR ");
-
-                parameters[i] = Base64.encodeToString(new byte[]{data[0], i.byteValue()}, Base64.DEFAULT) + "%";
-            }
-
-            Cursor cursor = SMSHandler.fetchSMSForImages(context, query.toString(), parameters, sms.getThreadId());
-            Log.d(ImageHandler.class.getName(), "Date image composing: " + cursor.getCount() + "/" + len);
-            if(cursor.getCount() >= len) {
-                cursor.close();
-            }
+            return cursorImageCursor;
         }
-        cursorImageCursor.close();
+        return null;
+    }
 
-        return imageString.toString();
+    public static byte[] buildImage(byte[][] unstructuredImageBytes ) throws IOException {
+        return SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
     }
 }

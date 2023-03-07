@@ -71,20 +71,14 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                         if(ImageHandler.isImageBody(messageBuffer.toByteArray())) {
                             Log.d(getClass().getName(), "Data image body found");
-                            /**
-                             * 1. Find image header
-                             */
 
                             boolean canComposeImage = ImageHandler.canComposeImage(context, defaultRIL);
-//                            byte[] imageMeta = ImageHandler.extractMeta(messageBuffer.toByteArray());
-//                            String[] imageData = ImageHandler.fetchImage(context, imageMeta, messageId);
-//
-//                            if(imageData == null)
-//                                return;
-//
-//                            ImageHandler.rebuildImage(context, imageData);
-                            // THis is image
                             if(canComposeImage) {
+                                String imageb64Data = ImageHandler.composeImage(context, defaultRIL,
+                                        Byte.toUnsignedInt(messageBuffer.toByteArray()[0]));
+
+                                Log.d(getClass().getName(), "Data image composed image: " + imageb64Data);
+
                                 String notificationNote = "New image data!";
                                 BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
                             }
