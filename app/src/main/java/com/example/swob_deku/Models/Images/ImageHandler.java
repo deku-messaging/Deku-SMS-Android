@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -12,6 +11,7 @@ import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityAES;
@@ -184,7 +184,7 @@ public class ImageHandler {
             String RIL = Base64.encodeToString(new byte[]{data[0]}, Base64.NO_PADDING)
                     .replaceAll("\\n", "");
 
-            Cursor cursorImageCursor = SMSHandler.fetchSMSInboxByForImages(context, RIL, threadId);
+            Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByThreadId(context, RIL, threadId);
 
             if (cursorImageCursor.moveToFirst()) {
                 do {
@@ -230,5 +230,40 @@ public class ImageHandler {
             cursor.close();
         }
         SMSHandler.updateMessage(context, messageIds[0], stringBuffer.toString());
+    }
+
+    public static boolean canComposeImage(Context context, String RIL) {
+        Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByRIL(context, RIL);
+        Log.d(ImageHandler.class.getName(), "Data image header RIL: " + RIL);
+        Log.d(ImageHandler.class.getName(), "Data image header counter: " + cursorImageCursor.getCount());
+        if(cursorImageCursor.moveToFirst()) {
+            SMS sms = new SMS(cursorImageCursor);
+            byte[] data = Base64.decode(sms.getBody(), Base64.NO_PADDING);
+            Log.d(ImageHandler.class.getName(), "Data image ref: " + Byte.toUnsignedInt(data[0]));
+            // TODO: check if data is image
+            int len = Byte.toUnsignedInt(data[2]);
+
+            StringBuilder query = new StringBuilder();
+            String[] parameters = new String[len];
+
+            for(Integer i=0; i<len; ++i ) {
+                if(i + 1 == len)
+                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ?");
+                else
+                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ? OR ");
+
+                parameters[i] = Base64.encodeToString(new byte[]{data[0], i.byteValue()}, Base64.NO_PADDING)
+                        .replaceAll("\\n", "") + "%";
+            }
+
+            Cursor cursor = SMSHandler.fetchSMSForImages(context, query.toString(), parameters, sms.getThreadId());
+            Log.d(ImageHandler.class.getName(), "Data image founder counter: " + cursor.getCount() + "/" + len);
+            if(cursor.getCount() >= len) {
+                cursor.close();
+                return true;
+            }
+        }
+        cursorImageCursor.close();
+        return false;
     }
 }

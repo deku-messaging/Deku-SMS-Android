@@ -14,7 +14,6 @@ import android.util.Log;
 
 
 import androidx.annotation.NonNull;
-import androidx.room.Room;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.Data;
@@ -27,20 +26,15 @@ import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.Datastore;
-import com.example.swob_deku.Models.GatewayServer.GatewayServer;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
-import com.example.swob_deku.Models.Router.Router;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -225,7 +219,7 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSInboxByForImages(@NonNull Context context, String RIL, String threadId) {
+    public static Cursor fetchSMSForImagesByThreadId(@NonNull Context context, String RIL, String threadId) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 SMS_INBOX_CONTENT_URI,
                 new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
@@ -235,6 +229,42 @@ public class SMSHandler {
                 Telephony.TextBasedSmsColumns.THREAD_ID
                         + " =? and " + Telephony.TextBasedSmsColumns.BODY +  " like ?",
                 new String[]{ threadId, RIL + "%" },
+                null);
+
+        return smsMessagesCursor;
+    }
+
+    public static Cursor fetchSMSForImagesByRIL(@NonNull Context context, String RIL) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_INBOX_CONTENT_URI,
+                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE },
+                Telephony.TextBasedSmsColumns.BODY +  " like ?",
+                new String[]{ RIL + "%" },
+                null);
+
+        return smsMessagesCursor;
+    }
+
+    public static Cursor fetchSMSForImages(@NonNull Context context, String query, String[] parameters, String threadId) {
+        String[] finalParameters = new String[parameters.length + 1];
+        System.arraycopy(parameters, 0, finalParameters, 0, parameters.length);
+        finalParameters[parameters.length] = threadId;
+
+        Log.d(SMSHandler.class.getName(), "Data image query: " + query);
+        Log.d(SMSHandler.class.getName(), "Data image parameters: " + Arrays.toString(parameters));
+
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_INBOX_CONTENT_URI,
+                new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE },
+                query,
+//                finalParameters,
+                parameters,
                 null);
 
         return smsMessagesCursor;

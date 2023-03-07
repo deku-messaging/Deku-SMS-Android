@@ -25,7 +25,6 @@ import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class ImageViewActivity extends AppCompatActivity {
@@ -79,7 +78,7 @@ public class ImageViewActivity extends AppCompatActivity {
 
                     //                String RIL = "vg";
                     Log.d(getLocalClassName(), "Image Header RIL: " + RIL + ":" + RIL.length());
-                    Cursor cursorImageCursor = SMSHandler.fetchSMSInboxByForImages(getApplicationContext(),
+                    Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByThreadId(getApplicationContext(),
                             RIL, sms.getThreadId());
                     Log.d(getLocalClassName(), "Image # Found: " + cursorImageCursor.getCount() + ":" + len);
 

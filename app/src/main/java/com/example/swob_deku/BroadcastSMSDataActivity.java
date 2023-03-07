@@ -14,7 +14,9 @@ import android.telephony.SmsMessage;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Images.ImageHandler;
+import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.io.BufferedOutputStream;
@@ -63,17 +65,29 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                         long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
                         if(ImageHandler.isImageBody(messageBuffer.toByteArray())) {
-                            // TODO: Extract details and find others
-                            byte[] imageMeta = ImageHandler.extractMeta(messageBuffer.toByteArray());
-                            String[] imageData = ImageHandler.fetchImage(context, imageMeta, messageId);
+                            Log.d(getClass().getName(), "Data image body found");
+                            /**
+                             * 1. Find image header
+                             */
+                            byte[] buffer = messageBuffer.toByteArray();
+                            byte[] headerStruct = new byte[] { buffer[0], DataHelper.intToByte(0)};
+                            String b64HeaderStruct = Base64.encodeToString(headerStruct, Base64.NO_PADDING)
+                                    .replaceAll("\\n", "");
 
-                            if(imageData == null)
-                                return;
+                            boolean canComposeImage = ImageHandler.canComposeImage(context, b64HeaderStruct);
 
-                            ImageHandler.rebuildImage(context, imageData);
+//                            byte[] imageMeta = ImageHandler.extractMeta(messageBuffer.toByteArray());
+//                            String[] imageData = ImageHandler.fetchImage(context, imageMeta, messageId);
+//
+//                            if(imageData == null)
+//                                return;
+//
+//                            ImageHandler.rebuildImage(context, imageData);
                             // THis is image
-                            String notificationNote = "New image data!";
-                            BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, Long.parseLong(imageData[0]));
+                            if(canComposeImage) {
+                                String notificationNote = "New image data!";
+                                BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
+                            }
                         }
 
                     }catch(Exception e ) {
