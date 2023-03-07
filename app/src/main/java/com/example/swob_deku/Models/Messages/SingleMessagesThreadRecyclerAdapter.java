@@ -144,13 +144,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        final SMS sms = mDiffer.getCurrentList().get(position);
-        // TODO: for search
-//        if(focusId != -1 && sms.getId() != null && Long.valueOf(sms.getId()) == focusId) {
-//            final int finalPosition = position;
-//            this.focusPosition = finalPosition;
-//        }
+        /**
+         * TODO: OnClick, show date of message and other relevant meta
+         */
 
+        final SMS sms = mDiffer.getCurrentList().get(position);
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");

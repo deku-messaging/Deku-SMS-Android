@@ -1,14 +1,19 @@
 package com.example.swob_deku.Models.Images;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.provider.Telephony;
+import android.util.Base64;
 import android.util.Log;
 
+import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityAES;
 
 import java.io.ByteArrayOutputStream;
@@ -26,6 +31,9 @@ public class ImageHandler {
 
     String iv = "1234567890123456";
     String secretKey = "12345678901234561234567890123456";
+
+    static final String IMAGE_HEADER = "--DEKU_IMAGE_HEADER--";
+    static final int MAX_NUMBER_SMS = 39;
 
     public ImageHandler(Context context, Uri imageUri) throws IOException {
         this.imageUri = imageUri;
@@ -133,5 +141,94 @@ public class ImageHandler {
         imageBitmap.compress(bitmapCompressionFormat, compressionRatio, byteArrayOutputStream);
 
         return byteArrayOutputStream.toByteArray();
+    }
+
+    public static boolean isImageBody(byte[] data) {
+        /**
+         * 0 = Reference ID
+         * 1 = Message ID
+         * 2 = Total number of messages
+         */
+        return data.length > 2
+                && Byte.toUnsignedInt(data[0]) >= SMSHandler.ASCII_MAGIC_NUMBER
+                && Byte.toUnsignedInt(data[1]) >= 0;
+    }
+
+    private boolean isImageHeader(SMS sms) {
+        byte[] data = Base64.decode(sms.getBody(), Base64.DEFAULT);
+
+        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+
+        return bitmap != null || (data.length > 3
+                && Byte.toUnsignedInt(data[0]) >= SMSHandler.ASCII_MAGIC_NUMBER
+                && Byte.toUnsignedInt(data[1]) >= 0 && Byte.toUnsignedInt(data[2]) <= MAX_NUMBER_SMS);
+    }
+
+
+    public static byte[] extractMeta(byte[] data) {
+        return new byte[]{data[0], data[1]};
+    }
+
+    public static String[] fetchImage(Context context, byte[] data, long messageId) {
+        // TODO: build for len so not to waste compute
+
+        int len = Byte.toUnsignedInt(data[2]);
+        int imageCounter = 0;
+
+        String[] messageIds = new String[len];
+        Cursor imageThreadIdCursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, messageId);
+        if(imageThreadIdCursor.moveToFirst()) {
+            int indexOfThreadId = imageThreadIdCursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+            String threadId = imageThreadIdCursor.getString(indexOfThreadId);
+
+            String RIL = Base64.encodeToString(new byte[]{data[0]}, Base64.NO_PADDING)
+                    .replaceAll("\\n", "");
+
+            Cursor cursorImageCursor = SMSHandler.fetchSMSInboxByForImages(context, RIL, threadId);
+
+            if (cursorImageCursor.moveToFirst()) {
+                do {
+                    SMS imageSMS = new SMS(cursorImageCursor);
+                    byte[] imgBody = Base64.decode(imageSMS.getBody(), Base64.NO_PADDING);
+                    int id = Byte.toUnsignedInt(imgBody[1]);
+                    messageIds[id] = imageSMS.id;
+
+                    ++imageCounter;
+                } while (cursorImageCursor.moveToNext());
+            }
+            cursorImageCursor.close();
+        }
+        imageThreadIdCursor.close();
+        return imageCounter == len ? messageIds : null;
+    }
+
+    public static Bitmap buildImage(byte[][] unstructuredImageBytes ) throws IOException {
+        byte[] structuredImageBytes = SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
+        return BitmapFactory.decodeByteArray(structuredImageBytes, 0, structuredImageBytes.length);
+    }
+
+    public static void rebuildImage(Context context, String[] messageIds) {
+        StringBuilder stringBuffer = new StringBuilder();
+
+        for(int i=0; i < messageIds.length; ++i) {
+            String messageId = messageIds[i];
+            Cursor cursor = SMSHandler.fetchSMSInboxById(context, messageId);
+            if(cursor.moveToFirst()) {
+                SMS sms = new SMS(cursor);
+
+                byte[] data = Base64.decode(sms.getBody(), Base64.NO_PADDING);
+
+                int offset = i == 0 ? 3 : 2;
+
+                String body = IMAGE_HEADER + Base64.encodeToString(data, offset, data.length, Base64.NO_PADDING);
+                stringBuffer.append(body);
+
+                // TODO: Delete message
+                if( i != 0)
+                    SMSHandler.deleteMessage(context, sms.getId());
+            }
+            cursor.close();
+        }
+        SMSHandler.updateMessage(context, messageIds[0], stringBuffer.toString());
     }
 }

@@ -715,6 +715,21 @@ public class SMSHandler {
         }
     }
 
+    public static void deleteMessage(Context context, String messageId) {
+        try {
+            int updateCount = context.getContentResolver().delete(
+                    SMS_CONTENT_URI,
+                    Telephony.Sms._ID + "=?",
+                    new String[]{messageId});
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
     public static void updateThreadMessagesThread(Context context, String threadId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");
@@ -724,6 +739,24 @@ public class SMSHandler {
                     contentValues,
                     Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.TextBasedSmsColumns.READ +"=?",
                     new String[] { threadId, "0" });
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void updateMessage(Context context, String messageId, String body) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Telephony.TextBasedSmsColumns.BODY, body);
+        try {
+            int updateCount = context.getContentResolver().update(
+                    SMS_INBOX_CONTENT_URI,
+                    contentValues,
+                    Telephony.Sms._ID + "=? ",
+                    new String[] { messageId });
 
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);

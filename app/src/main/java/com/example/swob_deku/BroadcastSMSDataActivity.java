@@ -8,11 +8,13 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.io.BufferedOutputStream;
@@ -56,25 +58,29 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 //                        }
                     }
 
-                    String strMessage = Base64.encodeToString(messageBuffer.toByteArray(), Base64.NO_PADDING);
-                    SMSHandler.registerIncomingMessage(context, address, strMessage);
+                    try {
+                        String strMessage = Base64.encodeToString(messageBuffer.toByteArray(), Base64.NO_PADDING);
+                        long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
+                        if(ImageHandler.isImageBody(messageBuffer.toByteArray())) {
+                            // TODO: Extract details and find others
+                            byte[] imageMeta = ImageHandler.extractMeta(messageBuffer.toByteArray());
+                            String[] imageData = ImageHandler.fetchImage(context, imageMeta, messageId);
+
+                            if(imageData == null)
+                                return;
+
+                            ImageHandler.rebuildImage(context, imageData);
+                            // THis is image
+                            String notificationNote = "New image data!";
+                            BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, Long.parseLong(imageData[0]));
+                        }
+
+                    }catch(Exception e ) {
+                        e.printStackTrace();
+                    }
                     break;
             }
         }
-    }
-
-    public byte[] extractMessageMeta(byte[] data) {
-        if(data.length < 2)
-            return null;
-
-        /**
-         * 0 = Reference ID
-         * 1 = Message ID
-         * 2 = Total number of messages
-         */
-        if(data[1] == (byte) 0)
-            return new byte[]{data[0], data[1], data[2]};
-        return new byte[]{data[0], data[1]};
     }
 }

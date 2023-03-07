@@ -145,7 +145,7 @@ public class SMS {
         this.type =  cursor.getInt(typeIndex);
         this.body = String.valueOf(cursor.getString(bodyIndex));
         this.address = String.valueOf(cursor.getString(addressIndex));
-        this.threadId = String.valueOf(cursor.getString(threadIdIndex));
+        this.threadId = cursor.getString(threadIdIndex);
         this.date = String.valueOf(cursor.getString(dateIndex));
 
 
