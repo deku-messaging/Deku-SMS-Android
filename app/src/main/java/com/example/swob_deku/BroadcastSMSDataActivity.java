@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.Image;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Base64;
@@ -64,9 +65,13 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                         Log.d(getClass().getName(), "Date image 0: " + Byte.toUnsignedInt(messageBuffer.toByteArray()[0]));
                         Log.d(getClass().getName(), "Date image 1: " + Byte.toUnsignedInt(messageBuffer.toByteArray()[1]));
 
-                        String strMessage = Base64.encodeToString(messageBuffer.toByteArray(), Base64.DEFAULT)
-                                    .replaceAll("\\n", "");
-                        Log.d(getClass().getName(), "Date image data: " + strMessage.substring(0, 10));
+                        String metaHeaderInformation = ImageHandler.IMAGE_HEADER +
+                                ImageHandler.getImageMetaRIL(messageBuffer.toByteArray());
+
+                        String strMessage = metaHeaderInformation +
+                                Base64.encodeToString(messageBuffer.toByteArray(), Base64.DEFAULT);
+
+                        Log.d(getClass().getName(), "Data image data: " + strMessage);
                         long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
                         if(ImageHandler.isImageBody(messageBuffer.toByteArray())) {
@@ -74,12 +79,9 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                             /**
                              * 1. Find image header
                              */
-                            byte[] buffer = messageBuffer.toByteArray();
-                            byte[] headerStruct = new byte[] { buffer[0], DataHelper.intToByte(0)};
-                            String b64HeaderStruct = Base64.encodeToString(headerStruct, Base64.NO_PADDING)
-                                    .replaceAll("\\n", "");
 
-                            boolean canComposeImage = ImageHandler.canComposeImage(context, b64HeaderStruct);
+                            boolean canComposeImage = ImageHandler.canComposeImage(context,
+                                    ImageHandler.getImageMetaRIL(messageBuffer.toByteArray()));
 
 //                            byte[] imageMeta = ImageHandler.extractMeta(messageBuffer.toByteArray());
 //                            String[] imageData = ImageHandler.fetchImage(context, imageMeta, messageId);

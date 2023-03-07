@@ -32,7 +32,7 @@ public class ImageHandler {
     String iv = "1234567890123456";
     String secretKey = "12345678901234561234567890123456";
 
-    static final String IMAGE_HEADER = "--DEKU_IMAGE_HEADER--";
+    public static final String IMAGE_HEADER = "--DEKU_IMAGE_HEADER--";
     static final int MAX_NUMBER_SMS = 39;
 
     public ImageHandler(Context context, Uri imageUri) throws IOException {
@@ -164,9 +164,8 @@ public class ImageHandler {
                 && Byte.toUnsignedInt(data[1]) >= 0 && Byte.toUnsignedInt(data[2]) <= MAX_NUMBER_SMS);
     }
 
-
-    public static byte[] extractMeta(byte[] data) {
-        return new byte[]{data[0], data[1]};
+    public static String getImageMetaRIL(byte[] data) {
+        return Byte.toUnsignedInt(data[0]) + String.valueOf(Byte.toUnsignedInt(data[1]));
     }
 
     public static String[] fetchImage(Context context, byte[] data, long messageId) {
@@ -233,12 +232,14 @@ public class ImageHandler {
     }
 
     public static boolean canComposeImage(Context context, String RIL) {
+        RIL = IMAGE_HEADER + RIL;
+
         Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByRIL(context, RIL);
         Log.d(ImageHandler.class.getName(), "Data image header RIL: " + RIL);
         Log.d(ImageHandler.class.getName(), "Data image header counter: " + cursorImageCursor.getCount());
         if(cursorImageCursor.moveToFirst()) {
             SMS sms = new SMS(cursorImageCursor);
-            byte[] data = Base64.decode(sms.getBody(), Base64.NO_PADDING);
+            byte[] data = Base64.decode(sms.getBody(), Base64.DEFAULT);
             Log.d(ImageHandler.class.getName(), "Data image ref: " + Byte.toUnsignedInt(data[0]));
             // TODO: check if data is image
             int len = Byte.toUnsignedInt(data[2]);
