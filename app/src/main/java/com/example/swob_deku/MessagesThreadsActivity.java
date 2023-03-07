@@ -32,6 +32,7 @@ import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MenuInflater;
@@ -131,7 +132,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
-
     }
 
     @Override

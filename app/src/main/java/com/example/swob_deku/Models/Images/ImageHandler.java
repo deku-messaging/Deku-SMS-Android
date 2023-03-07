@@ -253,7 +253,12 @@ public class ImageHandler {
                     query.append(Telephony.TextBasedSmsColumns.BODY + " like ? OR ");
 
                 parameters[i] = Base64.encodeToString(new byte[]{data[0], i.byteValue()}, Base64.NO_PADDING)
-                        .replaceAll("\\n", "") + "%";
+                        .replaceAll("\\n", "");
+
+                byte[] decoded = Base64.decode(parameters[i], Base64.NO_PADDING);
+                Log.d(ImageHandler.class.getName(), "Date image compose 0: " + Byte.toUnsignedInt(decoded[0]));
+                Log.d(ImageHandler.class.getName(), "Date image compose 1: " + Byte.toUnsignedInt(decoded[1]));
+                parameters[i] += "%";
             }
 
             Cursor cursor = SMSHandler.fetchSMSForImages(context, query.toString(), parameters, sms.getThreadId());

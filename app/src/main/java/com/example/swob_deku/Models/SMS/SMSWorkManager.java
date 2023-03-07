@@ -103,7 +103,7 @@ public class SMSWorkManager extends Worker {
                                     String.valueOf(Telephony.TextBasedSmsColumns.STATUS_NONE));
 
                             SMSHandler.createWorkManagersForDataMessages(getApplicationContext(),
-                                    sms.address, Base64.decode(sms.getBody(), Base64.NO_PADDING),
+                                    sms.address, Base64.decode(sms.getBody(), Base64.DEFAULT),
                                     id);
                         }
                         cursor.close();
@@ -203,7 +203,8 @@ public class SMSWorkManager extends Worker {
 
             SMSHandler.registerPendingMessage(context,
                     address,
-                    Base64.encodeToString(dividedMessage.get(sendingMessageCounter), Base64.NO_PADDING),
+                    Base64.encodeToString(dividedMessage.get(sendingMessageCounter), Base64.DEFAULT)
+                            .replaceAll("\\n", ""),
                     messageId);
 
             PendingIntent[] pendingIntents = getPendingIntents(messageId);

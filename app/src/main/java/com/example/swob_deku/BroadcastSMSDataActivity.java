@@ -61,7 +61,12 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                     }
 
                     try {
-                        String strMessage = Base64.encodeToString(messageBuffer.toByteArray(), Base64.NO_PADDING);
+                        Log.d(getClass().getName(), "Date image 0: " + Byte.toUnsignedInt(messageBuffer.toByteArray()[0]));
+                        Log.d(getClass().getName(), "Date image 1: " + Byte.toUnsignedInt(messageBuffer.toByteArray()[1]));
+
+                        String strMessage = Base64.encodeToString(messageBuffer.toByteArray(), Base64.DEFAULT)
+                                    .replaceAll("\\n", "");
+                        Log.d(getClass().getName(), "Date image data: " + strMessage.substring(0, 10));
                         long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
                         if(ImageHandler.isImageBody(messageBuffer.toByteArray())) {
