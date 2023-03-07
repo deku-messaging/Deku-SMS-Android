@@ -165,70 +165,7 @@ public class ImageHandler {
     }
 
     public static String getImageMetaRIL(byte[] data) {
-        return Byte.toUnsignedInt(data[0]) + String.valueOf(Byte.toUnsignedInt(data[1]));
-    }
-
-    public static String[] fetchImage(Context context, byte[] data, long messageId) {
-        // TODO: build for len so not to waste compute
-
-        int len = Byte.toUnsignedInt(data[2]);
-        int imageCounter = 0;
-
-        String[] messageIds = new String[len];
-        Cursor imageThreadIdCursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, messageId);
-        if(imageThreadIdCursor.moveToFirst()) {
-            int indexOfThreadId = imageThreadIdCursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
-            String threadId = imageThreadIdCursor.getString(indexOfThreadId);
-
-            String RIL = Base64.encodeToString(new byte[]{data[0]}, Base64.NO_PADDING)
-                    .replaceAll("\\n", "");
-
-            Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByThreadId(context, RIL, threadId);
-
-            if (cursorImageCursor.moveToFirst()) {
-                do {
-                    SMS imageSMS = new SMS(cursorImageCursor);
-                    byte[] imgBody = Base64.decode(imageSMS.getBody(), Base64.NO_PADDING);
-                    int id = Byte.toUnsignedInt(imgBody[1]);
-                    messageIds[id] = imageSMS.id;
-
-                    ++imageCounter;
-                } while (cursorImageCursor.moveToNext());
-            }
-            cursorImageCursor.close();
-        }
-        imageThreadIdCursor.close();
-        return imageCounter == len ? messageIds : null;
-    }
-
-    public static Bitmap buildImage(byte[][] unstructuredImageBytes ) throws IOException {
-        byte[] structuredImageBytes = SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
-        return BitmapFactory.decodeByteArray(structuredImageBytes, 0, structuredImageBytes.length);
-    }
-
-    public static void rebuildImage(Context context, String[] messageIds) {
-        StringBuilder stringBuffer = new StringBuilder();
-
-        for(int i=0; i < messageIds.length; ++i) {
-            String messageId = messageIds[i];
-            Cursor cursor = SMSHandler.fetchSMSInboxById(context, messageId);
-            if(cursor.moveToFirst()) {
-                SMS sms = new SMS(cursor);
-
-                byte[] data = Base64.decode(sms.getBody(), Base64.NO_PADDING);
-
-                int offset = i == 0 ? 3 : 2;
-
-                String body = IMAGE_HEADER + Base64.encodeToString(data, offset, data.length, Base64.NO_PADDING);
-                stringBuffer.append(body);
-
-                // TODO: Delete message
-                if( i != 0)
-                    SMSHandler.deleteMessage(context, sms.getId());
-            }
-            cursor.close();
-        }
-        SMSHandler.updateMessage(context, messageIds[0], stringBuffer.toString());
+        return String.valueOf(Byte.toUnsignedInt(data[0])) + String.valueOf(Byte.toUnsignedInt(data[1]));
     }
 
     public static boolean canComposeImage(Context context, String RIL) {
@@ -239,7 +176,11 @@ public class ImageHandler {
         Log.d(ImageHandler.class.getName(), "Data image header counter: " + cursorImageCursor.getCount());
         if(cursorImageCursor.moveToFirst()) {
             SMS sms = new SMS(cursorImageCursor);
-            byte[] data = Base64.decode(sms.getBody(), Base64.DEFAULT);
+
+            String body = sms.getBody().replace(RIL, "");
+
+            byte[] data = Base64.decode(body, Base64.DEFAULT);
+
             Log.d(ImageHandler.class.getName(), "Data image ref: " + Byte.toUnsignedInt(data[0]));
             // TODO: check if data is image
             int len = Byte.toUnsignedInt(data[2]);
@@ -253,13 +194,7 @@ public class ImageHandler {
                 else
                     query.append(Telephony.TextBasedSmsColumns.BODY + " like ? OR ");
 
-                parameters[i] = Base64.encodeToString(new byte[]{data[0], i.byteValue()}, Base64.NO_PADDING)
-                        .replaceAll("\\n", "");
-
-                byte[] decoded = Base64.decode(parameters[i], Base64.NO_PADDING);
-                Log.d(ImageHandler.class.getName(), "Date image compose 0: " + Byte.toUnsignedInt(decoded[0]));
-                Log.d(ImageHandler.class.getName(), "Date image compose 1: " + Byte.toUnsignedInt(decoded[1]));
-                parameters[i] += "%";
+                parameters[i] = IMAGE_HEADER + Byte.toUnsignedInt(data[0]) + i + "%";
             }
 
             Cursor cursor = SMSHandler.fetchSMSForImages(context, query.toString(), parameters, sms.getThreadId());
@@ -271,5 +206,43 @@ public class ImageHandler {
         }
         cursorImageCursor.close();
         return false;
+    }
+
+    public static String composeImage(Context context, String RIL) {
+        StringBuilder imageString = new StringBuilder();
+        RIL = IMAGE_HEADER + RIL;
+
+        Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByRIL(context, RIL);
+        if(cursorImageCursor.moveToFirst()) {
+            SMS sms = new SMS(cursorImageCursor);
+
+            String body = sms.getBody().replace(RIL, "");
+
+            byte[] data = Base64.decode(body, Base64.DEFAULT);
+
+            // TODO: check if data is image
+            int len = Byte.toUnsignedInt(data[2]);
+
+            StringBuilder query = new StringBuilder();
+            String[] parameters = new String[len];
+
+            for(Integer i=0; i<len; ++i ) {
+                if(i + 1 == len)
+                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ?");
+                else
+                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ? OR ");
+
+                parameters[i] = Base64.encodeToString(new byte[]{data[0], i.byteValue()}, Base64.DEFAULT) + "%";
+            }
+
+            Cursor cursor = SMSHandler.fetchSMSForImages(context, query.toString(), parameters, sms.getThreadId());
+            Log.d(ImageHandler.class.getName(), "Date image composing: " + cursor.getCount() + "/" + len);
+            if(cursor.getCount() >= len) {
+                cursor.close();
+            }
+        }
+        cursorImageCursor.close();
+
+        return imageString.toString();
     }
 }

@@ -52,13 +52,6 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-
-//                        try {
-//                            byte[] pdu = currentSMS.getPdu();
-//                            SMSHandler.interpret_PDU(pdu);
-//                        } catch (ParseException e) {
-//                            e.printStackTrace();
-//                        }
                     }
 
                     try {
@@ -74,15 +67,15 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                         Log.d(getClass().getName(), "Data image data: " + strMessage);
                         long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 
+                        String defaultRIL = Byte.toUnsignedInt(messageBuffer.toByteArray()[0]) + "0";
+
                         if(ImageHandler.isImageBody(messageBuffer.toByteArray())) {
                             Log.d(getClass().getName(), "Data image body found");
                             /**
                              * 1. Find image header
                              */
 
-                            boolean canComposeImage = ImageHandler.canComposeImage(context,
-                                    ImageHandler.getImageMetaRIL(messageBuffer.toByteArray()));
-
+                            boolean canComposeImage = ImageHandler.canComposeImage(context, defaultRIL);
 //                            byte[] imageMeta = ImageHandler.extractMeta(messageBuffer.toByteArray());
 //                            String[] imageData = ImageHandler.fetchImage(context, imageMeta, messageId);
 //
