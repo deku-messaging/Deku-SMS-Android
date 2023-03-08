@@ -729,7 +729,7 @@ public class SMSHandler {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
         try {
-            if(dividedMessage.size() == 1) {
+            if(messageId != -1 || dividedMessage.size() == 1) {
                 smsManager.sendDataMessage(
                         destinationAddress,
                         null,

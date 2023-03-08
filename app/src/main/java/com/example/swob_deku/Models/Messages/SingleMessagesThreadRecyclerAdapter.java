@@ -4,13 +4,10 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.provider.Telephony;
 import android.text.format.DateUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,7 +22,6 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.ImageViewActivity;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -34,7 +30,6 @@ import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
 import com.google.android.material.card.MaterialCardView;
 
-import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -149,6 +144,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                     }
                 }
             });
+
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
@@ -160,7 +156,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             else
                 messageSentViewHandler.timestamp.setVisibility(View.GONE);
 
-            messageSentViewHandler.date.setVisibility(View.INVISIBLE);
+//            messageSentViewHandler.date.setVisibility(View.INVISIBLE);
 
             final int status = sms.getStatusCode();
             String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?
@@ -176,9 +172,24 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
 
-            if(mDiffer.getCurrentList().size() -1 != position ) {
-                messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
-            }
+//            if(mDiffer.getCurrentList().size() -1 != position ) {
+//                messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
+//            }
+
+//            messageSentViewHandler.sentMessageCard.setOnLongClickListener(new View.OnLongClickListener() {
+//                @Override
+//                public boolean onLongClick(View v) {
+//                    try {
+//                        SMSHandler.sendDataSMS(context, sms.getAddress(),
+//                                Base64.decode(sms.getBody(), Base64.DEFAULT),
+//                                null,
+//                                null, Long.parseLong(sms.getId()));
+//                    } catch (InterruptedException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                    return false;
+//                }
+//            });
         }
     }
 
@@ -209,13 +220,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
          TextView sentMessageStatus;
          TextView date;
          TextView timestamp;
-         MaterialCardView layout;
+         MaterialCardView sentMessageCard;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_thread_sent_card_text);
             sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
             date = itemView.findViewById(R.id.message_thread_sent_date_text);
-            layout = itemView.findViewById(R.id.text_sent_container);
+            sentMessageCard = itemView.findViewById(R.id.message_sent_card_layout);
             timestamp = itemView.findViewById(R.id.sent_message_date_segment);
         }
     }

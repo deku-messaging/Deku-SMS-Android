@@ -171,7 +171,7 @@ public class ImageViewActivity extends AppCompatActivity {
 
         long messageId = Helpers.generateRandomNumber();
         SMSHandler.sendDataSMS(getApplicationContext(), address, compressedBytes,
-                null, null, messageId);
+                null, null, -1);
         finish();
     }
 
