@@ -46,10 +46,6 @@ public class MessagesThreadViewModel extends ViewModel {
                     cursor.close();
                 }
             }).start();
-            // Because meain thread
-//            messagesList.setValue(smsList);
-
-            // Because background thread
         }
     }
 }

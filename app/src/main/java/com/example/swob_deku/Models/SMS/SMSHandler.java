@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 
@@ -34,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -63,6 +65,35 @@ public class SMSHandler {
         for(int i=startPos, j=0; i<src.length && j < len; ++i, ++j)
             byteArrayOutputStream.write(src[i]);
         return byteArrayOutputStream.toByteArray();
+    }
+
+    public static void deleteMessage(Context context, String messageId) {
+        try {
+            int updateCount = context.getContentResolver().delete(
+                    SMS_CONTENT_URI,
+                    Telephony.Sms._ID + "=?",
+                    new String[]{messageId});
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void deleteSMSMessagesById(Context context, String[] ids) {
+        try {
+            int updateCount = context.getContentResolver().delete( SMS_CONTENT_URI,
+                    Telephony.Sms._ID + " in (" +
+                            TextUtils.join(",", Collections.nCopies(ids.length, "?")) + ")", ids);
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
     }
 
     public static ArrayList<byte[]> divideMessage(byte[] bytes) {
@@ -745,20 +776,6 @@ public class SMSHandler {
         }
     }
 
-    public static void deleteMessage(Context context, String messageId) {
-        try {
-            int updateCount = context.getContentResolver().delete(
-                    SMS_CONTENT_URI,
-                    Telephony.Sms._ID + "=?",
-                    new String[]{messageId});
-
-            if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
-        }
-        catch(Exception e ) {
-            e.printStackTrace();
-        }
-    }
 
     public static void updateThreadMessagesThread(Context context, String threadId) {
         ContentValues contentValues = new ContentValues();
