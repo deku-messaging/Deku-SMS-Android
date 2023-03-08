@@ -39,6 +39,8 @@ public class ImageViewActivity extends AppCompatActivity {
 
     String address = "";
     String threadId = "";
+
+    public static final String IMAGE_INTENT_EXTRA = "image_sms_id";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,8 +59,8 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView = findViewById(R.id.compressed_image_holder);
         imageDescription = findViewById(R.id.image_details);
 
-        if(getIntent().hasExtra("image_sms_id")) {
-            String smsId = getIntent().getStringExtra("image_sms_id");
+        if(getIntent().hasExtra(IMAGE_INTENT_EXTRA)) {
+            String smsId = getIntent().getStringExtra(IMAGE_INTENT_EXTRA);
 
             // TODO: Get all messages which have the Ref ID
             // TODO: get until the len of messages have been acquired, then fit them together
@@ -68,44 +70,12 @@ public class ImageViewActivity extends AppCompatActivity {
             if(cursor.moveToFirst()) {
                 SMS sms = new SMS(cursor);
 
-                byte[] body = Base64.decode(sms.getBody(), Base64.NO_PADDING);
-                if(body.length <= 133) {
-                    int len = Byte.toUnsignedInt(body[2]);
-
-                    // TODO: build for len so not to waste compute
-                    String RIL = Base64.encodeToString(new byte[]{body[0]}, Base64.NO_PADDING)
-                            .replaceAll("\\n", "");
-
-                    //                String RIL = "vg";
-                    Log.d(getLocalClassName(), "Image Header RIL: " + RIL + ":" + RIL.length());
-                    Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByThreadId(getApplicationContext(),
-                            RIL, sms.getThreadId());
-                    Log.d(getLocalClassName(), "Image # Found: " + cursorImageCursor.getCount() + ":" + len);
-
-                    byte[][] imagesBytes = new byte[len][];
-
-                    if (cursorImageCursor.moveToFirst()) {
-                        do {
-                            SMS imageSMS = new SMS(cursorImageCursor);
-
-                            byte[] imgBody = Base64.decode(imageSMS.getBody(), Base64.NO_PADDING);
-                            int id = Byte.toUnsignedInt(imgBody[1]);
-                            imagesBytes[id] = imgBody;
-                        } while (cursorImageCursor.moveToNext());
-                    }
-                    try {
-                        ImageHandler.buildImage(imagesBytes);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    cursorImageCursor.close();
-                }
-                else {
-                    try {
-                        buildImage(body);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                byte[] body = Base64.decode(sms.getBody()
+                        .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
+                try {
+                    buildImage(body);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
             cursor.close();
@@ -125,7 +95,6 @@ public class ImageViewActivity extends AppCompatActivity {
 
     private void buildImage(byte[] data ) throws IOException {
         compressedBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-//        imageDescription.setText(description);
         imageView.setImageBitmap(compressedBitmap);
     }
 
@@ -206,4 +175,15 @@ public class ImageViewActivity extends AppCompatActivity {
         finish();
     }
 
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, SMSSendActivity.class);
+        intent.putExtra(SMSSendActivity.ADDRESS, address);
+
+        if(!threadId.isEmpty())
+            intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+
+        startActivity(intent);
+        finish();
+    }
 }

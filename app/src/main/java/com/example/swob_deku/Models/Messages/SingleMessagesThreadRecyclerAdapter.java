@@ -27,9 +27,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.ImageViewActivity;
+import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
+import com.example.swob_deku.SMSSendActivity;
 import com.google.android.material.card.MaterialCardView;
 
 import java.nio.charset.StandardCharsets;
@@ -104,45 +106,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     }
 
     @Override
-    public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
-        super.onViewAttachedToWindow(holder);
-
-//        for(int i=0;i<mDiffer.getCurrentList().size();++i) {
-//            SMS sms = mDiffer.getCurrentList().get(i);
-//            if (focusId!=null
-//                    && searchString!=null
-//                    && sms.id.equals(Long.toString(focusId))
-//                    && !searchString.isEmpty()) {
-//                String text = sms.getBody();
-//                Spannable spannable = Spannable.Factory.getInstance().newSpannable(text);
-//
-//                for (int index = text.indexOf(searchString); index >= 0; index = text.indexOf(searchString, index + 1)) {
-//                    spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
-//                            index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//                    spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
-//                            index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//                }
-//
-//                // TODO: not working
-////                switch (holder.getItemViewType()) {
-////                    case 1: {
-////                        ((MessageReceivedViewHandler) holder).receivedMessage.setText(spannable);
-////                        break;
-////                    }
-////                    case 5:
-////                    case 4:
-////                    case 2: {
-////                        ((MessageSentViewHandler) holder).sentMessage.setText(spannable);
-////                        break;
-////                    }
-////                }
-////                break;
-//                this.view.smoothScrollToPosition(i);
-//            }
-//        }
-    }
-
-    @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         /**
          * TODO: OnClick, show date of message and other relevant meta
@@ -172,6 +135,20 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);
             dateView.setText(date);
+
+            messageReceivedViewHandler.receivedMessageCard.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
+                        Intent intent = new Intent(context, ImageViewActivity.class);
+                        intent.putExtra(ImageViewActivity.IMAGE_INTENT_EXTRA, sms.getId());
+                        intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+                        intent.putExtra(SMSSendActivity.ID, sms.getId());
+
+                        context.startActivity(intent);
+                    }
+                }
+            });
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
@@ -202,7 +179,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             if(mDiffer.getCurrentList().size() -1 != position ) {
                 messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
             }
-
         }
     }
 
@@ -217,12 +193,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
 
     @Override
     public int getItemViewType(int position) {
-//        if(mDiffer.getCurrentList().get(position).isDatesOnly())
-//            return 100;
-//
-//        int messageType = mDiffer.getCurrentList().get(position).getType();
-//        return (messageType > -1 )? messageType : 0;
-
         if (position != 0 && (position == mDiffer.getCurrentList().size() - 1 ||
                 !SMSHandler.isSameHour(mDiffer.getCurrentList().get(position),
                         mDiffer.getCurrentList().get(position + 1)))) {
@@ -233,7 +203,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             return (messageType > -1 )? messageType : 0;
         }
     }
-
 
     public class MessageSentViewHandler extends RecyclerView.ViewHolder {
          TextView sentMessage;
@@ -258,8 +227,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     }
 
     public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
-         TextView receivedMessage;
-         TextView date;
+        MaterialCardView receivedMessageCard;
+        TextView receivedMessage;
+        TextView date;
         TextView timestamp;
 
         public MessageReceivedViewHandler(@NonNull View itemView) {
@@ -267,6 +237,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             receivedMessage = itemView.findViewById(R.id.message_thread_received_card_text);
             date = itemView.findViewById(R.id.message_thread_received_date_text);
             timestamp = itemView.findViewById(R.id.received_message_date_segment);
+
+            receivedMessageCard = itemView.findViewById(R.id.messages_received_card_layout);
         }
     }
     public class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
@@ -275,8 +247,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         }
     }
 
-    public static final DiffUtil.ItemCallback<SMS> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<SMS>() {
+    public static final DiffUtil.ItemCallback<SMS> DIFF_CALLBACK = new DiffUtil.ItemCallback<SMS>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
                     return oldItem.id.equals(newItem.id);
