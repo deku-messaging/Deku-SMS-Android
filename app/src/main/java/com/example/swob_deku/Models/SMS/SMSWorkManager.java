@@ -93,9 +93,19 @@ public class SMSWorkManager extends Worker {
                         break;
 
                     case SmsManager.RESULT_RIL_SMS_SEND_FAIL_RETRY:
-                        // TODO: handle the bits and pieces that fail here -
+                        /**
+                         * TODO:
+                         *
+                         * Wait (N) seconds then attempt sending the message again
+                         * If new broadcast message for this message should have come, it should
+                         * stop this message from proceeding.
+                         * ==> After wait time, check status of message before sending again.
+                         *
+                         */
+
                         Cursor cursor = SMSHandler.fetchSMSOutboxById(getApplicationContext(), String.valueOf(id));
-                        Log.d(getClass().getName(), "Broadcast should retry this message.." + id + " - found: " + cursor.getCount());
+                        Log.d(getClass().getName(), "Broadcast should retry this message.." +
+                                id + " - found: " + cursor.getCount());
                         if(cursor.moveToFirst()) {
                             SMS sms = new SMS(cursor);
 
@@ -106,10 +116,19 @@ public class SMSWorkManager extends Worker {
                                     sms.address, Base64.decode(sms.getBody(), Base64.DEFAULT),
                                     id);
                         }
+
                         cursor.close();
+
                         Log.d(getClass().getName(), "Broadcast retried sending message");
+
                         break;
 
+                    case SmsManager.RESULT_RIL_NETWORK_ERR:
+                        /**
+                         * TODO
+                         * This has been common with 4G devices running on
+                         * Resolves itself when switched to 3G
+                         */
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
                     case SmsManager.RESULT_ERROR_NO_SERVICE:
                     case SmsManager.RESULT_ERROR_NULL_PDU:
