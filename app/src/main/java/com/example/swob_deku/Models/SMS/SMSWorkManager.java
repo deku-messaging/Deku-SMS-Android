@@ -110,11 +110,11 @@ public class SMSWorkManager extends Worker {
                             SMS sms = new SMS(cursor);
 
                             SMSHandler.updateMessageStatus(getApplicationContext(), sms.getId(),
-                                    String.valueOf(Telephony.TextBasedSmsColumns.STATUS_NONE));
+                                    String.valueOf(Telephony.TextBasedSmsColumns.STATUS_FAILED));
 
-                            SMSHandler.createWorkManagersForDataMessages(getApplicationContext(),
-                                    sms.address, Base64.decode(sms.getBody(), Base64.DEFAULT),
-                                    id);
+//                            SMSHandler.createWorkManagersForDataMessages(getApplicationContext(),
+//                                    sms.address, Base64.decode(sms.getBody(), Base64.DEFAULT),
+//                                    id);
                         }
 
                         cursor.close();
@@ -141,7 +141,8 @@ public class SMSWorkManager extends Worker {
                         }
 
                         if(BuildConfig.DEBUG) {
-                            Log.d(getClass().getName(), "Broadcast Failed to send: " + getResultCode());
+                            Log.d(getClass().getName(), "Broadcast received Failed to send: "
+                                    + getResultCode());
                         }
                 }
             }
@@ -156,7 +157,8 @@ public class SMSWorkManager extends Worker {
                     SMSHandler.registerDeliveredMessage(context, id);
                 } else {
                     if (BuildConfig.DEBUG)
-                        Log.d(getClass().getName(), "Failed to deliver: " + getResultCode());
+                        Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
+                                + getResultCode());
                 }
 
             }
@@ -211,23 +213,36 @@ public class SMSWorkManager extends Worker {
         }
     }
 
-    public void sendDataMessages(String address, byte[] data) {
+    public void sendDataMessages(String address, byte[] data) throws InterruptedException {
         ArrayList<byte[]> dividedMessage = SMSHandler.structureSMSMessage(data);
         handleBroadcast();
 
         Log.d(getClass().getName(), "Sending multiple new message...");
+
+//        PendingIntent[] pendingIntents = getPendingIntents(messageId);
+
+//        long messageId = Helpers.generateRandomNumber();
+//        SMSHandler.registerPendingMessage(context,
+//                address,
+//                Base64.encodeToString(data, Base64.DEFAULT),
+//                messageId);
+//
+//        SMSHandler.sendTextSMS( context, address,
+//                Base64.encodeToString(data, Base64.DEFAULT),
+//                pendingIntents[0],
+//                pendingIntents[1], messageId);
 
         for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
             long messageId = Helpers.generateRandomNumber();
 
             SMSHandler.registerPendingMessage(context,
                     address,
-                    Base64.encodeToString(dividedMessage.get(sendingMessageCounter), Base64.DEFAULT)
-                            .replaceAll("\\n", ""),
+                    Base64.encodeToString(dividedMessage.get(sendingMessageCounter), Base64.DEFAULT),
                     messageId);
 
             PendingIntent[] pendingIntents = getPendingIntents(messageId);
             try {
+
                 this.smsManager.sendDataMessage(
                         address,
                         null,
@@ -236,7 +251,7 @@ public class SMSWorkManager extends Worker {
                         pendingIntents[0],
                         pendingIntents[1]);
 
-                SMSHandler.registerPendingBroadcastMessage(context, messageId);
+//                SMSHandler.registerPendingBroadcastMessage(context, messageId);
                 Log.d(getClass().getName(), "Sent new message: " + messageId);
             } catch(Exception e) {
                 e.printStackTrace();
@@ -246,6 +261,8 @@ public class SMSWorkManager extends Worker {
                 } catch(Exception e1) {
                     e1.printStackTrace();
                     throw e1;
+                } finally {
+                    Thread.sleep(1000);
                 }
             }
         }

@@ -123,6 +123,9 @@ public class ImageViewActivity extends AppCompatActivity {
         description += "\n- Approx # Data SMS: " + SMSHandler.structureSMSMessage(compressedBytes).size();
         description += "\n- Approx # B64 SMS: " + smsManager.divideMessage(
                 Base64.encodeToString(compressedBytes, Base64.NO_PADDING)).size();
+        description += "\n- Concatenated B64 SMS: " + SMSHandler.concatenateMessages(
+                smsManager.divideMessage( Base64.encodeToString(compressedBytes, Base64.NO_PADDING)),
+                5).size();
 
         byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
         byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);

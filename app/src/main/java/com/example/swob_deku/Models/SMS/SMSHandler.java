@@ -124,6 +124,22 @@ public class SMSHandler {
         return messages;
     }
 
+    public static ArrayList<String> concatenateMessages(ArrayList<String> data, double grouping) {
+        ArrayList<String> cData = new ArrayList<>();
+
+        int groups = (int) Math.ceil(data.size()/grouping);
+
+        Log.d(SMSHandler.class.getName(), "Image groups for: " + grouping + " = " + groups);
+        for(int i=0;i<groups;++i) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int j = 0; j < grouping && j + i < data.size(); ++j)
+                stringBuilder.append(data.get(i+j));
+            cData.add(stringBuilder.toString());
+        }
+
+        return cData;
+    }
+
     public static boolean isSameHour(SMS sms1, SMS sms2) {
         Date date = new Date(Long.parseLong(sms1.getDate()));
         Calendar currentCalendar = Calendar.getInstance();
@@ -573,7 +589,7 @@ public class SMSHandler {
 
         contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
-        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_NONE);
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
 
