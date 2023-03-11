@@ -319,11 +319,14 @@ public class ImageHandler {
         if(BuildConfig.DEBUG)
             Log.d(SMSHandler.class.getName(), "Image groups for: " + grouping + " = " + groups);
 
-        for(int i=0;i<groups;++i) {
+        /**
+         * TODO: make sure i does not grow past 1 byte
+         */
+        for(int i=0, refId = new Random().nextInt(256);i<groups;++i) {
             StringBuilder stringBuilder = new StringBuilder();
             for (int j = 0; j < grouping && j + i < data.size(); ++j)
                 stringBuilder.append(data.get(i+j));
-            cData.add(IMAGE_TRANSMISSION_HEADER + i + "." + stringBuilder.toString());
+            cData.add(IMAGE_TRANSMISSION_HEADER + (byte) refId + i + stringBuilder.toString());
         }
 
         return cData;

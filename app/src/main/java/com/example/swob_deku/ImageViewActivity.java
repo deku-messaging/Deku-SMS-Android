@@ -126,7 +126,11 @@ public class ImageViewActivity extends AppCompatActivity {
         ArrayList<String> dividedArray = smsManager.divideMessage(
                 Base64.encodeToString(compressedBytes, Base64.DEFAULT));
 
-        concatenatedSegments = SMSHandler.concatenateMessages(dividedArray, 5);
+        concatenatedSegments = ImageHandler.concatenateMessages(dividedArray, 5);
+
+        Log.d(getLocalClassName(), "Image concat messages size: " + concatenatedSegments.get(0));
+        Log.d(getLocalClassName(), "Image concat messages size: " + concatenatedSegments.get(1));
+        Log.d(getLocalClassName(), "Image concat messages size: " + concatenatedSegments.get(2));
 
         description += "\n\n- Compressed bytes: " + compressedBytes.length;
         description += "\n- Approx # B64 SMS: " + dividedArray.size();
@@ -178,11 +182,22 @@ public class ImageViewActivity extends AppCompatActivity {
 
         startActivity(intent);
 
-        long messageId = Helpers.generateRandomNumber();
 //        SMSHandler.sendDataSMS(getApplicationContext(), address, compressedBytes,
 //                null, null, -1);
 
 
+        long[] messageIds = new long[concatenatedSegments.size()];
+        for(int i=0;i<concatenatedSegments.size();++i) {
+//            messageIds[i] = Helpers.generateRandomNumber();
+            messageIds[i] = SMSHandler.generateSmsId(getApplicationContext());
+            SMSHandler.registerPendingMessage(getApplicationContext(), address,
+                    concatenatedSegments.get(i), messageIds[i]);
+        }
+        /**
+         * - Register segments
+         * - pass registered segments to workmanager
+         */
+        SMSHandler.createWorkManagersForDataMessages(getApplicationContext(), address, messageIds);
         finish();
     }
 

@@ -27,7 +27,10 @@ import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.SMSSendActivity;
 
+import java.nio.LongBuffer;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.stream.LongStream;
 
 public class SMSWorkManager extends Worker {
     Context context;
@@ -36,6 +39,9 @@ public class SMSWorkManager extends Worker {
     boolean hasPendingIntents;
 
     long messageId;
+
+    long[] messageIds;
+    long[] intentsIds;
 
     SmsManager smsManager;
 
@@ -49,6 +55,8 @@ public class SMSWorkManager extends Worker {
 
         this.messageId = getInputData().getLong("message_id", -1);
 
+        this.messageIds = getInputData().getLongArray("ids");
+
         this.smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
     }
@@ -56,8 +64,12 @@ public class SMSWorkManager extends Worker {
     @NonNull
     @Override
     public Result doWork() {
+        handleBroadcast();
         try {
-            if(this.messageId != -1)
+            if(this.messageIds != null) {
+                sendTextMessages(address);
+            }
+            else if(this.messageId != -1)
                 sendDataMessage(address, data);
 
             else
@@ -78,6 +90,15 @@ public class SMSWorkManager extends Worker {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
                 long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+
+                if(intentsIds != null ) {
+                    for(int i=0;i< intentsIds.length; ++i) {
+                        if(id == intentsIds[i]) {
+                            id = messageIds[i];
+                            break;
+                        }
+                    }
+                }
 
                 if(BuildConfig.DEBUG)
                     Log.d(getClass().getName(), "Broadcast received for sent: " + id);
@@ -175,11 +196,13 @@ public class SMSWorkManager extends Worker {
         Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
         deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
 
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), Integer.parseInt(String.valueOf(messageId)),
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                Integer.parseInt(String.valueOf(messageId)),
                 sentIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), Integer.parseInt(String.valueOf(messageId)),
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                Integer.parseInt(String.valueOf(messageId)),
                 deliveredIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
@@ -215,7 +238,6 @@ public class SMSWorkManager extends Worker {
 
     public void sendDataMessages(String address, byte[] data) throws InterruptedException {
         ArrayList<byte[]> dividedMessage = SMSHandler.structureSMSMessage(data);
-        handleBroadcast();
 
         Log.d(getClass().getName(), "Sending multiple new message...");
 
@@ -267,6 +289,28 @@ public class SMSWorkManager extends Worker {
             }
         }
 
+    }
+
+    public void sendTextMessages(String address) {
+        long[] tIntentsIds = new long[messageIds.length];
+        for(int i=0;i < messageIds.length; ++i ) {
+            tIntentsIds[i] = new Random().nextInt();
+        }
+        intentsIds = tIntentsIds;
+
+        for(int i =0;i<messageIds.length; ++i) {
+            long id = messageIds[i];
+            PendingIntent[] pendingIntents = getPendingIntents(intentsIds[i]);
+            Cursor cursor = SMSHandler.fetchSMSOutboxById(getApplicationContext(), String.valueOf(id));
+            if(cursor.moveToFirst()) {
+                SMS sms = new SMS(cursor);
+//                SMSHandler.sendTextSMS(getApplicationContext(), address, sms.getBody(),
+//                        pendingIntents[0], pendingIntents[1], id);
+
+                SMSHandler.sendTextSMS(getApplicationContext(), address, sms.getBody(),
+                        null, null, id);
+            }
+        }
     }
 
 }

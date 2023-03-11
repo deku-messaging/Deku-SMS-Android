@@ -1,6 +1,7 @@
 package com.example.swob_deku.Models.SMS;
 
 import static java.time.Instant.now;
+import static java.time.Instant.ofEpochSecond;
 
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -38,6 +39,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class SMSHandler {
@@ -875,6 +877,43 @@ public class SMSHandler {
         }
     }
 
+    public static void createWorkManagersForDataMessages(Context context, String address,
+                                                         long[] messageIds) {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+                .build();
+
+        final String DATA_SMS_WORK_MANAGER_ID = String.valueOf(Helpers.generateRandomNumber());
+        /**
+         * 10240 bytes too large to fit into workManger - find what the actual limit is
+         */
+        OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(SMSWorkManager.class)
+                .setConstraints(constraints)
+                .setBackoffCriteria(
+                        BackoffPolicy.LINEAR,
+                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                        TimeUnit.MILLISECONDS
+                )
+                .addTag(DATA_SMS_WORK_MANAGER_TAG_NAME)
+                .addTag(DATA_SMS_WORK_MANAGER_ID)
+                .setInputData(
+                        new Data.Builder()
+                                .putString("address", address)
+                                .putLongArray("ids", messageIds)
+                                .build()
+                )
+                .build();
+
+        // String uniqueWorkName = address + message;
+        String uniqueWorkName = DATA_SMS_WORK_MANAGER_ID;
+        WorkManager workManager = WorkManager.getInstance(context);
+        workManager.enqueueUniqueWork(
+                uniqueWorkName,
+                ExistingWorkPolicy.KEEP,
+                routeMessageWorkRequest);
+        Log.d(SMSHandler.class.getName(), "Send data sms workmanager created" + DATA_SMS_WORK_MANAGER_ID);
+    }
+
     public static void createWorkManagersForDataMessages(Context context, String address, byte[] data,
                                                    long messageId) {
         Constraints constraints = new Constraints.Builder()
@@ -912,4 +951,10 @@ public class SMSHandler {
                 routeMessageWorkRequest);
         Log.d(SMSHandler.class.getName(), "Send data sms workmanager created" + DATA_SMS_WORK_MANAGER_ID);
     }
+
+    public static long generateSmsId(Context context) {
+        // Use the current timestamp as the base of the ID
+        return System.currentTimeMillis();
+    }
+
 }
