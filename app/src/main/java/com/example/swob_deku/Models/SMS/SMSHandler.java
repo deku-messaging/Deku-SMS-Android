@@ -67,6 +67,21 @@ public class SMSHandler {
         return byteArrayOutputStream.toByteArray();
     }
 
+    public static void clearOutboxPending(Context context) {
+        try {
+            int updateCount = context.getContentResolver().delete(
+                    SMS_CONTENT_URI,
+                    Telephony.TextBasedSmsColumns.STATUS + "=?",
+                    new String[]{String.valueOf(Telephony.Sms.STATUS_PENDING)});
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
     public static void deleteMessage(Context context, String messageId) {
         try {
             int updateCount = context.getContentResolver().delete(
@@ -124,21 +139,30 @@ public class SMSHandler {
         return messages;
     }
 
-    public static ArrayList<String> concatenateMessages(ArrayList<String> data, double grouping) {
-        ArrayList<String> cData = new ArrayList<>();
+    public static ArrayList<byte[]> divideMessage(byte[] bytes, String headers) {
+        final int FIRST_DIVIDE_CONST = 139 - headers.length();
+        final int DIVIDE_CONST = 130;
 
-        int groups = (int) Math.ceil(data.size()/grouping);
+        ArrayList<byte[]> messages = new ArrayList<>();
 
-        Log.d(SMSHandler.class.getName(), "Image groups for: " + grouping + " = " + groups);
-        for(int i=0;i<groups;++i) {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int j = 0; j < grouping && j + i < data.size(); ++j)
-                stringBuilder.append(data.get(i+j));
-            cData.add(stringBuilder.toString());
+        int totalLen = 0;
+        byte[] b = copyBytes(bytes, 0, FIRST_DIVIDE_CONST);
+        messages.add(b);
+        totalLen += b.length;
+
+        for(int i=FIRST_DIVIDE_CONST;i<bytes.length; i+=DIVIDE_CONST) {
+            b = copyBytes(bytes, i, DIVIDE_CONST);
+            messages.add(b);
+            totalLen += b.length;
+//                Log.d(SMSHandler.class.getName(), "In divide: " + i);
         }
 
-        return cData;
+        Log.d(SMSHandler.class.getName(), "Before divide: " + bytes.length);
+        Log.d(SMSHandler.class.getName(), "After divide: " + totalLen);
+
+        return messages;
     }
+
 
     public static boolean isSameHour(SMS sms1, SMS sms2) {
         Date date = new Date(Long.parseLong(sms1.getDate()));
@@ -621,6 +645,24 @@ public class SMSHandler {
         return threadId;
     }
 
+    public static void registerPendingBroadcastMessage(Context context, long messageId) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.Sms.STATUS_PENDING);
+        try {
+            int updateCount = context.getContentResolver().update(
+                    SMS_OUTBOX_CONTENT_URI,
+                    contentValues,
+                    Telephony.Sms._ID +"=?",
+                    new String[] {String.valueOf(messageId)});
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
     public static void parse_address_format(String SMSC_address_format) {
         Log.d(BroadcastSMSTextActivity.class.getName(), "PDU parsing address format: " + SMSC_address_format);
 
@@ -722,6 +764,7 @@ public class SMSHandler {
         return structuredMessage;
     }
 
+
     public static byte[] rebuildStructuredSMSMessage(byte[][] data) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         for(byte[] seg: data) {
@@ -777,22 +820,6 @@ public class SMSHandler {
         }
     }
 
-    public static void clearOutboxPending(Context context) {
-        try {
-            int updateCount = context.getContentResolver().delete(
-                    SMS_CONTENT_URI,
-                    Telephony.TextBasedSmsColumns.STATUS + "=?",
-                    new String[]{String.valueOf(Telephony.Sms.STATUS_PENDING)});
-
-            if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
-        }
-        catch(Exception e ) {
-            e.printStackTrace();
-        }
-    }
-
-
     public static void updateThreadMessagesThread(Context context, String threadId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");
@@ -839,24 +866,6 @@ public class SMSHandler {
                     contentValues,
                     Telephony.Sms._ID + "=?",
                     new String[] { messageId });
-
-            if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
-        }
-        catch(Exception e ) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void registerPendingBroadcastMessage(Context context, long messageId) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.Sms.STATUS_PENDING);
-        try {
-            int updateCount = context.getContentResolver().update(
-                    SMS_OUTBOX_CONTENT_URI,
-                    contentValues,
-                    Telephony.Sms._ID +"=?",
-                    new String[] {String.valueOf(messageId)});
 
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);

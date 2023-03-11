@@ -37,6 +37,8 @@ public class ImageViewActivity extends AppCompatActivity {
     Bitmap compressedBitmap;
     byte[] compressedBytes;
 
+    ArrayList<String> concatenatedSegments = new ArrayList<>();
+
     String address = "";
     String threadId = "";
 
@@ -118,14 +120,18 @@ public class ImageViewActivity extends AppCompatActivity {
         description += "\n\n- Resize scale: " + resizeScale;
         description += "\n- Resize resolution: " + imageBitmap.getWidth()
                 + "x" + imageBitmap.getHeight();
+
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
+
+        ArrayList<String> dividedArray = smsManager.divideMessage(
+                Base64.encodeToString(compressedBytes, Base64.DEFAULT));
+
+        concatenatedSegments = SMSHandler.concatenateMessages(dividedArray, 5);
+
         description += "\n\n- Compressed bytes: " + compressedBytes.length;
+        description += "\n- Approx # B64 SMS: " + dividedArray.size();
+        description += "\n- Concatenated B64 SMS: " + concatenatedSegments.size() + " segments";
         description += "\n- Approx # Data SMS: " + SMSHandler.structureSMSMessage(compressedBytes).size();
-        description += "\n- Approx # B64 SMS: " + smsManager.divideMessage(
-                Base64.encodeToString(compressedBytes, Base64.NO_PADDING)).size();
-        description += "\n- Concatenated B64 SMS: " + SMSHandler.concatenateMessages(
-                smsManager.divideMessage( Base64.encodeToString(compressedBytes, Base64.NO_PADDING)),
-                5).size();
 
         byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
         byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
@@ -173,8 +179,10 @@ public class ImageViewActivity extends AppCompatActivity {
         startActivity(intent);
 
         long messageId = Helpers.generateRandomNumber();
-        SMSHandler.sendDataSMS(getApplicationContext(), address, compressedBytes,
-                null, null, -1);
+//        SMSHandler.sendDataSMS(getApplicationContext(), address, compressedBytes,
+//                null, null, -1);
+
+
         finish();
     }
 

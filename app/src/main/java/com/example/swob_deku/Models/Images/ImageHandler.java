@@ -1,5 +1,7 @@
 package com.example.swob_deku.Models.Images;
 
+import static com.example.swob_deku.Models.SMS.SMSHandler.ASCII_MAGIC_NUMBER;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -11,6 +13,8 @@ import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.swob_deku.BuildConfig;
+import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityAES;
@@ -19,8 +23,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class ImageHandler {
 
@@ -32,6 +38,7 @@ public class ImageHandler {
     String secretKey = "12345678901234561234567890123456";
 
     public static final String IMAGE_HEADER = "--DEKU_IMAGE_HEADER--";
+    public static final String IMAGE_TRANSMISSION_HEADER = "[[DTH";
     static final int MAX_NUMBER_SMS = 39;
 
     public ImageHandler(Context context, Uri imageUri) throws IOException {
@@ -257,7 +264,7 @@ public class ImageHandler {
          * 2 = Total number of messages
          */
         return data.length > 2
-                && Byte.toUnsignedInt(data[0]) >= SMSHandler.ASCII_MAGIC_NUMBER
+                && Byte.toUnsignedInt(data[0]) >= ASCII_MAGIC_NUMBER
                 && Byte.toUnsignedInt(data[1]) >= 0;
     }
 
@@ -267,7 +274,7 @@ public class ImageHandler {
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 
         return bitmap != null || (data.length > 3
-                && Byte.toUnsignedInt(data[0]) >= SMSHandler.ASCII_MAGIC_NUMBER
+                && Byte.toUnsignedInt(data[0]) >= ASCII_MAGIC_NUMBER
                 && Byte.toUnsignedInt(data[1]) >= 0 && Byte.toUnsignedInt(data[2]) <= MAX_NUMBER_SMS);
     }
 
@@ -304,4 +311,21 @@ public class ImageHandler {
         return result;
     }
 
+    public static ArrayList<String> concatenateMessages(ArrayList<String> data, double grouping) {
+        ArrayList<String> cData = new ArrayList<>();
+
+        int groups = (int) Math.ceil(data.size()/grouping);
+
+        if(BuildConfig.DEBUG)
+            Log.d(SMSHandler.class.getName(), "Image groups for: " + grouping + " = " + groups);
+
+        for(int i=0;i<groups;++i) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int j = 0; j < grouping && j + i < data.size(); ++j)
+                stringBuilder.append(data.get(i+j));
+            cData.add(IMAGE_TRANSMISSION_HEADER + i + "." + stringBuilder.toString());
+        }
+
+        return cData;
+    }
 }
