@@ -310,25 +310,4 @@ public class ImageHandler {
 
         return result;
     }
-
-    public static ArrayList<String> concatenateMessages(ArrayList<String> data, double grouping) {
-        ArrayList<String> cData = new ArrayList<>();
-
-        int groups = (int) Math.ceil(data.size()/grouping);
-
-        if(BuildConfig.DEBUG)
-            Log.d(SMSHandler.class.getName(), "Image groups for: " + grouping + " = " + groups);
-
-        /**
-         * TODO: make sure i does not grow past 1 byte
-         */
-        for(int i=0, refId = new Random().nextInt(256);i<groups;++i) {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int j = 0; j < grouping && j + i < data.size(); ++j)
-                stringBuilder.append(data.get(i+j));
-            cData.add(IMAGE_TRANSMISSION_HEADER + (byte) refId + i + stringBuilder.toString());
-        }
-
-        return cData;
-    }
 }
