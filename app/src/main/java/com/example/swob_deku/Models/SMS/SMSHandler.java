@@ -694,10 +694,12 @@ public class SMSHandler {
             if(text.isEmpty() || destinationAddress.isEmpty())
                 return "";
 
-            try {
-                threadId = registerPendingMessage(context, destinationAddress, text, messageId);
-            } catch(Exception e ) {
-                e.printStackTrace();
+            if(messageId != -1) {
+                try {
+                    threadId = registerPendingMessage(context, destinationAddress, text, messageId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             // TODO: Handle sending multipart messages
@@ -716,9 +718,7 @@ public class SMSHandler {
                 sentPendingIntents.add(sentIntent);
                 deliveredPendingIntents.add(deliveryIntent);
 
-                smsManager.sendMultipartTextMessage(
-                        destinationAddress,
-                        null,
+                smsManager.sendMultipartTextMessage( destinationAddress, null,
                         dividedMessage, sentPendingIntents, deliveredPendingIntents);
             }
         }

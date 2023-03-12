@@ -298,17 +298,36 @@ public class SMSWorkManager extends Worker {
         }
         intentsIds = tIntentsIds;
 
+        Log.d(getClass().getName(), "Image sending: " + messageIds.length + " messages");
+
+        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
         for(int i =0;i<messageIds.length; ++i) {
             long id = messageIds[i];
             PendingIntent[] pendingIntents = getPendingIntents(intentsIds[i]);
             Cursor cursor = SMSHandler.fetchSMSOutboxById(getApplicationContext(), String.valueOf(id));
             if(cursor.moveToFirst()) {
                 SMS sms = new SMS(cursor);
+////                SMSHandler.sendTextSMS(getApplicationContext(), address, sms.getBody(),
+////                        pendingIntents[0], pendingIntents[1], id);
+//
 //                SMSHandler.sendTextSMS(getApplicationContext(), address, sms.getBody(),
-//                        pendingIntents[0], pendingIntents[1], id);
+//                        pendingIntents[0], pendingIntents[1], -1);
+                ArrayList<PendingIntent> sentPendingIntents = new ArrayList<>();
+                ArrayList<PendingIntent> deliveredPendingIntents = new ArrayList<>();
 
-                SMSHandler.sendTextSMS(getApplicationContext(), address, sms.getBody(),
-                        null, null, id);
+                ArrayList<String> dividedMessage = smsManager.divideMessage(sms.getBody());
+                for(int j=0;j<dividedMessage.size() - 1; j++) {
+                    sentPendingIntents.add(null);
+                    deliveredPendingIntents.add(null);
+                }
+
+                smsManager.sendMultipartTextMessage( sms.getBody(), null,
+                        dividedMessage, sentPendingIntents, deliveredPendingIntents);
+                Log.d(getClass().getName(), "Image sending content: " + sms.getBody() + ":" + address+":"+dividedMessage.size());
+                cursor.close();
+                break;
             }
         }
     }

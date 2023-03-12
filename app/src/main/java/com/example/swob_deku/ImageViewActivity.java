@@ -186,18 +186,21 @@ public class ImageViewActivity extends AppCompatActivity {
 //                null, null, -1);
 
 
-        long[] messageIds = new long[concatenatedSegments.size()];
-        for(int i=0;i<concatenatedSegments.size();++i) {
-//            messageIds[i] = Helpers.generateRandomNumber();
-            messageIds[i] = SMSHandler.generateSmsId(getApplicationContext());
-            SMSHandler.registerPendingMessage(getApplicationContext(), address,
-                    concatenatedSegments.get(i), messageIds[i]);
-        }
-        /**
-         * - Register segments
-         * - pass registered segments to workmanager
-         */
-        SMSHandler.createWorkManagersForDataMessages(getApplicationContext(), address, messageIds);
+//        long[] messageIds = new long[concatenatedSegments.size()];
+//        for(int i=0;i<concatenatedSegments.size();++i) {
+////            messageIds[i] = Helpers.generateRandomNumber();
+//            messageIds[i] = SMSHandler.generateSmsId(getApplicationContext());
+//            SMSHandler.registerPendingMessage(getApplicationContext(), address,
+//                    concatenatedSegments.get(i), messageIds[i]);
+//        }
+//        /**
+//         * - Register segments
+//         * - pass registered segments to workmanager
+//         */
+//        SMSHandler.createWorkManagersForDataMessages(getApplicationContext(), address, messageIds);
+        SMSHandler.sendTextSMS(getApplicationContext(), address,
+                Base64.encodeToString(compressedBytes, Base64.DEFAULT), null, null,
+                Helpers.generateRandomNumber());
         finish();
     }
 
