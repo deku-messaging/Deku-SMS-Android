@@ -100,12 +100,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         return new MessageSentViewHandler(view);
     }
 
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        /**
-         * TODO: OnClick, show date of message and other relevant meta
-         */
-
+//        /**
+//         * TODO: OnClick, show date of message and other relevant meta
+//         */
+//
         final SMS sms = mDiffer.getCurrentList().get(position);
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
@@ -210,12 +211,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             return (mDiffer.getCurrentList().get(position).getType() == MESSAGE_TYPE_INBOX) ?
                     TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
         } else {
-            int messageType = mDiffer.getCurrentList().get(position).getType();
-            return (messageType > -1 )? messageType : 0;
+//            int messageType = mDiffer.getCurrentList().get(position).getType();
+//            return (messageType > -1 )? messageType : 0;
+            return mDiffer.getCurrentList().get(position).getType();
         }
     }
 
-    public class MessageSentViewHandler extends RecyclerView.ViewHolder {
+    public static class MessageSentViewHandler extends RecyclerView.ViewHolder {
          TextView sentMessage;
          TextView sentMessageStatus;
          TextView date;
@@ -231,13 +233,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         }
     }
 
-    public class TimestampMessageSentViewHandler extends MessageSentViewHandler {
+    public static class TimestampMessageSentViewHandler extends MessageSentViewHandler {
         public TimestampMessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
         }
     }
 
-    public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
+    public static class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
         MaterialCardView receivedMessageCard;
         TextView receivedMessage;
         TextView date;
@@ -252,7 +254,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             receivedMessageCard = itemView.findViewById(R.id.messages_received_card_layout);
         }
     }
-    public class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
+    public static class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
         public TimestampMessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
         }

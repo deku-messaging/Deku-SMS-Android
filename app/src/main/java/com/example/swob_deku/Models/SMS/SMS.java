@@ -164,6 +164,7 @@ public class SMS {
             this.errorCode = String.valueOf(cursor.getString(errorCodeIndex));
         if(statusCodeIndex > -1 )
             this.statusCode = cursor.getInt(statusCodeIndex);
+
     }
 
 

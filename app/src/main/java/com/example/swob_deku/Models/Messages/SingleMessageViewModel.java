@@ -42,7 +42,9 @@ public class SingleMessageViewModel extends ViewModel {
             this.threadId = sms.getThreadId();
         }
 
-        Log.d(getClass().getName(), "Informing changes for message: " + messageId + " and threadID: " + this.threadId);
+        Log.d(getClass().getName(), "Informing changes for message: " +
+                messageId + " and threadID: " + this.threadId);
+
         loadSMSThreads(context);
     }
 
@@ -52,8 +54,10 @@ public class SingleMessageViewModel extends ViewModel {
 
     private void loadSMSThreads(Context context) {
         Log.d(getClass().getName(), "Fetching sms for threads...");
+
         Cursor cursor = SMSHandler.fetchSMSForThread(context, this.threadId);
-        new Thread(new Runnable() {
+
+        Thread fetchSingleMessagesThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 if(cursor.moveToFirst()) {
@@ -63,11 +67,16 @@ public class SingleMessageViewModel extends ViewModel {
                         smsList.add(sms);
                     } while(cursor.moveToNext());
 //                    smsList = SMSHandler.dateSegmentations(smsList);
+                    Log.d(getClass().getName(), "Render posting: " + smsList.size() + " messages");
+
                     messagesList.postValue(smsList);
                 }
                 Log.d(getClass().getName(), "Fetching sms for threads is done...");
                 cursor.close();
             }
-        }).start();
+        });
+
+        fetchSingleMessagesThread.setName("fetch_single_messages_thread");
+        fetchSingleMessagesThread.start();
     }
 }
