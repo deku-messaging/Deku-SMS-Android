@@ -401,18 +401,18 @@ public class SMSSendActivity extends AppCompatActivity {
             notificationManager.cancel(Integer.parseInt(threadId));
     }
 
-    public PendingIntent[] getPendingIntents(long messageId) {
+    public static PendingIntent[] getPendingIntents(Context context, long messageId) {
         Intent sentIntent = new Intent(SMS_SENT_INTENT);
         sentIntent.putExtra(SMSSendActivity.ID, messageId);
 
         Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
         deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
 
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)), sentIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)), deliveredIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
@@ -425,7 +425,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
         try {
             long messageId = Helpers.generateRandomNumber();
-            PendingIntent[] pendingIntents = getPendingIntents(messageId);
+            PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
             handleBroadcast();
 
@@ -433,6 +433,7 @@ public class SMSSendActivity extends AppCompatActivity {
                     pendingIntents[0], pendingIntents[1], messageId);
 
             resetSmsTextView();
+
             if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
                 threadId = tmpThreadId;
                 if(BuildConfig.DEBUG)

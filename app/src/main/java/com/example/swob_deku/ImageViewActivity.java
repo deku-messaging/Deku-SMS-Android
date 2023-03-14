@@ -1,10 +1,19 @@
 package com.example.swob_deku;
 
+import static com.example.swob_deku.SMSSendActivity.SMS_DELIVERED_INTENT;
+import static com.example.swob_deku.SMSSendActivity.SMS_SENT_INTENT;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.app.Activity;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -164,6 +173,68 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
     }
 
+    public void handleBroadcast() {
+//        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
+
+        BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, @NonNull Intent intent) {
+                long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Broadcast received for sent: " + id);
+                switch(getResultCode()) {
+                    case Activity.RESULT_OK:
+                        try {
+                            SMSHandler.registerSentMessage(getApplicationContext(), id);
+                        }
+                        catch(Exception e) {
+                            e.printStackTrace();
+                        }
+                        break;
+
+                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                    case SmsManager.RESULT_ERROR_NO_SERVICE:
+                    case SmsManager.RESULT_ERROR_NULL_PDU:
+                    case SmsManager.RESULT_ERROR_RADIO_OFF:
+                    default:
+                        try {
+                            SMSHandler.registerFailedMessage(context, id, getResultCode());
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        if(BuildConfig.DEBUG) {
+                            Log.d(getLocalClassName(), "Failed to send: " + getResultCode());
+                            Log.d(getLocalClassName(), "Failed to send: " + getResultData());
+                            Log.d(getLocalClassName(), "Failed to send: " + intent.getData());
+                        }
+                }
+
+                unregisterReceiver(this);
+            }
+        };
+
+        BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+
+                if (getResultCode() == Activity.RESULT_OK) {
+                    SMSHandler.registerDeliveredMessage(context, id);
+                } else {
+                    if (BuildConfig.DEBUG)
+                        Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
+                }
+
+                unregisterReceiver(this);
+            }
+        };
+
+        registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
+        registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
+
+    }
+
     public void sendImage(View view) throws InterruptedException {
         Intent intent = new Intent(this, SMSSendActivity.class);
         intent.putExtra(SMSSendActivity.ADDRESS, address);
@@ -173,11 +244,19 @@ public class ImageViewActivity extends AppCompatActivity {
 
         startActivity(intent);
 
+        handleBroadcast();
+
+        long messageId = Helpers.generateRandomNumber();
+
+        PendingIntent[] pendingIntents = SMSSendActivity.getPendingIntents(getApplicationContext(),
+                messageId);
+
         SMSHandler.sendTextSMS(getApplicationContext(), address,
                 ImageHandler.IMAGE_HEADER + Base64.encodeToString(compressedBytes, Base64.DEFAULT),
-                null,
-                null,
-                Helpers.generateRandomNumber());
+                pendingIntents[0],
+                pendingIntents[1],
+                messageId);
+
         finish();
     }
 
