@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -121,8 +122,9 @@ public class SMSSendActivity extends AppCompatActivity {
         handleIncomingBroadcast();
         buildViewModels();
 
-        singleMessageViewModel = new ViewModelProvider(this).get(
-                SingleMessageViewModel.class);
+        singleMessageViewModel = new ViewModelProvider(
+                this, (ViewModelProvider.Factory) ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()))
+                .get( SingleMessageViewModel.class);
 
         if(threadId.isEmpty()) {
             try {
@@ -133,11 +135,12 @@ public class SMSSendActivity extends AppCompatActivity {
         }
         Log.d(getLocalClassName(), "Fetching view model starting");
 
-        singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this,
-                new Observer<ArrayList<SMS>>() {
+        singleMessageViewModel.getMessages(getApplicationContext(), threadId, getLifecycle()).observe(this,
+                new Observer<PagingData<ArrayList<SMS>>>() {
                     @Override
-                    public void onChanged(ArrayList<SMS> smsList) {
-                        singleMessagesThreadRecyclerAdapter.submitList(smsList);
+                    public void onChanged(PagingData<ArrayList<SMS>> smsList) {
+                        Log.d(getLocalClassName(), "Pading should send content from main: " + smsList.toString());
+//                        singleMessagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
 

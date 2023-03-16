@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -24,23 +25,23 @@ import java.util.List;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
+import kotlin.jvm.functions.Function0;
 import kotlinx.coroutines.CoroutineScope;
 
 public class SingleMessageViewModel extends ViewModel {
-    private MutableLiveData<ArrayList<SMS>> _messagesList = new MutableLiveData<>();
-    public LiveData<ArrayList<SMS>> messagesList = _messagesList;
+    public LiveData<PagingData<ArrayList<SMS>>> messagesList = new MutableLiveData<>();
 
     String threadId;
-    SMSPaging smsPaging;
+    Context context;
 
-    public LiveData<ArrayList<SMS>> getMessages(Context context, String threadId){
-        if(smsPaging == null) {
-            this.threadId = threadId;
-            loadSMSThreads();
+    Lifecycle lifecycle;
 
-            smsPaging = new SMSPaging(context, threadId);
-        }
-        return messagesList;
+    public LiveData<PagingData<ArrayList<SMS>>> getMessages(Context context, String threadId, Lifecycle lifecycle){
+        this.threadId = threadId;
+        this.context = context;
+        this.lifecycle = lifecycle;
+
+        return loadSMSThreads();
     }
 
     public void informChanges(Context context, String threadId) {
@@ -53,13 +54,19 @@ public class SingleMessageViewModel extends ViewModel {
         loadSMSThreads();
     }
 
-    private void loadSMSThreads() {
+    private LiveData<PagingData<ArrayList<SMS>>> loadSMSThreads() {
+        Log.d(getClass().getName(), "Paging loading data for ViewModel!");
         final int pageSize = 1;
-        Pager<Integer, ArrayList<SMS>> pager = new Pager<>(
-                new PagingConfig(pageSize),
-                ()-> smsPaging);
+        PagingConfig pagingConfig = new PagingConfig(1, 1, false);
+        Pager<Integer, ArrayList<SMS>> pager = new Pager<>(pagingConfig, new Function0<PagingSource<Integer, ArrayList<SMS>>>() {
+            @Override
+            public PagingSource<Integer, ArrayList<SMS>> invoke() {
+                return new SMSPaging();
+            }
+        });
 
-        CoroutineScope viewModelScope = ViewModelKt.getViewModelScope(this);
-        PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), viewModelScope);
+        LiveData<PagingData<ArrayList<SMS>>> pagingDataLiveData = PagingLiveData.getLiveData(pager);
+        Log.d(getClass().getName(), "Pager: " + pagingDataLiveData.getValue());
+        return PagingLiveData.cachedIn(pagingDataLiveData, this.lifecycle);
     }
 }
