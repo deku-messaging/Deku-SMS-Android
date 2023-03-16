@@ -18,6 +18,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.paging.PagingData;
+import androidx.paging.PagingDataAdapter;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,9 +35,10 @@ import com.google.android.material.card.MaterialCardView;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
-public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
+public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
     Context context;
     int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
     Long focusId;
@@ -65,6 +68,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
                                                Long focusId,
                                                String searchString,
                                                RecyclerView view, Toolbar toolbar) {
+        super(DIFF_CALLBACK);
+
         this.context = context;
         this.renderLayoutReceived = renderLayoutReceived;
         this.renderLayoutSent = renderLayoutSent;
@@ -199,7 +204,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         return mDiffer.getCurrentList().size();
     }
 
-    public void submitList(List<SMS> list) {
+    public void submitList(PagingData<ArrayList<SMS>> list) {
         mDiffer.submitList(list);
     }
 

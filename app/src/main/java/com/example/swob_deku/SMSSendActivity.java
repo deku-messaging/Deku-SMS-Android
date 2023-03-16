@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -45,6 +46,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SMSSendActivity extends AppCompatActivity {
@@ -131,9 +133,9 @@ public class SMSSendActivity extends AppCompatActivity {
         }
         Log.d(getLocalClassName(), "Fetching view model starting");
         singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this,
-                new Observer<List<SMS>>() {
+                new Observer<PagingData<ArrayList<SMS>>>() {
                     @Override
-                    public void onChanged(List<SMS> smsList) {
+                    public void onChanged(PagingData<ArrayList<SMS>> smsList) {
                         singleMessagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
@@ -311,7 +313,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(getLocalClassName(), "Broadcast received!");
-                singleMessageViewModel.informChanges(context);
+                singleMessageViewModel.informChanges();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
         };
@@ -366,7 +368,13 @@ public class SMSSendActivity extends AppCompatActivity {
                         }
                 }
 
-                singleMessageViewModel.informChanges(getApplicationContext(), id);
+                // TODO: remove if not useful
+                Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, id);
+                if(cursor.moveToFirst()) {
+                    SMS sms = new SMS(cursor);
+                    String threadId = sms.getThreadId();
+                    singleMessageViewModel.informChanges();
+                }
                 unregisterReceiver(this);
             }
         };
@@ -383,7 +391,12 @@ public class SMSSendActivity extends AppCompatActivity {
                         Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
 
-                singleMessageViewModel.informChanges(getApplicationContext(), id);
+                Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, id);
+                if(cursor.moveToFirst()) {
+                    SMS sms = new SMS(cursor);
+                    String threadId = sms.getThreadId();
+                    singleMessageViewModel.informChanges();
+                }
                 unregisterReceiver(this);
             }
         };
@@ -443,7 +456,7 @@ public class SMSSendActivity extends AppCompatActivity {
             else {
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Refreshing with messageId: " + messageId);
-                singleMessageViewModel.informChanges(getApplicationContext(), messageId);
+                singleMessageViewModel.informChanges();
             }
         }
 

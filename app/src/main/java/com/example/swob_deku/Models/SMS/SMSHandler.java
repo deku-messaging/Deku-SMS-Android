@@ -449,6 +449,23 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
+    public static ArrayList<Cursor> fetchSMSForThreadWithPaging(@NonNull Context context, String threadId,
+                                                     int startPos, int quantity) {
+        Cursor cursor = SMSHandler.fetchSMSForThread(context, threadId);
+        ArrayList<Cursor> cursors = new ArrayList<>();
+
+        if(cursor.moveToPosition(startPos)) {
+            do {
+                cursors.add(cursor);
+                --quantity;
+            } while(cursor.moveToNext() && quantity > 0);
+        }
+        else
+            return null;
+
+        return cursors;
+    }
+
     public static Cursor fetchSMSForThreading(Context context) {
         String[] projection = new String[] {
                 Telephony.Sms._ID,

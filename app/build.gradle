@@ -56,6 +56,24 @@ dependencies {
     implementation 'commons-codec:commons-codec:1.11'
     implementation "io.getstream:avatarview-coil:1.0.7"
 
-    def room_version = "2.5.0-alpha01"
-    implementation "androidx.room:room-runtime:2.4.3"
-    annotationProcessor "androidx.room:room-compiler:2.4.3"}
+    implementation "androidx.room:room-runtime:2.5.0"
+    annotationProcessor "androidx.room:room-compiler:2.5.0"
+
+    implementation "androidx.paging:paging-runtime:3.1.1"
+
+    // alternatively - without Android dependencies for tests
+    testImplementation "androidx.paging:paging-common:3.1.1"
+
+    // optional - RxJava2 support
+    implementation "androidx.paging:paging-rxjava2:3.1.1"
+
+    // optional - RxJava3 support
+    implementation "androidx.paging:paging-rxjava3:3.1.1"
+
+    // optional - Guava ListenableFuture support
+    implementation "androidx.paging:paging-guava:3.1.1"
+
+    // optional - Jetpack Compose integration
+    implementation "androidx.paging:paging-compose:1.0.0-alpha18"
+
+}

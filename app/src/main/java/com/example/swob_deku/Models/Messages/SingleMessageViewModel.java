@@ -7,23 +7,39 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelKt;
+import androidx.paging.Pager;
+import androidx.paging.PagingConfig;
+import androidx.paging.PagingData;
+import androidx.paging.PagingLiveData;
+import androidx.paging.PagingSource;
+import androidx.paging.rxjava2.PagingRx;
 
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.SMS.SMSPaging;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.Flowable;
+import io.reactivex.disposables.Disposable;
+import kotlinx.coroutines.CoroutineScope;
+
 public class SingleMessageViewModel extends ViewModel {
-    private MutableLiveData<List<SMS>> messagesList;
+    private MutableLiveData<PagingData<ArrayList<SMS>>> _messagesList = new MutableLiveData<>();
+    public LiveData<PagingData<ArrayList<SMS>>> messagesList = _messagesList;
 
     String threadId;
+    SMSPaging smsPaging;
 
-    public LiveData<List<SMS>> getMessages(Context context, String threadId){
-        if(messagesList == null) {
+    public LiveData<PagingData<ArrayList<SMS>>> getMessages(Context context, String threadId){
+        if(smsPaging == null) {
             this.threadId = threadId;
-            messagesList = new MutableLiveData<>();
-            loadSMSThreads(context);
+            loadSMSThreads();
+
+            smsPaging = new SMSPaging(context, threadId);
         }
         return messagesList;
     }
@@ -31,52 +47,20 @@ public class SingleMessageViewModel extends ViewModel {
     public void informChanges(Context context, String threadId) {
         Log.d(getClass().getName(), "Informing changes for: " + threadId);
         this.threadId = threadId;
-        loadSMSThreads(context);
+        loadSMSThreads();
     }
 
-    public void informChanges(Context context, long messageId) {
-
-        Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, messageId);
-        if(cursor.moveToFirst()) {
-            SMS sms = new SMS(cursor);
-            this.threadId = sms.getThreadId();
-        }
-
-        Log.d(getClass().getName(), "Informing changes for message: " +
-                messageId + " and threadID: " + this.threadId);
-
-        loadSMSThreads(context);
+    public void informChanges() {
+        loadSMSThreads();
     }
 
-    public void informChanges(Context context) {
-        loadSMSThreads(context);
-    }
+    private void loadSMSThreads() {
+        final int pageSize = 10;
+        Pager<Integer, ArrayList<SMS>> pager = new Pager<>(
+                new PagingConfig(pageSize),
+                ()-> smsPaging);
 
-    private void loadSMSThreads(Context context) {
-        Log.d(getClass().getName(), "Fetching sms for threads...");
-
-        Cursor cursor = SMSHandler.fetchSMSForThread(context, this.threadId);
-
-        Thread fetchSingleMessagesThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if(cursor.moveToFirst()) {
-                    List<SMS> smsList = new ArrayList<>();
-                    do {
-                        SMS sms = new SMS(cursor);
-                        smsList.add(sms);
-                    } while(cursor.moveToNext());
-//                    smsList = SMSHandler.dateSegmentations(smsList);
-                    Log.d(getClass().getName(), "Render posting: " + smsList.size() + " messages");
-
-                    messagesList.postValue(smsList);
-                }
-                Log.d(getClass().getName(), "Fetching sms for threads is done...");
-                cursor.close();
-            }
-        });
-
-        fetchSingleMessagesThread.setName("fetch_single_messages_thread");
-        fetchSingleMessagesThread.start();
+        Flowable<PagingData<ArrayList<SMS>>> flowable = PagingRx.getFlowable(pager);
+        Disposable disposable = flowable.subscribe(_messagesList::setValue);
     }
 }
