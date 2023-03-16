@@ -107,7 +107,6 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
     }
 
-
     private void buildImage() throws IOException {
         // TODO: messages >40 trigger large message warning...
         ImageHandler imageHandler = new ImageHandler(getApplicationContext(), imageUri);

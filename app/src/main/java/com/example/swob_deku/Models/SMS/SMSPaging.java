@@ -5,11 +5,9 @@ import android.database.Cursor;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.paging.ListenableFuturePagingSource;
 import androidx.paging.PagingSource;
 import androidx.paging.PagingState;
 
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.IOException;

@@ -36,9 +36,10 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
+public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     Context context;
     int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
     Long focusId;
@@ -68,8 +69,6 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
                                                Long focusId,
                                                String searchString,
                                                RecyclerView view, Toolbar toolbar) {
-        super(DIFF_CALLBACK);
-
         this.context = context;
         this.renderLayoutReceived = renderLayoutReceived;
         this.renderLayoutSent = renderLayoutSent;
@@ -204,7 +203,7 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
         return mDiffer.getCurrentList().size();
     }
 
-    public void submitList(PagingData<ArrayList<SMS>> list) {
+    public void submitList(ArrayList<SMS> list) {
         mDiffer.submitList(list);
     }
 

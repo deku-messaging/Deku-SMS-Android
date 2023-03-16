@@ -13,7 +13,6 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
-import androidx.paging.rxjava2.PagingRx;
 
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -28,13 +27,13 @@ import io.reactivex.disposables.Disposable;
 import kotlinx.coroutines.CoroutineScope;
 
 public class SingleMessageViewModel extends ViewModel {
-    private MutableLiveData<PagingData<ArrayList<SMS>>> _messagesList = new MutableLiveData<>();
-    public LiveData<PagingData<ArrayList<SMS>>> messagesList = _messagesList;
+    private MutableLiveData<ArrayList<SMS>> _messagesList = new MutableLiveData<>();
+    public LiveData<ArrayList<SMS>> messagesList = _messagesList;
 
     String threadId;
     SMSPaging smsPaging;
 
-    public LiveData<PagingData<ArrayList<SMS>>> getMessages(Context context, String threadId){
+    public LiveData<ArrayList<SMS>> getMessages(Context context, String threadId){
         if(smsPaging == null) {
             this.threadId = threadId;
             loadSMSThreads();
@@ -55,12 +54,12 @@ public class SingleMessageViewModel extends ViewModel {
     }
 
     private void loadSMSThreads() {
-        final int pageSize = 10;
+        final int pageSize = 1;
         Pager<Integer, ArrayList<SMS>> pager = new Pager<>(
                 new PagingConfig(pageSize),
                 ()-> smsPaging);
 
-        Flowable<PagingData<ArrayList<SMS>>> flowable = PagingRx.getFlowable(pager);
-        Disposable disposable = flowable.subscribe(_messagesList::setValue);
+        CoroutineScope viewModelScope = ViewModelKt.getViewModelScope(this);
+        PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), viewModelScope);
     }
 }

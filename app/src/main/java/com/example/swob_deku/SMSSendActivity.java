@@ -132,10 +132,11 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         }
         Log.d(getLocalClassName(), "Fetching view model starting");
+
         singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this,
-                new Observer<PagingData<ArrayList<SMS>>>() {
+                new Observer<ArrayList<SMS>>() {
                     @Override
-                    public void onChanged(PagingData<ArrayList<SMS>> smsList) {
+                    public void onChanged(ArrayList<SMS> smsList) {
                         singleMessagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
