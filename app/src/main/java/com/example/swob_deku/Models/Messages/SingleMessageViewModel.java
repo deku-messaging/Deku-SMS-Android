@@ -30,14 +30,12 @@ import io.reactivex.rxjava3.core.Flowable;
 import kotlinx.coroutines.CoroutineScope;
 
 public class SingleMessageViewModel extends ViewModel {
-    public LiveData<PagingData<ArrayList<SMS>>> messagesList = new MutableLiveData<>();
-
     String threadId;
     Context context;
 
     Lifecycle lifecycle;
 
-    public LiveData<PagingData<ArrayList<SMS>>> getMessages(Context context, String threadId, Lifecycle lifecycle){
+    public LiveData<PagingData<SMS>> getMessages(Context context, String threadId, Lifecycle lifecycle){
         this.threadId = threadId;
         this.context = context;
         this.lifecycle = lifecycle;
@@ -56,13 +54,14 @@ public class SingleMessageViewModel extends ViewModel {
         loadSMSThreads();
     }
 
-    private LiveData<PagingData<ArrayList<SMS>>> loadSMSThreads() {
+    private LiveData<PagingData<SMS>> loadSMSThreads() {
         Log.d(getClass().getName(), "Paging loading data for ViewModel!");
         final int pageSize = 1;
-        PagingConfig pagingConfig = new PagingConfig(1, 1, false, 1, 10);
-        Pager<Integer, ArrayList<SMS>> pager = new Pager<>(pagingConfig, () -> new SMSPaging(context, threadId));
+        PagingConfig pagingConfig = new PagingConfig(10, 20, false, 15);
+//        PagingConfig pagingConfig = new PagingConfig(pageSize);
+        Pager<Integer, SMS> pager = new Pager<>(pagingConfig, () -> new SMSPaging(context, threadId));
 
-        LiveData<PagingData<ArrayList<SMS>>> pagingDataLiveData = PagingLiveData.getLiveData(pager);
+        LiveData<PagingData<SMS>> pagingDataLiveData = PagingLiveData.getLiveData(pager);
         Log.d(getClass().getName(), "Pager: " + pagingDataLiveData.getValue());
         return PagingLiveData.cachedIn(pagingDataLiveData, this.lifecycle);
     }
