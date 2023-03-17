@@ -55,14 +55,11 @@ public class SingleMessageViewModel extends ViewModel {
     }
 
     private LiveData<PagingData<SMS>> loadSMSThreads() {
-        Log.d(getClass().getName(), "Paging loading data for ViewModel!");
-        final int pageSize = 1;
-        PagingConfig pagingConfig = new PagingConfig(10, 20, false, 15);
-//        PagingConfig pagingConfig = new PagingConfig(pageSize);
-        Pager<Integer, SMS> pager = new Pager<>(pagingConfig, () -> new SMSPaging(context, threadId));
+        final int pageSize = 10;
+        PagingConfig pagingConfig = new PagingConfig(pageSize);
+        Pager<Integer, SMS> pager = new Pager<>(pagingConfig,
+                () -> new SMSPaging(context, threadId));
 
-        LiveData<PagingData<SMS>> pagingDataLiveData = PagingLiveData.getLiveData(pager);
-        Log.d(getClass().getName(), "Pager: " + pagingDataLiveData.getValue());
-        return PagingLiveData.cachedIn(pagingDataLiveData, this.lifecycle);
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this.lifecycle);
     }
 }

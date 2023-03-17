@@ -429,7 +429,13 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSForThread(@NonNull Context context, String threadId) {
+    public static Cursor fetchSMSForThread(@NonNull Context context, String threadId, int limit, int offset) {
+        String constrains = "date DESC" + (limit > 0 ? " LIMIT " + limit: "") +
+                (offset > 0 ? " OFFSET " + offset : "");
+
+        if(BuildConfig.DEBUG)
+            Log.d(SMSHandler.class.getName(), "Offsets contrains = " + constrains);
+
         String[] selection = new String[] { Telephony.Sms._ID,
                 Telephony.TextBasedSmsColumns.STATUS,
                 Telephony.TextBasedSmsColumns.THREAD_ID,
@@ -444,7 +450,7 @@ public class SMSHandler {
                 selection,
                 Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
                 new String[] { threadId },
-                "date DESC");
+                constrains);
 
         return smsMessagesCursor;
     }

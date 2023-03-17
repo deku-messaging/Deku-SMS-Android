@@ -36,18 +36,38 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
     @Override
     public Integer getRefreshKey(@NonNull PagingState<Integer, SMS> pagingState) {
         Log.d(getClass().getName(), "Paging refreshkey called!");
+
+        Integer anchorPosition = pagingState.getAnchorPosition();
+
+        if(anchorPosition == null) {
+            return null;
+        }
+
+        LoadResult.Page<Integer, SMS> anchorPage = pagingState.closestPageToPosition(anchorPosition);
+        if(anchorPage == null)
+            return null;
+
+        Integer prevKey = anchorPage.getPrevKey();
+        if(prevKey != null)
+            return prevKey + 1;
+
+        Integer nextKey = anchorPage.getNextKey();
+        if(nextKey != null)
+            return nextKey -1;
+
         return null;
     }
 
     @Nullable
     @Override
-    public LoadResult load(@NonNull LoadParams<Integer> loadParams, @NonNull Continuation<? super LoadResult<Integer, SMS>> continuation) {
-        Integer startPos = loadParams.getKey();
+    public LoadResult load(@NonNull LoadParams<Integer> loadParams,
+                           @NonNull Continuation<? super LoadResult<Integer, SMS>> continuation) {
+//        Log.d(getClass().getName(), "Paging load called!");
 
-        if(startPos == null)
-            startPos = 0;
+        int offset = loadParams.getKey() == null ? 0 : loadParams.getKey();
 
-        ArrayList<SMS> smsArrayList = fetchSMSFromHandlers();
+        ArrayList<SMS> smsArrayList = fetchSMSFromHandlers(loadParams.getLoadSize(), offset);
+        offset += loadParams.getLoadSize();
 
         if(smsArrayList == null || smsArrayList.isEmpty())
             return new LoadResult.Invalid();
@@ -55,7 +75,7 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
         try {
             return new LoadResult.Page<>(smsArrayList,
                     null,
-                    startPos + 1,
+                    offset,
                     LoadResult.Page.COUNT_UNDEFINED,
                     LoadResult.Page.COUNT_UNDEFINED);
         } catch(Exception e) {
@@ -63,8 +83,10 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
         }
     }
 
-    private ArrayList<SMS> fetchSMSFromHandlers() {
-        Cursor cursors = SMSHandler.fetchSMSForThread(this.context, this.threadId);
+    private ArrayList<SMS> fetchSMSFromHandlers(int limit, int offset) {
+//        Cursor cursors = SMSHandler.fetchSMSForThread(this.context, this.threadId);
+        Cursor cursors = SMSHandler.fetchSMSForThread(this.context, this.threadId, limit, offset);
+
         ArrayList<SMS> smsArrayList = new ArrayList<>();
 
         if(cursors == null)
