@@ -20,7 +20,7 @@
 <!--        <item name="android:background">@color/theme_dark</item>-->
 
 <!--    </style>-->
-    <style name="Theme.AppTheme" parent="Theme.MaterialComponents.NoActionBar">
+    <style name="Theme.AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:statusBarColor">
             @android:color/transparent
         </item>

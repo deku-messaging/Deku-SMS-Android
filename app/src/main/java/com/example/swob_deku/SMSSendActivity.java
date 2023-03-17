@@ -51,11 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SMSSendActivity extends AppCompatActivity {
-
-    // TODO: incoming message MessagesThread
-    // TODO: incoming message from notification
-    // TODO: incoming message from shared intent
-
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
     SingleMessageViewModel singleMessageViewModel;
     TextInputEditText smsTextView;
@@ -91,19 +86,25 @@ public class SMSSendActivity extends AppCompatActivity {
     BroadcastReceiver incomingDataBroadcastReceiver;
     BroadcastReceiver incomingBroadcastReceiver;
 
+    private void configureToolbars() {
+        toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+        setSupportActionBar(toolbar);
+        // Get a support ActionBar corresponding to this toolbar
+        ab = getSupportActionBar();
+        // Enable the Up button
+        ab.setDisplayHomeAsUpEnabled(true);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
-        toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
-        setSupportActionBar(toolbar);
 
-        // Get a support ActionBar corresponding to this toolbar
-        ab = getSupportActionBar();
+        configureToolbars();
+        handleIncomingBroadcast();
+        threadIdentificationLoader();
 
-        // Enable the Up button
-        ab.setDisplayHomeAsUpEnabled(true);
-
+        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext());
         smsTextView = findViewById(R.id.sms_text);
 
         linearLayoutManager = new LinearLayoutManager(this);
@@ -111,21 +112,21 @@ public class SMSSendActivity extends AppCompatActivity {
         linearLayoutManager.setReverseLayout(true);
 
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
+        singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+        singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
-        mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-            }
-        });
-
-        handleIncomingBroadcast();
-        buildViewModels();
-
-        singleMessageViewModel = new ViewModelProvider(
-                this, (ViewModelProvider.Factory) ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()))
+        singleMessageViewModel = new ViewModelProvider( this)
                 .get( SingleMessageViewModel.class);
 
+        singleMessageViewModel.getMessages(getApplicationContext(), threadId, getLifecycle()).observe(
+                this,
+                arrayListPagingData -> singleMessagesThreadRecyclerAdapter
+                        .submitData(getLifecycle(), arrayListPagingData));
+
+        eventListeners();
+    }
+
+    private void threadIdentificationLoader() {
         if(threadId.isEmpty()) {
             try {
                 getAddressAndThreadId();
@@ -134,42 +135,24 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         }
         Log.d(getLocalClassName(), "Fetching view model starting");
+    }
 
-        singleMessageViewModel.getMessages(getApplicationContext(), threadId, getLifecycle()).observe(this,
-                new Observer<PagingData<ArrayList<SMS>>>() {
-                    @Override
-                    public void onChanged(PagingData<ArrayList<SMS>> smsList) {
-                        Log.d(getLocalClassName(), "Paging should send content from main: " + smsList.toString());
-//                        singleMessagesThreadRecyclerAdapter.submitList(smsList);
-                    }
-                });
+    private void eventListeners() {
+        if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
+            findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
+
+        mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+            }
+        });
 
     }
 
     private void getAddressAndThreadId() throws InterruptedException {
         processForSharedIntent();
         getMessagesThreadId();
-    }
-
-    private void buildViewModels() {
-        Long focusId = getIntent().hasExtra(ID) ? Long.parseLong(getIntent().getStringExtra(ID)) : null;
-        String searchString = getIntent().hasExtra(SEARCH_STRING) ? getIntent().getStringExtra(SEARCH_STRING) : null;
-
-        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
-                this,
-                R.layout.messages_thread_received_layout,
-                R.layout.messages_thread_sent_layout,
-                R.layout.messages_thread_timestamp_layout,
-                focusId,
-                searchString,
-                singleMessagesThreadRecyclerView, toolbar);
-
-        singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
-        singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
-
-
-        if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
-            findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
     }
 
     private void updateMessagesToRead() {

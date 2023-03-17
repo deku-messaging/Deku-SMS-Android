@@ -7,16 +7,27 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.paging.ListenableFuturePagingSource;
+import androidx.paging.PagingSource;
 import androidx.paging.PagingState;
+import androidx.paging.rxjava2.RxPagingSource;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
 
-public class SMSPaging extends ListenableFuturePagingSource<Integer, ArrayList<SMS>> {
+import io.reactivex.Single;
+import kotlin.coroutines.Continuation;
+
+public class SMSPaging extends PagingSource<Integer, ArrayList<SMS>> {
     Context context;
 
     String threadId;
+
+    public SMSPaging(Context context, String threadId) {
+        this.context = context;
+        this.threadId = threadId;
+    }
 
     @Nullable
     @Override
@@ -25,10 +36,9 @@ public class SMSPaging extends ListenableFuturePagingSource<Integer, ArrayList<S
         return null;
     }
 
-
-    @NonNull
+    @Nullable
     @Override
-    public ListenableFuture<LoadResult<Integer, ArrayList<SMS>>> loadFuture(@NonNull LoadParams<Integer> loadParams) {
+    public LoadResult load(@NonNull LoadParams<Integer> loadParams, @NonNull Continuation<? super LoadResult<Integer, ArrayList<SMS>>> continuation) {
         Log.d(getClass().getName(), "Paging source called!");
         final int fetchSize = 2;
         Integer startPos = loadParams.getKey();
@@ -37,6 +47,8 @@ public class SMSPaging extends ListenableFuturePagingSource<Integer, ArrayList<S
         }
 
         ArrayList<Cursor> cursors = new ArrayList<>();
+        Log.d(getClass().getName(), "Paging fetched: " + cursors.size());
+
         try {
             cursors = SMSHandler.fetchSMSForThreadWithPaging(this.context,
                     this.threadId, startPos, fetchSize);
@@ -45,27 +57,25 @@ public class SMSPaging extends ListenableFuturePagingSource<Integer, ArrayList<S
         }
 
         ArrayList<SMS> smsArrayList = new ArrayList<>();
-        return null;
-//        if(cursors == null) {
-//            return Futures.transform(new LoadResult.Page<>(smsArrayList,
-//                    null,
-//                    null,
-//                    LoadResult.Page.COUNT_UNDEFINED,
-//                    LoadResult.Page.COUNT_UNDEFINED);
-//        }
-//
-//        for(Cursor cursor: cursors)
-//            smsArrayList.add(new SMS(cursor));
-//
-//        for(Cursor cursor: cursors)
-//            cursor.close();
-//
-//        Log.d(getClass().getName(), "Paging fetched: " + smsArrayList.size());
-//
-//        return new LoadResult.Page<>(smsArrayList,
-//                null,
-//                smsArrayList.size() < (startPos + fetchSize) ? null : startPos + 1,
-//                LoadResult.Page.COUNT_UNDEFINED,
-//                LoadResult.Page.COUNT_UNDEFINED);
+        if(cursors == null) {
+            return new LoadResult.Page<>(smsArrayList,
+                    null,
+                    null,
+                    LoadResult.Page.COUNT_UNDEFINED,
+                    LoadResult.Page.COUNT_UNDEFINED);
+        }
+
+        for(Cursor cursor: cursors)
+            smsArrayList.add(new SMS(cursor));
+
+        for(Cursor cursor: cursors)
+            cursor.close();
+
+
+        return new LoadResult.Page<>(smsArrayList,
+                null,
+                smsArrayList.size() < (startPos + fetchSize) ? null : startPos + 1,
+                LoadResult.Page.COUNT_UNDEFINED,
+                LoadResult.Page.COUNT_UNDEFINED);
     }
 }

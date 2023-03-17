@@ -47,6 +47,7 @@ public class SingleMessageViewModel extends ViewModel {
 
     public void informChanges(Context context, String threadId) {
         Log.d(getClass().getName(), "Informing changes for: " + threadId);
+        this.context = context;
         this.threadId = threadId;
         loadSMSThreads();
     }
@@ -58,12 +59,8 @@ public class SingleMessageViewModel extends ViewModel {
     private LiveData<PagingData<ArrayList<SMS>>> loadSMSThreads() {
         Log.d(getClass().getName(), "Paging loading data for ViewModel!");
         final int pageSize = 1;
-        PagingConfig pagingConfig = new PagingConfig(1, 1, false);
-        Pager<Integer, ArrayList<SMS>> pager = new Pager<>(pagingConfig, () -> new SMSPaging() );
-
-        Flowable<PagingData<ArrayList<SMS>>> flowable = PagingRx.getFlowable(pager);
-//        PagingRx.cachedIn(flowable, viewModelScope);
-
+        PagingConfig pagingConfig = new PagingConfig(1, 1, false, 1, 10);
+        Pager<Integer, ArrayList<SMS>> pager = new Pager<>(pagingConfig, () -> new SMSPaging(context, threadId));
 
         LiveData<PagingData<ArrayList<SMS>>> pagingDataLiveData = PagingLiveData.getLiveData(pager);
         Log.d(getClass().getName(), "Pager: " + pagingDataLiveData.getValue());

@@ -3,7 +3,9 @@ package com.example.swob_deku.Models.SMS;
 import android.database.Cursor;
 import android.provider.Telephony;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DiffUtil;
 
 import java.util.ArrayList;
 
@@ -167,7 +169,6 @@ public class SMS {
 
     }
 
-
     @Override
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof SMS) {
@@ -183,4 +184,16 @@ public class SMS {
         }
         return false;
     }
+
+    public static final DiffUtil.ItemCallback<SMS> DIFF_CALLBACK = new DiffUtil.ItemCallback<SMS>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
+            return oldItem.id.equals(newItem.id);
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
 }

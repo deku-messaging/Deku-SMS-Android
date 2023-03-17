@@ -17,10 +17,11 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/message_sent_card_layout"
+        android:theme="@style/Theme.AppTheme"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:paddingRight="10dp"
+        android:paddingEnd="10dp"
         app:cardBackgroundColor="#A2C4D6"
         app:cardCornerRadius="25dp"
         app:cardPreventCornerOverlap="false"
