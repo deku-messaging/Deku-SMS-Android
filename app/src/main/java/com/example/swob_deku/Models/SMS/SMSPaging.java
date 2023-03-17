@@ -6,18 +6,12 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.paging.PagingSource;
 import androidx.paging.ListenableFuturePagingSource;
 import androidx.paging.PagingState;
 
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-
-import kotlin.coroutines.Continuation;
 
 public class SMSPaging extends ListenableFuturePagingSource<Integer, ArrayList<SMS>> {
     Context context;

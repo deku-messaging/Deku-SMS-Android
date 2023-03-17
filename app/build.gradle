@@ -65,13 +65,21 @@ dependencies {
     implementation "androidx.room:room-runtime:2.5.0-rc01"
     annotationProcessor "androidx.room:room-compiler:2.5.0-rc01"
 
-    implementation "androidx.paging:paging-runtime:3.1.1"
+    def paging_version = "3.1.1"
+
+    implementation "androidx.paging:paging-runtime:$paging_version"
 
     // alternatively - without Android dependencies for tests
-    testImplementation "androidx.paging:paging-common:3.1.1"
+    testImplementation "androidx.paging:paging-common:$paging_version"
+
+    // optional - RxJava2 support
+    implementation "androidx.paging:paging-rxjava2:$paging_version"
 
     // optional - RxJava3 support
-    implementation "androidx.paging:paging-rxjava3:3.1.1"
+    implementation "androidx.paging:paging-rxjava3:$paging_version"
+
+    // optional - Guava ListenableFuture support
+    implementation "androidx.paging:paging-guava:$paging_version"
 
     // optional - Jetpack Compose integration
     implementation "androidx.paging:paging-compose:1.0.0-alpha18"

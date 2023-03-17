@@ -139,7 +139,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 new Observer<PagingData<ArrayList<SMS>>>() {
                     @Override
                     public void onChanged(PagingData<ArrayList<SMS>> smsList) {
-                        Log.d(getLocalClassName(), "Pading should send content from main: " + smsList.toString());
+                        Log.d(getLocalClassName(), "Paging should send content from main: " + smsList.toString());
 //                        singleMessagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });

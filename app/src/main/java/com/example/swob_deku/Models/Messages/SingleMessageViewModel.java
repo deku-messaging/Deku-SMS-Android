@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -14,6 +15,7 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
+import androidx.paging.rxjava3.PagingRx;
 
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -23,9 +25,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
-import kotlin.jvm.functions.Function0;
+import io.reactivex.rxjava3.core.Flowable;
 import kotlinx.coroutines.CoroutineScope;
 
 public class SingleMessageViewModel extends ViewModel {
@@ -58,12 +59,11 @@ public class SingleMessageViewModel extends ViewModel {
         Log.d(getClass().getName(), "Paging loading data for ViewModel!");
         final int pageSize = 1;
         PagingConfig pagingConfig = new PagingConfig(1, 1, false);
-        Pager<Integer, ArrayList<SMS>> pager = new Pager<>(pagingConfig, new Function0<PagingSource<Integer, ArrayList<SMS>>>() {
-            @Override
-            public PagingSource<Integer, ArrayList<SMS>> invoke() {
-                return new SMSPaging();
-            }
-        });
+        Pager<Integer, ArrayList<SMS>> pager = new Pager<>(pagingConfig, () -> new SMSPaging() );
+
+        Flowable<PagingData<ArrayList<SMS>>> flowable = PagingRx.getFlowable(pager);
+//        PagingRx.cachedIn(flowable, viewModelScope);
+
 
         LiveData<PagingData<ArrayList<SMS>>> pagingDataLiveData = PagingLiveData.getLiveData(pager);
         Log.d(getClass().getName(), "Pager: " + pagingDataLiveData.getValue());
