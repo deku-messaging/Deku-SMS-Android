@@ -37,23 +37,23 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
     public Integer getRefreshKey(@NonNull PagingState<Integer, SMS> pagingState) {
         Log.d(getClass().getName(), "Paging refreshkey called!");
 
-//        Integer anchorPosition = pagingState.getAnchorPosition();
-//
-//        if(anchorPosition == null) {
-//            return null;
-//        }
-//
-//        LoadResult.Page<Integer, SMS> anchorPage = pagingState.closestPageToPosition(anchorPosition);
-//        if(anchorPage == null)
-//            return null;
-//
-//        Integer prevKey = anchorPage.getPrevKey();
-//        if(prevKey != null)
-//            return prevKey + 1;
-//
-//        Integer nextKey = anchorPage.getNextKey();
-//        if(nextKey != null)
-//            return nextKey -1;
+        Integer anchorPosition = pagingState.getAnchorPosition();
+
+        if(anchorPosition == null) {
+            return null;
+        }
+
+        LoadResult.Page<Integer, SMS> anchorPage = pagingState.closestPageToPosition(anchorPosition);
+        if(anchorPage == null)
+            return null;
+
+        Integer prevKey = anchorPage.getPrevKey();
+        if(prevKey != null)
+            return prevKey + 1;
+
+        Integer nextKey = anchorPage.getNextKey();
+        if(nextKey != null)
+            return nextKey -1;
 
         return null;
     }

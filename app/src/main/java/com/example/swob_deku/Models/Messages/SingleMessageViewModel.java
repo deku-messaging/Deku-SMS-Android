@@ -35,6 +35,8 @@ public class SingleMessageViewModel extends ViewModel {
 
     Lifecycle lifecycle;
 
+    LiveData liveData;
+
     public LiveData<PagingData<SMS>> getMessages(Context context, String threadId, Lifecycle lifecycle){
         this.threadId = threadId;
         this.context = context;
@@ -43,10 +45,10 @@ public class SingleMessageViewModel extends ViewModel {
         return loadSMSThreads();
     }
 
-    public void informChanges(Context context, String threadId) {
+    public void informChanges(String threadId) {
         Log.d(getClass().getName(), "Informing changes for: " + threadId);
-        this.context = context;
         this.threadId = threadId;
+
         loadSMSThreads();
     }
 
@@ -56,19 +58,21 @@ public class SingleMessageViewModel extends ViewModel {
 
     private LiveData<PagingData<SMS>> loadSMSThreads() {
         // TODO: make 20
-        final int pageSize = 1;
+        final int pageSize = 10;
         // TODO: make 40
         final int prefetchDistance = 0;
         // TODO: make 30
         final int initialLoad = 15;
 
-        PagingConfig pagingConfig = new PagingConfig(pageSize);
-//        PagingConfig pagingConfig = new PagingConfig(pageSize, prefetchDistance,
-//                true, initialLoad);
+//        PagingConfig pagingConfig = new PagingConfig(pageSize);
+        PagingConfig pagingConfig = new PagingConfig(pageSize, prefetchDistance,
+                true, initialLoad);
 
         Pager<Integer, SMS> pager = new Pager<>(pagingConfig,
                 () -> new SMSPaging(context, threadId));
 
-        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
+
+        liveData = PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
+        return liveData;
     }
 }

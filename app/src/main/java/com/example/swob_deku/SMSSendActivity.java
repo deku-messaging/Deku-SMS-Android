@@ -300,7 +300,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(getLocalClassName(), "Broadcast received!");
-                singleMessageViewModel.informChanges();
+                singleMessagesThreadRecyclerAdapter.refresh();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
         };
@@ -315,7 +315,6 @@ public class SMSSendActivity extends AppCompatActivity {
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
         registerReceiver(incomingDataBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
-
     }
 
     public void handleBroadcast() {
@@ -355,13 +354,7 @@ public class SMSSendActivity extends AppCompatActivity {
                         }
                 }
 
-                // TODO: remove if not useful
-                Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, id);
-                if(cursor.moveToFirst()) {
-                    SMS sms = new SMS(cursor);
-                    String threadId = sms.getThreadId();
-                    singleMessageViewModel.informChanges();
-                }
+                singleMessagesThreadRecyclerAdapter.refresh();
                 unregisterReceiver(this);
             }
         };
@@ -378,12 +371,7 @@ public class SMSSendActivity extends AppCompatActivity {
                         Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
 
-                Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, id);
-                if(cursor.moveToFirst()) {
-                    SMS sms = new SMS(cursor);
-                    String threadId = sms.getThreadId();
-                    singleMessageViewModel.informChanges();
-                }
+                singleMessagesThreadRecyclerAdapter.refresh();
                 unregisterReceiver(this);
             }
         };
@@ -438,12 +426,12 @@ public class SMSSendActivity extends AppCompatActivity {
                 threadId = tmpThreadId;
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Refreshing with threadId: " + threadId);
-                singleMessageViewModel.informChanges(getApplicationContext(), threadId);
+                singleMessagesThreadRecyclerAdapter.refresh();
             }
             else {
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Refreshing with messageId: " + messageId);
-                singleMessageViewModel.informChanges();
+                singleMessagesThreadRecyclerAdapter.refresh();
             }
         }
 
@@ -535,5 +523,13 @@ public class SMSSendActivity extends AppCompatActivity {
                 finish();
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(incomingBroadcastReceiver);
+        unregisterReceiver(incomingDataBroadcastReceiver);
+
+        super.onDestroy();
     }
 }
