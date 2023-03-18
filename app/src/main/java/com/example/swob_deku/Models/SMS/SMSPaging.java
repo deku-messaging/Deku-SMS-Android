@@ -37,23 +37,23 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
     public Integer getRefreshKey(@NonNull PagingState<Integer, SMS> pagingState) {
         Log.d(getClass().getName(), "Paging refreshkey called!");
 
-        Integer anchorPosition = pagingState.getAnchorPosition();
-
-        if(anchorPosition == null) {
-            return null;
-        }
-
-        LoadResult.Page<Integer, SMS> anchorPage = pagingState.closestPageToPosition(anchorPosition);
-        if(anchorPage == null)
-            return null;
-
-        Integer prevKey = anchorPage.getPrevKey();
-        if(prevKey != null)
-            return prevKey + 1;
-
-        Integer nextKey = anchorPage.getNextKey();
-        if(nextKey != null)
-            return nextKey -1;
+//        Integer anchorPosition = pagingState.getAnchorPosition();
+//
+//        if(anchorPosition == null) {
+//            return null;
+//        }
+//
+//        LoadResult.Page<Integer, SMS> anchorPage = pagingState.closestPageToPosition(anchorPosition);
+//        if(anchorPage == null)
+//            return null;
+//
+//        Integer prevKey = anchorPage.getPrevKey();
+//        if(prevKey != null)
+//            return prevKey + 1;
+//
+//        Integer nextKey = anchorPage.getNextKey();
+//        if(nextKey != null)
+//            return nextKey -1;
 
         return null;
     }
@@ -75,7 +75,7 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
         try {
             return new LoadResult.Page<>(smsArrayList,
                     null,
-                    offset,
+                    offset+1,
                     LoadResult.Page.COUNT_UNDEFINED,
                     LoadResult.Page.COUNT_UNDEFINED);
         } catch(Exception e) {
@@ -85,6 +85,10 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
 
     private ArrayList<SMS> fetchSMSFromHandlers(int limit, int offset) {
 //        Cursor cursors = SMSHandler.fetchSMSForThread(this.context, this.threadId);
+        if(BuildConfig.DEBUG) {
+            Log.d(getClass().getName(), "Paging fetched load: " + limit);
+            Log.d(getClass().getName(), "Paging fetched offset: " + offset);
+        }
         Cursor cursors = SMSHandler.fetchSMSForThread(this.context, this.threadId, limit, offset);
 
         ArrayList<SMS> smsArrayList = new ArrayList<>();

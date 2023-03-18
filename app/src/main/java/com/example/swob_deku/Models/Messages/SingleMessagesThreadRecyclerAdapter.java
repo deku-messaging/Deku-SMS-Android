@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter {
+public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
     Context context;
     Toolbar toolbar;
     String highlightedText;
@@ -158,15 +158,18 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter {
     }
 
     @Override
+    public int getItemCount() {
+//        return super.getItemCount();
+        Log.d(getClass().getName(), "RecyclerView size: " + snapshot().size());
+        return snapshot().size();
+    }
+
+    @Override
     public int getItemViewType(int position) {
-        ItemSnapshotList snapshotList = snapshot();
-        Log.d(getClass().getName(), "Paging snapshot list: " + position);
+        ItemSnapshotList snapshotList = this.snapshot();
+        Log.d(getClass().getName(), "Paging snapshot position: " + position);
 
         SMS sms = (SMS) snapshotList.get(position);
-//        Log.d(getClass().getName(), "Paging snapshot message: " + sms.getBody());
-        Log.d(getClass().getName(), "Paging snapshot id: " + sms.getId());
-        Log.d(getClass().getName(), "Paging snapshot type: " + sms.getType());
-
         if (position != 0 && (position == snapshotList.size() - 1 ||
                 !SMSHandler.isSameHour(sms,
                         (SMS) snapshotList.get(position + 1)))) {
