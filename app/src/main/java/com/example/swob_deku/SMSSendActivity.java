@@ -147,9 +147,23 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+
+                int state = recyclerView.getScrollState();
+                Log.d(getLocalClassName(), "RecyclerView state says yes populate: " + dy + ":" + state);
+
+                int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
+                        .findLastVisibleItemPosition();
+
+                if(lastVisiblePos == recyclerView.getAdapter().getItemCount() - 1) {
+                    recyclerView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            singleMessagesThreadRecyclerAdapter.refresh();
+                        }
+                    });
+                }
             }
         });
-
     }
 
     private void getAddressAndThreadId() throws InterruptedException {
@@ -301,7 +315,9 @@ public class SMSSendActivity extends AppCompatActivity {
         incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d(getLocalClassName(), "Broadcast received!");
+                if(singleMessageViewModel.getLastUsedKey() == 0)
+                    singleMessagesThreadRecyclerAdapter.refresh();
+
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
         };

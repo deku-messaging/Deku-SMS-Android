@@ -43,12 +43,6 @@ public class SingleMessageViewModel extends ViewModel {
         loadSMSThreads();
     }
 
-//    public void informNewItemChanges() {
-//        Integer lastUsedKey = this.smsPaging.lastUsedKey;
-//        if(lastUsedKey == 0)
-//            loadSMSThreads();
-//    }
-
     public Integer getLastUsedKey() {
         return this.smsPaging.lastUsedKey;
     }

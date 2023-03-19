@@ -45,7 +45,7 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
     public Integer getRefreshKey(@NonNull PagingState<Integer, SMS> pagingState) {
 
         Integer anchorPosition = pagingState.getAnchorPosition();
-
+        Log.d(getClass().getName(), "Paging anchor position: " + anchorPosition);
         if(anchorPosition == null) {
             return null;
         }
@@ -54,13 +54,15 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
         if(anchorPage == null)
             return null;
 
-        Integer prevKey = anchorPage.getPrevKey();
-        if(prevKey != null)
-            return prevKey + 1;
+//        Integer prevKey = anchorPage.getPrevKey();
+//        Log.d(getClass().getName(), "Paging anchor position prevKey: " + prevKey);
+//        if(prevKey != null)
+//            return prevKey;
 
         Integer nextKey = anchorPage.getNextKey();
+        Log.d(getClass().getName(), "Paging anchor position nextKey: " + nextKey);
         if(nextKey != null)
-            return nextKey - 1;
+            return nextKey;
 
         return null;
     }
@@ -73,22 +75,24 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
         int key = loadParams.getKey() == null ? 0 : loadParams.getKey();
         lastUsedKey = key;
 
-        int smsOffset = key == 0 ? key : loadParams.getLoadSize() * key;
+        int smsOffset = key == 0 ? key : (loadParams.getLoadSize() * key) - 3;
 
         ArrayList<SMS> smsArrayList = fetchSMSFromHandlers(context, threadId, loadParams.getLoadSize(), smsOffset);
 
         if(smsArrayList == null || smsArrayList.isEmpty()) {
-            return new LoadResult.Page<>(smsArrayList,
-                    null,
-                    null,
-                    LoadResult.Page.COUNT_UNDEFINED,
-                    LoadResult.Page.COUNT_UNDEFINED);
+//            return new LoadResult.Page<>(smsArrayList,
+//                    null,
+//                    null,
+//                    LoadResult.Page.COUNT_UNDEFINED,
+//                    LoadResult.Page.COUNT_UNDEFINED);
+//            return new LoadResult.Invalid<>();
         }
 
         try {
             return new LoadResult.Page<>(smsArrayList,
                     key == 0 ? null : key - 1,
-                    smsArrayList.size() < loadParams.getLoadSize() ? null : key + 1,
+//                    smsArrayList.size() < loadParams.getLoadSize() ? null : key + 1,
+                    key + 1,
                     LoadResult.Page.COUNT_UNDEFINED,
                     LoadResult.Page.COUNT_UNDEFINED);
         } catch(Exception e) {

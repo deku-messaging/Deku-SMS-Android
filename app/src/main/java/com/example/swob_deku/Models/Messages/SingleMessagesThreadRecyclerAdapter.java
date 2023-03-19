@@ -91,6 +91,7 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+
         final SMS sms = (SMS) snapshot().get(position);
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
@@ -156,15 +157,6 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
         }
     }
-
-//    @Override
-//    public int getItemCount() {
-////        return super.getItemCount();
-//        Log.d(getClass().getName(), "RecyclerView size: " + snapshot().size());
-//        return snapshot().size();
-//    }
-
-
 
     @Override
     public int getItemViewType(int position) {
