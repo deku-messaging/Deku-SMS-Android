@@ -6,8 +6,11 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelKt;
 import androidx.paging.Pager;
@@ -15,6 +18,7 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
+import androidx.paging.TransformablePage;
 import androidx.paging.rxjava3.PagingRx;
 
 import com.example.swob_deku.Models.SMS.SMS;
@@ -35,14 +39,18 @@ public class SingleMessageViewModel extends ViewModel {
 
     Lifecycle lifecycle;
 
-    LiveData liveData;
+    MutableLiveData mutableLiveData;
 
     public LiveData<PagingData<SMS>> getMessages(Context context, String threadId, Lifecycle lifecycle){
         this.threadId = threadId;
         this.context = context;
         this.lifecycle = lifecycle;
 
-        return loadSMSThreads();
+        mutableLiveData = new MutableLiveData();
+
+        mutableLiveData.setValue(loadSMSThreads());
+
+        return mutableLiveData;
     }
 
     public void informChanges(String threadId) {
@@ -52,9 +60,6 @@ public class SingleMessageViewModel extends ViewModel {
         loadSMSThreads();
     }
 
-    public void informChanges() {
-        loadSMSThreads();
-    }
 
     private LiveData<PagingData<SMS>> loadSMSThreads() {
         // TODO: make 20
@@ -71,8 +76,8 @@ public class SingleMessageViewModel extends ViewModel {
         Pager<Integer, SMS> pager = new Pager<>(pagingConfig,
                 () -> new SMSPaging(context, threadId));
 
-
-        liveData = PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
+        LiveData liveData = PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
         return liveData;
     }
+
 }

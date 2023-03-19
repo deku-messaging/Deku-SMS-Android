@@ -35,7 +35,6 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
     @Nullable
     @Override
     public Integer getRefreshKey(@NonNull PagingState<Integer, SMS> pagingState) {
-        Log.d(getClass().getName(), "Paging refreshkey called!");
 
         Integer anchorPosition = pagingState.getAnchorPosition();
 
@@ -52,6 +51,7 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
             return prevKey + 1;
 
         Integer nextKey = anchorPage.getNextKey();
+        Log.d(getClass().getName(), "Paging refresh key: " + nextKey);
         if(nextKey != null)
             return nextKey -1;
 
