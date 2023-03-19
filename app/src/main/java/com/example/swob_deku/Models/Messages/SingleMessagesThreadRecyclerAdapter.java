@@ -157,18 +157,20 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
         }
     }
 
-    @Override
-    public int getItemCount() {
-//        return super.getItemCount();
-        Log.d(getClass().getName(), "RecyclerView size: " + snapshot().size());
-        return snapshot().size();
-    }
+//    @Override
+//    public int getItemCount() {
+////        return super.getItemCount();
+//        Log.d(getClass().getName(), "RecyclerView size: " + snapshot().size());
+//        return snapshot().size();
+//    }
+
+
 
     @Override
     public int getItemViewType(int position) {
         ItemSnapshotList snapshotList = this.snapshot();
         Log.d(getClass().getName(), "Paging snapshot position: " + position);
-
+        Log.d(getClass().getName(), "Paging snapshot size: " + snapshotList.size());
         SMS sms = (SMS) snapshotList.get(position);
         if (position != 0 && (position == snapshotList.size() - 1 ||
                 !SMSHandler.isSameHour(sms,

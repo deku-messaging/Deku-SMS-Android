@@ -10,8 +10,6 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelStoreOwner;
-import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -41,14 +39,11 @@ import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
-import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 public class SMSSendActivity extends AppCompatActivity {
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
@@ -145,6 +140,13 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onChanged(String s) {
                 findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+            }
+        });
+
+        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
             }
         });
 
@@ -354,7 +356,9 @@ public class SMSSendActivity extends AppCompatActivity {
                         }
                 }
 
-                singleMessagesThreadRecyclerAdapter.refresh();
+//                singleMessagesThreadRecyclerAdapter.retry();
+//                singleMessagesThreadRecyclerAdapter.refresh();
+                singleMessageViewModel.informNewItemChanges();
                 unregisterReceiver(this);
             }
         };
@@ -371,7 +375,9 @@ public class SMSSendActivity extends AppCompatActivity {
                         Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
 
-                singleMessagesThreadRecyclerAdapter.refresh();
+//                singleMessagesThreadRecyclerAdapter.retry();
+//                singleMessagesThreadRecyclerAdapter.refresh();
+                singleMessageViewModel.informNewItemChanges();
                 unregisterReceiver(this);
             }
         };
@@ -422,16 +428,17 @@ public class SMSSendActivity extends AppCompatActivity {
 
             resetSmsTextView();
 
-            if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
+            if(threadId == null || threadId.isEmpty()) {
+                Log.d(getLocalClassName(), "Refreshing without thread: " + messageId);
                 threadId = tmpThreadId;
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Refreshing with threadId: " + threadId);
-                singleMessagesThreadRecyclerAdapter.refresh();
+                singleMessageViewModel.informNewItemChanges(threadId);
             }
             else {
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Refreshing with messageId: " + messageId);
-                singleMessagesThreadRecyclerAdapter.refresh();
+//                singleMessagesThreadRecyclerAdapter.refresh();
+//                singleMessagesThreadRecyclerAdapter.refresh();
+                singleMessageViewModel.refresh();
             }
         }
 
