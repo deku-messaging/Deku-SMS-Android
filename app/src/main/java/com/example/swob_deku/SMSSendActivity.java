@@ -302,7 +302,6 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(getLocalClassName(), "Broadcast received!");
-                singleMessagesThreadRecyclerAdapter.refresh();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
         };
@@ -326,8 +325,10 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
                 long id = intent.getLongExtra(ID, -1);
+
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Broadcast received for sent: " + id);
+
                 switch(getResultCode()) {
                     case Activity.RESULT_OK:
                         try {
@@ -356,9 +357,9 @@ public class SMSSendActivity extends AppCompatActivity {
                         }
                 }
 
-//                singleMessagesThreadRecyclerAdapter.retry();
-//                singleMessagesThreadRecyclerAdapter.refresh();
-                singleMessageViewModel.informNewItemChanges();
+                if(singleMessageViewModel.getLastUsedKey() == 0)
+                    singleMessagesThreadRecyclerAdapter.refresh();
+
                 unregisterReceiver(this);
             }
         };
@@ -375,9 +376,9 @@ public class SMSSendActivity extends AppCompatActivity {
                         Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
 
-//                singleMessagesThreadRecyclerAdapter.retry();
-//                singleMessagesThreadRecyclerAdapter.refresh();
-                singleMessageViewModel.informNewItemChanges();
+                if(singleMessageViewModel.getLastUsedKey() == 0)
+                    singleMessagesThreadRecyclerAdapter.refresh();
+
                 unregisterReceiver(this);
             }
         };
@@ -419,6 +420,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
         try {
             long messageId = Helpers.generateRandomNumber();
+
             PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
             handleBroadcast();
@@ -429,16 +431,13 @@ public class SMSSendActivity extends AppCompatActivity {
             resetSmsTextView();
 
             if(threadId == null || threadId.isEmpty()) {
-                Log.d(getLocalClassName(), "Refreshing without thread: " + messageId);
                 threadId = tmpThreadId;
                 singleMessageViewModel.informNewItemChanges(threadId);
             }
             else {
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Refreshing with messageId: " + messageId);
-//                singleMessagesThreadRecyclerAdapter.refresh();
-//                singleMessagesThreadRecyclerAdapter.refresh();
-                singleMessageViewModel.refresh();
+//                singleMessageViewModel.informNewItemChanges();
+                if(singleMessageViewModel.getLastUsedKey() == 0)
+                    singleMessagesThreadRecyclerAdapter.refresh();
             }
         }
 

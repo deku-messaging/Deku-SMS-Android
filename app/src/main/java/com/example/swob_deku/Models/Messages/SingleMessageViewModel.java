@@ -40,26 +40,26 @@ public class SingleMessageViewModel extends ViewModel {
 
     public void informNewItemChanges(String threadId) {
         this.threadId = threadId;
-        this.smsPaging.invalidate();
-        liveData = PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
-    }
-
-    public void informNewItemChanges() {
-        this.smsPaging.invalidate();
-        liveData = PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
-    }
-
-    public void refresh() {
         loadSMSThreads();
     }
+
+//    public void informNewItemChanges() {
+//        Integer lastUsedKey = this.smsPaging.lastUsedKey;
+//        if(lastUsedKey == 0)
+//            loadSMSThreads();
+//    }
+
+    public Integer getLastUsedKey() {
+        return this.smsPaging.lastUsedKey;
+    }
+
     private void loadSMSThreads() {
-        Log.d(getClass().getName(), "ViewModel loading..");
         // TODO: make 20
-        final int pageSize = 20;
+        final int pageSize = 12;
         // TODO: make 40
         final int prefetchDistance = 0;
         // TODO: make 30
-        final int initialLoad = 15;
+        final int initialLoad = pageSize;
 
 //        PagingConfig pagingConfig = new PagingConfig(pageSize);
         PagingConfig pagingConfig = new PagingConfig(pageSize, prefetchDistance,
@@ -67,13 +67,11 @@ public class SingleMessageViewModel extends ViewModel {
         pager = new Pager<>(pagingConfig, new Function0<PagingSource<Integer, SMS>>() {
             @Override
             public PagingSource<Integer, SMS> invoke() {
-                smsPaging = smsPaging == null ?
-                        new SMSPaging(context, threadId) : new SMSPaging(context, threadId, smsPaging.fetchedMessages);
+                smsPaging = new SMSPaging(context, threadId);
                 return smsPaging;
             }
         });
 
         liveData = PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
     }
-
 }

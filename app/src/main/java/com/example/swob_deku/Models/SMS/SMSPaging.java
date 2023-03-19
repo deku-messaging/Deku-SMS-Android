@@ -26,48 +26,42 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
 
     String threadId;
 
-    public ArrayList<SMS> fetchedMessages;
+    public Integer lastUsedKey;
 
     public SMSPaging(Context context, String threadId, ArrayList<SMS> fetchedMessages) {
         Log.d(getClass().getName(), "Paging constructor called!");
         this.context = context;
         this.threadId = threadId;
-
-        this.fetchedMessages = fetchedMessages == null ? new ArrayList<>() : fetchedMessages;
     }
 
     public SMSPaging(Context context, String threadId) {
         Log.d(getClass().getName(), "Paging constructor called!");
         this.context = context;
         this.threadId = threadId;
-
-        this.fetchedMessages = fetchedMessages == null ? new ArrayList<>() : fetchedMessages;
     }
 
     @Nullable
     @Override
     public Integer getRefreshKey(@NonNull PagingState<Integer, SMS> pagingState) {
-//
-//        Integer anchorPosition = pagingState.getAnchorPosition();
-//
-//        if(anchorPosition == null) {
-//            return null;
-//        }
-//
-//        LoadResult.Page<Integer, SMS> anchorPage = pagingState.closestPageToPosition(anchorPosition);
-//        if(anchorPage == null)
-//            return null;
-//
-//        Integer prevKey = anchorPage.getPrevKey();
-//        Log.d(getClass().getName(), "Paging refresh previous key: " + prevKey);
-//        if(prevKey != null)
-//            return prevKey;
-//
-//        Integer nextKey = anchorPage.getNextKey();
-//        Log.d(getClass().getName(), "Paging refresh next key: " + nextKey);
-//        if(nextKey != null)
-//            return nextKey;
-//
+
+        Integer anchorPosition = pagingState.getAnchorPosition();
+
+        if(anchorPosition == null) {
+            return null;
+        }
+
+        LoadResult.Page<Integer, SMS> anchorPage = pagingState.closestPageToPosition(anchorPosition);
+        if(anchorPage == null)
+            return null;
+
+        Integer prevKey = anchorPage.getPrevKey();
+        if(prevKey != null)
+            return prevKey + 1;
+
+        Integer nextKey = anchorPage.getNextKey();
+        if(nextKey != null)
+            return nextKey - 1;
+
         return null;
     }
 
@@ -76,31 +70,25 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
     public LoadResult load(@NonNull LoadParams<Integer> loadParams,
                            @NonNull Continuation<? super LoadResult<Integer, SMS>> continuation) {
 
-        int offset = loadParams.getKey() == null ? 0 : loadParams.getKey();
-        Log.d(getClass().getName(), "Paging offset: " + offset);
+        int key = loadParams.getKey() == null ? 0 : loadParams.getKey();
+        lastUsedKey = key;
 
-        ArrayList<SMS> smsArrayList = fetchSMSFromHandlers(loadParams.getLoadSize(), offset);
+        int smsOffset = key == 0 ? key : loadParams.getLoadSize() * key;
+
+        ArrayList<SMS> smsArrayList = fetchSMSFromHandlers(context, threadId, loadParams.getLoadSize(), smsOffset);
 
         if(smsArrayList == null || smsArrayList.isEmpty()) {
-            return new LoadResult.Page<>(fetchedMessages,
+            return new LoadResult.Page<>(smsArrayList,
                     null,
                     null,
                     LoadResult.Page.COUNT_UNDEFINED,
                     LoadResult.Page.COUNT_UNDEFINED);
         }
-        else {
-            if(offset != 0 && !fetchedMessages.isEmpty())
-                fetchedMessages.addAll(smsArrayList);
-            else
-                fetchedMessages = smsArrayList;
-            Log.d(getClass().getName(), "Paging fetched total size: " + fetchedMessages.size());
-        }
 
         try {
-            return new LoadResult.Page<>(fetchedMessages,
-                    null,
-                    smsArrayList.size() >= loadParams.getLoadSize()?
-                            offset + loadParams.getLoadSize() : null,
+            return new LoadResult.Page<>(smsArrayList,
+                    key == 0 ? null : key - 1,
+                    smsArrayList.size() < loadParams.getLoadSize() ? null : key + 1,
                     LoadResult.Page.COUNT_UNDEFINED,
                     LoadResult.Page.COUNT_UNDEFINED);
         } catch(Exception e) {
@@ -108,15 +96,9 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
         }
     }
 
-
-
-    private ArrayList<SMS> fetchSMSFromHandlers(int limit, int offset) {
+    public static ArrayList<SMS> fetchSMSFromHandlers(Context context, String threadId, int limit, int offset) {
 //        Cursor cursors = SMSHandler.fetchSMSForThread(this.context, this.threadId);
-        if(BuildConfig.DEBUG) {
-            Log.d(getClass().getName(), "Paging fetched load: " + limit);
-            Log.d(getClass().getName(), "Paging fetched offset: " + offset);
-        }
-        Cursor cursors = SMSHandler.fetchSMSForThread(this.context, this.threadId, limit, offset);
+        Cursor cursors = SMSHandler.fetchSMSForThread(context, threadId, limit, offset);
 
         ArrayList<SMS> smsArrayList = new ArrayList<>();
 
@@ -124,7 +106,7 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
             return null;
 
         if(BuildConfig.DEBUG)
-            Log.d(getClass().getName(), "Paging fetched: " + cursors.getCount());
+            Log.d(SMSPaging.class.getName(), "Paging fetched: " + cursors.getCount());
 
         if(cursors.moveToFirst()) {
             do {
