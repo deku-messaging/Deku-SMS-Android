@@ -161,24 +161,14 @@ public class SMSSendActivity extends AppCompatActivity {
                 super.onScrolled(recyclerView, dx, dy);
 
                 int state = recyclerView.getScrollState();
-                Log.d(getLocalClassName(), "RecyclerView state says yes populate: " + dy + ":" + state);
 
                 final int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
                         .findLastVisibleItemPosition();
 
 //                if(lastVisiblePos >= recyclerView.getAdapter().getItemCount() - 1) {
                 if(lastVisiblePos >= singleMessagesThreadRecyclerAdapter.getItemCount() - 1) {
-                    recyclerView.post(new Runnable() {
-                        @Override
-                        public void run() {
-//                            singleMessagesThreadRecyclerAdapter.notifyItemRangeChanged(
-//                                    lastVisiblePos, singleMessagesThreadRecyclerAdapter.getItemCount());
-                            Log.d(getLocalClassName(), "Last visible" + lastVisiblePos + " of "
-                                    + singleMessagesThreadRecyclerAdapter.getItemCount());
-                            singleMessageViewModel.refresh();
-                            recyclerView.scrollToPosition(lastVisiblePos - 1);
-                        }
-                    });
+                    singleMessageViewModel.refresh();
+                    recyclerView.scrollToPosition(lastVisiblePos);
                 }
             }
         });
@@ -336,6 +326,7 @@ public class SMSSendActivity extends AppCompatActivity {
 //                if(singleMessageViewModel.getLastUsedKey() == 0)
 //                    singleMessagesThreadRecyclerAdapter.refresh();
 
+                singleMessageViewModel.informNewItemChanges();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
         };
@@ -394,6 +385,7 @@ public class SMSSendActivity extends AppCompatActivity {
 //                if(singleMessageViewModel.getLastUsedKey() == 0)
 //                    singleMessagesThreadRecyclerAdapter.refresh();
 
+                singleMessageViewModel.informNewItemChanges();
                 unregisterReceiver(this);
             }
         };
@@ -413,6 +405,7 @@ public class SMSSendActivity extends AppCompatActivity {
 //                if(singleMessageViewModel.getLastUsedKey() == 0)
 //                    singleMessagesThreadRecyclerAdapter.refresh();
 
+                singleMessageViewModel.informNewItemChanges();
                 unregisterReceiver(this);
             }
         };
@@ -469,9 +462,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 singleMessageViewModel.informNewItemChanges(threadId);
             }
             else {
-//                singleMessageViewModel.informNewItemChanges();
-//                if(singleMessageViewModel.getLastUsedKey() == 0)
-//                    singleMessagesThreadRecyclerAdapter.refresh();
+                singleMessageViewModel.informNewItemChanges();
             }
         }
 

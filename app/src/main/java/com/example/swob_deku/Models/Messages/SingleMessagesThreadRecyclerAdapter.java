@@ -137,8 +137,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-//            messageSentViewHandler.sentMessage.setText(sms.getBody());
-            messageSentViewHandler.sentMessage.setText(String.valueOf(position));
+            messageSentViewHandler.sentMessage.setText(sms.getBody());
             messageSentViewHandler.date.setText(date);
 
             if(holder instanceof TimestampMessageSentViewHandler)
@@ -166,8 +165,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     public int getItemViewType(int position) {
 //        ItemSnapshotList snapshotList = this.snapshot();
         List snapshotList = mDiffer.getCurrentList();
-        Log.d(getClass().getName(), "Paging snapshot position: " + position);
-        Log.d(getClass().getName(), "Paging snapshot size: " + snapshotList.size());
         SMS sms = (SMS) snapshotList.get(position);
         if (position != 0 && (position == snapshotList.size() - 1 ||
                 !SMSHandler.isSameHour(sms,
