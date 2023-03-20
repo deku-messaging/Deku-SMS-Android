@@ -176,7 +176,7 @@ public class SMSSendActivity extends AppCompatActivity {
                             Log.d(getLocalClassName(), "Last visible" + lastVisiblePos + " of "
                                     + singleMessagesThreadRecyclerAdapter.getItemCount());
                             singleMessageViewModel.refresh();
-                            recyclerView.scrollToPosition(lastVisiblePos);
+                            recyclerView.scrollToPosition(lastVisiblePos - 1);
                         }
                     });
                 }
