@@ -15,6 +15,7 @@
         <!-- Customize your theme here. -->
 
         <item name="android:editTextBackground">@color/black</item>
+
     </style>
 
     <style name="Theme.sentConstraints" parent="Theme.main">
