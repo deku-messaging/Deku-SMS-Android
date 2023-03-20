@@ -35,6 +35,7 @@ public class SingleMessageViewModel extends ViewModel {
     SMSPaging smsPaging;
 
     Integer currentLimit = 12;
+    Integer offset = 0;
 
 //    public LiveData<PagingData<SMS>> getMessages(Context context, String threadId, Lifecycle lifecycle){
 //        this.threadId = threadId;
@@ -66,8 +67,11 @@ public class SingleMessageViewModel extends ViewModel {
 //    }
 //
     public void refresh() {
-        ++currentLimit;
-        mutableLiveData.setValue(loadSMSThreads());
+        offset += currentLimit;
+//        ++currentLimit;
+        ArrayList sms = (ArrayList) mutableLiveData.getValue();
+        sms.addAll(loadSMSThreads());
+        mutableLiveData.setValue(sms);
     }
 
 //    private LiveData loadSMSThreads() {
@@ -97,6 +101,6 @@ public class SingleMessageViewModel extends ViewModel {
 //    }
 
     private List loadSMSThreads() {
-        return SMSPaging.fetchSMSFromHandlers(context, threadId, currentLimit, 0);
+        return SMSPaging.fetchSMSFromHandlers(context, threadId, currentLimit, offset);
     }
 }

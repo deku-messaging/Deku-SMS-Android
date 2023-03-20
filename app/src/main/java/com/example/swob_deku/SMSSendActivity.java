@@ -155,33 +155,33 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         });
 
-//        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-//                super.onScrolled(recyclerView, dx, dy);
-//
-//                int state = recyclerView.getScrollState();
-//                Log.d(getLocalClassName(), "RecyclerView state says yes populate: " + dy + ":" + state);
-//
-//                final int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
-//                        .findLastVisibleItemPosition();
-//
-////                if(lastVisiblePos >= recyclerView.getAdapter().getItemCount() - 1) {
-//                if(lastVisiblePos >= singleMessagesThreadRecyclerAdapter.getItemCount() - 1) {
-//                    recyclerView.post(new Runnable() {
-//                        @Override
-//                        public void run() {
-////                            singleMessagesThreadRecyclerAdapter.notifyItemRangeChanged(
-////                                    lastVisiblePos, singleMessagesThreadRecyclerAdapter.getItemCount());
-//                            Log.d(getLocalClassName(), "Last visible" + lastVisiblePos + " of "
-//                                    + singleMessagesThreadRecyclerAdapter.getItemCount());
-//                            singleMessageViewModel.refresh();
-//                            recyclerView.scrollToPosition(lastVisiblePos + 1);
-//                        }
-//                    });
-//                }
-//            }
-//        });
+        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                int state = recyclerView.getScrollState();
+                Log.d(getLocalClassName(), "RecyclerView state says yes populate: " + dy + ":" + state);
+
+                final int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
+                        .findLastVisibleItemPosition();
+
+//                if(lastVisiblePos >= recyclerView.getAdapter().getItemCount() - 1) {
+                if(lastVisiblePos >= singleMessagesThreadRecyclerAdapter.getItemCount() - 1) {
+                    recyclerView.post(new Runnable() {
+                        @Override
+                        public void run() {
+//                            singleMessagesThreadRecyclerAdapter.notifyItemRangeChanged(
+//                                    lastVisiblePos, singleMessagesThreadRecyclerAdapter.getItemCount());
+                            Log.d(getLocalClassName(), "Last visible" + lastVisiblePos + " of "
+                                    + singleMessagesThreadRecyclerAdapter.getItemCount());
+                            singleMessageViewModel.refresh();
+                            recyclerView.scrollToPosition(lastVisiblePos);
+                        }
+                    });
+                }
+            }
+        });
     }
 
     private void getAddressAndThreadId() throws InterruptedException {
