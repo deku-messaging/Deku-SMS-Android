@@ -26,7 +26,7 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
 
     String threadId;
 
-    public Integer lastUsedKey;
+    public Integer lastUsedKey, nextKey;
 
     public SMSPaging(Context context, String threadId, ArrayList<SMS> fetchedMessages) {
         Log.d(getClass().getName(), "Paging constructor called!");
@@ -73,26 +73,29 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
                            @NonNull Continuation<? super LoadResult<Integer, SMS>> continuation) {
 
         int key = loadParams.getKey() == null ? 0 : loadParams.getKey();
+        Log.d(getClass().getName(), "Paging Load key: " + key);
+
+        int smsLimit = loadParams.getKey() == null ? loadParams.getLoadSize() : (loadParams.getLoadSize() * (key + 1));
+
+        ArrayList<SMS> smsArrayList = fetchSMSFromHandlers(context, threadId, smsLimit, 0);
+
+        nextKey = (smsArrayList == null || smsArrayList.size() < loadParams.getLoadSize() || smsArrayList.size() < smsLimit) ?
+                null : key + 1;
+        Log.d(getClass().getName(), "Paging next key: " + nextKey);
+
         lastUsedKey = key;
-
-        int smsOffset = key == 0 ? key : (loadParams.getLoadSize() * key) - 3;
-
-        ArrayList<SMS> smsArrayList = fetchSMSFromHandlers(context, threadId, loadParams.getLoadSize(), smsOffset);
-
-        if(smsArrayList == null || smsArrayList.isEmpty()) {
-//            return new LoadResult.Page<>(smsArrayList,
-//                    null,
-//                    null,
-//                    LoadResult.Page.COUNT_UNDEFINED,
-//                    LoadResult.Page.COUNT_UNDEFINED);
-//            return new LoadResult.Invalid<>();
+        if(smsArrayList == null || smsArrayList.isEmpty() || nextKey == null) {
+            Log.d(getClass().getName(), "Paging should have hit limit: " + smsArrayList.size() + ":" + smsLimit);
+            return new LoadResult.Page<>(smsArrayList,
+                    null,
+                    null,
+                    LoadResult.Page.COUNT_UNDEFINED,
+                    0);
         }
-
         try {
             return new LoadResult.Page<>(smsArrayList,
-                    key == 0 ? null : key - 1,
-//                    smsArrayList.size() < loadParams.getLoadSize() ? null : key + 1,
-                    key + 1,
+                    null,
+                    nextKey,
                     LoadResult.Page.COUNT_UNDEFINED,
                     LoadResult.Page.COUNT_UNDEFINED);
         } catch(Exception e) {
@@ -110,7 +113,7 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
             return null;
 
         if(BuildConfig.DEBUG)
-            Log.d(SMSPaging.class.getName(), "Paging fetched: " + cursors.getCount());
+            Log.d(SMSPaging.class.getName(), "Paging fetched: " + cursors.getCount() + ":" + limit);
 
         if(cursors.moveToFirst()) {
             do {

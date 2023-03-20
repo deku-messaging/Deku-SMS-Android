@@ -1,10 +1,12 @@
 package com.example.swob_deku.Models.Messages;
 
+
 import android.content.Context;
 import android.util.Log;
 
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
@@ -16,6 +18,7 @@ import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSPaging;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import kotlin.jvm.functions.Function0;
 
@@ -25,17 +28,28 @@ public class SingleMessageViewModel extends ViewModel {
 
     Lifecycle lifecycle;
 
+    MutableLiveData mutableLiveData;
     LiveData liveData;
+
     Pager<Integer, SMS> pager;
     SMSPaging smsPaging;
 
-    public LiveData<PagingData<SMS>> getMessages(Context context, String threadId, Lifecycle lifecycle){
+    Integer currentLimit = 12;
+
+//    public LiveData<PagingData<SMS>> getMessages(Context context, String threadId, Lifecycle lifecycle){
+//        this.threadId = threadId;
+//        this.context = context;
+//        this.lifecycle = lifecycle;
+//
+//        liveData = loadSMSThreads();
+//        return liveData;
+//    }
+
+    public LiveData getMessages(Context context, String threadId){
         this.threadId = threadId;
         this.context = context;
-        this.lifecycle = lifecycle;
-
-        loadSMSThreads();
-        return liveData;
+        this.mutableLiveData = new MutableLiveData(loadSMSThreads());
+        return mutableLiveData;
     }
 
     public void informNewItemChanges(String threadId) {
@@ -43,29 +57,46 @@ public class SingleMessageViewModel extends ViewModel {
         loadSMSThreads();
     }
 
-    public Integer getLastUsedKey() {
-        return this.smsPaging.lastUsedKey;
+//    public Integer getLastUsedKey() {
+//        return this.smsPaging.lastUsedKey;
+//    }
+//
+//    public Integer getNextUsedKey() {
+//        return this.smsPaging.nextKey;
+//    }
+//
+    public void refresh() {
+        ++currentLimit;
+        mutableLiveData.setValue(loadSMSThreads());
     }
 
-    private void loadSMSThreads() {
-        // TODO: make 20
-        final int pageSize = 12;
-        // TODO: make 40
-        final int prefetchDistance = 0;
-        // TODO: make 30
-        final int initialLoad = pageSize;
-
+//    private LiveData loadSMSThreads() {
+//        // TODO: make 20
+//        final int pageSize = 12;
+//        // TODO: make 40
+//        final int prefetchDistance = 0;
+//        // TODO: make 30
+//        final int initialLoad = pageSize;
+//
 //        PagingConfig pagingConfig = new PagingConfig(pageSize);
-        PagingConfig pagingConfig = new PagingConfig(pageSize, prefetchDistance,
-                true, initialLoad);
-        pager = new Pager<>(pagingConfig, new Function0<PagingSource<Integer, SMS>>() {
-            @Override
-            public PagingSource<Integer, SMS> invoke() {
-                smsPaging = new SMSPaging(context, threadId);
-                return smsPaging;
-            }
-        });
+////        PagingConfig pagingConfig = new PagingConfig(pageSize, prefetchDistance,
+////                true, initialLoad);
+//        pager = new Pager<>(pagingConfig, new Function0<PagingSource<Integer, SMS>>() {
+//            @Override
+//            public PagingSource<Integer, SMS> invoke() {
+//                smsPaging = new SMSPaging(context, threadId);
+//                return smsPaging;
+//            }
+//        });
+//
+////        LiveData lliveData = PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
+////        if(lliveData != null)
+////            liveData = lliveData;
+//
+//        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
+//    }
 
-        liveData = PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
+    private List loadSMSThreads() {
+        return SMSPaging.fetchSMSFromHandlers(context, threadId, currentLimit, 0);
     }
 }

@@ -42,11 +42,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
+//public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
+public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     Context context;
     Toolbar toolbar;
     String highlightedText;
     View highlightedView;
+
+    public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
 
 
     final int MESSAGE_TYPE_ALL = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL;
@@ -62,7 +65,7 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
     public SingleMessagesThreadRecyclerAdapter(Context context) {
-        super(SMS.DIFF_CALLBACK);
+//        super(SMS.DIFF_CALLBACK);
         this.context = context;
     }
 
@@ -91,8 +94,8 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-
-        final SMS sms = (SMS) snapshot().get(position);
+//        final SMS sms = (SMS) snapshot().get(position);
+        final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
@@ -134,7 +137,8 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-            messageSentViewHandler.sentMessage.setText(sms.getBody());
+//            messageSentViewHandler.sentMessage.setText(sms.getBody());
+            messageSentViewHandler.sentMessage.setText(String.valueOf(position));
             messageSentViewHandler.date.setText(date);
 
             if(holder instanceof TimestampMessageSentViewHandler)
@@ -160,7 +164,8 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
 
     @Override
     public int getItemViewType(int position) {
-        ItemSnapshotList snapshotList = this.snapshot();
+//        ItemSnapshotList snapshotList = this.snapshot();
+        List snapshotList = mDiffer.getCurrentList();
         Log.d(getClass().getName(), "Paging snapshot position: " + position);
         Log.d(getClass().getName(), "Paging snapshot size: " + snapshotList.size());
         SMS sms = (SMS) snapshotList.get(position);
@@ -174,6 +179,11 @@ public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, 
 //            return (messageType > -1 )? messageType : 0;
             return sms.getType();
         }
+    }
+
+    @Override
+    public int getItemCount() {
+        return mDiffer.getCurrentList().size();
     }
 
     public static class MessageSentViewHandler extends RecyclerView.ViewHolder {

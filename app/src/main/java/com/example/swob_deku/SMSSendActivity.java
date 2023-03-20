@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -39,11 +40,13 @@ import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class SMSSendActivity extends AppCompatActivity {
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
@@ -112,11 +115,20 @@ public class SMSSendActivity extends AppCompatActivity {
 
         singleMessageViewModel = new ViewModelProvider( this)
                 .get( SingleMessageViewModel.class);
+//        singleMessagesThreadRecyclerAdapter.setHasStableIds(true);
 
-        singleMessageViewModel.getMessages(getApplicationContext(), threadId, getLifecycle()).observe(
-                this,
-                arrayListPagingData -> singleMessagesThreadRecyclerAdapter
-                        .submitData(getLifecycle(), arrayListPagingData));
+//        singleMessageViewModel.getMessages(getApplicationContext(), threadId, getLifecycle()).observe(
+//                this,
+//                arrayListPagingData -> singleMessagesThreadRecyclerAdapter
+//                        .submitData(getLifecycle(), arrayListPagingData));
+
+        singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this, new Observer<List<SMS>>() {
+            @Override
+            public void onChanged(List<SMS> smsList) {
+                Log.d(getLocalClassName(), "Paging data changed!");
+                singleMessagesThreadRecyclerAdapter.mDiffer.submitList(smsList);
+            }
+        });
 
         eventListeners();
     }
@@ -143,27 +155,33 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         });
 
-        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-
-                int state = recyclerView.getScrollState();
-                Log.d(getLocalClassName(), "RecyclerView state says yes populate: " + dy + ":" + state);
-
-                int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
-                        .findLastVisibleItemPosition();
-
-                if(lastVisiblePos == recyclerView.getAdapter().getItemCount() - 1) {
-                    recyclerView.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            singleMessagesThreadRecyclerAdapter.refresh();
-                        }
-                    });
-                }
-            }
-        });
+//        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+//                super.onScrolled(recyclerView, dx, dy);
+//
+//                int state = recyclerView.getScrollState();
+//                Log.d(getLocalClassName(), "RecyclerView state says yes populate: " + dy + ":" + state);
+//
+//                final int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
+//                        .findLastVisibleItemPosition();
+//
+////                if(lastVisiblePos >= recyclerView.getAdapter().getItemCount() - 1) {
+//                if(lastVisiblePos >= singleMessagesThreadRecyclerAdapter.getItemCount() - 1) {
+//                    recyclerView.post(new Runnable() {
+//                        @Override
+//                        public void run() {
+////                            singleMessagesThreadRecyclerAdapter.notifyItemRangeChanged(
+////                                    lastVisiblePos, singleMessagesThreadRecyclerAdapter.getItemCount());
+//                            Log.d(getLocalClassName(), "Last visible" + lastVisiblePos + " of "
+//                                    + singleMessagesThreadRecyclerAdapter.getItemCount());
+//                            singleMessageViewModel.refresh();
+//                            recyclerView.scrollToPosition(lastVisiblePos + 1);
+//                        }
+//                    });
+//                }
+//            }
+//        });
     }
 
     private void getAddressAndThreadId() throws InterruptedException {
@@ -315,8 +333,8 @@ public class SMSSendActivity extends AppCompatActivity {
         incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(singleMessageViewModel.getLastUsedKey() == 0)
-                    singleMessagesThreadRecyclerAdapter.refresh();
+//                if(singleMessageViewModel.getLastUsedKey() == 0)
+//                    singleMessagesThreadRecyclerAdapter.refresh();
 
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
@@ -373,8 +391,8 @@ public class SMSSendActivity extends AppCompatActivity {
                         }
                 }
 
-                if(singleMessageViewModel.getLastUsedKey() == 0)
-                    singleMessagesThreadRecyclerAdapter.refresh();
+//                if(singleMessageViewModel.getLastUsedKey() == 0)
+//                    singleMessagesThreadRecyclerAdapter.refresh();
 
                 unregisterReceiver(this);
             }
@@ -392,8 +410,8 @@ public class SMSSendActivity extends AppCompatActivity {
                         Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
 
-                if(singleMessageViewModel.getLastUsedKey() == 0)
-                    singleMessagesThreadRecyclerAdapter.refresh();
+//                if(singleMessageViewModel.getLastUsedKey() == 0)
+//                    singleMessagesThreadRecyclerAdapter.refresh();
 
                 unregisterReceiver(this);
             }
@@ -452,8 +470,8 @@ public class SMSSendActivity extends AppCompatActivity {
             }
             else {
 //                singleMessageViewModel.informNewItemChanges();
-                if(singleMessageViewModel.getLastUsedKey() == 0)
-                    singleMessagesThreadRecyclerAdapter.refresh();
+//                if(singleMessageViewModel.getLastUsedKey() == 0)
+//                    singleMessagesThreadRecyclerAdapter.refresh();
             }
         }
 
