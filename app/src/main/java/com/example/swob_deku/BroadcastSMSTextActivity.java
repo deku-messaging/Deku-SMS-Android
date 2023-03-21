@@ -91,8 +91,9 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                         @Override
                         public void run() {
                             try {
-                                CharsetDecoder charsetDecoder = StandardCharsets.UTF_8.newDecoder();
-                                charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
+//                                CharsetDecoder charsetDecoder = StandardCharsets.UTF_8.newDecoder();
+//                                charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
+                                Base64.decode(message, Base64.DEFAULT);
                                 createWorkForMessage(finalAddress, message, finalMessageId);
                             } catch (Exception e) {
                                 e.printStackTrace();
