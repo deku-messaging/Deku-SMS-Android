@@ -2,7 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.main" parent="Theme.AppTheme">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
+<!--        <item name="colorPrimary">@color/purple_500</item>-->
+        <item name="colorPrimary">@color/light_blue</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
@@ -14,5 +15,14 @@
         <!-- Customize your theme here. -->
 
         <item name="android:editTextBackground">@color/black</item>
+
+    </style>
+
+    <style name="Theme.sentConstraints" parent="Theme.main">
+        <item name="android:backgroundTint">@color/light_blue</item>
+    </style>
+
+    <style name="Theme.receivedConstraints" parent="Theme.main">
+        <item name="android:backgroundTint">@color/blue</item>
     </style>
 </resources>

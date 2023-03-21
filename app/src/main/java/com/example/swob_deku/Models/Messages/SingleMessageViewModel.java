@@ -49,29 +49,44 @@ public class SingleMessageViewModel extends ViewModel {
     public LiveData getMessages(Context context, String threadId){
         this.threadId = threadId;
         this.context = context;
-        this.mutableLiveData = new MutableLiveData(loadSMSThreads());
+        this.mutableLiveData = new MutableLiveData(loadSMSThreads(offset, currentLimit));
         return mutableLiveData;
     }
 
     public void informNewItemChanges(String threadId) {
         this.threadId = threadId;
-        loadSMSThreads();
+        informNewItemChanges();
     }
 
-//    public Integer getLastUsedKey() {
-//        return this.smsPaging.lastUsedKey;
-//    }
-//
-//    public Integer getNextUsedKey() {
-//        return this.smsPaging.nextKey;
-//    }
-//
+    public void informNewItemChanges() {
+        offset = 0;
+        this.mutableLiveData.setValue(loadSMSThreads(offset, currentLimit));
+    }
+
     public void refresh() {
-        offset += currentLimit;
-//        ++currentLimit;
-        ArrayList sms = (ArrayList) mutableLiveData.getValue();
-        sms.addAll(loadSMSThreads());
-        mutableLiveData.setValue(sms);
+        if(offset != null) {
+            offset += currentLimit;
+            offset = _updateLiveData(offset);
+        }
+    }
+
+    private Integer _updateLiveData(int offset) {
+        List newSMS = loadSMSThreads(offset, currentLimit);
+
+        if (!newSMS.isEmpty()) {
+            ArrayList sms = (ArrayList) mutableLiveData.getValue();
+
+            sms.addAll(newSMS);
+
+            mutableLiveData.setValue(sms);
+
+            return offset;
+        }
+        return null;
+    }
+
+    private List loadSMSThreads(Integer _offset, int limit) {
+        return SMSPaging.fetchSMSFromHandlers(context, threadId, limit, _offset);
     }
 
 //    private LiveData loadSMSThreads() {
@@ -100,7 +115,4 @@ public class SingleMessageViewModel extends ViewModel {
 //        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), lifecycle);
 //    }
 
-    private List loadSMSThreads() {
-        return SMSPaging.fetchSMSFromHandlers(context, threadId, currentLimit, offset);
-    }
 }

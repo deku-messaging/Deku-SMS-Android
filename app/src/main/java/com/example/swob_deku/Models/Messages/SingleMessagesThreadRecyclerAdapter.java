@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.LiveData;
 import androidx.paging.ItemSnapshotList;
 import androidx.paging.PagingData;
@@ -120,7 +121,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             dateView.setVisibility(View.INVISIBLE);
             dateView.setText(date);
 
-            messageReceivedViewHandler.receivedMessageCard.setOnClickListener(new View.OnClickListener() {
+            messageReceivedViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
@@ -137,8 +138,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-//            messageSentViewHandler.sentMessage.setText(sms.getBody());
-            messageSentViewHandler.sentMessage.setText(String.valueOf(position));
+            messageSentViewHandler.sentMessage.setText(sms.getBody());
             messageSentViewHandler.date.setText(date);
 
             if(holder instanceof TimestampMessageSentViewHandler)
@@ -166,8 +166,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     public int getItemViewType(int position) {
 //        ItemSnapshotList snapshotList = this.snapshot();
         List snapshotList = mDiffer.getCurrentList();
-        Log.d(getClass().getName(), "Paging snapshot position: " + position);
-        Log.d(getClass().getName(), "Paging snapshot size: " + snapshotList.size());
         SMS sms = (SMS) snapshotList.get(position);
         if (position != 0 && (position == snapshotList.size() - 1 ||
                 !SMSHandler.isSameHour(sms,
@@ -191,13 +189,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
          TextView sentMessageStatus;
          TextView date;
          TextView timestamp;
-         MaterialCardView sentMessageCard;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
-            sentMessage = itemView.findViewById(R.id.message_thread_sent_card_text);
+            sentMessage = itemView.findViewById(R.id.message_sent_text);
             sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
             date = itemView.findViewById(R.id.message_thread_sent_date_text);
-            sentMessageCard = itemView.findViewById(R.id.message_sent_card_layout);
             timestamp = itemView.findViewById(R.id.sent_message_date_segment);
         }
     }
@@ -209,18 +205,18 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     }
 
     public static class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
-        MaterialCardView receivedMessageCard;
         TextView receivedMessage;
         TextView date;
         TextView timestamp;
 
+        ConstraintLayout constraintLayout;
+
         public MessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
-            receivedMessage = itemView.findViewById(R.id.message_thread_received_card_text);
+            receivedMessage = itemView.findViewById(R.id.message_received_text);
             date = itemView.findViewById(R.id.message_thread_received_date_text);
             timestamp = itemView.findViewById(R.id.received_message_date_segment);
-
-            receivedMessageCard = itemView.findViewById(R.id.messages_received_card_layout);
+            constraintLayout = itemView.findViewById(R.id.message_received_constraint);
         }
     }
     public static class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
