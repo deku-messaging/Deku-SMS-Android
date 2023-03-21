@@ -1,26 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<!--    <style name="AppTheme" parent="Theme.MaterialComponents.NoActionBar">-->
-<!--        <item name="android:textColor">#FAFAFA</item>-->
-<!--        <item name="android:colorPressedHighlight">#FAFAFA</item>-->
-
-
-<!--        &lt;!&ndash; Optional: set to transparent if your app is drawing behind the status bar. &ndash;&gt;-->
-<!--        <item name="android:statusBarColor">-->
-<!--            @android:color/transparent-->
-<!--        </item>-->
-
-<!--        <item name="colorPrimary">@color/white</item>-->
-
-<!--        &lt;!&ndash; Optional: set the status bar light and content dark. &ndash;&gt;-->
-<!--&lt;!&ndash;        <item name="android:windowLightStatusBar">&ndash;&gt;-->
-<!--&lt;!&ndash;            true&ndash;&gt;-->
-<!--&lt;!&ndash;        </item>&ndash;&gt;-->
-
-<!--        <item name="android:background">@color/theme_dark</item>-->
-
-<!--    </style>-->
-    <style name="Theme.AppTheme" parent="Theme.MaterialComponents.NoActionBar">
+    <style name="Theme.AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:statusBarColor">
             @android:color/transparent
         </item>

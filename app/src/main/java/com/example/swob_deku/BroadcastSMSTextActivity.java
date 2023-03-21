@@ -70,17 +70,35 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     }
 
                     String message = messageBuffer.toString();
-                    long messageId = SMSHandler.registerIncomingMessage(context, address, message);
+                    String finalAddress = address;
 
-                    sendNotification(context, message, address, messageId);
-
+                    long messageId = -1;
                     try {
-                        CharsetDecoder charsetDecoder = StandardCharsets.UTF_8.newDecoder();
-                        charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
-                        createWorkForMessage(address, message, messageId);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message);
                     }
+                    catch (Exception e) {
+
+                    }
+                    long finalMessageId = messageId;
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            sendNotification(context, message, finalAddress, finalMessageId);
+                        }
+                    }).start();
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                CharsetDecoder charsetDecoder = StandardCharsets.UTF_8.newDecoder();
+                                charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
+                                createWorkForMessage(finalAddress, message, finalMessageId);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
                     break;
             }
         }

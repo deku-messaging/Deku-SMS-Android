@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.provider.Telephony;
 import android.text.format.DateUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,6 +19,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.lifecycle.LiveData;
+import androidx.paging.ItemSnapshotList;
+import androidx.paging.PagingData;
+import androidx.paging.PagingDataAdapter;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,19 +39,19 @@ import com.google.android.material.card.MaterialCardView;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
+//public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
+public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     Context context;
-    int renderLayoutReceived, renderLayoutSent, renderLayoutTimestamp;
-    Long focusId;
-    RecyclerView view;
-    String searchString;
     Toolbar toolbar;
     String highlightedText;
     View highlightedView;
 
-    private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
+    public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
+
 
     final int MESSAGE_TYPE_ALL = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
@@ -59,54 +65,38 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    public SingleMessagesThreadRecyclerAdapter(Context context, int renderLayoutReceived,
-                                               int renderLayoutSent,
-                                               int renderLayoutTimestamp,
-                                               Long focusId,
-                                               String searchString,
-                                               RecyclerView view, Toolbar toolbar) {
+    public SingleMessagesThreadRecyclerAdapter(Context context) {
+//        super(SMS.DIFF_CALLBACK);
         this.context = context;
-        this.renderLayoutReceived = renderLayoutReceived;
-        this.renderLayoutSent = renderLayoutSent;
-        this.renderLayoutTimestamp = renderLayoutTimestamp;
-        this.focusId = focusId;
-        this.searchString = searchString;
-        this.view = view;
-        this.toolbar = toolbar;
-
-
-        enableToolbar();
     }
 
+    @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
         if( viewType == TIMESTAMP_MESSAGE_TYPE_INBOX ) {
-            View view = inflater.inflate(this.renderLayoutReceived, parent, false);
+            View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
             return new TimestampMessageReceivedViewHandler(view);
         }
         else if( viewType == MESSAGE_TYPE_INBOX ) {
-            View view = inflater.inflate(this.renderLayoutReceived, parent, false);
+            View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
             return new MessageReceivedViewHandler(view);
         }
         else if( viewType == TIMESTAMP_MESSAGE_TYPE_OUTBOX ) {
-            View view = inflater.inflate(this.renderLayoutSent, parent, false);
+            View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
             return new TimestampMessageSentViewHandler(view);
         }
 
-        View view = inflater.inflate(this.renderLayoutSent, parent, false);
+        View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
         return new MessageSentViewHandler(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        /**
-         * TODO: OnClick, show date of message and other relevant meta
-         */
-
-        final SMS sms = mDiffer.getCurrentList().get(position);
+//        final SMS sms = (SMS) snapshot().get(position);
+        final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
@@ -131,7 +121,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             dateView.setVisibility(View.INVISIBLE);
             dateView.setText(date);
 
-            messageReceivedViewHandler.receivedMessageCard.setOnClickListener(new View.OnClickListener() {
+            messageReceivedViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
@@ -156,8 +146,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             else
                 messageSentViewHandler.timestamp.setVisibility(View.GONE);
 
-//            messageSentViewHandler.date.setVisibility(View.INVISIBLE);
-
             final int status = sms.getStatusCode();
             String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?
                     "delivered" : "sent";
@@ -171,25 +159,23 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
             statusMessage = "• " + statusMessage;
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
+        }
+    }
 
-//            if(mDiffer.getCurrentList().size() -1 != position ) {
-//                messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
-//            }
-
-//            messageSentViewHandler.sentMessageCard.setOnLongClickListener(new View.OnLongClickListener() {
-//                @Override
-//                public boolean onLongClick(View v) {
-//                    try {
-//                        SMSHandler.sendDataSMS(context, sms.getAddress(),
-//                                Base64.decode(sms.getBody(), Base64.DEFAULT),
-//                                null,
-//                                null, Long.parseLong(sms.getId()));
-//                    } catch (InterruptedException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                    return false;
-//                }
-//            });
+    @Override
+    public int getItemViewType(int position) {
+//        ItemSnapshotList snapshotList = this.snapshot();
+        List snapshotList = mDiffer.getCurrentList();
+        SMS sms = (SMS) snapshotList.get(position);
+        if (position != 0 && (position == snapshotList.size() - 1 ||
+                !SMSHandler.isSameHour(sms,
+                        (SMS) snapshotList.get(position + 1)))) {
+            return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                    TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
+        } else {
+//            int messageType = mDiffer.getCurrentList().get(position).getType();
+//            return (messageType > -1 )? messageType : 0;
+            return sms.getType();
         }
     }
 
@@ -198,77 +184,46 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter{
         return mDiffer.getCurrentList().size();
     }
 
-    public void submitList(List<SMS> list) {
-        mDiffer.submitList(list);
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        if (position != 0 && (position == mDiffer.getCurrentList().size() - 1 ||
-                !SMSHandler.isSameHour(mDiffer.getCurrentList().get(position),
-                        mDiffer.getCurrentList().get(position + 1)))) {
-            return (mDiffer.getCurrentList().get(position).getType() == MESSAGE_TYPE_INBOX) ?
-                    TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
-        } else {
-            int messageType = mDiffer.getCurrentList().get(position).getType();
-            return (messageType > -1 )? messageType : 0;
-        }
-    }
-
-    public class MessageSentViewHandler extends RecyclerView.ViewHolder {
+    public static class MessageSentViewHandler extends RecyclerView.ViewHolder {
          TextView sentMessage;
          TextView sentMessageStatus;
          TextView date;
          TextView timestamp;
-         MaterialCardView sentMessageCard;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
-            sentMessage = itemView.findViewById(R.id.message_thread_sent_card_text);
+            sentMessage = itemView.findViewById(R.id.message_sent_text);
             sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
             date = itemView.findViewById(R.id.message_thread_sent_date_text);
-            sentMessageCard = itemView.findViewById(R.id.message_sent_card_layout);
             timestamp = itemView.findViewById(R.id.sent_message_date_segment);
         }
     }
 
-    public class TimestampMessageSentViewHandler extends MessageSentViewHandler {
+    public static class TimestampMessageSentViewHandler extends MessageSentViewHandler {
         public TimestampMessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
         }
     }
 
-    public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
-        MaterialCardView receivedMessageCard;
+    public static class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
         TextView receivedMessage;
         TextView date;
         TextView timestamp;
 
+        ConstraintLayout constraintLayout;
+
         public MessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
-            receivedMessage = itemView.findViewById(R.id.message_thread_received_card_text);
+            receivedMessage = itemView.findViewById(R.id.message_received_text);
             date = itemView.findViewById(R.id.message_thread_received_date_text);
             timestamp = itemView.findViewById(R.id.received_message_date_segment);
-
-            receivedMessageCard = itemView.findViewById(R.id.messages_received_card_layout);
+            constraintLayout = itemView.findViewById(R.id.message_received_constraint);
         }
     }
-    public class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
+    public static class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
         public TimestampMessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
         }
     }
-
-    public static final DiffUtil.ItemCallback<SMS> DIFF_CALLBACK = new DiffUtil.ItemCallback<SMS>() {
-                @Override
-                public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
-                    return oldItem.id.equals(newItem.id);
-                }
-
-                @Override
-                public boolean areContentsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
-                    return oldItem.equals(newItem);
-                }
-            };
 
     public void enableToolbar(){
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
@@ -7,12 +8,18 @@ android {
 
     defaultConfig {
         applicationId "com.afkanerd.deku"
-        minSdk 21
+        minSdk 23
         targetSdk 33
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation":
+                                      "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     buildTypes {
@@ -25,37 +32,56 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
 }
 
 dependencies {
-    implementation 'androidx.room:room-common:2.4.3'
-    def work_version = "2.7.1"
 
-    implementation "androidx.work:work-runtime:$work_version"
-    implementation "androidx.work:work-rxjava2:$work_version"
+    implementation "androidx.work:work-runtime:2.8.0"
+    implementation "androidx.work:work-rxjava2:2.8.0"
     // optional - GCMNetworkManager support
-    implementation "androidx.work:work-gcm:$work_version"
-
+    implementation "androidx.work:work-gcm:2.8.0"
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.paging:paging-guava:3.1.1'
     // optional - Test helpers
-    androidTestImplementation "androidx.work:work-testing:$work_version"
-
+    androidTestImplementation "androidx.work:work-testing:2.8.0"
     // optional - Multiprocess support
-    implementation "androidx.work:work-multiprocess:$work_version"
+    implementation "androidx.work:work-multiprocess:2.8.0"
 
-    implementation 'androidx.appcompat:appcompat:1.5.1'
-    implementation 'com.google.android.material:material:1.8.0-beta01'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.android.volley:volley:1.2.1'
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation "androidx.core:core:1.9.0"
 
     implementation 'de.hdodenhof:circleimageview:3.1.0'
-    implementation 'commons-codec:commons-codec:1.11'
+    implementation 'commons-codec:commons-codec:1.15'
     implementation "io.getstream:avatarview-coil:1.0.7"
 
-    def room_version = "2.5.0-alpha01"
-    implementation "androidx.room:room-runtime:2.4.3"
-    annotationProcessor "androidx.room:room-compiler:2.4.3"}
+    implementation "androidx.room:room-runtime:2.5.0-rc01"
+    annotationProcessor "androidx.room:room-compiler:2.5.0-rc01"
+
+    def paging_version = "3.1.1"
+
+    implementation "androidx.paging:paging-runtime:$paging_version"
+
+    // alternatively - without Android dependencies for tests
+    testImplementation "androidx.paging:paging-common:$paging_version"
+
+    // optional - RxJava2 support
+    implementation "androidx.paging:paging-rxjava2:$paging_version"
+
+    // optional - RxJava3 support
+    implementation "androidx.paging:paging-rxjava3:$paging_version"
+
+    // optional - Guava ListenableFuture support
+    implementation "androidx.paging:paging-guava:$paging_version"
+
+    // optional - Jetpack Compose integration
+    implementation "androidx.paging:paging-compose:1.0.0-alpha18"
+
+}

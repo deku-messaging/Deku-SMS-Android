@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -48,11 +49,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class SMSSendActivity extends AppCompatActivity {
-
-    // TODO: incoming message MessagesThread
-    // TODO: incoming message from notification
-    // TODO: incoming message from shared intent
-
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
     SingleMessageViewModel singleMessageViewModel;
     TextInputEditText smsTextView;
@@ -88,19 +84,25 @@ public class SMSSendActivity extends AppCompatActivity {
     BroadcastReceiver incomingDataBroadcastReceiver;
     BroadcastReceiver incomingBroadcastReceiver;
 
+    private void configureToolbars() {
+        toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+        setSupportActionBar(toolbar);
+        // Get a support ActionBar corresponding to this toolbar
+        ab = getSupportActionBar();
+        // Enable the Up button
+        ab.setDisplayHomeAsUpEnabled(true);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
-        toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
-        setSupportActionBar(toolbar);
 
-        // Get a support ActionBar corresponding to this toolbar
-        ab = getSupportActionBar();
+        configureToolbars();
+        handleIncomingBroadcast();
+        threadIdentificationLoader();
 
-        // Enable the Up button
-        ab.setDisplayHomeAsUpEnabled(true);
-
+        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext());
         smsTextView = findViewById(R.id.sms_text);
 
         linearLayoutManager = new LinearLayoutManager(this);
@@ -108,20 +110,30 @@ public class SMSSendActivity extends AppCompatActivity {
         linearLayoutManager.setReverseLayout(true);
 
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
+        singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+        singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
-        mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
+        singleMessageViewModel = new ViewModelProvider( this)
+                .get( SingleMessageViewModel.class);
+//        singleMessagesThreadRecyclerAdapter.setHasStableIds(true);
+
+//        singleMessageViewModel.getMessages(getApplicationContext(), threadId, getLifecycle()).observe(
+//                this,
+//                arrayListPagingData -> singleMessagesThreadRecyclerAdapter
+//                        .submitData(getLifecycle(), arrayListPagingData));
+
+        singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this, new Observer<List<SMS>>() {
             @Override
-            public void onChanged(String s) {
-                findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+            public void onChanged(List<SMS> smsList) {
+                Log.d(getLocalClassName(), "Paging data changed!");
+                singleMessagesThreadRecyclerAdapter.mDiffer.submitList(smsList);
             }
         });
 
-        handleIncomingBroadcast();
-        buildViewModels();
+        eventListeners();
+    }
 
-        singleMessageViewModel = new ViewModelProvider(this).get(
-                SingleMessageViewModel.class);
-
+    private void threadIdentificationLoader() {
         if(threadId.isEmpty()) {
             try {
                 getAddressAndThreadId();
@@ -130,40 +142,41 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         }
         Log.d(getLocalClassName(), "Fetching view model starting");
-        singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this,
-                new Observer<List<SMS>>() {
-                    @Override
-                    public void onChanged(List<SMS> smsList) {
-                        singleMessagesThreadRecyclerAdapter.submitList(smsList);
-                    }
-                });
+    }
 
+    private void eventListeners() {
+        if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
+            findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
+
+        mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+            }
+        });
+
+        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                int state = recyclerView.getScrollState();
+
+                final int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
+                        .findLastVisibleItemPosition();
+
+//                if(lastVisiblePos >= recyclerView.getAdapter().getItemCount() - 1) {
+                if(lastVisiblePos >= singleMessagesThreadRecyclerAdapter.getItemCount() - 1) {
+                    singleMessageViewModel.refresh();
+                    recyclerView.scrollToPosition(lastVisiblePos);
+                }
+            }
+        });
     }
 
     private void getAddressAndThreadId() throws InterruptedException {
         processForSharedIntent();
         getMessagesThreadId();
-    }
-
-    private void buildViewModels() {
-        Long focusId = getIntent().hasExtra(ID) ? Long.parseLong(getIntent().getStringExtra(ID)) : null;
-        String searchString = getIntent().hasExtra(SEARCH_STRING) ? getIntent().getStringExtra(SEARCH_STRING) : null;
-
-        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
-                this,
-                R.layout.messages_thread_received_layout,
-                R.layout.messages_thread_sent_layout,
-                R.layout.messages_thread_timestamp_layout,
-                focusId,
-                searchString,
-                singleMessagesThreadRecyclerView, toolbar);
-
-        singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
-        singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
-
-
-        if(mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
-            findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
     }
 
     private void updateMessagesToRead() {
@@ -310,8 +323,10 @@ public class SMSSendActivity extends AppCompatActivity {
         incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d(getLocalClassName(), "Broadcast received!");
-                singleMessageViewModel.informChanges(context);
+//                if(singleMessageViewModel.getLastUsedKey() == 0)
+//                    singleMessagesThreadRecyclerAdapter.refresh();
+
+                singleMessageViewModel.informNewItemChanges();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
         };
@@ -326,7 +341,6 @@ public class SMSSendActivity extends AppCompatActivity {
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
         registerReceiver(incomingDataBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
-
     }
 
     public void handleBroadcast() {
@@ -336,8 +350,10 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
                 long id = intent.getLongExtra(ID, -1);
+
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Broadcast received for sent: " + id);
+
                 switch(getResultCode()) {
                     case Activity.RESULT_OK:
                         try {
@@ -366,7 +382,10 @@ public class SMSSendActivity extends AppCompatActivity {
                         }
                 }
 
-                singleMessageViewModel.informChanges(getApplicationContext(), id);
+//                if(singleMessageViewModel.getLastUsedKey() == 0)
+//                    singleMessagesThreadRecyclerAdapter.refresh();
+
+                singleMessageViewModel.informNewItemChanges();
                 unregisterReceiver(this);
             }
         };
@@ -383,7 +402,10 @@ public class SMSSendActivity extends AppCompatActivity {
                         Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
                 }
 
-                singleMessageViewModel.informChanges(getApplicationContext(), id);
+//                if(singleMessageViewModel.getLastUsedKey() == 0)
+//                    singleMessagesThreadRecyclerAdapter.refresh();
+
+                singleMessageViewModel.informNewItemChanges();
                 unregisterReceiver(this);
             }
         };
@@ -401,18 +423,18 @@ public class SMSSendActivity extends AppCompatActivity {
             notificationManager.cancel(Integer.parseInt(threadId));
     }
 
-    public PendingIntent[] getPendingIntents(long messageId) {
+    public static PendingIntent[] getPendingIntents(Context context, long messageId) {
         Intent sentIntent = new Intent(SMS_SENT_INTENT);
         sentIntent.putExtra(SMSSendActivity.ID, messageId);
 
         Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
         deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
 
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)), sentIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)), deliveredIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
 
@@ -425,7 +447,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
         try {
             long messageId = Helpers.generateRandomNumber();
-            PendingIntent[] pendingIntents = getPendingIntents(messageId);
+
+            PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
             handleBroadcast();
 
@@ -433,16 +456,13 @@ public class SMSSendActivity extends AppCompatActivity {
                     pendingIntents[0], pendingIntents[1], messageId);
 
             resetSmsTextView();
-            if(!tmpThreadId.equals("null") && !tmpThreadId.isEmpty()) {
+
+            if(threadId == null || threadId.isEmpty()) {
                 threadId = tmpThreadId;
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Refreshing with threadId: " + threadId);
-                singleMessageViewModel.informChanges(getApplicationContext(), threadId);
+                singleMessageViewModel.informNewItemChanges(threadId);
             }
             else {
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Refreshing with messageId: " + messageId);
-                singleMessageViewModel.informChanges(getApplicationContext(), messageId);
+                singleMessageViewModel.informNewItemChanges();
             }
         }
 
@@ -534,5 +554,13 @@ public class SMSSendActivity extends AppCompatActivity {
                 finish();
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(incomingBroadcastReceiver);
+        unregisterReceiver(incomingDataBroadcastReceiver);
+
+        super.onDestroy();
     }
 }
