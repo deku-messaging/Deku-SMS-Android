@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+<!--    <style name="Theme.AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">-->
     <style name="Theme.AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:statusBarColor">
             @android:color/transparent
@@ -9,7 +10,7 @@
             @android:color/transparent
         </item>
 
-        <item name="colorPrimary">@color/read_text</item>
+        <item name="colorPrimary">@color/black</item>
     </style>
 
 </resources>

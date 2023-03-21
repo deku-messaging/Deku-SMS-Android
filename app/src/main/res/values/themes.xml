@@ -22,4 +22,5 @@
     <style name="Theme.receivedConstraints" parent="Theme.main">
         <item name="android:backgroundTint">@color/blue</item>
     </style>
+
 </resources>
