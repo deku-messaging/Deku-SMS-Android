@@ -216,16 +216,16 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             holder.routingURLText.setVisibility(View.GONE);
         }
 
-        // TODO: change color of unread messages in thread
-        if(SMSHandler.hasUnreadMessages(context, smsThreadId)) {
-            // Make bold
-            holder.address.setTypeface(null, Typeface.BOLD);
-            holder.snippet.setTypeface(null, Typeface.BOLD);
-
-            holder.address.setTextColor(context.getResources().getColor(R.color.read_text));
-            holder.snippet.setTextColor(context.getResources().getColor(R.color.read_text));
-            holder.date.setTextColor(context.getResources().getColor(R.color.read_text));
-        }
+//        // TODO: change color of unread messages in thread
+//        if(SMSHandler.hasUnreadMessages(context, smsThreadId)) {
+//            // Make bold
+//            holder.address.setTypeface(null, Typeface.BOLD);
+//            holder.snippet.setTypeface(null, Typeface.BOLD);
+//
+//            holder.address.setTextColor(context.getResources().getColor(R.color.read_text));
+//            holder.snippet.setTextColor(context.getResources().getColor(R.color.read_text));
+//            holder.date.setTextColor(context.getResources().getColor(R.color.read_text));
+//        }
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override

@@ -2,27 +2,26 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:theme="@style/Theme.main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MessagesThreadsActivity">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/search_messages_text_clickable"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:background="@drawable/compose_message_drawable"
         android:fontFamily="sans-serif-thin"
         android:theme="@style/Theme.receivedConstraints"
-        app:boxStrokeColor="@null"
+        app:boxBackgroundMode="none"
         app:endIconDrawable="@drawable/ic_baseline_more_vert_24"
         app:endIconMode="custom"
         app:helperTextEnabled="true"
+        app:hintEnabled="false"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:startIconDrawable="@drawable/ic_round_view_headline_24">
@@ -42,7 +41,6 @@
         android:id="@+id/messages_threads_recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -56,11 +54,9 @@
         android:layout_marginBottom="28dp"
         android:clickable="true"
         android:onClick="onRouterClick"
-        app:backgroundTint="#004d61"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_outline_router_24"
-        app:tint="#b4ebff" />
+        app:srcCompat="@drawable/ic_outline_router_24"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/compose_new_message_btn2"
@@ -70,10 +66,8 @@
         android:layout_marginBottom="8dp"
         android:clickable="true"
         android:onClick="onNewMessageClick"
-        app:backgroundTint="#004d61"
         app:layout_constraintBottom_toTopOf="@+id/router_messages_btn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_outline_message_24"
-        app:tint="#b4ebff" />
+        app:srcCompat="@drawable/ic_outline_message_24"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,23 +1,11 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.main" parent="Theme.AppCompat.NoActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/black</item>
-        <item name="colorPrimaryVariant">@color/black</item>
-        <item name="colorOnPrimary">@color/black</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
-        <!-- Customize your theme here. -->
-<!--        <item name="android:background">@color/theme_dark</item>-->
+    <style name="Theme.main" parent="@style/Theme.AppTheme">
     </style>
 
     <style name="Theme.sentConstraints" parent="Theme.main">
         <item name="android:backgroundTint">@color/sent_blue</item>
         <item name="android:textColor">@color/black</item>
-        <!-- Secondary brand color. -->
     </style>
 
     <style name="Theme.receivedConstraints" parent="Theme.main">

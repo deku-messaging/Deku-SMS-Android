@@ -15,4 +15,6 @@
     <color name="blue">#A2C4D6</color>
     <color name="light_blue"> #FF219BCC </color>
     <color name="sent_blue">#A2C4D6</color>
+
+    <color name="primary_text_color">@color/black</color>
 </resources>

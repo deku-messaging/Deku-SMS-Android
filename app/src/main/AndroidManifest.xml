@@ -12,15 +12,13 @@
     <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
 
     <application
-        android:allowBackup="false"
-        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:shell="true"
         android:enabled="true"
-        android:theme="@style/Theme.AppTheme">
+        android:usesCleartextTraffic="false"
+        android:theme="@style/Theme.main">
         <activity
             android:name=".ImageViewActivity"
             android:parentActivityName=".SMSSendActivity"

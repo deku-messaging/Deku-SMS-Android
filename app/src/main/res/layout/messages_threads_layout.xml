@@ -2,11 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-
+    android:theme="@style/Theme.main"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?attr/selectableItemBackground"
-
     android:id="@+id/messages_threads_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -31,14 +29,6 @@
             app:avatarViewInitialsTextSize="20sp"
             app:avatarViewInitialsTextStyle="normal"
             app:srcCompat="@drawable/round_person_24" />
-
-        <!--        <de.hdodenhof.circleimageview.CircleImageView-->
-        <!--            android:id="@+id/messages_threads_contact_photo"-->
-        <!--            android:layout_width="wrap_content"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:background="@null"-->
-        <!--            android:scaleType="centerCrop"-->
-        <!--            android:src="@drawable/ic_round_person_24" />-->
     </FrameLayout>
 
     <TextView
@@ -49,8 +39,8 @@
         android:layout_marginTop="16dp"
         android:fontFamily="sans-serif"
         android:text="TextView"
-        android:textColor="#e1e2e4"
         android:textSize="18sp"
+        android:theme="@style/Theme.thread_read"
         app:layout_constraintStart_toEndOf="@+id/messages_threads_contact_photo_id"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -63,7 +53,7 @@
         android:fontFamily="sans-serif"
         android:maxLines="3"
         android:text="TextView"
-        android:textColor="#84898e"
+        android:theme="@style/Theme.thread_read"
         app:layout_constraintEnd_toStartOf="@+id/messages_route_state"
         app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
         app:layout_constraintTop_toBottomOf="@+id/messages_thread_address_text" />
@@ -75,7 +65,6 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:fontFamily="sans-serif-medium"
-        android:textColor="#e1e2e4"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -85,7 +74,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:textColor="#e1e2e4"
         android:textSize="11dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
@@ -108,7 +96,6 @@
         android:layout_marginTop="3dp"
         android:layout_marginBottom="3dp"
         android:text="TextView"
-        android:textColor="#84898f"
         android:textSize="11dp"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
