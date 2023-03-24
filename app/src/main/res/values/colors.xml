@@ -17,4 +17,7 @@
     <color name="sent_blue">#A2C4D6</color>
 
     <color name="primary_text_color">@color/black</color>
+    <color name="logo_primary">#061892</color>
+    <color name="logo_secondary">#9bbef1</color>
+    <color name="primary_background_color">@color/white</color>
 </resources>
