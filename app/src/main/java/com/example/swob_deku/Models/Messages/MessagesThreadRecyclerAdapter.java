@@ -122,15 +122,16 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
        this.renderLayout = renderLayout;
     }
 
-    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch, String searchString) {
+    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch,
+                                         String searchString) {
         this.context = context;
         this.renderLayout = renderLayout;
         this.isSearch = isSearch;
         this.searchString = searchString;
     }
 
-    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch, String searchString,
-                                         RouterActivity routerActivity) {
+    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch,
+                                         String searchString, RouterActivity routerActivity) {
         this.context = context;
         this.renderLayout = renderLayout;
         this.isSearch = isSearch;
@@ -142,7 +143,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     @NonNull
     @Override
-    public MessagesThreadRecyclerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public MessagesThreadRecyclerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
+                                                                       int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(this.renderLayout, parent, false);
         return new MessagesThreadRecyclerAdapter.ViewHolder(view);
@@ -219,8 +221,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 //        if(SMSHandler.hasUnreadMessages(context, smsThreadId)) {
         if(sms.isRead() == 0) {
             holder.contactPhoto.setIndicatorEnabled(true);
-            holder.address.setTypeface(Typeface.DEFAULT_BOLD);
-            holder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
+//            holder.address.setTypeface(Typeface.DEFAULT_BOLD);
+//            holder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
         }
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
