@@ -28,24 +28,29 @@ import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
+import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SMSSendActivity extends AppCompatActivity {
@@ -170,6 +175,14 @@ public class SMSSendActivity extends AppCompatActivity {
                     singleMessageViewModel.refresh();
                     recyclerView.scrollToPosition(lastVisiblePos);
                 }
+            }
+        });
+
+        findViewById(R.id.sms_send_button).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                onLongClickSend(v);
+                return true;
             }
         });
     }
@@ -562,5 +575,30 @@ public class SMSSendActivity extends AppCompatActivity {
         unregisterReceiver(incomingDataBroadcastReceiver);
 
         super.onDestroy();
+    }
+
+    public void onLongClickSend(View view) {
+        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
+
+        TextView simcard1 = findViewById(R.id.simcard_select_operator_1_name);
+        TextView simcard2 = findViewById(R.id.simcard_select_operator_2_name);
+
+        ImageButton simcard1Img = findViewById(R.id.simcard_select_operator_1);
+        ImageButton simcard2Img = findViewById(R.id.simcard_select_operator_2);
+
+        ArrayList<TextView> views = new ArrayList();
+        views.add(simcard1);
+        views.add(simcard2);
+
+        ArrayList<ImageButton> buttons = new ArrayList();
+        buttons.add(simcard1Img);
+        buttons.add(simcard2Img);
+
+        for(int i=0;i<simcards.size(); ++i) {
+            CharSequence carrierName = simcards.get(i).getCarrierName();
+//            CharSequence displayName = simcards.get(i).getDisplayName();
+            buttons.get(i).setImageBitmap(simcards.get(i).createIconBitmap(getApplicationContext()));
+            views.get(i).setText(carrierName);
+        }
     }
 }

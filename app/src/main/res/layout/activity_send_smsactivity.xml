@@ -138,9 +138,56 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#6D393232"
+                app:layout_constraintBottom_toBottomOf="@+id/constraintLayout2"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageButton
+                    android:id="@+id/simcard_select_operator_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="18dp"
+                    android:layout_marginBottom="32dp"
+                    android:background="@android:color/transparent"
+                    app:layout_constraintBottom_toTopOf="@+id/simcard_select_operator_2"
+                    app:layout_constraintEnd_toEndOf="parent"/>
+
+                <ImageButton
+                    android:id="@+id/simcard_select_operator_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="19dp"
+                    android:layout_marginBottom="32dp"
+                    android:background="@android:color/transparent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"/>
+
+                <TextView
+                    android:id="@+id/simcard_select_operator_1_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="14dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/simcard_select_operator_1"
+                    app:layout_constraintEnd_toStartOf="@+id/simcard_select_operator_1" />
+
+                <TextView
+                    android:id="@+id/simcard_select_operator_2_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="37dp"
+                    android:layout_marginEnd="13dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/simcard_select_operator_2"
+                    app:layout_constraintEnd_toStartOf="@+id/simcard_select_operator_2"
+                    app:layout_constraintTop_toBottomOf="@+id/simcard_select_operator_1_name" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

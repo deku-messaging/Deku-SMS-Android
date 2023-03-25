@@ -30,7 +30,6 @@
             android:id="@+id/recent_search_edittext_clickable"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clickable="true"
             android:cursorVisible="false"
             android:focusableInTouchMode="true"
             android:hint="@string/search_messages_text"
