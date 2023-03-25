@@ -19,5 +19,8 @@
     <color name="primary_text_color">@color/black</color>
     <color name="logo_primary">#061892</color>
     <color name="logo_secondary">#9bbef1</color>
+    <color name="primary_background_color_material_dark">#121212</color>
     <color name="primary_background_color">@color/white</color>
+    <color name="primary_background_color_transparent">#FFFFFF</color>
+    <color name="primary_background_color_transparent_secondary">#D2FFFFFF</color>
 </resources>

@@ -600,5 +600,7 @@ public class SMSSendActivity extends AppCompatActivity {
             buttons.get(i).setImageBitmap(simcards.get(i).createIconBitmap(getApplicationContext()));
             views.get(i).setText(carrierName);
         }
+
+        findViewById(R.id.simcard_select_constraint).setVisibility(View.VISIBLE);
     }
 }
