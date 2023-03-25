@@ -38,6 +38,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.window.OnBackInvokedDispatcher;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
@@ -58,6 +59,8 @@ public class SMSSendActivity extends AppCompatActivity {
     SingleMessageViewModel singleMessageViewModel;
     TextInputEditText smsTextView;
     TextInputLayout smsTextInputLayout;
+
+    ConstraintLayout multiSimcardConstraint;
 
     MutableLiveData<String> mutableLiveDataComposeMessage = new MutableLiveData<>();
 
@@ -109,6 +112,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext());
         smsTextView = findViewById(R.id.sms_text);
+        multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
 
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setStackFromEnd(false);
@@ -183,6 +187,14 @@ public class SMSSendActivity extends AppCompatActivity {
             public boolean onLongClick(View v) {
                 onLongClickSend(v);
                 return true;
+            }
+        });
+
+        multiSimcardConstraint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(v.getVisibility() == View.VISIBLE)
+                    v.setVisibility(View.INVISIBLE);
             }
         });
     }
@@ -537,9 +549,15 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        startActivity(new Intent(this, MessagesThreadsActivity.class));
-        finish();
-        super.onBackPressed();
+        if(findViewById(R.id.simcard_select_constraint).getVisibility() == View.VISIBLE)
+            findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
+        else {
+            startActivity(new Intent(this, MessagesThreadsActivity.class));
+
+            finish();
+
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -607,10 +625,11 @@ public class SMSSendActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     sendSMSMessage(subscriptionId);
+                    findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
                 }
             });
         }
 
-        findViewById(R.id.simcard_select_constraint).setVisibility(View.VISIBLE);
+        multiSimcardConstraint.setVisibility(View.VISIBLE);
     }
 }
