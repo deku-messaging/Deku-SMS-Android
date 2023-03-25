@@ -53,11 +53,13 @@
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".MessagesThreadsActivity"
+            android:launchMode="singleInstance"
             android:exported="false" />
         <activity
             android:name=".SMSSendActivity"
             android:excludeFromRecents="true"
             android:exported="true"
+            android:launchMode="singleInstance"
             android:parentActivityName=".MessagesThreadsActivity"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

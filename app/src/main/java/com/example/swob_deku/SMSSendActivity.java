@@ -553,10 +553,8 @@ public class SMSSendActivity extends AppCompatActivity {
             findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
         else {
             startActivity(new Intent(this, MessagesThreadsActivity.class));
-
-            finish();
-
             super.onBackPressed();
+            finish();
         }
     }
 
