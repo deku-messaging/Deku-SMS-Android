@@ -455,6 +455,10 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     public void sendTextMessage(View view) {
+        sendSMSMessage(null);
+    }
+
+    private void sendSMSMessage(Integer subscriptionId) {
         // TODO: Don't let sending happen if message box is empty
         String text = smsTextView.getText().toString();
 
@@ -466,7 +470,7 @@ public class SMSSendActivity extends AppCompatActivity {
             handleBroadcast();
 
             String tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
-                    pendingIntents[0], pendingIntents[1], messageId);
+                    pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
 
             resetSmsTextView();
 
@@ -487,7 +491,6 @@ public class SMSSendActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
         }
-
     }
 
     private void resetSmsTextView() {
@@ -596,9 +599,16 @@ public class SMSSendActivity extends AppCompatActivity {
 
         for(int i=0;i<simcards.size(); ++i) {
             CharSequence carrierName = simcards.get(i).getCarrierName();
-//            CharSequence displayName = simcards.get(i).getDisplayName();
-            buttons.get(i).setImageBitmap(simcards.get(i).createIconBitmap(getApplicationContext()));
             views.get(i).setText(carrierName);
+            buttons.get(i).setImageBitmap(simcards.get(i).createIconBitmap(getApplicationContext()));
+
+            final int subscriptionId = simcards.get(i).getSubscriptionId();
+            buttons.get(i).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    sendSMSMessage(subscriptionId);
+                }
+            });
         }
 
         findViewById(R.id.simcard_select_constraint).setVisibility(View.VISIBLE);

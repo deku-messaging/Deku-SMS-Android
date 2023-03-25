@@ -30,6 +30,7 @@ import android.widget.TextView;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Images.ImageHandler;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
@@ -250,11 +251,12 @@ public class ImageViewActivity extends AppCompatActivity {
         PendingIntent[] pendingIntents = SMSSendActivity.getPendingIntents(getApplicationContext(),
                 messageId);
 
+        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
         SMSHandler.sendTextSMS(getApplicationContext(), address,
                 ImageHandler.IMAGE_HEADER + Base64.encodeToString(compressedBytes, Base64.DEFAULT),
                 pendingIntents[0],
                 pendingIntents[1],
-                messageId);
+                messageId, subscriptionId);
 
         finish();
     }

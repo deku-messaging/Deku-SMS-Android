@@ -28,6 +28,7 @@ import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.SIMHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -611,7 +612,8 @@ public class SMSHandler {
     }
 
 
-    public static String registerPendingMessage(Context context, String destinationAddress, String text, long messageId) {
+    public static String registerPendingMessage(Context context, String destinationAddress,
+                                                String text, long messageId, int subscriptionId) {
         if(BuildConfig.DEBUG)
             Log.d(SMSHandler.class.getName(), "sending message id: " + messageId);
 
@@ -622,6 +624,7 @@ public class SMSHandler {
         contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
         contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
+        contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
 
@@ -691,9 +694,15 @@ public class SMSHandler {
     }
 
     public static String sendTextSMS(Context context, String destinationAddress, String text,
-                                     PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
+                                     PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId,
+                                     Integer subscriptionId) {
+        if(subscriptionId == null)
+            subscriptionId = SIMHandler.getDefaultSimSubscription(context);
+
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+
+        smsManager = smsManager.createForSubscriptionId(subscriptionId);
 
         String threadId = "";
         try {
@@ -702,7 +711,9 @@ public class SMSHandler {
 
             if(messageId != -1) {
                 try {
-                    threadId = registerPendingMessage(context, destinationAddress, text, messageId);
+                    threadId = registerPendingMessage(context, destinationAddress, text, messageId,
+                            subscriptionId);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

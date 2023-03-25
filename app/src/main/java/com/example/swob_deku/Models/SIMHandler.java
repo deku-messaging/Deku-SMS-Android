@@ -70,4 +70,13 @@ public class SIMHandler {
                 return "Unknown";
         }
     }
+    public static int getDefaultSimSubscription(Context context) {
+//        SubscriptionManager subscriptionManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+//        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
+        int defaultSmsSubscriptionId = SubscriptionManager.getDefaultSmsSubscriptionId();
+        SubscriptionInfo subscriptionInfo = SubscriptionManager.from(context).getActiveSubscriptionInfo(defaultSmsSubscriptionId);
+
+        return subscriptionInfo.getSubscriptionId();
+    }
 }
