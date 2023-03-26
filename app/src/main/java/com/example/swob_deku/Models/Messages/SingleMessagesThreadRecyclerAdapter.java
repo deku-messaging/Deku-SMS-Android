@@ -50,6 +50,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     String highlightedText;
     View highlightedView;
 
+    private int selectedItem = RecyclerView.NO_POSITION;
+
     public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
 
 
@@ -96,6 +98,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 //        final SMS sms = (SMS) snapshot().get(position);
+        int finalPosition = position;
         final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
@@ -135,6 +138,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 }
             });
 
+            messageReceivedViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    selectedItem = finalPosition;
+                    return true;
+                }
+            });
+
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
@@ -159,6 +170,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             statusMessage = "• " + statusMessage;
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
+            messageSentViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    selectedItem = finalPosition;
+                    return true;
+                }
+            });
         }
     }
 
@@ -189,12 +207,15 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
          TextView sentMessageStatus;
          TextView date;
          TextView timestamp;
+
+         ConstraintLayout constraintLayout;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_sent_text);
             sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
             date = itemView.findViewById(R.id.message_thread_sent_date_text);
             timestamp = itemView.findViewById(R.id.sent_message_date_segment);
+            constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
         }
     }
 

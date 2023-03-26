@@ -175,9 +175,12 @@ public class SMSSendActivity extends AppCompatActivity {
                         .findLastVisibleItemPosition();
 
 //                if(lastVisiblePos >= recyclerView.getAdapter().getItemCount() - 1) {
-                if(lastVisiblePos >= singleMessagesThreadRecyclerAdapter.getItemCount() - 1) {
+                int scrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
+                if(lastVisiblePos >= scrollPosition) {
                     singleMessageViewModel.refresh();
-                    recyclerView.scrollToPosition(lastVisiblePos);
+                    int itemCount = recyclerView.getAdapter().getItemCount();
+                    if(itemCount > scrollPosition + 1)
+                        recyclerView.scrollToPosition(lastVisiblePos);
                 }
             }
         });

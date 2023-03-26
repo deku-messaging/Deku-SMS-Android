@@ -186,7 +186,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             if(!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
                 address = addressInPhone;
                 holder.contactPhoto.setAvatarInitials(address.substring(0, 1));
-//                holder.contactPhoto.set
             }
         }
 

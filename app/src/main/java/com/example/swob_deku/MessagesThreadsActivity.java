@@ -132,11 +132,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
+
+        enableSwipeAction();
     }
 
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
+    private void enableSwipeAction() {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
