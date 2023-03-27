@@ -1,6 +1,7 @@
 <resources>
     <!-- Base application theme. -->
     <style name="Theme.main" parent="@style/Theme.AppTheme">
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
     <style name="Theme.sentConstraints" parent="Theme.main">
@@ -11,4 +12,5 @@
     <style name="Theme.receivedConstraints" parent="Theme.main">
         <item name="android:backgroundTint">@color/text_box</item>
     </style>
+
 </resources>
