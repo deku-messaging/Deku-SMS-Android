@@ -211,9 +211,9 @@ public class SMSSendActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+               int updatedCount = SMSHandler.updateThreadMessagesThread(getApplicationContext(), threadId);
                 if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Updating read for threadID: " + threadId);
-               SMSHandler.updateThreadMessagesThread(getApplicationContext(), threadId);
+                    Log.d(getLocalClassName(), "Updating read for threadID: " + threadId + "->"+ updatedCount);
             }
         }).start();
     }
@@ -544,7 +544,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }
 
         improveMessagingUX();
-//        updateMessagesToRead();
+        updateMessagesToRead();
 
         ab.setTitle(contactName);
         Log.d(getLocalClassName(), "Fetching Resuming...\nThreadID: " + this.threadId + "\nAddress:" + this.address);
@@ -555,9 +555,7 @@ public class SMSSendActivity extends AppCompatActivity {
         if(findViewById(R.id.simcard_select_constraint).getVisibility() == View.VISIBLE)
             findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
         else {
-            startActivity(new Intent(this, MessagesThreadsActivity.class));
             super.onBackPressed();
-            finish();
         }
     }
 

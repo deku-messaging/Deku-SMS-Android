@@ -839,7 +839,7 @@ public class SMSHandler {
         }
     }
 
-    public static void updateThreadMessagesThread(Context context, String threadId) {
+    public static int updateThreadMessagesThread(Context context, String threadId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");
         try {
@@ -851,10 +851,13 @@ public class SMSHandler {
 
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
+            return updateCount;
         }
         catch(Exception e ) {
             e.printStackTrace();
         }
+
+        return -1;
     }
 
     public static void updateMessage(Context context, String messageId, String body) {

@@ -134,6 +134,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 });
 
         enableSwipeAction();
+        Log.d(getLocalClassName(), "Threading main activity");
     }
 
     private void enableSwipeAction() {
@@ -246,8 +247,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+//        findViewById(R.id.messages_threads_recycler_view).requestFocus();
         super.onResume();
-        findViewById(R.id.messages_threads_recycler_view).requestFocus();
         messagesThreadViewModel.informChanges(getApplicationContext());
     }
 

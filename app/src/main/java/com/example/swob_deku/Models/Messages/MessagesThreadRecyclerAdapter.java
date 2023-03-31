@@ -67,6 +67,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     WorkManager workManager;
     LiveData<List<WorkInfo>> workers;
 
+    private int UNREAD_VIEW_TYPE = 1;
+
     private String getSMSFromWorkInfo(WorkInfo workInfo) {
         String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
         String messageId = "";
@@ -147,7 +149,13 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                                                                        int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(this.renderLayout, parent, false);
-        return new MessagesThreadRecyclerAdapter.ViewHolder(view);
+
+        MessagesThreadRecyclerAdapter.ViewHolder viewHolder =  new MessagesThreadRecyclerAdapter.ViewHolder(view);
+        if(viewType == UNREAD_VIEW_TYPE) {
+            viewHolder.address.setTypeface(Typeface.DEFAULT_BOLD);
+            viewHolder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
+        }
+        return viewHolder;
     }
 
     public boolean checkPermissionToReadContacts() {
@@ -156,6 +164,16 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         return (check == PackageManager.PERMISSION_GRANTED);
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        SMS sms = mDiffer.getCurrentList().get(position);
+        if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+//            holder.address.setTypeface(Typeface.DEFAULT_BOLD);
+//            holder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
+            return UNREAD_VIEW_TYPE;
+        }
+        return super.getItemViewType(position);
+    }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
@@ -217,12 +235,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             holder.routingURLText.setVisibility(View.GONE);
         }
 
-//        if(SMSHandler.hasUnreadMessages(context, smsThreadId)) {
-        if(sms.isRead() == 0) {
-            holder.contactPhoto.setIndicatorEnabled(true);
-//            holder.address.setTypeface(Typeface.DEFAULT_BOLD);
-//            holder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
-        }
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
@@ -290,8 +302,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             new DiffUtil.ItemCallback<SMS>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
-//                    return oldItem.id.equals(newItem.id) &&
-//                            oldItem.isRead().equals(newItem.isRead());
                     return oldItem.id.equals(newItem.id);
                 }
 
