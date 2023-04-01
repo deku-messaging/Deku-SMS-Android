@@ -143,6 +143,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         final RecyclerView.ViewHolder[] currentViewHolder = {null};
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             final int defaultItemBackgroundDrawable = R.drawable.messages_default_drawable;
+            private Drawable deleteIcon;
+            private int intrinsicWidth;
+            private int intrinsicHeight;
 
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
@@ -172,7 +175,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 }
 
                 if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
-//                    currentViewHolder[0].itemView.setBackgroundColor(Color.RED);
                     currentViewHolder[0].itemView.setBackgroundResource(R.drawable.messages_default_drawable);
                 }
             }
@@ -184,26 +186,53 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
 
-                // Change background color
                 // Change background color of swiped item
+//                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+//                    // Calculate the left and right positions of the swiped item
+//                    View itemView = viewHolder.itemView;
+//                    int itemHeight = itemView.getHeight();
+//                    int itemWidth = itemView.getWidth();
+//                    int itemLeft = itemView.getLeft();
+//                    int itemRight = itemView.getRight();
+//
+//                    Paint p = new Paint();
+//                    p.setColor(getColor(R.color.text_box));
+//
+//                    c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
+//                }
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    // Calculate the left and right positions of the swiped item
+                    if (deleteIcon == null) {
+                        deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.round_delete_24);
+                        intrinsicWidth = deleteIcon.getIntrinsicWidth();
+                        intrinsicHeight = deleteIcon.getIntrinsicHeight();
+                    }
+
+                    float iconMargin = (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
+                    float iconTop = viewHolder.itemView.getTop() + (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
+                    float iconBottom = iconTop + intrinsicHeight;
+                    float iconLeft, iconRight;
+
+                    if (dX > 0) {
+                        iconLeft = viewHolder.itemView.getLeft() + iconMargin;
+                        iconRight = viewHolder.itemView.getLeft() + iconMargin + intrinsicWidth;
+                    } else {
+                        iconRight = viewHolder.itemView.getRight() - iconMargin;
+                        iconLeft = viewHolder.itemView.getRight() - iconMargin - intrinsicWidth;
+                    }
+
+                    deleteIcon.setBounds((int) iconLeft, (int) iconTop, (int) iconRight, (int) iconBottom);
+
                     View itemView = viewHolder.itemView;
                     int itemHeight = itemView.getHeight();
                     int itemWidth = itemView.getWidth();
                     int itemLeft = itemView.getLeft();
                     int itemRight = itemView.getRight();
 
-                    // Set the color of the rectangle to draw
                     Paint p = new Paint();
                     p.setColor(getColor(R.color.text_box));
 
-//                    currentViewHolder[0] = viewHolder;
-//                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.sent_messages_drawable);
-
-                    // change viewholder color
-                    // Draw the colored rectangle behind the item
                     c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
+                    deleteIcon.draw(c);
                 }
             }
 
