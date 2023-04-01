@@ -114,6 +114,21 @@ public class SMSHandler {
         }
     }
 
+    public static void deleteThread(Context context, String threadId) {
+        try {
+            int updateCount = context.getContentResolver().delete(
+                    SMS_CONTENT_URI,
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                    new String[]{threadId});
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
     public static ArrayList<byte[]> divideMessage(byte[] bytes) {
         final int FIRST_DIVIDE_CONST = 130;
         final int DIVIDE_CONST = 130;

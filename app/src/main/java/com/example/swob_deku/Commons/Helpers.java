@@ -59,6 +59,7 @@ public class Helpers {
     }
 
     public static String formatDate(Context context, long date) {
+        // TODO: if yesterday - should show yesterday instead
         CharSequence formattedDate = new StringBuffer();
 
         if (DateUtils.isToday(date)) {
@@ -67,7 +68,7 @@ public class Helpers {
         }
         else {
             formattedDate = DateUtils.getRelativeDateTimeString(context, date,
-                    DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS,
+                    DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS,
                     DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_RELATIVE);
         }
 

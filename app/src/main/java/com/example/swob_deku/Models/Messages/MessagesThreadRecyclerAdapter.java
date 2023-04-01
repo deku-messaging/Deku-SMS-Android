@@ -180,6 +180,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
         final String smsThreadId = sms.getThreadId();
+        holder.id = smsThreadId;
 
         if(isSearch && searchString != null && !searchString.isEmpty()) {
             Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
@@ -266,7 +267,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        String id;
+        public String id;
         TextView snippet;
         TextView address;
         TextView date;

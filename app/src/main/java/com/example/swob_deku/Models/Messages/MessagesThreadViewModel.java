@@ -35,20 +35,25 @@ public class MessagesThreadViewModel extends ViewModel {
 
     private void loadSMSThreads(Context context) {
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
-        if(cursor.moveToFirst()) {
-            List<SMS> smsList = new ArrayList<>();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    do {
-                        SMS sms = new SMS(cursor);
-                        smsList.add(sms);
-                    } while(cursor.moveToNext());
+        List<SMS> smsList = new ArrayList<>();
 
-                    messagesList.postValue(smsList);
-                    cursor.close();
-                }
-            }).start();
+        if(cursor.getCount() > 0) {
+            if (cursor.moveToFirst()) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        do {
+                            SMS sms = new SMS(cursor);
+                            smsList.add(sms);
+                        } while (cursor.moveToNext());
+                        messagesList.postValue(smsList);
+                        cursor.close();
+                    }
+                }).start();
+            }
+        }
+        else {
+            messagesList.setValue(smsList);
         }
     }
 }

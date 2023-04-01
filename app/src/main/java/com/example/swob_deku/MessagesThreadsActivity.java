@@ -141,6 +141,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     private void enableSwipeAction() {
 
         final RecyclerView.ViewHolder[] currentViewHolder = {null};
+//        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             final int defaultItemBackgroundDrawable = R.drawable.messages_default_drawable;
             private Drawable deleteIcon;
@@ -154,8 +155,15 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                messagesThreadRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
+                MessagesThreadRecyclerAdapter.ViewHolder itemView = (MessagesThreadRecyclerAdapter.ViewHolder) viewHolder;
+                String threadId = itemView.id;
 
+                try {
+                    SMSHandler.deleteThread(getApplicationContext(), threadId);
+                    messagesThreadViewModel.informChanges(getApplicationContext());
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -175,6 +183,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 }
 
                 if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
+                    Log.d(getLocalClassName(), "Yep idle things...");
                     currentViewHolder[0].itemView.setBackgroundResource(R.drawable.messages_default_drawable);
                 }
             }
