@@ -20,6 +20,7 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
@@ -138,7 +139,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     private void enableSwipeAction() {
+
+        final RecyclerView.ViewHolder[] currentViewHolder = {null};
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            final int defaultItemBackgroundDrawable = R.drawable.messages_default_drawable;
+
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
@@ -149,40 +154,65 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 messagesThreadRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
 
             }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return true; // Enable long-press drag functionality
+            }
+
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                super.onSelectedChanged(viewHolder, actionState);
+
+                if(viewHolder != null)
+                    currentViewHolder[0] = viewHolder;
+
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.sent_messages_drawable);
+                }
+
+                if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
+//                    currentViewHolder[0].itemView.setBackgroundColor(Color.RED);
+                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.messages_default_drawable);
+                }
+            }
+
             @Override
             public void onChildDraw(Canvas c, RecyclerView recyclerView,
                                     RecyclerView.ViewHolder viewHolder, float dX, float dY,
                                     int actionState, boolean isCurrentlyActive) {
 
-                final ColorDrawable background = new ColorDrawable(getResources().getColor(R.color.primary_text_color, getTheme()));
-                background.setBounds(viewHolder.itemView.getLeft(), viewHolder.itemView.getTop(),
-                        viewHolder.itemView.getRight(), viewHolder.itemView.getBottom());
-                background.draw(c);
-
-
-                // draw delete icon
-                Drawable deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_delete_24);
-                int itemHeight = viewHolder.itemView.getBottom() - viewHolder.itemView.getTop();
-                int intrinsicWidth = deleteIcon.getIntrinsicWidth();
-                int intrinsicHeight = deleteIcon.getIntrinsicHeight();
-
-
-                int xMarkMargin;
-                xMarkMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-                int xMarkLeft = viewHolder.itemView.getRight() - xMarkMargin - intrinsicWidth;
-                int xMarkRight = viewHolder.itemView.getRight() - xMarkMargin;
-
-                int xMarkTop = viewHolder.itemView.getTop() + (itemHeight - intrinsicHeight) / 2;
-                int xMarkBottom = xMarkTop + intrinsicHeight;
-
-
-                deleteIcon.setBounds(xMarkLeft, xMarkTop + 16, xMarkRight, xMarkBottom);
-                deleteIcon.draw(c);
-
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+
+                // Change background color
+                // Change background color of swiped item
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    // Calculate the left and right positions of the swiped item
+                    View itemView = viewHolder.itemView;
+                    int itemHeight = itemView.getHeight();
+                    int itemWidth = itemView.getWidth();
+                    int itemLeft = itemView.getLeft();
+                    int itemRight = itemView.getRight();
+
+                    // Set the color of the rectangle to draw
+                    Paint p = new Paint();
+                    p.setColor(getColor(R.color.text_box));
+
+//                    currentViewHolder[0] = viewHolder;
+//                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.sent_messages_drawable);
+
+                    // change viewholder color
+                    // Draw the colored rectangle behind the item
+                    c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
+                }
             }
 
-
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                Log.d(getLocalClassName(), "Yep, I'm cleared...");
+                currentViewHolder[0] = null;
+            }
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(messagesThreadRecyclerView);

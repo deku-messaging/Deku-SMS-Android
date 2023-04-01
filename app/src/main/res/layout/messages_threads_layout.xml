@@ -2,12 +2,12 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:theme="@style/Theme.main"
-    android:clickable="true"
-    android:focusable="true"
     android:id="@+id/messages_threads_layout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:theme="@style/Theme.main">
 
     <FrameLayout
         android:id="@+id/messages_threads_contact_photo_id"
@@ -23,15 +23,15 @@
             android:id="@+id/messages_threads_contact_photo"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            app:avatarViewBorderWidth="0dp"
             app:avatarViewBorderRadius="0dp"
+            app:avatarViewBorderWidth="0dp"
+            app:avatarViewIndicatorBorderSizeCriteria="15"
+            app:avatarViewIndicatorColor="@color/light_blue"
+            app:avatarViewIndicatorPosition="bottomRight"
+            app:avatarViewIndicatorSizeCriteria="9"
             app:avatarViewInitialsTextColor="@color/avatar_color"
             app:avatarViewInitialsTextSize="20sp"
             app:avatarViewInitialsTextStyle="normal"
-            app:avatarViewIndicatorColor="@color/light_blue"
-            app:avatarViewIndicatorSizeCriteria="9"
-            app:avatarViewIndicatorBorderSizeCriteria="15"
-            app:avatarViewIndicatorPosition="bottomRight"
             app:srcCompat="@drawable/round_person_24" />
     </FrameLayout>
 
