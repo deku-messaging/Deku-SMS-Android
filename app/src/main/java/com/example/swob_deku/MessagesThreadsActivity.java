@@ -154,7 +154,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                                     RecyclerView.ViewHolder viewHolder, float dX, float dY,
                                     int actionState, boolean isCurrentlyActive) {
 
-                final ColorDrawable background = new ColorDrawable(Color.RED);
+                final ColorDrawable background = new ColorDrawable(getResources().getColor(R.color.primary_text_color, getTheme()));
                 background.setBounds(viewHolder.itemView.getLeft(), viewHolder.itemView.getTop(),
                         viewHolder.itemView.getRight(), viewHolder.itemView.getBottom());
                 background.draw(c);

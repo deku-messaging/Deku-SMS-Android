@@ -53,7 +53,6 @@
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".MessagesThreadsActivity"
-            android:launchMode="singleInstance"
             android:exported="false" />
         <activity
             android:name=".SMSSendActivity"

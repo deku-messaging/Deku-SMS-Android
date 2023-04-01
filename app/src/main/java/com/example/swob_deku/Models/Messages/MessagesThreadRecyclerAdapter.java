@@ -154,6 +154,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         if(viewType == UNREAD_VIEW_TYPE) {
             viewHolder.address.setTypeface(Typeface.DEFAULT_BOLD);
             viewHolder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
+            viewHolder.date.setTypeface(Typeface.DEFAULT_BOLD);
         }
         return viewHolder;
     }
@@ -209,14 +210,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         holder.address.setText(address);
 
-        String date = sms.getDate();
-        if (DateUtils.isToday(Long.parseLong(date))) {
-            date = "Today";
-        }
-        else {
-            DateFormat dateFormat = new SimpleDateFormat("MMM dd");
-            date = dateFormat.format(new Date(Long.parseLong(date)));
-        }
+        String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
         holder.date.setText(date);
 
         if(routerActivity != null && !sms.routingUrls.isEmpty()) {
