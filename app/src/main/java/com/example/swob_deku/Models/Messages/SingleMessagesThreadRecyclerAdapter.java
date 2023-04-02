@@ -20,7 +20,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.paging.ItemSnapshotList;
 import androidx.paging.PagingData;
 import androidx.paging.PagingDataAdapter;
@@ -50,7 +54,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     String highlightedText;
     View highlightedView;
 
-    private int selectedItem = RecyclerView.NO_POSITION;
+//    private int selectedItem = RecyclerView.NO_POSITION;
+    LiveData<List<Integer>> selectedItem = new MutableLiveData<>();
+    MutableLiveData<List<Integer>> mutableSelectedItems = new MutableLiveData<>();
 
     public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
 
@@ -67,9 +73,23 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    public SingleMessagesThreadRecyclerAdapter(Context context) {
+    public SingleMessagesThreadRecyclerAdapter(Context context, LifecycleOwner lifecycleOwner) {
 //        super(SMS.DIFF_CALLBACK);
         this.context = context;
+        selectedItem = mutableSelectedItems;
+
+        selectedItem.observe(lifecycleOwner, new Observer<List<Integer>>() {
+            @Override
+            public void onChanged(List<Integer> integers) {
+                if(integers != null && !integers.isEmpty()) {
+                    enableToolbar();
+                }
+                else {
+                    // TODO: disable toolbar
+                }
+            }
+
+        });
     }
 
     @NonNull
@@ -124,6 +144,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             dateView.setVisibility(View.INVISIBLE);
             dateView.setText(date);
 
+
             messageReceivedViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -141,8 +162,21 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             messageReceivedViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    selectedItem = finalPosition;
-                    return true;
+                    if(selectedItem.getValue() == null) {
+                        Log.d(getClass().getName(), "should be updating items..");
+                        List<Integer> newItems = new ArrayList<>();
+                        newItems.add(finalPosition);
+
+                        mutableSelectedItems.setValue(newItems);
+                        return true;
+                    }
+                    else if(!selectedItem.getValue().contains(finalPosition)) {
+                        List<Integer> previousItems = selectedItem.getValue();
+                        previousItems.add(finalPosition);
+                        mutableSelectedItems.setValue(previousItems);
+                        return true;
+                    }
+                    return false;
                 }
             });
 
@@ -173,7 +207,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             messageSentViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    selectedItem = finalPosition;
                     return true;
                 }
             });
@@ -239,6 +272,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             timestamp = itemView.findViewById(R.id.received_message_date_segment);
             constraintLayout = itemView.findViewById(R.id.message_received_constraint);
         }
+
+        public void highlight() {
+//            constraintLayout.setBackgroundColor(context.getResources().getColor(
+//                    R.color.primary_highlighted_color, context.getTheme()));
+//            constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
+            constraintLayout.setBackgroundResource(0);
+            constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
+        }
     }
     public static class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
         public TimestampMessageReceivedViewHandler(@NonNull View itemView) {
@@ -247,36 +288,36 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     }
 
     public void enableToolbar(){
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()){
-                    case R.id.copy_text:
-
-                        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-
-                        // TODO: use an actual label
-                        if(!highlightedText.equals("null") && !highlightedText.isEmpty()) {
-                            ClipData clip = ClipData.newPlainText("label", highlightedText);
-                                clipboard.setPrimaryClip(clip);
-                            Toast.makeText(context, "Message copied", Toast.LENGTH_SHORT).show();
-                        }
-                        break;
-
-                    case R.id.close_toolbar:
-
-                        toolbar.setBackgroundColor(Color.TRANSPARENT);
-                        Menu menu = toolbar.getMenu();
-                        menu.clear();
-                        toolbar.inflateMenu(R.menu.default_menu);
-
-                        highlightedView.setBackgroundResource(R.drawable.sent_blue);
-
-                        break;
-
-                }
-                return false;
-            }
-        });
+        Log.d(getClass().getName(), "Enabling toolbar!");
+//        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+//            @Override
+//            public boolean onMenuItemClick(MenuItem item) {
+//                switch (item.getItemId()){
+//                    case R.id.copy_text:
+////                        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+////
+////                        // TODO: use an actual label
+////                        if(!highlightedText.equals("null") && !highlightedText.isEmpty()) {
+////                            ClipData clip = ClipData.newPlainText("label", highlightedText);
+////                                clipboard.setPrimaryClip(clip);
+////                            Toast.makeText(context, "Message copied", Toast.LENGTH_SHORT).show();
+////                        }
+//                        break;
+//
+//                    case R.id.close_toolbar:
+//
+////                        toolbar.setBackgroundColor(Color.TRANSPARENT);
+////                        Menu menu = toolbar.getMenu();
+////                        menu.clear();
+////                        toolbar.inflateMenu(R.menu.default_menu);
+////
+////                        highlightedView.setBackgroundResource(R.drawable.sent_blue);
+//
+//                        break;
+//
+//                }
+//                return false;
+//            }
+//        });
     }
 }

@@ -86,6 +86,8 @@ public class SingleMessageViewModel extends ViewModel {
     }
 
     private List loadSMSThreads(Integer _offset, int limit) {
+        if(_offset == null)
+            _offset = 0;
         return SMSPaging.fetchSMSFromHandlers(context, threadId, limit, _offset);
     }
 

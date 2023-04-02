@@ -3,12 +3,5 @@
     <style name="Theme.main" parent="Theme.AppTheme">
     </style>
 
-    <style name="Theme.sentConstraints" parent="Theme.main">
-        <item name="android:backgroundTint">@color/light_blue</item>
-    </style>
-
-    <style name="Theme.receivedConstraints" parent="Theme.main">
-        <item name="android:backgroundTint">@color/blue</item>
-    </style>
 
 </resources>

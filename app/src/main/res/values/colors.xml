@@ -11,16 +11,22 @@
     <color name="highlight_yellow">#fde293</color>
     <color name="theme_dark">#181c1f</color>
     <color name="read_text">#e2e3e5</color>
-    <color name="text_box">#242f35</color>
+    <color name="default_gray">#242f35</color>
     <color name="blue">#A2C4D6</color>
     <color name="light_blue"> #FF219BCC </color>
-    <color name="sent_blue">#A2C4D6</color>
-
-    <color name="primary_text_color">@color/black</color>
     <color name="logo_primary">#061892</color>
     <color name="logo_secondary">#9bbef1</color>
+
     <color name="primary_background_color_material_dark">#121212</color>
+    <color name="primary_text_color">@color/black</color>
     <color name="primary_background_color">@color/white</color>
     <color name="primary_background_color_transparent">#FFFFFF</color>
     <color name="primary_background_color_transparent_secondary">#D2FFFFFF</color>
+
+    <color name="sent_message_color">@color/logo_primary</color>
+    <color name="received_message_color">@color/logo_secondary</color>
+
+<!--    <color name="sent_message_highlighted_color">#AEB3B9</color>-->
+<!--    <color name="received_message_highlighted_color">@color/logo_primary</color>-->
+    <color name="primary_highlight_color">#AEB3B9</color>
 </resources>

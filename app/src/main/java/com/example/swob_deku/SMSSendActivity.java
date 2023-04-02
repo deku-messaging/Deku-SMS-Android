@@ -110,7 +110,7 @@ public class SMSSendActivity extends AppCompatActivity {
         handleIncomingBroadcast();
         threadIdentificationLoader();
 
-        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext());
+        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext(), this);
         smsTextView = findViewById(R.id.sms_text);
         multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
 

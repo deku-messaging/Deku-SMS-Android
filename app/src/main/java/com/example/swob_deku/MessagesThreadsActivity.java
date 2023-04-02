@@ -1,7 +1,6 @@
 package com.example.swob_deku;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -12,36 +11,24 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
-import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
-import android.util.Base64;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
-import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -49,12 +36,6 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -155,6 +136,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                /**
+                 * TODO: swip RIGHT, - archive
+                 * TODO: swip LEFT - delete
+                 * TODO: increase threshold before permanent delete
+                 */
                 MessagesThreadRecyclerAdapter.ViewHolder itemView = (MessagesThreadRecyclerAdapter.ViewHolder) viewHolder;
                 String threadId = itemView.id;
 
@@ -238,7 +224,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     int itemRight = itemView.getRight();
 
                     Paint p = new Paint();
-                    p.setColor(getColor(R.color.text_box));
+                    p.setColor(getColor(R.color.default_gray));
 
                     c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
                     deleteIcon.draw(c);
@@ -281,7 +267,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
     }
-
 
     @Override
     public void onActivityResult(int reqCode, int resultCode, Intent data) {

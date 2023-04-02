@@ -18,4 +18,21 @@
         <item name="android:textStyle">normal</item>
     </style>
 
+<!--    <style name="Theme.sentConstraints" parent="Theme.main">-->
+<!--        <item name="android:backgroundTint">@color/sent_message_color</item>-->
+<!--    </style>-->
+
+<!--    <style name="Theme.receivedConstraints" parent="Theme.main">-->
+<!--        <item name="android:backgroundTint">@color/received_message_color</item>-->
+<!--    </style>-->
+
+<!--    <style name="Theme.sentConstraints" parent="Theme.main">-->
+<!--        <item name="android:backgroundTint">@color/logo_secondary</item>-->
+<!--        <item name="android:textColor">@color/black</item>-->
+<!--    </style>-->
+
+<!--    <style name="Theme.receivedConstraints" parent="Theme.main">-->
+<!--        <item name="android:backgroundTint">@color/default_gray</item>-->
+<!--    </style>-->
+
 </resources>

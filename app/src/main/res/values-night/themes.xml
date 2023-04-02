@@ -4,13 +4,5 @@
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <style name="Theme.sentConstraints" parent="Theme.main">
-        <item name="android:backgroundTint">@color/sent_blue</item>
-        <item name="android:textColor">@color/black</item>
-    </style>
-
-    <style name="Theme.receivedConstraints" parent="Theme.main">
-        <item name="android:backgroundTint">@color/text_box</item>
-    </style>
 
 </resources>
