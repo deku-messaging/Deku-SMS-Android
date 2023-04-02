@@ -105,8 +105,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         return new MessageSentViewHandler(view);
     }
 
-
-
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 //        final SMS sms = (SMS) snapshot().get(position);
@@ -151,23 +149,23 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 }
             });
 
-            messageReceivedViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
-                        List<String> newItems = new ArrayList<>();
-                        newItems.add(smsId);
-                        mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageReceivedViewHandler);}});
-                        return true;
-                    }
-                    else if(!selectedItem.getValue().containsKey(smsId)) {
-                        HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
-                        previousItems.put(smsId, messageReceivedViewHandler);
-                        return true;
-                    }
-                    return false;
-                }
-            });
+//            messageReceivedViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
+//                @Override
+//                public boolean onLongClick(View v) {
+//                    if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
+//                        List<String> newItems = new ArrayList<>();
+//                        newItems.add(smsId);
+//                        mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageReceivedViewHandler);}});
+//                        return true;
+//                    }
+//                    else if(!selectedItem.getValue().containsKey(smsId)) {
+//                        HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
+//                        previousItems.put(smsId, messageReceivedViewHandler);
+//                        return true;
+//                    }
+//                    return false;
+//                }
+//            });
 
         }
         else {
@@ -195,24 +193,24 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
 
             final MessageSentViewHandler messageSentViewHandlerFinal = messageSentViewHandler;
-            messageSentViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
-                        List<String> newItems = new ArrayList<>();
-                        newItems.add(smsId);
-                        mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageSentViewHandler);}});
-                        return true;
-                    }
-                    else if(!selectedItem.getValue().containsKey(smsId)) {
-                        HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
-                        previousItems.put(smsId, messageSentViewHandler);
-                        mutableSelectedItems.setValue(previousItems);
-                        return true;
-                    }
-                    return false;
-                }
-            });
+//            messageSentViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
+//                @Override
+//                public boolean onLongClick(View v) {
+//                    if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
+//                        List<String> newItems = new ArrayList<>();
+//                        newItems.add(smsId);
+//                        mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageSentViewHandler);}});
+//                        return true;
+//                    }
+//                    else if(!selectedItem.getValue().containsKey(smsId)) {
+//                        HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
+//                        previousItems.put(smsId, messageSentViewHandler);
+//                        mutableSelectedItems.setValue(previousItems);
+//                        return true;
+//                    }
+//                    return false;
+//                }
+//            });
         }
     }
 
