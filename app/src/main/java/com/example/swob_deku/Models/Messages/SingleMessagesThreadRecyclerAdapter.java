@@ -153,8 +153,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             messageReceivedViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    if(selectedItem.getValue() == null) {
-                        Log.d(getClass().getName(), "should be updating items..");
+                    if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
                         List<String> newItems = new ArrayList<>();
                         newItems.add(smsId);
                         mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageReceivedViewHandler);}});
@@ -166,6 +165,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
                         previousItems.put(smsId, messageReceivedViewHandler);
                         mutableSelectedItems.setValue(previousItems);
+
+                        messageReceivedViewHandler.highlight();
                         return true;
                     }
                     return false;
@@ -199,10 +200,33 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             messageSentViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    return true;
+                    if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
+                        List<String> newItems = new ArrayList<>();
+                        newItems.add(smsId);
+                        mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageSentViewHandler);}});
+
+                        messageSentViewHandler.highlight();
+                        return true;
+                    }
+                    else if(!selectedItem.getValue().containsKey(smsId)) {
+                        HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
+                        previousItems.put(smsId, messageSentViewHandler);
+                        mutableSelectedItems.setValue(previousItems);
+
+                        messageSentViewHandler.highlight();
+                        return true;
+                    }
+                    return false;
                 }
             });
         }
+    }
+
+    public void resetSelectedItem(String key) {
+        HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
+        items.remove(key);
+
+        mutableSelectedItems.setValue(items);
     }
 
     @Override
@@ -242,6 +266,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             timestamp = itemView.findViewById(R.id.sent_message_date_segment);
             constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
         }
+        public void highlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
+        }
+
+        public void unHighlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_drawable);
+        }
     }
 
     public static class TimestampMessageSentViewHandler extends MessageSentViewHandler {
@@ -266,18 +297,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
 
         public void highlight() {
-//            constraintLayout.setBackgroundColor(context.getResources().getColor(
-//                    R.color.primary_highlighted_color, context.getTheme()));
-//            constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
-//            constraintLayout.setBackgroundResource(0);
             constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
         }
 
         public void unHighlight() {
-//            constraintLayout.setBackgroundColor(context.getResources().getColor(
-//                    R.color.primary_highlighted_color, context.getTheme()));
-//            constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
-//            constraintLayout.setBackgroundResource(0);
             constraintLayout.setBackgroundResource(R.drawable.received_messages_drawable);
         }
     }

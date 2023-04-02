@@ -655,15 +655,20 @@ public class SMSSendActivity extends AppCompatActivity {
         // TODO: return livedata from the constructor
         Log.d(getClass().getName(), "Enabling toolbar!");
 
-        hideDefaultToolbar(toolbar.getMenu());
+        if(!integers.isEmpty())
+            hideDefaultToolbar(toolbar.getMenu());
+        else
+            showDefaultToolbar(toolbar.getMenu());
+
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
                     case R.id.copy:
                         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-
                         String[] keys = integers.keySet().toArray(new String[0]);
+                        Log.d(getLocalClassName(), "Found key: " + keys[0]);
+                        // TODO: sent messages are not in the messages inbox
                         Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
                         if(cursor.moveToFirst()) {
                             do {
@@ -673,12 +678,16 @@ public class SMSSendActivity extends AppCompatActivity {
                                 clipboard.setPrimaryClip(clip);
                                 Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT).show();
 
-                                ((SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler) integers.get(keys[0]))
-                                        .unHighlight();
+                                if(integers.get(keys[0]) instanceof SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler)
+                                    ((SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler) integers.get(keys[0]))
+                                            .unHighlight();
+                                else
+                                    ((SingleMessagesThreadRecyclerAdapter.MessageSentViewHandler) integers.get(keys[0]))
+                                            .unHighlight();
                             } while(cursor.moveToNext());
                         }
                         cursor.close();
-                        showDefaultToolbar(toolbar.getMenu());
+                        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
                         return true;
                 }
                 return false;
