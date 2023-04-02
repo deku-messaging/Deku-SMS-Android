@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -714,10 +715,16 @@ public class SMSHandler {
         if(subscriptionId == null)
             subscriptionId = SIMHandler.getDefaultSimSubscription(context);
 
-        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
-                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+//        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+//                context.getSystemService(SmsManager.class) : SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
+        SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
 
-        smsManager = smsManager.createForSubscriptionId(subscriptionId);
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            smsManager = smsManager.createForSubscriptionId(subscriptionId);
+//        }
+//        else {
+//            TelephonyManager telephonyManager = ;
+//        }
 
         String threadId = "";
         try {
