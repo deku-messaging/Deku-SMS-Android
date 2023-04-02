@@ -10,7 +10,6 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,6 +17,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -33,12 +34,12 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.window.OnBackInvokedDispatcher;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
@@ -110,7 +111,7 @@ public class SMSSendActivity extends AppCompatActivity {
         handleIncomingBroadcast();
         threadIdentificationLoader();
 
-        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext(), this);
+        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext());
         smsTextView = findViewById(R.id.sms_text);
         multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
 
@@ -198,6 +199,13 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(v.getVisibility() == View.VISIBLE)
                     v.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<List<String>>() {
+            @Override
+            public void onChanged(List<String> integers) {
+                enableToolbar(integers);
             }
         });
     }
@@ -561,7 +569,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.default_menu, menu);
+        getMenuInflater().inflate(R.menu.single_messages_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -630,5 +638,47 @@ public class SMSSendActivity extends AppCompatActivity {
         }
 
         multiSimcardConstraint.setVisibility(View.VISIBLE);
+    }
+
+    private void hideDefaultToolbar(Menu menu) {
+        menu.setGroupVisible(R.id.default_menu_items, false);
+        menu.setGroupVisible(R.id.single_message_menu, true);
+    }
+
+    private void showDefaultToolbar(Menu menu) {
+        menu.setGroupVisible(R.id.default_menu_items, true);
+        menu.setGroupVisible(R.id.single_message_menu, false);
+    }
+
+    public void enableToolbar(List<String> highlightedId){
+        // TODO: return livedata from the constructor
+        Log.d(getClass().getName(), "Enabling toolbar!");
+
+        hideDefaultToolbar(toolbar.getMenu());
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.copy:
+                        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+                        Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), highlightedId.get(0));
+                        if(cursor.moveToFirst()) {
+                            do {
+                                SMS sms = new SMS(cursor);
+                                ClipData clip = ClipData.newPlainText(highlightedId.get(0),
+                                        sms.getBody());
+
+                                clipboard.setPrimaryClip(clip);
+                                Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT).show();
+                            } while(cursor.moveToNext());
+                        }
+                        cursor.close();
+                        showDefaultToolbar(toolbar.getMenu());
+                        return true;
+                }
+                return false;
+            }
+        });
     }
 }

@@ -304,5 +304,4 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onResume();
         messagesThreadViewModel.informChanges(getApplicationContext());
     }
-
 }

@@ -55,8 +55,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     View highlightedView;
 
 //    private int selectedItem = RecyclerView.NO_POSITION;
-    LiveData<List<Integer>> selectedItem = new MutableLiveData<>();
-    MutableLiveData<List<Integer>> mutableSelectedItems = new MutableLiveData<>();
+    public LiveData<List<String>> selectedItem = new MutableLiveData<>();
+    MutableLiveData<List<String>> mutableSelectedItems = new MutableLiveData<>();
 
     public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
 
@@ -73,23 +73,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    public SingleMessagesThreadRecyclerAdapter(Context context, LifecycleOwner lifecycleOwner) {
+    public SingleMessagesThreadRecyclerAdapter(Context context) {
 //        super(SMS.DIFF_CALLBACK);
         this.context = context;
-        selectedItem = mutableSelectedItems;
-
-        selectedItem.observe(lifecycleOwner, new Observer<List<Integer>>() {
-            @Override
-            public void onChanged(List<Integer> integers) {
-                if(integers != null && !integers.isEmpty()) {
-                    enableToolbar();
-                }
-                else {
-                    // TODO: disable toolbar
-                }
-            }
-
-        });
+        this.selectedItem = mutableSelectedItems;
     }
 
     @NonNull
@@ -119,7 +106,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 //        final SMS sms = (SMS) snapshot().get(position);
         int finalPosition = position;
+
         final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
+        final String smsId = sms.getId();
+
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
@@ -164,15 +154,16 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 public boolean onLongClick(View v) {
                     if(selectedItem.getValue() == null) {
                         Log.d(getClass().getName(), "should be updating items..");
-                        List<Integer> newItems = new ArrayList<>();
-                        newItems.add(finalPosition);
-
+                        List<String> newItems = new ArrayList<>();
+                        newItems.add(smsId);
                         mutableSelectedItems.setValue(newItems);
+
+                        messageReceivedViewHandler.highlight();
                         return true;
                     }
                     else if(!selectedItem.getValue().contains(finalPosition)) {
-                        List<Integer> previousItems = selectedItem.getValue();
-                        previousItems.add(finalPosition);
+                        List<String> previousItems = selectedItem.getValue();
+                        previousItems.add(smsId);
                         mutableSelectedItems.setValue(previousItems);
                         return true;
                     }
@@ -287,37 +278,4 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
     }
 
-    public void enableToolbar(){
-        Log.d(getClass().getName(), "Enabling toolbar!");
-//        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-//            @Override
-//            public boolean onMenuItemClick(MenuItem item) {
-//                switch (item.getItemId()){
-//                    case R.id.copy_text:
-////                        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-////
-////                        // TODO: use an actual label
-////                        if(!highlightedText.equals("null") && !highlightedText.isEmpty()) {
-////                            ClipData clip = ClipData.newPlainText("label", highlightedText);
-////                                clipboard.setPrimaryClip(clip);
-////                            Toast.makeText(context, "Message copied", Toast.LENGTH_SHORT).show();
-////                        }
-//                        break;
-//
-//                    case R.id.close_toolbar:
-//
-////                        toolbar.setBackgroundColor(Color.TRANSPARENT);
-////                        Menu menu = toolbar.getMenu();
-////                        menu.clear();
-////                        toolbar.inflateMenu(R.menu.default_menu);
-////
-////                        highlightedView.setBackgroundResource(R.drawable.sent_blue);
-//
-//                        break;
-//
-//                }
-//                return false;
-//            }
-//        });
-    }
 }
