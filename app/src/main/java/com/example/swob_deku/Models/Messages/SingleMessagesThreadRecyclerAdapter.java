@@ -45,6 +45,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
@@ -55,8 +56,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     View highlightedView;
 
 //    private int selectedItem = RecyclerView.NO_POSITION;
-    public LiveData<List<String>> selectedItem = new MutableLiveData<>();
-    MutableLiveData<List<String>> mutableSelectedItems = new MutableLiveData<>();
+    public LiveData<HashMap<String, RecyclerView.ViewHolder>> selectedItem = new MutableLiveData<>();
+    MutableLiveData<HashMap<String, RecyclerView.ViewHolder>> mutableSelectedItems = new MutableLiveData<>();
 
     public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
 
@@ -156,14 +157,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         Log.d(getClass().getName(), "should be updating items..");
                         List<String> newItems = new ArrayList<>();
                         newItems.add(smsId);
-                        mutableSelectedItems.setValue(newItems);
+                        mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageReceivedViewHandler);}});
 
                         messageReceivedViewHandler.highlight();
                         return true;
                     }
-                    else if(!selectedItem.getValue().contains(finalPosition)) {
-                        List<String> previousItems = selectedItem.getValue();
-                        previousItems.add(smsId);
+                    else if(!selectedItem.getValue().containsKey(smsId)) {
+                        HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
+                        previousItems.put(smsId, messageReceivedViewHandler);
                         mutableSelectedItems.setValue(previousItems);
                         return true;
                     }
@@ -268,8 +269,16 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 //            constraintLayout.setBackgroundColor(context.getResources().getColor(
 //                    R.color.primary_highlighted_color, context.getTheme()));
 //            constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
-            constraintLayout.setBackgroundResource(0);
+//            constraintLayout.setBackgroundResource(0);
             constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
+        }
+
+        public void unHighlight() {
+//            constraintLayout.setBackgroundColor(context.getResources().getColor(
+//                    R.color.primary_highlighted_color, context.getTheme()));
+//            constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
+//            constraintLayout.setBackgroundResource(0);
+            constraintLayout.setBackgroundResource(R.drawable.received_messages_drawable);
         }
     }
     public static class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {

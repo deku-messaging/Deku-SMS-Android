@@ -53,6 +53,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class SMSSendActivity extends AppCompatActivity {
@@ -202,9 +203,9 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         });
 
-        singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<List<String>>() {
+        singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
             @Override
-            public void onChanged(List<String> integers) {
+            public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
                 enableToolbar(integers);
             }
         });
@@ -650,7 +651,7 @@ public class SMSSendActivity extends AppCompatActivity {
         menu.setGroupVisible(R.id.single_message_menu, false);
     }
 
-    public void enableToolbar(List<String> highlightedId){
+    public void enableToolbar(HashMap<String, RecyclerView.ViewHolder> integers){
         // TODO: return livedata from the constructor
         Log.d(getClass().getName(), "Enabling toolbar!");
 
@@ -662,15 +663,18 @@ public class SMSSendActivity extends AppCompatActivity {
                     case R.id.copy:
                         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
 
-                        Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), highlightedId.get(0));
+                        String[] keys = integers.keySet().toArray(new String[0]);
+                        Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
                         if(cursor.moveToFirst()) {
                             do {
                                 SMS sms = new SMS(cursor);
-                                ClipData clip = ClipData.newPlainText(highlightedId.get(0),
-                                        sms.getBody());
+                                ClipData clip = ClipData.newPlainText(keys[0], sms.getBody());
 
                                 clipboard.setPrimaryClip(clip);
                                 Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT).show();
+
+                                ((SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler) integers.get(keys[0]))
+                                        .unHighlight();
                             } while(cursor.moveToNext());
                         }
                         cursor.close();
