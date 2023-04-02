@@ -643,12 +643,12 @@ public class SMSSendActivity extends AppCompatActivity {
 
     private void hideDefaultToolbar(Menu menu) {
         menu.setGroupVisible(R.id.default_menu_items, false);
-        menu.setGroupVisible(R.id.single_message_menu, true);
+        menu.setGroupVisible(R.id.single_message_copy_menu, true);
     }
 
     private void showDefaultToolbar(Menu menu) {
         menu.setGroupVisible(R.id.default_menu_items, true);
-        menu.setGroupVisible(R.id.single_message_menu, false);
+        menu.setGroupVisible(R.id.single_message_copy_menu, false);
     }
 
     public void enableToolbar(HashMap<String, RecyclerView.ViewHolder> integers){
@@ -660,15 +660,15 @@ public class SMSSendActivity extends AppCompatActivity {
         else
             showDefaultToolbar(toolbar.getMenu());
 
+        String[] keys = integers.keySet().toArray(new String[0]);
+        // TODO: sent messages are not in the messages inbox
+
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
                     case R.id.copy:
                         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                        String[] keys = integers.keySet().toArray(new String[0]);
-                        Log.d(getLocalClassName(), "Found key: " + keys[0]);
-                        // TODO: sent messages are not in the messages inbox
                         Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
                         if(cursor.moveToFirst()) {
                             do {
@@ -687,6 +687,11 @@ public class SMSSendActivity extends AppCompatActivity {
                             } while(cursor.moveToNext());
                         }
                         cursor.close();
+                        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
+                        return true;
+                    case R.id.delete:
+                        SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
+                        singleMessageViewModel.informNewItemChanges();
                         singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
                         return true;
                 }

@@ -15,11 +15,17 @@
     </group>
 
     <group
-        android:id="@+id/single_message_menu">
+        android:id="@+id/single_message_copy_menu">
         <item
             android:id="@+id/copy"
             android:icon="@drawable/round_content_copy_24"
             android:title="copy"
+            android:visible="false"
+            app:showAsAction="always" />
+        <item
+            android:id="@+id/delete"
+            android:icon="@drawable/round_delete_24"
+            android:title="delete"
             android:visible="false"
             app:showAsAction="always" />
     </group>
