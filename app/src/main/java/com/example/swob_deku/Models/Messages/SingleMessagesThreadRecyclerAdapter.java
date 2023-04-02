@@ -150,6 +150,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 }
             });
 
+            final MessageReceivedViewHandler messageReceivedViewHandlerFinal = messageReceivedViewHandler;
             messageReceivedViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -158,7 +159,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         newItems.add(smsId);
                         mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageReceivedViewHandler);}});
 
-                        messageReceivedViewHandler.highlight();
+                        messageReceivedViewHandlerFinal.highlight();
                         return true;
                     }
                     else if(!selectedItem.getValue().containsKey(smsId)) {
@@ -166,7 +167,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         previousItems.put(smsId, messageReceivedViewHandler);
                         mutableSelectedItems.setValue(previousItems);
 
-                        messageReceivedViewHandler.highlight();
+                        messageReceivedViewHandlerFinal.highlight();
                         return true;
                     }
                     return false;
@@ -197,6 +198,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             statusMessage = "• " + statusMessage;
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
+
+            final MessageSentViewHandler messageSentViewHandlerFinal = messageSentViewHandler;
             messageSentViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -205,7 +208,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         newItems.add(smsId);
                         mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageSentViewHandler);}});
 
-                        messageSentViewHandler.highlight();
+                        messageSentViewHandlerFinal.highlight();
                         return true;
                     }
                     else if(!selectedItem.getValue().containsKey(smsId)) {
@@ -213,7 +216,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         previousItems.put(smsId, messageSentViewHandler);
                         mutableSelectedItems.setValue(previousItems);
 
-                        messageSentViewHandler.highlight();
+                        messageSentViewHandlerFinal.highlight();
                         return true;
                     }
                     return false;
