@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Message;
 import android.provider.Telephony;
 import android.text.format.DateUtils;
 import android.util.Base64;
@@ -104,11 +105,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         return new MessageSentViewHandler(view);
     }
 
+
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 //        final SMS sms = (SMS) snapshot().get(position);
-        int finalPosition = position;
-
         final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
         final String smsId = sms.getId();
 
@@ -136,7 +137,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             dateView.setVisibility(View.INVISIBLE);
             dateView.setText(date);
 
-
             messageReceivedViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -151,7 +151,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 }
             });
 
-            final MessageReceivedViewHandler messageReceivedViewHandlerFinal = messageReceivedViewHandler;
             messageReceivedViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -159,16 +158,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         List<String> newItems = new ArrayList<>();
                         newItems.add(smsId);
                         mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageReceivedViewHandler);}});
-
-                        messageReceivedViewHandlerFinal.highlight();
                         return true;
                     }
                     else if(!selectedItem.getValue().containsKey(smsId)) {
                         HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
                         previousItems.put(smsId, messageReceivedViewHandler);
-                        mutableSelectedItems.setValue(previousItems);
-
-                        messageReceivedViewHandlerFinal.highlight();
                         return true;
                     }
                     return false;
@@ -208,16 +202,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         List<String> newItems = new ArrayList<>();
                         newItems.add(smsId);
                         mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageSentViewHandler);}});
-
-                        messageSentViewHandlerFinal.highlight();
                         return true;
                     }
                     else if(!selectedItem.getValue().containsKey(smsId)) {
                         HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
                         previousItems.put(smsId, messageSentViewHandler);
                         mutableSelectedItems.setValue(previousItems);
-
-                        messageSentViewHandlerFinal.highlight();
                         return true;
                     }
                     return false;
@@ -228,14 +218,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
     public void resetSelectedItem(String key) {
         HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
-        RecyclerView.ViewHolder view = items.get(key);
-        if(view instanceof SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler)
-            ((SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler) view)
-                    .unHighlight();
-        else
-            ((SingleMessagesThreadRecyclerAdapter.MessageSentViewHandler) view)
-                    .unHighlight();
-
+//        RecyclerView.ViewHolder view = items.get(key);
         items.remove(key);
         mutableSelectedItems.setValue(items);
     }
@@ -290,13 +273,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             timestamp = itemView.findViewById(R.id.sent_message_date_segment);
             constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
         }
-        public void highlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
-        }
-
-        public void unHighlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_drawable);
-        }
     }
 
     public static class TimestampMessageSentViewHandler extends MessageSentViewHandler {
@@ -318,14 +294,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             date = itemView.findViewById(R.id.message_thread_received_date_text);
             timestamp = itemView.findViewById(R.id.received_message_date_segment);
             constraintLayout = itemView.findViewById(R.id.message_received_constraint);
-        }
-
-        public void highlight() {
-            constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
-        }
-
-        public void unHighlight() {
-            constraintLayout.setBackgroundResource(R.drawable.received_messages_drawable);
         }
     }
     public static class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {

@@ -680,12 +680,14 @@ public class SMSSendActivity extends AppCompatActivity {
         // TODO: return livedata from the constructor
         Log.d(getClass().getName(), "Enabling toolbar!");
 
+        String[] keys = integers.keySet().toArray(new String[0]);
         if(!integers.isEmpty())
             hideDefaultToolbar(toolbar.getMenu());
-        else
+        else {
             showDefaultToolbar(toolbar.getMenu());
+//            highlightView(keys[0]);
+        }
 
-        String[] keys = integers.keySet().toArray(new String[0]);
         // TODO: sent messages are not in the messages inbox
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
