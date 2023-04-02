@@ -362,7 +362,7 @@ public class SMSHandler {
 
     public static Cursor fetchSMSInboxById(@NonNull Context context, String id) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
-                SMS_INBOX_CONTENT_URI,
+                SMS_CONTENT_URI,
                 new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
                         Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
                         Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
