@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
@@ -227,9 +228,29 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
     public void resetSelectedItem(String key) {
         HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
-        items.remove(key);
+        RecyclerView.ViewHolder view = items.get(key);
+        if(view instanceof SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler)
+            ((SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler) view)
+                    .unHighlight();
+        else
+            ((SingleMessagesThreadRecyclerAdapter.MessageSentViewHandler) view)
+                    .unHighlight();
 
+        items.remove(key);
         mutableSelectedItems.setValue(items);
+    }
+
+    public void resetAllSelectedItems() {
+        HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
+
+        for(String key: items.keySet())
+            resetSelectedItem(key);
+
+        mutableSelectedItems.setValue(new HashMap<>());
+    }
+
+    public boolean hasSelectedItems() {
+        return !(mutableSelectedItems.getValue() == null || mutableSelectedItems.getValue().isEmpty());
     }
 
     @Override

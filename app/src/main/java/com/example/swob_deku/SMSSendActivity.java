@@ -563,6 +563,9 @@ public class SMSSendActivity extends AppCompatActivity {
     public void onBackPressed() {
         if(findViewById(R.id.simcard_select_constraint).getVisibility() == View.VISIBLE)
             findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
+        if(singleMessagesThreadRecyclerAdapter.hasSelectedItems()) {
+            singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+        }
         else {
             super.onBackPressed();
         }
@@ -572,6 +575,21 @@ public class SMSSendActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.single_messages_menu, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                if(singleMessagesThreadRecyclerAdapter.hasSelectedItems())
+                    singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+                else
+                    // Handle the up button click event
+                    finish(); // for example, you can finish the current activity
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void uploadImage(View view) {
@@ -644,11 +662,18 @@ public class SMSSendActivity extends AppCompatActivity {
     private void hideDefaultToolbar(Menu menu) {
         menu.setGroupVisible(R.id.default_menu_items, false);
         menu.setGroupVisible(R.id.single_message_copy_menu, true);
+
+        ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
+
+        // experimental
+        ab.setElevation(10);
     }
 
     private void showDefaultToolbar(Menu menu) {
         menu.setGroupVisible(R.id.default_menu_items, true);
         menu.setGroupVisible(R.id.single_message_copy_menu, false);
+
+        ab.setHomeAsUpIndicator(null);
     }
 
     public void enableToolbar(HashMap<String, RecyclerView.ViewHolder> integers){
@@ -678,12 +703,6 @@ public class SMSSendActivity extends AppCompatActivity {
                                 clipboard.setPrimaryClip(clip);
                                 Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT).show();
 
-                                if(integers.get(keys[0]) instanceof SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler)
-                                    ((SingleMessagesThreadRecyclerAdapter.MessageReceivedViewHandler) integers.get(keys[0]))
-                                            .unHighlight();
-                                else
-                                    ((SingleMessagesThreadRecyclerAdapter.MessageSentViewHandler) integers.get(keys[0]))
-                                            .unHighlight();
                             } while(cursor.moveToNext());
                         }
                         cursor.close();
