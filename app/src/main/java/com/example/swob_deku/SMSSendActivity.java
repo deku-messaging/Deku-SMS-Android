@@ -112,9 +112,6 @@ public class SMSSendActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
 
-        configureToolbars();
-        handleIncomingBroadcast();
-        threadIdentificationLoader();
 
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext());
         smsTextView = findViewById(R.id.sms_text);
@@ -130,12 +127,10 @@ public class SMSSendActivity extends AppCompatActivity {
 
         singleMessageViewModel = new ViewModelProvider( this)
                 .get( SingleMessageViewModel.class);
-//        singleMessagesThreadRecyclerAdapter.setHasStableIds(true);
 
-//        singleMessageViewModel.getMessages(getApplicationContext(), threadId, getLifecycle()).observe(
-//                this,
-//                arrayListPagingData -> singleMessagesThreadRecyclerAdapter
-//                        .submitData(getLifecycle(), arrayListPagingData));
+        configureToolbars();
+        handleIncomingBroadcast();
+        threadIdentificationLoader();
 
         singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this, new Observer<List<SMS>>() {
             @Override
