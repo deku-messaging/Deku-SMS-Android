@@ -243,18 +243,20 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
     public void resetSelectedItem(String key) {
         HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
-        RecyclerView.ViewHolder view = items.get(key);
+        if(items != null) {
+            RecyclerView.ViewHolder view = items.get(key);
 
-        if (view instanceof MessageReceivedViewHandler)
-            ((MessageReceivedViewHandler) view).unHighlight();
+            if(view != null) {
+                view.setIsRecyclable(true);
+                if (view instanceof MessageReceivedViewHandler)
+                    ((MessageReceivedViewHandler) view).unHighlight();
 
-        else if (view instanceof MessageSentViewHandler)
-            ((MessageSentViewHandler) view).unHighlight();
-
-        view.setIsRecyclable(true);
-
-        items.remove(key);
-        mutableSelectedItems.setValue(items);
+                else if (view instanceof MessageSentViewHandler)
+                    ((MessageSentViewHandler) view).unHighlight();
+            }
+            items.remove(key);
+            mutableSelectedItems.setValue(items);
+        }
     }
 
     public void resetAllSelectedItems() {
@@ -290,6 +292,17 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     @Override
     public int getItemCount() {
         return mDiffer.getCurrentList().size();
+    }
+
+    public void removeItem(String keys) {
+        List<SMS> sms = new ArrayList<>(mDiffer.getCurrentList());
+        for(int i=0; i< sms.size(); ++i) {
+            if(sms.get(i).getId().equals(keys)) {
+                sms.remove(i);
+                break;
+            }
+        }
+        mDiffer.submitList(sms);
     }
 
     public static class MessageSentViewHandler extends RecyclerView.ViewHolder {

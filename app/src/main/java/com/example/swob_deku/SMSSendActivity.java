@@ -713,7 +713,8 @@ public class SMSSendActivity extends AppCompatActivity {
                     case R.id.delete:
                         SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
                         singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
-                        singleMessageViewModel.informNewItemChanges();
+//                        singleMessageViewModel.informNewItemChanges();
+                        singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
                         return true;
                 }
                 return false;
