@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -101,8 +102,10 @@ public class SMSSendActivity extends AppCompatActivity {
         ab = getSupportActionBar();
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
-        enableToolbar(null);
+        enableToolbar();
     }
+
+    HashMap<String, RecyclerView.ViewHolder> selectedItems = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,8 +175,6 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                int state = recyclerView.getScrollState();
-
                 final int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
                         .findLastVisibleItemPosition();
 
@@ -207,7 +208,8 @@ public class SMSSendActivity extends AppCompatActivity {
         singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
             @Override
             public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
-                enableToolbar(integers);
+                selectedItems = integers;
+                itemOperationsNeeded();
             }
         });
     }
@@ -677,8 +679,8 @@ public class SMSSendActivity extends AppCompatActivity {
         ab.setHomeAsUpIndicator(null);
     }
 
-    private void copyItems(HashMap<String, RecyclerView.ViewHolder> integers) {
-        String[] keys = integers.keySet().toArray(new String[0]);
+    private void copyItems() {
+        String[] keys = selectedItems.keySet().toArray(new String[0]);
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
         if (cursor.moveToFirst()) {
@@ -695,8 +697,8 @@ public class SMSSendActivity extends AppCompatActivity {
         singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
     }
 
-    private void deleteItems(HashMap<String, RecyclerView.ViewHolder> integers) {
-        String[] keys = integers.keySet().toArray(new String[0]);
+    private void deleteItems() {
+        String[] keys = selectedItems.keySet().toArray(new String[0]);
         SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
         singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
         //                        singleMessageViewModel.informNewItemChanges();
@@ -710,29 +712,32 @@ public class SMSSendActivity extends AppCompatActivity {
         startActivity(callIntent);
     }
 
-    public void enableToolbar(HashMap<String, RecyclerView.ViewHolder> integers){
-        // TODO: return livedata from the constructor
-        Log.d(getClass().getName(), "Enabling toolbar!");
-
-        if(integers != null) {
-            if (integers.isEmpty()) {
+    private void itemOperationsNeeded() {
+        if(selectedItems != null) {
+            if (selectedItems.isEmpty()) {
                 showDefaultToolbar(toolbar.getMenu());
             } else {
                 hideDefaultToolbar(toolbar.getMenu());
             }
             return;
         }
+    }
+
+    public void enableToolbar(){
+        // TODO: return livedata from the constructor
+        Log.d(getClass().getName(), "Enabling toolbar!");
+
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 int id = item.getItemId();
                 if( R.id.copy == id) {
-                    copyItems(integers);
+                    copyItems();
                     return true;
                 }
                 else if(R.id.delete == id) {
-                    deleteItems(integers);
+                    deleteItems();
                     return true;
                 }
                 else if(R.id.make_call == id) {
