@@ -46,11 +46,11 @@
         <activity
             android:name=".RouterActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".DefaultCheckActivity" />
         <activity
             android:name=".SearchMessagesThreadsActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".DefaultCheckActivity" />
         <activity
             android:name=".MessagesThreadsActivity"
             android:exported="false" />
@@ -75,7 +75,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".DefaultCheckActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

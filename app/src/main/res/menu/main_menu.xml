@@ -3,5 +3,5 @@
 
     <item
         android:id="@+id/messages_threads_menu_item_settings"
-        android:title="@string/menu_item_settings" />
+        android:title="@string/gateway_clients" />
 </menu>

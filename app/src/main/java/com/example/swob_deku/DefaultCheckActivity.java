@@ -12,19 +12,14 @@ import android.app.NotificationManager;
 import android.app.role.RoleManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.view.View;
 import android.widget.Toast;
 
-import com.example.swob_deku.Models.DHKeyAgreement2;
-
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-
-public class MainActivity extends AppCompatActivity {
+public class DefaultCheckActivity extends AppCompatActivity {
 
     public static final int READ_SMS_PERMISSION_REQUEST_CODE = 1;
     public static final int READ_CONTACTS_PERMISSION_REQUEST_CODE = 2;
@@ -32,7 +27,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_default_check);
+
 //        try {
 //            DHKeyAgreement2.test();
 //        } catch (InvalidKeyException e) {
@@ -49,50 +45,41 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void clickPrivacyPolicy(View view) {
+        String url = "https://smswithoutborders.com/privacy-policy";
+        Intent shareIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(shareIntent);
+    }
+
     @Override
     protected void onPostCreate(Bundle savedInstanceStates) {
         super.onPostCreate(savedInstanceStates);
 
         checkIsDefaultApp();
         createNotificationChannel();
-//        if(!checkPermissionToReadSMSMessages()) {
-//            ActivityCompat.requestPermissions(
-//                    this,
-//                    new String[]{Manifest.permission.READ_SMS}, READ_SMS_PERMISSION_REQUEST_CODE);
-//        }
-//        else {
-//            if(!checkPermissionToReadContacts()) {
-//                ActivityCompat.requestPermissions(
-//                        this,
-//                        new String[]{Manifest.permission.READ_CONTACTS}, READ_CONTACTS_PERMISSION_REQUEST_CODE);
-//            }
-//            else {
-//                startActivity(new Intent(this, MessagesThreadsActivity.class));
-//                finish();
-//            }
-//        }
+    }
+
+    public void makeDefault(View view) {
+        final String myPackageName = getPackageName();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
+            Intent roleManagerIntent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS);
+            roleManagerIntent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
+            startActivityForResult(roleManagerIntent, 0);
+        }
+        else {
+            Intent intent =
+                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
+            startActivity(intent);
+        }
     }
 
     private void checkIsDefaultApp() {
         final String myPackageName = getPackageName();
         final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
 
-        if (defaultPackage == null || !myPackageName.equals(defaultPackage)) {
-            Toast.makeText(this, "I'm not your default app.", Toast.LENGTH_LONG).show();
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
-                Intent roleManagerIntent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS);
-                roleManagerIntent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
-                startActivityForResult(roleManagerIntent, 0);
-            }
-            else {
-                Intent intent =
-                        new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
-                intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
-                startActivity(intent);
-            }
-        }
-        else {
+        if (myPackageName.equals(defaultPackage)) {
             startActivity(new Intent(this, MessagesThreadsActivity.class));
             finish();
         }
@@ -138,11 +125,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public boolean checkPermissionToReadSMSMessages() {
-        int check = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS);
-
-        return (check == PackageManager.PERMISSION_GRANTED);
-    }
 
     public boolean checkPermissionToReadContacts() {
         int check = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
@@ -153,27 +135,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case READ_SMS_PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0) {
-                    if (checkPermissionToReadContacts())
-                        startActivity(new Intent(this, MessagesThreadsActivity.class));
-                    else {
-                        ActivityCompat.requestPermissions(
-                                this,
-                                new String[]{Manifest.permission.READ_CONTACTS}, READ_CONTACTS_PERMISSION_REQUEST_CODE);
-                    }
-                } else {
-                    Toast.makeText(this, "Permission denied!", Toast.LENGTH_LONG).show();
-                    finish();
+        if (requestCode == READ_SMS_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+                if (checkPermissionToReadContacts())
+                    startActivity(new Intent(this, MessagesThreadsActivity.class));
+                else {
+                    ActivityCompat.requestPermissions(
+                            this,
+                            new String[]{Manifest.permission.READ_CONTACTS}, READ_CONTACTS_PERMISSION_REQUEST_CODE);
                 }
-                break;
-
-            case READ_CONTACTS_PERMISSION_REQUEST_CODE:
-                startActivity(new Intent(this, MessagesThreadsActivity.class));
+            } else {
                 finish();
-                break;
-
+            }
         }
     }
 
