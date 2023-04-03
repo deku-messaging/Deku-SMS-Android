@@ -101,6 +101,7 @@ public class SMSSendActivity extends AppCompatActivity {
         ab = getSupportActionBar();
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
+        enableToolbar(null);
     }
 
     @Override
@@ -676,46 +677,67 @@ public class SMSSendActivity extends AppCompatActivity {
         ab.setHomeAsUpIndicator(null);
     }
 
+    private void copyItems(HashMap<String, RecyclerView.ViewHolder> integers) {
+        String[] keys = integers.keySet().toArray(new String[0]);
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
+        if (cursor.moveToFirst()) {
+            do {
+                SMS sms = new SMS(cursor);
+                ClipData clip = ClipData.newPlainText(keys[0], sms.getBody());
+
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT).show();
+
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
+    }
+
+    private void deleteItems(HashMap<String, RecyclerView.ViewHolder> integers) {
+        String[] keys = integers.keySet().toArray(new String[0]);
+        SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
+        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
+        //                        singleMessageViewModel.informNewItemChanges();
+        singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
+    }
+
+    private void makeCall() {
+        Intent callIntent = new Intent(Intent.ACTION_DIAL);
+        callIntent.setData(Uri.parse("tel:" + address));
+
+        startActivity(callIntent);
+    }
+
     public void enableToolbar(HashMap<String, RecyclerView.ViewHolder> integers){
         // TODO: return livedata from the constructor
         Log.d(getClass().getName(), "Enabling toolbar!");
 
-        String[] keys = integers.keySet().toArray(new String[0]);
-        if(!integers.isEmpty())
-            hideDefaultToolbar(toolbar.getMenu());
-        else {
-            showDefaultToolbar(toolbar.getMenu());
-//            highlightView(keys[0]);
+        if(integers != null) {
+            if (integers.isEmpty()) {
+                showDefaultToolbar(toolbar.getMenu());
+            } else {
+                hideDefaultToolbar(toolbar.getMenu());
+            }
+            return;
         }
-
-        // TODO: sent messages are not in the messages inbox
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()){
-                    case R.id.copy:
-                        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                        Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
-                        if(cursor.moveToFirst()) {
-                            do {
-                                SMS sms = new SMS(cursor);
-                                ClipData clip = ClipData.newPlainText(keys[0], sms.getBody());
-
-                                clipboard.setPrimaryClip(clip);
-                                Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT).show();
-
-                            } while(cursor.moveToNext());
-                        }
-                        cursor.close();
-                        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
-                        return true;
-                    case R.id.delete:
-                        SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
-                        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
-//                        singleMessageViewModel.informNewItemChanges();
-                        singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
-                        return true;
+                int id = item.getItemId();
+                if( R.id.copy == id) {
+                    copyItems(integers);
+                    return true;
+                }
+                else if(R.id.delete == id) {
+                    deleteItems(integers);
+                    return true;
+                }
+                else if(R.id.make_call == id) {
+                    makeCall();
+                    return true;
                 }
                 return false;
             }

@@ -6,12 +6,13 @@
         android:id="@+id/default_menu_items">
         <item
             android:icon="@drawable/ic_baseline_call_24"
+            android:id="@+id/make_call"
             app:showAsAction="always"
             android:title="Call"/>
-        <item
-            android:icon="@drawable/ic_outline_search_24"
-            app:showAsAction="always"
-            android:title="Search"/>
+<!--        <item-->
+<!--            android:icon="@drawable/ic_outline_search_24"-->
+<!--            app:showAsAction="always"-->
+<!--            android:title="Search"/>-->
     </group>
 
     <group

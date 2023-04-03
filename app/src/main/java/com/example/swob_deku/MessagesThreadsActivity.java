@@ -44,6 +44,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
+    BroadcastReceiver incomingBroadcastReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -257,7 +259,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     private void handleIncomingMessage() {
-        BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
+        incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges(getApplicationContext());
@@ -303,5 +305,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 //        findViewById(R.id.messages_threads_recycler_view).requestFocus();
         super.onResume();
         messagesThreadViewModel.informChanges(getApplicationContext());
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(incomingBroadcastReceiver);
+        super.onDestroy();
     }
 }

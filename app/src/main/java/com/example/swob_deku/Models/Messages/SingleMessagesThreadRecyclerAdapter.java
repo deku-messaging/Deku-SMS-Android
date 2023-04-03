@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.ImageViewActivity;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -111,11 +112,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
         final String smsId = sms.getId();
 
-        Log.d(getClass().getName(), "Layout position: " + holder.getAbsoluteAdapterPosition());
-        Log.d(getClass().getName(), "int position: " + position);
-        Log.d(getClass().getName(), "Layout ID: " + holder.getItemId());
-        Log.d(getClass().getName(), "ItemView ID: " + holder.itemView.getId());
-
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
@@ -138,6 +134,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);
+//            dateView.setText(Helpers.formatDate(context, Long.parseLong(sms.getDate())));
             dateView.setText(date);
 
             messageReceivedViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
@@ -150,6 +147,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         intent.putExtra(SMSSendActivity.ID, sms.getId());
 
                         context.startActivity(intent);
+                    } else {
+                        dateView.setVisibility(View.VISIBLE);
                     }
                 }
             });
@@ -180,6 +179,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
             messageSentViewHandler.sentMessage.setText(sms.getBody());
+
+            if(position != 0) {
+                messageSentViewHandler.date.setVisibility(View.INVISIBLE);
+                messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
+            }
             messageSentViewHandler.date.setText(date);
 
             if(holder instanceof TimestampMessageSentViewHandler)
@@ -200,6 +204,16 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             statusMessage = "• " + statusMessage;
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
+
+            messageSentViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int visibility = messageSentViewHandler.date.getVisibility() == View.VISIBLE ?
+                            View.INVISIBLE : View.VISIBLE;
+                    messageSentViewHandler.date.setVisibility(visibility);
+                    messageSentViewHandler.sentMessageStatus.setVisibility(visibility);
+                }
+            });
 
             messageSentViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
