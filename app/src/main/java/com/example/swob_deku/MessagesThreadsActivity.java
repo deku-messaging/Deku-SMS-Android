@@ -39,11 +39,17 @@ import com.example.swob_deku.Models.Security.SecurityDH;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import org.bouncycastle.operator.OperatorCreationException;
+
+import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
@@ -130,33 +136,50 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         Log.d(getLocalClassName(), "Threading main activity");
 
         try {
-            byte[] pubKeyEncoded = dhAgreementInitiation();
-            byte[] bobPubKeyEncoded = generateSecrets(pubKeyEncoded);
+            String testMSISDN = "+237123456789";
+            SecurityDH securityDH = new SecurityDH();
+
+            byte[] pubKeyEncodedAlice = dhAgreementInitiation();
+            byte[] pubKeyEncodedBob = dhAgreementInitiationFromWithAlice(pubKeyEncodedAlice);
+
+            byte[] secretsAlice = securityDH.getSecretKey(pubKeyEncodedBob, testMSISDN);
+            byte[] secretsBob = securityDH.getSecretKey(pubKeyEncodedAlice, testMSISDN);
+
+            Log.d(getLocalClassName(), "Alice: " + Base64.encodeToString(secretsAlice, Base64.DEFAULT));
+            Log.d(getLocalClassName(), "Bob: " + Base64.encodeToString(secretsBob, Base64.DEFAULT));
+
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException |
-                 InvalidKeyException | NoSuchProviderException e) {
+                 InvalidKeyException | NoSuchProviderException | OperatorCreationException e) {
             throw new RuntimeException(e);
         } catch (InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        } catch (CertificateException e) {
+            throw new RuntimeException(e);
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (UnrecoverableKeyException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public byte[] generateSecrets(byte[] pubKeySpecs) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidKeyException {
+    public byte[] dhAgreementInitiationFromWithAlice(byte[] pubKeySpecs) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidKeyException {
         // TODO: check if keypair already exist
-        String testMSISDN = "+237123456789";
         SecurityDH securityDH = new SecurityDH();
 
-        securityDH.generateKeyPairFromPublicKey(pubKeySpecs, testMSISDN);
+        String testMSISDN = "+237123456789";
+        PublicKey publicKey = securityDH.generateKeyPairFromPublicKey(pubKeySpecs, testMSISDN);
 
-        return securityDH.keypair.getPublic().getEncoded();
+        return publicKey.getEncoded();
     }
 
-    public byte[] dhAgreementInitiation() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchProviderException {
+    public byte[] dhAgreementInitiation() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchProviderException, CertificateException, KeyStoreException, IOException, OperatorCreationException, InvalidKeySpecException {
         SecurityDH securityDH = new SecurityDH();
 
+        String testMSISDN = "+237123456789";
+        PublicKey publicKey = securityDH.generateKeyPair(testMSISDN);
 
-        securityDH.generateKeyPair();
-
-        PublicKey publicKey = securityDH.keypair.getPublic();
         byte[] publicKeyEncoded = publicKey.getEncoded();
 
         String dhPubKey = Base64.encodeToString(publicKeyEncoded, Base64.DEFAULT);

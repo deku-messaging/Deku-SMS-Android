@@ -3,20 +3,43 @@ package com.example.swob_deku.Models.Security;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 
+import com.example.swob_deku.BuildConfig;
+
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x509.X509Name;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.crypto.BadPaddingException;
@@ -31,18 +54,14 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class SecurityDH {
 
-    public KeyPair keypair;
-    public KeyAgreement keyAgree;
-
     public final static String DEFAULT_PROVIDER = "AndroidKeyStore";
     public final String DEFAULT_ALGORITHM = "DH";
 
     public final int DEFAULT_KEY_SIZE = 512;
     public SecurityDH() throws NoSuchAlgorithmException {
-        this.keyAgree  = KeyAgreement.getInstance(DEFAULT_ALGORITHM);
     }
 
-    public void keyAgreement(byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
+    public byte[] getSecretKey(byte[] publicKeyEnc, String alias) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
         /*
          * Alice uses Bob's public key for the first (and only) phase
          * of her version of the DH
@@ -54,55 +73,65 @@ public class SecurityDH {
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(publicKeyEnc);
         PublicKey publicKey = keyFactory.generatePublic(x509KeySpec);
 
-        this.keyAgree.init(this.keypair.getPrivate());
-        this.keyAgree.doPhase(publicKey, true);
+        PrivateKey privateKey = securelyFetchPrivateKey(alias);
+
+        KeyAgreement keyAgree  = KeyAgreement.getInstance(DEFAULT_ALGORITHM);
+
+        keyAgree.init(privateKey);
+        keyAgree.doPhase(publicKey, true);
+
+        return keyAgree.generateSecret();
     }
 
-    public void generateKeyPair(String keyAlias) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException, InvalidAlgorithmParameterException {
+    private X509Certificate generateCertificate(KeyPair keyPair) throws NoSuchAlgorithmException, InvalidKeyException, IOException, CertificateException, OperatorCreationException, InvalidKeySpecException {
+        // Create self-signed certificate
+        byte[] publicKeyBytes = keyPair.getPublic().getEncoded();
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+        SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKeySpec.getEncoded());
+
+        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
+                new X500Name("CN=DH Test Certificate"), // subject
+                BigInteger.valueOf(new SecureRandom().nextLong()), // serial number
+                new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000L), // not before
+                new Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000L), // not after
+                new X500Name("CN=DH Test Certificate"), // issuer
+                subjectPublicKeyInfo);
+        JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder("SHA256withDSA");
+        signerBuilder.setProvider("BC");
+        ContentSigner signer = signerBuilder.build(keyPair.getPrivate());
+        return new JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer));
+    }
+
+    public PublicKey generateKeyPair(String keystoreAlias) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException, InvalidAlgorithmParameterException, KeyStoreException, CertificateException, IOException, OperatorCreationException, InvalidKeySpecException {
         // TODO: check if keypair already exist
-
-//        KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM);
-//        KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC,
-//                DEFAULT_PROVIDER);
-
-        // TODO:
-//        keyGenerator.initialize(DEFAULT_KEY_SIZE);
+        KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM);
 
         // TODO: this works only for android 31 and above
-//        keyGenerator.initialize(
-//                new KeyGenParameterSpec.Builder(
-//                        keyAlias, KeyProperties.PURPOSE_AGREE_KEY)
-//                        .setKeySize(DEFAULT_KEY_SIZE)
-//                        .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PSS)
-//                        .setDigests(KeyProperties.DIGEST_SHA1, KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
-//                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
-//                        .build());
-//        KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(msisdnAsAlias,
-//                KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
-//                .setDigests(KeyProperties.DIGEST_SHA256)
-//                .setKeySize(2048);
-//        keyGenerator.initialize(builder.build());
-//
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-            ECGenParameterSpec ecSpec = new ECGenParameterSpec(); // Replace with the curve of your choice
-            keyPairGenerator.initialize(ecSpec);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
-            // handle exception
-        }
-
         keyGenerator.initialize(DEFAULT_KEY_SIZE);
-        this.keypair = keyGenerator.generateKeyPair();
-        this.keyAgree.init(this.keypair.getPrivate());
+        KeyPair keypair = keyGenerator.generateKeyPair();
 
-        // Alice encodes her public key, and sends it over to Bob.
-//        byte[] alicePubKeyEnc = this.keypair.getPublic().getEncoded();
-//
-//        return alicePubKeyEnc;
+        securelyStoreKeyPair(keystoreAlias, keypair);
+        return keypair.getPublic();
     }
 
-    public void generateKeyPairFromPublicKey(byte[] publicKeyEnc, String msisdnAsAlias) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
+    private PrivateKey securelyFetchPrivateKey(String keystoreAlias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
+        KeyStore keyStore = KeyStore.getInstance(DEFAULT_ALGORITHM);
+        keyStore.load(null);
+
+        return (PrivateKey) keyStore.getKey(keystoreAlias, null);
+    }
+
+    private void securelyStoreKeyPair(String keystoreAlias, KeyPair keypair) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeyException, OperatorCreationException, InvalidKeySpecException {
+        KeyStore keyStore = KeyStore.getInstance(DEFAULT_PROVIDER);
+        keyStore.load(null);
+//        KeyStore.PrivateKeyEntry keyPairEntry = new KeyStore.PrivateKeyEntry(keypair.getPrivate(), new Certificate[]{});
+        KeyStore.PrivateKeyEntry keyPairEntry = new KeyStore.PrivateKeyEntry(keypair.getPrivate(),
+                new X509Certificate[]{generateCertificate(keypair)});
+
+        keyStore.setEntry(keystoreAlias, keyPairEntry, null);
+    }
+
+    public PublicKey generateKeyPairFromPublicKey(byte[] publicKeyEnc, String msisdnAsAlias) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
         KeyFactory bobKeyFac = KeyFactory.getInstance(DEFAULT_ALGORITHM);
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(publicKeyEnc);
 
@@ -116,33 +145,23 @@ public class SecurityDH {
         DHParameterSpec dhParameterSpec = ((DHPublicKey)publicKey).getParams();
 
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM);
-//        keyPairGenerator.initialize(dhParameterSpec);
 
-//        keyPairGenerator.initialize(
-//                new KeyGenParameterSpec.Builder(
-//                        msisdnAsAlias,
-//                        KeyProperties.PURPOSE_DECRYPT
-//                                | KeyProperties.PURPOSE_ENCRYPT
-//                                | KeyProperties.PURPOSE_SIGN)
-//                        .setAlgorithmParameterSpec(dhParameterSpec)
-//                        .setKeySize(DEFAULT_KEY_SIZE)
-//                        .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PSS)
-//                        .setDigests(KeyProperties.DIGEST_SHA1, KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
-//                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
-//                        .build());
+        keyPairGenerator.initialize(dhParameterSpec);
 
-        this.keypair = keyPairGenerator.generateKeyPair();
+        KeyPair keypair = keyPairGenerator.generateKeyPair();
 
         // Bob encodes his public key, and sends it over to Alice.
 //        byte[] bobPubKeyEnc = this.keypair.getPublic().getEncoded();
 //
 //        return bobPubKeyEnc;
+        return keypair.getPublic();
     }
 
 
-    public byte[] generateSecretKey() {
-        return this.keyAgree.generateSecret();
-    }
+//    public byte[] generateSecretKey() throws NoSuchAlgorithmException {
+//        KeyAgreement keyAgree  = KeyAgreement.getInstance(DEFAULT_ALGORITHM);
+//        return keyAgree.generateSecret();
+//    }
 
 
     public static List<byte[]> encryptAES(byte[] plainText, byte[] secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
