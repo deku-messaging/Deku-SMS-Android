@@ -23,19 +23,28 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
+import android.util.Base64;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityDH;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -119,6 +128,43 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         enableSwipeAction();
         Log.d(getLocalClassName(), "Threading main activity");
+
+        try {
+            byte[] pubKeyEncoded = dhAgreementInitiation();
+            byte[] bobPubKeyEncoded = generateSecrets(pubKeyEncoded);
+        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException |
+                 InvalidKeyException | NoSuchProviderException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public byte[] generateSecrets(byte[] pubKeySpecs) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidKeyException {
+        // TODO: check if keypair already exist
+        String testMSISDN = "+237123456789";
+        SecurityDH securityDH = new SecurityDH();
+
+        securityDH.generateKeyPairFromPublicKey(pubKeySpecs, testMSISDN);
+
+        return securityDH.keypair.getPublic().getEncoded();
+    }
+
+    public byte[] dhAgreementInitiation() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchProviderException {
+        SecurityDH securityDH = new SecurityDH();
+
+
+        securityDH.generateKeyPair();
+
+        PublicKey publicKey = securityDH.keypair.getPublic();
+        byte[] publicKeyEncoded = publicKey.getEncoded();
+
+        String dhPubKey = Base64.encodeToString(publicKeyEncoded, Base64.DEFAULT);
+
+        Log.d(getLocalClassName(), "Key size: " + dhPubKey.length());
+        Log.d(getLocalClassName(), "Key data: " + publicKeyEncoded.length);
+
+        return publicKeyEncoded;
     }
 
     private void enableSwipeAction() {
