@@ -85,5 +85,6 @@ dependencies {
     implementation "androidx.paging:paging-compose:1.0.0-alpha18"
 
     implementation "org.bouncycastle:bcpkix-jdk15on:1.68"
+    implementation "androidx.security:security-crypto:1.1.0-alpha05"
 
 }

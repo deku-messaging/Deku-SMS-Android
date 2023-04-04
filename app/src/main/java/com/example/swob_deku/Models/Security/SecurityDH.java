@@ -1,7 +1,19 @@
 package com.example.swob_deku.Models.Security;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.security.KeyChain;
+import android.security.KeyChainAliasCallback;
+import android.security.KeyChainException;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.util.Base64;
+import android.util.Log;
+
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 
 import com.example.swob_deku.BuildConfig;
 
@@ -14,9 +26,16 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -58,10 +77,23 @@ public class SecurityDH {
     public final String DEFAULT_ALGORITHM = "DH";
 
     public final int DEFAULT_KEY_SIZE = 512;
-    public SecurityDH() throws NoSuchAlgorithmException {
+
+    private static final String PROVIDER = "BC";
+    private static final String KEYSTORE_TYPE = "PKCS12";
+    private static final String KEYSTORE_PATH = "keystore.p12";
+
+    MasterKey masterKeyAlias;
+
+    Context context;
+    public SecurityDH(Context context) throws GeneralSecurityException, IOException {
+        this.context = context;
+
+        this.masterKeyAlias = new MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build();
     }
 
-    public byte[] getSecretKey(byte[] publicKeyEnc, String alias) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
+    public byte[] getSecretKey(byte[] publicKeyEnc, String alias) throws GeneralSecurityException, IOException {
         /*
          * Alice uses Bob's public key for the first (and only) phase
          * of her version of the DH
@@ -102,7 +134,7 @@ public class SecurityDH {
         return new JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer));
     }
 
-    public PublicKey generateKeyPair(String keystoreAlias) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException, InvalidAlgorithmParameterException, KeyStoreException, CertificateException, IOException, OperatorCreationException, InvalidKeySpecException {
+    public PublicKey generateKeyPair(Activity activity, Context context, String keystoreAlias) throws GeneralSecurityException, IOException, OperatorCreationException {
         // TODO: check if keypair already exist
         KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM);
 
@@ -110,25 +142,49 @@ public class SecurityDH {
         keyGenerator.initialize(DEFAULT_KEY_SIZE);
         KeyPair keypair = keyGenerator.generateKeyPair();
 
-        securelyStoreKeyPair(keystoreAlias, keypair);
+        securelyStoreKeyPair(context, keystoreAlias, keypair);
         return keypair.getPublic();
     }
 
-    private PrivateKey securelyFetchPrivateKey(String keystoreAlias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
-        KeyStore keyStore = KeyStore.getInstance(DEFAULT_ALGORITHM);
-        keyStore.load(null);
+    private PrivateKey securelyFetchPrivateKey(String keystoreAlias) throws GeneralSecurityException, IOException {
+        keystoreAlias += "-private-key";
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                this.masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
-        return (PrivateKey) keyStore.getKey(keystoreAlias, null);
+        String encryptedSharedKey = encryptedSharedPreferences.getString(
+                keystoreAlias, "");
+
+        byte[] privateKeyDecoded = Base64.decode(encryptedSharedKey, Base64.DEFAULT);
+        KeyFactory keyFactory = KeyFactory.getInstance(DEFAULT_ALGORITHM); // Replace "RSA" with your key algorithm
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyDecoded);
+
+        return keyFactory.generatePrivate(keySpec);
     }
 
-    private void securelyStoreKeyPair(String keystoreAlias, KeyPair keypair) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, InvalidKeyException, OperatorCreationException, InvalidKeySpecException {
-        KeyStore keyStore = KeyStore.getInstance(DEFAULT_PROVIDER);
-        keyStore.load(null);
-//        KeyStore.PrivateKeyEntry keyPairEntry = new KeyStore.PrivateKeyEntry(keypair.getPrivate(), new Certificate[]{});
-        KeyStore.PrivateKeyEntry keyPairEntry = new KeyStore.PrivateKeyEntry(keypair.getPrivate(),
-                new X509Certificate[]{generateCertificate(keypair)});
+    private void securelyStoreKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException, OperatorCreationException {
 
-        keyStore.setEntry(keystoreAlias, keyPairEntry, null);
+        // TODO: make alias know it's private key stored now
+        keystoreAlias += "-private-key";
+
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
+
+        sharedPreferencesEditor.putString(keystoreAlias,
+                Base64.encodeToString(keyPair.getPrivate().getEncoded(), Base64.DEFAULT));
+
+        if(!sharedPreferencesEditor.commit()) {
+            throw new RuntimeException("Failed to store MSISDN");
+        }
     }
 
     public PublicKey generateKeyPairFromPublicKey(byte[] publicKeyEnc, String msisdnAsAlias) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {

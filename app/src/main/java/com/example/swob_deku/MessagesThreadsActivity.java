@@ -42,6 +42,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
@@ -137,7 +138,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         try {
             String testMSISDN = "+237123456789";
-            SecurityDH securityDH = new SecurityDH();
+            SecurityDH securityDH = new SecurityDH(getApplicationContext());
 
             byte[] pubKeyEncodedAlice = dhAgreementInitiation();
             byte[] pubKeyEncodedBob = dhAgreementInitiationFromWithAlice(pubKeyEncodedAlice);
@@ -159,14 +160,14 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch (UnrecoverableKeyException e) {
+        } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public byte[] dhAgreementInitiationFromWithAlice(byte[] pubKeySpecs) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidKeyException {
+    public byte[] dhAgreementInitiationFromWithAlice(byte[] pubKeySpecs) throws GeneralSecurityException, IOException {
         // TODO: check if keypair already exist
-        SecurityDH securityDH = new SecurityDH();
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
 
         String testMSISDN = "+237123456789";
         PublicKey publicKey = securityDH.generateKeyPairFromPublicKey(pubKeySpecs, testMSISDN);
@@ -174,11 +175,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         return publicKey.getEncoded();
     }
 
-    public byte[] dhAgreementInitiation() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchProviderException, CertificateException, KeyStoreException, IOException, OperatorCreationException, InvalidKeySpecException {
-        SecurityDH securityDH = new SecurityDH();
+    public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException, OperatorCreationException {
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
 
         String testMSISDN = "+237123456789";
-        PublicKey publicKey = securityDH.generateKeyPair(testMSISDN);
+        PublicKey publicKey = securityDH.generateKeyPair(this, getApplicationContext(), testMSISDN);
 
         byte[] publicKeyEncoded = publicKey.getEncoded();
 
