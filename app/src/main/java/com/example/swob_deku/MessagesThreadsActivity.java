@@ -141,8 +141,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             String testMSISDN = "+237123456789";
             SecurityDH securityDH = new SecurityDH(getApplicationContext());
 
+            // Transmission takes place here
             byte[] pubKeyEncodedAlice = dhAgreementInitiation();
             byte[] pubKeyEncodedBob = dhAgreementInitiationFromWithAlice(pubKeyEncodedAlice);
+
+            Log.d(getLocalClassName(), "Alice Pub key size: " + pubKeyEncodedAlice.length);
+            Log.d(getLocalClassName(), "Bob Pub key size: " + pubKeyEncodedBob.length);
 
             byte[] secretsAlice = securityDH.getSecretKey(pubKeyEncodedBob, testMSISDN);
             byte[] secretsBob = securityDH.getSecretKey(pubKeyEncodedAlice, testMSISDN);
@@ -192,6 +196,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         String testMSISDN = "+237123456789";
         PublicKey publicKey = securityDH.generateKeyPair(this, getApplicationContext(), testMSISDN);
 
+        Log.d(getLocalClassName(), "Key format: " + publicKey.getFormat());
         byte[] publicKeyEncoded = publicKey.getEncoded();
 
         String dhPubKey = Base64.encodeToString(publicKeyEncoded, Base64.DEFAULT);

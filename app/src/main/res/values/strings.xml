@@ -49,4 +49,12 @@
         Dismiss
     </string>
 
+    <string name="send_sms_activity_user_not_encrypted">
+        Not secured
+    </string>
+
+    <string name="send_sms_activity_user_encrypted">
+        Secured
+    </string>
+
 </resources>
