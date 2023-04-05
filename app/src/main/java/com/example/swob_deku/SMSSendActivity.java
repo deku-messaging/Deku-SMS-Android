@@ -5,6 +5,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
@@ -574,13 +575,18 @@ public class SMSSendActivity extends AppCompatActivity {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         if(!securityDH.hasEncryption(address)) {
             Log.d(getLocalClassName(), "Yep showing...");
-//            Snackbar mySnackbar = Snackbar.make(findViewById(R.id.contact_not_encrypted_layout),
-//                    "Hello world", BaseTransientBottomBar.LENGTH_INDEFINITE);
-//            mySnackbar.setTextColor(getResources().getColor(R.color.white, getTheme()));
-//            mySnackbar.setBackgroundTint(getResources().getColor(R.color.default_gray, getTheme()));
-//            mySnackbar.setAnchorView(findViewById(R.id.anchorView));
-//            mySnackbar.show();
-            ab.setTitle(ab.getTitle() + " (unsecure)");
+            Snackbar mySnackbar = Snackbar.make(findViewById(R.id.coordinator),
+                    "Hello world", BaseTransientBottomBar.LENGTH_INDEFINITE);
+            mySnackbar.setTextColor(getResources().getColor(R.color.white, getTheme()));
+            mySnackbar.setBackgroundTint(getResources().getColor(R.color.default_gray, getTheme()));
+
+            View snackbarView = mySnackbar.getView();
+            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) snackbarView.getLayoutParams();
+            params.gravity = Gravity.TOP;
+            snackbarView.setLayoutParams(params);
+
+            mySnackbar.show();
+            ab.setSubtitle("Not encrypted");
         }
     }
 
