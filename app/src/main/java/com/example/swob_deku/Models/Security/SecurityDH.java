@@ -263,6 +263,17 @@ public class SecurityDH {
         return ivText;
     }
 
+    public boolean hasEncryption(String keystoreAlias) throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        return encryptedSharedPreferences.contains(keystoreAlias);
+    }
+
 
     public static byte[] decryptAES(byte[] secretKey, byte[] ciphertext, byte[] iv) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         /*

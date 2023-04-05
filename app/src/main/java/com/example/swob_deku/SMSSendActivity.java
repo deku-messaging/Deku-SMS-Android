@@ -34,6 +34,7 @@ import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -49,10 +50,15 @@ import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityDH;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -550,12 +556,34 @@ public class SMSSendActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-        improveMessagingUX();
-        updateMessagesToRead();
 
+        improveMessagingUX();
         ab.setTitle(contactName);
+        
+        updateMessagesToRead();
+        try {
+            checkEncryptedMessaging();
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
+
         Log.d(getLocalClassName(), "Fetching Resuming...\nThreadID: " + this.threadId + "\nAddress:" + this.address);
     }
+
+    public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+        if(!securityDH.hasEncryption(address)) {
+            Log.d(getLocalClassName(), "Yep showing...");
+//            Snackbar mySnackbar = Snackbar.make(findViewById(R.id.contact_not_encrypted_layout),
+//                    "Hello world", BaseTransientBottomBar.LENGTH_INDEFINITE);
+//            mySnackbar.setTextColor(getResources().getColor(R.color.white, getTheme()));
+//            mySnackbar.setBackgroundTint(getResources().getColor(R.color.default_gray, getTheme()));
+//            mySnackbar.setAnchorView(findViewById(R.id.anchorView));
+//            mySnackbar.show();
+            ab.setTitle(ab.getTitle() + " (unsecure)");
+        }
+    }
+
 
     @Override
     public void onBackPressed() {
