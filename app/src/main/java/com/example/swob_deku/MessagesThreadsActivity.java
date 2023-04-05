@@ -160,7 +160,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
             Log.d(getLocalClassName(), "Alice decrypted: " + new String(decryptedAlice, StandardCharsets.UTF_8));
             Log.d(getLocalClassName(), "Bob decrypted: " + new String(decryptedBob, StandardCharsets.UTF_8));
-
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException |
                  InvalidKeyException | NoSuchProviderException | OperatorCreationException e) {
             throw new RuntimeException(e);
@@ -204,11 +203,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     private void enableSwipeAction() {
-
         final RecyclerView.ViewHolder[] currentViewHolder = {null};
 //        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            final int defaultItemBackgroundDrawable = R.drawable.messages_default_drawable;
+
+//        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT | ItemTouchHelper.RIGHT) {
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT ) {
             private Drawable deleteIcon;
             private int intrinsicWidth;
             private int intrinsicHeight;

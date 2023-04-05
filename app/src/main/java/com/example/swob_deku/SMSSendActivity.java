@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -33,9 +34,13 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -63,6 +68,8 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SMSSendActivity extends AppCompatActivity {
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
@@ -557,7 +564,6 @@ public class SMSSendActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-
         improveMessagingUX();
         ab.setTitle(contactName);
         
@@ -568,24 +574,63 @@ public class SMSSendActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        Log.d(getLocalClassName(), "Fetching Resuming...\nThreadID: " + this.threadId + "\nAddress:" + this.address);
+        Log.d(getLocalClassName(),
+                "Fetching Resuming...\nThreadID: " + this.threadId + "\nAddress:" + this.address);
     }
 
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         if(!securityDH.hasEncryption(address)) {
             Log.d(getLocalClassName(), "Yep showing...");
-            Snackbar mySnackbar = Snackbar.make(findViewById(R.id.coordinator),
-                    "Hello world", BaseTransientBottomBar.LENGTH_INDEFINITE);
-            mySnackbar.setTextColor(getResources().getColor(R.color.white, getTheme()));
-            mySnackbar.setBackgroundTint(getResources().getColor(R.color.default_gray, getTheme()));
 
-            View snackbarView = mySnackbar.getView();
-            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) snackbarView.getLayoutParams();
+            String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
+
+            String insertDetails = contactName.isEmpty() ? address : contactName;
+            String insertText = conversationNotSecuredText.replaceAll("\\[insert name\\]", insertDetails);
+
+            SpannableStringBuilder spannable = new SpannableStringBuilder(insertText);
+
+            Pattern pattern = Pattern.compile(insertDetails); // Regex pattern to match "[phonenumber]"
+            Matcher matcher = pattern.matcher(spannable);
+
+            while (matcher.find()) {
+                StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+                spannable.setSpan(boldSpan, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            }
+
+            Snackbar snackbar = Snackbar.make(findViewById(R.id.coordinator),
+                    spannable, BaseTransientBottomBar.LENGTH_INDEFINITE);
+
+            View snackbarView = snackbar.getView();
+//            Snackbar.SnackbarLayout snackbarLayout = (Snackbar.SnackbarLayout) snackbarView;
+//            LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
+//            View customView = inflater.inflate(R.layout.layout_security_snackbar, this.);
+//            snackbarLayout.addView(customView, 0);
+
+            snackbar.setTextColor(getResources().getColor(R.color.default_gray, getTheme()));
+            snackbar.setBackgroundTint(getResources().getColor(R.color.primary_warning_background_color,
+                    getTheme()));
+            snackbar.setTextMaxLines(4);
+            snackbar.setActionTextColor(getResources().getColor(R.color.white, getTheme()));
+            snackbar.setAction(R.string.send_sms_activity_user_not_secure_yes, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+            snackbar.getView().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    snackbar.dismiss();
+                }
+            });
+
+            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams)
+                    snackbarView.getLayoutParams();
             params.gravity = Gravity.TOP;
             snackbarView.setLayoutParams(params);
 
-            mySnackbar.show();
+            snackbar.show();
             ab.setSubtitle("Not encrypted");
         }
     }

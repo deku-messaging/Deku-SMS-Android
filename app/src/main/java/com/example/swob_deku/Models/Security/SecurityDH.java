@@ -274,7 +274,6 @@ public class SecurityDH {
         return encryptedSharedPreferences.contains(keystoreAlias);
     }
 
-
     public static byte[] decryptAES(byte[] secretKey, byte[] ciphertext, byte[] iv) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         /*
          * Alice decrypts, using AES in CBC mode
@@ -289,39 +288,6 @@ public class SecurityDH {
         byte[] recovered = aliceCipher.doFinal(ciphertext);
 
         return recovered;
-    }
-
-    public static void test() throws Exception {
-//        SecurityDH alice = new SecurityDH();
-//        SecurityDH bob = new SecurityDH();
-//
-//        byte[] alicePubKeyEnc = alice.generateKeyPair();
-//        byte[] bobPubKeyEnc = bob.generateKeyPairFromPublicKey(alicePubKeyEnc);
-//
-//        byte[] aliceSharedSecret = alice.DHKeyAgreement(bobPubKeyEnc, alice.keypair)
-//                .generateSecretKey();
-//        byte[] bobSharedSecret = bob.DHKeyAgreement(alicePubKeyEnc, bob.keypair)
-//                .generateSecretKey();
-//
-//        Log.i(SecurityDH.class.getName(), "Alice secret key:\n" + new String(aliceSharedSecret, "UTF-8"));
-//        SecretKeySpec key = new SecretKeySpec(aliceSharedSecret,"AES");
-//        Log.i(SecurityDH.class.getName(), "Alice secret key:\n" + Base64.encodeToString(key.getEncoded(), Base64.DEFAULT));
-//
-//        /*
-//        Log.i(DHKeyAgreement2.class.getName(), "Alice secret: " +
-//                Helpers.toHexString(aliceSharedSecret));
-//        Log.i(DHKeyAgreement2.class.getName(), "Bob secret: " +
-//                Helpers.toHexString(bobSharedSecret));
-//
-//         */
-//        if (!java.util.Arrays.equals(aliceSharedSecret, bobSharedSecret))
-//            throw new Exception("Shared secrets differ");
-//        Log.i(SecurityDH.class.getName(), "Shared secrets are the same");
-//
-//        List<byte[]> ivText = SecurityDH.encryptAES("Hello world".getBytes(StandardCharsets.UTF_8), aliceSharedSecret);
-//        Log.i(SecurityDH.class.getName(), "Encrypted Cipher Text: \n" + Base64.encodeToString(ivText.get(0), Base64.DEFAULT));
-//        Log.i(SecurityDH.class.getName(), "Encrypted IV: \n" + Base64.encodeToString(ivText.get(1), Base64.DEFAULT));
-//        Log.i(SecurityDH.class.getName(), "Encrypted String: \n" + new String(SecurityDH.decryptAES(aliceSharedSecret, ivText.get(0), ivText.get(1)), "UTF-8"));
     }
 
 }

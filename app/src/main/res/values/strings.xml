@@ -34,5 +34,19 @@
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">Available Gateway Servers</string>
     <string name="add_new_gateway_server_toolbar_title">New Gateway Server</string>
+
     <string name="route_state">Routing URL</string>
+
+    <string name="send_sms_activity_user_not_secure">
+        Your communications with [insert name] is not secured.\nWould you like to send a request to begin a secure conversation with to [insert name]?
+    </string>
+
+    <string name="send_sms_activity_user_not_secure_yes">
+        Send
+    </string>
+
+    <string name="send_sms_activity_user_not_secure_dismiss">
+        Dismiss
+    </string>
+
 </resources>
