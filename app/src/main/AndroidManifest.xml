@@ -60,8 +60,11 @@
             android:exported="true"
             android:launchMode="singleInstance"
             android:parentActivityName=".MessagesThreadsActivity"
+            android:permission="android.permission.BROADCAST_SMS"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
+                <action android:name="android.intent.action.DATA_SMS_RECEIVED"/>
+
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SENDTO" />
 

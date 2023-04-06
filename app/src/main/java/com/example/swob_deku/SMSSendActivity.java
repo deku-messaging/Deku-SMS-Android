@@ -379,7 +379,6 @@ public class SMSSendActivity extends AppCompatActivity {
 //                if(singleMessageViewModel.getLastUsedKey() == 0)
 //                    singleMessagesThreadRecyclerAdapter.refresh();
                 Log.d(getLocalClassName(), "Broadcast received text!");
-
                 singleMessageViewModel.informNewItemChanges();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
@@ -400,6 +399,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
         registerReceiver(incomingDataBroadcastReceiver,
                 new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
+        registerReceiver(incomingDataBroadcastReceiver,
+                new IntentFilter(BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION"));
     }
 
     public void handleBroadcast() {
@@ -585,9 +586,6 @@ public class SMSSendActivity extends AppCompatActivity {
         } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();
         }
-
-        Log.d(getLocalClassName(),
-                "Fetching Resuming...\nThreadID: " + this.threadId + "\nAddress:" + this.address);
     }
 
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
@@ -717,7 +715,6 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     public void onBackPressed() {
         if(findViewById(R.id.simcard_select_constraint).getVisibility() == View.VISIBLE)
@@ -777,10 +774,9 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         unregisterReceiver(incomingBroadcastReceiver);
         unregisterReceiver(incomingDataBroadcastReceiver);
-
-        super.onDestroy();
     }
 
     public void onLongClickSend(View view) {
