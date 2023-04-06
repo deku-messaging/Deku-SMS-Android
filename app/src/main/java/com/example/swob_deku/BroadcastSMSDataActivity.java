@@ -45,19 +45,22 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                         }
                     }
 
+                    long messageId = -1;
                     try {
                         String strMessage = messageBuffer.toString();
                         if(strMessage.contains(SecurityHelpers.FIRST_HEADER)){
                             // TODO: register message and store the reference in a sharedreference location
-                            long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
+                            messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
 //                            String notificationNote = "New Key request";
 //                            BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
                         }
                         else if(strMessage.contains(SecurityHelpers.END_HEADER)){
                             // TODO: search for registered message and get content from sharedreference location
-                            long messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
-//                            String notificationNote = "New Key request";
-//                            BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
+                            messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
+                        }
+                        if(checkMessagesAvailable()) {
+                            String notificationNote = "New Key request";
+                            BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
                         }
                         broadcastIntent(context);
 
@@ -74,4 +77,9 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
         Intent intent = new Intent(BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION");
         context.sendBroadcast(intent);
     }
+
+    private boolean checkMessagesAvailable() {
+        return false;
+    }
+
 }

@@ -1,64 +1,28 @@
 package com.example.swob_deku.Models.Security;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.security.KeyChain;
-import android.security.KeyChainAliasCallback;
-import android.security.KeyChainException;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
-import com.example.swob_deku.BuildConfig;
-
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.asn1.x509.X509Name;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.X509v3CertificateBuilder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
-import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.crypto.BadPaddingException;
@@ -123,7 +87,7 @@ public class SecurityDH {
         keyGenerator.initialize(DEFAULT_KEY_SIZE);
         KeyPair keypair = keyGenerator.generateKeyPair();
 
-        securelyStoreKeyPair(context, keystoreAlias, keypair);
+        securelyStorePrivateKeyKeyPair(context, keystoreAlias, keypair);
         return keypair.getPublic();
     }
 
@@ -146,7 +110,7 @@ public class SecurityDH {
         return keyFactory.generatePrivate(keySpec);
     }
 
-    private void securelyStoreKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException, OperatorCreationException {
+    private void securelyStorePrivateKeyKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException, OperatorCreationException {
 
         // TODO: make alias know it's private key stored now
         keystoreAlias += "-private-key";
@@ -166,6 +130,48 @@ public class SecurityDH {
         if(!sharedPreferencesEditor.commit()) {
             throw new RuntimeException("Failed to store MSISDN");
         }
+    }
+
+    public void securelyStorePublicKeyKeyPair(Context context, String keystoreAlias, byte[] keyValue, int part) throws GeneralSecurityException, IOException, OperatorCreationException {
+        // TODO: make alias know it's private key stored now
+        String formattedKeystoreAlias = keystoreAlias + "-public-key-" + part;
+
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                formattedKeystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        String otherFormattedKeystoreAlias = keystoreAlias + "-public-key-" + (part == 1 ? 0 : 1);
+
+        if(encryptedSharedPreferences.contains(otherFormattedKeystoreAlias)) {
+            // TODO: build the key now
+            String otherPart = encryptedSharedPreferences.getString(otherFormattedKeystoreAlias, "");
+            String merged = part == 0 ? otherPart + Base64.encodeToString(keyValue, Base64.DEFAULT) :
+                    Base64.encodeToString(keyValue, Base64.DEFAULT) + otherPart;
+
+        }
+
+        SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
+
+        sharedPreferencesEditor.putString(keystoreAlias,
+                Base64.encodeToString(keyValue, Base64.DEFAULT));
+
+        if(!sharedPreferencesEditor.commit()) {
+            throw new RuntimeException("Failed to store MSISDN");
+        }
+    }
+
+    public boolean peerAgreementPublicKeysAvailable(Context context, String keystoreAlias) throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        return encryptedSharedPreferences.contains(keystoreAlias);
     }
 
     public PublicKey generateKeyPairFromPublicKey(byte[] publicKeyEnc, String msisdnAsAlias) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
@@ -194,13 +200,10 @@ public class SecurityDH {
         return keypair.getPublic();
     }
 
-
 //    public byte[] generateSecretKey() throws NoSuchAlgorithmException {
 //        KeyAgreement keyAgree  = KeyAgreement.getInstance(DEFAULT_ALGORITHM);
 //        return keyAgree.generateSecret();
 //    }
-
-
     public static List<byte[]> encryptAES(byte[] plainText, byte[] secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
         /*
          * Now let's create a SecretKey object using the shared secret
