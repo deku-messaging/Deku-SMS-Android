@@ -10,6 +10,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +22,10 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Date;
 
 public class SecurityHelpers {
+
+
+    public final static String FIRST_HEADER = "--D.E.K.U.start---";
+    public final static String END_HEADER = "--D.E.K.U.end---";
 
     public static X509Certificate generateCertificate(KeyPair keyPair) throws NoSuchAlgorithmException, InvalidKeyException, IOException, CertificateException, OperatorCreationException, InvalidKeySpecException {
         // Create self-signed certificate
@@ -41,4 +46,39 @@ public class SecurityHelpers {
         return new JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer));
     }
 
+    public static byte[][] txAgreementFormatter(byte[] agreementKey) {
+        byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
+        byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
+
+        int dstLen = 140 - firstHeader.length;
+        int dstLen1 = agreementKey.length - 140;
+
+        byte[] startKey = new byte[140];
+        byte[] endKey = new byte[agreementKey.length - dstLen + endHeader.length];
+
+        System.arraycopy(firstHeader, 0, startKey, 0, firstHeader.length);
+        System.arraycopy(agreementKey, 0, startKey, firstHeader.length,  dstLen);
+
+        System.arraycopy(endHeader, 0, endKey, 0, endHeader.length);
+        System.arraycopy(agreementKey, dstLen, endKey, endHeader.length,  agreementKey.length-dstLen);
+
+        return new byte[][]{startKey, endKey};
+    }
+
+    public static byte[] rxAgreementFormatter(byte[][] agreementKey) {
+
+        byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
+        byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
+
+        int dstLen = agreementKey[0].length - firstHeader.length;
+        int dstLen1 = agreementKey[1].length - endHeader.length;
+
+        byte[] agreementPubKey = new byte[dstLen + dstLen1];
+
+        System.arraycopy(agreementKey[0], firstHeader.length, agreementPubKey, 0, dstLen);
+
+        System.arraycopy(agreementKey[1], endHeader.length, agreementPubKey, dstLen, dstLen1);
+
+        return agreementPubKey;
+    }
 }
