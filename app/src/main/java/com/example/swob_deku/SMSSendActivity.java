@@ -591,6 +591,7 @@ public class SMSSendActivity extends AppCompatActivity {
             String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
 
             String insertDetails = contactName.isEmpty() ? address : contactName;
+            insertDetails = insertDetails.replaceAll("\\+", "");
             String insertText = conversationNotSecuredText.replaceAll("\\[insert name\\]", insertDetails);
 
             SpannableStringBuilder spannable = new SpannableStringBuilder(insertText);
@@ -635,9 +636,12 @@ public class SMSSendActivity extends AppCompatActivity {
 
                         // TODO: support for multi-sim
                         int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        SMSHandler.registerPendingMessage(getApplicationContext(),
+                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
                                 address, text, messageId, subscriptionId);
-                        singleMessageViewModel.informNewItemChanges();
+                        if(threadId.isEmpty()) {
+                            threadId = threadIdRx;
+                            singleMessageViewModel.informNewItemChanges(threadId);
+                        } else singleMessageViewModel.informNewItemChanges();
 
                         new Thread(new Runnable() {
                             @Override
