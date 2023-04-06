@@ -38,6 +38,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.text.style.StyleSpan;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -57,14 +58,18 @@ import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import org.bouncycastle.operator.OperatorCreationException;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -615,7 +620,73 @@ public class SMSSendActivity extends AppCompatActivity {
             snackbar.setAction(R.string.send_sms_activity_user_not_secure_yes, new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    // TODO: generate the key
+                    // TODO: register the key as 1 message with data header - hold on to ID in case failure
+                    // TODO: send the key as 2 data messages
+                    try {
+                        byte[] agreementKey = dhAgreementInitiation();
+                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
 
+                        String text = SecurityHelpers.FIRST_HEADER
+                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
+                                + SecurityHelpers.END_HEADER;
+
+                        long messageId = Helpers.generateRandomNumber();
+
+                        // TODO: support for multi-sim
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                        SMSHandler.registerPendingMessage(getApplicationContext(),
+                                address, text, messageId, subscriptionId);
+                        singleMessageViewModel.informNewItemChanges();
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
+                                    handleBroadcast();
+                                    SMSHandler.sendDataSMS(getApplicationContext(),
+                                            address,
+                                            txAgreementKey[0],
+                                            pendingIntents[0],
+                                            pendingIntents[1],
+                                            messageId,
+                                            subscriptionId);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                    SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
+                                            SmsManager.RESULT_ERROR_GENERIC_FAILURE);
+                                }
+                            }
+                        }).start();
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
+                                    handleBroadcast();
+                                    SMSHandler.sendDataSMS(getApplicationContext(),
+                                            address,
+                                            txAgreementKey[1],
+                                            pendingIntents[0],
+                                            pendingIntents[1],
+                                            messageId,
+                                            subscriptionId);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                    SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
+                                            SmsManager.RESULT_ERROR_GENERIC_FAILURE);
+                                }
+                            }
+                        }).start();
+                    } catch (GeneralSecurityException e) {
+                        throw new RuntimeException(e);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (OperatorCreationException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
             snackbar.getView().setOnClickListener(new View.OnClickListener() {
@@ -821,5 +892,11 @@ public class SMSSendActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException, OperatorCreationException {
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+        PublicKey publicKey = securityDH.generateKeyPair(this, address);
+        return publicKey.getEncoded();
     }
 }

@@ -50,10 +50,11 @@ public class SecurityHelpers {
         byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
         byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
 
-        int dstLen = 140 - firstHeader.length;
-        int dstLen1 = agreementKey.length - 140;
+        int SMS_CONSTANT = 130;
+        int dstLen = SMS_CONSTANT - firstHeader.length;
+        int dstLen1 = agreementKey.length - SMS_CONSTANT;
 
-        byte[] startKey = new byte[140];
+        byte[] startKey = new byte[SMS_CONSTANT];
         byte[] endKey = new byte[agreementKey.length - dstLen + endHeader.length];
 
         System.arraycopy(firstHeader, 0, startKey, 0, firstHeader.length);

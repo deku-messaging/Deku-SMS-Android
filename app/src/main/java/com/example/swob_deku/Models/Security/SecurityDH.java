@@ -115,26 +115,7 @@ public class SecurityDH {
         return keyAgree.generateSecret();
     }
 
-    private X509Certificate generateCertificate(KeyPair keyPair) throws NoSuchAlgorithmException, InvalidKeyException, IOException, CertificateException, OperatorCreationException, InvalidKeySpecException {
-        // Create self-signed certificate
-        byte[] publicKeyBytes = keyPair.getPublic().getEncoded();
-        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
-        SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKeySpec.getEncoded());
-
-        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
-                new X500Name("CN=DH Test Certificate"), // subject
-                BigInteger.valueOf(new SecureRandom().nextLong()), // serial number
-                new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000L), // not before
-                new Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000L), // not after
-                new X500Name("CN=DH Test Certificate"), // issuer
-                subjectPublicKeyInfo);
-        JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder("SHA256withDSA");
-        signerBuilder.setProvider("BC");
-        ContentSigner signer = signerBuilder.build(keyPair.getPrivate());
-        return new JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer));
-    }
-
-    public PublicKey generateKeyPair(Activity activity, Context context, String keystoreAlias) throws GeneralSecurityException, IOException, OperatorCreationException {
+    public PublicKey generateKeyPair(Context context, String keystoreAlias) throws GeneralSecurityException, IOException, OperatorCreationException {
         // TODO: check if keypair already exist
         KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM);
 

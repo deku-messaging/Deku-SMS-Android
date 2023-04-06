@@ -147,6 +147,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             byte[][] txAgreementKeyAlice = SecurityHelpers.txAgreementFormatter(pubKeyEncodedAlice);
             byte[][] txAgreementKeyBob = SecurityHelpers.txAgreementFormatter(pubKeyEncodedBob);
 
+            // Receiving transmission
             byte[] rxAgreementKeyAliceFromBob = SecurityHelpers.rxAgreementFormatter(txAgreementKeyBob);
             byte[] rxAgreementKeyBobFromAlice = SecurityHelpers.rxAgreementFormatter(txAgreementKeyAlice);
 
@@ -208,7 +209,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
 
         String testMSISDN = "+237123456789";
-        PublicKey publicKey = securityDH.generateKeyPair(this, getApplicationContext(), testMSISDN);
+        PublicKey publicKey = securityDH.generateKeyPair(this, testMSISDN);
 
         Log.d(getLocalClassName(), "Key format: " + publicKey.getFormat());
         byte[] publicKeyEncoded = publicKey.getEncoded();
