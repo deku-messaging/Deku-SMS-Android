@@ -74,6 +74,7 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".DefaultCheckActivity"
             android:exported="true">

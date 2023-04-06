@@ -148,7 +148,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 .get( SingleMessageViewModel.class);
 
         configureToolbars();
-        handleIncomingBroadcast();
         threadIdentificationLoader();
 
         singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this, new Observer<List<SMS>>() {
@@ -379,6 +378,7 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
 //                if(singleMessageViewModel.getLastUsedKey() == 0)
 //                    singleMessagesThreadRecyclerAdapter.refresh();
+                Log.d(getLocalClassName(), "Broadcast received text!");
 
                 singleMessageViewModel.informNewItemChanges();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
@@ -389,12 +389,17 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(getLocalClassName(), "Broadcast received data!");
+                singleMessageViewModel.informNewItemChanges();
+                cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
         };
 
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
-        registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
-        registerReceiver(incomingDataBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
+        registerReceiver(incomingBroadcastReceiver,
+                new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
+
+        registerReceiver(incomingDataBroadcastReceiver,
+                new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
     }
 
     public void handleBroadcast() {
@@ -562,6 +567,8 @@ public class SMSSendActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        handleIncomingBroadcast();
+
         try {
             if(threadId.isEmpty())
                 getAddressAndThreadId();
