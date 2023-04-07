@@ -581,11 +581,16 @@ public class SMSSendActivity extends AppCompatActivity {
         ab.setTitle(contactName);
         
         updateMessagesToRead();
-        try {
-            checkEncryptedMessaging();
-        } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    checkEncryptedMessaging();
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {

@@ -250,6 +250,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 try {
                     SMSHandler.deleteThread(getApplicationContext(), threadId);
                     messagesThreadViewModel.informChanges(getApplicationContext());
+
+                    Cursor cursor = SMSHandler.fetchSMSAddressFromThreadId(getApplicationContext(), threadId);
+                    if(cursor.moveToFirst()) {
+                        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+                        securityDH.removeAllKeys(new SMS(cursor).getAddress());
+                    }
                 }catch (Exception e) {
                     e.printStackTrace();
                 }

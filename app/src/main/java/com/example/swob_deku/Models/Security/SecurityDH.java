@@ -159,7 +159,7 @@ public class SecurityDH {
             sharedPreferencesEditor
                     .remove(otherFormattedKeystoreAlias)
                     .remove(formattedKeystoreAlias)
-                    .putString(keystoreAlias, Base64.encodeToString(merged, Base64.DEFAULT));
+                    .putString(keystoreAlias + "-agreement-key", Base64.encodeToString(merged, Base64.DEFAULT));
 
             if(!sharedPreferencesEditor.commit()) {
                 throw new RuntimeException("Failed to store merged agreement");
@@ -172,6 +172,18 @@ public class SecurityDH {
                 throw new RuntimeException("Failed to store public key part");
             }
         }
+    }
+
+    public void removeAllKeys(String keystoreAlias) throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
+        sharedPreferencesEditor.clear();
     }
 
     public boolean peerAgreementPublicKeysAvailable(Context context, String keystoreAlias) throws GeneralSecurityException, IOException {
