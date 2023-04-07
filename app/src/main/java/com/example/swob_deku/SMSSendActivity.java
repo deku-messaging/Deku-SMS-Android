@@ -593,42 +593,134 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
     }
 
-    public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
-        SecurityDH securityDH = new SecurityDH(getApplicationContext());
-        if(!securityDH.hasEncryption(address)) {
-            Log.d(getLocalClassName(), "Yep showing...");
+    private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor) {
+        String insertDetails = contactName.isEmpty() ? address : contactName;
+        insertDetails = insertDetails.replaceAll("\\+", "");
+        String insertText = text.replaceAll("\\[insert name\\]", insertDetails);
 
-            String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
+        SpannableStringBuilder spannable = new SpannableStringBuilder(insertText);
 
-            String insertDetails = contactName.isEmpty() ? address : contactName;
-            insertDetails = insertDetails.replaceAll("\\+", "");
-            String insertText = conversationNotSecuredText.replaceAll("\\[insert name\\]", insertDetails);
+        Pattern pattern = Pattern.compile(insertDetails); // Regex pattern to match "[phonenumber]"
+        Matcher matcher = pattern.matcher(spannable);
 
-            SpannableStringBuilder spannable = new SpannableStringBuilder(insertText);
+        while (matcher.find()) {
+            StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+            spannable.setSpan(boldSpan, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        }
 
-            Pattern pattern = Pattern.compile(insertDetails); // Regex pattern to match "[phonenumber]"
-            Matcher matcher = pattern.matcher(spannable);
+        Snackbar snackbar = Snackbar.make(findViewById(R.id.coordinator),
+                spannable, BaseTransientBottomBar.LENGTH_INDEFINITE);
 
-            while (matcher.find()) {
-                StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
-                spannable.setSpan(boldSpan, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            }
-
-            Snackbar snackbar = Snackbar.make(findViewById(R.id.coordinator),
-                    spannable, BaseTransientBottomBar.LENGTH_INDEFINITE);
-
-            View snackbarView = snackbar.getView();
+        View snackbarView = snackbar.getView();
 //            Snackbar.SnackbarLayout snackbarLayout = (Snackbar.SnackbarLayout) snackbarView;
 //            LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
 //            View customView = inflater.inflate(R.layout.layout_security_snackbar, this.);
 //            snackbarLayout.addView(customView, 0);
 
-            snackbar.setTextColor(getResources().getColor(R.color.default_gray, getTheme()));
-            snackbar.setBackgroundTint(getResources().getColor(R.color.primary_warning_background_color,
-                    getTheme()));
-            snackbar.setTextMaxLines(4);
-            snackbar.setActionTextColor(getResources().getColor(R.color.white, getTheme()));
-            snackbar.setAction(R.string.send_sms_activity_user_not_secure_yes, new View.OnClickListener() {
+        snackbar.setTextColor(getResources().getColor(R.color.default_gray, getTheme()));
+
+        if(bgColor == null)
+            bgColor = getResources().getColor(R.color.primary_warning_background_color,
+                    getTheme());
+
+        snackbar.setBackgroundTint(bgColor);
+        snackbar.setTextMaxLines(4);
+        snackbar.setActionTextColor(getResources().getColor(R.color.white, getTheme()));
+        snackbar.setAction(actionText, onClickListener);
+        snackbar.getView().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                snackbar.dismiss();
+            }
+        });
+
+        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams)
+                snackbarView.getLayoutParams();
+        params.gravity = Gravity.TOP;
+        snackbarView.setLayoutParams(params);
+
+        snackbar.show();
+    }
+
+    private void rxKeys(byte[][] txAgreementKey, long messageId, int subscriptionId){
+        try {
+            PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
+
+            handleBroadcast();
+            SMSHandler.sendDataSMS(getApplicationContext(),
+                    address,
+                    txAgreementKey[0],
+                    pendingIntents[0],
+                    pendingIntents[1],
+                    messageId,
+                    subscriptionId);
+
+            handleBroadcast();
+            SMSHandler.sendDataSMS(getApplicationContext(),
+                    address,
+                    txAgreementKey[1],
+                    pendingIntents[0],
+                    pendingIntents[1],
+                    messageId,
+                    subscriptionId);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
+                    SmsManager.RESULT_ERROR_GENERIC_FAILURE);
+        }
+    }
+
+    public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+        if(securityDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
+            String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
+
+            View.OnClickListener onClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // TODO: get agreement and sign new public key
+                    // TODO: transmit new public key to peer
+                    // TODO: generate and store secret - handshake complete
+                    try {
+                        byte[] peerPublicKey = Base64.decode(securityDH.getPeerAgreementPublicKey(address), Base64.DEFAULT);
+                        PublicKey publicKeyAgreement = securityDH.generateKeyPairFromPublicKey(peerPublicKey);
+
+                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKeyAgreement.getEncoded());
+
+                        long messageId = Helpers.generateRandomNumber();
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                rxKeys(txAgreementKey, messageId, subscriptionId);
+                                // TODO: generate shared secret
+                            }
+                        }).start();
+                    } catch (GeneralSecurityException e) {
+                        throw new RuntimeException(e);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+
+            // TODO: change bgColor to match the intended use
+            Integer bgColor = null;
+            lunchSnackBar(text, actionText, onClickListener, bgColor);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
+                }
+            });
+        }
+        else if(!securityDH.hasEncryption(address)) {
+            Log.d(getLocalClassName(), "Yep showing...");
+
+            View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     // TODO: generate the key
@@ -656,44 +748,10 @@ public class SMSSendActivity extends AppCompatActivity {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                try {
-                                    PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
-                                    handleBroadcast();
-                                    SMSHandler.sendDataSMS(getApplicationContext(),
-                                            address,
-                                            txAgreementKey[0],
-                                            pendingIntents[0],
-                                            pendingIntents[1],
-                                            messageId,
-                                            subscriptionId);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                    SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
-                                            SmsManager.RESULT_ERROR_GENERIC_FAILURE);
-                                }
+                                rxKeys(txAgreementKey, messageId, subscriptionId);
                             }
                         }).start();
 
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
-                                    handleBroadcast();
-                                    SMSHandler.sendDataSMS(getApplicationContext(),
-                                            address,
-                                            txAgreementKey[1],
-                                            pendingIntents[0],
-                                            pendingIntents[1],
-                                            messageId,
-                                            subscriptionId);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                    SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
-                                            SmsManager.RESULT_ERROR_GENERIC_FAILURE);
-                                }
-                            }
-                        }).start();
                     } catch (GeneralSecurityException e) {
                         throw new RuntimeException(e);
                     } catch (IOException e) {
@@ -702,20 +760,13 @@ public class SMSSendActivity extends AppCompatActivity {
                         throw new RuntimeException(e);
                     }
                 }
-            });
-            snackbar.getView().setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    snackbar.dismiss();
-                }
-            });
+            };
 
-            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams)
-                    snackbarView.getLayoutParams();
-            params.gravity = Gravity.TOP;
-            snackbarView.setLayoutParams(params);
+            String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
 
-            snackbar.show();
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
+            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, null);
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

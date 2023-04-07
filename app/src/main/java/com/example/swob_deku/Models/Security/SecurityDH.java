@@ -149,14 +149,10 @@ public class SecurityDH {
 
             byte[] otherPartByte = Base64.decode(otherPart, Base64.DEFAULT);
 
-            byte[] merged = new byte[otherPartByte.length + keyValue.length];
+            byte[][] rxMergeNeeded =  part == 0?
+                    new byte[][]{keyValue, otherPartByte} : new byte[][]{otherPartByte, keyValue};
 
-            if(part == 0) {
-                System.arraycopy(keyValue, 0, merged, 0, keyValue.length);
-            } else {
-                System.arraycopy(otherPartByte, 0, merged, 0, otherPartByte.length);
-            }
-
+            byte[] merged = SecurityHelpers.rxAgreementFormatter(rxMergeNeeded);
             sharedPreferencesEditor
                     .remove(otherFormattedKeystoreAlias)
                     .remove(formattedKeystoreAlias)
@@ -197,7 +193,33 @@ public class SecurityDH {
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
-        return encryptedSharedPreferences.contains(keystoreAlias);
+        return encryptedSharedPreferences.contains(keystoreAlias + "-agreement-key");
+    }
+
+    public String getPeerAgreementPublicKey(String keystoreAlias) throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        return encryptedSharedPreferences.getString(keystoreAlias, "");
+    }
+
+    public void securelyStoreSecretKey(String keystoreAlias, byte[] secret) throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
+
+        sharedPreferencesEditor.clear()
+                .putString(keystoreAlias, Base64.encodeToString(secret, Base64.DEFAULT))
+                .commit();
     }
 
     public PublicKey generateKeyPairFromPublicKey(byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
