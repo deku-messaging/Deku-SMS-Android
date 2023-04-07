@@ -3,6 +3,7 @@ package com.example.swob_deku.Models.Security;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
@@ -183,7 +184,9 @@ public class SecurityDH {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
         SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
-        sharedPreferencesEditor.clear();
+
+        sharedPreferencesEditor.clear()
+                .commit();
     }
 
     public boolean peerAgreementPublicKeysAvailable(Context context, String keystoreAlias) throws GeneralSecurityException, IOException {
@@ -279,6 +282,10 @@ public class SecurityDH {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
         return encryptedSharedPreferences.contains(keystoreAlias);
+//        String keystorevalue = encryptedSharedPreferences.getString(keystoreAlias, "");
+//        Log.d(getClass().getName(), "Got keystore value: " + keystorevalue);
+//
+//        return !keystorevalue.isEmpty();
     }
 
     public static byte[] decryptAES(byte[] secretKey, byte[] ciphertext, byte[] iv) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {

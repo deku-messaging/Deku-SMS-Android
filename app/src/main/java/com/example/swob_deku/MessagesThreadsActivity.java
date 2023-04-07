@@ -248,14 +248,18 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 String threadId = itemView.id;
 
                 try {
-                    SMSHandler.deleteThread(getApplicationContext(), threadId);
-                    messagesThreadViewModel.informChanges(getApplicationContext());
-
-                    Cursor cursor = SMSHandler.fetchSMSAddressFromThreadId(getApplicationContext(), threadId);
+                    Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);
                     if(cursor.moveToFirst()) {
                         SecurityDH securityDH = new SecurityDH(getApplicationContext());
-                        securityDH.removeAllKeys(new SMS(cursor).getAddress());
+                        String address = new SMS(cursor).getAddress();
+                        Log.d(getLocalClassName(), "Removing keys for address: " + address
+                                + " -> thread:" + threadId);
+                        securityDH.removeAllKeys(address);
                     }
+                    cursor.close();
+
+                    SMSHandler.deleteThread(getApplicationContext(), threadId);
+                    messagesThreadViewModel.informChanges(getApplicationContext());
                 }catch (Exception e) {
                     e.printStackTrace();
                 }

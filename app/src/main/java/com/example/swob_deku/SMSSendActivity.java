@@ -716,7 +716,12 @@ public class SMSSendActivity extends AppCompatActivity {
             snackbarView.setLayoutParams(params);
 
             snackbar.show();
-            ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
+                }
+            });
         }
     }
 
