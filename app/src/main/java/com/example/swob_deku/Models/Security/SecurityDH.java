@@ -164,10 +164,18 @@ public class SecurityDH {
                     new byte[][]{keyValue, otherPartByte} : new byte[][]{otherPartByte, keyValue};
 
             byte[] merged = SecurityHelpers.rxAgreementFormatter(rxMergeNeeded);
-            sharedPreferencesEditor
-                    .remove(otherFormattedKeystoreAlias)
-                    .remove(formattedKeystoreAlias)
-                    .putString(keystoreAlias + "-agreement-key", Base64.encodeToString(merged, Base64.DEFAULT));
+            if(encryptedSharedPreferences.contains(keystoreAlias + "-private-key")) {
+                // TODO: get secret key
+                byte[] secret = getSecretKey(merged, keystoreAlias);
+                securelyStoreSecretKey(keystoreAlias, secret);
+                return;
+            }
+            else {
+                sharedPreferencesEditor
+                        .remove(otherFormattedKeystoreAlias)
+                        .remove(formattedKeystoreAlias)
+                        .putString(keystoreAlias + "-agreement-key", Base64.encodeToString(merged, Base64.DEFAULT));
+            }
 
             if(!sharedPreferencesEditor.commit()) {
                 throw new RuntimeException("Failed to store merged agreement");
