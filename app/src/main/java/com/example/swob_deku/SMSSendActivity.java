@@ -724,13 +724,14 @@ public class SMSSendActivity extends AppCompatActivity {
 
             // TODO: change bgColor to match the intended use
             Integer bgColor = null;
-            if(securityDH.hasPrivateKey(address)) {
-                String peerAgreementKey = securityDH.getPeerAgreementPublicKey(address);
-                byte[] peerKey = Base64.decode(peerAgreementKey, Base64.DEFAULT);
-                byte[] secret = securityDH.getSecretKey(peerKey, address);
-                securityDH.securelyStoreSecretKey(address, secret);
-            }
-            else lunchSnackBar(text, actionText, agreementViewListener(), bgColor);
+//            if(securityDH.hasPrivateKey(address)) {
+//                String peerAgreementKey = securityDH.getPeerAgreementPublicKey(address);
+//                byte[] peerKey = Base64.decode(peerAgreementKey, Base64.DEFAULT);
+//                byte[] secret = securityDH.getSecretKey(peerKey, address);
+//                securityDH.securelyStoreSecretKey(address, secret);
+//            }
+//            else lunchSnackBar(text, actionText, agreementViewListener(), bgColor);
+            lunchSnackBar(text, actionText, agreementViewListener(), bgColor);
 
             runOnUiThread(new Runnable() {
                 @Override
