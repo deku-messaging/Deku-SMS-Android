@@ -389,7 +389,7 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 Log.d(getLocalClassName(), "Broadcast received data!");
                 singleMessageViewModel.informNewItemChanges();
-                cancelNotifications(getIntent().getStringExtra(THREAD_ID));
+//                cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
         };
 

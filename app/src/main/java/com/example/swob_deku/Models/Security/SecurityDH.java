@@ -92,16 +92,15 @@ public class SecurityDH {
     }
 
     private PrivateKey securelyFetchPrivateKey(String keystoreAlias) throws GeneralSecurityException, IOException {
-        keystoreAlias += "-private-key";
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,
                 keystoreAlias,
-                this.masterKeyAlias,
+                masterKeyAlias,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
         String encryptedSharedKey = encryptedSharedPreferences.getString(
-                keystoreAlias, "");
+                keystoreAlias + "-private-key", "");
 
         byte[] privateKeyDecoded = Base64.decode(encryptedSharedKey, Base64.DEFAULT);
         KeyFactory keyFactory = KeyFactory.getInstance(DEFAULT_ALGORITHM); // Replace "RSA" with your key algorithm
@@ -111,10 +110,7 @@ public class SecurityDH {
     }
 
     private void securelyStorePrivateKeyKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException, OperatorCreationException {
-
         // TODO: make alias know it's private key stored now
-        keystoreAlias += "-private-key";
-
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,
                 keystoreAlias,
@@ -124,7 +120,7 @@ public class SecurityDH {
 
         SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
 
-        sharedPreferencesEditor.putString(keystoreAlias,
+        sharedPreferencesEditor.putString(keystoreAlias + "-private-key",
                 Base64.encodeToString(keyPair.getPrivate().getEncoded(), Base64.DEFAULT));
 
         if(!sharedPreferencesEditor.commit()) {
@@ -134,32 +130,47 @@ public class SecurityDH {
 
     public void securelyStorePublicKeyKeyPair(Context context, String keystoreAlias, byte[] keyValue, int part) throws GeneralSecurityException, IOException, OperatorCreationException {
         // TODO: make alias know it's private key stored now
-        String formattedKeystoreAlias = keystoreAlias + "-public-key-" + part;
-
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,
-                formattedKeystoreAlias,
+                keystoreAlias,
                 masterKeyAlias,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
+        SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
+
+        String formattedKeystoreAlias = keystoreAlias + "-public-key-" + part;
         String otherFormattedKeystoreAlias = keystoreAlias + "-public-key-" + (part == 1 ? 0 : 1);
 
         if(encryptedSharedPreferences.contains(otherFormattedKeystoreAlias)) {
             // TODO: build the key now
             String otherPart = encryptedSharedPreferences.getString(otherFormattedKeystoreAlias, "");
-            String merged = part == 0 ? otherPart + Base64.encodeToString(keyValue, Base64.DEFAULT) :
-                    Base64.encodeToString(keyValue, Base64.DEFAULT) + otherPart;
 
-        }
+            byte[] otherPartByte = Base64.decode(otherPart, Base64.DEFAULT);
 
-        SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
+            byte[] merged = new byte[otherPartByte.length + keyValue.length];
 
-        sharedPreferencesEditor.putString(keystoreAlias,
-                Base64.encodeToString(keyValue, Base64.DEFAULT));
+            if(part == 0) {
+                System.arraycopy(keyValue, 0, merged, 0, keyValue.length);
+            } else {
+                System.arraycopy(otherPartByte, 0, merged, 0, otherPartByte.length);
+            }
 
-        if(!sharedPreferencesEditor.commit()) {
-            throw new RuntimeException("Failed to store MSISDN");
+            sharedPreferencesEditor
+                    .remove(otherFormattedKeystoreAlias)
+                    .remove(formattedKeystoreAlias)
+                    .putString(keystoreAlias, Base64.encodeToString(merged, Base64.DEFAULT));
+
+            if(!sharedPreferencesEditor.commit()) {
+                throw new RuntimeException("Failed to store merged agreement");
+            }
+        } else {
+            sharedPreferencesEditor.putString(formattedKeystoreAlias,
+                    Base64.encodeToString(keyValue, Base64.DEFAULT));
+
+            if (!sharedPreferencesEditor.commit()) {
+                throw new RuntimeException("Failed to store public key part");
+            }
         }
     }
 
@@ -174,7 +185,7 @@ public class SecurityDH {
         return encryptedSharedPreferences.contains(keystoreAlias);
     }
 
-    public PublicKey generateKeyPairFromPublicKey(byte[] publicKeyEnc, String msisdnAsAlias) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
+    public PublicKey generateKeyPairFromPublicKey(byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
         KeyFactory bobKeyFac = KeyFactory.getInstance(DEFAULT_ALGORITHM);
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(publicKeyEnc);
 

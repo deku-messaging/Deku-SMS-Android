@@ -200,7 +200,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
 
         String testMSISDN = "+237123456789";
-        PublicKey publicKey = securityDH.generateKeyPairFromPublicKey(pubKeySpecs, testMSISDN);
+        PublicKey publicKey = securityDH.generateKeyPairFromPublicKey(pubKeySpecs);
 
         return publicKey.getEncoded();
     }
