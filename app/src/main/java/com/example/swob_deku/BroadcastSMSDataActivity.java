@@ -80,6 +80,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
         securityDH.securelyStorePublicKeyKeyPair(context, msisdn, keyPart, part);
     }
 
+
     private void broadcastIntent(Context context) {
         Intent intent = new Intent(BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION");
         context.sendBroadcast(intent);

@@ -92,7 +92,7 @@ public class SecurityDH {
         return keypair.getPublic();
     }
 
-    private PrivateKey securelyFetchPrivateKey(String keystoreAlias) throws GeneralSecurityException, IOException {
+    public PrivateKey securelyFetchPrivateKey(String keystoreAlias) throws GeneralSecurityException, IOException {
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,
                 keystoreAlias,
@@ -108,6 +108,17 @@ public class SecurityDH {
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyDecoded);
 
         return keyFactory.generatePrivate(keySpec);
+    }
+
+    public boolean hasPrivateKey(String keystoreAlias) throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        return encryptedSharedPreferences.contains(keystoreAlias + "-private-key");
     }
 
     private void securelyStorePrivateKeyKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException, OperatorCreationException {
@@ -204,7 +215,7 @@ public class SecurityDH {
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
-        return encryptedSharedPreferences.getString(keystoreAlias, "");
+        return encryptedSharedPreferences.getString(keystoreAlias + "-agreement-key", "");
     }
 
     public void securelyStoreSecretKey(String keystoreAlias, byte[] secret) throws GeneralSecurityException, IOException {

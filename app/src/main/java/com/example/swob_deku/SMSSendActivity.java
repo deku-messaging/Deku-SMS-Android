@@ -671,45 +671,67 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
+    public View.OnClickListener agreementViewListener() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO: generate the key
+                // TODO: register the key as 1 message with data header - hold on to ID in case failure
+                // TODO: send the key as 2 data messages
+                try {
+                    byte[] agreementKey = dhAgreementInitiation();
+                    byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
+
+                    String text = SecurityHelpers.FIRST_HEADER
+                            + Base64.encodeToString(agreementKey, Base64.DEFAULT)
+                            + SecurityHelpers.END_HEADER;
+
+                    long messageId = Helpers.generateRandomNumber();
+
+                    // TODO: support for multi-sim
+                    int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                    String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                            address, text, messageId, subscriptionId);
+                    if(threadId.isEmpty()) {
+                        threadId = threadIdRx;
+                        singleMessageViewModel.informNewItemChanges(threadId);
+                    } else singleMessageViewModel.informNewItemChanges();
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            rxKeys(txAgreementKey, messageId, subscriptionId);
+                        }
+                    }).start();
+
+                } catch (GeneralSecurityException e) {
+                    throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (OperatorCreationException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+
+    }
+
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         if(securityDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
             String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
 
-            View.OnClickListener onClickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // TODO: get agreement and sign new public key
-                    // TODO: transmit new public key to peer
-                    // TODO: generate and store secret - handshake complete
-                    try {
-                        byte[] peerPublicKey = Base64.decode(securityDH.getPeerAgreementPublicKey(address), Base64.DEFAULT);
-                        PublicKey publicKeyAgreement = securityDH.generateKeyPairFromPublicKey(peerPublicKey);
-
-                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKeyAgreement.getEncoded());
-
-                        long messageId = Helpers.generateRandomNumber();
-                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                rxKeys(txAgreementKey, messageId, subscriptionId);
-                                // TODO: generate shared secret
-                            }
-                        }).start();
-                    } catch (GeneralSecurityException e) {
-                        throw new RuntimeException(e);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
-
             // TODO: change bgColor to match the intended use
             Integer bgColor = null;
-            lunchSnackBar(text, actionText, onClickListener, bgColor);
+            if(securityDH.hasPrivateKey(address)) {
+                String peerAgreementKey = securityDH.getPeerAgreementPublicKey(address);
+                byte[] peerKey = Base64.decode(peerAgreementKey, Base64.DEFAULT);
+                byte[] secret = securityDH.getSecretKey(peerKey, address);
+                securityDH.securelyStoreSecretKey(address, secret);
+            }
+            else lunchSnackBar(text, actionText, agreementViewListener(), bgColor);
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -720,52 +742,10 @@ public class SMSSendActivity extends AppCompatActivity {
         else if(!securityDH.hasEncryption(address)) {
             Log.d(getLocalClassName(), "Yep showing...");
 
-            View.OnClickListener onClickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // TODO: generate the key
-                    // TODO: register the key as 1 message with data header - hold on to ID in case failure
-                    // TODO: send the key as 2 data messages
-                    try {
-                        byte[] agreementKey = dhAgreementInitiation();
-                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
-
-                        String text = SecurityHelpers.FIRST_HEADER
-                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
-                                + SecurityHelpers.END_HEADER;
-
-                        long messageId = Helpers.generateRandomNumber();
-
-                        // TODO: support for multi-sim
-                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                                address, text, messageId, subscriptionId);
-                        if(threadId.isEmpty()) {
-                            threadId = threadIdRx;
-                            singleMessageViewModel.informNewItemChanges(threadId);
-                        } else singleMessageViewModel.informNewItemChanges();
-
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                rxKeys(txAgreementKey, messageId, subscriptionId);
-                            }
-                        }).start();
-
-                    } catch (GeneralSecurityException e) {
-                        throw new RuntimeException(e);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    } catch (OperatorCreationException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
-
             String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
 
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
-            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, null);
+            lunchSnackBar(conversationNotSecuredText, actionText, agreementViewListener(), null);
 
             runOnUiThread(new Runnable() {
                 @Override
