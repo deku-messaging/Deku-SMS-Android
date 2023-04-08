@@ -70,7 +70,14 @@ import org.bouncycastle.operator.OperatorCreationException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -965,6 +972,66 @@ public class SMSSendActivity extends AppCompatActivity {
         });
     }
 
+    public void e2eTestHandshake() {
+//
+//        try {
+//            String testMSISDN = "+237123456789";
+//            SecurityDH securityDH = new SecurityDH(getApplicationContext());
+//
+//            // Transmission takes place here
+//            byte[] pubKeyEncodedAlice = dhAgreementInitiation();
+//            byte[] pubKeyEncodedBob = dhAgreementInitiationFromWithAlice(pubKeyEncodedAlice);
+//
+//            byte[][] txAgreementKeyAlice = SecurityHelpers.txAgreementFormatter(pubKeyEncodedAlice);
+//            byte[][] txAgreementKeyBob = SecurityHelpers.txAgreementFormatter(pubKeyEncodedBob);
+//
+//            // Receiving transmission
+//            byte[] rxAgreementKeyAliceFromBob = SecurityHelpers.rxAgreementFormatter(txAgreementKeyBob);
+//            byte[] rxAgreementKeyBobFromAlice = SecurityHelpers.rxAgreementFormatter(txAgreementKeyAlice);
+//
+//            Log.d(getLocalClassName(), "Alice Pub key size: " + pubKeyEncodedAlice.length);
+//            Log.d(getLocalClassName(), "Bob Pub key size: " + pubKeyEncodedBob.length);
+//
+//            Log.d(getLocalClassName(), "Alice Tx Pub key size - 0: " + txAgreementKeyAlice[0].length);
+//            Log.d(getLocalClassName(), "Alice Tx Pub key size - 1: " + txAgreementKeyAlice[1].length);
+//
+//            Log.d(getLocalClassName(), "Bob Tx Pub key size - 0: " + txAgreementKeyBob[0].length);
+//            Log.d(getLocalClassName(), "Bob Tx Pub key size - 1: " + txAgreementKeyBob[1].length);
+//
+//            Log.d(getLocalClassName(), "Alice Rx Pub key size: " + rxAgreementKeyAliceFromBob.length);
+//            Log.d(getLocalClassName(), "Bob Rx Pub key size: " + rxAgreementKeyBobFromAlice.length);
+//
+//            byte[] secretsAlice = securityDH.getSecretKey(rxAgreementKeyAliceFromBob, testMSISDN);
+//            byte[] secretsBob = securityDH.getSecretKey(rxAgreementKeyBobFromAlice, testMSISDN);
+//
+//            Log.d(getLocalClassName(), "Alice: " + Base64.encodeToString(secretsAlice, Base64.DEFAULT));
+//            Log.d(getLocalClassName(), "Bob: " + Base64.encodeToString(secretsBob, Base64.DEFAULT));
+//
+//            String test = "hello world";
+//
+//            List<byte[]> encryptedAlice = SecurityDH.encryptAES(test.getBytes(StandardCharsets.UTF_8), secretsAlice);
+//            List<byte[]> encryptedBob = SecurityDH.encryptAES(test.getBytes(StandardCharsets.UTF_8), secretsBob);
+//
+//            byte[] decryptedAlice = SecurityDH.decryptAES(secretsAlice, encryptedAlice.get(0), encryptedAlice.get(1));
+//            byte[] decryptedBob = SecurityDH.decryptAES(secretsBob, encryptedBob.get(0), encryptedBob.get(1));
+//
+//            Log.d(getLocalClassName(), "Alice decrypted: " + new String(decryptedAlice, StandardCharsets.UTF_8));
+//            Log.d(getLocalClassName(), "Bob decrypted: " + new String(decryptedBob, StandardCharsets.UTF_8));
+//        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException |
+//                 InvalidKeyException | NoSuchProviderException | OperatorCreationException e) {
+//            throw new RuntimeException(e);
+//        } catch (InvalidKeySpecException e) {
+//            throw new RuntimeException(e);
+//        } catch (CertificateException e) {
+//            throw new RuntimeException(e);
+//        } catch (KeyStoreException e) {
+//            throw new RuntimeException(e);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        } catch (GeneralSecurityException e) {
+//            throw new RuntimeException(e);
+//        }
+    }
     public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException, OperatorCreationException {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         PublicKey publicKey = securityDH.generateKeyPair(this, address);
