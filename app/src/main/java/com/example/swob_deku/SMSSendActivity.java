@@ -683,7 +683,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
-    public View.OnClickListener agreementViewListener(Runnable runnable) {
+    public View.OnClickListener agreementViewListener(Runnable runnable, Boolean sendSMS) {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -713,7 +713,9 @@ public class SMSSendActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             try {
-                                rxKeys(txAgreementKey, messageId, subscriptionId);
+                                if(sendSMS)
+                                    rxKeys(txAgreementKey, messageId, subscriptionId);
+
                                 if(runnable != null)
                                     runnable.run();
                             } catch(Exception e) {
@@ -761,7 +763,9 @@ public class SMSSendActivity extends AppCompatActivity {
                     }
                 }
             };
-            lunchSnackBar(text, actionText, agreementViewListener(runnable), bgColor);
+            // TODO: check if has private key
+            boolean sendSMS = !securityDH.hasPrivateKey(address);
+            lunchSnackBar(text, actionText, agreementViewListener(runnable, sendSMS), bgColor);
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -775,7 +779,8 @@ public class SMSSendActivity extends AppCompatActivity {
             String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
 
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
-            lunchSnackBar(conversationNotSecuredText, actionText, agreementViewListener(null), null);
+            lunchSnackBar(conversationNotSecuredText, actionText,
+                    agreementViewListener(null, true), null);
 
             runOnUiThread(new Runnable() {
                 @Override
