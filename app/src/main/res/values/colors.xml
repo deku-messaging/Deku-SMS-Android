@@ -29,5 +29,5 @@
 <!--    <color name="sent_message_highlighted_color">#AEB3B9</color>-->
 <!--    <color name="received_message_highlighted_color">@color/logo_primary</color>-->
     <color name="primary_highlight_color">#AEB3B9</color>
-    <color name="primary_warning_background_color">#FF5722</color>
+    <color name="primary_warning_background_color">#FD6839</color>
 </resources>

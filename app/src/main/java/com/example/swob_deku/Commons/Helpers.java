@@ -3,6 +3,10 @@ package com.example.swob_deku.Commons;
 import android.content.Context;
 import android.text.format.DateUtils;
 
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
+
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -73,5 +77,17 @@ public class Helpers {
         }
 
         return formattedDate.toString();
+    }
+
+    public static String formatPhoneNumbers(String data) throws NumberParseException {
+        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+        try {
+            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(data, "US");
+            // use the formattedPhoneNumber
+            return phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
+        } catch (NumberParseException e) {
+            // handle the exception
+            throw(e);
+        }
     }
 }

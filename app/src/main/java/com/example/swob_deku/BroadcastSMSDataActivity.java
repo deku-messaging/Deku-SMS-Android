@@ -9,10 +9,12 @@ import android.telephony.SmsMessage;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
+import com.google.i18n.phonenumbers.NumberParseException;
 
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -49,24 +51,33 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                 long messageId = -1;
                 try {
+                    address = Helpers.formatPhoneNumbers(address);
+                } catch (NumberParseException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
                     String strMessage = messageBuffer.toString();
                     if (strMessage.contains(SecurityHelpers.FIRST_HEADER)) {
                         // TODO: register message and store the reference in a shared reference location
-                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
-                        registerIncomingAgreement(context, address, messageBuffer.toByteArray(), 0);
+//                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
+                        strMessage = registerIncomingAgreement(context, address, messageBuffer.toByteArray(), 0);
                     } else if (strMessage.contains(SecurityHelpers.END_HEADER)) {
                         // TODO: search for registered message and get content from shared reference location
-                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
-                        registerIncomingAgreement(context, address, messageBuffer.toByteArray(), 1);
+//                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
+                        strMessage = registerIncomingAgreement(context, address, messageBuffer.toByteArray(), 1);
                     }
-                    broadcastIntent(context);
 
                     if(checkMessagesAvailable(context, address)) {
                         String notificationNote = "New Key request";
 
+                        strMessage = SecurityHelpers.FIRST_HEADER +
+                                strMessage + SecurityHelpers.END_HEADER;
+
+                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
                         BroadcastSMSTextActivity.sendNotification(context, notificationNote,
                                 address, messageId);
                     }
+                    broadcastIntent(context);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -75,9 +86,9 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
         }
     }
 
-    private void registerIncomingAgreement(Context context, String msisdn, byte[] keyPart, int part) throws GeneralSecurityException, IOException, OperatorCreationException {
+    private String registerIncomingAgreement(Context context, String msisdn, byte[] keyPart, int part) throws GeneralSecurityException, IOException, OperatorCreationException {
         SecurityDH securityDH = new SecurityDH(context);
-        securityDH.securelyStorePublicKeyKeyPair(context, msisdn, keyPart, part);
+        return securityDH.securelyStorePublicKeyKeyPair(context, msisdn, keyPart, part);
     }
 
 

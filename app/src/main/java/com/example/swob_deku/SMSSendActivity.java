@@ -63,6 +63,7 @@ import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.i18n.phonenumbers.NumberParseException;
 
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -165,7 +166,7 @@ public class SMSSendActivity extends AppCompatActivity {
         if(threadId.isEmpty()) {
             try {
                 getAddressAndThreadId();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | NumberParseException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -227,7 +228,7 @@ public class SMSSendActivity extends AppCompatActivity {
         });
     }
 
-    private void getAddressAndThreadId() throws InterruptedException {
+    private void getAddressAndThreadId() throws InterruptedException, NumberParseException {
         processForSharedIntent();
         getMessagesThreadId();
     }
@@ -243,7 +244,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void getMessagesThreadId() {
+    private void getMessagesThreadId() throws NumberParseException {
         if(getIntent().hasExtra(THREAD_ID)) {
             threadId = getIntent().getStringExtra(THREAD_ID);
             Cursor cursor = SMSHandler.fetchSMSAddressFromThreadId(getApplicationContext(), threadId);
@@ -251,6 +252,11 @@ public class SMSSendActivity extends AppCompatActivity {
             if(cursor.moveToFirst()) {
                 int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
                 address = String.valueOf(cursor.getString(addressIndex));
+                try {
+                    address = Helpers.formatPhoneNumbers(address);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Found Address: " + address);
@@ -323,7 +329,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             }
         }).start();
-
 
         contactName = Contacts.retrieveContactName(getApplicationContext(), address);
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
@@ -573,7 +578,7 @@ public class SMSSendActivity extends AppCompatActivity {
         try {
             if(threadId.isEmpty())
                 getAddressAndThreadId();
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | NumberParseException e) {
             throw new RuntimeException(e);
         }
 
@@ -671,7 +676,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
-    public View.OnClickListener agreementViewListener() {
+    public View.OnClickListener agreementViewListener(Runnable runnable) {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -700,15 +705,17 @@ public class SMSSendActivity extends AppCompatActivity {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            rxKeys(txAgreementKey, messageId, subscriptionId);
+                            try {
+                                rxKeys(txAgreementKey, messageId, subscriptionId);
+                                if(runnable != null)
+                                    runnable.run();
+                            } catch(Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }).start();
 
-                } catch (GeneralSecurityException e) {
-                    throw new RuntimeException(e);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } catch (OperatorCreationException e) {
+                } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -723,7 +730,7 @@ public class SMSSendActivity extends AppCompatActivity {
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
 
             // TODO: change bgColor to match the intended use
-            Integer bgColor = null;
+            Integer bgColor = getResources().getColor(R.color.purple_200, getTheme());
 //            if(securityDH.hasPrivateKey(address)) {
 //                String peerAgreementKey = securityDH.getPeerAgreementPublicKey(address);
 //                byte[] peerKey = Base64.decode(peerAgreementKey, Base64.DEFAULT);
@@ -731,7 +738,23 @@ public class SMSSendActivity extends AppCompatActivity {
 //                securityDH.securelyStoreSecretKey(address, secret);
 //            }
 //            else lunchSnackBar(text, actionText, agreementViewListener(), bgColor);
-            lunchSnackBar(text, actionText, agreementViewListener(), bgColor);
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    String peerAgreementKey = null;
+                    try {
+                        peerAgreementKey = securityDH.getPeerAgreementPublicKey(address);
+                        byte[] peerKey = Base64.decode(peerAgreementKey, Base64.DEFAULT);
+                        byte[] secret = securityDH.getSecretKey(peerKey, address);
+                        securityDH.securelyStoreSecretKey(address, secret);
+                    } catch (GeneralSecurityException e) {
+                        throw new RuntimeException(e);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+            lunchSnackBar(text, actionText, agreementViewListener(runnable), bgColor);
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -741,12 +764,11 @@ public class SMSSendActivity extends AppCompatActivity {
             });
         }
         else if(!securityDH.hasEncryption(address)) {
-            Log.d(getLocalClassName(), "Yep showing...");
 
             String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
 
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
-            lunchSnackBar(conversationNotSecuredText, actionText, agreementViewListener(), null);
+            lunchSnackBar(conversationNotSecuredText, actionText, agreementViewListener(null), null);
 
             runOnUiThread(new Runnable() {
                 @Override
