@@ -704,35 +704,51 @@ public class SMSSendActivity extends AppCompatActivity {
                                 Base64.DEFAULT);
                         KeyPair keyPair = securityDH.generateKeyPairFromPublicKey(peerPublicKey);
 
-                        new Thread(new Runnable() {
+                        Thread remotePeerHandshake = new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                try {
-                                    if(!securityDH.hasPrivateKey(address)) {
-                                        // TODO: support for multi-sim
-                                        PublicKey publicKey = keyPair.getPublic();
-                                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
+                                PublicKey publicKey = keyPair.getPublic();
+                                byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
 
-                                        String agreementText = SecurityHelpers.FIRST_HEADER
-                                                + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT)
-                                                + SecurityHelpers.END_HEADER;
-                                        long messageId = Helpers.generateRandomNumber();
-                                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                                                address, agreementText, messageId, subscriptionId);
+                                String agreementText = SecurityHelpers.FIRST_HEADER
+                                        + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT)
+                                        + SecurityHelpers.END_HEADER;
+                                long messageId = Helpers.generateRandomNumber();
+                                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                                String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                                        address, agreementText, messageId, subscriptionId);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
                                         if (threadId.isEmpty()) {
                                             threadId = threadIdRx;
                                             singleMessageViewModel.informNewItemChanges(threadId);
                                         } else singleMessageViewModel.informNewItemChanges();
-                                        securityDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
-                                                address, keyPair);
-                                        rxKeys(txAgreementKey, messageId, subscriptionId);
                                     }
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                                });
+                                try {
+                                    securityDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
+                                            address, keyPair);
+                                } catch (GeneralSecurityException e) {
+                                    throw new RuntimeException(e);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                } catch (OperatorCreationException e) {
+                                    throw new RuntimeException(e);
                                 }
+                                rxKeys(txAgreementKey, messageId, subscriptionId);
+
                             }
-                        }).start();
+                        });
+                        try {
+                            if(!securityDH.hasPrivateKey(address)) {
+                                // TODO: support for multi-sim
+                                remotePeerHandshake.start();
+                                remotePeerHandshake.join();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
                         Log.d(getLocalClassName(), "Agreement value for secret: " +
                                 Base64.encodeToString(peerPublicKey, Base64.DEFAULT));
