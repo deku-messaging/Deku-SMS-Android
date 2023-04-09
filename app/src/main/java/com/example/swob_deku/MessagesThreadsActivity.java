@@ -30,6 +30,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -162,7 +163,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                  */
                 MessagesThreadRecyclerAdapter.ViewHolder itemView = (MessagesThreadRecyclerAdapter.ViewHolder) viewHolder;
                 String threadId = itemView.id;
-
+                Log.d(getLocalClassName(), "removing thread: " + threadId);
                 try {
                     Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);
                     if(cursor.moveToFirst()) {
@@ -170,7 +171,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         String address = new SMS(cursor).getAddress();
                         Log.d(getLocalClassName(), "Removing keys for address: " + address
                                 + " -> thread:" + threadId);
-                        securityDH.removeAllKeys(address);
+                        securityDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
                     }
                     cursor.close();
 

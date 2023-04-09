@@ -72,6 +72,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -259,12 +260,6 @@ public class SMSSendActivity extends AppCompatActivity {
             if(cursor.moveToFirst()) {
                 int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
                 address = String.valueOf(cursor.getString(addressIndex));
-                try {
-                    address = Helpers.formatPhoneNumbers(address);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Found Address: " + address);
             }
@@ -289,6 +284,13 @@ public class SMSSendActivity extends AppCompatActivity {
             }
             cursor.close();
         }
+
+        try {
+            address = Helpers.formatPhoneNumbers(address);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void improveMessagingUX() {
@@ -683,89 +685,69 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
-    public View.OnClickListener agreementViewListener(Runnable runnable, Boolean sendSMS) {
-        return new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // TODO: generate the key
-                // TODO: register the key as 1 message with data header - hold on to ID in case failure
-                // TODO: send the key as 2 data messages
-                try {
-                    byte[] agreementKey = dhAgreementInitiation();
-                    byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
-
-                    String text = SecurityHelpers.FIRST_HEADER
-                            + Base64.encodeToString(agreementKey, Base64.DEFAULT)
-                            + SecurityHelpers.END_HEADER;
-
-                    long messageId = Helpers.generateRandomNumber();
-
-                    // TODO: support for multi-sim
-                    int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                    String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                            address, text, messageId, subscriptionId);
-                    if(threadId.isEmpty()) {
-                        threadId = threadIdRx;
-                        singleMessageViewModel.informNewItemChanges(threadId);
-                    } else singleMessageViewModel.informNewItemChanges();
-
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                if(sendSMS)
-                                    rxKeys(txAgreementKey, messageId, subscriptionId);
-
-                                if(runnable != null)
-                                    runnable.run();
-                            } catch(Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }).start();
-
-                } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-
-    }
-
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
+        Log.d(getLocalClassName(), "Has private key: " + securityDH.hasPrivateKey(address));
+        Log.d(getLocalClassName(), "Has private key for address: " + address);
+
         if(securityDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
             String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
 
             // TODO: change bgColor to match the intended use
             Integer bgColor = getResources().getColor(R.color.purple_200, getTheme());
-//            if(securityDH.hasPrivateKey(address)) {
-//                String peerAgreementKey = securityDH.getPeerAgreementPublicKey(address);
-//                byte[] peerKey = Base64.decode(peerAgreementKey, Base64.DEFAULT);
-//                byte[] secret = securityDH.getSecretKey(peerKey, address);
-//                securityDH.securelyStoreSecretKey(address, secret);
-//            }
-//            else lunchSnackBar(text, actionText, agreementViewListener(), bgColor);
-            Runnable runnable = new Runnable() {
+            View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
-                public void run() {
-                    String peerAgreementKey = null;
+                public void onClick(View v) {
                     try {
-                        peerAgreementKey = securityDH.getPeerAgreementPublicKey(address);
-                        byte[] peerKey = Base64.decode(peerAgreementKey, Base64.DEFAULT);
-                        byte[] secret = securityDH.getSecretKey(peerKey, address);
+                        byte[] peerPublicKey = Base64.decode(securityDH.getPeerAgreementPublicKey(address),
+                                Base64.DEFAULT);
+                        KeyPair keyPair = securityDH.generateKeyPairFromPublicKey(peerPublicKey);
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    if(!securityDH.hasPrivateKey(address)) {
+                                        // TODO: support for multi-sim
+                                        PublicKey publicKey = keyPair.getPublic();
+                                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
+
+                                        String agreementText = SecurityHelpers.FIRST_HEADER
+                                                + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT)
+                                                + SecurityHelpers.END_HEADER;
+                                        long messageId = Helpers.generateRandomNumber();
+                                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                                                address, agreementText, messageId, subscriptionId);
+                                        if (threadId.isEmpty()) {
+                                            threadId = threadIdRx;
+                                            singleMessageViewModel.informNewItemChanges(threadId);
+                                        } else singleMessageViewModel.informNewItemChanges();
+                                        securityDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
+                                                address, keyPair);
+                                        rxKeys(txAgreementKey, messageId, subscriptionId);
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
+
+                        Log.d(getLocalClassName(), "Agreement value for secret: " +
+                                Base64.encodeToString(peerPublicKey, Base64.DEFAULT));
+                        byte[] secret = securityDH.getSecretKey(peerPublicKey, address);
                         securityDH.securelyStoreSecretKey(address, secret);
-                    } catch (GeneralSecurityException e) {
-                        throw new RuntimeException(e);
-                    } catch (IOException e) {
+
+                    } catch (GeneralSecurityException | IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
             };
+
+
             // TODO: check if has private key
-            boolean sendSMS = !securityDH.hasPrivateKey(address);
-            lunchSnackBar(text, actionText, agreementViewListener(runnable, sendSMS), bgColor);
+            lunchSnackBar(text, actionText, onClickListener, bgColor);
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -779,8 +761,50 @@ public class SMSSendActivity extends AppCompatActivity {
             String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
 
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
-            lunchSnackBar(conversationNotSecuredText, actionText,
-                    agreementViewListener(null, true), null);
+
+            View.OnClickListener onClickListener =  new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // TODO: generate the key
+                    // TODO: register the key as 1 message with data header - hold on to ID in case failure
+                    // TODO: send the key as 2 data messages
+                    try {
+                        byte[] agreementKey = dhAgreementInitiation();
+                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
+
+                        String text = SecurityHelpers.FIRST_HEADER
+                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
+                                + SecurityHelpers.END_HEADER;
+
+                        long messageId = Helpers.generateRandomNumber();
+
+                        // TODO: support for multi-sim
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                                address, text, messageId, subscriptionId);
+                        if(threadId.isEmpty()) {
+                                           threadId = threadIdRx;
+                                           singleMessageViewModel.informNewItemChanges(threadId);
+                                           } else singleMessageViewModel.informNewItemChanges();
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    rxKeys(txAgreementKey, messageId, subscriptionId);
+                                } catch(Exception e) {
+                                                 e.printStackTrace();
+                                                 }
+                            }
+                        }).start();
+
+                    } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
+                                                                                               throw new RuntimeException(e);
+                                                                                               }
+                }
+            };
+
+            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, null);
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -1039,7 +1063,7 @@ public class SMSSendActivity extends AppCompatActivity {
     }
     public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException, OperatorCreationException {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
-        PublicKey publicKey = securityDH.generateKeyPair(this, address);
+        PublicKey publicKey = securityDH.generateKeyPair(getApplicationContext(), address);
         return publicKey.getEncoded();
     }
 }

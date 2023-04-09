@@ -2,6 +2,7 @@ package com.example.swob_deku.Models.Security;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
 
@@ -103,6 +104,10 @@ public class SecurityDH {
         String encryptedSharedKey = encryptedSharedPreferences.getString(
                 keystoreAlias + "-private-key", "");
 
+        Log.d(SecurityDH.class.getName(), "Private key: " + encryptedSharedKey);
+        Log.d(SecurityDH.class.getName(), "Private key available: " + encryptedSharedKey.contains(keystoreAlias +
+                "-private-key"));
+
         byte[] privateKeyDecoded = Base64.decode(encryptedSharedKey, Base64.DEFAULT);
         KeyFactory keyFactory = KeyFactory.getInstance(DEFAULT_ALGORITHM); // Replace "RSA" with your key algorithm
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyDecoded);
@@ -121,7 +126,7 @@ public class SecurityDH {
         return encryptedSharedPreferences.contains(keystoreAlias + "-private-key");
     }
 
-    private void securelyStorePrivateKeyKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException, OperatorCreationException {
+    public void securelyStorePrivateKeyKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException, OperatorCreationException {
         // TODO: make alias know it's private key stored now
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,
@@ -137,6 +142,8 @@ public class SecurityDH {
 
         if(!sharedPreferencesEditor.commit()) {
             throw new RuntimeException("Failed to store MSISDN");
+        } else {
+            Log.d(SecurityDH.class.getName(), "Securely stored private key");
         }
     }
 
@@ -188,6 +195,7 @@ public class SecurityDH {
     }
 
     public void removeAllKeys(String keystoreAlias) throws GeneralSecurityException, IOException {
+        Log.d(SecurityDH.class.getName(), "Removing preferences for: " + keystoreAlias);
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,
                 keystoreAlias,
@@ -196,9 +204,8 @@ public class SecurityDH {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
         SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
+        sharedPreferencesEditor.clear().commit();
 
-        sharedPreferencesEditor.clear()
-                .commit();
     }
 
     public boolean peerAgreementPublicKeysAvailable(Context context, String keystoreAlias) throws GeneralSecurityException, IOException {
@@ -238,7 +245,7 @@ public class SecurityDH {
                 .commit();
     }
 
-    public PublicKey generateKeyPairFromPublicKey(byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
+    public KeyPair generateKeyPairFromPublicKey(byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
         KeyFactory bobKeyFac = KeyFactory.getInstance(DEFAULT_ALGORITHM);
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(publicKeyEnc);
 
@@ -255,13 +262,12 @@ public class SecurityDH {
 
         keyPairGenerator.initialize(dhParameterSpec);
 
-        KeyPair keypair = keyPairGenerator.generateKeyPair();
+        return keyPairGenerator.generateKeyPair();
 
         // Bob encodes his public key, and sends it over to Alice.
 //        byte[] bobPubKeyEnc = this.keypair.getPublic().getEncoded();
 //
 //        return bobPubKeyEnc;
-        return keypair.getPublic();
     }
 
 //    public byte[] generateSecretKey() throws NoSuchAlgorithmException {
