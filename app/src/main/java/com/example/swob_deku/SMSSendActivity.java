@@ -729,11 +729,8 @@ public class SMSSendActivity extends AppCompatActivity {
                                 try {
                                     securityDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
                                             address, keyPair);
-                                } catch (GeneralSecurityException e) {
-                                    throw new RuntimeException(e);
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                } catch (OperatorCreationException e) {
+                                } catch (GeneralSecurityException | IOException |
+                                         OperatorCreationException e) {
                                     throw new RuntimeException(e);
                                 }
                                 rxKeys(txAgreementKey, messageId, subscriptionId);
