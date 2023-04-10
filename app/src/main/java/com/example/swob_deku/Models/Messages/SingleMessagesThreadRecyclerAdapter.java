@@ -38,10 +38,14 @@ import com.example.swob_deku.ImageViewActivity;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityDH;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
 import com.google.android.material.card.MaterialCardView;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -77,10 +81,22 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    public SingleMessagesThreadRecyclerAdapter(Context context) {
+    SecurityDH securityDH;
+    byte[] secretKey = null;
+
+    String address;
+
+    public SingleMessagesThreadRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
 //        super(SMS.DIFF_CALLBACK);
         this.context = context;
         this.selectedItem = mutableSelectedItems;
+
+        this.securityDH = new SecurityDH(context);
+
+        this.address = address;
+
+        if(securityDH.hasSecretKey(address))
+            secretKey = Base64.decode(securityDH.securelyFetchSecretKey(address), Base64.DEFAULT);
     }
 
     @NonNull
@@ -104,6 +120,19 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
         View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
         return new MessageSentViewHandler(view);
+    }
+
+    private String decryptContent(String input) {
+        if(this.secretKey != null && input.getBytes(StandardCharsets.UTF_8).length > 16) {
+            try {
+                byte[] encryptedContent = SecurityDH.decryptAES(Base64.decode(input, Base64.DEFAULT),
+                        secretKey);
+                input = new String(encryptedContent, StandardCharsets.UTF_8);
+            } catch(Throwable e ) {
+                e.printStackTrace();
+            }
+        }
+        return input;
     }
 
     @Override
@@ -130,7 +159,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 messageReceivedViewHandler.timestamp.setVisibility(View.GONE);
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
-            receivedMessage.setText(sms.getBody());
+            String text = sms.getBody();
+            text = decryptContent(text);
+            receivedMessage.setText(text);
 
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);

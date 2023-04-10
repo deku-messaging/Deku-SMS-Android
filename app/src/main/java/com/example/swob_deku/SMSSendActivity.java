@@ -133,7 +133,15 @@ public class SMSSendActivity extends AppCompatActivity {
         setContentView(R.layout.activity_send_smsactivity);
 
 
-        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext());
+        threadIdentificationLoader();
+        try {
+            singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
+                    getApplicationContext(), address);
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         smsTextView = findViewById(R.id.sms_text);
         multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
 
@@ -149,7 +157,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 .get( SingleMessageViewModel.class);
 
         configureToolbars();
-        threadIdentificationLoader();
 
         singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this, new Observer<List<SMS>>() {
             @Override
@@ -600,12 +607,7 @@ public class SMSSendActivity extends AppCompatActivity {
         super.onResume();
         handleIncomingBroadcast();
 
-        try {
-            if(threadId.isEmpty())
-                getAddressAndThreadId();
-        } catch (InterruptedException | NumberParseException e) {
-            throw new RuntimeException(e);
-        }
+        threadIdentificationLoader();
 
         improveMessagingUX();
         ab.setTitle(contactName);

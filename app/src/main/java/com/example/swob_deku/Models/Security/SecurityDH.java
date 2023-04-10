@@ -326,8 +326,7 @@ public class SecurityDH {
 //        return !keystorevalue.isEmpty();
     }
 
-    public byte[] decryptAES(byte[] input, byte[] secretKey) throws Throwable {
-        byte[] decryptedText = null;
+    public static byte[] decryptAES(byte[] input, byte[] secretKey) throws Throwable {
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, 16, "AES");
 
@@ -341,12 +340,11 @@ public class SecurityDH {
 
             Cipher cipher = Cipher.getInstance(SecurityAES.DEFAULT_AES_ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
-            decryptedText = cipher.doFinal(content);
+            return cipher.doFinal(content);
         }
         catch (Exception e) {
             e.printStackTrace();
             throw new Throwable(e);
         }
-        return decryptedText;
     }
 }
