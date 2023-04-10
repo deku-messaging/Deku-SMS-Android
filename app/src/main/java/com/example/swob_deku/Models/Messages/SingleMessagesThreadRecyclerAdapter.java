@@ -39,6 +39,7 @@ import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
 import com.google.android.material.card.MaterialCardView;
@@ -123,9 +124,15 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     }
 
     private String decryptContent(String input) {
-        if(this.secretKey != null && input.getBytes(StandardCharsets.UTF_8).length > 16) {
+        if(this.secretKey != null &&
+                input.getBytes(StandardCharsets.UTF_8).length > 16
+                        + SecurityHelpers.ENCRYPTED_WATERMARK_START.length()
+                        + SecurityHelpers.ENCRYPTED_WATERMARK_END.length()
+                && SecurityHelpers.containsWaterMakr(input)) {
             try {
-                byte[] encryptedContent = SecurityDH.decryptAES(Base64.decode(input, Base64.DEFAULT),
+                Log.d(getClass().getName(), "Yep contains encrypted content");
+                byte[] encryptedContent = SecurityDH.decryptAES(Base64.decode(
+                        SecurityHelpers.removeWaterMarkMessage(input), Base64.DEFAULT),
                         secretKey);
                 input = new String(encryptedContent, StandardCharsets.UTF_8);
             } catch(Throwable e ) {

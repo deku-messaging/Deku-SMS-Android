@@ -709,6 +709,29 @@ public class SMSHandler {
         // TODO: parse
     }
 
+    public static String sendEncryptedTextSMS(Context context, String destinationAddress, String text,
+                                     PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId,
+                                     Integer subscriptionId) {
+        String threadId = "";
+        if(subscriptionId == null)
+            subscriptionId = SIMHandler.getDefaultSimSubscription(context);
+        try {
+            threadId = registerPendingMessage(context, destinationAddress, text, messageId,
+                    subscriptionId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            SMSHandler.sendTextSMS(context, destinationAddress, text, sentIntent, deliveryIntent,
+                    -1, subscriptionId);
+        } catch(Exception e) {
+            throw e;
+        }
+        return threadId;
+    }
+
     public static String sendTextSMS(Context context, String destinationAddress, String text,
                                      PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId,
                                      Integer subscriptionId) {

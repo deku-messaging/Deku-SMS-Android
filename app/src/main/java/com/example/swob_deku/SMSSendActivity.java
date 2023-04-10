@@ -542,18 +542,23 @@ public class SMSSendActivity extends AppCompatActivity {
         String text = smsTextView.getText().toString();
 
         try {
+
+            SecurityDH securityDH = new SecurityDH(getApplicationContext());
+
             long messageId = Helpers.generateRandomNumber();
 
             PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
             handleBroadcast();
 
-            SecurityDH securityDH = new SecurityDH(getApplicationContext());
-
-            if(securityDH.hasSecretKey(address))
+            String tmpThreadId = null;
+            if(securityDH.hasSecretKey(address)) {
                 text = encryptContent(text);
-
-            String tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
+                text = SecurityHelpers.waterMarkMessage(text);
+                tmpThreadId = SMSHandler.sendEncryptedTextSMS(getApplicationContext(), address, text,
+                        pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
+            }
+            else tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
                     pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
 
             resetSmsTextView();

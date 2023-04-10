@@ -27,6 +27,12 @@ public class SecurityHelpers {
     public final static String FIRST_HEADER = "--D.E.K.U.start---";
     public final static String END_HEADER = "--D.E.K.U.end---";
 
+//    public final static String ENCRYPTED_WATERMARK = "\u007F";
+//    public final static String ENCRYPTED_WATERMARK = "\u001B";
+
+    public final static String ENCRYPTED_WATERMARK_START = "$d3$";
+    public final static String ENCRYPTED_WATERMARK_END = ".d.$";
+
     public static X509Certificate generateCertificate(KeyPair keyPair) throws NoSuchAlgorithmException, InvalidKeyException, IOException, CertificateException, OperatorCreationException, InvalidKeySpecException {
         // Create self-signed certificate
         byte[] publicKeyBytes = keyPair.getPublic().getEncoded();
@@ -81,5 +87,25 @@ public class SecurityHelpers {
         System.arraycopy(agreementKey[1], endHeader.length, agreementPubKey, dstLen, dstLen1);
 
         return agreementPubKey;
+    }
+
+
+    public static String waterMarkMessage(String text) {
+        return SecurityHelpers.ENCRYPTED_WATERMARK_START
+                + text
+                + SecurityHelpers.ENCRYPTED_WATERMARK_END;
+    }
+
+    public static String removeWaterMarkMessage(String text) {
+        int firstWaterMark = text.indexOf(SecurityHelpers.ENCRYPTED_WATERMARK_START);
+        int lastWaterMark = text.lastIndexOf(SecurityHelpers.ENCRYPTED_WATERMARK_END);
+
+        return text.substring(SecurityHelpers.ENCRYPTED_WATERMARK_START.length(), lastWaterMark);
+    }
+
+    public static boolean containsWaterMakr(String text) {
+        return text.indexOf(SecurityHelpers.ENCRYPTED_WATERMARK_START) == 0 &&
+                text.indexOf(SecurityHelpers.ENCRYPTED_WATERMARK_END) ==
+                        text.length() - SecurityHelpers.ENCRYPTED_WATERMARK_END.length();
     }
 }
