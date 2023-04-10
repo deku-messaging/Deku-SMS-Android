@@ -5,9 +5,9 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -32,8 +33,13 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
+import android.text.style.StyleSpan;
+import android.util.Base64;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -49,13 +55,27 @@ import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityAES;
+import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.i18n.phonenumbers.NumberParseException;
 
+import org.bouncycastle.operator.OperatorCreationException;
+
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SMSSendActivity extends AppCompatActivity {
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
@@ -113,7 +133,15 @@ public class SMSSendActivity extends AppCompatActivity {
         setContentView(R.layout.activity_send_smsactivity);
 
 
-        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext());
+        threadIdentificationLoader();
+        try {
+            singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
+                    getApplicationContext(), address);
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         smsTextView = findViewById(R.id.sms_text);
         multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
 
@@ -129,8 +157,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 .get( SingleMessageViewModel.class);
 
         configureToolbars();
-        handleIncomingBroadcast();
-        threadIdentificationLoader();
 
         singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this, new Observer<List<SMS>>() {
             @Override
@@ -147,7 +173,7 @@ public class SMSSendActivity extends AppCompatActivity {
         if(threadId.isEmpty()) {
             try {
                 getAddressAndThreadId();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | NumberParseException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -209,7 +235,7 @@ public class SMSSendActivity extends AppCompatActivity {
         });
     }
 
-    private void getAddressAndThreadId() throws InterruptedException {
+    private void getAddressAndThreadId() throws InterruptedException, NumberParseException {
         processForSharedIntent();
         getMessagesThreadId();
     }
@@ -225,7 +251,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void getMessagesThreadId() {
+    private void getMessagesThreadId() throws NumberParseException {
         if(getIntent().hasExtra(THREAD_ID)) {
             threadId = getIntent().getStringExtra(THREAD_ID);
             Cursor cursor = SMSHandler.fetchSMSAddressFromThreadId(getApplicationContext(), threadId);
@@ -233,7 +259,6 @@ public class SMSSendActivity extends AppCompatActivity {
             if(cursor.moveToFirst()) {
                 int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
                 address = String.valueOf(cursor.getString(addressIndex));
-
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Found Address: " + address);
             }
@@ -258,6 +283,13 @@ public class SMSSendActivity extends AppCompatActivity {
             }
             cursor.close();
         }
+
+        try {
+            address = Helpers.formatPhoneNumbers(address);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void improveMessagingUX() {
@@ -305,7 +337,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             }
         }).start();
-
 
         contactName = Contacts.retrieveContactName(getApplicationContext(), address);
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
@@ -360,7 +391,7 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
 //                if(singleMessageViewModel.getLastUsedKey() == 0)
 //                    singleMessagesThreadRecyclerAdapter.refresh();
-
+                Log.d(getLocalClassName(), "Broadcast received text!");
                 singleMessageViewModel.informNewItemChanges();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
@@ -370,12 +401,19 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(getLocalClassName(), "Broadcast received data!");
+                singleMessageViewModel.informNewItemChanges();
+//                cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
         };
 
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
-        registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
-        registerReceiver(incomingDataBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
+        registerReceiver(incomingBroadcastReceiver,
+                new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
+
+        registerReceiver(incomingDataBroadcastReceiver,
+                new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
+        registerReceiver(incomingDataBroadcastReceiver,
+                new IntentFilter(BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION"));
     }
 
     public void handleBroadcast() {
@@ -480,18 +518,47 @@ public class SMSSendActivity extends AppCompatActivity {
         sendSMSMessage(null);
     }
 
+    private String encryptContent(String data) throws Throwable {
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+        if(securityDH.hasSecretKey(address)) {
+            byte[] secretKey = Base64.decode(securityDH.securelyFetchSecretKey(address), Base64.DEFAULT);
+            // TODO: begin encrypting data
+            // TODO: if can't encrypt data return original data
+
+            try {
+                byte[] encryptedContent = SecurityDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
+                        secretKey);
+                data = Base64.encodeToString(encryptedContent, Base64.DEFAULT);
+            } catch(Exception e ) {
+                e.printStackTrace();
+            }
+        }
+        return data;
+    }
+
+
     private void sendSMSMessage(Integer subscriptionId) {
         // TODO: Don't let sending happen if message box is empty
         String text = smsTextView.getText().toString();
 
         try {
+
+            SecurityDH securityDH = new SecurityDH(getApplicationContext());
+
             long messageId = Helpers.generateRandomNumber();
 
             PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
             handleBroadcast();
 
-            String tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
+            String tmpThreadId = null;
+            if(securityDH.hasSecretKey(address)) {
+                text = encryptContent(text);
+                text = SecurityHelpers.waterMarkMessage(text);
+                tmpThreadId = SMSHandler.sendEncryptedTextSMS(getApplicationContext(), address, text,
+                        pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
+            }
+            else tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
                     pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
 
             resetSmsTextView();
@@ -509,7 +576,7 @@ public class SMSSendActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Make sure Address and Text are provided.", Toast.LENGTH_LONG).show();
         }
-        catch(Exception e ) {
+        catch(Throwable e ) {
             e.printStackTrace();
             Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
         }
@@ -543,18 +610,245 @@ public class SMSSendActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        try {
-            if(threadId.isEmpty())
-                getAddressAndThreadId();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        handleIncomingBroadcast();
+
+        threadIdentificationLoader();
 
         improveMessagingUX();
-        updateMessagesToRead();
-
         ab.setTitle(contactName);
-        Log.d(getLocalClassName(), "Fetching Resuming...\nThreadID: " + this.threadId + "\nAddress:" + this.address);
+        
+        updateMessagesToRead();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    checkEncryptedMessaging();
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor) {
+        String insertDetails = contactName.isEmpty() ? address : contactName;
+        insertDetails = insertDetails.replaceAll("\\+", "");
+        String insertText = text.replaceAll("\\[insert name\\]", insertDetails);
+
+        SpannableStringBuilder spannable = new SpannableStringBuilder(insertText);
+
+        Pattern pattern = Pattern.compile(insertDetails); // Regex pattern to match "[phonenumber]"
+        Matcher matcher = pattern.matcher(spannable);
+
+        while (matcher.find()) {
+            StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+            spannable.setSpan(boldSpan, matcher.start(), matcher.end(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        }
+
+        Snackbar snackbar = Snackbar.make(findViewById(R.id.coordinator),
+                spannable, BaseTransientBottomBar.LENGTH_INDEFINITE);
+
+        View snackbarView = snackbar.getView();
+//            Snackbar.SnackbarLayout snackbarLayout = (Snackbar.SnackbarLayout) snackbarView;
+//            LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
+//            View customView = inflater.inflate(R.layout.layout_security_snackbar, this.);
+//            snackbarLayout.addView(customView, 0);
+
+        snackbar.setTextColor(getResources().getColor(R.color.default_gray, getTheme()));
+
+        if(bgColor == null)
+            bgColor = getResources().getColor(R.color.primary_warning_background_color,
+                    getTheme());
+
+        snackbar.setBackgroundTint(bgColor);
+        snackbar.setTextMaxLines(4);
+        snackbar.setActionTextColor(getResources().getColor(R.color.white, getTheme()));
+        snackbar.setAction(actionText, onClickListener);
+        snackbar.getView().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                snackbar.dismiss();
+            }
+        });
+
+        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams)
+                snackbarView.getLayoutParams();
+        params.gravity = Gravity.TOP;
+        snackbarView.setLayoutParams(params);
+
+        snackbar.show();
+    }
+
+    private void rxKeys(byte[][] txAgreementKey, long messageId, int subscriptionId){
+        try {
+            PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
+
+            handleBroadcast();
+            SMSHandler.sendDataSMS(getApplicationContext(),
+                    address,
+                    txAgreementKey[0],
+                    pendingIntents[0],
+                    pendingIntents[1],
+                    messageId,
+                    subscriptionId);
+
+            handleBroadcast();
+            SMSHandler.sendDataSMS(getApplicationContext(),
+                    address,
+                    txAgreementKey[1],
+                    pendingIntents[0],
+                    pendingIntents[1],
+                    messageId,
+                    subscriptionId);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
+                    SmsManager.RESULT_ERROR_GENERIC_FAILURE);
+        }
+    }
+
+    public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+        Log.d(getLocalClassName(), "Has private key: " + securityDH.hasPrivateKey(address));
+        Log.d(getLocalClassName(), "Has private key for address: " + address);
+
+        if(securityDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
+            String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
+
+            // TODO: change bgColor to match the intended use
+            Integer bgColor = getResources().getColor(R.color.purple_200, getTheme());
+            View.OnClickListener onClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        byte[] peerPublicKey = Base64.decode(securityDH.getPeerAgreementPublicKey(address),
+                                Base64.DEFAULT);
+                        KeyPair keyPair = securityDH.generateKeyPairFromPublicKey(peerPublicKey);
+
+                        Thread remotePeerHandshake = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                PublicKey publicKey = keyPair.getPublic();
+                                byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
+
+                                String agreementText = SecurityHelpers.FIRST_HEADER
+                                        + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT)
+                                        + SecurityHelpers.END_HEADER;
+                                long messageId = Helpers.generateRandomNumber();
+                                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                                String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                                        address, agreementText, messageId, subscriptionId);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (threadId.isEmpty()) {
+                                            threadId = threadIdRx;
+                                            singleMessageViewModel.informNewItemChanges(threadId);
+                                        } else singleMessageViewModel.informNewItemChanges();
+                                    }
+                                });
+                                try {
+                                    securityDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
+                                            address, keyPair);
+                                } catch (GeneralSecurityException | IOException |
+                                         OperatorCreationException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                rxKeys(txAgreementKey, messageId, subscriptionId);
+
+                            }
+                        });
+                        try {
+                            if(!securityDH.hasPrivateKey(address)) {
+                                // TODO: support for multi-sim
+                                remotePeerHandshake.start();
+                                remotePeerHandshake.join();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        Log.d(getLocalClassName(), "Agreement value for secret: " +
+                                Base64.encodeToString(peerPublicKey, Base64.DEFAULT));
+                        byte[] secret = securityDH.generateSecretKey(peerPublicKey, address);
+                        securityDH.securelyStoreSecretKey(address, secret);
+
+                    } catch (GeneralSecurityException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+
+
+            // TODO: check if has private key
+            lunchSnackBar(text, actionText, onClickListener, bgColor);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
+                }
+            });
+        }
+        else if(!securityDH.hasEncryption(address)) {
+
+            String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
+
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
+
+            View.OnClickListener onClickListener =  new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // TODO: generate the key
+                    // TODO: register the key as 1 message with data header - hold on to ID in case failure
+                    // TODO: send the key as 2 data messages
+                    try {
+                        byte[] agreementKey = dhAgreementInitiation();
+                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
+
+                        String text = SecurityHelpers.FIRST_HEADER
+                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
+                                + SecurityHelpers.END_HEADER;
+
+                        long messageId = Helpers.generateRandomNumber();
+
+                        // TODO: support for multi-sim
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                                address, text, messageId, subscriptionId);
+                        if(threadId.isEmpty()) {
+                                           threadId = threadIdRx;
+                                           singleMessageViewModel.informNewItemChanges(threadId);
+                                           } else singleMessageViewModel.informNewItemChanges();
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    rxKeys(txAgreementKey, messageId, subscriptionId);
+                                } catch(Exception e) {
+                                                 e.printStackTrace();
+                                                 }
+                            }
+                        }).start();
+
+                    } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
+                                                                                               throw new RuntimeException(e);
+                                                                                               }
+                }
+            };
+
+            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, null);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
+                }
+            });
+        }
     }
 
     @Override
@@ -616,10 +910,9 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         unregisterReceiver(incomingBroadcastReceiver);
         unregisterReceiver(incomingDataBroadcastReceiver);
-
-        super.onDestroy();
     }
 
     public void onLongClickSend(View view) {
@@ -742,5 +1035,71 @@ public class SMSSendActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    public void e2eTestHandshake() {
+//
+//        try {
+//            String testMSISDN = "+237123456789";
+//            SecurityDH securityDH = new SecurityDH(getApplicationContext());
+//
+//            // Transmission takes place here
+//            byte[] pubKeyEncodedAlice = dhAgreementInitiation();
+//            byte[] pubKeyEncodedBob = dhAgreementInitiationFromWithAlice(pubKeyEncodedAlice);
+//
+//            byte[][] txAgreementKeyAlice = SecurityHelpers.txAgreementFormatter(pubKeyEncodedAlice);
+//            byte[][] txAgreementKeyBob = SecurityHelpers.txAgreementFormatter(pubKeyEncodedBob);
+//
+//            // Receiving transmission
+//            byte[] rxAgreementKeyAliceFromBob = SecurityHelpers.rxAgreementFormatter(txAgreementKeyBob);
+//            byte[] rxAgreementKeyBobFromAlice = SecurityHelpers.rxAgreementFormatter(txAgreementKeyAlice);
+//
+//            Log.d(getLocalClassName(), "Alice Pub key size: " + pubKeyEncodedAlice.length);
+//            Log.d(getLocalClassName(), "Bob Pub key size: " + pubKeyEncodedBob.length);
+//
+//            Log.d(getLocalClassName(), "Alice Tx Pub key size - 0: " + txAgreementKeyAlice[0].length);
+//            Log.d(getLocalClassName(), "Alice Tx Pub key size - 1: " + txAgreementKeyAlice[1].length);
+//
+//            Log.d(getLocalClassName(), "Bob Tx Pub key size - 0: " + txAgreementKeyBob[0].length);
+//            Log.d(getLocalClassName(), "Bob Tx Pub key size - 1: " + txAgreementKeyBob[1].length);
+//
+//            Log.d(getLocalClassName(), "Alice Rx Pub key size: " + rxAgreementKeyAliceFromBob.length);
+//            Log.d(getLocalClassName(), "Bob Rx Pub key size: " + rxAgreementKeyBobFromAlice.length);
+//
+//            byte[] secretsAlice = securityDH.getSecretKey(rxAgreementKeyAliceFromBob, testMSISDN);
+//            byte[] secretsBob = securityDH.getSecretKey(rxAgreementKeyBobFromAlice, testMSISDN);
+//
+//            Log.d(getLocalClassName(), "Alice: " + Base64.encodeToString(secretsAlice, Base64.DEFAULT));
+//            Log.d(getLocalClassName(), "Bob: " + Base64.encodeToString(secretsBob, Base64.DEFAULT));
+//
+//            String test = "hello world";
+//
+//            List<byte[]> encryptedAlice = SecurityDH.encryptAES(test.getBytes(StandardCharsets.UTF_8), secretsAlice);
+//            List<byte[]> encryptedBob = SecurityDH.encryptAES(test.getBytes(StandardCharsets.UTF_8), secretsBob);
+//
+//            byte[] decryptedAlice = SecurityDH.decryptAES(secretsAlice, encryptedAlice.get(0), encryptedAlice.get(1));
+//            byte[] decryptedBob = SecurityDH.decryptAES(secretsBob, encryptedBob.get(0), encryptedBob.get(1));
+//
+//            Log.d(getLocalClassName(), "Alice decrypted: " + new String(decryptedAlice, StandardCharsets.UTF_8));
+//            Log.d(getLocalClassName(), "Bob decrypted: " + new String(decryptedBob, StandardCharsets.UTF_8));
+//        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException |
+//                 InvalidKeyException | NoSuchProviderException | OperatorCreationException e) {
+//            throw new RuntimeException(e);
+//        } catch (InvalidKeySpecException e) {
+//            throw new RuntimeException(e);
+//        } catch (CertificateException e) {
+//            throw new RuntimeException(e);
+//        } catch (KeyStoreException e) {
+//            throw new RuntimeException(e);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        } catch (GeneralSecurityException e) {
+//            throw new RuntimeException(e);
+//        }
+    }
+    public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException, OperatorCreationException {
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+        PublicKey publicKey = securityDH.generateKeyPair(getApplicationContext(), address);
+        return publicKey.getEncoded();
     }
 }

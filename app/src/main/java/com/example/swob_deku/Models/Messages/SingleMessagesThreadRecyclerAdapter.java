@@ -1,55 +1,42 @@
 package com.example.swob_deku.Models.Messages;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.Message;
 import android.provider.Telephony;
 import android.text.format.DateUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
-import androidx.paging.ItemSnapshotList;
-import androidx.paging.PagingData;
-import androidx.paging.PagingDataAdapter;
 import androidx.recyclerview.widget.AsyncListDiffer;
-import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.ImageViewActivity;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
-import com.google.android.material.card.MaterialCardView;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
@@ -77,10 +64,22 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    public SingleMessagesThreadRecyclerAdapter(Context context) {
+    SecurityDH securityDH;
+    byte[] secretKey = null;
+
+    String address;
+
+    public SingleMessagesThreadRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
 //        super(SMS.DIFF_CALLBACK);
         this.context = context;
         this.selectedItem = mutableSelectedItems;
+
+        this.securityDH = new SecurityDH(context);
+
+        this.address = address;
+
+        if(securityDH.hasSecretKey(address))
+            secretKey = Base64.decode(securityDH.securelyFetchSecretKey(address), Base64.DEFAULT);
     }
 
     @NonNull
@@ -104,6 +103,24 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
         View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
         return new MessageSentViewHandler(view);
+    }
+
+    private String decryptContent(String input) {
+        if(this.secretKey != null &&
+                input.getBytes(StandardCharsets.UTF_8).length > 16
+                        + SecurityHelpers.ENCRYPTED_WATERMARK_START.length()
+                        + SecurityHelpers.ENCRYPTED_WATERMARK_END.length()
+                && SecurityHelpers.containersWaterMark(input)) {
+            try {
+                byte[] encryptedContent = SecurityDH.decryptAES(Base64.decode(
+                        SecurityHelpers.removeWaterMarkMessage(input), Base64.DEFAULT),
+                        secretKey);
+                input = new String(encryptedContent, StandardCharsets.UTF_8);
+            } catch(Throwable e ) {
+                e.printStackTrace();
+            }
+        }
+        return input;
     }
 
     @Override
@@ -130,7 +147,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 messageReceivedViewHandler.timestamp.setVisibility(View.GONE);
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
-            receivedMessage.setText(sms.getBody());
+            String text = sms.getBody();
+            text = decryptContent(text);
+            receivedMessage.setText(text);
 
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);
@@ -178,7 +197,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-            messageSentViewHandler.sentMessage.setText(sms.getBody());
+            String text = sms.getBody();
+            text = decryptContent(text);
+            messageSentViewHandler.sentMessage.setText(text);
 
             if(position != 0) {
                 messageSentViewHandler.date.setVisibility(View.INVISIBLE);
