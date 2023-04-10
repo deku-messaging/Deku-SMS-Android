@@ -8,7 +8,7 @@ import android.util.Log;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
-import org.bouncycastle.operator.OperatorCreationException;
+//import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -80,7 +80,7 @@ public class SecurityDH {
         return keyAgree.generateSecret();
     }
 
-    public PublicKey generateKeyPair(Context context, String keystoreAlias) throws GeneralSecurityException, IOException, OperatorCreationException {
+    public PublicKey generateKeyPair(Context context, String keystoreAlias) throws GeneralSecurityException, IOException {
         // TODO: check if keypair already exist
         KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM);
 
@@ -143,7 +143,7 @@ public class SecurityDH {
         return encryptedSharedPreferences.contains(keystoreAlias);
     }
 
-    public void securelyStorePrivateKeyKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException, OperatorCreationException {
+    public void securelyStorePrivateKeyKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException {
         // TODO: make alias know it's private key stored now
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,
@@ -164,7 +164,7 @@ public class SecurityDH {
         }
     }
 
-    public String securelyStorePublicKeyKeyPair(Context context, String keystoreAlias, byte[] keyValue, int part) throws GeneralSecurityException, IOException, OperatorCreationException {
+    public String securelyStorePublicKeyKeyPair(Context context, String keystoreAlias, byte[] keyValue, int part) throws GeneralSecurityException, IOException {
         // TODO: make alias know it's private key stored now
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,

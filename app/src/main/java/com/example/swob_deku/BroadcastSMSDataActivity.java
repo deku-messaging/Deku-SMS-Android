@@ -16,7 +16,7 @@ import com.example.swob_deku.Models.Security.SecurityDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.i18n.phonenumbers.NumberParseException;
 
-import org.bouncycastle.operator.OperatorCreationException;
+//import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -86,7 +86,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
         }
     }
 
-    private String registerIncomingAgreement(Context context, String msisdn, byte[] keyPart, int part) throws GeneralSecurityException, IOException, OperatorCreationException {
+    private String registerIncomingAgreement(Context context, String msisdn, byte[] keyPart, int part) throws GeneralSecurityException, IOException {
         SecurityDH securityDH = new SecurityDH(context);
         return securityDH.securelyStorePublicKeyKeyPair(context, msisdn, keyPart, part);
     }

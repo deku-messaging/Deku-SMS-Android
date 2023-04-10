@@ -64,7 +64,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.i18n.phonenumbers.NumberParseException;
 
-import org.bouncycastle.operator.OperatorCreationException;
+//import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -752,8 +752,7 @@ public class SMSSendActivity extends AppCompatActivity {
                                 try {
                                     securityDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
                                             address, keyPair);
-                                } catch (GeneralSecurityException | IOException |
-                                         OperatorCreationException e) {
+                                } catch (GeneralSecurityException | IOException e) {
                                     throw new RuntimeException(e);
                                 }
                                 rxKeys(txAgreementKey, messageId, subscriptionId);
@@ -834,9 +833,9 @@ public class SMSSendActivity extends AppCompatActivity {
                             }
                         }).start();
 
-                    } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
-                                                                                               throw new RuntimeException(e);
-                                                                                               }
+                    } catch (GeneralSecurityException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
 
@@ -1097,7 +1096,7 @@ public class SMSSendActivity extends AppCompatActivity {
 //            throw new RuntimeException(e);
 //        }
     }
-    public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException, OperatorCreationException {
+    public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         PublicKey publicKey = securityDH.generateKeyPair(getApplicationContext(), address);
         return publicKey.getEncoded();

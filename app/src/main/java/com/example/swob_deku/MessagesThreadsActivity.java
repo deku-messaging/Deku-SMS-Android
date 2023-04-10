@@ -40,17 +40,24 @@ import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import org.bouncycastle.operator.OperatorCreationException;
+//import org.bouncycastle.jce.ECNamedCurveTable;
+//import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
+//import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
+//import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
@@ -137,6 +144,18 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         enableSwipeAction();
         Log.d(getLocalClassName(), "Threading main activity");
 
+
+        try {
+            Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
+            KeyPairGenerator aliceKpg = KeyPairGenerator.getInstance("ECDH", "SC");
+            aliceKpg.initialize(256);
+            KeyPair aliceKp = aliceKpg.generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchProviderException e) {
+            throw new RuntimeException(e);
+        }
+//        aliceKpg.initialize(256, new SecureRandom());
     }
 
     private void enableSwipeAction() {
