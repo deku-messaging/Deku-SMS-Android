@@ -97,13 +97,12 @@ public class SecurityHelpers {
     }
 
     public static String removeWaterMarkMessage(String text) {
-        int firstWaterMark = text.indexOf(SecurityHelpers.ENCRYPTED_WATERMARK_START);
         int lastWaterMark = text.lastIndexOf(SecurityHelpers.ENCRYPTED_WATERMARK_END);
 
         return text.substring(SecurityHelpers.ENCRYPTED_WATERMARK_START.length(), lastWaterMark);
     }
 
-    public static boolean containsWaterMakr(String text) {
+    public static boolean containersWaterMark(String text) {
         return text.indexOf(SecurityHelpers.ENCRYPTED_WATERMARK_START) == 0 &&
                 text.indexOf(SecurityHelpers.ENCRYPTED_WATERMARK_END) ==
                         text.length() - SecurityHelpers.ENCRYPTED_WATERMARK_END.length();
