@@ -6,6 +6,7 @@ import android.util.Base64;
 
 import java.io.IOException;
 import java.security.AlgorithmConstraints;
+import java.security.AlgorithmParameterGenerator;
 import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -28,9 +29,11 @@ public class SecurityAES {
     public SecurityAES(){
     }
 
-    public byte[] encrypt(byte[] input, byte[] sharedKey) throws Throwable {
+    public byte[] encrypt(byte[] input, byte[] secretKey) throws Throwable {
         try {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(sharedKey, "AES");
+//            SecretKeySpec secretKeySpec = new SecretKeySpec(sharedKey, "AES");
+//            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, 16, "AES");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, secretKey.length, "AES");
 
             Cipher cipher = Cipher.getInstance(DEFAULT_AES_ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);

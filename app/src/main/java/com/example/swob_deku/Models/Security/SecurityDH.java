@@ -2,7 +2,6 @@ package com.example.swob_deku.Models.Security;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
 
@@ -59,7 +58,7 @@ public class SecurityDH {
                 .build();
     }
 
-    public byte[] getSecretKey(byte[] publicKeyEnc, String alias) throws GeneralSecurityException, IOException {
+    public byte[] generateSecretKey(byte[] publicKeyEnc, String alias) throws GeneralSecurityException, IOException {
         /*
          * Alice uses Bob's public key for the first (and only) phase
          * of her version of the DH
@@ -104,15 +103,22 @@ public class SecurityDH {
         String encryptedSharedKey = encryptedSharedPreferences.getString(
                 keystoreAlias + "-private-key", "");
 
-        Log.d(SecurityDH.class.getName(), "Private key: " + encryptedSharedKey);
-        Log.d(SecurityDH.class.getName(), "Private key available: " + encryptedSharedKey.contains(keystoreAlias +
-                "-private-key"));
-
         byte[] privateKeyDecoded = Base64.decode(encryptedSharedKey, Base64.DEFAULT);
         KeyFactory keyFactory = KeyFactory.getInstance(DEFAULT_ALGORITHM); // Replace "RSA" with your key algorithm
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyDecoded);
 
         return keyFactory.generatePrivate(keySpec);
+    }
+
+    public String securelyFetchSecretKey(String keystoreAlias) throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        return encryptedSharedPreferences.getString( keystoreAlias, "");
     }
 
     public boolean hasPrivateKey(String keystoreAlias) throws GeneralSecurityException, IOException {
@@ -124,6 +130,17 @@ public class SecurityDH {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
         return encryptedSharedPreferences.contains(keystoreAlias + "-private-key");
+    }
+
+    public boolean hasSecretKey(String keystoreAlias) throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                keystoreAlias,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        return encryptedSharedPreferences.contains(keystoreAlias);
     }
 
     public void securelyStorePrivateKeyKeyPair(Context context, String keystoreAlias, KeyPair keyPair) throws GeneralSecurityException, IOException, OperatorCreationException {
@@ -274,47 +291,24 @@ public class SecurityDH {
 //        KeyAgreement keyAgree  = KeyAgreement.getInstance(DEFAULT_ALGORITHM);
 //        return keyAgree.generateSecret();
 //    }
-    public static List<byte[]> encryptAES(byte[] plainText, byte[] secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, IOException {
-        /*
-         * Now let's create a SecretKey object using the shared secret
-         * and use it for encryption. First, we generate SecretKeys for the
-         * "AES" algorithm (based on the raw shared secret data) and
-         * Then we use AES in CBC mode, which requires an initialization
-         * vector (IV) parameter. Note that you have to use the same IV
-         * for encryption and decryption: If you use a different IV for
-         * decryption than you used for encryption, decryption will fail.
-         *
-         * If you do not specify an IV when you initialize the Cipher
-         * object for encryption, the underlying implementation will generate
-         * a random one, which you have to retrieve using the
-         * javax.crypto.Cipher.getParameters() method, which returns an
-         * instance of java.security.AlgorithmParameters. You need to transfer
-         * the contents of that object (e.g., in encoded format, obtained via
-         * the AlgorithmParameters.getEncoded() method) to the party who will
-         * do the decryption. When initializing the Cipher for decryption,
-         * the (reinstantiated) AlgorithmParameters object must be explicitly
-         * passed to the Cipher.init() method.
-         */
-//        Log.i(this.getClass().getName(), "Use shared secret as SecretKey object ...");
-        SecretKeySpec bobAesKey = new SecretKeySpec(secretKey, 0, 16, "AES");
+    public static byte[] encryptAES(byte[] input, byte[] secretKey) throws Throwable {
+        try {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, 16, "AES");
 
-        /*
-         * Bob encrypts, using AES in CBC mode
-         */
-        Cipher bobCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        bobCipher.init(Cipher.ENCRYPT_MODE, bobAesKey);
-        byte[] ciphertext = bobCipher.doFinal(plainText);
+            Cipher cipher = Cipher.getInstance(SecurityAES.DEFAULT_AES_ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            byte[] ciphertext = cipher.doFinal(input);
 
-        // Retrieve the parameter that was used, and transfer it to Alice in
-        // encoded format
-        // byte[] encodedParams = bobCipher.getParameters().getEncoded();
-        byte[] iv = bobCipher.getIV();
+            byte[] cipherTextIv = new byte[16 + ciphertext.length];
+            System.arraycopy(cipher.getIV(), 0,  cipherTextIv, 0, 16);
+            System.arraycopy(ciphertext, 0,  cipherTextIv, 16, ciphertext.length);
 
-        List<byte[]> ivText = new ArrayList<>();
-        ivText.add(ciphertext);
-        ivText.add(iv);
-
-        return ivText;
+            return cipherTextIv;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            throw new Throwable(e);
+        }
     }
 
     public boolean hasEncryption(String keystoreAlias) throws GeneralSecurityException, IOException {
@@ -332,20 +326,27 @@ public class SecurityDH {
 //        return !keystorevalue.isEmpty();
     }
 
-    public static byte[] decryptAES(byte[] secretKey, byte[] ciphertext, byte[] iv) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        /*
-         * Alice decrypts, using AES in CBC mode
-         */
+    public byte[] decryptAES(byte[] input, byte[] secretKey) throws Throwable {
+        byte[] decryptedText = null;
+        try {
+            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, 16, "AES");
 
-        // Instantiate AlgorithmParameters object from parameter encoding
-        // obtained from Bob
-        SecretKeySpec sharedKey = new SecretKeySpec(secretKey, 0, 16, "AES");
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-        Cipher aliceCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        aliceCipher.init(Cipher.DECRYPT_MODE, sharedKey, ivParameterSpec);
-        byte[] recovered = aliceCipher.doFinal(ciphertext);
+            byte[] iv = new byte[16];
+            System.arraycopy(input, 0, iv, 0, 16);
 
-        return recovered;
+            byte[] content = new byte[input.length - 16];
+            System.arraycopy(input, 16, content, 0, content.length);
+
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+
+            Cipher cipher = Cipher.getInstance(SecurityAES.DEFAULT_AES_ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+            decryptedText = cipher.doFinal(content);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            throw new Throwable(e);
+        }
+        return decryptedText;
     }
-
 }

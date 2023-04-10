@@ -8,7 +8,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -41,7 +40,6 @@ import android.text.style.StyleSpan;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -57,6 +55,7 @@ import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityAES;
 import com.example.swob_deku.Models.Security.SecurityDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
@@ -70,15 +69,8 @@ import org.bouncycastle.operator.OperatorCreationException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PublicKey;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -519,6 +511,25 @@ public class SMSSendActivity extends AppCompatActivity {
         sendSMSMessage(null);
     }
 
+    private String encryptContent(String data) throws Throwable {
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+        if(securityDH.hasSecretKey(address)) {
+            byte[] secretKey = Base64.decode(securityDH.securelyFetchSecretKey(address), Base64.DEFAULT);
+            // TODO: begin encrypting data
+            // TODO: if can't encrypt data return original data
+
+            try {
+                byte[] encryptedContent = SecurityDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
+                        secretKey);
+                data = Base64.encodeToString(encryptedContent, Base64.DEFAULT);
+            } catch(Exception e ) {
+                e.printStackTrace();
+            }
+        }
+        return data;
+    }
+
+
     private void sendSMSMessage(Integer subscriptionId) {
         // TODO: Don't let sending happen if message box is empty
         String text = smsTextView.getText().toString();
@@ -529,6 +540,11 @@ public class SMSSendActivity extends AppCompatActivity {
             PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
             handleBroadcast();
+
+            SecurityDH securityDH = new SecurityDH(getApplicationContext());
+
+            if(securityDH.hasSecretKey(address))
+                text = encryptContent(text);
 
             String tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
                     pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
@@ -548,7 +564,7 @@ public class SMSSendActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Make sure Address and Text are provided.", Toast.LENGTH_LONG).show();
         }
-        catch(Exception e ) {
+        catch(Throwable e ) {
             e.printStackTrace();
             Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
         }
@@ -749,7 +765,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
                         Log.d(getLocalClassName(), "Agreement value for secret: " +
                                 Base64.encodeToString(peerPublicKey, Base64.DEFAULT));
-                        byte[] secret = securityDH.getSecretKey(peerPublicKey, address);
+                        byte[] secret = securityDH.generateSecretKey(peerPublicKey, address);
                         securityDH.securelyStoreSecretKey(address, secret);
 
                     } catch (GeneralSecurityException | IOException e) {
