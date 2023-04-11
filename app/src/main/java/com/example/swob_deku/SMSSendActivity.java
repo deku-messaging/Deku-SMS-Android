@@ -132,7 +132,7 @@ public class SMSSendActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
 
-
+        smsTextView = findViewById(R.id.sms_text);
         threadIdentificationLoader();
         try {
             singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
@@ -142,7 +142,6 @@ public class SMSSendActivity extends AppCompatActivity {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        smsTextView = findViewById(R.id.sms_text);
         multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
 
         linearLayoutManager = new LinearLayoutManager(this);
@@ -344,9 +343,12 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void processForSharedIntent() throws NumberParseException {
-        String indentAction = getIntent().getAction();
+//        String indentAction = getIntent().getAction();
+//
+//        if(BuildConfig.DEBUG)
+//            Log.d(getLocalClassName(), "Processing shared..." + indentAction);
 
-        if(indentAction != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
+        if(getIntent().getAction() != null && getIntent().getAction().equals(Intent.ACTION_SENDTO) ){
             String sendToString = getIntent().getDataString();
 
             if(BuildConfig.DEBUG)
@@ -354,31 +356,34 @@ public class SMSSendActivity extends AppCompatActivity {
 
 //            sendToString = sendToString.replace("%2B", "+")
 //                            .replace("%20", "");
-            sendToString = Helpers.formatPhoneNumbers(sendToString);
+//            sendToString = Helpers.formatPhoneNumbers(sendToString);
 
             if(sendToString.contains("smsto:") || sendToString.contains("sms:")) {
                address = sendToString.substring(sendToString.indexOf(':') + 1);
+               address = Helpers.formatPhoneNumbers(address);
                String text = getIntent().getStringExtra("sms_body");
+                if(BuildConfig.DEBUG)
+                    Log.d(getLocalClassName(), "Processing shared body: " + text);
 
                // TODO: should inform view about data being available
-               if(getIntent().hasExtra(Intent.EXTRA_INTENT)) {
-                   byte[] bytesData = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
-                   if (bytesData != null) {
-                       Log.d(getClass().getName(), "Byte data: " + bytesData);
-                       Log.d(getClass().getName(), "Byte data: " + new String(bytesData, StandardCharsets.UTF_8));
-
-                       text = new String(bytesData, StandardCharsets.UTF_8);
-                       getIntent().putExtra(Intent.EXTRA_INTENT, getIntent().getByteArrayExtra(Intent.EXTRA_INTENT));
-                   }
-               }
+//               if(getIntent().hasExtra(Intent.EXTRA_INTENT)) {
+//                   byte[] bytesData = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
+//                   if (bytesData != null) {
+//                       Log.d(getClass().getName(), "Byte data: " + bytesData);
+//                       Log.d(getClass().getName(), "Byte data: " + new String(bytesData, StandardCharsets.UTF_8));
+//
+//                       text = new String(bytesData, StandardCharsets.UTF_8);
+//                       getIntent().putExtra(Intent.EXTRA_INTENT, getIntent().getByteArrayExtra(Intent.EXTRA_INTENT));
+//                   }
+//               }
 
                if(text != null && !text.isEmpty()) {
                    smsTextView.setText(text);
-                   String finalText = text;
+
                    runOnUiThread(new Runnable() {
                        @Override
                        public void run() {
-                           mutableLiveDataComposeMessage.setValue(finalText);
+                           mutableLiveDataComposeMessage.setValue(text);
                        }
                    });
                }
@@ -611,9 +616,16 @@ public class SMSSendActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(getLocalClassName(), "Yes resuming...");
         handleIncomingBroadcast();
 
-        threadIdentificationLoader();
+        try {
+            getAddressAndThreadId();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (NumberParseException e) {
+            e.printStackTrace();
+        }
 
         improveMessagingUX();
         ab.setTitle(contactName);
