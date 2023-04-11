@@ -530,9 +530,9 @@ public class SMSHandler {
         return cursor;
     }
 
-    public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, long messageId) {
-        Cursor cursor = context.getContentResolver().query(
-                SMS_CONTENT_URI,
+    public static Cursor fetchUnreadSMSMessagesForThreadId(Context context, String threadId) {
+        return context.getContentResolver().query(
+                SMS_INBOX_CONTENT_URI,
                  new String[] { Telephony.Sms._ID,
                          Telephony.TextBasedSmsColumns.THREAD_ID,
                          Telephony.TextBasedSmsColumns.ADDRESS,
@@ -540,23 +540,20 @@ public class SMSHandler {
                          Telephony.TextBasedSmsColumns.DATE,
                          Telephony.TextBasedSmsColumns.BODY,
                          Telephony.TextBasedSmsColumns.TYPE },
-                Telephony.Sms._ID + "=?",
-                new String[] { String.valueOf(messageId)},
+                Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND "
+                        + Telephony.Sms.READ + "=?",
+                new String[] { threadId, "0"},
                 "date DESC");
-
-        return cursor;
     }
 
     public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, String messageId) {
-        Cursor cursor = context.getContentResolver().query(
+        return context.getContentResolver().query(
                 SMS_CONTENT_URI,
                 new String[] { Telephony.Sms._ID,
                         Telephony.TextBasedSmsColumns.THREAD_ID},
                 Telephony.Sms._ID + "=?",
                 new String[] { messageId },
                null);
-
-        return cursor;
     }
 
     public static long registerIncomingMessage(Context context, String address, String body) {

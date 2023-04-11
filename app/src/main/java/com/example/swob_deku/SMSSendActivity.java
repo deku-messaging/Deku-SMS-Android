@@ -137,9 +137,7 @@ public class SMSSendActivity extends AppCompatActivity {
         try {
             singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                     getApplicationContext(), address);
-        } catch (GeneralSecurityException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (GeneralSecurityException | IOException e) {
             throw new RuntimeException(e);
         }
         multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
