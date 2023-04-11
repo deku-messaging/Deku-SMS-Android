@@ -275,7 +275,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     private void setRefreshTimer() {
-        int recyclerViewTimeUpdateLimit = 60 * 1000;
+        final int recyclerViewTimeUpdateLimit = 60 * 1000;
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
