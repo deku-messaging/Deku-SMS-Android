@@ -28,21 +28,6 @@ public class DefaultCheckActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_default_check);
-
-//        try {
-//            DHKeyAgreement2.test();
-//        } catch (InvalidKeyException e) {
-//            e.printStackTrace();
-//        } catch (NoSuchAlgorithmException e) {
-//            e.printStackTrace();
-//        } catch (InvalidKeySpecException e) {
-//            e.printStackTrace();
-//        } catch (InvalidAlgorithmParameterException e) {
-//            e.printStackTrace();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-
     }
 
     public void clickPrivacyPolicy(View view) {
@@ -115,7 +100,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
             NotificationChannel channel = new NotificationChannel(getString(R.string.CHANNEL_ID), name, importance);
             channel.setDescription(description);
             channel.enableLights(true);
-            channel.setLightColor(R.color.white);
+            channel.setLightColor(R.color.primary_background_color);
             channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
 
             // Register the channel with the system; you can't change the importance

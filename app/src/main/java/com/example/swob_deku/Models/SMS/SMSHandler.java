@@ -709,6 +709,29 @@ public class SMSHandler {
         // TODO: parse
     }
 
+    public static String sendEncryptedTextSMS(Context context, String destinationAddress, String text,
+                                     PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId,
+                                     Integer subscriptionId) {
+        String threadId = "";
+        if(subscriptionId == null)
+            subscriptionId = SIMHandler.getDefaultSimSubscription(context);
+        try {
+            threadId = registerPendingMessage(context, destinationAddress, text, messageId,
+                    subscriptionId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            SMSHandler.sendTextSMS(context, destinationAddress, text, sentIntent, deliveryIntent,
+                    -1, subscriptionId);
+        } catch(Exception e) {
+            throw e;
+        }
+        return threadId;
+    }
+
     public static String sendTextSMS(Context context, String destinationAddress, String text,
                                      PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId,
                                      Integer subscriptionId) {
@@ -819,44 +842,58 @@ public class SMSHandler {
     }
 
     public static void sendDataSMS(Context context, String destinationAddress, byte[] data,
-                                   PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
+                                   PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId,
+                                   Integer subscriptionId) throws InterruptedException {
         if(data == null)
             return;
+        Log.d(SMSHandler.class.getName(), "Tx data msg of size: " + data.length);
 
-        ArrayList<byte[]> dividedMessage = structureSMSMessage(data);
-        Log.d(SMSHandler.class.getName(), "Sending divided count: " + dividedMessage.size());
+        if(subscriptionId == null)
+            subscriptionId = SIMHandler.getDefaultSimSubscription(context);
+        SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
 
-        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
-                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+//        try {
+//        ArrayList<byte[]> dividedMessage = structureSMSMessage(data);
+//        Log.d(SMSHandler.class.getName(), "Sending divided count: " + dividedMessage.size());
+//            if(messageId != -1 || dividedMessage.size() == 1) {
+//                smsManager.sendDataMessage(
+//                        destinationAddress,
+//                        null,
+//                        DATA_TRANSMISSION_PORT,
+//                        data,
+//                        sentIntent,
+//                        deliveryIntent);
+//            }
+//            else {
+//
+//                /**
+//                 * Navigating away from activity which triggered this causes it to end
+//                 * Therefore this should be moved into a WorkManager.
+//                 * A WorkManager is created for each message and the constrains help manage the network
+//                 * possible issues.
+//                 * TODO: - If bits failed - on retry on the failed bits should be reset
+//                 * TODO: - Figure out the failedStatusCode for the MTN failed messages and set protocol
+//                 * TODO: to handle them
+//                 */
+////                for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
+////                    boolean hasPendingIntent = sendingMessageCounter == dividedMessage.size() - 1;
+////                    createWorkManagersForDataMessages(context, destinationAddress,
+////                            dividedMessage.get(sendingMessageCounter), messageId, hasPendingIntent, sendingMessageCounter);
+////                }
+//                createWorkManagersForDataMessages(context, destinationAddress, data, -1);
+//            }
+//        } catch(Exception e) {
+//            e.printStackTrace();
+//        }
         try {
-            if(messageId != -1 || dividedMessage.size() == 1) {
-                smsManager.sendDataMessage(
-                        destinationAddress,
-                        null,
-                        DATA_TRANSMISSION_PORT,
-                        data,
-                        sentIntent,
-                        deliveryIntent);
-            }
-            else {
-
-                /**
-                 * Navigating away from activity which triggered this causes it to end
-                 * Therefore this should be moved into a WorkManager.
-                 * A WorkManager is created for each message and the constrains help manage the network
-                 * possible issues.
-                 * TODO: - If bits failed - on retry on the failed bits should be reset
-                 * TODO: - Figure out the failedStatusCode for the MTN failed messages and set protocol
-                 * TODO: to handle them
-                 */
-//                for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
-//                    boolean hasPendingIntent = sendingMessageCounter == dividedMessage.size() - 1;
-//                    createWorkManagersForDataMessages(context, destinationAddress,
-//                            dividedMessage.get(sendingMessageCounter), messageId, hasPendingIntent, sendingMessageCounter);
-//                }
-                createWorkManagersForDataMessages(context, destinationAddress, data, -1);
-            }
-        } catch(Exception e) {
+            smsManager.sendDataMessage(
+                    destinationAddress,
+                    null,
+                    DATA_TRANSMISSION_PORT,
+                    data,
+                    sentIntent,
+                    deliveryIntent);
+        }catch(Exception e) {
             e.printStackTrace();
         }
     }

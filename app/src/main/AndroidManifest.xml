@@ -62,6 +62,8 @@
             android:parentActivityName=".MessagesThreadsActivity"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
+                <action android:name="android.intent.action.DATA_SMS_RECEIVED"/>
+
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SENDTO" />
 
@@ -74,6 +76,7 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".DefaultCheckActivity"
             android:exported="true">

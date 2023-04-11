@@ -36,6 +36,11 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -61,7 +66,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         searchTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                if(b) {
+                if (b) {
                     startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
                 }
             }
@@ -119,14 +124,27 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         enableSwipeAction();
         Log.d(getLocalClassName(), "Threading main activity");
+
+
+        try {
+            Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
+            KeyPairGenerator aliceKpg = KeyPairGenerator.getInstance("ECDH", "SC");
+            aliceKpg.initialize(256);
+            KeyPair aliceKp = aliceKpg.generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchProviderException e) {
+            throw new RuntimeException(e);
+        }
+//        aliceKpg.initialize(256, new SecureRandom());
     }
 
     private void enableSwipeAction() {
-
         final RecyclerView.ViewHolder[] currentViewHolder = {null};
 //        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            final int defaultItemBackgroundDrawable = R.drawable.messages_default_drawable;
+
+//        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT | ItemTouchHelper.RIGHT) {
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT ) {
             private Drawable deleteIcon;
             private int intrinsicWidth;
             private int intrinsicHeight;
@@ -145,8 +163,18 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                  */
                 MessagesThreadRecyclerAdapter.ViewHolder itemView = (MessagesThreadRecyclerAdapter.ViewHolder) viewHolder;
                 String threadId = itemView.id;
-
+                Log.d(getLocalClassName(), "removing thread: " + threadId);
                 try {
+//                    Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);
+//                    if(cursor.moveToFirst()) {
+//                        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+//                        String address = new SMS(cursor).getAddress();
+//                        Log.d(getLocalClassName(), "Removing keys for address: " + address
+//                                + " -> thread:" + threadId);
+//                        securityDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
+//                    }
+//                    cursor.close();
+
                     SMSHandler.deleteThread(getApplicationContext(), threadId);
                     messagesThreadViewModel.informChanges(getApplicationContext());
                 }catch (Exception e) {
