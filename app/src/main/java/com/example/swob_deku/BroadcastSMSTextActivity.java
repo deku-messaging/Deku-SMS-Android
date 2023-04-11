@@ -9,9 +9,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.StyleSpan;
 import android.util.Base64;
 import android.util.Log;
 
@@ -175,9 +179,14 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
             if(cursor1.moveToFirst()) {
                 do {
                     SMS unreadSMS = new SMS(cursor1);
+
+                    SpannableStringBuilder spannable = new SpannableStringBuilder(contactName);
+                    StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+                    spannable.setSpan(boldSpan, 0, contactName.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
                     unreadMessages.add(new NotificationCompat.MessagingStyle.Message(unreadSMS.getBody(),
                             Long.parseLong(unreadSMS.getDate()),
-                            contactName));
+                            spannable));
                 } while(cursor1.moveToNext());
             }
             cursor1.close();
