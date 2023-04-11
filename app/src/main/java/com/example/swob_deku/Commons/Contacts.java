@@ -11,9 +11,6 @@ import com.example.swob_deku.BuildConfig;
 public class Contacts {
 
     public static String retrieveContactName(Context context, String phoneNumber) {
-        if(BuildConfig.DEBUG)
-            Log.d(Contacts.class.getName(), "Retrieving contact details: " + phoneNumber);
-
         Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
         Cursor cursor = context.getContentResolver().query(
                 uri,

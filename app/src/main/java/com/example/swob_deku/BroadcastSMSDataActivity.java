@@ -9,11 +9,18 @@ import android.telephony.SmsMessage;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
+import com.google.i18n.phonenumbers.NumberParseException;
+
+//import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
@@ -28,58 +35,70 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
             Log.d(getClass().getName(), "New data received..");
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
-            switch (getResultCode()) {
-                case Activity.RESULT_OK:
-                    ByteArrayOutputStream messageBuffer = new ByteArrayOutputStream();
-                    String address = new String();
+            if (getResultCode() == Activity.RESULT_OK) {
+                ByteArrayOutputStream messageBuffer = new ByteArrayOutputStream();
+                String address = "";
 
-                    for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                        address = currentSMS.getDisplayOriginatingAddress();
-
-                        try {
-                            messageBuffer.write(currentSMS.getUserData());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
+                for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
+                    address = currentSMS.getDisplayOriginatingAddress();
 
                     try {
-                        Log.d(getClass().getName(), "Date image 0: " +
-                                Byte.toUnsignedInt(messageBuffer.toByteArray()[0]));
-
-                        Log.d(getClass().getName(), "Date image 1: " +
-                                Byte.toUnsignedInt(messageBuffer.toByteArray()[1]));
-
-                        String metaHeaderInformation = ImageHandler.IMAGE_HEADER +
-                                ImageHandler.getImageMetaRIL(messageBuffer.toByteArray());
-
-                        String strMessage = metaHeaderInformation +
-                                Base64.encodeToString(messageBuffer.toByteArray(), Base64.DEFAULT);
-
-                        Log.d(getClass().getName(), "Data image data: " + strMessage);
-
-                        SMSHandler.registerIncomingMessage(context, address, strMessage);
-
-                        String defaultRIL = Byte.toUnsignedInt(messageBuffer.toByteArray()[0]) + "0";
-
-                        if(ImageHandler.isImageBody(messageBuffer.toByteArray())) {
-                            Log.d(getClass().getName(), "Data image body found");
-
-                            boolean canComposeImage = ImageHandler.canComposeImage(context, defaultRIL);
-                            if(canComposeImage) {
-                                long messageId = ImageHandler.composeAppendDeleteImages(context, defaultRIL,
-                                        Byte.toUnsignedInt(messageBuffer.toByteArray()[0]));
-
-                                String notificationNote = "New image data!";
-                                BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
-                            }
-                        }
-
-                    }catch(Exception e ) {
-                        e.printStackTrace();
+                        messageBuffer.write(currentSMS.getUserData());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
-                    break;
+                }
+
+                long messageId = -1;
+                try {
+                    address = Helpers.formatPhoneNumbers(address);
+                } catch (NumberParseException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+                    String strMessage = messageBuffer.toString();
+                    if (strMessage.contains(SecurityHelpers.FIRST_HEADER)) {
+                        // TODO: register message and store the reference in a shared reference location
+//                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
+                        strMessage = registerIncomingAgreement(context, address, messageBuffer.toByteArray(), 0);
+                    } else if (strMessage.contains(SecurityHelpers.END_HEADER)) {
+                        // TODO: search for registered message and get content from shared reference location
+//                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
+                        strMessage = registerIncomingAgreement(context, address, messageBuffer.toByteArray(), 1);
+                    }
+
+                    if(checkMessagesAvailable(context, address)) {
+                        String notificationNote = "New Key request";
+
+                        strMessage = SecurityHelpers.FIRST_HEADER +
+                                strMessage + SecurityHelpers.END_HEADER;
+
+                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
+                        BroadcastSMSTextActivity.sendNotification(context, notificationNote,
+                                address, messageId);
+                    }
+                    broadcastIntent(context);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
+    }
+
+    private String registerIncomingAgreement(Context context, String msisdn, byte[] keyPart, int part) throws GeneralSecurityException, IOException {
+        SecurityDH securityDH = new SecurityDH(context);
+        return securityDH.securelyStorePublicKeyKeyPair(context, msisdn, keyPart, part);
+    }
+
+
+    private void broadcastIntent(Context context) {
+        Intent intent = new Intent(BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION");
+        context.sendBroadcast(intent);
+    }
+
+    private boolean checkMessagesAvailable(Context context, String msisdn) throws GeneralSecurityException, IOException {
+        SecurityDH securityDH = new SecurityDH(context);
+        return securityDH.peerAgreementPublicKeysAvailable(context, msisdn);
     }
 }

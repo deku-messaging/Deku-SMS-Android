@@ -1,7 +1,6 @@
 package com.example.swob_deku;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -12,35 +11,25 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
-import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
-import android.util.Base64;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
-import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -48,12 +37,11 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -61,6 +49,10 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     MessagesThreadViewModel messagesThreadViewModel;
     MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
+
+    BroadcastReceiver incomingBroadcastReceiver;
+
+    Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +69,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         searchTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                if(b) {
+                if (b) {
                     startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
                 }
             }
@@ -132,12 +124,33 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
+
+        enableSwipeAction();
+        Log.d(getLocalClassName(), "Threading main activity");
+
+
+        try {
+            Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
+            KeyPairGenerator aliceKpg = KeyPairGenerator.getInstance("ECDH", "SC");
+            aliceKpg.initialize(256);
+            KeyPair aliceKp = aliceKpg.generateKeyPair();
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new RuntimeException(e);
+        }
+
+        setRefreshTimer();
     }
 
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+    private void enableSwipeAction() {
+        final RecyclerView.ViewHolder[] currentViewHolder = {null};
+//        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+
+//        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT | ItemTouchHelper.RIGHT) {
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT ) {
+            private Drawable deleteIcon;
+            private int intrinsicWidth;
+            private int intrinsicHeight;
+
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
@@ -145,48 +158,132 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                messagesThreadRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
+                /**
+                 * TODO: swip RIGHT, - archive
+                 * TODO: swip LEFT - delete
+                 * TODO: increase threshold before permanent delete
+                 */
+                MessagesThreadRecyclerAdapter.ViewHolder itemView = (MessagesThreadRecyclerAdapter.ViewHolder) viewHolder;
+                String threadId = itemView.id;
+                Log.d(getLocalClassName(), "removing thread: " + threadId);
+                try {
+//                    Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);
+//                    if(cursor.moveToFirst()) {
+//                        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+//                        String address = new SMS(cursor).getAddress();
+//                        Log.d(getLocalClassName(), "Removing keys for address: " + address
+//                                + " -> thread:" + threadId);
+//                        securityDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
+//                    }
+//                    cursor.close();
 
+                    SMSHandler.deleteThread(getApplicationContext(), threadId);
+                    messagesThreadViewModel.informChanges(getApplicationContext());
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return true; // Enable long-press drag functionality
+            }
+
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                super.onSelectedChanged(viewHolder, actionState);
+
+                if(viewHolder != null)
+                    currentViewHolder[0] = viewHolder;
+
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.sent_messages_drawable);
+                }
+
+                if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
+                    Log.d(getLocalClassName(), "Yep idle things...");
+                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.messages_default_drawable);
+                }
+            }
+
             @Override
             public void onChildDraw(Canvas c, RecyclerView recyclerView,
                                     RecyclerView.ViewHolder viewHolder, float dX, float dY,
                                     int actionState, boolean isCurrentlyActive) {
 
-                final ColorDrawable background = new ColorDrawable(Color.RED);
-                background.setBounds(viewHolder.itemView.getLeft(), viewHolder.itemView.getTop(),
-                        viewHolder.itemView.getRight(), viewHolder.itemView.getBottom());
-                background.draw(c);
-
-
-                // draw delete icon
-                Drawable deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_delete_24);
-                int itemHeight = viewHolder.itemView.getBottom() - viewHolder.itemView.getTop();
-                int intrinsicWidth = deleteIcon.getIntrinsicWidth();
-                int intrinsicHeight = deleteIcon.getIntrinsicHeight();
-
-
-                int xMarkMargin;
-                xMarkMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-                int xMarkLeft = viewHolder.itemView.getRight() - xMarkMargin - intrinsicWidth;
-                int xMarkRight = viewHolder.itemView.getRight() - xMarkMargin;
-
-                int xMarkTop = viewHolder.itemView.getTop() + (itemHeight - intrinsicHeight) / 2;
-                int xMarkBottom = xMarkTop + intrinsicHeight;
-
-
-                deleteIcon.setBounds(xMarkLeft, xMarkTop + 16, xMarkRight, xMarkBottom);
-                deleteIcon.draw(c);
-
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+
+                // Change background color of swiped item
+//                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+//                    // Calculate the left and right positions of the swiped item
+//                    View itemView = viewHolder.itemView;
+//                    int itemHeight = itemView.getHeight();
+//                    int itemWidth = itemView.getWidth();
+//                    int itemLeft = itemView.getLeft();
+//                    int itemRight = itemView.getRight();
+//
+//                    Paint p = new Paint();
+//                    p.setColor(getColor(R.color.text_box));
+//
+//                    c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
+//                }
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    if (deleteIcon == null) {
+                        deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.round_delete_24);
+                        intrinsicWidth = deleteIcon.getIntrinsicWidth();
+                        intrinsicHeight = deleteIcon.getIntrinsicHeight();
+                    }
+
+                    float iconMargin = (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
+                    float iconTop = viewHolder.itemView.getTop() + (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
+                    float iconBottom = iconTop + intrinsicHeight;
+                    float iconLeft, iconRight;
+
+                    if (dX > 0) {
+                        iconLeft = viewHolder.itemView.getLeft() + iconMargin;
+                        iconRight = viewHolder.itemView.getLeft() + iconMargin + intrinsicWidth;
+                    } else {
+                        iconRight = viewHolder.itemView.getRight() - iconMargin;
+                        iconLeft = viewHolder.itemView.getRight() - iconMargin - intrinsicWidth;
+                    }
+
+                    deleteIcon.setBounds((int) iconLeft, (int) iconTop, (int) iconRight, (int) iconBottom);
+
+                    View itemView = viewHolder.itemView;
+                    int itemHeight = itemView.getHeight();
+                    int itemWidth = itemView.getWidth();
+                    int itemLeft = itemView.getLeft();
+                    int itemRight = itemView.getRight();
+
+                    Paint p = new Paint();
+                    p.setColor(getColor(R.color.default_gray));
+
+                    c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
+                    deleteIcon.draw(c);
+                }
             }
 
-
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                Log.d(getLocalClassName(), "Yep, I'm cleared...");
+                currentViewHolder[0] = null;
+            }
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(messagesThreadRecyclerView);
     }
 
+    private void setRefreshTimer() {
+        final int recyclerViewTimeUpdateLimit = 60 * 1000;
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                messagesThreadRecyclerAdapter.notifyDataSetChanged();
+                mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
+            }
+        }, recyclerViewTimeUpdateLimit);
+    }
     private void cancelAllNotifications() {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
         notificationManager.cancelAll();
@@ -202,7 +299,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     private void handleIncomingMessage() {
-        BroadcastReceiver incomingBroadcastReceiver = new BroadcastReceiver() {
+        incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges(getApplicationContext());
@@ -212,7 +309,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
     }
-
 
     @Override
     public void onActivityResult(int reqCode, int resultCode, Intent data) {
@@ -246,9 +342,14 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+//        findViewById(R.id.messages_threads_recycler_view).requestFocus();
         super.onResume();
-        findViewById(R.id.messages_threads_recycler_view).requestFocus();
         messagesThreadViewModel.informChanges(getApplicationContext());
     }
 
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(incomingBroadcastReceiver);
+        super.onDestroy();
+    }
 }

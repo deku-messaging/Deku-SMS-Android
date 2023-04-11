@@ -18,13 +18,15 @@ import java.util.List;
 
 public class MessagesThreadViewModel extends ViewModel {
     private MutableLiveData<List<SMS>> messagesList;
+    private LiveData<List<SMS>> messagesListLiveData;
 
     public LiveData<List<SMS>> getMessages(Context context){
-        if(messagesList == null) {
+        if(messagesListLiveData == null) {
             messagesList = new MutableLiveData<>();
+            messagesListLiveData = messagesList;
             loadSMSThreads(context);
         }
-        return messagesList;
+        return messagesListLiveData;
     }
 
     public void informChanges(Context context) {
@@ -33,19 +35,25 @@ public class MessagesThreadViewModel extends ViewModel {
 
     private void loadSMSThreads(Context context) {
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
-        if(cursor.moveToFirst()) {
-            List<SMS> smsList = new ArrayList<>();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    do {
-                        SMS sms = new SMS(cursor);
-                        smsList.add(sms);
-                    } while(cursor.moveToNext());
-                    messagesList.postValue(smsList);
-                    cursor.close();
-                }
-            }).start();
+        List<SMS> smsList = new ArrayList<>();
+
+        if(cursor.getCount() > 0) {
+            if (cursor.moveToFirst()) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        do {
+                            SMS sms = new SMS(cursor);
+                            smsList.add(sms);
+                        } while (cursor.moveToNext());
+                        messagesList.postValue(smsList);
+                        cursor.close();
+                    }
+                }).start();
+            }
+        }
+        else {
+            messagesList.setValue(smsList);
         }
     }
 }

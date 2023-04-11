@@ -29,7 +29,7 @@
         android:layout_marginTop="64dp"
         android:layout_marginEnd="8dp"
         android:fontFamily="sans-serif-thin"
-        app:boxBackgroundColor="@color/text_box"
+        app:boxBackgroundColor="@color/default_gray"
         app:boxCornerRadiusBottomEnd="20dp"
         app:boxCornerRadiusBottomStart="20dp"
         app:boxCornerRadiusTopEnd="20dp"

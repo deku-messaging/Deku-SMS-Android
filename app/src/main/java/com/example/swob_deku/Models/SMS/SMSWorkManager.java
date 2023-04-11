@@ -25,6 +25,7 @@ import androidx.work.WorkerParameters;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.SMSSendActivity;
 
 import java.nio.LongBuffer;
@@ -260,7 +261,7 @@ public class SMSWorkManager extends Worker {
             SMSHandler.registerPendingMessage(context,
                     address,
                     Base64.encodeToString(dividedMessage.get(sendingMessageCounter), Base64.DEFAULT),
-                    messageId);
+                    messageId, SIMHandler.getDefaultSimSubscription(context));
 
             PendingIntent[] pendingIntents = getPendingIntents(messageId);
             try {

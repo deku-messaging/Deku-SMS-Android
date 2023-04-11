@@ -9,8 +9,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Typeface;
+import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.StyleSpan;
 import android.util.Base64;
 import android.util.Log;
 
@@ -37,6 +42,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -161,44 +167,63 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
         receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
 //        receivedSmsIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
-        Cursor cursor = SMSHandler.fetchSMSMessageThreadIdFromMessageId(context, String.valueOf(messageId));
-        String threadId = "";
+        Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
+
         if(cursor.moveToFirst()) {
-            int indexOfThreadId = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
-            threadId = cursor.getString(indexOfThreadId);
+            SMS sms = new SMS(cursor);
+            String contactName = Contacts.retrieveContactName(context, address);
+            contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                    address : contactName;
+            List<NotificationCompat.MessagingStyle.Message> unreadMessages = new ArrayList<>();
+            Cursor cursor1 = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, sms.getThreadId());
+            if(cursor1.moveToFirst()) {
+                do {
+                    SMS unreadSMS = new SMS(cursor1);
+
+                    SpannableStringBuilder spannable = new SpannableStringBuilder(contactName);
+                    StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+                    spannable.setSpan(boldSpan, 0, contactName.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+                    unreadMessages.add(new NotificationCompat.MessagingStyle.Message(unreadSMS.getBody(),
+                            Long.parseLong(unreadSMS.getDate()),
+                            spannable));
+                } while(cursor1.moveToNext());
+            }
+            cursor1.close();
+
+            Log.d(BroadcastSMSTextActivity.class.getName(), "Unread messages for notific: " + unreadMessages.size());
+
+            receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            // TODO: check request code and make some changes
+            PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity(
+                    context, 0, receivedSmsIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(
+                    context, context.getString(R.string.CHANNEL_ID))
+                    .setDefaults(Notification.DEFAULT_ALL)
+                    .setSmallIcon(R.drawable.ic_round_chat_bubble_24)
+                    .setContentTitle("New messages")
+//                    .setContentText("New messages")
+                    .setContentIntent(pendingReceivedSmsIntent)
+                    .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                    .setAutoCancel(true)
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+            NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle("Me");
+            for(NotificationCompat.MessagingStyle.Message message : unreadMessages) {
+                messagingStyle.addMessage(message);
+            }
+            builder.setStyle(messagingStyle);
+
+            /**
+             * TODO: Using the same ID leaves notifications updated (not appended).
+             * TODO: Recommendation: use groups for notifications to allow for appending them.
+             */
+            notificationManager.notify(Integer.parseInt(sms.getThreadId()), builder.build());
+//            notificationManager.notify(Integer.parseInt(sms.id), builder.build());
         }
         cursor.close();
-
-        receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-        // TODO: check request code and make some changes
-        PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity(
-                context, 0, receivedSmsIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        String contactName = Contacts.retrieveContactName(context, address);
-        contactName = (contactName.equals("null") || contactName.isEmpty()) ?
-                address : contactName;
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                context, context.getString(R.string.CHANNEL_ID))
-                .setDefaults(Notification.DEFAULT_ALL)
-                .setSmallIcon(R.drawable.ic_round_chat_bubble_24)
-                .setContentTitle(contactName)
-                .setContentText(text)
-                .setContentIntent(pendingReceivedSmsIntent)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(text))
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_MAX);
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-
-        /**
-         * TODO: Using the same ID leaves notifications updated (not appended).
-         * TODO: Recommendation: use groups for notifications to allow for appending them.
-         */
-        notificationManager.notify(Integer.parseInt(threadId), builder.build());
     }
 }

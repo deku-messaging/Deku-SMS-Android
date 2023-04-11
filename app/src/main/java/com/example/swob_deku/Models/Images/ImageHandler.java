@@ -170,8 +170,7 @@ public class ImageHandler {
     public byte[] encryptImage(byte[] imageBytes) throws Throwable {
         SecurityAES aes = new SecurityAES();
 
-        byte[] bytesJpegEncryption = aes.encrypt(iv.getBytes(StandardCharsets.UTF_8),
-                imageBytes, secretKey.getBytes(StandardCharsets.UTF_8));
+        byte[] bytesJpegEncryption = aes.encrypt( imageBytes, secretKey.getBytes(StandardCharsets.UTF_8));
 
         return bytesJpegEncryption;
     }

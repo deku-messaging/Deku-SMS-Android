@@ -30,9 +30,38 @@
 
     <string name="save_new_gateway_client">Save</string>
     <string name="new_gateway_client_url">Online routing server url</string>
-    <string name="menu_item_settings">Settings</string>
+    <string name="gateway_clients">Gateway Clients</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">Available Gateway Servers</string>
     <string name="add_new_gateway_server_toolbar_title">New Gateway Server</string>
+
     <string name="route_state">Routing URL</string>
+
+    <string name="send_sms_activity_user_not_secure">
+        Your communications with [insert name] is not secured.\nWould you like to send a request to begin a secure conversation with to [insert name]?
+    </string>
+    <string name="send_sms_activity_user_not_secure_no_agreed">
+        [insert name] has requested to secure this conversation.\nWould you like to respond to them?
+    </string>
+
+    <string name="send_sms_activity_user_not_secure_yes">
+        Send
+    </string>
+
+    <string name="send_sms_activity_user_not_secure_yes_agree">
+        Agree
+    </string>
+
+    <string name="send_sms_activity_user_not_secure_dismiss">
+        Dismiss
+    </string>
+
+    <string name="send_sms_activity_user_not_encrypted">
+        Not secured
+    </string>
+
+    <string name="send_sms_activity_user_encrypted">
+        Secured
+    </string>
+
 </resources>

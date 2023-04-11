@@ -3,7 +3,7 @@
 
     android:shape="rectangle"
 
-    android:tint="@color/sent_blue">
+    android:tint="@color/sent_message_color">
     <corners android:radius="25dp" />
 
 </shape>

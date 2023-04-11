@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -28,6 +29,7 @@ import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.SIMHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -104,6 +106,21 @@ public class SMSHandler {
             int updateCount = context.getContentResolver().delete( SMS_CONTENT_URI,
                     Telephony.Sms._ID + " in (" +
                             TextUtils.join(",", Collections.nCopies(ids.length, "?")) + ")", ids);
+
+            if(BuildConfig.DEBUG)
+                Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
+        }
+        catch(Exception e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void deleteThread(Context context, String threadId) {
+        try {
+            int updateCount = context.getContentResolver().delete(
+                    SMS_CONTENT_URI,
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                    new String[]{threadId});
 
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Deleted outbox: " + updateCount);
@@ -345,7 +362,7 @@ public class SMSHandler {
 
     public static Cursor fetchSMSInboxById(@NonNull Context context, String id) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
-                SMS_INBOX_CONTENT_URI,
+                SMS_CONTENT_URI,
                 new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
                         Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
                         Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
@@ -513,9 +530,9 @@ public class SMSHandler {
         return cursor;
     }
 
-    public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, long messageId) {
-        Cursor cursor = context.getContentResolver().query(
-                SMS_CONTENT_URI,
+    public static Cursor fetchUnreadSMSMessagesForThreadId(Context context, String threadId) {
+        return context.getContentResolver().query(
+                SMS_INBOX_CONTENT_URI,
                  new String[] { Telephony.Sms._ID,
                          Telephony.TextBasedSmsColumns.THREAD_ID,
                          Telephony.TextBasedSmsColumns.ADDRESS,
@@ -523,23 +540,20 @@ public class SMSHandler {
                          Telephony.TextBasedSmsColumns.DATE,
                          Telephony.TextBasedSmsColumns.BODY,
                          Telephony.TextBasedSmsColumns.TYPE },
-                Telephony.Sms._ID + "=?",
-                new String[] { String.valueOf(messageId)},
+                Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND "
+                        + Telephony.Sms.READ + "=?",
+                new String[] { threadId, "0"},
                 "date DESC");
-
-        return cursor;
     }
 
     public static Cursor fetchSMSMessageThreadIdFromMessageId(Context context, String messageId) {
-        Cursor cursor = context.getContentResolver().query(
+        return context.getContentResolver().query(
                 SMS_CONTENT_URI,
                 new String[] { Telephony.Sms._ID,
                         Telephony.TextBasedSmsColumns.THREAD_ID},
                 Telephony.Sms._ID + "=?",
                 new String[] { messageId },
                null);
-
-        return cursor;
     }
 
     public static long registerIncomingMessage(Context context, String address, String body) {
@@ -611,7 +625,8 @@ public class SMSHandler {
     }
 
 
-    public static String registerPendingMessage(Context context, String destinationAddress, String text, long messageId) {
+    public static String registerPendingMessage(Context context, String destinationAddress,
+                                                String text, long messageId, int subscriptionId) {
         if(BuildConfig.DEBUG)
             Log.d(SMSHandler.class.getName(), "sending message id: " + messageId);
 
@@ -622,6 +637,7 @@ public class SMSHandler {
         contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
         contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
+        contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
 
@@ -690,10 +706,45 @@ public class SMSHandler {
         // TODO: parse
     }
 
+    public static String sendEncryptedTextSMS(Context context, String destinationAddress, String text,
+                                     PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId,
+                                     Integer subscriptionId) {
+        String threadId = "";
+        if(subscriptionId == null)
+            subscriptionId = SIMHandler.getDefaultSimSubscription(context);
+        try {
+            threadId = registerPendingMessage(context, destinationAddress, text, messageId,
+                    subscriptionId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            SMSHandler.sendTextSMS(context, destinationAddress, text, sentIntent, deliveryIntent,
+                    -1, subscriptionId);
+        } catch(Exception e) {
+            throw e;
+        }
+        return threadId;
+    }
+
     public static String sendTextSMS(Context context, String destinationAddress, String text,
-                                     PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) {
-        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
-                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+                                     PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId,
+                                     Integer subscriptionId) {
+        if(subscriptionId == null)
+            subscriptionId = SIMHandler.getDefaultSimSubscription(context);
+
+//        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
+//                context.getSystemService(SmsManager.class) : SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
+        SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            smsManager = smsManager.createForSubscriptionId(subscriptionId);
+//        }
+//        else {
+//            TelephonyManager telephonyManager = ;
+//        }
 
         String threadId = "";
         try {
@@ -702,7 +753,9 @@ public class SMSHandler {
 
             if(messageId != -1) {
                 try {
-                    threadId = registerPendingMessage(context, destinationAddress, text, messageId);
+                    threadId = registerPendingMessage(context, destinationAddress, text, messageId,
+                            subscriptionId);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -786,49 +839,63 @@ public class SMSHandler {
     }
 
     public static void sendDataSMS(Context context, String destinationAddress, byte[] data,
-                                   PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId) throws InterruptedException {
+                                   PendingIntent sentIntent, PendingIntent deliveryIntent, long messageId,
+                                   Integer subscriptionId) throws InterruptedException {
         if(data == null)
             return;
+        Log.d(SMSHandler.class.getName(), "Tx data msg of size: " + data.length);
 
-        ArrayList<byte[]> dividedMessage = structureSMSMessage(data);
-        Log.d(SMSHandler.class.getName(), "Sending divided count: " + dividedMessage.size());
+        if(subscriptionId == null)
+            subscriptionId = SIMHandler.getDefaultSimSubscription(context);
+        SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
 
-        SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
-                context.getSystemService(SmsManager.class) : SmsManager.getDefault();
+//        try {
+//        ArrayList<byte[]> dividedMessage = structureSMSMessage(data);
+//        Log.d(SMSHandler.class.getName(), "Sending divided count: " + dividedMessage.size());
+//            if(messageId != -1 || dividedMessage.size() == 1) {
+//                smsManager.sendDataMessage(
+//                        destinationAddress,
+//                        null,
+//                        DATA_TRANSMISSION_PORT,
+//                        data,
+//                        sentIntent,
+//                        deliveryIntent);
+//            }
+//            else {
+//
+//                /**
+//                 * Navigating away from activity which triggered this causes it to end
+//                 * Therefore this should be moved into a WorkManager.
+//                 * A WorkManager is created for each message and the constrains help manage the network
+//                 * possible issues.
+//                 * TODO: - If bits failed - on retry on the failed bits should be reset
+//                 * TODO: - Figure out the failedStatusCode for the MTN failed messages and set protocol
+//                 * TODO: to handle them
+//                 */
+////                for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
+////                    boolean hasPendingIntent = sendingMessageCounter == dividedMessage.size() - 1;
+////                    createWorkManagersForDataMessages(context, destinationAddress,
+////                            dividedMessage.get(sendingMessageCounter), messageId, hasPendingIntent, sendingMessageCounter);
+////                }
+//                createWorkManagersForDataMessages(context, destinationAddress, data, -1);
+//            }
+//        } catch(Exception e) {
+//            e.printStackTrace();
+//        }
         try {
-            if(messageId != -1 || dividedMessage.size() == 1) {
-                smsManager.sendDataMessage(
-                        destinationAddress,
-                        null,
-                        DATA_TRANSMISSION_PORT,
-                        data,
-                        sentIntent,
-                        deliveryIntent);
-            }
-            else {
-
-                /**
-                 * Navigating away from activity which triggered this causes it to end
-                 * Therefore this should be moved into a WorkManager.
-                 * A WorkManager is created for each message and the constrains help manage the network
-                 * possible issues.
-                 * TODO: - If bits failed - on retry on the failed bits should be reset
-                 * TODO: - Figure out the failedStatusCode for the MTN failed messages and set protocol
-                 * TODO: to handle them
-                 */
-//                for (int sendingMessageCounter = 0; sendingMessageCounter < dividedMessage.size(); ++sendingMessageCounter) {
-//                    boolean hasPendingIntent = sendingMessageCounter == dividedMessage.size() - 1;
-//                    createWorkManagersForDataMessages(context, destinationAddress,
-//                            dividedMessage.get(sendingMessageCounter), messageId, hasPendingIntent, sendingMessageCounter);
-//                }
-                createWorkManagersForDataMessages(context, destinationAddress, data, -1);
-            }
-        } catch(Exception e) {
+            smsManager.sendDataMessage(
+                    destinationAddress,
+                    null,
+                    DATA_TRANSMISSION_PORT,
+                    data,
+                    sentIntent,
+                    deliveryIntent);
+        }catch(Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void updateThreadMessagesThread(Context context, String threadId) {
+    public static int updateThreadMessagesThread(Context context, String threadId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");
         try {
@@ -840,10 +907,13 @@ public class SMSHandler {
 
             if(BuildConfig.DEBUG)
                 Log.d(SMSHandler.class.getName(), "Updated read for: " + updateCount);
+            return updateCount;
         }
         catch(Exception e ) {
             e.printStackTrace();
         }
+
+        return -1;
     }
 
     public static void updateMessage(Context context, String messageId, String body) {

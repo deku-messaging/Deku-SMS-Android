@@ -67,6 +67,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     WorkManager workManager;
     LiveData<List<WorkInfo>> workers;
 
+    private int UNREAD_VIEW_TYPE = 1;
+
     private String getSMSFromWorkInfo(WorkInfo workInfo) {
         String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
         String messageId = "";
@@ -122,15 +124,16 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
        this.renderLayout = renderLayout;
     }
 
-    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch, String searchString) {
+    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch,
+                                         String searchString) {
         this.context = context;
         this.renderLayout = renderLayout;
         this.isSearch = isSearch;
         this.searchString = searchString;
     }
 
-    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch, String searchString,
-                                         RouterActivity routerActivity) {
+    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch,
+                                         String searchString, RouterActivity routerActivity) {
         this.context = context;
         this.renderLayout = renderLayout;
         this.isSearch = isSearch;
@@ -142,10 +145,18 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     @NonNull
     @Override
-    public MessagesThreadRecyclerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public MessagesThreadRecyclerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
+                                                                       int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(this.renderLayout, parent, false);
-        return new MessagesThreadRecyclerAdapter.ViewHolder(view);
+
+        MessagesThreadRecyclerAdapter.ViewHolder viewHolder =  new MessagesThreadRecyclerAdapter.ViewHolder(view);
+        if(viewType == UNREAD_VIEW_TYPE) {
+            viewHolder.address.setTypeface(Typeface.DEFAULT_BOLD);
+            viewHolder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
+            viewHolder.date.setTypeface(Typeface.DEFAULT_BOLD);
+        }
+        return viewHolder;
     }
 
     public boolean checkPermissionToReadContacts() {
@@ -154,11 +165,22 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         return (check == PackageManager.PERMISSION_GRANTED);
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        SMS sms = mDiffer.getCurrentList().get(position);
+        if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+//            holder.address.setTypeface(Typeface.DEFAULT_BOLD);
+//            holder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
+            return UNREAD_VIEW_TYPE;
+        }
+        return super.getItemViewType(position);
+    }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
         final String smsThreadId = sms.getThreadId();
+        holder.id = smsThreadId;
 
         if(isSearch && searchString != null && !searchString.isEmpty()) {
             Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
@@ -184,20 +206,12 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             if(!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
                 address = addressInPhone;
                 holder.contactPhoto.setAvatarInitials(address.substring(0, 1));
-//                holder.contactPhoto.set
             }
         }
 
         holder.address.setText(address);
 
-        String date = sms.getDate();
-        if (DateUtils.isToday(Long.parseLong(date))) {
-            date = "Today";
-        }
-        else {
-            DateFormat dateFormat = new SimpleDateFormat("MMM dd");
-            date = dateFormat.format(new Date(Long.parseLong(date)));
-        }
+        String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
         holder.date.setText(date);
 
         if(routerActivity != null && !sms.routingUrls.isEmpty()) {
@@ -216,16 +230,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             holder.routingURLText.setVisibility(View.GONE);
         }
 
-        // TODO: change color of unread messages in thread
-        if(SMSHandler.hasUnreadMessages(context, smsThreadId)) {
-            // Make bold
-            holder.address.setTypeface(null, Typeface.BOLD);
-            holder.snippet.setTypeface(null, Typeface.BOLD);
-
-            holder.address.setTextColor(context.getResources().getColor(R.color.read_text));
-            holder.snippet.setTextColor(context.getResources().getColor(R.color.read_text));
-            holder.date.setTextColor(context.getResources().getColor(R.color.read_text));
-        }
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
@@ -263,7 +267,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        String id;
+        public String id;
         TextView snippet;
         TextView address;
         TextView date;
@@ -293,8 +297,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             new DiffUtil.ItemCallback<SMS>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull SMS oldItem, @NonNull SMS newItem) {
-//                    return oldItem.id.equals(newItem.id) &&
-//                            oldItem.isRead().equals(newItem.isRead());
                     return oldItem.id.equals(newItem.id);
                 }
 
