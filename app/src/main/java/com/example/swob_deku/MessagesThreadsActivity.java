@@ -21,6 +21,7 @@ import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
@@ -50,6 +51,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     RecyclerView messagesThreadRecyclerView;
 
     BroadcastReceiver incomingBroadcastReceiver;
+
+    Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,7 +137,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             throw new RuntimeException(e);
         }
-//        aliceKpg.initialize(256, new SecureRandom());
+
+        setRefreshTimer();
     }
 
     private void enableSwipeAction() {
@@ -270,6 +274,16 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         itemTouchHelper.attachToRecyclerView(messagesThreadRecyclerView);
     }
 
+    private void setRefreshTimer() {
+        int recyclerViewTimeUpdateLimit = 60 * 1000;
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                messagesThreadRecyclerAdapter.notifyDataSetChanged();
+                mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
+            }
+        }, recyclerViewTimeUpdateLimit);
+    }
     private void cancelAllNotifications() {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
         notificationManager.cancelAll();
