@@ -343,7 +343,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 address: contactName;
     }
 
-    private void processForSharedIntent() {
+    private void processForSharedIntent() throws NumberParseException {
         String indentAction = getIntent().getAction();
 
         if(indentAction != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
@@ -352,10 +352,11 @@ public class SMSSendActivity extends AppCompatActivity {
             if(BuildConfig.DEBUG)
                 Log.d("", "Processing shared #: " + sendToString);
 
-            sendToString = sendToString.replace("%2B", "+")
-                            .replace("%20", "");
+//            sendToString = sendToString.replace("%2B", "+")
+//                            .replace("%20", "");
+            sendToString = Helpers.formatPhoneNumbers(sendToString);
 
-            if(sendToString.indexOf("smsto:") > -1 || sendToString.indexOf("sms:") > -1) {
+            if(sendToString.contains("smsto:") || sendToString.contains("sms:")) {
                address = sendToString.substring(sendToString.indexOf(':') + 1);
                String text = getIntent().getStringExtra("sms_body");
 
