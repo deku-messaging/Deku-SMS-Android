@@ -131,9 +131,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             KeyPairGenerator aliceKpg = KeyPairGenerator.getInstance("ECDH", "SC");
             aliceKpg.initialize(256);
             KeyPair aliceKp = aliceKpg.generateKeyPair();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchProviderException e) {
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             throw new RuntimeException(e);
         }
 //        aliceKpg.initialize(256, new SecureRandom());

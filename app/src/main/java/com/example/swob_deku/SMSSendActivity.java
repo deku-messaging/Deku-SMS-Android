@@ -380,7 +380,6 @@ public class SMSSendActivity extends AppCompatActivity {
                if(text != null && !text.isEmpty()) {
                    smsTextView.setText(text);
 
-                   getIntent().removeExtra("sms_body");
                    runOnUiThread(new Runnable() {
                        @Override
                        public void run() {
