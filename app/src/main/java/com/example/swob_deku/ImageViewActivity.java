@@ -25,9 +25,9 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SIMHandler;
@@ -50,6 +50,10 @@ public class ImageViewActivity extends AppCompatActivity {
     String address = "";
     String threadId = "";
 
+    ImageHandler imageHandler;
+
+    final int MIN_RESOLUTION = 256;
+
     public static final String IMAGE_INTENT_EXTRA = "image_sms_id";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +71,7 @@ public class ImageViewActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         imageView = findViewById(R.id.compressed_image_holder);
-        imageDescription = findViewById(R.id.image_details);
+        imageDescription = findViewById(R.id.image_details_size);
 
         if(getIntent().hasExtra(IMAGE_INTENT_EXTRA)) {
             String smsId = getIntent().getStringExtra(IMAGE_INTENT_EXTRA);
@@ -96,11 +100,59 @@ public class ImageViewActivity extends AppCompatActivity {
             imageUri = Uri.parse(getIntent().getStringExtra(SMSSendActivity.IMAGE_URI));
 
             try {
-                buildImage();
+                imageHandler = new ImageHandler(getApplicationContext(), imageUri);
+
+                ((TextView)findViewById(R.id.image_details_original_resolution))
+                        .setText("Original resolution: "
+                                + imageHandler.bitmap.getWidth()
+                                + " x "
+                                + imageHandler.bitmap.getHeight());
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            try {
+                int maxResolution = buildImage(MIN_RESOLUTION);
+                changeResolution(maxResolution);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private void changeResolution(int maxResolution) {
+        final double resDifference = maxResolution - MIN_RESOLUTION;
+        final double changeConstant = resDifference / 100;
+
+        SeekBar seekBar = findViewById(R.id.image_view_change_resolution_seeker);
+
+        TextView seekBarProgress = findViewById(R.id.image_details_seeker_progress);
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            double newMaxResolution = MIN_RESOLUTION;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // TODO: change the resolution text
+                newMaxResolution = progress == 0 ? MIN_RESOLUTION : MIN_RESOLUTION + (changeConstant * progress);
+                Log.d(getLocalClassName(), "New resolution = " + newMaxResolution);
+                seekBarProgress.setText(String.valueOf(progress));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // TODO: compress the image
+                try {
+                    buildImage(newMaxResolution);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     private void buildImage(byte[] data ) throws IOException {
@@ -108,16 +160,16 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
     }
 
-    private void buildImage() throws IOException {
+    private int buildImage(double newResolution) throws IOException {
         // TODO: messages >40 trigger large message warning...
-        ImageHandler imageHandler = new ImageHandler(getApplicationContext(), imageUri);
+        int maxresolution = imageHandler.getMaxResolution();
 
-        final int SCALE_DOWN_RATIO = 3;
-        final int COMPRESSION_RATIO = 0;
+//        final int SCALE_DOWN_RATIO = 3;
+        final int COMPRESSION_RATIO = 15;
 
-        int resizeScale = imageHandler.bitmap.getWidth() / SCALE_DOWN_RATIO;
+//        int resizeScale = imageHandler.bitmap.getWidth() / SCALE_DOWN_RATIO;
 
-        Bitmap imageBitmap = imageHandler.resizeImage(resizeScale);
+        Bitmap imageBitmap = imageHandler.resizeImage(newResolution);
 
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 getSystemService(SmsManager.class) : SmsManager.getDefault();
@@ -130,36 +182,22 @@ public class ImageViewActivity extends AppCompatActivity {
 //        byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
 //        byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
 
-        int locEnUS = DataHelper.findInBytes("enUS", compressedBytes);
-        byte[] deepsearchByte = SMSHandler.copyBytes(compressedBytes, locEnUS, 400) ;
-        char[] deepsearch = DataHelper.byteToChar(deepsearchByte);
+        TextView imageResolution = findViewById(R.id.image_details_resolution);
+        imageResolution.setText("New resolution " + imageBitmap.getWidth() + " x " + imageBitmap.getHeight());
 
-        for(int i=0;i<deepsearch.length;++i) {
-            Log.d(getLocalClassName(), "image loc: "
-                    + (i + locEnUS) + " - "
-                    + deepsearchByte[i] + " - "  + deepsearch[i]);
-        }
+        TextView imageSize = findViewById(R.id.image_details_size);
+        imageSize.setText("Size " + (compressedBytes.length / 1024) + " KB");
 
-        char[] header =
-                DataHelper.byteToChar(SMSHandler.copyBytes(compressedBytes, locEnUS, 32));
+        TextView imageQuality = findViewById(R.id.image_details_quality);
+        imageQuality.setText("Quality " + COMPRESSION_RATIO + "%");
 
-        for(int i=0;i<header.length; ++i)
-            Log.d(getLocalClassName(), "image meta:" + i + ": " + header[i]);
+        TextView imageSMSCount = findViewById(R.id.image_details_sms_count);
+        imageSMSCount.setText(dividedArray.size() + " Messages");
 
-        ArrayList<byte[]> structuredMessage = SMSHandler.structureSMSMessage(compressedBytes);
-
-        byte[][] unstructuredImageBytes = new byte[structuredMessage.size()][];
-
-        for(int i=0;i<structuredMessage.size();++i)
-            unstructuredImageBytes[i] = structuredMessage.get(i);
-
-        Log.d(getLocalClassName(), "Before structure: " + compressedBytes.length);
-        byte[] unstructuredMessage = SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
-        Log.d(getLocalClassName(), "After structure: " + unstructuredMessage.length);
-
-        compressedBitmap = BitmapFactory.decodeByteArray(unstructuredMessage, 0, unstructuredMessage.length);
-        imageDescription.setText(description);
+        compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
         imageView.setImageBitmap(compressedBitmap);
+
+        return maxresolution;
     }
 
     public void handleBroadcast() {

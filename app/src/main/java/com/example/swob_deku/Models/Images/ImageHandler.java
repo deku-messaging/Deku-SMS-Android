@@ -220,6 +220,7 @@ public class ImageHandler {
     }
 
 
+
     public static Cursor getImagesCursorAtIndex(Context context, String RIL, int index) {
         RIL = IMAGE_HEADER + RIL;
 
@@ -236,21 +237,21 @@ public class ImageHandler {
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }
 
-    public int[] getDimension(int width, int height, int ratio) {
+    public int[] getDimension(int width, int height, double ratio) {
         double wr = (double) width / height;
         double hr = (double) height / width;
 
         if(wr > hr) {
-            width = ratio;
+            width = (int) Math.round(ratio);
             height = (int) Math.round(ratio * hr);
         }
         else if(hr > wr) {
-            height = ratio;
+            height = (int) Math.round(ratio);
             width = (int) Math.round(ratio * wr);
         }
         else {
-            width = ratio;
-            height = ratio;
+            width = (int) Math.round(ratio);
+            height = (int) Math.round(ratio);
         }
 
         return new int[]{width, height};
@@ -277,7 +278,7 @@ public class ImageHandler {
                 && Byte.toUnsignedInt(data[1]) >= 0 && Byte.toUnsignedInt(data[2]) <= MAX_NUMBER_SMS);
     }
 
-    public Bitmap resizeImage(int resValue) throws IOException {
+    public Bitmap resizeImage(double resValue) throws IOException {
         // use ratios for compressions rather than just raw values
         if(this.bitmap.getWidth() < resValue && this.bitmap.getHeight() < resValue)
             return this.bitmap;
@@ -288,6 +289,10 @@ public class ImageHandler {
 
 
         return Bitmap.createScaledBitmap(this.bitmap, width, height, true);
+    }
+
+    public int getMaxResolution() {
+        return Math.max(this.bitmap.getHeight(), this.bitmap.getWidth());
     }
 
     public double shannonEntropy(byte[] values) {
