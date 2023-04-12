@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
@@ -25,8 +26,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
@@ -45,11 +49,13 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SIMHandler;
@@ -99,6 +105,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
+    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 200;
     private final int RESULT_GALLERY = 100;
 
     String threadId = "";
@@ -614,7 +621,6 @@ public class SMSSendActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(getLocalClassName(), "Yes resuming...");
         handleIncomingBroadcast();
 
         try {
@@ -627,7 +633,13 @@ public class SMSSendActivity extends AppCompatActivity {
 
         improveMessagingUX();
         ab.setTitle(contactName);
-        
+
+        try {
+            handlePendingImages();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         updateMessagesToRead();
         new Thread(new Runnable() {
             @Override
@@ -639,6 +651,35 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             }
         }).start();
+    }
+
+    private Bitmap buildImage(int compressionRatio, double changedResolution, Uri imageUri) throws IOException {
+        ImageHandler imageHandler = new ImageHandler(getApplicationContext(), imageUri);
+//        final int SCALE_DOWN_RATIO = 3;
+
+//        int resizeScale = imageHandler.bitmap.getWidth() / SCALE_DOWN_RATIO;
+
+        Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
+
+        byte[] compressedBytes = imageHandler.compressImage(compressionRatio, imageBitmap);
+        return BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
+    }
+
+    private void handlePendingImages() throws IOException {
+        if(getIntent().hasExtra(ImageViewActivity.COMPRESSED_RATIO) &&
+                getIntent().hasExtra(ImageViewActivity.NEW_RESOLUTION) &&
+                        getIntent().hasExtra(ImageViewActivity.IMAGE_URI)) {
+            int compressedRatio = getIntent().getIntExtra(ImageViewActivity.COMPRESSED_RATIO, -1);
+            double newResolution = getIntent().getDoubleExtra(ImageViewActivity.NEW_RESOLUTION, -1);
+
+            Uri imageUri = Uri.parse(getIntent().getStringExtra(ImageViewActivity.IMAGE_URI));
+
+            Bitmap bitmap = buildImage(compressedRatio, newResolution, imageUri);
+
+            ImageView imageView = findViewById(R.id.send_message_image_view);
+            imageView.setImageBitmap(bitmap);
+            imageView.setVisibility(View.VISIBLE);
+        }
     }
 
     private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor) {
@@ -890,11 +931,28 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     public void uploadImage(View view) {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+        }
+
+//        Intent galleryIntent = new Intent(
+//                Intent.ACTION_OPEN_DOCUMENT,
+//                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
         Intent galleryIntent = new Intent(
                 Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+        galleryIntent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+
         startActivityForResult(galleryIntent , RESULT_GALLERY );
     }
+
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -902,6 +960,10 @@ public class SMSSendActivity extends AppCompatActivity {
         if (requestCode == RESULT_GALLERY) {
             if (null != data) {
                 Uri imageUri = data.getData();
+
+                // Set persistent URI permission
+                getContentResolver().takePersistableUriPermission(imageUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 Intent intent = new Intent(this, ImageViewActivity.class);
                 intent.putExtra(IMAGE_URI, imageUri.toString());

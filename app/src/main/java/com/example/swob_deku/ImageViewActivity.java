@@ -54,8 +54,16 @@ public class ImageViewActivity extends AppCompatActivity {
     ImageHandler imageHandler;
 
     final int MIN_RESOLUTION = 256;
+    final int COMPRESSION_RATIO = 15;
+
+    public double changedResolution = MIN_RESOLUTION;
 
     public static final String IMAGE_INTENT_EXTRA = "image_sms_id";
+    public static final String COMPRESSED_RATIO = "COMPRESSED_RATIO";
+    public static final String NEW_RESOLUTION = "NEW_RESOLUTION";
+
+    public static final String IMAGE_URI = "IMAGE_URI";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,7 +122,7 @@ public class ImageViewActivity extends AppCompatActivity {
             }
 
             try {
-                int maxResolution = buildImage(MIN_RESOLUTION);
+                int maxResolution = buildImage();
                 changeResolution(maxResolution);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -138,6 +146,7 @@ public class ImageViewActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
     private void changeResolution(int maxResolution) {
         final double resDifference = maxResolution - MIN_RESOLUTION;
         final double changeConstant = resDifference / 100;
@@ -147,24 +156,24 @@ public class ImageViewActivity extends AppCompatActivity {
         TextView seekBarProgress = findViewById(R.id.image_details_seeker_progress);
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            double newMaxResolution = MIN_RESOLUTION;
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // TODO: change the resolution text
-                newMaxResolution = progress == 0 ? MIN_RESOLUTION : MIN_RESOLUTION + (changeConstant * progress);
-                Log.d(getLocalClassName(), "New resolution = " + newMaxResolution);
+                changedResolution = progress == 0 ? MIN_RESOLUTION : MIN_RESOLUTION + (changeConstant * progress);
+                Log.d(getLocalClassName(), "New resolution = " + changedResolution);
                 seekBarProgress.setText(String.valueOf(progress));
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+                // TODO: put loader
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 // TODO: compress the image
                 try {
-                    buildImage(newMaxResolution);
+                    buildImage();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -177,16 +186,15 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
     }
 
-    private int buildImage(double newResolution) throws IOException {
+    private int buildImage() throws IOException {
         // TODO: messages >40 trigger large message warning...
         int maxresolution = imageHandler.getMaxResolution();
 
 //        final int SCALE_DOWN_RATIO = 3;
-        final int COMPRESSION_RATIO = 15;
 
 //        int resizeScale = imageHandler.bitmap.getWidth() / SCALE_DOWN_RATIO;
 
-        Bitmap imageBitmap = imageHandler.resizeImage(newResolution);
+        Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
 
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 getSystemService(SmsManager.class) : SmsManager.getDefault();
@@ -282,26 +290,14 @@ public class ImageViewActivity extends AppCompatActivity {
     public void sendImage(View view) throws InterruptedException {
         Intent intent = new Intent(this, SMSSendActivity.class);
         intent.putExtra(SMSSendActivity.ADDRESS, address);
+        intent.putExtra(ImageViewActivity.COMPRESSED_RATIO, COMPRESSION_RATIO);
+        intent.putExtra(ImageViewActivity.NEW_RESOLUTION, changedResolution);
+        intent.putExtra(ImageViewActivity.IMAGE_URI, imageUri.toString());
 
         if(!threadId.isEmpty())
             intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
         startActivity(intent);
-
-        handleBroadcast();
-
-        long messageId = Helpers.generateRandomNumber();
-
-        PendingIntent[] pendingIntents = SMSSendActivity.getPendingIntents(getApplicationContext(),
-                messageId);
-
-        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-        SMSHandler.sendTextSMS(getApplicationContext(), address,
-                ImageHandler.IMAGE_HEADER + Base64.encodeToString(compressedBytes, Base64.DEFAULT),
-                pendingIntents[0],
-                pendingIntents[1],
-                messageId, subscriptionId);
-
         finish();
     }
 
