@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.util.Base64;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -121,6 +122,22 @@ public class ImageViewActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home ) {
+            Intent intent = new Intent(this, SMSSendActivity.class);
+            intent.putExtra(SMSSendActivity.ADDRESS, address);
+
+            if(!threadId.isEmpty())
+                intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+
+            startActivity(intent);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void changeResolution(int maxResolution) {
         final double resDifference = maxResolution - MIN_RESOLUTION;
         final double changeConstant = resDifference / 100;
@@ -183,7 +200,7 @@ public class ImageViewActivity extends AppCompatActivity {
 //        byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
 
         TextView imageResolution = findViewById(R.id.image_details_resolution);
-        imageResolution.setText("New resolution " + imageBitmap.getWidth() + " x " + imageBitmap.getHeight());
+        imageResolution.setText("New resolution: " + imageBitmap.getWidth() + " x " + imageBitmap.getHeight());
 
         TextView imageSize = findViewById(R.id.image_details_size);
         imageSize.setText("Size " + (compressedBytes.length / 1024) + " KB");

@@ -881,17 +881,12 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                if(singleMessagesThreadRecyclerAdapter.hasSelectedItems())
-                    singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
-                else
-                    // Handle the up button click event
-                    finish(); // for example, you can finish the current activity
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == android.R.id.home
+                && singleMessagesThreadRecyclerAdapter.hasSelectedItems()) {
+            singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     public void uploadImage(View view) {

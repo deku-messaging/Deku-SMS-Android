@@ -164,6 +164,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         intent.putExtra(ImageViewActivity.IMAGE_INTENT_EXTRA, sms.getId());
                         intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
                         intent.putExtra(SMSSendActivity.ID, sms.getId());
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
                         context.startActivity(intent);
                     } else {
