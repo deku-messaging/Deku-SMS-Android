@@ -388,16 +388,22 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSOutboxPendingForThread(@NonNull Context context, String threadId) {
+    public static Cursor fetchSMSOutboxPendingForMessageInThread(@NonNull Context context,
+                                                                 String threadId, long messageId) {
+        Log.d(SMSHandler.class.getName(), "Fetching pending for thread=" + threadId + ", message=" + messageId);
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 SMS_OUTBOX_CONTENT_URI,
                 new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
                         Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
                         Telephony.TextBasedSmsColumns.DATE,Telephony.TextBasedSmsColumns.BODY,
                         Telephony.TextBasedSmsColumns.TYPE },
-                Telephony.TextBasedSmsColumns.THREAD_ID + "=? and "
-                        + Telephony.TextBasedSmsColumns.STATUS + "=?",
-                new String[]{threadId, String.valueOf(Telephony.Sms.STATUS_NONE)},
+                Telephony.TextBasedSmsColumns.THREAD_ID + "=? and " +
+                        Telephony.Sms._ID + "=? and " +
+                        Telephony.TextBasedSmsColumns.STATUS + "=?",
+                new String[]{
+                        threadId,
+                        String.valueOf(messageId),
+                        String.valueOf(Telephony.Sms.STATUS_NONE)},
                 null);
 
         return smsMessagesCursor;
@@ -627,16 +633,13 @@ public class SMSHandler {
 
     public static String registerPendingMessage(Context context, String destinationAddress,
                                                 String text, long messageId, int subscriptionId) {
-        if(BuildConfig.DEBUG)
-            Log.d(SMSHandler.class.getName(), "sending message id: " + messageId);
-
         String threadId = "";
 
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
-        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_NONE);
         contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
@@ -646,9 +649,6 @@ public class SMSHandler {
             Uri uri = context.getContentResolver().insert(
                     SMS_OUTBOX_CONTENT_URI,
                     contentValues );
-
-            if(BuildConfig.DEBUG)
-                Log.d(SMSHandler.class.getName(), "Outbox URI: " + uri.toString());
 
             Cursor cursor = context.getContentResolver().query(
                     uri,

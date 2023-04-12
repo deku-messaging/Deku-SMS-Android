@@ -59,10 +59,8 @@ public class ImageViewActivity extends AppCompatActivity {
     public double changedResolution = MIN_RESOLUTION;
 
     public static final String IMAGE_INTENT_EXTRA = "image_sms_id";
-    public static final String COMPRESSED_RATIO = "COMPRESSED_RATIO";
-    public static final String NEW_RESOLUTION = "NEW_RESOLUTION";
 
-    public static final String IMAGE_URI = "IMAGE_URI";
+    public static final String SMS_IMAGE_PENDING_LOCATION = "SMS_IMAGE_PENDING_LOCATION";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -225,77 +223,22 @@ public class ImageViewActivity extends AppCompatActivity {
         return maxresolution;
     }
 
-    public void handleBroadcast() {
-//        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
-
-        BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, @NonNull Intent intent) {
-                long id = intent.getLongExtra(SMSSendActivity.ID, -1);
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Broadcast received for sent: " + id);
-                switch(getResultCode()) {
-                    case Activity.RESULT_OK:
-                        try {
-                            SMSHandler.registerSentMessage(getApplicationContext(), id);
-                        }
-                        catch(Exception e) {
-                            e.printStackTrace();
-                        }
-                        break;
-
-                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                    case SmsManager.RESULT_ERROR_NO_SERVICE:
-                    case SmsManager.RESULT_ERROR_NULL_PDU:
-                    case SmsManager.RESULT_ERROR_RADIO_OFF:
-                    default:
-                        try {
-                            SMSHandler.registerFailedMessage(context, id, getResultCode());
-                        } catch(Exception e) {
-                            e.printStackTrace();
-                        }
-
-                        if(BuildConfig.DEBUG) {
-                            Log.d(getLocalClassName(), "Failed to send: " + getResultCode());
-                            Log.d(getLocalClassName(), "Failed to send: " + getResultData());
-                            Log.d(getLocalClassName(), "Failed to send: " + intent.getData());
-                        }
-                }
-
-                unregisterReceiver(this);
-            }
-        };
-
-        BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                long id = intent.getLongExtra(SMSSendActivity.ID, -1);
-
-                if (getResultCode() == Activity.RESULT_OK) {
-                    SMSHandler.registerDeliveredMessage(context, id);
-                } else {
-                    if (BuildConfig.DEBUG)
-                        Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
-                }
-
-                unregisterReceiver(this);
-            }
-        };
-
-        registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
-        registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
-
-    }
-
     public void sendImage(View view) throws InterruptedException {
         Intent intent = new Intent(this, SMSSendActivity.class);
         intent.putExtra(SMSSendActivity.ADDRESS, address);
-        intent.putExtra(ImageViewActivity.COMPRESSED_RATIO, COMPRESSION_RATIO);
-        intent.putExtra(ImageViewActivity.NEW_RESOLUTION, changedResolution);
-        intent.putExtra(ImageViewActivity.IMAGE_URI, imageUri.toString());
 
-        if(!threadId.isEmpty())
-            intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+        long messageId = Helpers.generateRandomNumber();
+
+        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+
+        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                address,
+                ImageHandler.IMAGE_HEADER + Base64.encodeToString(compressedBytes, Base64.DEFAULT),
+                messageId,
+                subscriptionId);
+
+        intent.putExtra(SMSSendActivity.THREAD_ID, threadIdRx);
+        intent.putExtra(SMS_IMAGE_PENDING_LOCATION, messageId);
 
         startActivity(intent);
         finish();

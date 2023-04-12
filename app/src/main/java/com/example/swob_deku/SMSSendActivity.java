@@ -32,6 +32,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -526,7 +527,8 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     public void sendTextMessage(View view) {
-        sendSMSMessage(null);
+        String text = smsTextView.getText().toString();
+        sendSMSMessage(null, text, null);
     }
 
     private String encryptContent(String data) throws Throwable {
@@ -548,15 +550,15 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
 
-    private void sendSMSMessage(Integer subscriptionId) {
+    private void sendSMSMessage(Integer subscriptionId, String text, Long messageId) {
         // TODO: Don't let sending happen if message box is empty
-        String text = smsTextView.getText().toString();
-
+        Log.d(getLocalClassName(), "Sending new text message..");
         try {
 
             SecurityDH securityDH = new SecurityDH(getApplicationContext());
 
-            long messageId = Helpers.generateRandomNumber();
+            if(messageId == null)
+                messageId = Helpers.generateRandomNumber();
 
             PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
@@ -634,13 +636,12 @@ public class SMSSendActivity extends AppCompatActivity {
         improveMessagingUX();
         ab.setTitle(contactName);
 
-        try {
-            handlePendingImages();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         updateMessagesToRead();
+
+        if(getIntent().hasExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION)) {
+            long messageId = getIntent().getLongExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION, -1);
+            handleIncomingPending(messageId);
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -653,32 +654,19 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
     }
 
-    private Bitmap buildImage(int compressionRatio, double changedResolution, Uri imageUri) throws IOException {
-        ImageHandler imageHandler = new ImageHandler(getApplicationContext(), imageUri);
-//        final int SCALE_DOWN_RATIO = 3;
+    private void handleIncomingPending(long messageId) {
+        Log.d(getLocalClassName(), "Component package name: " + getIntent().getComponent().getPackageName());
+        Log.d(getLocalClassName(), "My package name: " + BuildConfig.APPLICATION_ID);
+        if(getIntent().getComponent().getPackageName().equals(BuildConfig.APPLICATION_ID) ) {
+            Cursor cursor = SMSHandler.fetchSMSOutboxPendingForMessageInThread(getApplicationContext(),
+                    threadId, messageId);
+            Log.d(getLocalClassName(), "Found pending: " + cursor.getCount());
 
-//        int resizeScale = imageHandler.bitmap.getWidth() / SCALE_DOWN_RATIO;
-
-        Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
-
-        byte[] compressedBytes = imageHandler.compressImage(compressionRatio, imageBitmap);
-        return BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
-    }
-
-    private void handlePendingImages() throws IOException {
-        if(getIntent().hasExtra(ImageViewActivity.COMPRESSED_RATIO) &&
-                getIntent().hasExtra(ImageViewActivity.NEW_RESOLUTION) &&
-                        getIntent().hasExtra(ImageViewActivity.IMAGE_URI)) {
-            int compressedRatio = getIntent().getIntExtra(ImageViewActivity.COMPRESSED_RATIO, -1);
-            double newResolution = getIntent().getDoubleExtra(ImageViewActivity.NEW_RESOLUTION, -1);
-
-            Uri imageUri = Uri.parse(getIntent().getStringExtra(ImageViewActivity.IMAGE_URI));
-
-            Bitmap bitmap = buildImage(compressedRatio, newResolution, imageUri);
-
-            ImageView imageView = findViewById(R.id.send_message_image_view);
-            imageView.setImageBitmap(bitmap);
-            imageView.setVisibility(View.VISIBLE);
+            if(cursor.moveToFirst()) {
+                SMS sms = new SMS(cursor);
+                sendSMSMessage(null, sms.getBody(), Long.parseLong(sms.getId()));
+            }
+            cursor.close();
         }
     }
 
@@ -931,24 +919,9 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     public void uploadImage(View view) {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-        }
-
-//        Intent galleryIntent = new Intent(
-//                Intent.ACTION_OPEN_DOCUMENT,
-//                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
         Intent galleryIntent = new Intent(
                 Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
-        galleryIntent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
 
         startActivityForResult(galleryIntent , RESULT_GALLERY );
     }
@@ -961,11 +934,7 @@ public class SMSSendActivity extends AppCompatActivity {
             if (null != data) {
                 Uri imageUri = data.getData();
 
-                // Set persistent URI permission
-                getContentResolver().takePersistableUriPermission(imageUri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                Intent intent = new Intent(this, ImageViewActivity.class);
+                Intent intent = new Intent(getApplicationContext(), ImageViewActivity.class);
                 intent.putExtra(IMAGE_URI, imageUri.toString());
                 intent.putExtra(ADDRESS, address);
                 intent.putExtra(THREAD_ID, threadId);
@@ -1008,7 +977,8 @@ public class SMSSendActivity extends AppCompatActivity {
             buttons.get(i).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    sendSMSMessage(subscriptionId);
+                    String text = smsTextView.getText().toString();
+                    sendSMSMessage(subscriptionId, text, null);
                     findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
                 }
             });
