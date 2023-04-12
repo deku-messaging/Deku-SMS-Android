@@ -80,19 +80,19 @@ public class Helpers {
     }
 
     public static String formatPhoneNumbers(String data) throws NumberParseException {
-//        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-//        try {
-//            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(data, "US");
-//            // use the formattedPhoneNumber
-//            return phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
-//        } catch (NumberParseException e) {
-//            // handle the exception
-//            throw(e);
-//        }
-
-        return data.replaceAll("%2B", "+")
-                .replaceAll("%20", "")
-                .replaceAll("-", "")
-                .replaceAll("\\s", "");
+        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+        try {
+            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(data, "US");
+            // use the formattedPhoneNumber
+            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
+            return data.replaceAll("%2B", "+")
+                    .replaceAll("%20", "")
+                    .replaceAll("-", "")
+                    .replaceAll("\\s", "");
+        } catch (NumberParseException e) {
+            // handle the exception
+            e.printStackTrace();
+        }
+        return data;
     }
 }

@@ -184,7 +184,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
                     spannable.setSpan(boldSpan, 0, contactName.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
-                    unreadMessages.add(new NotificationCompat.MessagingStyle.Message(unreadSMS.getBody(),
+                    unreadMessages.add(new NotificationCompat.MessagingStyle.Message(unreadSMS.getBody() + "\n",
                             Long.parseLong(unreadSMS.getDate()),
                             spannable));
                 } while(cursor1.moveToNext());
@@ -203,8 +203,6 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     context, context.getString(R.string.CHANNEL_ID))
                     .setDefaults(Notification.DEFAULT_ALL)
                     .setSmallIcon(R.drawable.ic_round_chat_bubble_24)
-                    .setContentTitle("New messages")
-//                    .setContentText("New messages")
                     .setContentIntent(pendingReceivedSmsIntent)
                     .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                     .setAutoCancel(true)
@@ -212,6 +210,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
             NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle("Me");
+            messagingStyle.setConversationTitle(context.getString(R.string.notification_title));
             for(NotificationCompat.MessagingStyle.Message message : unreadMessages) {
                 messagingStyle.addMessage(message);
             }

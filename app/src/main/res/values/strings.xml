@@ -64,4 +64,8 @@
         Secured
     </string>
 
+    <string name="notification_title">
+        New message
+    </string>
+
 </resources>
