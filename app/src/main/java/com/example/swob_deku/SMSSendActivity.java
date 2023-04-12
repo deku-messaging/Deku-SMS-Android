@@ -646,7 +646,9 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    checkEncryptedMessaging();
+                    if (PhoneNumberUtils.isWellFormedSmsAddress(address)) {
+                        checkEncryptedMessaging();
+                    }
                 } catch (GeneralSecurityException | IOException e) {
                     e.printStackTrace();
                 }
