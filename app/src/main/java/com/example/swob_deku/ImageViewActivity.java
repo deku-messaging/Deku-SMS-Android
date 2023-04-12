@@ -122,23 +122,13 @@ public class ImageViewActivity extends AppCompatActivity {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 getSystemService(SmsManager.class) : SmsManager.getDefault();
 
-        String description = "- Original resolution: " + imageHandler.bitmap.getWidth() + "x"
-                + imageHandler.bitmap.getHeight();
-        description += "\n\n- Resize scale: " + resizeScale;
-        description += "\n- Resize resolution: " + imageBitmap.getWidth()
-                + "x" + imageBitmap.getHeight();
-
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
 
         ArrayList<String> dividedArray = smsManager.divideMessage(
                 Base64.encodeToString(compressedBytes, Base64.DEFAULT));
 
-        description += "\n\n- Compressed bytes: " + compressedBytes.length;
-        description += "\n- Approx # B64 SMS: " + dividedArray.size();
-        description += "\n- Approx # Data SMS: " + SMSHandler.structureSMSMessage(compressedBytes).size();
-
-        byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
-        byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
+//        byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
+//        byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
 
         int locEnUS = DataHelper.findInBytes("enUS", compressedBytes);
         byte[] deepsearchByte = SMSHandler.copyBytes(compressedBytes, locEnUS, 400) ;
@@ -153,7 +143,6 @@ public class ImageViewActivity extends AppCompatActivity {
         char[] header =
                 DataHelper.byteToChar(SMSHandler.copyBytes(compressedBytes, locEnUS, 32));
 
-        description += "\n- Headers: \n";
         for(int i=0;i<header.length; ++i)
             Log.d(getLocalClassName(), "image meta:" + i + ": " + header[i]);
 
