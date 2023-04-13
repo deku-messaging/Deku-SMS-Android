@@ -1,19 +1,10 @@
 package com.example.swob_deku;
 
-import static com.example.swob_deku.SMSSendActivity.SMS_DELIVERED_INTENT;
-import static com.example.swob_deku.SMSSendActivity.SMS_SENT_INTENT;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.app.Activity;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,7 +13,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.util.Base64;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -53,10 +43,11 @@ public class ImageViewActivity extends AppCompatActivity {
 
     ImageHandler imageHandler;
 
-    final int MIN_RESOLUTION = 256;
-    final int COMPRESSION_RATIO = 15;
+    final int MAX_RESOLUTION = 768;
+    final int MIN_RESOLUTION = MAX_RESOLUTION / 2;
+    int COMPRESSION_RATIO = 0;
 
-    public double changedResolution = MIN_RESOLUTION;
+    public double changedResolution;
 
     public static final String IMAGE_INTENT_EXTRA = "image_sms_id";
 
@@ -120,8 +111,10 @@ public class ImageViewActivity extends AppCompatActivity {
             }
 
             try {
-                int maxResolution = buildImage();
-                changeResolution(maxResolution);
+//                changedResolution = getMaxResolution();
+                changedResolution = MAX_RESOLUTION;
+                buildImage();
+                changeResolution(getMaxResolution());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -145,8 +138,8 @@ public class ImageViewActivity extends AppCompatActivity {
     }
 
 
-    private void changeResolution(int maxResolution) {
-        final double resDifference = maxResolution - MIN_RESOLUTION;
+    private void changeResolution(final int maxResolution) {
+        final double resDifference = maxResolution - MAX_RESOLUTION;
         final double changeConstant = resDifference / 100;
 
         SeekBar seekBar = findViewById(R.id.image_view_change_resolution_seeker);
@@ -154,11 +147,22 @@ public class ImageViewActivity extends AppCompatActivity {
         TextView seekBarProgress = findViewById(R.id.image_details_seeker_progress);
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            final int resChangeRatio = Math.round(MIN_RESOLUTION / seekBar.getMax());
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // TODO: change the resolution text
-                changedResolution = progress == 0 ? MIN_RESOLUTION : MIN_RESOLUTION + (changeConstant * progress);
-                Log.d(getLocalClassName(), "New resolution = " + changedResolution);
+                double calculatedResolution = progress == 0 ? MAX_RESOLUTION :
+                        MAX_RESOLUTION - (resChangeRatio * progress);
+//
+//                if(calculatedResolution > MIN_RESOLUTION) {
+//                    changedResolution = calculatedResolution;
+//                    COMPRESSION_RATIO = 0;
+//                } else {
+//                    changedResolution = MIN_RESOLUTION;
+//                    COMPRESSION_RATIO = seekBar.getMax() - progress;
+//                }
+                changedResolution = calculatedResolution;
+                COMPRESSION_RATIO = progress;
                 seekBarProgress.setText(String.valueOf(progress));
             }
 
@@ -184,19 +188,23 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
     }
 
-    private int buildImage() throws IOException {
-        // TODO: messages >40 trigger large message warning...
-        int maxresolution = imageHandler.getMaxResolution();
+    private int getMaxResolution() {
+        return imageHandler.getMaxResolution();
+    }
 
-//        final int SCALE_DOWN_RATIO = 3;
-
-//        int resizeScale = imageHandler.bitmap.getWidth() / SCALE_DOWN_RATIO;
-
-        Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
-
+    private void buildImage() throws IOException {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 getSystemService(SmsManager.class) : SmsManager.getDefault();
 
+//        compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageHandler.bitmap);
+//        compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
+//        imageHandler.bitmap = compressedBitmap;
+//        Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
+//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//        imageBitmap.compress(Bitmap.CompressFormat.WEBP, 100, byteArrayOutputStream);
+//        compressedBytes = byteArrayOutputStream.toByteArray();
+
+        Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
 
         ArrayList<String> dividedArray = smsManager.divideMessage(
@@ -219,8 +227,6 @@ public class ImageViewActivity extends AppCompatActivity {
 
         compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
         imageView.setImageBitmap(compressedBitmap);
-
-        return maxresolution;
     }
 
     public void sendImage(View view) throws InterruptedException {

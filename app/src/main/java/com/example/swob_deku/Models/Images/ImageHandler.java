@@ -41,10 +41,16 @@ public class ImageHandler {
     public static final String IMAGE_TRANSMISSION_HEADER = "[[DTH";
     static final int MAX_NUMBER_SMS = 39;
 
+    boolean edited = false;
+
     public ImageHandler(Context context, Uri imageUri) throws IOException {
         this.imageUri = imageUri;
         this.context = context;
         this.bitmap = MediaStore.Images.Media.getBitmap(this.context.getContentResolver(), this.imageUri);
+    }
+
+    public boolean isEdited() {
+        return this.edited;
     }
 
     public static byte[] buildImage(byte[][] unstructuredImageBytes ) throws IOException {
@@ -280,6 +286,7 @@ public class ImageHandler {
 
     public Bitmap resizeImage(double resValue) throws IOException {
         // use ratios for compressions rather than just raw values
+        Log.d(getClass().getName(), "Resizing value: " + resValue);
         if(this.bitmap.getWidth() < resValue && this.bitmap.getHeight() < resValue)
             return this.bitmap;
 
@@ -288,6 +295,7 @@ public class ImageHandler {
         int height = dimensions[1];
 
 
+        this.edited = true;
         return Bitmap.createScaledBitmap(this.bitmap, width, height, true);
     }
 

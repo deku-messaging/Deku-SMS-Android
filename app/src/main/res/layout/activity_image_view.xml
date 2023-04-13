@@ -112,7 +112,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="2dp"
-        android:text="1"
+        android:text="0"
         android:textAlignment="textEnd"
         android:textSize="10sp"
         app:layout_constraintBottom_toTopOf="@+id/image_view_change_resolution_seeker"

@@ -636,18 +636,23 @@ public class SMSSendActivity extends AppCompatActivity {
         improveMessagingUX();
         ab.setTitle(contactName);
 
-        updateMessagesToRead();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                updateMessagesToRead();
+            }
+        }).start();
 
-        if(getIntent().hasExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION)) {
-            long messageId = getIntent().getLongExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION, -1);
-            handleIncomingPending(messageId);
-        }
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     if (PhoneNumberUtils.isWellFormedSmsAddress(address)) {
                         checkEncryptedMessaging();
+                        if(getIntent().hasExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION)) {
+                            long messageId = getIntent().getLongExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION, -1);
+                            handleIncomingPending(messageId);
+                        }
                     }
                 } catch (GeneralSecurityException | IOException e) {
                     e.printStackTrace();
