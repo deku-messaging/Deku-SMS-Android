@@ -671,7 +671,12 @@ public class SMSSendActivity extends AppCompatActivity {
 
             if(cursor.moveToFirst()) {
                 SMS sms = new SMS(cursor);
-                sendSMSMessage(null, sms.getBody(), Long.parseLong(sms.getId()));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendSMSMessage(null, sms.getBody(), Long.parseLong(sms.getId()));
+                    }
+                });
             }
             cursor.close();
         }
