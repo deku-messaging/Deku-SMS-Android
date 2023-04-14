@@ -418,7 +418,6 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
 //                if(singleMessageViewModel.getLastUsedKey() == 0)
 //                    singleMessagesThreadRecyclerAdapter.refresh();
-                Log.d(getLocalClassName(), "Broadcast received text!");
                 singleMessageViewModel.informNewItemChanges();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
@@ -427,7 +426,6 @@ public class SMSSendActivity extends AppCompatActivity {
         incomingDataBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d(getLocalClassName(), "Broadcast received data!");
                 singleMessageViewModel.informNewItemChanges();
 //                cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
@@ -834,7 +832,6 @@ public class SMSSendActivity extends AppCompatActivity {
                                 try {
                                     securityDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
                                             address, keyPair);
-                                    ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
                                 } catch (GeneralSecurityException | IOException e) {
                                     throw new RuntimeException(e);
                                 }
@@ -856,6 +853,7 @@ public class SMSSendActivity extends AppCompatActivity {
                                 Base64.encodeToString(peerPublicKey, Base64.DEFAULT));
                         byte[] secret = securityDH.generateSecretKey(peerPublicKey, address);
                         securityDH.securelyStoreSecretKey(address, secret);
+                        ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
 
                     } catch (GeneralSecurityException | IOException e) {
                         throw new RuntimeException(e);
