@@ -211,7 +211,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     currentViewHolder[0] = viewHolder;
 
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.sent_messages_drawable);
+                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.archive_slide_drawable);
                 }
 
                 if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
@@ -269,7 +269,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     int itemRight = itemView.getRight();
 
                     Paint p = new Paint();
-                    p.setColor(getColor(R.color.default_gray));
+                    p.setColor(getColor(R.color.light_blue));
 
                     c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
                     deleteIcon.draw(c);
@@ -331,7 +331,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     currentViewHolder[0] = viewHolder;
 
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.sent_messages_drawable);
+                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.received_messages_drawable);
                 }
 
                 if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
