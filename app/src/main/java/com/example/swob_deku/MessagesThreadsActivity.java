@@ -30,6 +30,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
+import com.example.swob_deku.Models.Archive.Archive;
+import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -181,17 +183,20 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 String threadId = itemView.id;
                 Log.d(getLocalClassName(), "removing thread: " + threadId);
                 try {
-//                    Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);
-//                    if(cursor.moveToFirst()) {
+                    Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);
+                    if(cursor.moveToFirst()) {
 //                        SecurityDH securityDH = new SecurityDH(getApplicationContext());
 //                        String address = new SMS(cursor).getAddress();
 //                        Log.d(getLocalClassName(), "Removing keys for address: " + address
 //                                + " -> thread:" + threadId);
 //                        securityDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
-//                    }
-//                    cursor.close();
+                        SMS sms = new SMS(cursor);
+                        Archive archive = new Archive(sms.getId(), sms.getThreadId());
+                        ArchiveHandler.archiveSMS(getApplicationContext(), archive);
+                    }
+                    cursor.close();
 
-                    SMSHandler.deleteThread(getApplicationContext(), threadId);
+//                    SMSHandler.deleteThread(getApplicationContext(), threadId);
                     messagesThreadViewModel.informChanges(getApplicationContext());
                 }catch (Exception e) {
                     e.printStackTrace();
