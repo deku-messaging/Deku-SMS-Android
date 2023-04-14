@@ -2,6 +2,8 @@ package com.example.swob_deku.Models.Messages;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.provider.Telephony;
 import android.text.format.DateUtils;
 import android.util.Base64;
@@ -9,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -147,29 +150,42 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 messageReceivedViewHandler.timestamp.setVisibility(View.GONE);
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
+
             String text = sms.getBody();
             text = decryptContent(text);
-            receivedMessage.setText(text);
 
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);
+
+            ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
 //            dateView.setText(Helpers.formatDate(context, Long.parseLong(sms.getDate())));
+            if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
+                byte[] body = Base64.decode(sms.getBody()
+                        .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
+
+                Bitmap bitmap = BitmapFactory.decodeByteArray(body, 0, body.length);
+                messageReceivedViewHandler.imageView.setImageBitmap(bitmap);
+
+                imageConstraint.setVisibility(View.VISIBLE);
+                receivedMessage.setVisibility(View.GONE);
+            }
+            else {
+                receivedMessage.setText(text);
+            }
+//            receivedMessage.setText(text);
+//            messageReceivedViewHandler.imageConstrainLayout.setVisibility(View.GONE);
             dateView.setText(date);
 
-            messageReceivedViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
+            messageReceivedViewHandler.imageConstraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
-                        Intent intent = new Intent(context, ImageViewActivity.class);
-                        intent.putExtra(ImageViewActivity.IMAGE_INTENT_EXTRA, sms.getId());
-                        intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
-                        intent.putExtra(SMSSendActivity.ID, sms.getId());
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Intent intent = new Intent(context, ImageViewActivity.class);
+                    intent.putExtra(ImageViewActivity.IMAGE_INTENT_EXTRA, sms.getId());
+                    intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+                    intent.putExtra(SMSSendActivity.ID, sms.getId());
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                        context.startActivity(intent);
-                    } else {
-                        dateView.setVisibility(View.VISIBLE);
-                    }
+                    context.startActivity(intent);
                 }
             });
 
@@ -200,7 +216,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
             String text = sms.getBody();
             text = decryptContent(text);
-            messageSentViewHandler.sentMessage.setText(text);
 
             if(position != 0) {
                 messageSentViewHandler.date.setVisibility(View.INVISIBLE);
@@ -226,6 +241,20 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             statusMessage = "• " + statusMessage;
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
+
+            if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
+                byte[] body = Base64.decode(sms.getBody()
+                        .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
+
+                Bitmap bitmap = BitmapFactory.decodeByteArray(body, 0, body.length);
+                messageSentViewHandler.imageView.setImageBitmap(bitmap);
+
+                messageSentViewHandler.imageConstraintLayout.setVisibility(View.VISIBLE);
+                messageSentViewHandler.sentMessage.setVisibility(View.GONE);
+            }
+            else {
+                messageSentViewHandler.sentMessage.setText(text);
+            }
 
             messageSentViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -347,7 +376,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
          TextView date;
          TextView timestamp;
 
-         ConstraintLayout constraintLayout;
+         ImageView imageView;
+
+         ConstraintLayout constraintLayout, imageConstraintLayout;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_sent_text);
@@ -355,6 +386,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             date = itemView.findViewById(R.id.message_thread_sent_date_text);
             timestamp = itemView.findViewById(R.id.sent_message_date_segment);
             constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
+            imageConstraintLayout = itemView.findViewById(R.id.message_sent_image_container);
+            imageView = itemView.findViewById(R.id.message_sent_image_view);
         }
 
         public void highlight() {
@@ -376,8 +409,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         TextView receivedMessage;
         TextView date;
         TextView timestamp;
+        ImageView imageView;
 
-        ConstraintLayout constraintLayout;
+        ConstraintLayout constraintLayout, imageConstraintLayout;
 
         public MessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
@@ -385,6 +419,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             date = itemView.findViewById(R.id.message_thread_received_date_text);
             timestamp = itemView.findViewById(R.id.received_message_date_segment);
             constraintLayout = itemView.findViewById(R.id.message_received_constraint);
+            imageConstraintLayout = itemView.findViewById(R.id.message_received_image_container);
+            imageView = itemView.findViewById(R.id.message_received_image_view);
         }
 
         public void highlight() {
