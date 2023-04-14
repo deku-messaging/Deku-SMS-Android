@@ -113,6 +113,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                             startActivity(archivedIntent);
                             return true;
                         }
+                        else if (item.getItemId() == R.id.messages_threads_menu_item_routed) {
+                            startActivity(new Intent(getApplicationContext(), RouterActivity.class));
+                        }
                         return false;
                     }
                 });
@@ -425,10 +428,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     public void onNewMessageClick(View view) {
         Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
         startActivityForResult(intent, 1);
-    }
-
-    public void onRouterClick(View view) {
-        startActivity(new Intent(this, RouterActivity.class));
     }
 
     private void handleIncomingMessage() {

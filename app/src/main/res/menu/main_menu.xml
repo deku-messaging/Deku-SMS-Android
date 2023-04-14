@@ -4,6 +4,12 @@
         android:theme="@style/Theme.main"
         android:id="@+id/messages_threads_menu_item_archived"
         android:title="@string/homepage_menu_archived" />
+
+    <item
+        android:theme="@style/Theme.main"
+        android:id="@+id/messages_threads_menu_item_routed"
+        android:title="@string/homepage_menu_routed" />
+
     <item
         android:theme="@style/Theme.main"
         android:id="@+id/messages_threads_menu_item_settings"
