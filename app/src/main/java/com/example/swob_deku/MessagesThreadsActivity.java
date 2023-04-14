@@ -59,6 +59,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages_threads);
 
+        if(!checkIsDefaultApp()) {
+            startActivity(new Intent(this, DefaultCheckActivity.class));
+            finish();
+            return;
+        }
+
 //        cancelAllNotifications();
         handleIncomingMessage();
 
@@ -139,6 +145,14 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         }
 
         setRefreshTimer();
+
+    }
+
+    private boolean checkIsDefaultApp() {
+        final String myPackageName = getPackageName();
+        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
+
+        return myPackageName.equals(defaultPackage);
     }
 
     private void enableSwipeAction() {
@@ -349,7 +363,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(incomingBroadcastReceiver);
+        if(incomingBroadcastReceiver != null)
+            unregisterReceiver(incomingBroadcastReceiver);
         super.onDestroy();
     }
 }

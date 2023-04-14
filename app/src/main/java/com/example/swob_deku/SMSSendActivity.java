@@ -140,6 +140,12 @@ public class SMSSendActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
 
+        if(!checkIsDefaultApp()) {
+            startActivity(new Intent(this, DefaultCheckActivity.class));
+            finish();
+            return;
+        }
+
         smsTextView = findViewById(R.id.sms_text);
         threadIdentificationLoader();
         try {
@@ -172,6 +178,13 @@ public class SMSSendActivity extends AppCompatActivity {
         });
 
         eventListeners();
+    }
+
+    private boolean checkIsDefaultApp() {
+        final String myPackageName = getPackageName();
+        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
+
+        return myPackageName.equals(defaultPackage);
     }
 
     private void threadIdentificationLoader() {
@@ -959,8 +972,11 @@ public class SMSSendActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(incomingBroadcastReceiver);
-        unregisterReceiver(incomingDataBroadcastReceiver);
+        if(incomingBroadcastReceiver != null)
+            unregisterReceiver(incomingBroadcastReceiver);
+
+        if(incomingDataBroadcastReceiver != null)
+            unregisterReceiver(incomingDataBroadcastReceiver);
     }
 
     public void onLongClickSend(View view) {
