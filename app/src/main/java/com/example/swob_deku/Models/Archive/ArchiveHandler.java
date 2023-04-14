@@ -9,6 +9,9 @@ import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
 import com.example.swob_deku.Models.SMS.SMS;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ArchiveHandler {
 
     public static void archiveSMS(Context context, Archive archive) throws InterruptedException {
@@ -64,4 +67,24 @@ public class ArchiveHandler {
         thread.start();
         thread.join();
     }
+
+    public static List<Archive> loadAllMessages(Context context) throws InterruptedException {
+        final List<Archive>[] fetchedData = new List[]{new ArrayList<>()};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                                Datastore.databaseName)
+                        .fallbackToDestructiveMigration()
+                        .build();
+                ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
+                fetchedData[0] = archiveDAO.fetchAll();
+            }
+        });
+        thread.start();
+        thread.join();
+
+        return fetchedData[0];
+    }
+
 }

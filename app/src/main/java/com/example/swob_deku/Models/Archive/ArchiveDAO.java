@@ -18,6 +18,9 @@ public interface ArchiveDAO {
     @Query("SELECT * FROM Archive WHERE threadId=:threadId")
     Archive fetch(long threadId);
 
+    @Query("SELECT * FROM Archive")
+    List<Archive> fetchAll();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(Archive archive);
 

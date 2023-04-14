@@ -105,7 +105,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                             return true;
                         }
                         else if (item.getItemId() == R.id.messages_threads_menu_item_archived) {
-
+                            Intent archivedIntent = new Intent(getApplicationContext(),
+                                    ArchivedMessagesActivity.class);
+                            archivedIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(archivedIntent);
+                            return true;
                         }
                         return false;
                     }
@@ -135,8 +139,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         enableSwipeAction();
         Log.d(getLocalClassName(), "Threading main activity");
-
-
 //        try {
 //            Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
 //            KeyPairGenerator aliceKpg = KeyPairGenerator.getInstance("ECDH", "SC");

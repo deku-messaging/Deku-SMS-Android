@@ -31,6 +31,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
+import com.example.swob_deku.ArchivedMessagesActivity;
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
@@ -64,6 +65,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     Boolean isSearch = false;
     String searchString = "";
     RouterActivity routerActivity;
+    ArchivedMessagesActivity archivedMessagesActivity;
 
     WorkManager workManager;
     LiveData<List<WorkInfo>> workers;
@@ -140,6 +142,17 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         this.isSearch = isSearch;
         this.searchString = searchString;
         this.routerActivity = routerActivity;
+
+        workManager = WorkManager.getInstance(context);
+    }
+
+    public MessagesThreadRecyclerAdapter(Context context, int renderLayout, Boolean isSearch,
+                                         String searchString, ArchivedMessagesActivity archivedMessagesActivity) {
+        this.context = context;
+        this.renderLayout = renderLayout;
+        this.isSearch = isSearch;
+        this.searchString = searchString;
+        this.archivedMessagesActivity = archivedMessagesActivity;
 
         workManager = WorkManager.getInstance(context);
     }

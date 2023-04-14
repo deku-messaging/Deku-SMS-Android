@@ -29,6 +29,7 @@
     </string>
 
     <string name="save_new_gateway_client">Save</string>
+    <string name="archived_messages_toolbar_title">Archive</string>
     <string name="new_gateway_client_url">Online routing server url</string>
     <string name="homepage_menu_archived">Archived</string>
     <string name="gateway_clients">Gateway Clients</string>
