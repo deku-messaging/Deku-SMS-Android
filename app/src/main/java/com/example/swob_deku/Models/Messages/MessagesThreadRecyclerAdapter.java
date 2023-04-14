@@ -7,11 +7,13 @@ import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.provider.Telephony;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -69,6 +71,12 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     WorkManager workManager;
     LiveData<List<WorkInfo>> workers;
+
+    final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
+    final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
+    final int MESSAGE_TYPE_OUTBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
+    final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
+    final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
     private int UNREAD_VIEW_TYPE = 1;
 
@@ -196,19 +204,34 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         final String smsThreadId = sms.getThreadId();
         holder.id = smsThreadId;
 
-        if(isSearch && searchString != null && !searchString.isEmpty()) {
-            Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
-            for(int index = sms.getBody().indexOf(searchString); index >=0; index = sms.getBody().indexOf(searchString, index + 1)) {
-                spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
-                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
-                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
+//        if(isSearch && searchString != null && !searchString.isEmpty()) {
+//            Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
+//            for(int index = sms.getBody().indexOf(searchString); index >=0; index = sms.getBody().indexOf(searchString, index + 1)) {
+//                spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
+//                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//                spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
+//                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//            }
+//
+//            holder.snippet.setText(spannable);
+//        }
+//        else
+//            holder.snippet.setText(sms.getBody());
 
+        if(sms.getType() == MESSAGE_TYPE_SENT) {
+            String entityTitle = context.getString(R.string.messages_thread_you);
+            Spannable spannable = Spannable.Factory.getInstance().newSpannable(
+                    entityTitle + sms.getBody());
+            StyleSpan ItalicSpan = new StyleSpan(Typeface.ITALIC);
+            spannable.setSpan(ItalicSpan, 0, entityTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+            ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(
+                    context.getColor(R.color.primary_highlight_color));
+
+            spannable.setSpan(foregroundColorSpan, 0, entityTitle.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             holder.snippet.setText(spannable);
         }
-        else
-            holder.snippet.setText(sms.getBody());
+        else holder.snippet.setText(sms.getBody());
 
         holder.state.setText(sms.getRouterStatus());
 

@@ -76,4 +76,8 @@
         Photo
     </string>
 
+    <string name="messages_thread_you">
+        You:
+    </string>
+
 </resources>
