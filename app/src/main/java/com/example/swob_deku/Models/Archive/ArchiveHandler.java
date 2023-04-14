@@ -27,7 +27,7 @@ public class ArchiveHandler {
         thread.join();
     }
 
-    public static boolean isArchived(Context context, String threadId) throws InterruptedException {
+    public static boolean isArchived(Context context, long threadId) throws InterruptedException {
         final boolean[] isArchived = {false};
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -47,5 +47,21 @@ public class ArchiveHandler {
         thread.join();
 
         return isArchived[0];
+    }
+
+    public static void removeFromArchive(Context context, long threadId) throws InterruptedException {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                                Datastore.databaseName)
+                        .fallbackToDestructiveMigration()
+                        .build();
+                ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
+                archiveDAO.remove(new Archive(threadId));
+            }
+        });
+        thread.start();
+        thread.join();
     }
 }

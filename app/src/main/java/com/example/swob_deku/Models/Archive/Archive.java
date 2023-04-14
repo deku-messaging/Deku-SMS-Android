@@ -4,31 +4,21 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity(indices = {@Index(value={"messageId"}, unique = true)})
+@Entity(indices = {@Index(value={"threadId"}, unique = true)})
 public class Archive {
-    @PrimaryKey(autoGenerate = true)
-    public long id;
-    public String messageId;
-    public String threadId;
+    @PrimaryKey
+    public long threadId;
 
-    public Archive(String messageId, String threadId) {
-        this.messageId = messageId;
+    public Archive(long threadId) {
         this.threadId = threadId;
     }
 
-    public String getMessageId() {
-        return messageId;
-    }
 
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
-    }
-
-    public String getThreadId() {
+    public long getThreadId() {
         return threadId;
     }
 
-    public void setThreadId(String threadId) {
+    public void setThreadId(long threadId) {
         this.threadId = threadId;
     }
 }

@@ -2,6 +2,7 @@ package com.example.swob_deku.Models.Archive;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
@@ -14,12 +15,12 @@ import java.util.List;
 @Dao
 public interface ArchiveDAO {
 
-    @Query("SELECT * FROM Archive")
-    LiveData<List<GatewayServer>> getAll();
-
     @Query("SELECT * FROM Archive WHERE threadId=:threadId")
-    Archive fetch(String threadId);
+    Archive fetch(long threadId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(Archive archive);
+
+    @Delete
+    void remove(Archive archive);
 }

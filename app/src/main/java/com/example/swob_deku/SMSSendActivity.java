@@ -56,6 +56,8 @@ import android.widget.Toast;
 
 import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.Archive.Archive;
+import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
@@ -596,6 +598,17 @@ public class SMSSendActivity extends AppCompatActivity {
             else {
                 singleMessageViewModel.informNewItemChanges();
             }
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        removeFromArchive();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }).start();
         }
 
         catch(IllegalArgumentException e ) {
@@ -606,6 +619,10 @@ public class SMSSendActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void removeFromArchive() throws InterruptedException {
+        ArchiveHandler.removeFromArchive(getApplicationContext(), Long.parseLong(threadId));
     }
 
     private void resetSmsTextView() {

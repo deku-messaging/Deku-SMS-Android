@@ -191,7 +191,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 //                                + " -> thread:" + threadId);
 //                        securityDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
                         SMS sms = new SMS(cursor);
-                        Archive archive = new Archive(sms.getId(), sms.getThreadId());
+                        Archive archive = new Archive(Long.parseLong(sms.getThreadId()));
                         ArchiveHandler.archiveSMS(getApplicationContext(), archive);
                     }
                     cursor.close();
@@ -248,7 +248,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 //                }
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                     if (deleteIcon == null) {
-                        deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.round_delete_24);
+                        deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.round_archive_24);
                         intrinsicWidth = deleteIcon.getIntrinsicWidth();
                         intrinsicHeight = deleteIcon.getIntrinsicHeight();
                     }

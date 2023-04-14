@@ -46,13 +46,12 @@ public class MessagesThreadViewModel extends ViewModel {
                         do {
                             SMS sms = new SMS(cursor);
                             try {
-                                if(ArchiveHandler.isArchived(context, sms.getThreadId())) {
+                                if(ArchiveHandler.isArchived(context, Long.parseLong(sms.getThreadId()))) {
                                     continue;
                                 }
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-
                             smsList.add(sms);
                         } while (cursor.moveToNext());
                         messagesList.postValue(smsList);
