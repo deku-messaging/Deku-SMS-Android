@@ -75,4 +75,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_outline_message_24" />
 
+    <TextView
+        android:id="@+id/homepage_no_message"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center"
+        android:text="@string/homepage_no_message"
+        android:textSize="20sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/messages_threads_recycler_view"
+        app:layout_constraintStart_toStartOf="@+id/messages_threads_recycler_view"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

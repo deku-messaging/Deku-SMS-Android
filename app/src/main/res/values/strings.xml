@@ -33,6 +33,7 @@
     <string name="new_gateway_client_url">Online routing server url</string>
     <string name="homepage_menu_archived">Archived</string>
     <string name="homepage_menu_routed">Routed</string>
+    <string name="homepage_no_message">Send your first message</string>
     <string name="gateway_clients">Gateway Clients</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">Available Gateway Servers</string>

@@ -28,7 +28,9 @@ import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.Archive;
@@ -138,6 +140,13 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 new Observer<List<SMS>>() {
                     @Override
                     public void onChanged(List<SMS> smsList) {
+                        TextView textView = findViewById(R.id.homepage_no_message);
+                        if(smsList.isEmpty()) {
+                            textView.setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            textView.setVisibility(View.GONE);
+                        }
                         messagesThreadRecyclerAdapter.submitList(smsList);
                     }
                 });
@@ -174,6 +183,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             private Drawable deleteIcon;
             private int intrinsicWidth;
             private int intrinsicHeight;
+
+            private int mSwipeSlop;
 
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
@@ -252,6 +263,16 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     float iconBottom = iconTop + intrinsicHeight;
                     float iconLeft, iconRight;
 
+                    if (mSwipeSlop == 0) {
+                        mSwipeSlop = ViewConfiguration.get(recyclerView.getContext()).getScaledTouchSlop();
+                    }
+                    float threshold = mSwipeSlop * 3;
+
+                    // Set swipe distance limit
+                    if (Math.abs(dX) > threshold) {
+                        dX = Math.signum(dX) * threshold;
+                    }
+
                     if (dX > 0) {
                         iconLeft = viewHolder.itemView.getLeft() + iconMargin;
                         iconRight = viewHolder.itemView.getLeft() + iconMargin + intrinsicWidth;
@@ -288,6 +309,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             private Drawable deleteIcon;
             private int intrinsicWidth;
             private int intrinsicHeight;
+
+            private int mSwipeSlop;
 
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
@@ -371,6 +394,16 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     float iconTop = viewHolder.itemView.getTop() + (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
                     float iconBottom = iconTop + intrinsicHeight;
                     float iconLeft, iconRight;
+
+                    if (mSwipeSlop == 0) {
+                        mSwipeSlop = ViewConfiguration.get(recyclerView.getContext()).getScaledTouchSlop();
+                    }
+                    float threshold = mSwipeSlop * 3;
+
+                    // Set swipe distance limit
+                    if (Math.abs(dX) > threshold) {
+                        dX = Math.signum(dX) * threshold;
+                    }
 
                     if (dX > 0) {
                         iconLeft = viewHolder.itemView.getLeft() + iconMargin;
