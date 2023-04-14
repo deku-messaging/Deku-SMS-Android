@@ -97,17 +97,17 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.messages_threads_menu_item_settings: {
-                                Intent settingsIntent = new Intent(getApplicationContext(),
-                                        GatewayServerListingActivity.class);
-                                settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                startActivity(settingsIntent);
-                                return true;
-                            }
-                            default:
-                                return false;
+                        if (item.getItemId() == R.id.messages_threads_menu_item_settings) {
+                            Intent settingsIntent = new Intent(getApplicationContext(),
+                                    GatewayServerListingActivity.class);
+                            settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(settingsIntent);
+                            return true;
                         }
+                        else if (item.getItemId() == R.id.messages_threads_menu_item_archived) {
+
+                        }
+                        return false;
                     }
                 });
                 MenuInflater inflater = popup.getMenuInflater();
@@ -137,14 +137,14 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         Log.d(getLocalClassName(), "Threading main activity");
 
 
-        try {
-            Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
-            KeyPairGenerator aliceKpg = KeyPairGenerator.getInstance("ECDH", "SC");
-            aliceKpg.initialize(256);
-            KeyPair aliceKp = aliceKpg.generateKeyPair();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
+//            KeyPairGenerator aliceKpg = KeyPairGenerator.getInstance("ECDH", "SC");
+//            aliceKpg.initialize(256);
+//            KeyPair aliceKp = aliceKpg.generateKeyPair();
+//        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+//            throw new RuntimeException(e);
+//        }
 
         setRefreshTimer();
 
@@ -361,8 +361,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-//        findViewById(R.id.messages_threads_recycler_view).requestFocus();
         super.onResume();
+        findViewById(R.id.messages_threads_recycler_view).requestFocus();
         messagesThreadViewModel.informChanges(getApplicationContext());
     }
 

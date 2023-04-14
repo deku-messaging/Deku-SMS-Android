@@ -5,5 +5,9 @@
         <item name="colorSecondary">@color/logo_secondary</item>
     </style>
 
+    <style name="Theme.menu_style" parent="Theme.main">
+        <item name="backgroundColor">@color/primary_background_color</item>
+    </style>
+
 
 </resources>

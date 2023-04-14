@@ -7,43 +7,59 @@
     android:layout_height="match_parent"
     tools:context=".MessagesThreadsActivity">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/search_messages_text_clickable"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/compose_message_drawable"
-        android:fontFamily="sans-serif-thin"
-        app:boxBackgroundMode="none"
-        app:endIconDrawable="@drawable/ic_baseline_more_vert_24"
-        app:endIconMode="custom"
-        app:helperTextEnabled="true"
-        app:hintEnabled="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:startIconDrawable="@drawable/ic_round_view_headline_24">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/recent_search_edittext_clickable"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:cursorVisible="false"
-            android:focusableInTouchMode="true"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/search_messages_text_clickable"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:fontFamily="sans-serif-thin"
             android:hint="@string/search_messages_text"
-            android:inputType="text" />
-    </com.google.android.material.textfield.TextInputLayout>
+            app:boxBackgroundColor="@color/received_message_color"
+            app:boxBackgroundMode="filled"
+            app:boxStrokeColor="@android:color/transparent"
+            app:boxStrokeWidth="0dp"
+            app:boxStrokeWidthFocused="0dp"
+            app:endIconDrawable="@drawable/ic_baseline_more_vert_24"
+            app:endIconMode="custom"
+            app:helperTextEnabled="true"
+            app:hintEnabled="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:startIconDrawable="@drawable/ic_round_view_headline_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/recent_search_edittext_clickable"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="false"
+                android:cursorVisible="false"
+                android:focusableInTouchMode="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/messages_threads_recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_messages_text_clickable" />
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/router_messages_btn"
