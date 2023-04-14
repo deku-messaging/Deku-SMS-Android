@@ -834,6 +834,7 @@ public class SMSSendActivity extends AppCompatActivity {
                                 try {
                                     securityDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
                                             address, keyPair);
+                                    ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
                                 } catch (GeneralSecurityException | IOException e) {
                                     throw new RuntimeException(e);
                                 }
@@ -929,6 +930,9 @@ public class SMSSendActivity extends AppCompatActivity {
                     ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
                 }
             });
+        }
+        else {
+            ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
         }
     }
 
