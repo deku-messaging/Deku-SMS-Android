@@ -158,7 +158,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             dateView.setVisibility(View.INVISIBLE);
 
             ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
-//            dateView.setText(Helpers.formatDate(context, Long.parseLong(sms.getDate())));
             if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
                 byte[] body = Base64.decode(sms.getBody()
                         .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
@@ -172,8 +171,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             else {
                 receivedMessage.setText(text);
             }
-//            receivedMessage.setText(text);
-//            messageReceivedViewHandler.imageConstrainLayout.setVisibility(View.GONE);
             dateView.setText(date);
 
             messageReceivedViewHandler.imageConstraintLayout.setOnClickListener(new View.OnClickListener() {
@@ -182,6 +179,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                     Intent intent = new Intent(context, ImageViewActivity.class);
                     intent.putExtra(ImageViewActivity.IMAGE_INTENT_EXTRA, sms.getId());
                     intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+                    intent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
                     intent.putExtra(SMSSendActivity.ID, sms.getId());
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 

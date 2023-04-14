@@ -15,10 +15,12 @@ import android.telephony.SmsManager;
 import android.util.Base64;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.swob_deku.Commons.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SIMHandler;
@@ -72,6 +74,14 @@ public class ImageViewActivity extends AppCompatActivity {
         imageDescription = findViewById(R.id.image_details_size);
 
         if(getIntent().hasExtra(IMAGE_INTENT_EXTRA)) {
+            threadId = getIntent().getStringExtra(SMSSendActivity.THREAD_ID);
+            address = getIntent().getStringExtra(SMSSendActivity.ADDRESS);
+            String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+            contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                    address: contactName;
+
+            ab.setTitle(contactName);
+
             String smsId = getIntent().getStringExtra(IMAGE_INTENT_EXTRA);
 
             // TODO: Get all messages which have the Ref ID
@@ -184,6 +194,30 @@ public class ImageViewActivity extends AppCompatActivity {
     }
 
     private void buildImage(byte[] data ) throws IOException {
+        TextView imageResolutionOriginal = findViewById(R.id.image_details_original_resolution);
+        imageResolutionOriginal.setVisibility(View.GONE);
+
+        TextView imageResolution = findViewById(R.id.image_details_resolution);
+        imageResolution.setVisibility(View.GONE);
+
+        TextView imageSize = findViewById(R.id.image_details_size);
+        imageSize.setVisibility(View.GONE);
+
+        TextView imageQuality = findViewById(R.id.image_details_quality);
+        imageQuality.setVisibility(View.GONE);
+
+        TextView imageSMSCount = findViewById(R.id.image_details_sms_count);
+        imageSMSCount.setVisibility(View.GONE);
+
+        TextView seekBarText = findViewById(R.id.image_details_seeker_progress);
+        seekBarText.setVisibility(View.GONE);
+
+        SeekBar seekBar = findViewById(R.id.image_view_change_resolution_seeker);
+        seekBar.setVisibility(View.GONE);
+
+        Button button = findViewById(R.id.image_send_btn);
+        button.setVisibility(View.GONE);
+
         compressedBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
         imageView.setImageBitmap(compressedBitmap);
     }
