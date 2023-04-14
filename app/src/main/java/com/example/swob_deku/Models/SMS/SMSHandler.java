@@ -390,7 +390,6 @@ public class SMSHandler {
 
     public static Cursor fetchSMSOutboxPendingForMessageInThread(@NonNull Context context,
                                                                  String threadId, long messageId) {
-        Log.d(SMSHandler.class.getName(), "Fetching pending for thread=" + threadId + ", message=" + messageId);
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 SMS_OUTBOX_CONTENT_URI,
                 new String[] { Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
@@ -403,7 +402,7 @@ public class SMSHandler {
                 new String[]{
                         threadId,
                         String.valueOf(messageId),
-                        String.valueOf(Telephony.Sms.STATUS_NONE)},
+                        String.valueOf(Telephony.Sms.STATUS_PENDING)},
                 null);
 
         return smsMessagesCursor;
@@ -639,7 +638,7 @@ public class SMSHandler {
 
         contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
-        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_NONE);
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
         contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
