@@ -72,4 +72,8 @@
         New message
     </string>
 
+    <string name="notification_title_new_photo">
+        Photo
+    </string>
+
 </resources>

@@ -41,7 +41,6 @@ public class ArchiveHandler {
                         .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 Archive archive = archiveDAO.fetch(threadId);
-                Log.d(getClass().getName(), "Is archived: " + archive);
                 if(archive != null)
                     isArchived[0] = true;
             }
