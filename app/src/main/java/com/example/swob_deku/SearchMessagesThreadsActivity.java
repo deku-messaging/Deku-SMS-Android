@@ -93,7 +93,6 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 new Observer<List<SMS>>() {
                     @Override
                     public void onChanged(List<SMS> smsList) {
-                        Log.d(getLocalClassName(), "Yep submitting list");
                         if(!searchString.getValue().isEmpty() && smsList.isEmpty())
                             findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
                         else

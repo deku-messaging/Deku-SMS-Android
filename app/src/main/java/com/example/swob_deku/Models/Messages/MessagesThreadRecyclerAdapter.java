@@ -204,19 +204,19 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         final String smsThreadId = sms.getThreadId();
         holder.id = smsThreadId;
 
-//        if(isSearch && searchString != null && !searchString.isEmpty()) {
-//            Spannable spannable = Spannable.Factory.getInstance().newSpannable(sms.getBody());
-//            for(int index = sms.getBody().indexOf(searchString); index >=0; index = sms.getBody().indexOf(searchString, index + 1)) {
+//        String message = sms.getBody();
+//        if(!searchString.isEmpty()) {
+//            Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
+//            for(int index = message.indexOf(searchString); index >=0;
+//                index = message.indexOf(searchString, index + 1)) {
+//
 //                spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
 //                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//
 //                spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
 //                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 //            }
-//
-//            holder.snippet.setText(spannable);
 //        }
-//        else
-//            holder.snippet.setText(sms.getBody());
 
         if(sms.getType() == MESSAGE_TYPE_SENT) {
             String entityTitle = context.getString(R.string.messages_thread_you);
@@ -300,6 +300,11 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             workManagerFactories();
         }
 
+        mDiffer.submitList(list);
+    }
+
+    public void submitList(List<SMS> list, String searchString) {
+        this.searchString = searchString;
         mDiffer.submitList(list);
     }
 
