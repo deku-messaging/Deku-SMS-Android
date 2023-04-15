@@ -25,36 +25,47 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/search_messages_toolbar">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/new_gateway_client_url_holder"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="15dp"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            android:fontFamily="sans-serif-thin"
-            app:boxBackgroundColor="@color/default_gray"
-            app:boxCornerRadiusBottomEnd="20dp"
-            app:boxCornerRadiusBottomStart="20dp"
-            app:boxCornerRadiusTopEnd="20dp"
-            app:boxCornerRadiusTopStart="20dp"
-            app:boxStrokeColor="@color/white"
-            app:boxStrokeWidth="1dp"
-            app:helperTextEnabled="true"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:background="@drawable/compose_message_drawable"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:startIconDrawable="@drawable/ic_outline_search_24"
-            app:startIconTint="@null">
+            app:layout_constraintTop_toTopOf="parent">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/new_gateway_client_url_input"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:imeOptions="actionGo"
-                android:inputType="text" />
-        </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/new_gateway_client_url_holder"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="4dp"
+                android:backgroundTintMode="add"
+                android:fontFamily="sans-serif-thin"
+                app:boxBackgroundColor="@color/logo_secondary"
+                app:boxBackgroundMode="filled"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp"
+                app:helperTextEnabled="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:startIconDrawable="@drawable/ic_outline_search_24">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/new_gateway_client_url_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:imeOptions="actionGo"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -65,5 +76,19 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/search_constraint" />
+
+    <TextView
+        android:id="@+id/search_nothing_found"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center"
+        android:text="@string/search_nothing_found"
+        android:textSize="16sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/search_results_recycler_view"
+        app:layout_constraintEnd_toEndOf="@+id/search_results_recycler_view"
+        app:layout_constraintStart_toStartOf="@+id/search_results_recycler_view"
         app:layout_constraintTop_toBottomOf="@+id/search_constraint" />
 </androidx.constraintlayout.widget.ConstraintLayout>

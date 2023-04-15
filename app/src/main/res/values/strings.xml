@@ -80,4 +80,6 @@
         You:
     </string>
 
+    <string name="search_nothing_found">Nothing found</string>
+
 </resources>
