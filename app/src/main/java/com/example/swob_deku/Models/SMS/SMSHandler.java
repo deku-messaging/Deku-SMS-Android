@@ -1032,4 +1032,28 @@ public class SMSHandler {
         return System.currentTimeMillis();
     }
 
+    public static int calculateOffset(Context context, String threadId, String messageId) {
+        Cursor cursor = context.getContentResolver().query(
+                SMS_CONTENT_URI,
+                new String[] { Telephony.Sms._ID},
+                Telephony.Sms.THREAD_ID + "=?",
+                new String[] { threadId},
+                "date DESC");
+
+        int offset = -1;
+        if(cursor.moveToNext()) {
+            do {
+                ++offset;
+                int idIndex = cursor.getColumnIndex(Telephony.Sms._ID);
+                String id = String.valueOf(cursor.getString(idIndex));
+
+                if(messageId.equals(id)){
+                    break;
+                }
+            } while(cursor.moveToNext());
+        }
+        cursor.close();
+        return offset;
+    }
+
 }

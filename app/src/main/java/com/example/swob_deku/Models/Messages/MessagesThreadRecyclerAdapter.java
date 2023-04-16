@@ -283,16 +283,16 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(BuildConfig.DEBUG)
-                    Log.d(getClass().getName(), "View clicked!");
                 Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
                 singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
                 singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
 
-                if (isSearch)
-                    singleMessageThreadIntent.putExtra(SMSSendActivity.ID, sms.getId());
                 if (searchString != null && !searchString.isEmpty()) {
-                    singleMessageThreadIntent.putExtra(SMSSendActivity.SEARCH_STRING, searchString);
+                    int calculatedOffset = SMSHandler.calculateOffset(context, sms.getThreadId(), sms.getId());
+                    singleMessageThreadIntent
+                            .putExtra(SMSSendActivity.ID, sms.getId())
+                            .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
+                            .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset);
                 }
 
                 context.startActivity(singleMessageThreadIntent);

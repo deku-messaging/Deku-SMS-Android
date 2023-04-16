@@ -102,6 +102,7 @@ public class SMSSendActivity extends AppCompatActivity {
     public static final String THREAD_ID = "thread_id";
     public static final String ID = "_id";
     public static final String SEARCH_STRING = "search_string";
+    public static final String SEARCH_OFFSET = "search_offset";
 
     public static final String SMS_SENT_INTENT = "SMS_SENT";
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
@@ -171,7 +172,9 @@ public class SMSSendActivity extends AppCompatActivity {
 
         configureToolbars();
 
-        singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this, new Observer<List<SMS>>() {
+        int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
+        singleMessageViewModel.getMessages(
+                getApplicationContext(), threadId, offset).observe(this, new Observer<List<SMS>>() {
             @Override
             public void onChanged(List<SMS> smsList) {
                 Log.d(getLocalClassName(), "Paging data changed!");
@@ -220,12 +223,22 @@ public class SMSSendActivity extends AppCompatActivity {
                         .findLastVisibleItemPosition();
 
 //                if(lastVisiblePos >= recyclerView.getAdapter().getItemCount() - 1) {
-                int scrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
+                final int scrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
+                Log.d(getLocalClassName(), "Last visible position: " + lastVisiblePos);
+                Log.d(getLocalClassName(), "Scroll position: " + scrollPosition);
                 if(lastVisiblePos >= scrollPosition) {
                     singleMessageViewModel.refresh();
                     int itemCount = recyclerView.getAdapter().getItemCount();
                     if(itemCount > scrollPosition + 1)
                         recyclerView.scrollToPosition(lastVisiblePos);
+                }
+                else if(!singleMessageViewModel.offsetStartedFromZero &&
+                        lastVisiblePos >= (scrollPosition/2)){
+                    Log.d(getLocalClassName(), "Should scroll downwards..");
+                    singleMessageViewModel.refreshDown();
+//                    int itemCount = recyclerView.getAdapter().getItemCount();
+//                    if(itemCount > scrollPosition - 1)
+//                        recyclerView.scrollToPosition(lastVisiblePos);
                 }
             }
         });

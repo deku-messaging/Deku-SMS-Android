@@ -34,8 +34,10 @@ public class SingleMessageViewModel extends ViewModel {
     Pager<Integer, SMS> pager;
     SMSPaging smsPaging;
 
-    Integer currentLimit = 12;
+    public Integer currentLimit = 12;
     Integer offset = 0;
+
+    public boolean offsetStartedFromZero = true;
 
 //    public LiveData<PagingData<SMS>> getMessages(Context context, String threadId, Lifecycle lifecycle){
 //        this.threadId = threadId;
@@ -46,9 +48,16 @@ public class SingleMessageViewModel extends ViewModel {
 //        return liveData;
 //    }
 
-    public LiveData getMessages(Context context, String threadId){
+    public LiveData getMessages(Context context, String threadId, int offset){
         this.threadId = threadId;
         this.context = context;
+
+        if(offset > 0) {
+            offsetStartedFromZero = false;
+            offset = offset > 2 ? offset - (currentLimit/2) : offset;
+            this.offset = offset;
+        }
+        Log.d(getClass().getName(), "Loading data for offset: " + offset);
         this.mutableLiveData = new MutableLiveData(loadSMSThreads(offset, currentLimit));
         return mutableLiveData;
     }
@@ -70,7 +79,16 @@ public class SingleMessageViewModel extends ViewModel {
         }
     }
 
+    public void refreshDown() {
+        if(!offsetStartedFromZero) {
+            offset -= currentLimit;
+            if(offset < 0) offset = 0;
+            offset = _updateLiveData(offset);
+        }
+    }
+
     private Integer _updateLiveData(int offset) {
+        Log.d(getClass().getName(), "Updating live data...");
         List newSMS = loadSMSThreads(offset, currentLimit);
 
         if (!newSMS.isEmpty()) {
