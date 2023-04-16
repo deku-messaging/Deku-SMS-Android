@@ -204,34 +204,43 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         final String smsThreadId = sms.getThreadId();
         holder.id = smsThreadId;
 
-//        String message = sms.getBody();
-//        if(!searchString.isEmpty()) {
-//            Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
-//            for(int index = message.indexOf(searchString); index >=0;
-//                index = message.indexOf(searchString, index + 1)) {
-//
-//                spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(R.color.highlight_yellow)),
-//                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//
-//                spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(R.color.black)),
-//                        index, index + (searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//            }
-//        }
+        String message = sms.getBody();
+
+        Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
 
         if(sms.getType() == MESSAGE_TYPE_SENT) {
             String entityTitle = context.getString(R.string.messages_thread_you);
-            Spannable spannable = Spannable.Factory.getInstance().newSpannable(
-                    entityTitle + sms.getBody());
+            spannable = Spannable.Factory.getInstance().newSpannable( entityTitle + message);
+
             StyleSpan ItalicSpan = new StyleSpan(Typeface.ITALIC);
-            spannable.setSpan(ItalicSpan, 0, entityTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+            spannable.setSpan(ItalicSpan, 0, entityTitle.length(),
+                    Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
             ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(
                     context.getColor(R.color.primary_highlight_color));
 
-            spannable.setSpan(foregroundColorSpan, 0, entityTitle.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            holder.snippet.setText(spannable);
+            spannable.setSpan(foregroundColorSpan, 0, entityTitle.length(),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        else holder.snippet.setText(sms.getBody());
+
+        if(!this.searchString.isEmpty()) {
+            for(int index = spannable.toString().indexOf(searchString); index >=0;
+                index = spannable.toString().indexOf(searchString, index + 1)) {
+                Log.d(getClass().getName(), "Setting up index for: " + index);
+
+                spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(
+                        R.color.highlight_yellow, context.getTheme())),
+                        index, index + (this.searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//                index, index + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(
+                        R.color.black, context.getTheme())),
+                        index, index + (this.searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+
+        holder.snippet.setText(spannable);
 
         holder.state.setText(sms.getRouterStatus());
 

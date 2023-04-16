@@ -46,7 +46,7 @@
                 android:layout_marginBottom="4dp"
                 android:backgroundTintMode="add"
                 android:fontFamily="sans-serif-thin"
-                app:boxBackgroundColor="@color/logo_secondary"
+                app:boxBackgroundColor="@color/received_message_color"
                 app:boxBackgroundMode="filled"
                 app:boxStrokeWidth="0dp"
                 app:boxStrokeWidthFocused="0dp"
