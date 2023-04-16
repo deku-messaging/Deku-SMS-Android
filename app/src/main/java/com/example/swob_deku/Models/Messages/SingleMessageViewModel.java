@@ -83,12 +83,12 @@ public class SingleMessageViewModel extends ViewModel {
         if(!offsetStartedFromZero) {
             offset -= currentLimit;
             if(offset < 0) offset = 0;
+            Log.d(getClass().getName(), "Refreshing down...: " + offset);
             offset = _updateLiveData(offset);
         }
     }
 
     private Integer _updateLiveData(int offset) {
-        Log.d(getClass().getName(), "Updating live data...");
         List newSMS = loadSMSThreads(offset, currentLimit);
 
         if (!newSMS.isEmpty()) {
@@ -96,10 +96,12 @@ public class SingleMessageViewModel extends ViewModel {
 
             sms.addAll(newSMS);
 
+            Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
             mutableLiveData.setValue(sms);
 
             return offset;
         }
+
         return null;
     }
 

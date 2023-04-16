@@ -232,14 +232,14 @@ public class SMSSendActivity extends AppCompatActivity {
                     if(itemCount > scrollPosition + 1)
                         recyclerView.scrollToPosition(lastVisiblePos);
                 }
-                else if(!singleMessageViewModel.offsetStartedFromZero &&
-                        lastVisiblePos >= (scrollPosition/2)){
-                    Log.d(getLocalClassName(), "Should scroll downwards..");
-                    singleMessageViewModel.refreshDown();
+//                else if(!singleMessageViewModel.offsetStartedFromZero &&
+//                        lastVisiblePos >= (scrollPosition/2)){
+//                    Log.d(getLocalClassName(), "Should scroll downwards..");
+//                    singleMessageViewModel.refreshDown();
 //                    int itemCount = recyclerView.getAdapter().getItemCount();
-//                    if(itemCount > scrollPosition - 1)
+//                    if((scrollPosition /2) < itemCount)
 //                        recyclerView.scrollToPosition(lastVisiblePos);
-                }
+//                }
             }
         });
 
