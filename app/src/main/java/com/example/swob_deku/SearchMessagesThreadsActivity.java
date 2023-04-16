@@ -98,6 +98,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                         else
                             findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
                         messagesThreadRecyclerAdapter.submitList(smsList, searchString.getValue());
+                        messagesThreadRecyclerAdapter.notifyDataSetChanged();
                     }
                 });
     }

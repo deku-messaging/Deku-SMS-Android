@@ -211,6 +211,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         if(sms.getType() == MESSAGE_TYPE_SENT) {
             String entityTitle = context.getString(R.string.messages_thread_you);
             spannable = Spannable.Factory.getInstance().newSpannable( entityTitle + message);
+            message = spannable.toString();
 
             StyleSpan ItalicSpan = new StyleSpan(Typeface.ITALIC);
 
@@ -225,9 +226,11 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
 
         if(!this.searchString.isEmpty()) {
-            for(int index = spannable.toString().indexOf(searchString); index >=0;
-                index = spannable.toString().indexOf(searchString, index + 1)) {
-                Log.d(getClass().getName(), "Setting up index for: " + index);
+            String lowercaseMessage = message.toLowerCase();
+            String lowercaseSearchString = searchString.toLowerCase();
+
+            for(int index = lowercaseMessage.indexOf(lowercaseSearchString);
+                index >=0; index = lowercaseMessage.indexOf(lowercaseSearchString, index + 1)) {
 
                 spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(
                         R.color.highlight_yellow, context.getTheme())),
