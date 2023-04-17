@@ -5,20 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.provider.Telephony;
 import android.text.Spannable;
 import android.text.Spanned;
-import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -34,10 +29,8 @@ import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
 import com.example.swob_deku.ArchivedMessagesActivity;
-import com.example.swob_deku.BuildConfig;
-import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
@@ -46,11 +39,6 @@ import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.SMSSendActivity;
 
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.sql.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -172,7 +160,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(this.renderLayout, parent, false);
 
-        MessagesThreadRecyclerAdapter.ViewHolder viewHolder =  new MessagesThreadRecyclerAdapter.ViewHolder(view);
+        MessagesThreadRecyclerAdapter.ViewHolder viewHolder = new ViewHolder(view);
         if(viewType == UNREAD_VIEW_TYPE) {
             viewHolder.address.setTypeface(Typeface.DEFAULT_BOLD);
             viewHolder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
@@ -321,15 +309,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         mDiffer.submitList(list);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         public String id;
-        TextView snippet;
-        TextView address;
-        TextView date;
-        TextView state;
-        TextView routingUrl;
-        TextView routingURLText;
-        AvatarView contactPhoto;
+        public TextView snippet;
+        public TextView address;
+        public TextView date;
+        public TextView state;
+        public TextView routingUrl;
+        public TextView routingURLText;
+        public AvatarView contactPhoto;
 
         ConstraintLayout layout;
 

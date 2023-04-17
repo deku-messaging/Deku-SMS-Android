@@ -1,7 +1,5 @@
 package com.example.swob_deku;
 
-import static com.example.swob_deku.Models.SMS.SMSHandler.interpret_PDU;
-
 import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -10,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.text.Spannable;
@@ -30,7 +27,7 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
-import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServer.GatewayServer;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
@@ -39,10 +36,7 @@ import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

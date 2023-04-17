@@ -459,8 +459,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     public void onNewMessageClick(View view) {
-        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
-        startActivityForResult(intent, 1);
+//        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+//        startActivityForResult(intent, 1);
+
+        Intent intent = new Intent(this, ComposeNewMessageActivity.class);
+        startActivity(intent);
     }
 
     private void handleIncomingMessage() {

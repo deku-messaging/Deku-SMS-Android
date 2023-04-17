@@ -22,9 +22,12 @@
         android:theme="@style/Theme.main"
         android:usesCleartextTraffic="false">
         <activity
-            android:name=".ArchivedMessagesActivity"
-            android:parentActivityName=".MessagesThreadsActivity"
+            android:name=".ComposeNewMessageActivity"
             android:exported="false" />
+        <activity
+            android:name=".ArchivedMessagesActivity"
+            android:exported="false"
+            android:parentActivityName=".MessagesThreadsActivity" />
         <activity
             android:name=".ImageViewActivity"
             android:exported="false"

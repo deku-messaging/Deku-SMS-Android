@@ -20,7 +20,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SIMHandler;
