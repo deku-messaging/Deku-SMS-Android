@@ -173,6 +173,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             }
             dateView.setText(date);
 
+            messageReceivedViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(isHighlighted(sms.getId()))
+                        resetSelectedItem(sms.id);
+                }
+            });
+
             messageReceivedViewHandler.imageConstraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -257,10 +265,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             messageSentViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    int visibility = messageSentViewHandler.date.getVisibility() == View.VISIBLE ?
-                            View.INVISIBLE : View.VISIBLE;
-                    messageSentViewHandler.date.setVisibility(visibility);
-                    messageSentViewHandler.sentMessageStatus.setVisibility(visibility);
+                    if(isHighlighted(sms.getId()))
+                        resetSelectedItem(sms.id);
+                    else {
+                        int visibility = messageSentViewHandler.date.getVisibility() == View.VISIBLE ?
+                                View.INVISIBLE : View.VISIBLE;
+                        messageSentViewHandler.date.setVisibility(visibility);
+                        messageSentViewHandler.sentMessageStatus.setVisibility(visibility);
+                    }
                 }
             });
 
@@ -289,6 +301,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
 
         checkForAbsPositioning(smsId, holder);
+    }
+
+    public boolean isHighlighted(String smsId){
+        if(selectedItem.getValue() == null)
+            return false;
+        return selectedItem.getValue().containsKey(smsId);
     }
 
     public void checkForAbsPositioning(String smsId, RecyclerView.ViewHolder holder) {
