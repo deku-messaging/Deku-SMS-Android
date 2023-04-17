@@ -104,6 +104,8 @@ public class SMSSendActivity extends AppCompatActivity {
     public static final String SEARCH_STRING = "search_string";
     public static final String SEARCH_OFFSET = "search_offset";
 
+    public static final String SEARCH_POSITION = "search_position";
+
     public static final String SMS_SENT_INTENT = "SMS_SENT";
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
 
@@ -179,6 +181,9 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onChanged(List<SMS> smsList) {
                 Log.d(getLocalClassName(), "Paging data changed!");
                 singleMessagesThreadRecyclerAdapter.mDiffer.submitList(smsList);
+                if(getIntent().hasExtra(SEARCH_POSITION))
+                    singleMessagesThreadRecyclerView.scrollToPosition(
+                            getIntent().getIntExtra(SEARCH_POSITION, -1));
             }
         });
 
@@ -219,27 +224,33 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                final int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
+                final int lastTopVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
                         .findLastVisibleItemPosition();
 
-//                if(lastVisiblePos >= recyclerView.getAdapter().getItemCount() - 1) {
-                final int scrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
-                Log.d(getLocalClassName(), "Last visible position: " + lastVisiblePos);
-                Log.d(getLocalClassName(), "Scroll position: " + scrollPosition);
-                if(lastVisiblePos >= scrollPosition) {
+                final int firstVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
+                        .findFirstVisibleItemPosition();
+
+                final int maximumScrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
+
+                Log.d(getLocalClassName(), "Maximum scroll position: " + maximumScrollPosition);
+                Log.d(getLocalClassName(), "Last Top visible position: " + lastTopVisiblePosition);
+                Log.d(getLocalClassName(), "First Top visible position: " + firstVisibleItemPosition);
+
+                if(!singleMessageViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
+                    Log.d(getLocalClassName(), "Yes got scrolled!");
+                    int newSize = singleMessageViewModel.refreshDown();
+
+                    if(newSize > 0)
+                        recyclerView.scrollToPosition(lastTopVisiblePosition + newSize);
+//                    if(itemCount > maximumScrollPosition + 1)
+                }
+                else if(singleMessageViewModel.offsetStartedFromZero &&
+                        lastTopVisiblePosition >= maximumScrollPosition) {
                     singleMessageViewModel.refresh();
                     int itemCount = recyclerView.getAdapter().getItemCount();
-                    if(itemCount > scrollPosition + 1)
-                        recyclerView.scrollToPosition(lastVisiblePos);
+                    if(itemCount > maximumScrollPosition + 1)
+                        recyclerView.scrollToPosition(lastTopVisiblePosition);
                 }
-//                else if(!singleMessageViewModel.offsetStartedFromZero &&
-//                        lastVisiblePos >= (scrollPosition/2)){
-//                    Log.d(getLocalClassName(), "Should scroll downwards..");
-//                    singleMessageViewModel.refreshDown();
-//                    int itemCount = recyclerView.getAdapter().getItemCount();
-//                    if((scrollPosition /2) < itemCount)
-//                        recyclerView.scrollToPosition(lastVisiblePos);
-//                }
             }
         });
 

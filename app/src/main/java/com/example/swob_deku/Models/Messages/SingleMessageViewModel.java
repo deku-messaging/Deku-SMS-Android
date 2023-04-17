@@ -52,9 +52,11 @@ public class SingleMessageViewModel extends ViewModel {
         this.threadId = threadId;
         this.context = context;
 
-        if(offset > 0) {
+        if((offset - 1) > 0) {
             offsetStartedFromZero = false;
-            offset = offset > 2 ? offset - (currentLimit/2) : offset;
+//            offset = offset > 2 ? offset - (currentLimit/2) : offset;
+//            Log.d(getClass().getName(), "Offset in getting messages: " + (offset -1));
+//            offset -=1;
             this.offset = offset;
         }
         Log.d(getClass().getName(), "Loading data for offset: " + offset);
@@ -79,13 +81,22 @@ public class SingleMessageViewModel extends ViewModel {
         }
     }
 
-    public void refreshDown() {
-        if(!offsetStartedFromZero) {
-            offset -= currentLimit;
-            if(offset < 0) offset = 0;
-            Log.d(getClass().getName(), "Refreshing down...: " + offset);
-            offset = _updateLiveData(offset);
+    public int refreshDown() {
+        int newSize = 0;
+        if(!offsetStartedFromZero && offset != null) {
+            Log.d(getClass().getName(), "Old offset: " + offset);
+            int calculatedOffset = offset - currentLimit;
+            int newLimit = currentLimit;
+            if(calculatedOffset < 0) {
+                newLimit = offset;
+                offset = 0;
+            }
+            else offset = calculatedOffset;
+
+            Log.d(getClass().getName(), "New offset: " + offset);
+            newSize = _updateLiveDataDown(offset, newLimit);
         }
+        return newSize;
     }
 
     private Integer _updateLiveData(int offset) {
@@ -103,6 +114,24 @@ public class SingleMessageViewModel extends ViewModel {
         }
 
         return null;
+    }
+
+    private Integer _updateLiveDataDown(int offset, int limit) {
+        List newSMS = loadSMSThreads(offset, limit);
+
+        if (!newSMS.isEmpty()) {
+            ArrayList sms = (ArrayList) mutableLiveData.getValue();
+
+            ArrayList mergedList = new ArrayList();
+            mergedList.addAll(newSMS);
+            mergedList.addAll(sms);
+
+            Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
+            mutableLiveData.setValue(mergedList);
+
+        }
+        this.offset = offset == 0 ? null : offset;
+        return newSMS.size();
     }
 
     private List loadSMSThreads(Integer _offset, int limit) {

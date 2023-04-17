@@ -279,7 +279,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             holder.routingURLText.setVisibility(View.GONE);
         }
 
-
+        final int absolutePosition = holder.getAbsoluteAdapterPosition();
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -292,7 +292,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                     singleMessageThreadIntent
                             .putExtra(SMSSendActivity.ID, sms.getId())
                             .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
-                            .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset);
+                            .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
+                            .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
                 }
 
                 context.startActivity(singleMessageThreadIntent);
