@@ -28,6 +28,10 @@ public class ContactsViewModel extends ViewModel {
         return contactsMutableLiveData;
     }
 
+    public void filterContact(String details) {
+
+    }
+
     public void loadContacts(){
         Cursor cursor = Contacts.getPhonebookContacts(context);
         List<Contacts> contactsList = new ArrayList<>();
