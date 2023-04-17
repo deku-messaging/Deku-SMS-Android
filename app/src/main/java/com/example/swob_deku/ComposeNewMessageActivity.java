@@ -1,6 +1,8 @@
 package com.example.swob_deku;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,6 +28,15 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose_new_message);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.compose_new_message_toolbar);
+        setSupportActionBar(toolbar);
+        // Get a support ActionBar corresponding to this toolbar
+        ActionBar ab = getSupportActionBar();
+        // Enable the Up button
+        ab.setDisplayHomeAsUpEnabled(true);
+
+        ab.setTitle(getString(R.string.search_title));
 
         contactsViewModel = new ViewModelProvider(this).get(
                 ContactsViewModel.class);
