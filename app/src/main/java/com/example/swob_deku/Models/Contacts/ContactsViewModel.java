@@ -33,13 +33,15 @@ public class ContactsViewModel extends ViewModel {
         List<Contacts> contactsList = new ArrayList<>();
         if(cursor.moveToFirst()) {
             do {
-                int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
+                int idIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID);
+                int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME);
 //                int addressIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.NUMBER);
 
                 String displayName = String.valueOf(cursor.getString(displayNameIndex));
+                long id = cursor.getLong(idIndex);
 //                String address = String.valueOf(cursor.getString(addressIndex));
 
-                contactsList.add(new Contacts(displayName, displayName));
+                contactsList.add(new Contacts(context, id, displayName));
             } while(cursor.moveToNext());
         }
         cursor.close();

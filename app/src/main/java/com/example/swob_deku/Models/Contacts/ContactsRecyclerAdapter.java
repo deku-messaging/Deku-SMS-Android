@@ -36,7 +36,9 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Contacts contacts = mDiffer.getCurrentList().get(position);
         MessagesThreadRecyclerAdapter.ViewHolder viewHolder = (MessagesThreadRecyclerAdapter.ViewHolder) holder;
-        viewHolder.address.setText(contacts.number);
+
+        viewHolder.address.setText(contacts.contactName);
+        viewHolder.snippet.setText(contacts.number);
     }
 
     @Override

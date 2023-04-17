@@ -1,5 +1,6 @@
 package com.example.swob_deku.Models.Contacts;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -15,13 +16,36 @@ import com.example.swob_deku.Models.SMS.SMS;
 
 public class Contacts {
 
+    public long id;
+
     public String number;
     public String contactName;
 
-    public Contacts(String number, String contactName){
-        this.number = number;
+    Context context;
+
+    public Contacts(Context context, long id, String contactName){
+        this.id = id;
         this.contactName = contactName;
+        this.context = context;
+
+        getPhoneNumber();
     }
+
+    private void getPhoneNumber() {
+        String phoneNumber = "";
+        ContentResolver cr = context.getContentResolver();
+        Cursor phoneCursor = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                null,
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                new String[]{String.valueOf(id)},
+                null);
+        if (phoneCursor.moveToFirst()) {
+            this.number = phoneCursor.getString(
+                    phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+        }
+        phoneCursor.close();
+    }
+
 
     public static Cursor getPhonebookContacts(Context context) {
 //        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
