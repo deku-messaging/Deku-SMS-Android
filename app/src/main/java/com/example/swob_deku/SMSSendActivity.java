@@ -241,7 +241,7 @@ public class SMSSendActivity extends AppCompatActivity {
                     int newSize = singleMessageViewModel.refreshDown();
 
                     if(newSize > 0)
-                        recyclerView.scrollToPosition(lastTopVisiblePosition + newSize);
+                        recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
 //                    if(itemCount > maximumScrollPosition + 1)
                 }
                 else if(singleMessageViewModel.offsetStartedFromZero &&
