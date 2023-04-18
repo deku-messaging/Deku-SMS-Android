@@ -945,7 +945,12 @@ public class SMSSendActivity extends AppCompatActivity {
             });
         }
         else {
-            ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
+                }
+            });
         }
     }
 

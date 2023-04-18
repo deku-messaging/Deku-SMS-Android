@@ -39,8 +39,16 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
         Contacts contacts = mDiffer.getCurrentList().get(position);
         MessagesThreadRecyclerAdapter.ViewHolder viewHolder = (MessagesThreadRecyclerAdapter.ViewHolder) holder;
 
+        viewHolder.snippet.setMaxLines(1);
+        viewHolder.address.setMaxLines(1);
+        viewHolder.routingUrl.setVisibility(View.GONE);
+        viewHolder.routingURLText.setVisibility(View.GONE);
+        viewHolder.date.setVisibility(View.GONE);
+        viewHolder.state.setVisibility(View.GONE);
+
         viewHolder.address.setText(contacts.contactName);
         viewHolder.snippet.setText(contacts.number);
+
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

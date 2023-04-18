@@ -14,8 +14,8 @@ public class Contacts {
 
     public long id;
 
-    public String number;
-    public String contactName;
+    public String number = "";
+    public String contactName = "";
 
     Context context;
 
