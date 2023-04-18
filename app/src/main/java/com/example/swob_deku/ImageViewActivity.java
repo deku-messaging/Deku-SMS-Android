@@ -248,16 +248,20 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
 
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
-//        if(securityDH.hasSecretKey(address)){
-//            String secretKeyB64 = securityDH.securelyFetchSecretKey(address);
-//            Log.d(getLocalClassName(), "Yep encrypted...");
-//            compressedBytes = SecurityDH.encryptAES(compressedBytes,
-//                    Base64.decode(secretKeyB64, Base64.DEFAULT));
-//            compressedBytes = SecurityHelpers.waterMarkMessage(Base64.encodeToString(compressedBytes, Base64.DEFAULT))
-//                    .getBytes(StandardCharsets.UTF_8);
-//        }
-        ArrayList<String> dividedArray = smsManager.divideMessage(
-                Base64.encodeToString(compressedBytes, Base64.DEFAULT));
+        int numberOfmessages = -1;
+
+        if(securityDH.hasSecretKey(address)){
+            String secretKeyB64 = securityDH.securelyFetchSecretKey(address);
+            byte[] c = SecurityDH.encryptAES(compressedBytes,
+                    Base64.decode(secretKeyB64, Base64.DEFAULT));
+            c = SecurityHelpers.waterMarkMessage(ImageHandler.IMAGE_HEADER +
+                            Base64.encodeToString(c, Base64.DEFAULT))
+                    .getBytes(StandardCharsets.UTF_8);
+            numberOfmessages =
+                    smsManager.divideMessage( Base64.encodeToString(c, Base64.DEFAULT)).size();
+        }
+        else numberOfmessages = smsManager.divideMessage(
+                Base64.encodeToString(compressedBytes, Base64.DEFAULT)).size();
 
 //        byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
 //        byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
@@ -272,7 +276,7 @@ public class ImageViewActivity extends AppCompatActivity {
         imageQuality.setText("Quality " + COMPRESSION_RATIO + "%");
 
         TextView imageSMSCount = findViewById(R.id.image_details_sms_count);
-        imageSMSCount.setText(dividedArray.size() + " Messages");
+        imageSMSCount.setText(numberOfmessages + " Messages");
 
     }
 
