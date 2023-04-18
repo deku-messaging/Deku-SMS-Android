@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -22,6 +23,7 @@ import com.example.swob_deku.Models.Contacts.ContactsViewModel;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.util.List;
 
@@ -67,19 +69,26 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
         });
 
         TextInputEditText textInputEditText = findViewById(R.id.compose_new_message_to);
-        textInputEditText.setOnKeyListener(new View.OnKeyListener() {
+        textInputEditText.addTextChangedListener(new TextWatcher() {
             @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                Log.d(getLocalClassName(), "keycode: " + keyCode);
-                Log.d(getLocalClassName(), "event: " + event.toString() + "\n");
-                if(event.getAction() == KeyEvent.ACTION_UP) {
-                    Editable editable = textInputEditText.getText();
-                    if (editable != null) {
-                        contactFilter.setValue(editable.toString());
-                        return true;
-                    }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s != null && !s.toString().isEmpty()) {
+                    contactFilter.setValue(s.toString());
                 }
-                return false;
+                else {
+                    Log.d(getLocalClassName(), "Yep it's empty string...");
+                    contactFilter.setValue("");
+                }
             }
         });
 
@@ -87,6 +96,11 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
             @Override
             public void onChanged(String s) {
                 Log.d(getLocalClassName(), "Yep should change search");
+                try {
+                    contactsViewModel.filterContact(s);
+                } catch (NumberParseException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }

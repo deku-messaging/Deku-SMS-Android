@@ -5,14 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
-
-import com.example.swob_deku.BuildConfig;
-import com.example.swob_deku.Models.SMS.SMS;
 
 public class Contacts {
 
@@ -46,6 +42,18 @@ public class Contacts {
         phoneCursor.close();
     }
 
+
+    public static Cursor filterPhonebookContactsByName(Context context, String filter) {
+//        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
+        Uri uri = ContactsContract.Contacts.CONTENT_URI;
+        Cursor cursor = context.getContentResolver().query(
+                uri,
+                null,
+                ContactsContract.Contacts.DISPLAY_NAME + " like ?",
+                new String[]{ "%" + filter + "%"},
+                null);
+        return cursor;
+    }
 
     public static Cursor getPhonebookContacts(Context context) {
 //        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
