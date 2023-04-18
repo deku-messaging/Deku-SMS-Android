@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.util.Base64;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -26,8 +27,12 @@ import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 
 public class ImageViewActivity extends AppCompatActivity {
@@ -73,15 +78,15 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView = findViewById(R.id.compressed_image_holder);
         imageDescription = findViewById(R.id.image_details_size);
 
+        address = getIntent().getStringExtra(SMSSendActivity.ADDRESS);
+        threadId = getIntent().getStringExtra(SMSSendActivity.THREAD_ID);
+
+        String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                address: contactName;
+
+        ab.setTitle(contactName);
         if(getIntent().hasExtra(IMAGE_INTENT_EXTRA)) {
-            threadId = getIntent().getStringExtra(SMSSendActivity.THREAD_ID);
-            address = getIntent().getStringExtra(SMSSendActivity.ADDRESS);
-            String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
-            contactName = (contactName.equals("null") || contactName.isEmpty()) ?
-                    address: contactName;
-
-            ab.setTitle(contactName);
-
             String smsId = getIntent().getStringExtra(IMAGE_INTENT_EXTRA);
 
             // TODO: Get all messages which have the Ref ID
@@ -103,8 +108,6 @@ public class ImageViewActivity extends AppCompatActivity {
             cursor.close();
         }
         else {
-            address = getIntent().getStringExtra(SMSSendActivity.ADDRESS);
-            threadId = getIntent().getStringExtra(SMSSendActivity.THREAD_ID);
             imageUri = Uri.parse(getIntent().getStringExtra(SMSSendActivity.IMAGE_URI));
 
             try {
@@ -125,7 +128,7 @@ public class ImageViewActivity extends AppCompatActivity {
                 changedResolution = MAX_RESOLUTION;
                 buildImage();
                 changeResolution(getMaxResolution());
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
         }
@@ -186,7 +189,7 @@ public class ImageViewActivity extends AppCompatActivity {
                 // TODO: compress the image
                 try {
                     buildImage();
-                } catch (IOException e) {
+                } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -226,7 +229,7 @@ public class ImageViewActivity extends AppCompatActivity {
         return imageHandler.getMaxResolution();
     }
 
-    private void buildImage() throws IOException {
+    private void buildImage() throws Throwable {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 getSystemService(SmsManager.class) : SmsManager.getDefault();
 
@@ -241,6 +244,18 @@ public class ImageViewActivity extends AppCompatActivity {
         Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
 
+        compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
+        imageView.setImageBitmap(compressedBitmap);
+
+        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+//        if(securityDH.hasSecretKey(address)){
+//            String secretKeyB64 = securityDH.securelyFetchSecretKey(address);
+//            Log.d(getLocalClassName(), "Yep encrypted...");
+//            compressedBytes = SecurityDH.encryptAES(compressedBytes,
+//                    Base64.decode(secretKeyB64, Base64.DEFAULT));
+//            compressedBytes = SecurityHelpers.waterMarkMessage(Base64.encodeToString(compressedBytes, Base64.DEFAULT))
+//                    .getBytes(StandardCharsets.UTF_8);
+//        }
         ArrayList<String> dividedArray = smsManager.divideMessage(
                 Base64.encodeToString(compressedBytes, Base64.DEFAULT));
 
@@ -259,8 +274,6 @@ public class ImageViewActivity extends AppCompatActivity {
         TextView imageSMSCount = findViewById(R.id.image_details_sms_count);
         imageSMSCount.setText(dividedArray.size() + " Messages");
 
-        compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
-        imageView.setImageBitmap(compressedBitmap);
     }
 
     public void sendImage(View view) throws InterruptedException {

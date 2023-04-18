@@ -126,6 +126,23 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         return input;
     }
 
+    private byte[] decryptImageContent(byte[] input) {
+        if(this.secretKey != null &&
+                input.length > 16
+                        + SecurityHelpers.ENCRYPTED_WATERMARK_START.length()
+                        + SecurityHelpers.ENCRYPTED_WATERMARK_END.length()
+                && SecurityHelpers.containersWaterMark(String.valueOf(input))) {
+            try {
+                return SecurityDH.decryptAES(Base64.decode(
+                                SecurityHelpers.removeWaterMarkMessage(String.valueOf(input)), Base64.DEFAULT),
+                        secretKey);
+            } catch(Throwable e ) {
+                e.printStackTrace();
+            }
+        }
+        return input;
+    }
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 //        final SMS sms = (SMS) snapshot().get(position);
@@ -158,8 +175,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             dateView.setVisibility(View.INVISIBLE);
 
             ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
-            if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
-                byte[] body = Base64.decode(sms.getBody()
+            if(text.contains(ImageHandler.IMAGE_HEADER)) {
+                byte[] body = Base64.decode(text
                         .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
 
                 Bitmap bitmap = BitmapFactory.decodeByteArray(body, 0, body.length);
