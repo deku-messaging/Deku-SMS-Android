@@ -479,36 +479,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onActivityResult(int reqCode, int resultCode, Intent data) {
-        super.onActivityResult(reqCode, resultCode, data);
-
-        switch (reqCode) {
-            case (1) :
-                if (resultCode == Activity.RESULT_OK) {
-                    Uri contactData = data.getData();
-                    Cursor contactCursor = getApplicationContext().getContentResolver().query(
-                            contactData,
-                            null,
-                            null,
-                            null,
-                            null);
-
-                    if(contactCursor != null) {
-                        if (contactCursor.moveToFirst()) {
-                            int contactIndexInformation = contactCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                            String number = contactCursor.getString(contactIndexInformation);
-
-                            Intent singleMessageThreadIntent = new Intent(this, SMSSendActivity.class);
-                            singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, number);
-                            startActivity(singleMessageThreadIntent);
-                        }
-                    }
-                }
-                break;
-        }
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();

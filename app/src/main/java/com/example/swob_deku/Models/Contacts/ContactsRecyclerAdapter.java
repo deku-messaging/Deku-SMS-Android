@@ -1,6 +1,7 @@
 package com.example.swob_deku.Models.Contacts;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.R;
+import com.example.swob_deku.SMSSendActivity;
 
 import java.util.List;
 
@@ -39,6 +41,15 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
         viewHolder.address.setText(contacts.contactName);
         viewHolder.snippet.setText(contacts.number);
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+                singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, contacts.number);
+                context.startActivity(singleMessageThreadIntent);
+            }
+        });
     }
 
     @Override
