@@ -160,7 +160,6 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
         Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
 
         receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
-//        receivedSmsIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
 
@@ -203,13 +202,12 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
             }
             cursor1.close();
 
-            Log.d(BroadcastSMSTextActivity.class.getName(), "Unread messages for notific: " + unreadMessages.size());
-
             receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             // TODO: check request code and make some changes
-            PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity(
-                    context, 0, receivedSmsIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
+                    Integer.parseInt(sms.getThreadId()),
+                    receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
+//                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
             NotificationCompat.Builder builder = new NotificationCompat.Builder(
                     context, context.getString(R.string.CHANNEL_ID))
