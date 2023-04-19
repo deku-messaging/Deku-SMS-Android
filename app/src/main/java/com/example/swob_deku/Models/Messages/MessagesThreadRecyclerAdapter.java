@@ -67,6 +67,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
     private int UNREAD_VIEW_TYPE = 1;
+    private int SENT_VIEW_TYPE = 2;
+    private int SENT_UNREAD_VIEW_TYPE = 3;
 
     private String getSMSFromWorkInfo(WorkInfo workInfo) {
         String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
@@ -160,13 +162,27 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(this.renderLayout, parent, false);
 
-        MessagesThreadRecyclerAdapter.ViewHolder viewHolder = new ViewHolder(view);
         if(viewType == UNREAD_VIEW_TYPE) {
+            MessagesThreadRecyclerAdapter.ViewHolder viewHolder = new ViewHolder(view);
             viewHolder.address.setTypeface(Typeface.DEFAULT_BOLD);
             viewHolder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
             viewHolder.date.setTypeface(Typeface.DEFAULT_BOLD);
+
+            return viewHolder;
+        } else if(viewType == SENT_UNREAD_VIEW_TYPE) {
+            MessagesThreadRecyclerAdapter.SentViewHolderUnread sentViewHolderUnread = new SentViewHolderUnread(view);
+            sentViewHolderUnread.youLabel.setTypeface(Typeface.DEFAULT_BOLD);
+            sentViewHolderUnread.youLabel.setVisibility(View.VISIBLE);
+
+            return sentViewHolderUnread;
+        } else if(viewType == SENT_VIEW_TYPE) {
+            MessagesThreadRecyclerAdapter.SentViewHolderUnread sentViewHolderUnread = new SentViewHolderUnread(view);
+            sentViewHolderUnread.youLabel.setVisibility(View.VISIBLE);
+
+            return sentViewHolderUnread;
         }
-        return viewHolder;
+
+        return new ViewHolder(view);
     }
 
     public boolean checkPermissionToReadContacts() {
@@ -179,10 +195,14 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     public int getItemViewType(int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
         if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
-//            holder.address.setTypeface(Typeface.DEFAULT_BOLD);
-//            holder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
+            if(sms.getType() == MESSAGE_TYPE_SENT)
+                return SENT_UNREAD_VIEW_TYPE;
+
             return UNREAD_VIEW_TYPE;
         }
+        else if(sms.getType() == MESSAGE_TYPE_SENT)
+            return SENT_VIEW_TYPE;
+
         return super.getItemViewType(position);
     }
 
@@ -195,23 +215,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         String message = sms.getBody();
 
         Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
-
-        if(sms.getType() == MESSAGE_TYPE_SENT) {
-            String entityTitle = context.getString(R.string.messages_thread_you);
-            spannable = Spannable.Factory.getInstance().newSpannable( entityTitle + message);
-            message = spannable.toString();
-
-            StyleSpan ItalicSpan = new StyleSpan(Typeface.ITALIC);
-
-            spannable.setSpan(ItalicSpan, 0, entityTitle.length(),
-                    Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-
-            ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(
-                    context.getColor(R.color.primary_highlight_color));
-
-            spannable.setSpan(foregroundColorSpan, 0, entityTitle.length(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
 
         if(!this.searchString.isEmpty()) {
             String lowercaseMessage = message.toLowerCase();
@@ -332,6 +335,20 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             routingUrl = itemView.findViewById(R.id.message_route_url);
             routingURLText = itemView.findViewById(R.id.message_route_status);
             contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
+        }
+    }
+
+    public static class SentViewHolder extends ViewHolder {
+        public TextView youLabel;
+        public SentViewHolder(@NonNull View itemView) {
+            super(itemView);
+            youLabel = itemView.findViewById(R.id.message_you_label);
+            youLabel.setVisibility(View.VISIBLE);
+        }
+    }
+    public static class SentViewHolderUnread extends SentViewHolder {
+        public SentViewHolderUnread(@NonNull View itemView) {
+            super(itemView);
         }
     }
 
