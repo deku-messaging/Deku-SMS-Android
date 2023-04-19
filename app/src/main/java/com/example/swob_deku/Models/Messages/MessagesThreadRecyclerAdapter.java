@@ -202,9 +202,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         String message = sms.getBody();
 
-        Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
-
         if(!this.searchString.isEmpty()) {
+            Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
             String lowercaseMessage = message.toLowerCase();
             String lowercaseSearchString = searchString.toLowerCase();
 
@@ -220,9 +219,9 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                         R.color.black, context.getTheme())),
                         index, index + (this.searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
+            holder.snippet.setText(spannable);
         }
-
-        holder.snippet.setText(spannable);
+        else holder.snippet.setText(message);
 
         holder.state.setText(sms.getRouterStatus());
 
