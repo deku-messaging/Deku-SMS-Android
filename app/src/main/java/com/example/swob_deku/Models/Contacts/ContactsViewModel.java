@@ -40,6 +40,13 @@ public class ContactsViewModel extends ViewModel {
 
         if(PhoneNumberUtils.isWellFormedSmsAddress(details)) {
             contactsList = filterContactsForPhonenumber(details);
+            if(contactsList.isEmpty()) {
+                Contacts contacts = new Contacts();
+                contacts.contactName = "Send to " + details;
+                contacts.number = details;
+                contacts.type = Contacts.TYPE_NEW_CONTACT;
+                contactsList.add(contacts);
+            }
         } else {
             Cursor cursor = Contacts.filterPhonebookContactsByName(context, details);
             Log.d(getClass().getName(), "Found filter by name: " + cursor.getCount() + ":" + details);

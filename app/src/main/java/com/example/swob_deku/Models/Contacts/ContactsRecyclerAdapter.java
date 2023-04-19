@@ -41,6 +41,7 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
         viewHolder.snippet.setMaxLines(1);
         viewHolder.address.setMaxLines(1);
+
         viewHolder.routingUrl.setVisibility(View.GONE);
         viewHolder.routingURLText.setVisibility(View.GONE);
         viewHolder.date.setVisibility(View.GONE);
@@ -48,7 +49,6 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
         viewHolder.address.setText(contacts.contactName);
         viewHolder.snippet.setText(contacts.number);
-
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

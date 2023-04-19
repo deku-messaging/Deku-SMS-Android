@@ -9,8 +9,12 @@ import android.provider.ContactsContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.room.Ignore;
 
 public class Contacts {
+
+    @Ignore
+    public int type;
 
     public long id;
 
@@ -19,13 +23,19 @@ public class Contacts {
 
     Context context;
 
+    public static final int TYPE_OLD_CONTACT = 1;
+    public static final int TYPE_NEW_CONTACT = 2;
+
     public Contacts(Context context, long id, String contactName){
         this.id = id;
         this.contactName = contactName;
         this.context = context;
+        this.type = TYPE_OLD_CONTACT;
 
         getPhoneNumber();
     }
+
+    public Contacts(){ }
 
     private void getPhoneNumber() {
         String phoneNumber = "";
