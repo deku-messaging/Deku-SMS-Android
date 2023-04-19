@@ -163,23 +163,11 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         View view = inflater.inflate(this.renderLayout, parent, false);
 
         if(viewType == UNREAD_VIEW_TYPE) {
-            MessagesThreadRecyclerAdapter.ViewHolder viewHolder = new ViewHolder(view);
-            viewHolder.address.setTypeface(Typeface.DEFAULT_BOLD);
-            viewHolder.snippet.setTypeface(Typeface.DEFAULT_BOLD);
-            viewHolder.date.setTypeface(Typeface.DEFAULT_BOLD);
-
-            return viewHolder;
+            return new UnreadViewHolder(view);
         } else if(viewType == SENT_UNREAD_VIEW_TYPE) {
-            MessagesThreadRecyclerAdapter.SentViewHolderUnread sentViewHolderUnread = new SentViewHolderUnread(view);
-            sentViewHolderUnread.youLabel.setTypeface(Typeface.DEFAULT_BOLD);
-            sentViewHolderUnread.youLabel.setVisibility(View.VISIBLE);
-
-            return sentViewHolderUnread;
+            return new SentViewHolderUnread(view);
         } else if(viewType == SENT_VIEW_TYPE) {
-            MessagesThreadRecyclerAdapter.SentViewHolderUnread sentViewHolderUnread = new SentViewHolderUnread(view);
-            sentViewHolderUnread.youLabel.setVisibility(View.VISIBLE);
-
-            return sentViewHolderUnread;
+            return new SentViewHolder(view);
         }
 
         return new ViewHolder(view);
@@ -321,6 +309,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         public TextView routingUrl;
         public TextView routingURLText;
         public AvatarView contactPhoto;
+        public TextView youLabel;
 
         ConstraintLayout layout;
 
@@ -335,20 +324,33 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             routingUrl = itemView.findViewById(R.id.message_route_url);
             routingURLText = itemView.findViewById(R.id.message_route_status);
             contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
+            youLabel = itemView.findViewById(R.id.message_you_label);
+        }
+    }
+
+    public static class UnreadViewHolder extends ViewHolder {
+
+        public UnreadViewHolder(@NonNull View itemView) {
+            super(itemView);
+            address.setTypeface(Typeface.DEFAULT_BOLD);
+            snippet.setTypeface(Typeface.DEFAULT_BOLD);
+            date.setTypeface(Typeface.DEFAULT_BOLD);
+            youLabel.setTypeface(Typeface.DEFAULT_BOLD);
         }
     }
 
     public static class SentViewHolder extends ViewHolder {
-        public TextView youLabel;
         public SentViewHolder(@NonNull View itemView) {
             super(itemView);
-            youLabel = itemView.findViewById(R.id.message_you_label);
+            snippet.setMaxLines(1);
             youLabel.setVisibility(View.VISIBLE);
         }
     }
-    public static class SentViewHolderUnread extends SentViewHolder {
+    public static class SentViewHolderUnread extends UnreadViewHolder {
         public SentViewHolderUnread(@NonNull View itemView) {
             super(itemView);
+            snippet.setMaxLines(1);
+            youLabel.setVisibility(View.VISIBLE);
         }
     }
 

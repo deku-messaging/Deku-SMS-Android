@@ -212,7 +212,8 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(
                     context, context.getString(R.string.CHANNEL_ID))
                     .setDefaults(Notification.DEFAULT_ALL)
-                    .setSmallIcon(R.drawable.ic_round_chat_bubble_24)
+//                    .setSmallIcon(R.drawable.ic_round_chat_bubble_24)
+                    .setSmallIcon(R.drawable.ic_stat_name)
                     .setContentIntent(pendingReceivedSmsIntent)
                     .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                     .setAutoCancel(true)
