@@ -189,7 +189,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                         SpannableStringBuilder spannableMessage = new SpannableStringBuilder(message);
                         spannableMessage.setSpan(ItalicSpan, 0, message.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                         unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
-                                spannableMessage + "\n",
+                                spannableMessage,
                                 Long.parseLong(unreadSMS.getDate()),
                                 spannable));
                     }
@@ -221,6 +221,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 
             NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle("Me");
             messagingStyle.setConversationTitle(context.getString(R.string.notification_title));
+//            messagingStyle.setConversationTitle(contactName);
             for(NotificationCompat.MessagingStyle.Message message : unreadMessages) {
                 messagingStyle.addMessage(message);
             }
