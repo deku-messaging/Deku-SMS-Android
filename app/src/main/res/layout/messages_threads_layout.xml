@@ -110,7 +110,7 @@
         android:id="@+id/message_you_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="You:"
+        android:text="@string/messages_thread_you"
         android:textColor="@color/primary_highlight_color"
         android:textStyle="italic"
         android:visibility="gone"
