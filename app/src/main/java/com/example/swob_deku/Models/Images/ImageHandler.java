@@ -6,6 +6,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -75,6 +78,7 @@ public class ImageHandler {
         byte[] compressedBitmapBytes = byteArrayOutputStream.toByteArray();
         return compressedBitmapBytes;
     }
+
 
     public byte[] compressImage(int compressionRatio) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -294,6 +298,7 @@ public class ImageHandler {
     public Bitmap resizeImage(double resValue) throws IOException {
         // use ratios for compressions rather than just raw values
         Log.d(getClass().getName(), "Resizing value: " + resValue);
+
         if(this.bitmap.getWidth() < resValue && this.bitmap.getHeight() < resValue)
             return this.bitmap;
 
@@ -304,6 +309,31 @@ public class ImageHandler {
 
         this.edited = true;
         return Bitmap.createScaledBitmap(this.bitmap, width, height, true);
+    }
+
+    public static Bitmap removeAlpha(Bitmap bitmap) {
+        if(bitmap.hasAlpha()) {
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+
+            Bitmap.Config config = Bitmap.Config.RGB_565; // or Bitmap.Config.ARGB_8888 for higher quality
+            Bitmap newBitmap = Bitmap.createBitmap(width, height, config);
+
+            Canvas canvas = new Canvas(newBitmap);
+            canvas.drawColor(Color.WHITE); // set background color
+
+            Paint paint = new Paint();
+            paint.setAntiAlias(true);
+            paint.setDither(true);
+            paint.setFilterBitmap(true);
+
+            canvas.drawBitmap(bitmap, 0, 0, paint);
+
+//            bitmap.recycle(); // release original bitmap memory
+
+            return newBitmap;
+        }
+        return bitmap;
     }
 
     public int getMaxResolution() {

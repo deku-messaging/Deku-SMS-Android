@@ -3,6 +3,7 @@ package com.example.swob_deku;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.compose.ui.graphics.ImageBitmap;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -42,7 +43,6 @@ public class ImageViewActivity extends AppCompatActivity {
 
     TextView imageDescription;
 
-    Bitmap compressedBitmap;
     byte[] compressedBytes;
 
     String address = "";
@@ -221,8 +221,9 @@ public class ImageViewActivity extends AppCompatActivity {
         Button button = findViewById(R.id.image_send_btn);
         button.setVisibility(View.GONE);
 
-        compressedBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+        Bitmap compressedBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
         imageView.setImageBitmap(compressedBitmap);
+        compressedBitmap.recycle();
     }
 
     private int getMaxResolution() {
@@ -242,10 +243,15 @@ public class ImageViewActivity extends AppCompatActivity {
 //        compressedBytes = byteArrayOutputStream.toByteArray();
 
         Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
-        compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
+        imageBitmap = ImageHandler.removeAlpha(imageBitmap);
 
-        compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
+        compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
+//        Log.d(getLocalClassName(), Base64.encodeToString(compressedBytes, Base64.DEFAULT));
+//        System.out.println(Base64.encodeToString(compressedBytes, Base64.DEFAULT));
+
+        Bitmap compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
         imageView.setImageBitmap(compressedBitmap);
+//        compressedBitmap.recycle();
 
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         int numberOfmessages = -1;
