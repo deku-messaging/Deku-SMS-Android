@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -306,10 +307,49 @@ public class ImageHandler {
         int width = dimensions[0];
         int height = dimensions[1];
 
-
         this.edited = true;
         return Bitmap.createScaledBitmap(this.bitmap, width, height, true);
     }
+
+
+    /**
+     * Bitmap.Config.ARGB_8888 will produce the best quality image.
+     * This is because it uses 32 bits per pixel, which allows for a wider range of colors and more detail.
+     * createScaledBitmap will produce a lower quality image, because it uses a lower bit depth.
+     * However, it will use less memory and be faster to render.
+     *
+     * Here is a table that summarizes the differences between the two methods:
+     *
+     * | Method | Bit depth | Quality | Memory usage | Speed |
+     * |---|---|---|---|---|
+     * | Bitmap.Config.ARGB_8888 | 32 bits | Best | High | Slow |
+     * | createScaledBitmap | Lower bit depth | Lower | Low | Fast |
+     *
+     * Ultimately, the best method to use depends on your specific needs.
+     * If you need the best possible quality image, then use Bitmap.Config.ARGB_8888.
+     * If you need a lower quality image that uses less memory and is faster to render, then use createScaledBitmap.
+     */
+
+//    public Bitmap resizeImage(double resValue) {
+//        // Create a new bitmap with the desired width and height
+//        if(this.bitmap.getWidth() < resValue && this.bitmap.getHeight() < resValue)
+//            return this.bitmap;
+//
+//        int[] dimensions = getDimension(this.bitmap.getWidth(), this.bitmap.getHeight(), resValue);
+//        int width = dimensions[0];
+//        int height = dimensions[1];
+//
+//        Bitmap resizedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+//
+//        // Create a canvas and draw the original bitmap onto it at the desired size
+//        Canvas canvas = new Canvas(resizedBitmap);
+//        RectF destRect = new RectF(0, 0, width, height);
+//        canvas.drawBitmap(bitmap, null, destRect, null);
+//
+//        // Return the resized bitmap
+//        return resizedBitmap;
+//    }
+
 
     public static Bitmap removeAlpha(Bitmap bitmap) {
         if(bitmap.hasAlpha()) {
