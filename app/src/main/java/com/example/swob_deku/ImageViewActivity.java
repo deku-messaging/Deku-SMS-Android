@@ -22,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Images.ImageHandler;
@@ -31,10 +32,15 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.Inflater;
 
 public class ImageViewActivity extends AppCompatActivity {
 
@@ -230,6 +236,32 @@ public class ImageViewActivity extends AppCompatActivity {
         return imageHandler.getMaxResolution();
     }
 
+    private byte[] compress(byte[] input) {
+
+//        byte[] compressGzip = Compression.compressLZ4(compressDeflate);
+//        Log.d(getLocalClassName(), "Gzip compression: " + compressGzip.length);
+
+
+//        for(int i=0;i<decompressGZIP.length; ++i) {
+//            if(decompressGZIP[i] != c[i]) {
+//                Log.d(getLocalClassName(), "Different things came back!");
+//                break;
+//            }
+//        }
+//        return compressGzip;
+        return Compression.compressDeflate(input);
+//        return input;
+    }
+
+    private byte[] decompress(byte[] input) throws DataFormatException {
+//        byte[] decompressGZIP = Compression.decompressGZIP(input);
+//        Log.d(getLocalClassName(), "Gzip decompressed: " + decompressGZIP.length);
+//
+//        return Compression.decompressDeflate(decompressGZIP);
+        return input;
+    }
+
+
     private void buildImage() throws Throwable {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 getSystemService(SmsManager.class) : SmsManager.getDefault();
@@ -249,6 +281,8 @@ public class ImageViewActivity extends AppCompatActivity {
 //        Log.d(getLocalClassName(), Base64.encodeToString(compressedBytes, Base64.DEFAULT));
 //        System.out.println(Base64.encodeToString(compressedBytes, Base64.DEFAULT));
 
+//        compressedBytes = compress(compressedBytes);
+//        compressedBytes = decompress(compressedBytes);
         Bitmap compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
         imageView.setImageBitmap(compressedBitmap);
 //        compressedBitmap.recycle();
@@ -256,18 +290,23 @@ public class ImageViewActivity extends AppCompatActivity {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         int numberOfmessages = -1;
 
+        String content = ImageHandler.IMAGE_HEADER +
+                Base64.encodeToString(compressedBytes, Base64.DEFAULT);
+        byte[] c = compress(content.getBytes(StandardCharsets.UTF_8));
         if(securityDH.hasSecretKey(address)){
             String secretKeyB64 = securityDH.securelyFetchSecretKey(address);
-            byte[] c = SecurityDH.encryptAES(compressedBytes,
-                    Base64.decode(secretKeyB64, Base64.DEFAULT));
-            c = SecurityHelpers.waterMarkMessage(ImageHandler.IMAGE_HEADER +
-                            Base64.encodeToString(c, Base64.DEFAULT))
+            c = SecurityDH.encryptAES(c, Base64.decode(secretKeyB64, Base64.DEFAULT));
+            content = Base64.encodeToString(c, Base64.DEFAULT);
+            c = SecurityHelpers.waterMarkMessage(content)
                     .getBytes(StandardCharsets.UTF_8);
+            Log.d(getLocalClassName(), "Original no compression: " + c.length);
+            c = compress(c);
+
             numberOfmessages =
                     smsManager.divideMessage( Base64.encodeToString(c, Base64.DEFAULT)).size();
         }
         else numberOfmessages = smsManager.divideMessage(
-                Base64.encodeToString(compressedBytes, Base64.DEFAULT)).size();
+                Base64.encodeToString(c, Base64.DEFAULT)).size();
 
 //        byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
 //        byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
@@ -294,9 +333,13 @@ public class ImageViewActivity extends AppCompatActivity {
 
         int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
 
+//        byte[] txBytes = compressedBytes
+        String content = ImageHandler.IMAGE_HEADER +
+                Base64.encodeToString(compressedBytes, Base64.DEFAULT);
+
         String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
                 address,
-                ImageHandler.IMAGE_HEADER + Base64.encodeToString(compressedBytes, Base64.DEFAULT),
+                content,
                 messageId,
                 subscriptionId);
 

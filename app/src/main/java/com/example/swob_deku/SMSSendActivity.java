@@ -643,12 +643,6 @@ public class SMSSendActivity extends AppCompatActivity {
         smsTextView.getText().clear();
     }
 
-    public boolean checkPermissionToSendSMSMessages() {
-        int check = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS);
-
-        return (check == PackageManager.PERMISSION_GRANTED);
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
