@@ -10,7 +10,6 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +32,7 @@ import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.RouterActivity;
 import com.example.swob_deku.BroadcastSMSTextActivity;
@@ -61,14 +61,21 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     LiveData<List<WorkInfo>> workers;
 
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
+    final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
     final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
     final int MESSAGE_TYPE_OUTBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    private int UNREAD_VIEW_TYPE = 1;
-    private int SENT_VIEW_TYPE = 2;
-    private int SENT_UNREAD_VIEW_TYPE = 3;
+    private final int RECEIVED_VIEW_TYPE = 1;
+    private final int RECEIVED_UNREAD_VIEW_TYPE = 2;
+    private final int RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE = 3;
+    private final int RECEIVED_ENCRYPTED_VIEW_TYPE = 4;
+
+    private final int SENT_VIEW_TYPE = 5;
+    private final int SENT_UNREAD_VIEW_TYPE = 6;
+    private final int SENT_ENCRYPTED_UNREAD_VIEW_TYPE = 7;
+    private final int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
     private String getSMSFromWorkInfo(WorkInfo workInfo) {
         String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
@@ -162,12 +169,22 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(this.renderLayout, parent, false);
 
-        if(viewType == UNREAD_VIEW_TYPE) {
+        if(viewType == RECEIVED_UNREAD_VIEW_TYPE) {
             return new UnreadViewHolder(view);
         } else if(viewType == SENT_UNREAD_VIEW_TYPE) {
             return new SentViewHolderUnread(view);
+        } else if(viewType == RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE) {
+            return new UnreadEncryptedViewHolder(view);
+        } else if(viewType == SENT_ENCRYPTED_UNREAD_VIEW_TYPE) {
+            return new SentEncryptedViewHolderUnread(view);
         } else if(viewType == SENT_VIEW_TYPE) {
             return new SentViewHolder(view);
+        } else if(viewType == RECEIVED_VIEW_TYPE) {
+            return new ViewHolder(view);
+        } else if(viewType == SENT_ENCRYPTED_VIEW_TYPE) {
+            return new SentEncryptedViewHolder(view);
+        } else if(viewType == RECEIVED_ENCRYPTED_VIEW_TYPE) {
+            return new EncryptedViewHolder(view);
         }
 
         return new ViewHolder(view);
@@ -182,16 +199,44 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     @Override
     public int getItemViewType(int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
-        if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
-            if(sms.getType() == MESSAGE_TYPE_SENT)
-                return SENT_UNREAD_VIEW_TYPE;
+//        if(sms.getType() == MESSAGE_TYPE_SENT) {
+//            if(SecurityHelpers.containersWaterMark(sms.getBody()))
+//                if(SMSHandler.hasUnreadMessages(context, sms.getThreadId()))
+//                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
+//                else return SENT_ENCRYPTED_VIEW_TYPE;
+//
+//            return SENT_VIEW_TYPE;
+//        }
+//        else if(SMSHandler.hasUnreadMessages())
+//            return UNREAD_ENCRYPTED_VIEW_TYPE;
 
-            return UNREAD_VIEW_TYPE;
+        if(SecurityHelpers.containersWaterMark(sms.getBody())) {
+            if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+                if(sms.getType() != MESSAGE_TYPE_INBOX)
+                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
+                else
+                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
+            }
+            else {
+                if(sms.getType() != MESSAGE_TYPE_INBOX)
+                    return SENT_ENCRYPTED_VIEW_TYPE;
+                else
+                    return RECEIVED_ENCRYPTED_VIEW_TYPE;
+            }
+        } else {
+            if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+                if(sms.getType() != MESSAGE_TYPE_INBOX)
+                    return SENT_UNREAD_VIEW_TYPE;
+                else
+                    return RECEIVED_UNREAD_VIEW_TYPE;
+            }else {
+                if(sms.getType() != MESSAGE_TYPE_INBOX)
+                    return SENT_VIEW_TYPE;
+            }
         }
-        else if(sms.getType() == MESSAGE_TYPE_SENT)
-            return SENT_VIEW_TYPE;
 
-        return super.getItemViewType(position);
+        return RECEIVED_VIEW_TYPE;
+//        return super.getItemViewType(position);
     }
 
     @Override
@@ -199,31 +244,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         SMS sms = mDiffer.getCurrentList().get(position);
         final String smsThreadId = sms.getThreadId();
         holder.id = smsThreadId;
-
-        String message = sms.getBody();
-
-        if(!this.searchString.isEmpty()) {
-            Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
-            String lowercaseMessage = message.toLowerCase();
-            String lowercaseSearchString = searchString.toLowerCase();
-
-            for(int index = lowercaseMessage.indexOf(lowercaseSearchString);
-                index >=0; index = lowercaseMessage.indexOf(lowercaseSearchString, index + 1)) {
-
-                spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(
-                        R.color.highlight_yellow, context.getTheme())),
-                        index, index + (this.searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//                index, index + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(
-                        R.color.black, context.getTheme())),
-                        index, index + (this.searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-            holder.snippet.setText(spannable);
-        }
-        else holder.snippet.setText(message);
-
-        holder.state.setText(sms.getRouterStatus());
 
         String address = sms.getAddress();
 
@@ -241,7 +261,32 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
         holder.date.setText(date);
 
+        if(!(holder instanceof EncryptedViewHolder) && !(holder instanceof SentEncryptedViewHolder)) {
+            String message = sms.getBody();
+            if(!this.searchString.isEmpty()) {
+                Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
+                String lowercaseMessage = message.toLowerCase();
+                String lowercaseSearchString = searchString.toLowerCase();
+
+                for(int index = lowercaseMessage.indexOf(lowercaseSearchString);
+                    index >=0; index = lowercaseMessage.indexOf(lowercaseSearchString, index + 1)) {
+
+                    spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(
+                                    R.color.highlight_yellow, context.getTheme())),
+                            index, index + (this.searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+//                index, index + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                    spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(
+                                    R.color.black, context.getTheme())),
+                            index, index + (this.searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+                holder.snippet.setText(spannable);
+            } else holder.snippet.setText(message);
+        }
+
+
         if(routerActivity != null && !sms.routingUrls.isEmpty()) {
+            holder.state.setText(sms.getRouterStatus());
             holder.routingURLText.setVisibility(View.VISIBLE);
             holder.routingUrl.setVisibility(View.VISIBLE);
 
@@ -327,6 +372,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
     }
 
+    public static class EncryptedViewHolder extends ViewHolder {
+
+        public EncryptedViewHolder(@NonNull View itemView) {
+            super(itemView);
+            snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+            snippet.setText(R.string.messages_thread_encrypted_content);
+        }
+    }
+
     public static class ContactsViewHolder extends ViewHolder {
 
         public ContactsViewHolder(@NonNull View itemView) {
@@ -343,13 +397,19 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     }
 
     public static class UnreadViewHolder extends ViewHolder {
-
         public UnreadViewHolder(@NonNull View itemView) {
             super(itemView);
             address.setTypeface(Typeface.DEFAULT_BOLD);
             snippet.setTypeface(Typeface.DEFAULT_BOLD);
             date.setTypeface(Typeface.DEFAULT_BOLD);
             youLabel.setTypeface(Typeface.DEFAULT_BOLD);
+        }
+    }
+
+    public static class UnreadEncryptedViewHolder extends UnreadViewHolder {
+        public UnreadEncryptedViewHolder(@NonNull View itemView) {
+            super(itemView);
+            snippet.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
         }
     }
 
@@ -365,6 +425,21 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             super(itemView);
             snippet.setMaxLines(1);
             youLabel.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public static class SentEncryptedViewHolderUnread extends SentViewHolderUnread {
+        public SentEncryptedViewHolderUnread(@NonNull View itemView) {
+            super(itemView);
+            snippet.setText(R.string.messages_thread_encrypted_content);
+        }
+    }
+
+    public static class SentEncryptedViewHolder extends SentViewHolder {
+        public SentEncryptedViewHolder(@NonNull View itemView) {
+            super(itemView);
+            snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+            snippet.setText(R.string.messages_thread_encrypted_content);
         }
     }
 

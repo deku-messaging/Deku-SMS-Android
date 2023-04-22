@@ -65,6 +65,7 @@ public class SecurityDH {
         this.masterKeyAlias = new MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build();
+        Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
     }
 
     public byte[] generateSecretKey(byte[] publicKeyEnc, String alias) throws GeneralSecurityException, IOException {
@@ -100,7 +101,6 @@ public class SecurityDH {
 //        securelyStorePrivateKeyKeyPair(context, keystoreAlias, keypair);
 //        return keypair.getPublic();
 
-        Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM, PROVIDER);
         keyPairGenerator.initialize(DEFAULT_KEY_SIZE);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
