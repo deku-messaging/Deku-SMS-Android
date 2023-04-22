@@ -779,23 +779,32 @@ public class SMSSendActivity extends AppCompatActivity {
             PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
             handleBroadcast();
-            SMSHandler.sendDataSMS(getApplicationContext(),
-                    address,
-                    txAgreementKey[0],
-                    pendingIntents[0],
-                    pendingIntents[1],
-                    messageId,
-                    subscriptionId);
+            if(txAgreementKey[1].length == 0) {
+                SMSHandler.sendDataSMS(getApplicationContext(),
+                        address,
+                        txAgreementKey[0],
+                        pendingIntents[0],
+                        pendingIntents[1],
+                        messageId,
+                        subscriptionId);
+            } else {
+                SMSHandler.sendDataSMS(getApplicationContext(),
+                        address,
+                        txAgreementKey[0],
+                        pendingIntents[0],
+                        pendingIntents[1],
+                        messageId,
+                        subscriptionId);
 
-            handleBroadcast();
-            SMSHandler.sendDataSMS(getApplicationContext(),
-                    address,
-                    txAgreementKey[1],
-                    pendingIntents[0],
-                    pendingIntents[1],
-                    messageId,
-                    subscriptionId);
-
+                handleBroadcast();
+                SMSHandler.sendDataSMS(getApplicationContext(),
+                        address,
+                        txAgreementKey[1],
+                        pendingIntents[0],
+                        pendingIntents[1],
+                        messageId,
+                        subscriptionId);
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
             SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
@@ -1204,6 +1213,7 @@ public class SMSSendActivity extends AppCompatActivity {
     public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         PublicKey publicKey = securityDH.generateKeyPair(getApplicationContext(), address);
+        Log.d(getLocalClassName(), "Public key: " + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT));
         return publicKey.getEncoded();
     }
 }

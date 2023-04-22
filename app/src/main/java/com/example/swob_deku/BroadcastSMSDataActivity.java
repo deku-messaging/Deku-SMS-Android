@@ -57,11 +57,18 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                 }
                 try {
                     String strMessage = messageBuffer.toString();
-                    if (strMessage.contains(SecurityHelpers.FIRST_HEADER)) {
+                    Log.d(getClass().getName(), "Data received broadcast: " + strMessage);
+                    if(strMessage.contains(SecurityHelpers.FIRST_HEADER) &&
+                            strMessage.contains(SecurityHelpers.END_HEADER)) {
+                        strMessage = registerIncomingAgreement(context, address,
+                                messageBuffer.toByteArray(), -1);
+                    }
+                    else if (strMessage.contains(SecurityHelpers.FIRST_HEADER)) {
                         // TODO: register message and store the reference in a shared reference location
 //                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
                         strMessage = registerIncomingAgreement(context, address, messageBuffer.toByteArray(), 0);
-                    } else if (strMessage.contains(SecurityHelpers.END_HEADER)) {
+                    }
+                    else if (strMessage.contains(SecurityHelpers.END_HEADER)) {
                         // TODO: search for registered message and get content from shared reference location
 //                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
                         strMessage = registerIncomingAgreement(context, address, messageBuffer.toByteArray(), 1);

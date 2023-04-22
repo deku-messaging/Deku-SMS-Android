@@ -8,6 +8,8 @@ package com.example.swob_deku.Models.Security;
 //import org.bouncycastle.operator.OperatorCreationException;
 //import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -53,6 +55,8 @@ public class SecurityHelpers {
 //    }
 
     public static byte[][] txAgreementFormatter(byte[] agreementKey) {
+        Log.d(SecurityHelpers.class.getName(), "Public key len: " + agreementKey.length);
+
         byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
         byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
 
@@ -60,14 +64,26 @@ public class SecurityHelpers {
         int dstLen = SMS_CONSTANT - firstHeader.length;
         int dstLen1 = agreementKey.length - SMS_CONSTANT;
 
-        byte[] startKey = new byte[SMS_CONSTANT];
-        byte[] endKey = new byte[agreementKey.length - dstLen + endHeader.length];
+        byte[] startKey;
+        byte[] endKey;
 
-        System.arraycopy(firstHeader, 0, startKey, 0, firstHeader.length);
-        System.arraycopy(agreementKey, 0, startKey, firstHeader.length,  dstLen);
+        if(agreementKey.length + firstHeader.length + endHeader.length <= SMS_CONSTANT) {
+            startKey = new byte[agreementKey.length + firstHeader.length + endHeader.length];
+            endKey = new byte[0];
+            System.arraycopy(firstHeader, 0, startKey, 0, firstHeader.length);
+            System.arraycopy(agreementKey, 0, startKey, firstHeader.length, agreementKey.length);
+            System.arraycopy(endHeader, 0, startKey, agreementKey.length + firstHeader.length,
+                    endHeader.length);
+        }
+        else {
+            startKey = new byte[SMS_CONSTANT];
+            endKey = new byte[agreementKey.length - dstLen + endHeader.length];
+            System.arraycopy(firstHeader, 0, startKey, 0, firstHeader.length);
+            System.arraycopy(agreementKey, 0, startKey, firstHeader.length,  dstLen);
 
-        System.arraycopy(endHeader, 0, endKey, 0, endHeader.length);
-        System.arraycopy(agreementKey, dstLen, endKey, endHeader.length,  agreementKey.length-dstLen);
+            System.arraycopy(endHeader, 0, endKey, 0, endHeader.length);
+            System.arraycopy(agreementKey, dstLen, endKey, endHeader.length,  agreementKey.length-dstLen);
+        }
 
         return new byte[][]{startKey, endKey};
     }
@@ -85,6 +101,18 @@ public class SecurityHelpers {
         System.arraycopy(agreementKey[0], firstHeader.length, agreementPubKey, 0, dstLen);
 
         System.arraycopy(agreementKey[1], endHeader.length, agreementPubKey, dstLen, dstLen1);
+
+        return agreementPubKey;
+    }
+
+    public static byte[] rxAgreementFormatter(byte[] agreementKey) {
+        byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
+        byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
+
+        int keyLength = agreementKey.length - (firstHeader.length + endHeader.length);
+        byte[] agreementPubKey = new byte[keyLength];
+
+        System.arraycopy(agreementKey, firstHeader.length, agreementPubKey, 0, keyLength);
 
         return agreementPubKey;
     }

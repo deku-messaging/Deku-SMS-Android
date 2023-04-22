@@ -153,14 +153,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         enableSwipeAction();
         Log.d(getLocalClassName(), "Threading main activity");
-//        try {
-//            Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
-//            KeyPairGenerator aliceKpg = KeyPairGenerator.getInstance("ECDH", "SC");
-//            aliceKpg.initialize(256);
-//            KeyPair aliceKp = aliceKpg.generateKeyPair();
-//        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-//            throw new RuntimeException(e);
-//        }
 
         setRefreshTimer();
 
