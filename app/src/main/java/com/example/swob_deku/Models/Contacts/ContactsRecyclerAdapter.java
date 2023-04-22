@@ -30,22 +30,16 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(R.layout.messages_threads_layout, parent, false);
-        MessagesThreadRecyclerAdapter.ViewHolder viewHolder = new MessagesThreadRecyclerAdapter.ViewHolder(view);
+        MessagesThreadRecyclerAdapter.ContactsViewHolder viewHolder =
+                new MessagesThreadRecyclerAdapter.ContactsViewHolder(view);
         return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Contacts contacts = mDiffer.getCurrentList().get(position);
-        MessagesThreadRecyclerAdapter.ViewHolder viewHolder = (MessagesThreadRecyclerAdapter.ViewHolder) holder;
-
-        viewHolder.snippet.setMaxLines(1);
-        viewHolder.address.setMaxLines(1);
-
-        viewHolder.routingUrl.setVisibility(View.GONE);
-        viewHolder.routingURLText.setVisibility(View.GONE);
-        viewHolder.date.setVisibility(View.GONE);
-        viewHolder.state.setVisibility(View.GONE);
+        MessagesThreadRecyclerAdapter.ContactsViewHolder viewHolder =
+                (MessagesThreadRecyclerAdapter.ContactsViewHolder) holder;
 
         viewHolder.address.setText(contacts.contactName);
         viewHolder.snippet.setText(contacts.number);

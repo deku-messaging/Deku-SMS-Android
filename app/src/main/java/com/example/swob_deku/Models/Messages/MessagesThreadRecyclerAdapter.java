@@ -327,6 +327,21 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         }
     }
 
+    public static class ContactsViewHolder extends ViewHolder {
+
+        public ContactsViewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            snippet.setMaxLines(1);
+            address.setMaxLines(1);
+
+            routingUrl.setVisibility(View.GONE);
+            routingURLText.setVisibility(View.GONE);
+            date.setVisibility(View.GONE);
+            state.setVisibility(View.GONE);
+        }
+    }
+
     public static class UnreadViewHolder extends ViewHolder {
 
         public UnreadViewHolder(@NonNull View itemView) {
