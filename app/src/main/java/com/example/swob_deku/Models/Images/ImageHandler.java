@@ -12,10 +12,12 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Surface;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.DataHelper;
@@ -24,7 +26,9 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityAES;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileDescriptor;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
