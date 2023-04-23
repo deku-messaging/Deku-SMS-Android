@@ -373,7 +373,12 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         }).start();
 
-        contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        try {
+            contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
                 address: contactName;
     }

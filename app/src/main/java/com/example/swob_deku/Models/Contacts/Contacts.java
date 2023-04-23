@@ -90,6 +90,7 @@ public class Contacts {
             int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
             displayName = String.valueOf(cursor.getString(displayNameIndex));
         }
+        cursor.close();
 
         return displayName;
     }

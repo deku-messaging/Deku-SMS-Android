@@ -82,13 +82,15 @@ public class Helpers {
     public static String formatPhoneNumbers(String data) throws NumberParseException {
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         try {
-            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(data, "US");
-            // use the formattedPhoneNumber
-            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
-            return data.replaceAll("%2B", "+")
+            String formattedData = data.replaceAll("%2B", "+")
                     .replaceAll("%20", "")
                     .replaceAll("-", "")
                     .replaceAll("\\s", "");
+
+            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(formattedData, "US");
+            // use the formattedPhoneNumber
+            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
+            data = formattedData;
         } catch (NumberParseException e) {
             // handle the exception
             e.printStackTrace();
