@@ -229,7 +229,7 @@ public class ImageViewActivity extends AppCompatActivity {
 
         Bitmap compressedBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
         imageView.setImageBitmap(compressedBitmap);
-        compressedBitmap.recycle();
+//        compressedBitmap.recycle();
     }
 
     private int getMaxResolution() {
