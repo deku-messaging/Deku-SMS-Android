@@ -178,7 +178,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
 
         String text = sms.getBody();
-        Log.d(getClass().getName(), "String: " + text);
 //        text = decompress(text);
         text = decryptContent(text);
 
