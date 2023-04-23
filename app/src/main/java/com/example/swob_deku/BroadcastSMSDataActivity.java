@@ -81,8 +81,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                                 strMessage + SecurityHelpers.END_HEADER;
 
                         messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
-                        BroadcastSMSTextActivity.sendNotification(context, notificationNote,
-                                address, messageId);
+                        BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
                     }
                     broadcastIntent(context);
 

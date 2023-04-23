@@ -41,7 +41,7 @@ public class ArchivedViewModel extends ViewModel {
                     }
             } while(cursor.moveToNext());
         }
-        liveData.setValue(smsList);
         cursor.close();
+        liveData.setValue(smsList);
     }
 }

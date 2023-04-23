@@ -228,8 +228,10 @@ public class ImageHandler {
             Cursor cursor = SMSHandler.fetchSMSForImages(context, query.toString(), parameters, sms.getThreadId());
             Log.d(ImageHandler.class.getName(), "Data image founder counter: " + cursor.getCount() + "/" + len);
             if(cursor.getCount() >= len) {
+                cursor.close();
                 return cursor;
             }
+            cursor.close();
         }
         return null;
     }

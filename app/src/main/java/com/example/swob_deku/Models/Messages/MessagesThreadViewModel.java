@@ -54,13 +54,14 @@ public class MessagesThreadViewModel extends ViewModel {
                             }
                             smsList.add(sms);
                         } while (cursor.moveToNext());
-                        messagesList.postValue(smsList);
                         cursor.close();
+                        messagesList.postValue(smsList);
                     }
                 }).start();
             }
         }
         else {
+            cursor.close();
             messagesList.setValue(smsList);
         }
     }

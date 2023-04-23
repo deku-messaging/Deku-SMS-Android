@@ -48,6 +48,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
@@ -76,6 +77,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
 
 public class SMSSendActivity extends AppCompatActivity {
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
@@ -223,12 +225,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
                 final int maximumScrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
 
-                Log.d(getLocalClassName(), "Maximum scroll position: " + maximumScrollPosition);
-                Log.d(getLocalClassName(), "Last Top visible position: " + lastTopVisiblePosition);
-                Log.d(getLocalClassName(), "First Top visible position: " + firstVisibleItemPosition);
-
                 if(!singleMessageViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
-                    Log.d(getLocalClassName(), "Yes got scrolled!");
                     int newSize = singleMessageViewModel.refreshDown();
 
                     if(newSize > 0)
@@ -564,6 +561,18 @@ public class SMSSendActivity extends AppCompatActivity {
         sendSMSMessage(null, text, null);
     }
 
+    public static byte[] decompress(byte[] input) {
+//        byte[] decompressGZIP = Compression.decompressGZIP(input);
+//        Log.d(getLocalClassName(), "Gzip decompressed: " + decompressGZIP.length);
+//
+        try {
+            input = Compression.decompressDeflate(input);
+        } catch(Throwable e) {
+            e.printStackTrace();
+        }
+        return input;
+    }
+
     private String encryptContent(String data) throws Throwable {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         if(securityDH.hasSecretKey(address)) {
@@ -580,6 +589,23 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         }
         return data;
+    }
+
+    public byte[] compress(byte[] input) {
+
+//        byte[] compressGzip = Compression.compressLZ4(compressDeflate);
+//        Log.d(getLocalClassName(), "Gzip compression: " + compressGzip.length);
+
+
+//        for(int i=0;i<decompressGZIP.length; ++i) {
+//            if(decompressGZIP[i] != c[i]) {
+//                Log.d(getLocalClassName(), "Different things came back!");
+//                break;
+//            }
+//        }
+//        return compressGzip;
+        return Compression.compressDeflate(input);
+//        return input;
     }
 
 
@@ -601,6 +627,7 @@ public class SMSSendActivity extends AppCompatActivity {
             if(securityDH.hasSecretKey(address)) {
                 text = encryptContent(text);
                 text = SecurityHelpers.waterMarkMessage(text);
+//                text = Base64.encodeToString(compress(text.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
                 tmpThreadId = SMSHandler.sendEncryptedTextSMS(getApplicationContext(), address, text,
                         pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
             }
@@ -704,12 +731,9 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void handleIncomingPending(long messageId) {
-        Log.d(getLocalClassName(), "Component package name: " + getIntent().getComponent().getPackageName());
-        Log.d(getLocalClassName(), "My package name: " + BuildConfig.APPLICATION_ID);
         if(getIntent().getComponent().getPackageName().equals(BuildConfig.APPLICATION_ID) ) {
             Cursor cursor = SMSHandler.fetchSMSOutboxPendingForMessageInThread(getApplicationContext(),
                     threadId, messageId);
-            Log.d(getLocalClassName(), "Found pending: " + cursor.getCount());
 
             if(cursor.moveToFirst()) {
                 SMS sms = new SMS(cursor);

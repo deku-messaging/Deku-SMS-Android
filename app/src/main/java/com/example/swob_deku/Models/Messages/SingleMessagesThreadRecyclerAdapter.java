@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.ImageViewActivity;
+import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -40,6 +41,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
@@ -143,6 +145,22 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         return input;
     }
 
+    private String decompress(String input) {
+//        byte[] decompressGZIP = Compression.decompressGZIP(input);
+//        Log.d(getLocalClassName(), "Gzip decompressed: " + decompressGZIP.length);
+//
+        if(secretKey != null && Compression.isDeflateCompressed(input.getBytes(StandardCharsets.UTF_8))) {
+            try {
+                byte[] b64 = Base64.decode(input, Base64.DEFAULT);
+                byte[] tmpByte = Compression.decompressDeflate(b64);
+                input = new String(tmpByte, StandardCharsets.UTF_8);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return input;
+    }
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 //        final SMS sms = (SMS) snapshot().get(position);
@@ -159,6 +177,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             date = dateFormat.format(new Date(Long.parseLong(date)));
         }
 
+        String text = sms.getBody();
+        Log.d(getClass().getName(), "String: " + text);
+//        text = decompress(text);
+        text = decryptContent(text);
+
         if(holder instanceof MessageReceivedViewHandler) {
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
             if(holder instanceof TimestampMessageReceivedViewHandler)
@@ -168,8 +191,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
 
-            String text = sms.getBody();
-            text = decryptContent(text);
 
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);
@@ -237,8 +258,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-            String text = sms.getBody();
-            text = decryptContent(text);
+//            String text = sms.getBody();
+//            text = decryptContent(text);
 
             if(position != 0) {
                 messageSentViewHandler.date.setVisibility(View.INVISIBLE);

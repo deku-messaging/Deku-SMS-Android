@@ -16,16 +16,38 @@ import java.util.zip.Inflater;
 
 public class Compression {
     public static byte[] compressDeflate(byte[] input) {
-        byte[] output = new byte[input.length];
-        Deflater compresser = new Deflater();
-        compresser.setInput(input);
-        compresser.finish();
-        int compressedDataLength = compresser.deflate(output);
-        byte[] result = new byte[compressedDataLength];
-        System.arraycopy(output, 0, result, 0, compressedDataLength);
-        compresser.end();
+// Create a new Deflater instance
+        Deflater deflater = new Deflater();
 
-        return result;
+        // Set the input data for the deflater
+        deflater.setInput(input);
+
+        // Tell the deflater that we're done with the input data
+        deflater.finish();
+
+        // Create a new ByteArrayOutputStream to hold the compressed data
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(input.length);
+
+        // Create a new buffer to hold the compressed data
+        byte[] buffer = new byte[1024];
+        int length;
+
+        // Compress the input data and write the compressed data to the ByteArrayOutputStream
+        while (!deflater.finished()) {
+            length = deflater.deflate(buffer);
+            outputStream.write(buffer, 0, length);
+        }
+
+        // Close the ByteArrayOutputStream and the Deflater
+        try {
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        deflater.end();
+
+        // Return the compressed data as a byte array
+        return outputStream.toByteArray();
     }
 
     public static byte[] compressLZ4(byte[] inputBytes) {
@@ -95,7 +117,7 @@ public class Compression {
     }
 
 
-    public static byte[] decompressDeflate(byte[] input) throws DataFormatException {
+    public static byte[] decompressDeflate(byte[] input) throws Throwable {
         try {
             // Create an Inflater for decompression
             Inflater inflater = new Inflater();
@@ -105,10 +127,14 @@ public class Compression {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
             // Decompress the input bytes
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[100];
             while (!inflater.finished()) {
                 int count = inflater.inflate(buffer);
                 byteArrayOutputStream.write(buffer, 0, count);
+                if(count == 0 && !inflater.finished()) {
+                    Log.d(Compression.class.getName(), "Error decompressing.." + inflater.getRemaining());
+                    break;
+                }
             }
 
             // Close the streams
@@ -118,14 +144,38 @@ public class Compression {
             // Return the decompressed bytes
             return byteArrayOutputStream.toByteArray();
         } catch (DataFormatException | IOException e) {
-            e.printStackTrace();
+            throw new Throwable(e);
         }
-        return null;
-
 //        Inflater decompresser = new Inflater();
 //        decompresser.setInput(input, 0, input.length);
 //        byte[] result = new byte[100];
 //        int resultLength = decompresser.inflate(result);
 //        decompresser.end();
+    }
+
+    public static boolean isDeflateCompressed(byte[] data) {
+        // Create a new Deflater instance
+        Deflater deflater = new Deflater();
+
+        // Set the input data for the deflater
+        deflater.setInput(data);
+
+        // Tell the deflater that we're done with the input data
+        deflater.finish();
+
+        // Create a new buffer to hold the compressed data
+        byte[] buffer = new byte[1024];
+        int length;
+
+        // Compress the input data and check if the output size is smaller
+        while (!deflater.finished()) {
+            length = deflater.deflate(buffer);
+            if (length > data.length) {
+                return true; // Input data is compressed with deflate algorithm
+            }
+        }
+
+        // Input data is not compressed with deflate algorithm
+        return false;
     }
 }

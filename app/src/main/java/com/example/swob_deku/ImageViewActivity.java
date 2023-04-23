@@ -292,7 +292,9 @@ public class ImageViewActivity extends AppCompatActivity {
 
         String content = ImageHandler.IMAGE_HEADER +
                 Base64.encodeToString(compressedBytes, Base64.DEFAULT);
-        byte[] c = compress(content.getBytes(StandardCharsets.UTF_8));
+//        byte[] c = compress(content.getBytes(StandardCharsets.UTF_8));
+        byte[] c = content.getBytes(StandardCharsets.UTF_8);
+
         if(securityDH.hasSecretKey(address)){
             String secretKeyB64 = securityDH.securelyFetchSecretKey(address);
             c = SecurityDH.encryptAES(c, Base64.decode(secretKeyB64, Base64.DEFAULT));
@@ -300,13 +302,11 @@ public class ImageViewActivity extends AppCompatActivity {
             c = SecurityHelpers.waterMarkMessage(content)
                     .getBytes(StandardCharsets.UTF_8);
             Log.d(getLocalClassName(), "Original no compression: " + c.length);
-            c = compress(c);
-
-            numberOfmessages =
-                    smsManager.divideMessage( Base64.encodeToString(c, Base64.DEFAULT)).size();
+//            c = compress(c);
         }
-        else numberOfmessages = smsManager.divideMessage(
-                Base64.encodeToString(c, Base64.DEFAULT)).size();
+
+        numberOfmessages =
+                smsManager.divideMessage( Base64.encodeToString(c, Base64.DEFAULT)).size();
 
 //        byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
 //        byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
@@ -333,9 +333,11 @@ public class ImageViewActivity extends AppCompatActivity {
 
         int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
 
-//        byte[] txBytes = compressedBytes
         String content = ImageHandler.IMAGE_HEADER +
                 Base64.encodeToString(compressedBytes, Base64.DEFAULT);
+
+//        content = Base64.encodeToString(compress(content.getBytes(StandardCharsets.UTF_8)),
+//                Base64.DEFAULT);
 
         String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
                 address,

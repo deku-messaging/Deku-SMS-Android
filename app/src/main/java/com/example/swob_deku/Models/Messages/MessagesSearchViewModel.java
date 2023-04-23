@@ -40,6 +40,7 @@ public class MessagesSearchViewModel extends ViewModel {
                 smsList.add(sms);
             } while(cursor.moveToNext());
         }
+        cursor.close();
         messagesList.setValue(smsList);
     }
 }

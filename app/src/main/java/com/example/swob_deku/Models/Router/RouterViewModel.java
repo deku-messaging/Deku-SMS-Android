@@ -76,6 +76,7 @@ public class RouterViewModel extends ViewModel {
             }
             messagesList.setValue(smsList);
         }
+        cursor.close();
     }
 
     public ArrayList<ArrayList<String>> listRouteJobs(Context context) {

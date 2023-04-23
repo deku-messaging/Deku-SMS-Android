@@ -18,6 +18,7 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.room.ExperimentalRoomApi;
 import androidx.room.Room;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
@@ -35,6 +36,8 @@ import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -67,26 +70,37 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                                 new String(currentSMS.getUserData(), StandardCharsets.UTF_8) :
                                 displayMessage;
                         messageBuffer.append(displayMessage);
-
                     }
 
                     String message = messageBuffer.toString();
-                    String finalAddress = address;
+                    final String finalAddress = address;
 
                     long messageId = -1;
                     try {
+//                        SecurityDH securityDH = new SecurityDH(context);
+//                        if(securityDH.hasSecretKey(finalAddress)){
+//                            try {
+//                                byte[] messageData = Base64.decode(message, Base64.DEFAULT);
+//                                messageData = SMSSendActivity.decompress(Base64.decode(messageData, Base64.DEFAULT));
+//                                message = Base64.encodeToString(messageData, Base64.DEFAULT);
+////                                message = new String(messageData, StandardCharsets.UTF_8);
+//                            } catch(Exception e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
                         messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message);
                     }
                     catch (Exception e) {
-
+                        e.printStackTrace();
                     }
                     long finalMessageId = messageId;
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            sendNotification(context, message, finalAddress, finalMessageId);
+                            sendNotification(context, null, finalAddress, finalMessageId);
                         }
                     }).start();
+                    final String messageFinal = message;
 
                     new Thread(new Runnable() {
                         @Override
@@ -94,8 +108,8 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                             try {
 //                                CharsetDecoder charsetDecoder = StandardCharsets.UTF_8.newDecoder();
 //                                charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
-                                Base64.decode(message, Base64.DEFAULT);
-                                createWorkForMessage(finalAddress, message, finalMessageId);
+                                Base64.decode(messageFinal, Base64.DEFAULT);
+                                createWorkForMessage(finalAddress, messageFinal, finalMessageId);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
