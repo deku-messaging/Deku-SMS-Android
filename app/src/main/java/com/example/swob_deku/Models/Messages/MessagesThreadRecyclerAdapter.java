@@ -261,7 +261,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
         holder.date.setText(date);
 
-        if(!(holder instanceof EncryptedViewHolder) && !(holder instanceof SentEncryptedViewHolder)) {
+        if(!(holder instanceof EncryptedViewHolder) && !(holder instanceof SentEncryptedViewHolder)
+                && !(holder instanceof UnreadEncryptedViewHolder) && !(holder instanceof SentEncryptedViewHolderUnread)) {
             String message = sms.getBody();
             if(!this.searchString.isEmpty()) {
                 Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
@@ -410,6 +411,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         public UnreadEncryptedViewHolder(@NonNull View itemView) {
             super(itemView);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
+            snippet.setText(R.string.messages_thread_encrypted_content);
         }
     }
 
