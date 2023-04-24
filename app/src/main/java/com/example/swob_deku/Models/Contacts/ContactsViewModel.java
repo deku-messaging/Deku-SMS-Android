@@ -37,32 +37,7 @@ public class ContactsViewModel extends ViewModel {
             loadContacts();
             return;
         }
-//
-//        if(PhoneNumberUtils.isWellFormedSmsAddress(details)) {
-//            contactsList = filterContactsForPhonenumber(details);
-//            if(contactsList.isEmpty()) {
-//                Contacts contacts = new Contacts();
-//                contacts.contactName = "Send to " + details;
-//                contacts.number = details;
-//                contacts.type = Contacts.TYPE_NEW_CONTACT;
-//                contactsList.add(contacts);
-//            }
-//        } else {
-//            Cursor cursor = Contacts.filterPhonebookContactsByName(context, details);
-//            Log.d(getClass().getName(), "Found filter by name: " + cursor.getCount() + ":" + details);
-//            if(cursor.moveToFirst()) {
-//                do {
-//                    int idIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID);
-//                    int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME);
-//
-//                    String displayName = String.valueOf(cursor.getString(displayNameIndex));
-//                    long id = cursor.getLong(idIndex);
-//
-//                    contactsList.add(new Contacts(context,  id, displayName));
-//                } while(cursor.moveToNext());
-//            }
-//            cursor.close();
-//        }
+
         Cursor cursor = Contacts.filterContacts(context, details);
         if(cursor.moveToFirst()) {
             do {
@@ -75,29 +50,17 @@ public class ContactsViewModel extends ViewModel {
             } while(cursor.moveToNext());
         }
         cursor.close();
-        contactsMutableLiveData.setValue(contactsList);
-    }
 
-    private List<Contacts> filterContactsForPhonenumber(String number) throws NumberParseException {
-        Cursor cursor = Contacts.getPhonebookContacts(context);
-        List<Contacts> contactsList = new ArrayList<>();
-        if(cursor.moveToFirst()) {
-            do {
-                int idIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID);
-                int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME);
-
-                String displayName = String.valueOf(cursor.getString(displayNameIndex));
-                long id = cursor.getLong(idIndex);
-
-                Contacts contacts = new Contacts(context, id, displayName);
-                if(Helpers.formatPhoneNumbers(contacts.number).contains(Helpers.formatPhoneNumbers(number)))
-                    contactsList.add(new Contacts(context, id, displayName));
-            } while(cursor.moveToNext());
+        if(contactsList.isEmpty() && PhoneNumberUtils.isWellFormedSmsAddress(details)) {
+            Contacts contacts = new Contacts();
+            contacts.contactName = "Send to " + details;
+            contacts.number = details;
+            contacts.type = Contacts.TYPE_NEW_CONTACT;
+            contactsList.add(contacts);
         }
-
-        cursor.close();
-        return contactsList;
+        contactsMutableLiveData.postValue(contactsList);
     }
+
 
     public void loadContacts(){
         Cursor cursor = Contacts.getPhonebookContacts(context);
@@ -116,6 +79,6 @@ public class ContactsViewModel extends ViewModel {
             } while(cursor.moveToNext());
         }
         cursor.close();
-        contactsMutableLiveData.setValue(contactsList);
+        contactsMutableLiveData.postValue(contactsList);
     }
 }

@@ -33,8 +33,6 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
     RecyclerView contactsRecyclerView;
     ContactsRecyclerAdapter contactsRecyclerAdapter;
 
-    MutableLiveData<String> contactFilter = new MutableLiveData<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,25 +80,25 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (s != null && !s.toString().isEmpty()) {
-                    contactFilter.setValue(s.toString());
-                }
-                else {
-                    Log.d(getLocalClassName(), "Yep it's empty string...");
-                    contactFilter.setValue("");
-                }
-            }
-        });
-
-        contactFilter.observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                Log.d(getLocalClassName(), "Yep should change search");
-                try {
-                    contactsViewModel.filterContact(s);
-                } catch (NumberParseException e) {
-                    e.printStackTrace();
-                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (s != null && !s.toString().isEmpty()) {
+                            try {
+                                contactsViewModel.filterContact(s.toString());
+                            } catch (NumberParseException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        else {
+                            try {
+                                contactsViewModel.filterContact("");
+                            } catch (NumberParseException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }).start();
             }
         });
     }

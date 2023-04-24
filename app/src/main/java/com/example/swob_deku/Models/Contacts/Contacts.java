@@ -54,8 +54,10 @@ public class Contacts {
 
     public static Cursor filterContacts(Context context, String filter) {
         String[] projection = {ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME};
-        String selection = ContactsContract.CommonDataKinds.Phone.NUMBER + " LIKE '%" + filter
-                + "%' OR " + ContactsContract.Contacts.DISPLAY_NAME + " LIKE '%" + filter + "%'";
+        String selection = ContactsContract.CommonDataKinds.Phone.NUMBER + " IS NOT NULL AND " +
+                ContactsContract.CommonDataKinds.Phone.NUMBER + " <> '' AND (" +
+                ContactsContract.CommonDataKinds.Phone.NUMBER + " LIKE '%" + filter + "%' OR " +
+                ContactsContract.Contacts.DISPLAY_NAME + " LIKE '%" + filter + "%')";
         String[] selectionArgs = null;
         String sortOrder = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
         return context.getContentResolver().query(
