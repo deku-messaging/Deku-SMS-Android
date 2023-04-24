@@ -282,13 +282,14 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                 address = addressInPhone;
                 holder.contactInitials.setAvatarInitials(address.substring(0, 1));
 
-                final int colorValue = (int) address.charAt(0);
-                final int red = colorValue + 10;
-                final int green = (int) (red * 1.5);
-//                final int blue = address.length() > 1 ? colorValue + (int) address.charAt(1) : colorValue;
-                final int blue = (int) (green * 1.25);
+//                final int colorValue = (int) address.charAt(0);
+//                final int red = colorValue + 10;
+//                final int green = (int) (red * 1.5);
+////                final int blue = address.length() > 1 ? colorValue + (int) address.charAt(1) : colorValue;
+//                final int blue = (int) (green * 1.25);
 
-                final int randomColor = Color.rgb(red, green, blue);
+//                final int randomColor = Color.rgb(red, green, blue);
+                final int randomColor = Helpers.generateColor(address.charAt(0));
                 holder.contactInitials.setAvatarInitialsBackgroundColor(randomColor);
             }
         }

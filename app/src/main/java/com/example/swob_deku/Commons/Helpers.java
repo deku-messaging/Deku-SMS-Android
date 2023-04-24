@@ -1,6 +1,7 @@
 package com.example.swob_deku.Commons;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.format.DateUtils;
 
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -96,5 +97,13 @@ public class Helpers {
             e.printStackTrace();
         }
         return data;
+    }
+
+    public static int generateColor(char letter) {
+        int hue = (int) ((letter - 'A') * 15f) % 360; // Map letters to hue values
+        float saturation = 0.7f; // Set fixed saturation and brightness values
+        float brightness = 0.9f;
+        float[] hsv = {hue, saturation, brightness};
+        return Color.HSVToColor(hsv); // Convert HSB values to RGB color
     }
 }
