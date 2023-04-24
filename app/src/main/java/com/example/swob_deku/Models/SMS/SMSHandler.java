@@ -512,7 +512,7 @@ public class SMSHandler {
                 Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND "
                         + Telephony.Sms.READ + "=?",
                 new String[]{threadId, "0"},
-                "date DESC");
+                "date ASC");
     }
 
     public static long registerIncomingMessage(Context context, String address, String body) {
