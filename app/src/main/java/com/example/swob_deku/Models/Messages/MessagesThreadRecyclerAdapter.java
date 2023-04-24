@@ -73,6 +73,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
+    private final int CONTACT_VIEW_TYPE = 100;
+    private final int NOT_CONTACT_VIEW_TYPE = 200;
     private final int RECEIVED_VIEW_TYPE = 1;
     private final int RECEIVED_UNREAD_VIEW_TYPE = 2;
     private final int RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE = 3;
@@ -175,25 +177,48 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(this.renderLayout, parent, false);
 
-        if(viewType == RECEIVED_UNREAD_VIEW_TYPE) {
-            return new UnreadViewHolder(view);
-        } else if(viewType == SENT_UNREAD_VIEW_TYPE) {
-            return new SentViewHolderUnread(view);
-        } else if(viewType == RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE) {
-            return new UnreadEncryptedViewHolder(view);
-        } else if(viewType == SENT_ENCRYPTED_UNREAD_VIEW_TYPE) {
-            return new SentEncryptedViewHolderUnread(view);
-        } else if(viewType == SENT_VIEW_TYPE) {
-            return new SentViewHolder(view);
-        } else if(viewType == RECEIVED_VIEW_TYPE) {
-            return new ViewHolder(view);
-        } else if(viewType == SENT_ENCRYPTED_VIEW_TYPE) {
-            return new SentEncryptedViewHolder(view);
-        } else if(viewType == RECEIVED_ENCRYPTED_VIEW_TYPE) {
-            return new EncryptedViewHolder(view);
-        }
+        if(viewType == (RECEIVED_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+            return new UnreadViewHolder(view, true);
+        else if(viewType == (RECEIVED_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+            return new UnreadViewHolder(view, false);
 
-        return new ViewHolder(view);
+        else if(viewType == (SENT_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+            return new SentViewHolderUnread(view, true);
+        else if(viewType == (SENT_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+            return new SentViewHolderUnread(view, false);
+
+        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+            return new UnreadEncryptedViewHolder(view, true);
+        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+            return new UnreadEncryptedViewHolder(view, false);
+
+         else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+            return new SentEncryptedViewHolderUnread(view, true);
+        else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+            return new SentEncryptedViewHolderUnread(view, false);
+
+        else if(viewType == (SENT_VIEW_TYPE | CONTACT_VIEW_TYPE))
+            return new SentViewHolder(view, true);
+        else if(viewType == (SENT_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+            return new SentViewHolder(view, false);
+
+         else if(viewType == (RECEIVED_VIEW_TYPE | CONTACT_VIEW_TYPE))
+            return new ViewHolder(view, true);
+        else if(viewType == (RECEIVED_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+            return new ViewHolder(view, false);
+
+        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE | CONTACT_VIEW_TYPE))
+            return new SentEncryptedViewHolder(view, true);
+        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+            return new SentEncryptedViewHolder(view, false);
+
+        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE | CONTACT_VIEW_TYPE))
+            return new EncryptedViewHolder(view, true);
+        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+            return new EncryptedViewHolder(view, false);
+
+
+        return new ViewHolder(view, false);
     }
 
     public boolean checkPermissionToReadContacts() {
@@ -202,78 +227,60 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         return (check == PackageManager.PERMISSION_GRANTED);
     }
 
+    public boolean isContact(SMS sms) {
+        String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
+        return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
+    }
     @Override
     public int getItemViewType(int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
-//        if(sms.getType() == MESSAGE_TYPE_SENT) {
-//            if(SecurityHelpers.containersWaterMark(sms.getBody()))
-//                if(SMSHandler.hasUnreadMessages(context, sms.getThreadId()))
-//                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
-//                else return SENT_ENCRYPTED_VIEW_TYPE;
-//
-//            return SENT_VIEW_TYPE;
-//        }
-//        else if(SMSHandler.hasUnreadMessages())
-//            return UNREAD_ENCRYPTED_VIEW_TYPE;
 
+        boolean smsIsContact = isContact(sms);
 
-        if(!sms.getAddress().isEmpty()) {
-            String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
-            if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
-                sms.isContact = true;
-                sms.displayName = addressInPhone;
-            }
-        }
+        int type = smsIsContact ? CONTACT_VIEW_TYPE : NOT_CONTACT_VIEW_TYPE;
 
         if(SecurityHelpers.containersWaterMark(sms.getBody())) {
             if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
+                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE | type;
                 else
-                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
+                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE | type;
             }
             else {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_VIEW_TYPE;
+                    return SENT_ENCRYPTED_VIEW_TYPE | type;
                 else
-                    return RECEIVED_ENCRYPTED_VIEW_TYPE;
+                    return RECEIVED_ENCRYPTED_VIEW_TYPE | type;
             }
         } else {
             if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_UNREAD_VIEW_TYPE;
+                    return SENT_UNREAD_VIEW_TYPE | type;
                 else
-                    return RECEIVED_UNREAD_VIEW_TYPE;
+                    return RECEIVED_UNREAD_VIEW_TYPE | type;
             }else {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_VIEW_TYPE;
+                    return SENT_VIEW_TYPE | type;
             }
         }
 
-        return RECEIVED_VIEW_TYPE;
-//        return super.getItemViewType(position);
+        return RECEIVED_VIEW_TYPE | type;
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        SMS sms = mDiffer.getCurrentList().get(position);
-        final String smsThreadId = sms.getThreadId();
-        holder.id = smsThreadId;
+        final int absolutePosition = holder.getAbsoluteAdapterPosition();
+        SMS sms = mDiffer.getCurrentList().get(absolutePosition);
+        holder.id = sms.getThreadId();
 
         String address = sms.getAddress();
 
-        if(sms.isContact) {
-            address = sms.displayName;
-            holder.contactInitials.setAvatarInitials(address.substring(0, 1));
-            holder.contactInitials.setVisibility(View.VISIBLE);
-            holder.contactInitials.setAvatarInitialsBackgroundColor(sms.displayColor);
-            holder.contactPhoto.setVisibility(View.GONE);
-        } else {
-
-            Drawable drawable = context.getDrawable(R.drawable.baseline_account_circle_24);
-
-            drawable.setColorFilter(holder.randomColor, PorterDuff.Mode.SRC_IN);
-            holder.contactPhoto.setImageDrawable(drawable);
+        if(holder.isContact) {
+            String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
+            if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
+                address = addressInPhone;
+                holder.contactInitials.setAvatarInitials(address.substring(0, 1));
+            }
         }
 
         holder.address.setText(address);
@@ -332,7 +339,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             holder.routingURLText.setVisibility(View.GONE);
         }
 
-        final int absolutePosition = holder.getAbsoluteAdapterPosition();
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -374,18 +380,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         mDiffer.submitList(list);
     }
 
-    public static class Contact extends ViewHolder {
-        public Contact(@NonNull View itemView) {
-            super(itemView);
-        }
-    }
-
-    public static class NotContact extends ViewHolder {
-        public NotContact(@NonNull View itemView) {
-            super(itemView);
-        }
-    }
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public String id;
         public TextView snippet;
@@ -399,20 +393,22 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         public ImageView contactPhoto;
 
-        Random random = new Random();
-        int red = random.nextInt(150) + 50;
-        int green = random.nextInt(150) + 50;
-        int blue = random.nextInt(150) + 50;
+        public boolean isContact = false;
 
-        final int randomColor = Color.rgb(red, green, blue);
 
         ConstraintLayout layout;
 
         Handler mHandler = new Handler();
 
         final int recyclerViewTimeUpdateLimit = 60 * 1000;
+        final Random random = new Random();
+        final int red = random.nextInt(150) + 50;
+        final int green = random.nextInt(150) + 50;
+        final int blue = random.nextInt(150) + 50;
 
-        public ViewHolder(@NonNull View itemView) {
+        final int randomColor = Color.rgb(red, green, blue);
+
+        public ViewHolder(@NonNull View itemView, boolean isContact) {
             super(itemView);
 
             snippet = itemView.findViewById(R.id.messages_thread_text);
@@ -425,13 +421,27 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             youLabel = itemView.findViewById(R.id.message_you_label);
             contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
             contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
+            this.isContact = isContact;
+
+
+            if(!isContact) {
+                Drawable drawable = contactPhoto.getDrawable();
+                drawable.setColorFilter(randomColor, PorterDuff.Mode.SRC_IN);
+                contactPhoto.setImageDrawable(drawable);
+            } else {
+                contactInitials.setAvatarInitialsBackgroundColor(randomColor);
+                contactInitials.setVisibility(View.VISIBLE);
+                contactPhoto.setVisibility(View.GONE);
+//                this.setIsRecyclable(false);
+            }
         }
+
     }
 
     public static class EncryptedViewHolder extends ViewHolder {
 
-        public EncryptedViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public EncryptedViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
             snippet.setText(R.string.messages_thread_encrypted_content);
         }
@@ -439,8 +449,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     public static class ContactsViewHolder extends ViewHolder {
 
-        public ContactsViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public ContactsViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
 
             snippet.setMaxLines(1);
             address.setMaxLines(1);
@@ -453,8 +463,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     }
 
     public static class UnreadViewHolder extends ViewHolder {
-        public UnreadViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public UnreadViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             address.setTypeface(Typeface.DEFAULT_BOLD);
             snippet.setTypeface(Typeface.DEFAULT_BOLD);
             date.setTypeface(Typeface.DEFAULT_BOLD);
@@ -463,38 +473,38 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     }
 
     public static class UnreadEncryptedViewHolder extends UnreadViewHolder {
-        public UnreadEncryptedViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public UnreadEncryptedViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
             snippet.setText(R.string.messages_thread_encrypted_content);
         }
     }
 
     public static class SentViewHolder extends ViewHolder {
-        public SentViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public SentViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             snippet.setMaxLines(1);
             youLabel.setVisibility(View.VISIBLE);
         }
     }
     public static class SentViewHolderUnread extends UnreadViewHolder {
-        public SentViewHolderUnread(@NonNull View itemView) {
-            super(itemView);
+        public SentViewHolderUnread(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             snippet.setMaxLines(1);
             youLabel.setVisibility(View.VISIBLE);
         }
     }
 
     public static class SentEncryptedViewHolderUnread extends SentViewHolderUnread {
-        public SentEncryptedViewHolderUnread(@NonNull View itemView) {
-            super(itemView);
+        public SentEncryptedViewHolderUnread(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             snippet.setText(R.string.messages_thread_encrypted_content);
         }
     }
 
     public static class SentEncryptedViewHolder extends SentViewHolder {
-        public SentEncryptedViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public SentEncryptedViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
             snippet.setText(R.string.messages_thread_encrypted_content);
         }

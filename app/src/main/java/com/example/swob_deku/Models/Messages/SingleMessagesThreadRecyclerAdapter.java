@@ -164,7 +164,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 //        final SMS sms = (SMS) snapshot().get(position);
-        final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
+        final SMS sms = (SMS) mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
         final String smsId = sms.getId();
 
         String date = sms.getDate();

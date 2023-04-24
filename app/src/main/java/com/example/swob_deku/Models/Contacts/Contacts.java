@@ -37,21 +37,6 @@ public class Contacts {
 
     public Contacts(){ }
 
-    private void getPhoneNumber() {
-        String phoneNumber = "";
-        ContentResolver cr = context.getContentResolver();
-        Cursor phoneCursor = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                null,
-                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                new String[]{String.valueOf(id)},
-                null);
-        if (phoneCursor.moveToFirst()) {
-            this.number = phoneCursor.getString(
-                    phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-        }
-        phoneCursor.close();
-    }
-
     public static Cursor filterContacts(Context context, String filter) {
         String[] projection = {
                 ContactsContract.CommonDataKinds.Phone._ID,
@@ -71,18 +56,6 @@ public class Contacts {
                 selectionArgs,
                 sortOrder
         );
-    }
-
-    public static Cursor filterPhonebookContactsByName(Context context, String filter) {
-//        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
-        Uri uri = ContactsContract.Contacts.CONTENT_URI;
-        Cursor cursor = context.getContentResolver().query(
-                uri,
-                null,
-                ContactsContract.Contacts.DISPLAY_NAME + " like ?",
-                new String[]{ "%" + filter + "%"},
-                null);
-        return cursor;
     }
 
     public static Cursor getPhonebookContacts(Context context) {
