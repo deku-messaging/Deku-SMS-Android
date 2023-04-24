@@ -37,4 +37,7 @@
         <item>@color/white</item>
         <item>@color/delete_red</item>
     </array>
+
+    <color name="colorPrimary">@color/logo_primary</color>
+    <color name="colorSecondary">@color/logo_secondary</color>
 </resources>

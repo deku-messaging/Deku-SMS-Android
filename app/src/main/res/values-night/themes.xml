@@ -2,8 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.main" parent="@style/Theme.AppTheme">
         <item name="android:windowLightStatusBar">false</item>
-        <item name="colorPrimary">@color/logo_primary</item>
-        <item name="colorSecondary">@color/logo_secondary</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
     </style>
 
 

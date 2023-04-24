@@ -1,13 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.main" parent="Theme.AppTheme">
-        <item name="colorPrimary">@color/logo_secondary</item>
-        <item name="colorSecondary">@color/logo_primary</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
     </style>
-
-    <style name="Theme.menu_style" parent="Theme.main">
-        <item name="backgroundColor">@color/primary_background_color</item>
-    </style>
-
 
 </resources>

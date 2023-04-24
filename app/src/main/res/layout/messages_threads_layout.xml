@@ -45,7 +45,6 @@
         android:fontFamily="sans-serif"
         android:text="TextView"
         android:textSize="18sp"
-        android:theme="@style/Theme.thread_read"
         app:layout_constraintStart_toEndOf="@+id/messages_threads_contact_photo_id"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -60,7 +59,6 @@
         android:fontFamily="sans-serif"
         android:maxLines="3"
         android:text="TextView"
-        android:theme="@style/Theme.thread_read"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/messages_route_state"
         app:layout_constraintStart_toEndOf="@+id/message_you_label"

@@ -72,7 +72,7 @@
         android:textAlignment="center"
         app:elevation="10dp"
         app:icon="@drawable/ic_round_chat_bubble_24"
-        app:iconTint="@color/received_message_color"
+        app:iconTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
