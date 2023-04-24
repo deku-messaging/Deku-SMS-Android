@@ -283,7 +283,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                 holder.contactInitials.setAvatarInitials(address.substring(0, 1));
 
                 final int colorValue = (int) address.charAt(0);
-                Log.d(getClass().getName(), "Getting color for: " + colorValue);
                 final int red = colorValue + 10;
                 final int green = (int) (red * 1.5);
 //                final int blue = address.length() > 1 ? colorValue + (int) address.charAt(1) : colorValue;
