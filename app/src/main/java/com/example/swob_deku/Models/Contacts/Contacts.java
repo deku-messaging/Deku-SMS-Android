@@ -52,6 +52,20 @@ public class Contacts {
         phoneCursor.close();
     }
 
+    public static Cursor filterContacts(Context context, String filter) {
+        String[] projection = {ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME};
+        String selection = ContactsContract.CommonDataKinds.Phone.NUMBER + " LIKE '%" + filter
+                + "%' OR " + ContactsContract.Contacts.DISPLAY_NAME + " LIKE '%" + filter + "%'";
+        String[] selectionArgs = null;
+        String sortOrder = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
+        return context.getContentResolver().query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder
+        );
+    }
 
     public static Cursor filterPhonebookContactsByName(Context context, String filter) {
 //        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));

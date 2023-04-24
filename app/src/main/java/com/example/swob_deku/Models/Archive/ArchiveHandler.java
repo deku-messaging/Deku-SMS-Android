@@ -55,6 +55,7 @@ public class ArchiveHandler {
                         .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.remove(new Archive(threadId));
+                databaseConnector.close();
             }
         });
         thread.start();
@@ -72,6 +73,7 @@ public class ArchiveHandler {
                         .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 fetchedData[0] = archiveDAO.fetchAll();
+                databaseConnector.close();
             }
         });
         thread.start();

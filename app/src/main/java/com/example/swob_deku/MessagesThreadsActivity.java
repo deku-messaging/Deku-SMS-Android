@@ -106,13 +106,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         Log.d(getLocalClassName(), "Threading main activity");
 
         setRefreshTimer();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                loadSubroutines();
-            }
-        });
-
+        loadSubroutines();
     }
 
     private void loadSubroutines() {
