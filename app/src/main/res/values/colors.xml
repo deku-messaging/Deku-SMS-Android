@@ -3,7 +3,7 @@
     <color name="avatar_color">@color/white</color>
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
+    <color name="purple_700">#8FDA76</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
@@ -32,4 +32,9 @@
     <color name="primary_warning_background_color">#FD6839</color>
 
     <color name="delete_red">#E91E63</color>
+
+    <array name="rainbow">
+        <item>@color/white</item>
+        <item>@color/delete_red</item>
+    </array>
 </resources>

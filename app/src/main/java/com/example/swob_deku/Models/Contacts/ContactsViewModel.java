@@ -41,12 +41,15 @@ public class ContactsViewModel extends ViewModel {
         Cursor cursor = Contacts.filterContacts(context, details);
         if(cursor.moveToFirst()) {
             do {
-                int idIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID);
-                int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME);
+                int idIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone._ID);
+                int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                int numberIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER);
 
                 String displayName = String.valueOf(cursor.getString(displayNameIndex));
                 long id = cursor.getLong(idIndex);
-                contactsList.add(new Contacts(context,  id, displayName));
+                String number = String.valueOf(cursor.getString(numberIndex));
+
+                contactsList.add(new Contacts(context,  id, displayName, number));
             } while(cursor.moveToNext());
         }
         cursor.close();
@@ -67,15 +70,15 @@ public class ContactsViewModel extends ViewModel {
         List<Contacts> contactsList = new ArrayList<>();
         if(cursor.moveToFirst()) {
             do {
-                int idIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID);
-                int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME);
-//                int addressIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.NUMBER);
+                int idIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone._ID);
+                int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                int numberIndex = cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER);
 
                 String displayName = String.valueOf(cursor.getString(displayNameIndex));
                 long id = cursor.getLong(idIndex);
-//                String address = String.valueOf(cursor.getString(addressIndex));
+                String number = String.valueOf(cursor.getString(numberIndex));
 
-                contactsList.add(new Contacts(context, id, displayName));
+                contactsList.add(new Contacts(context, id, displayName, number));
             } while(cursor.moveToNext());
         }
         cursor.close();

@@ -444,7 +444,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                messagesThreadRecyclerAdapter.notifyDataSetChanged();
+//                messagesThreadRecyclerAdapter.notifyDataSetChanged();
+                messagesThreadViewModel.informChanges(getApplicationContext());
                 mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
             }
         }, recyclerViewTimeUpdateLimit);

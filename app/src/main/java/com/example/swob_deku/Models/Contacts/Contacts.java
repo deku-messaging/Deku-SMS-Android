@@ -26,13 +26,13 @@ public class Contacts {
     public static final int TYPE_OLD_CONTACT = 1;
     public static final int TYPE_NEW_CONTACT = 2;
 
-    public Contacts(Context context, long id, String contactName){
+    public Contacts(Context context, long id, String contactName, @NonNull String number){
         this.id = id;
         this.contactName = contactName;
         this.context = context;
         this.type = TYPE_OLD_CONTACT;
+        this.number = number;
 
-        getPhoneNumber();
     }
 
     public Contacts(){ }
@@ -53,13 +53,17 @@ public class Contacts {
     }
 
     public static Cursor filterContacts(Context context, String filter) {
-        String[] projection = {ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME};
+        String[] projection = {
+                ContactsContract.CommonDataKinds.Phone._ID,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER
+        };
         String selection = ContactsContract.CommonDataKinds.Phone.NUMBER + " IS NOT NULL AND " +
                 ContactsContract.CommonDataKinds.Phone.NUMBER + " <> '' AND (" +
                 ContactsContract.CommonDataKinds.Phone.NUMBER + " LIKE '%" + filter + "%' OR " +
-                ContactsContract.Contacts.DISPLAY_NAME + " LIKE '%" + filter + "%')";
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE '%" + filter + "%')";
         String[] selectionArgs = null;
-        String sortOrder = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
+        String sortOrder = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
         return context.getContentResolver().query(
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 projection,
@@ -82,15 +86,22 @@ public class Contacts {
     }
 
     public static Cursor getPhonebookContacts(Context context) {
-//        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
-        Uri uri = ContactsContract.Contacts.CONTENT_URI;
-        Cursor cursor = context.getContentResolver().query(
-                uri,
-                null,
-                null,
-                null,
-                null);
-        return cursor;
+        String[] projection = {
+                ContactsContract.CommonDataKinds.Phone._ID,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER
+        };
+        String selection = ContactsContract.CommonDataKinds.Phone.NUMBER + " IS NOT NULL AND " +
+                ContactsContract.CommonDataKinds.Phone.NUMBER + " <> ''";
+        String[] selectionArgs = null;
+        String sortOrder = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
+        return context.getContentResolver().query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder
+        );
     }
 
     public static String retrieveContactName(Context context, String phoneNumber) {

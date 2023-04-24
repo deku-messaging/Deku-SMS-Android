@@ -70,7 +70,8 @@
         android:layout_marginBottom="32dp"
         android:onClick="onNewMessageClick"
         android:textAlignment="center"
-        app:icon="@drawable/ic_round_message_24"
+        app:icon="@drawable/ic_round_chat_bubble_24"
+        app:iconTint="@color/primary_background_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

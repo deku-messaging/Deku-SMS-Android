@@ -15,6 +15,11 @@ public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
 
     String body = new String();
+    public String displayName = "";
+
+    public int displayColor = -1;
+
+    public boolean isContact = false;
 
     public String getBody() {
         return body;

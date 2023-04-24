@@ -4,7 +4,11 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.provider.Telephony;
 import android.text.Spannable;
 import android.text.Spanned;
@@ -13,6 +17,7 @@ import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -43,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import io.getstream.avatarview.AvatarView;
 
@@ -210,6 +216,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 //        else if(SMSHandler.hasUnreadMessages())
 //            return UNREAD_ENCRYPTED_VIEW_TYPE;
 
+
+        if(!sms.getAddress().isEmpty()) {
+            String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
+            if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
+                sms.isContact = true;
+                sms.displayName = addressInPhone;
+            }
+        }
+
         if(SecurityHelpers.containersWaterMark(sms.getBody())) {
             if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
@@ -247,16 +262,30 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         String address = sms.getAddress();
 
-        if(checkPermissionToReadContacts() && !address.isEmpty()) {
-            String addressInPhone = Contacts.retrieveContactName(context, address);
+        if(sms.isContact) {
+            address = sms.displayName;
+            holder.contactInitials.setAvatarInitials(address.substring(0, 1));
+            holder.contactInitials.setVisibility(View.VISIBLE);
+            holder.contactInitials.setAvatarInitialsBackgroundColor(sms.displayColor);
+            holder.contactPhoto.setVisibility(View.GONE);
+        } else {
 
-            if(!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
-                address = addressInPhone;
-                holder.contactPhoto.setAvatarInitials(address.substring(0, 1));
-            }
+            Drawable drawable = context.getDrawable(R.drawable.baseline_account_circle_24);
+
+            drawable.setColorFilter(holder.randomColor, PorterDuff.Mode.SRC_IN);
+            holder.contactPhoto.setImageDrawable(drawable);
         }
 
         holder.address.setText(address);
+
+        holder.mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
+                holder.date.setText(date);
+                holder.mHandler.postDelayed(this, holder.recyclerViewTimeUpdateLimit);
+            }
+        }, holder.recyclerViewTimeUpdateLimit);
 
         String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
         holder.date.setText(date);
@@ -345,6 +374,18 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         mDiffer.submitList(list);
     }
 
+    public static class Contact extends ViewHolder {
+        public Contact(@NonNull View itemView) {
+            super(itemView);
+        }
+    }
+
+    public static class NotContact extends ViewHolder {
+        public NotContact(@NonNull View itemView) {
+            super(itemView);
+        }
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public String id;
         public TextView snippet;
@@ -353,10 +394,23 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         public TextView state;
         public TextView routingUrl;
         public TextView routingURLText;
-        public AvatarView contactPhoto;
+        public AvatarView contactInitials;
         public TextView youLabel;
 
+        public ImageView contactPhoto;
+
+        Random random = new Random();
+        int red = random.nextInt(150) + 50;
+        int green = random.nextInt(150) + 50;
+        int blue = random.nextInt(150) + 50;
+
+        final int randomColor = Color.rgb(red, green, blue);
+
         ConstraintLayout layout;
+
+        Handler mHandler = new Handler();
+
+        final int recyclerViewTimeUpdateLimit = 60 * 1000;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -368,8 +422,9 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             state = itemView.findViewById(R.id.messages_route_state);
             routingUrl = itemView.findViewById(R.id.message_route_url);
             routingURLText = itemView.findViewById(R.id.message_route_status);
-            contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
             youLabel = itemView.findViewById(R.id.message_you_label);
+            contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
+            contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
         }
     }
 

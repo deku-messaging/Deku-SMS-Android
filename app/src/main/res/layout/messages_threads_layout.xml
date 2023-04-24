@@ -11,28 +11,29 @@
 
     <FrameLayout
         android:id="@+id/messages_threads_contact_photo_id"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginStart="12dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/circle_background"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <io.getstream.avatarview.AvatarView
-            android:id="@+id/messages_threads_contact_photo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:id="@+id/messages_threads_contact_initials"
+            android:layout_width="37dp"
+            android:layout_height="37dp"
+            android:visibility="gone"
             app:avatarViewBorderRadius="0dp"
             app:avatarViewBorderWidth="0dp"
-            app:avatarViewIndicatorBorderSizeCriteria="15"
-            app:avatarViewIndicatorColor="@color/light_blue"
-            app:avatarViewIndicatorPosition="bottomRight"
-            app:avatarViewIndicatorSizeCriteria="9"
-            app:avatarViewInitialsTextColor="@color/avatar_color"
-            app:avatarViewInitialsTextSize="20sp"
-            app:avatarViewInitialsTextStyle="normal"
-            app:srcCompat="@drawable/round_person_24" />
+            app:avatarViewInitialsTextSize="18sp"
+            app:avatarViewInitialsTextStyle="normal" />
+
+        <ImageView
+            android:id="@+id/messages_threads_contact_photo"
+            android:layout_width="match_parent"
+            android:background="@drawable/perfect_circle"
+            android:layout_height="match_parent"
+            app:srcCompat="@drawable/baseline_account_circle_24" />
     </FrameLayout>
 
     <TextView
