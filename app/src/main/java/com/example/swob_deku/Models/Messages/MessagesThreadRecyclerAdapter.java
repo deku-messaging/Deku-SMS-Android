@@ -14,6 +14,7 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -280,6 +281,16 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
                 address = addressInPhone;
                 holder.contactInitials.setAvatarInitials(address.substring(0, 1));
+
+                final int colorValue = (int) address.charAt(0);
+                Log.d(getClass().getName(), "Getting color for: " + colorValue);
+                final int red = colorValue + 10;
+                final int green = (int) (red * 1.5);
+//                final int blue = address.length() > 1 ? colorValue + (int) address.charAt(1) : colorValue;
+                final int blue = (int) (green * 1.25);
+
+                final int randomColor = Color.rgb(red, green, blue);
+                holder.contactInitials.setAvatarInitialsBackgroundColor(randomColor);
             }
         }
 
@@ -401,13 +412,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         Handler mHandler = new Handler();
 
         final int recyclerViewTimeUpdateLimit = 60 * 1000;
-        final Random random = new Random();
-        final int red = random.nextInt(150) + 50;
-        final int green = random.nextInt(150) + 50;
-        final int blue = random.nextInt(150) + 50;
-
-        final int randomColor = Color.rgb(red, green, blue);
-
         public ViewHolder(@NonNull View itemView, boolean isContact) {
             super(itemView);
 
@@ -425,11 +429,17 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
 
             if(!isContact) {
+                final Random random = new Random();
+                final int red = random.nextInt(150) + 50;
+                final int green = random.nextInt(150) + 50;
+                final int blue = random.nextInt(150) + 50;
+
+                final int randomColor = Color.rgb(red, green, blue);
+
                 Drawable drawable = contactPhoto.getDrawable();
                 drawable.setColorFilter(randomColor, PorterDuff.Mode.SRC_IN);
                 contactPhoto.setImageDrawable(drawable);
             } else {
-                contactInitials.setAvatarInitialsBackgroundColor(randomColor);
                 contactInitials.setVisibility(View.VISIBLE);
                 contactPhoto.setVisibility(View.GONE);
 //                this.setIsRecyclable(false);
