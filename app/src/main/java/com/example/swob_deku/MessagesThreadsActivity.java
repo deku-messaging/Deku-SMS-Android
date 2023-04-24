@@ -77,6 +77,45 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         messagesThreadViewModel = new ViewModelProvider(this).get(
                 MessagesThreadViewModel.class);
 
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,
+                LinearLayoutManager.VERTICAL, false);
+        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
+                this, R.layout.messages_threads_layout);
+
+        messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
+        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
+
+        messagesThreadViewModel.getMessages(getApplicationContext()).observe(this,
+                new Observer<List<SMS>>() {
+                    @Override
+                    public void onChanged(List<SMS> smsList) {
+                        TextView textView = findViewById(R.id.homepage_no_message);
+                        if(smsList.isEmpty()) {
+                            textView.setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            textView.setVisibility(View.GONE);
+                        }
+//                        smsList = smsList.subList(0, 10);
+                        messagesThreadRecyclerAdapter.submitList(smsList);
+                    }
+                });
+
+        enableSwipeAction();
+        Log.d(getLocalClassName(), "Threading main activity");
+
+        setRefreshTimer();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                loadSubroutines();
+            }
+        });
+
+    }
+
+    private void loadSubroutines() {
         TextInputEditText searchTextView = findViewById(R.id.recent_search_edittext_clickable);
         searchTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -126,35 +165,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 popup.show();
             }
         });
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,
-                LinearLayoutManager.VERTICAL, false);
-        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, R.layout.messages_threads_layout);
-
-        messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
-        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
-        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
-
-        messagesThreadViewModel.getMessages(getApplicationContext()).observe(this,
-                new Observer<List<SMS>>() {
-                    @Override
-                    public void onChanged(List<SMS> smsList) {
-                        TextView textView = findViewById(R.id.homepage_no_message);
-                        if(smsList.isEmpty()) {
-                            textView.setVisibility(View.VISIBLE);
-                        }
-                        else {
-                            textView.setVisibility(View.GONE);
-                        }
-                        messagesThreadRecyclerAdapter.submitList(smsList);
-                    }
-                });
-
-        enableSwipeAction();
-        Log.d(getLocalClassName(), "Threading main activity");
-
-        setRefreshTimer();
 
     }
 

@@ -13,6 +13,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ArchiveHandler {
+    Context context;
+    Datastore databaseConnector;
+    ArchiveDAO archiveDAO;
+    public ArchiveHandler(Context context) {
+        this.context = context;
+        databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                        Datastore.databaseName)
+                .fallbackToDestructiveMigration()
+                .build();
+        archiveDAO = databaseConnector.archiveDAO();
+    }
 
     public static void archiveSMS(Context context, Archive archive) throws InterruptedException {
         Thread thread = new Thread(new Runnable() {
@@ -30,25 +41,8 @@ public class ArchiveHandler {
         thread.join();
     }
 
-    public static boolean isArchived(Context context, long threadId) throws InterruptedException {
-        final boolean[] isArchived = {false};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                                Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
-                        .build();
-                ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
-                Archive archive = archiveDAO.fetch(threadId);
-                if(archive != null)
-                    isArchived[0] = true;
-            }
-        });
-        thread.start();
-        thread.join();
-
-        return isArchived[0];
+    public boolean isArchived(long threadId) throws InterruptedException {
+        return archiveDAO.fetch(threadId) != null;
     }
 
     public static void removeFromArchive(Context context, long threadId) throws InterruptedException {
@@ -84,6 +78,10 @@ public class ArchiveHandler {
         thread.join();
 
         return fetchedData[0];
+    }
+
+    public void close() {
+        databaseConnector.close();
     }
 
 }
