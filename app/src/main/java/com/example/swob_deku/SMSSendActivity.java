@@ -121,6 +121,8 @@ public class SMSSendActivity extends AppCompatActivity {
     BroadcastReceiver incomingDataBroadcastReceiver;
     BroadcastReceiver incomingBroadcastReceiver;
 
+    private String abSubtitle = "";
+
     private void configureToolbars() {
         toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
         setSupportActionBar(toolbar);
@@ -262,7 +264,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
                 selectedItems = integers;
-                itemOperationsNeeded();
+                itemOperationsNeeded(integers.size());
             }
         });
     }
@@ -1086,11 +1088,16 @@ public class SMSSendActivity extends AppCompatActivity {
         multiSimcardConstraint.setVisibility(View.VISIBLE);
     }
 
-    private void hideDefaultToolbar(Menu menu) {
+    private void hideDefaultToolbar(Menu menu, int size) {
         menu.setGroupVisible(R.id.default_menu_items, false);
         menu.setGroupVisible(R.id.single_message_copy_menu, true);
 
         ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
+        ab.setTitle(String.valueOf(size));
+
+        if(abSubtitle.isEmpty())
+            abSubtitle = ab.getSubtitle().toString();
+        ab.setSubtitle("");
 
         // experimental
         ab.setElevation(10);
@@ -1101,6 +1108,9 @@ public class SMSSendActivity extends AppCompatActivity {
         menu.setGroupVisible(R.id.single_message_copy_menu, false);
 
         ab.setHomeAsUpIndicator(null);
+        ab.setSubtitle(abSubtitle);
+        abSubtitle = "";
+        ab.setTitle(contactName);
     }
 
     private void copyItems() {
@@ -1118,15 +1128,23 @@ public class SMSSendActivity extends AppCompatActivity {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
+        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
     }
 
     private void deleteItems() {
         String[] keys = selectedItems.keySet().toArray(new String[0]);
-        SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
-        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
-        //                        singleMessageViewModel.informNewItemChanges();
-        singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
+        if(keys.length > 1) {
+            SMSHandler.deleteSMSMessagesById(getApplicationContext(), keys);
+            for(String key: keys ) {
+                singleMessagesThreadRecyclerAdapter.resetSelectedItem(key, true);
+                singleMessagesThreadRecyclerAdapter.removeItem(key);
+            }
+        }
+        else {
+            SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
+            singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
+            singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
+        }
     }
 
     private void makeCall() {
@@ -1136,14 +1154,13 @@ public class SMSSendActivity extends AppCompatActivity {
         startActivity(callIntent);
     }
 
-    private void itemOperationsNeeded() {
+    private void itemOperationsNeeded(int size) {
         if(selectedItems != null) {
             if (selectedItems.isEmpty()) {
                 showDefaultToolbar(toolbar.getMenu());
             } else {
-                hideDefaultToolbar(toolbar.getMenu());
+                hideDefaultToolbar(toolbar.getMenu(), size);
             }
-            return;
         }
     }
 
