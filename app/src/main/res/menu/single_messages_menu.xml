@@ -30,4 +30,14 @@
             android:visible="false"
             app:showAsAction="always" />
     </group>
+
+    <group
+        android:id="@+id/multiple_message_copy_menu">
+        <item
+            android:id="@+id/delete_multiple"
+            android:icon="@drawable/round_delete_24"
+            android:title="delete"
+            android:visible="false"
+            app:showAsAction="always" />
+    </group>
 </menu>

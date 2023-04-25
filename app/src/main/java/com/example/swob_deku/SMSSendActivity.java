@@ -1090,7 +1090,13 @@ public class SMSSendActivity extends AppCompatActivity {
 
     private void hideDefaultToolbar(Menu menu, int size) {
         menu.setGroupVisible(R.id.default_menu_items, false);
-        menu.setGroupVisible(R.id.single_message_copy_menu, true);
+        if(size > 1) {
+            menu.setGroupVisible(R.id.single_message_copy_menu, false);
+            menu.setGroupVisible(R.id.multiple_message_copy_menu, true);
+        } else {
+            menu.setGroupVisible(R.id.multiple_message_copy_menu, false);
+            menu.setGroupVisible(R.id.single_message_copy_menu, true);
+        }
 
         ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
         ab.setTitle(String.valueOf(size));
@@ -1175,7 +1181,7 @@ public class SMSSendActivity extends AppCompatActivity {
                     copyItems();
                     return true;
                 }
-                else if(R.id.delete == id) {
+                else if(R.id.delete == id || R.id.delete_multiple == id) {
                     deleteItems();
                     return true;
                 }
