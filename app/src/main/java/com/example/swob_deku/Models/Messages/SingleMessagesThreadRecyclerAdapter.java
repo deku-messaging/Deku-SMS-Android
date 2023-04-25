@@ -39,6 +39,7 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -431,6 +432,17 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     @Override
     public int getItemCount() {
         return mDiffer.getCurrentList().size();
+    }
+
+    public void removeAllItems(String[] _keys) {
+        List<String> keys = new ArrayList<>(Arrays.asList(_keys));
+        List<SMS> sms = new ArrayList<>(mDiffer.getCurrentList());
+        List<SMS> smsNew = new ArrayList<>();
+        for(SMS sms1 : sms)
+            if(!keys.contains(sms1.getId()))
+                smsNew.add(sms1);
+
+        mDiffer.submitList(smsNew);
     }
 
     public void removeItem(String keys) {

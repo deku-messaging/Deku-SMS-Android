@@ -86,5 +86,6 @@
 
     <string name="search_nothing_found">Nothing found</string>
     <string name="search_title">Search</string>
+    <string name="lengthy_sms_sample"/>
 
 </resources>

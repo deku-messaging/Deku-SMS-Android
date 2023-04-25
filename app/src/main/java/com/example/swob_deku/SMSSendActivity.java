@@ -1095,7 +1095,7 @@ public class SMSSendActivity extends AppCompatActivity {
         ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
         ab.setTitle(String.valueOf(size));
 
-        if(abSubtitle.isEmpty())
+        if(ab.getSubtitle() != null && abSubtitle.isEmpty())
             abSubtitle = ab.getSubtitle().toString();
         ab.setSubtitle("");
 
@@ -1132,13 +1132,11 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void deleteItems() {
-        String[] keys = selectedItems.keySet().toArray(new String[0]);
+        final String[] keys = selectedItems.keySet().toArray(new String[0]);
         if(keys.length > 1) {
             SMSHandler.deleteSMSMessagesById(getApplicationContext(), keys);
-            for(String key: keys ) {
-                singleMessagesThreadRecyclerAdapter.resetSelectedItem(key, true);
-                singleMessagesThreadRecyclerAdapter.removeItem(key);
-            }
+            singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+            singleMessagesThreadRecyclerAdapter.removeAllItems(keys);
         }
         else {
             SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
