@@ -14,11 +14,9 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.StyleSpan;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.room.ExperimentalRoomApi;
 import androidx.room.Room;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
@@ -36,8 +34,6 @@ import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityDH;
-import com.example.swob_deku.Models.Security.SecurityHelpers;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -226,7 +222,6 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(
                     context, context.getString(R.string.CHANNEL_ID))
                     .setDefaults(Notification.DEFAULT_ALL)
-//                    .setSmallIcon(R.drawable.ic_round_chat_bubble_24)
                     .setSmallIcon(R.drawable.ic_stat_name)
                     .setContentIntent(pendingReceivedSmsIntent)
                     .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)

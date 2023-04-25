@@ -4,8 +4,8 @@
     <solid
         android:color="@color/sent_message_color"/>
     <corners
-        android:topLeftRadius="40dp"
-        android:topRightRadius="40dp"
-        android:bottomRightRadius="40dp"
-        android:bottomLeftRadius="40dp" />
+        android:topLeftRadius="30dp"
+        android:topRightRadius="30dp"
+        android:bottomRightRadius="30dp"
+        android:bottomLeftRadius="30dp" />
 </shape>
