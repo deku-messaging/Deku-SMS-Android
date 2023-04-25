@@ -198,14 +198,18 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
             ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
             if(text.contains(ImageHandler.IMAGE_HEADER)) {
-                byte[] body = Base64.decode(text
-                        .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
+                try {
+                    byte[] body = Base64.decode(text
+                            .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
 
-                Bitmap bitmap = BitmapFactory.decodeByteArray(body, 0, body.length);
-                messageReceivedViewHandler.imageView.setImageBitmap(bitmap);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(body, 0, body.length);
+                    messageReceivedViewHandler.imageView.setImageBitmap(bitmap);
 
-                imageConstraint.setVisibility(View.VISIBLE);
-                receivedMessage.setVisibility(View.GONE);
+                    imageConstraint.setVisibility(View.VISIBLE);
+                    receivedMessage.setVisibility(View.GONE);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
             else {
                 receivedMessage.setText(text);
