@@ -33,13 +33,14 @@ public class MessagesSearchViewModel extends ViewModel {
             return;
         Cursor cursor = SMSHandler.fetchSMSMessagesForSearch(context, searchInput);
 
+        List<SMS> smsList = new ArrayList<>();
         if(cursor.moveToFirst()) {
-            List<SMS> smsList = new ArrayList<>();
             do {
                 SMS sms = new SMS(cursor);
                 smsList.add(sms);
             } while(cursor.moveToNext());
-            messagesList.setValue(smsList);
         }
+        cursor.close();
+        messagesList.setValue(smsList);
     }
 }

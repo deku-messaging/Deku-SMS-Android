@@ -11,7 +11,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -65,7 +67,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
                     imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
 
-                    findViewById(R.id.search_results_recycler_view).requestFocus();
+//                    findViewById(R.id.search_results_recycler_view).requestFocus();
 
                     return true;
                 }
@@ -91,10 +93,12 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 new Observer<List<SMS>>() {
                     @Override
                     public void onChanged(List<SMS> smsList) {
-//                        if(smsList.size() < 1 )
-//                            findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
-                        messagesThreadRecyclerAdapter.submitList(smsList);
-//                        messagesThreadRecyclerView.smoothScrollToPosition(0);
+                        if(!searchString.getValue().isEmpty() && smsList.isEmpty())
+                            findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
+                        else
+                            findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
+                        messagesThreadRecyclerAdapter.submitList(smsList, searchString.getValue());
+                        messagesThreadRecyclerAdapter.notifyDataSetChanged();
                     }
                 });
     }

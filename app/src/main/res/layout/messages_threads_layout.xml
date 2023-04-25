@@ -11,28 +11,29 @@
 
     <FrameLayout
         android:id="@+id/messages_threads_contact_photo_id"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginStart="12dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/circle_background"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <io.getstream.avatarview.AvatarView
-            android:id="@+id/messages_threads_contact_photo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:id="@+id/messages_threads_contact_initials"
+            android:layout_width="37dp"
+            android:layout_height="37dp"
+            android:visibility="gone"
             app:avatarViewBorderRadius="0dp"
             app:avatarViewBorderWidth="0dp"
-            app:avatarViewIndicatorBorderSizeCriteria="15"
-            app:avatarViewIndicatorColor="@color/light_blue"
-            app:avatarViewIndicatorPosition="bottomRight"
-            app:avatarViewIndicatorSizeCriteria="9"
-            app:avatarViewInitialsTextColor="@color/avatar_color"
-            app:avatarViewInitialsTextSize="20sp"
-            app:avatarViewInitialsTextStyle="normal"
-            app:srcCompat="@drawable/round_person_24" />
+            app:avatarViewInitialsTextSize="18sp"
+            app:avatarViewInitialsTextStyle="normal" />
+
+        <ImageView
+            android:id="@+id/messages_threads_contact_photo"
+            android:layout_width="match_parent"
+            android:background="@drawable/perfect_circle"
+            android:layout_height="match_parent"
+            app:srcCompat="@drawable/baseline_account_circle_24" />
     </FrameLayout>
 
     <TextView
@@ -44,7 +45,6 @@
         android:fontFamily="sans-serif"
         android:text="TextView"
         android:textSize="18sp"
-        android:theme="@style/Theme.thread_read"
         app:layout_constraintStart_toEndOf="@+id/messages_threads_contact_photo_id"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -54,12 +54,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:ellipsize="end"
         android:fontFamily="sans-serif"
         android:maxLines="3"
         android:text="TextView"
-        android:theme="@style/Theme.thread_read"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/messages_route_state"
-        app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
+        app:layout_constraintStart_toEndOf="@+id/message_you_label"
         app:layout_constraintTop_toBottomOf="@+id/messages_thread_address_text" />
 
     <TextView
@@ -89,7 +91,7 @@
         android:layout_marginTop="8dp"
         android:text="@string/route_state"
         android:textSize="10dp"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="@+id/messages_thread_text"
         app:layout_constraintTop_toBottomOf="@+id/messages_thread_text" />
 
@@ -101,8 +103,18 @@
         android:layout_marginBottom="3dp"
         android:text="TextView"
         android:textSize="11dp"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/message_route_status"
         app:layout_constraintTop_toBottomOf="@+id/message_route_status" />
+
+    <TextView
+        android:id="@+id/message_you_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/messages_thread_you"
+        android:textStyle="normal"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
+        app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -34,8 +34,10 @@ public class SingleMessageViewModel extends ViewModel {
     Pager<Integer, SMS> pager;
     SMSPaging smsPaging;
 
-    Integer currentLimit = 12;
+    public Integer currentLimit = 12;
     Integer offset = 0;
+
+    public boolean offsetStartedFromZero = true;
 
 //    public LiveData<PagingData<SMS>> getMessages(Context context, String threadId, Lifecycle lifecycle){
 //        this.threadId = threadId;
@@ -46,9 +48,18 @@ public class SingleMessageViewModel extends ViewModel {
 //        return liveData;
 //    }
 
-    public LiveData getMessages(Context context, String threadId){
+    public LiveData getMessages(Context context, String threadId, int offset){
         this.threadId = threadId;
         this.context = context;
+
+        if((offset - 1) > 0) {
+            offsetStartedFromZero = false;
+//            offset = offset > 2 ? offset - (currentLimit/2) : offset;
+//            Log.d(getClass().getName(), "Offset in getting messages: " + (offset -1));
+//            offset -=1;
+            this.offset = offset;
+        }
+        Log.d(getClass().getName(), "Loading data for offset: " + offset);
         this.mutableLiveData = new MutableLiveData(loadSMSThreads(offset, currentLimit));
         return mutableLiveData;
     }
@@ -70,6 +81,24 @@ public class SingleMessageViewModel extends ViewModel {
         }
     }
 
+    public int refreshDown() {
+        int newSize = 0;
+        if(!offsetStartedFromZero && offset != null) {
+            Log.d(getClass().getName(), "Old offset: " + offset);
+            int calculatedOffset = offset - currentLimit;
+            int newLimit = currentLimit;
+            if(calculatedOffset < 0) {
+                newLimit = offset;
+                offset = 0;
+            }
+            else offset = calculatedOffset;
+
+            Log.d(getClass().getName(), "New offset: " + offset);
+            newSize = _updateLiveDataDown(offset, newLimit);
+        }
+        return newSize;
+    }
+
     private Integer _updateLiveData(int offset) {
         List newSMS = loadSMSThreads(offset, currentLimit);
 
@@ -78,11 +107,31 @@ public class SingleMessageViewModel extends ViewModel {
 
             sms.addAll(newSMS);
 
+            Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
             mutableLiveData.setValue(sms);
 
             return offset;
         }
+
         return null;
+    }
+
+    private Integer _updateLiveDataDown(int offset, int limit) {
+        List newSMS = loadSMSThreads(offset, limit);
+
+        if (!newSMS.isEmpty()) {
+            ArrayList sms = (ArrayList) mutableLiveData.getValue();
+
+            ArrayList mergedList = new ArrayList();
+            mergedList.addAll(newSMS);
+            mergedList.addAll(sms);
+
+            Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
+            mutableLiveData.setValue(mergedList);
+
+        }
+        this.offset = offset == 0 ? null : offset;
+        return newSMS.size();
     }
 
     private List loadSMSThreads(Integer _offset, int limit) {

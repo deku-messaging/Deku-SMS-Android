@@ -1,6 +1,7 @@
 package com.example.swob_deku.Commons;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.format.DateUtils;
 
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -80,19 +81,29 @@ public class Helpers {
     }
 
     public static String formatPhoneNumbers(String data) throws NumberParseException {
-//        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-//        try {
-//            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(data, "US");
-//            // use the formattedPhoneNumber
-//            return phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
-//        } catch (NumberParseException e) {
-//            // handle the exception
-//            throw(e);
-//        }
+        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+        try {
+            String formattedData = data.replaceAll("%2B", "+")
+                    .replaceAll("%20", "")
+                    .replaceAll("-", "")
+                    .replaceAll("\\s", "");
 
-        return data.replaceAll("%2B", "+")
-                .replaceAll("%20", "")
-                .replaceAll("-", "")
-                .replaceAll("\\s", "");
+            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(formattedData, "US");
+            // use the formattedPhoneNumber
+            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
+            data = formattedData;
+        } catch (NumberParseException e) {
+            // handle the exception
+            e.printStackTrace();
+        }
+        return data;
+    }
+
+    public static int generateColor(char letter) {
+        int hue = (int) ((letter - 'A') * 15f) % 360; // Map letters to hue values
+        float saturation = 0.7f; // Set fixed saturation and brightness values
+        float brightness = 0.9f;
+        float[] hsv = {hue, saturation, brightness};
+        return Color.HSVToColor(hsv); // Convert HSB values to RGB color
     }
 }

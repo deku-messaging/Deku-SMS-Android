@@ -48,14 +48,15 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.Models.Compression;
+import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityAES;
 import com.example.swob_deku.Models.Security.SecurityDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
@@ -76,6 +77,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
 
 public class SMSSendActivity extends AppCompatActivity {
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
@@ -93,12 +95,16 @@ public class SMSSendActivity extends AppCompatActivity {
     public static final String THREAD_ID = "thread_id";
     public static final String ID = "_id";
     public static final String SEARCH_STRING = "search_string";
+    public static final String SEARCH_OFFSET = "search_offset";
+
+    public static final String SEARCH_POSITION = "search_position";
 
     public static final String SMS_SENT_INTENT = "SMS_SENT";
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
 
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
+    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 200;
     private final int RESULT_GALLERY = 100;
 
     String threadId = "";
@@ -114,6 +120,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
     BroadcastReceiver incomingDataBroadcastReceiver;
     BroadcastReceiver incomingBroadcastReceiver;
+
+    private String abSubtitle = "";
 
     private void configureToolbars() {
         toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
@@ -132,13 +140,19 @@ public class SMSSendActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
 
+        if(!checkIsDefaultApp()) {
+            startActivity(new Intent(this, DefaultCheckActivity.class));
+            finish();
+            return;
+        }
+
         smsTextView = findViewById(R.id.sms_text);
         threadIdentificationLoader();
         try {
             singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(
                     getApplicationContext(), address);
         } catch (GeneralSecurityException | IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
 
@@ -155,15 +169,27 @@ public class SMSSendActivity extends AppCompatActivity {
 
         configureToolbars();
 
-        singleMessageViewModel.getMessages(getApplicationContext(), threadId).observe(this, new Observer<List<SMS>>() {
+        int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
+        singleMessageViewModel.getMessages(
+                getApplicationContext(), threadId, offset).observe(this, new Observer<List<SMS>>() {
             @Override
             public void onChanged(List<SMS> smsList) {
                 Log.d(getLocalClassName(), "Paging data changed!");
                 singleMessagesThreadRecyclerAdapter.mDiffer.submitList(smsList);
+                if(getIntent().hasExtra(SEARCH_POSITION))
+                    singleMessagesThreadRecyclerView.scrollToPosition(
+                            getIntent().getIntExtra(SEARCH_POSITION, -1));
             }
         });
 
         eventListeners();
+    }
+
+    private boolean checkIsDefaultApp() {
+        final String myPackageName = getPackageName();
+        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
+
+        return myPackageName.equals(defaultPackage);
     }
 
     private void threadIdentificationLoader() {
@@ -193,16 +219,27 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                final int lastVisiblePos = ((LinearLayoutManager) recyclerView.getLayoutManager())
+                final int lastTopVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
                         .findLastVisibleItemPosition();
 
-//                if(lastVisiblePos >= recyclerView.getAdapter().getItemCount() - 1) {
-                int scrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
-                if(lastVisiblePos >= scrollPosition) {
+                final int firstVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
+                        .findFirstVisibleItemPosition();
+
+                final int maximumScrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
+
+                if(!singleMessageViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
+                    int newSize = singleMessageViewModel.refreshDown();
+
+                    if(newSize > 0)
+                        recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
+//                    if(itemCount > maximumScrollPosition + 1)
+                }
+                else if(singleMessageViewModel.offsetStartedFromZero &&
+                        lastTopVisiblePosition >= maximumScrollPosition) {
                     singleMessageViewModel.refresh();
                     int itemCount = recyclerView.getAdapter().getItemCount();
-                    if(itemCount > scrollPosition + 1)
-                        recyclerView.scrollToPosition(lastVisiblePos);
+                    if(itemCount > maximumScrollPosition + 1)
+                        recyclerView.scrollToPosition(lastTopVisiblePosition);
                 }
             }
         });
@@ -227,7 +264,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
                 selectedItems = integers;
-                itemOperationsNeeded();
+                itemOperationsNeeded(integers.size());
             }
         });
     }
@@ -335,7 +372,12 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         }).start();
 
-        contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        try {
+            contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
                 address: contactName;
     }
@@ -395,7 +437,6 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
 //                if(singleMessageViewModel.getLastUsedKey() == 0)
 //                    singleMessagesThreadRecyclerAdapter.refresh();
-                Log.d(getLocalClassName(), "Broadcast received text!");
                 singleMessageViewModel.informNewItemChanges();
                 cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
@@ -404,7 +445,6 @@ public class SMSSendActivity extends AppCompatActivity {
         incomingDataBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d(getLocalClassName(), "Broadcast received data!");
                 singleMessageViewModel.informNewItemChanges();
 //                cancelNotifications(getIntent().getStringExtra(THREAD_ID));
             }
@@ -519,7 +559,20 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     public void sendTextMessage(View view) {
-        sendSMSMessage(null);
+        String text = smsTextView.getText().toString();
+        sendSMSMessage(null, text, null);
+    }
+
+    public static byte[] decompress(byte[] input) {
+//        byte[] decompressGZIP = Compression.decompressGZIP(input);
+//        Log.d(getLocalClassName(), "Gzip decompressed: " + decompressGZIP.length);
+//
+        try {
+            input = Compression.decompressDeflate(input);
+        } catch(Throwable e) {
+            e.printStackTrace();
+        }
+        return input;
     }
 
     private String encryptContent(String data) throws Throwable {
@@ -540,16 +593,33 @@ public class SMSSendActivity extends AppCompatActivity {
         return data;
     }
 
+    public byte[] compress(byte[] input) {
 
-    private void sendSMSMessage(Integer subscriptionId) {
+//        byte[] compressGzip = Compression.compressLZ4(compressDeflate);
+//        Log.d(getLocalClassName(), "Gzip compression: " + compressGzip.length);
+
+
+//        for(int i=0;i<decompressGZIP.length; ++i) {
+//            if(decompressGZIP[i] != c[i]) {
+//                Log.d(getLocalClassName(), "Different things came back!");
+//                break;
+//            }
+//        }
+//        return compressGzip;
+        return Compression.compressDeflate(input);
+//        return input;
+    }
+
+
+    private void sendSMSMessage(Integer subscriptionId, String text, Long messageId) {
         // TODO: Don't let sending happen if message box is empty
-        String text = smsTextView.getText().toString();
-
+        Log.d(getLocalClassName(), "Sending new text message..");
         try {
 
             SecurityDH securityDH = new SecurityDH(getApplicationContext());
 
-            long messageId = Helpers.generateRandomNumber();
+            if(messageId == null)
+                messageId = Helpers.generateRandomNumber();
 
             PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
@@ -559,6 +629,7 @@ public class SMSSendActivity extends AppCompatActivity {
             if(securityDH.hasSecretKey(address)) {
                 text = encryptContent(text);
                 text = SecurityHelpers.waterMarkMessage(text);
+//                text = Base64.encodeToString(compress(text.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
                 tmpThreadId = SMSHandler.sendEncryptedTextSMS(getApplicationContext(), address, text,
                         pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
             }
@@ -574,6 +645,17 @@ public class SMSSendActivity extends AppCompatActivity {
             else {
                 singleMessageViewModel.informNewItemChanges();
             }
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        removeFromArchive();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }).start();
         }
 
         catch(IllegalArgumentException e ) {
@@ -586,15 +668,13 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
+    private void removeFromArchive() throws InterruptedException {
+        ArchiveHandler.removeFromArchive(getApplicationContext(), Long.parseLong(threadId));
+    }
+
     private void resetSmsTextView() {
 //        smsTextView.setText(null);
         smsTextView.getText().clear();
-    }
-
-    public boolean checkPermissionToSendSMSMessages() {
-        int check = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS);
-
-        return (check == PackageManager.PERMISSION_GRANTED);
     }
 
     @Override
@@ -614,7 +694,6 @@ public class SMSSendActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(getLocalClassName(), "Yes resuming...");
         handleIncomingBroadcast();
 
         try {
@@ -627,18 +706,48 @@ public class SMSSendActivity extends AppCompatActivity {
 
         improveMessagingUX();
         ab.setTitle(contactName);
-        
-        updateMessagesToRead();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                updateMessagesToRead();
+            }
+        }).start();
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    checkEncryptedMessaging();
+                    if (PhoneNumberUtils.isWellFormedSmsAddress(address)) {
+                        checkEncryptedMessaging();
+                        if(getIntent().hasExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION)) {
+                            long messageId = getIntent().getLongExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION, -1);
+                            handleIncomingPending(messageId);
+                        }
+                    }
                 } catch (GeneralSecurityException | IOException e) {
                     e.printStackTrace();
                 }
             }
         }).start();
+    }
+
+    private void handleIncomingPending(long messageId) {
+        if(getIntent().getComponent().getPackageName().equals(BuildConfig.APPLICATION_ID) ) {
+            Cursor cursor = SMSHandler.fetchSMSOutboxPendingForMessageInThread(getApplicationContext(),
+                    threadId, messageId);
+
+            if(cursor.moveToFirst()) {
+                SMS sms = new SMS(cursor);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendSMSMessage(null, sms.getBody(), Long.parseLong(sms.getId()));
+                    }
+                });
+            }
+            cursor.close();
+        }
     }
 
     private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor) {
@@ -695,23 +804,32 @@ public class SMSSendActivity extends AppCompatActivity {
             PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
             handleBroadcast();
-            SMSHandler.sendDataSMS(getApplicationContext(),
-                    address,
-                    txAgreementKey[0],
-                    pendingIntents[0],
-                    pendingIntents[1],
-                    messageId,
-                    subscriptionId);
+            if(txAgreementKey[1].length == 0) {
+                SMSHandler.sendDataSMS(getApplicationContext(),
+                        address,
+                        txAgreementKey[0],
+                        pendingIntents[0],
+                        pendingIntents[1],
+                        messageId,
+                        subscriptionId);
+            } else {
+                SMSHandler.sendDataSMS(getApplicationContext(),
+                        address,
+                        txAgreementKey[0],
+                        pendingIntents[0],
+                        pendingIntents[1],
+                        messageId,
+                        subscriptionId);
 
-            handleBroadcast();
-            SMSHandler.sendDataSMS(getApplicationContext(),
-                    address,
-                    txAgreementKey[1],
-                    pendingIntents[0],
-                    pendingIntents[1],
-                    messageId,
-                    subscriptionId);
-
+                handleBroadcast();
+                SMSHandler.sendDataSMS(getApplicationContext(),
+                        address,
+                        txAgreementKey[1],
+                        pendingIntents[0],
+                        pendingIntents[1],
+                        messageId,
+                        subscriptionId);
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
             SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
@@ -784,6 +902,7 @@ public class SMSSendActivity extends AppCompatActivity {
                                 Base64.encodeToString(peerPublicKey, Base64.DEFAULT));
                         byte[] secret = securityDH.generateSecretKey(peerPublicKey, address);
                         securityDH.securelyStoreSecretKey(address, secret);
+                        ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
 
                     } catch (GeneralSecurityException | IOException e) {
                         throw new RuntimeException(e);
@@ -859,6 +978,14 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             });
         }
+        else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
+                }
+            });
+        }
     }
 
     @Override
@@ -881,25 +1008,22 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                if(singleMessagesThreadRecyclerAdapter.hasSelectedItems())
-                    singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
-                else
-                    // Handle the up button click event
-                    finish(); // for example, you can finish the current activity
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == android.R.id.home
+                && singleMessagesThreadRecyclerAdapter.hasSelectedItems()) {
+            singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     public void uploadImage(View view) {
         Intent galleryIntent = new Intent(
                 Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
         startActivityForResult(galleryIntent , RESULT_GALLERY );
     }
+
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -908,7 +1032,7 @@ public class SMSSendActivity extends AppCompatActivity {
             if (null != data) {
                 Uri imageUri = data.getData();
 
-                Intent intent = new Intent(this, ImageViewActivity.class);
+                Intent intent = new Intent(getApplicationContext(), ImageViewActivity.class);
                 intent.putExtra(IMAGE_URI, imageUri.toString());
                 intent.putExtra(ADDRESS, address);
                 intent.putExtra(THREAD_ID, threadId);
@@ -921,8 +1045,11 @@ public class SMSSendActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(incomingBroadcastReceiver);
-        unregisterReceiver(incomingDataBroadcastReceiver);
+        if(incomingBroadcastReceiver != null)
+            unregisterReceiver(incomingBroadcastReceiver);
+
+        if(incomingDataBroadcastReceiver != null)
+            unregisterReceiver(incomingDataBroadcastReceiver);
     }
 
     public void onLongClickSend(View view) {
@@ -951,7 +1078,8 @@ public class SMSSendActivity extends AppCompatActivity {
             buttons.get(i).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    sendSMSMessage(subscriptionId);
+                    String text = smsTextView.getText().toString();
+                    sendSMSMessage(subscriptionId, text, null);
                     findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
                 }
             });
@@ -960,11 +1088,22 @@ public class SMSSendActivity extends AppCompatActivity {
         multiSimcardConstraint.setVisibility(View.VISIBLE);
     }
 
-    private void hideDefaultToolbar(Menu menu) {
+    private void hideDefaultToolbar(Menu menu, int size) {
         menu.setGroupVisible(R.id.default_menu_items, false);
-        menu.setGroupVisible(R.id.single_message_copy_menu, true);
+        if(size > 1) {
+            menu.setGroupVisible(R.id.single_message_copy_menu, false);
+            menu.setGroupVisible(R.id.multiple_message_copy_menu, true);
+        } else {
+            menu.setGroupVisible(R.id.multiple_message_copy_menu, false);
+            menu.setGroupVisible(R.id.single_message_copy_menu, true);
+        }
 
         ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
+        ab.setTitle(String.valueOf(size));
+
+        if(ab.getSubtitle() != null && abSubtitle.isEmpty())
+            abSubtitle = ab.getSubtitle().toString();
+        ab.setSubtitle("");
 
         // experimental
         ab.setElevation(10);
@@ -975,6 +1114,9 @@ public class SMSSendActivity extends AppCompatActivity {
         menu.setGroupVisible(R.id.single_message_copy_menu, false);
 
         ab.setHomeAsUpIndicator(null);
+        ab.setSubtitle(abSubtitle);
+        abSubtitle = "";
+        ab.setTitle(contactName);
     }
 
     private void copyItems() {
@@ -992,15 +1134,21 @@ public class SMSSendActivity extends AppCompatActivity {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
+        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
     }
 
     private void deleteItems() {
-        String[] keys = selectedItems.keySet().toArray(new String[0]);
-        SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
-        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0]);
-        //                        singleMessageViewModel.informNewItemChanges();
-        singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
+        final String[] keys = selectedItems.keySet().toArray(new String[0]);
+        if(keys.length > 1) {
+            SMSHandler.deleteSMSMessagesById(getApplicationContext(), keys);
+            singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+            singleMessagesThreadRecyclerAdapter.removeAllItems(keys);
+        }
+        else {
+            SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
+            singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
+            singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
+        }
     }
 
     private void makeCall() {
@@ -1010,14 +1158,13 @@ public class SMSSendActivity extends AppCompatActivity {
         startActivity(callIntent);
     }
 
-    private void itemOperationsNeeded() {
+    private void itemOperationsNeeded(int size) {
         if(selectedItems != null) {
             if (selectedItems.isEmpty()) {
                 showDefaultToolbar(toolbar.getMenu());
             } else {
-                hideDefaultToolbar(toolbar.getMenu());
+                hideDefaultToolbar(toolbar.getMenu(), size);
             }
-            return;
         }
     }
 
@@ -1034,7 +1181,7 @@ public class SMSSendActivity extends AppCompatActivity {
                     copyItems();
                     return true;
                 }
-                else if(R.id.delete == id) {
+                else if(R.id.delete == id || R.id.delete_multiple == id) {
                     deleteItems();
                     return true;
                 }
@@ -1110,6 +1257,7 @@ public class SMSSendActivity extends AppCompatActivity {
     public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException {
         SecurityDH securityDH = new SecurityDH(getApplicationContext());
         PublicKey publicKey = securityDH.generateKeyPair(getApplicationContext(), address);
+        Log.d(getLocalClassName(), "Public key: " + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT));
         return publicKey.getEncoded();
     }
 }

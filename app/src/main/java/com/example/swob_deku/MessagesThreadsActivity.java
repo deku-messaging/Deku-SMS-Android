@@ -28,12 +28,18 @@ import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 
+import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.Archive.Archive;
+import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityDH;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -59,12 +65,51 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages_threads);
 
+        if(!checkIsDefaultApp()) {
+            startActivity(new Intent(this, DefaultCheckActivity.class));
+            finish();
+            return;
+        }
+
 //        cancelAllNotifications();
         handleIncomingMessage();
 
         messagesThreadViewModel = new ViewModelProvider(this).get(
                 MessagesThreadViewModel.class);
 
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,
+                LinearLayoutManager.VERTICAL, false);
+        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
+                this, R.layout.messages_threads_layout);
+
+        messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
+        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
+        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
+
+        messagesThreadViewModel.getMessages(getApplicationContext()).observe(this,
+                new Observer<List<SMS>>() {
+                    @Override
+                    public void onChanged(List<SMS> smsList) {
+                        TextView textView = findViewById(R.id.homepage_no_message);
+                        if(smsList.isEmpty()) {
+                            textView.setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            textView.setVisibility(View.GONE);
+                        }
+//                        smsList = smsList.subList(0, 10);
+                        messagesThreadRecyclerAdapter.submitList(smsList);
+                    }
+                });
+
+        enableSwipeAction();
+        Log.d(getLocalClassName(), "Threading main activity");
+
+        setRefreshTimer();
+        loadSubroutines();
+    }
+
+    private void loadSubroutines() {
         TextInputEditText searchTextView = findViewById(R.id.recent_search_edittext_clickable);
         searchTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -89,17 +134,24 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.messages_threads_menu_item_settings: {
-                                Intent settingsIntent = new Intent(getApplicationContext(),
-                                        GatewayServerListingActivity.class);
-                                settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                startActivity(settingsIntent);
-                                return true;
-                            }
-                            default:
-                                return false;
+                        if (item.getItemId() == R.id.messages_threads_menu_item_settings) {
+                            Intent settingsIntent = new Intent(getApplicationContext(),
+                                    GatewayServerListingActivity.class);
+                            settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(settingsIntent);
+                            return true;
                         }
+                        else if (item.getItemId() == R.id.messages_threads_menu_item_archived) {
+                            Intent archivedIntent = new Intent(getApplicationContext(),
+                                    ArchivedMessagesActivity.class);
+                            archivedIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(archivedIntent);
+                            return true;
+                        }
+                        else if (item.getItemId() == R.id.messages_threads_menu_item_routed) {
+                            startActivity(new Intent(getApplicationContext(), RouterActivity.class));
+                        }
+                        return false;
                     }
                 });
                 MenuInflater inflater = popup.getMenuInflater();
@@ -108,37 +160,13 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             }
         });
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,
-                LinearLayoutManager.VERTICAL, false);
-        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, R.layout.messages_threads_layout);
+    }
 
-        messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
-        messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
-        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
+    private boolean checkIsDefaultApp() {
+        final String myPackageName = getPackageName();
+        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
 
-        messagesThreadViewModel.getMessages(getApplicationContext()).observe(this,
-                new Observer<List<SMS>>() {
-                    @Override
-                    public void onChanged(List<SMS> smsList) {
-                        messagesThreadRecyclerAdapter.submitList(smsList);
-                    }
-                });
-
-        enableSwipeAction();
-        Log.d(getLocalClassName(), "Threading main activity");
-
-
-        try {
-            Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
-            KeyPairGenerator aliceKpg = KeyPairGenerator.getInstance("ECDH", "SC");
-            aliceKpg.initialize(256);
-            KeyPair aliceKp = aliceKpg.generateKeyPair();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new RuntimeException(e);
-        }
-
-        setRefreshTimer();
+        return myPackageName.equals(defaultPackage);
     }
 
     private void enableSwipeAction() {
@@ -146,10 +174,13 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 //        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
 
 //        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT | ItemTouchHelper.RIGHT) {
-        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT ) {
+        ItemTouchHelper.SimpleCallback swipeArchiveCallback = new ItemTouchHelper.SimpleCallback(
+                0, ItemTouchHelper.RIGHT ) {
             private Drawable deleteIcon;
             private int intrinsicWidth;
             private int intrinsicHeight;
+
+            private int mSwipeSlop;
 
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
@@ -165,19 +196,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                  */
                 MessagesThreadRecyclerAdapter.ViewHolder itemView = (MessagesThreadRecyclerAdapter.ViewHolder) viewHolder;
                 String threadId = itemView.id;
-                Log.d(getLocalClassName(), "removing thread: " + threadId);
                 try {
-//                    Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);
-//                    if(cursor.moveToFirst()) {
-//                        SecurityDH securityDH = new SecurityDH(getApplicationContext());
-//                        String address = new SMS(cursor).getAddress();
-//                        Log.d(getLocalClassName(), "Removing keys for address: " + address
-//                                + " -> thread:" + threadId);
-//                        securityDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
-//                    }
-//                    cursor.close();
-
-                    SMSHandler.deleteThread(getApplicationContext(), threadId);
+                    Archive archive = new Archive(Long.parseLong(threadId));
+                    ArchiveHandler.archiveSMS(getApplicationContext(), archive);
                     messagesThreadViewModel.informChanges(getApplicationContext());
                 }catch (Exception e) {
                     e.printStackTrace();
@@ -197,11 +218,142 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     currentViewHolder[0] = viewHolder;
 
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.sent_messages_drawable);
+                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.archive_slide_drawable);
                 }
 
                 if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
-                    Log.d(getLocalClassName(), "Yep idle things...");
+                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.messages_default_drawable);
+                }
+            }
+
+            @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView,
+                                    RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+
+                // Change background color of swiped item
+//                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+//                    // Calculate the left and right positions of the swiped item
+//                    View itemView = viewHolder.itemView;
+//                    int itemHeight = itemView.getHeight();
+//                    int itemWidth = itemView.getWidth();
+//                    int itemLeft = itemView.getLeft();
+//                    int itemRight = itemView.getRight();
+//
+//                    Paint p = new Paint();
+//                    p.setColor(getColor(R.color.text_box));
+//
+//                    c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
+//                }
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    if (deleteIcon == null) {
+                        deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.round_archive_24);
+                        intrinsicWidth = deleteIcon.getIntrinsicWidth();
+                        intrinsicHeight = deleteIcon.getIntrinsicHeight();
+                    }
+
+                    float iconMargin = (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
+                    float iconTop = viewHolder.itemView.getTop() + (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
+                    float iconBottom = iconTop + intrinsicHeight;
+                    float iconLeft, iconRight;
+
+                    if (mSwipeSlop == 0) {
+                        mSwipeSlop = ViewConfiguration.get(recyclerView.getContext()).getScaledTouchSlop();
+                    }
+                    float threshold = mSwipeSlop * 3;
+
+                    // Set swipe distance limit
+                    if (Math.abs(dX) > threshold) {
+                        dX = Math.signum(dX) * threshold;
+                    }
+
+                    if (dX > 0) {
+                        iconLeft = viewHolder.itemView.getLeft() + iconMargin;
+                        iconRight = viewHolder.itemView.getLeft() + iconMargin + intrinsicWidth;
+                    } else {
+                        iconRight = viewHolder.itemView.getRight() - iconMargin;
+                        iconLeft = viewHolder.itemView.getRight() - iconMargin - intrinsicWidth;
+                    }
+
+                    deleteIcon.setBounds((int) iconLeft, (int) iconTop, (int) iconRight, (int) iconBottom);
+
+                    View itemView = viewHolder.itemView;
+                    int itemHeight = itemView.getHeight();
+                    int itemWidth = itemView.getWidth();
+                    int itemLeft = itemView.getLeft();
+                    int itemRight = itemView.getRight();
+
+                    Paint p = new Paint();
+                    p.setColor(getColor(R.color.light_blue));
+
+                    c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
+                    deleteIcon.draw(c);
+                }
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                currentViewHolder[0] = null;
+            }
+        };
+
+        ItemTouchHelper.SimpleCallback swipeDeleteCallback = new ItemTouchHelper.SimpleCallback(
+                0, ItemTouchHelper.LEFT ) {
+            private Drawable deleteIcon;
+            private int intrinsicWidth;
+            private int intrinsicHeight;
+
+            private int mSwipeSlop;
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                /**
+                 * TODO: swip RIGHT, - archive
+                 * TODO: swip LEFT - delete
+                 * TODO: increase threshold before permanent delete
+                 */
+                MessagesThreadRecyclerAdapter.ViewHolder itemView = (MessagesThreadRecyclerAdapter.ViewHolder) viewHolder;
+                String threadId = itemView.id;
+                try {
+                    Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);
+                    if(cursor.moveToFirst()) {
+                        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+                        String address = new SMS(cursor).getAddress();
+                        securityDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
+                        SMSHandler.deleteThread(getApplicationContext(), threadId);
+                    }
+                    cursor.close();
+                    messagesThreadViewModel.informChanges(getApplicationContext());
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return true; // Enable long-press drag functionality
+            }
+
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                super.onSelectedChanged(viewHolder, actionState);
+
+                if(viewHolder != null)
+                    currentViewHolder[0] = viewHolder;
+
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.received_messages_drawable);
+                }
+
+                if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
                     currentViewHolder[0].itemView.setBackgroundResource(R.drawable.messages_default_drawable);
                 }
             }
@@ -239,6 +391,16 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     float iconBottom = iconTop + intrinsicHeight;
                     float iconLeft, iconRight;
 
+                    if (mSwipeSlop == 0) {
+                        mSwipeSlop = ViewConfiguration.get(recyclerView.getContext()).getScaledTouchSlop();
+                    }
+                    float threshold = mSwipeSlop * 3;
+
+                    // Set swipe distance limit
+                    if (Math.abs(dX) > threshold) {
+                        dX = Math.signum(dX) * threshold;
+                    }
+
                     if (dX > 0) {
                         iconLeft = viewHolder.itemView.getLeft() + iconMargin;
                         iconRight = viewHolder.itemView.getLeft() + iconMargin + intrinsicWidth;
@@ -256,7 +418,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     int itemRight = itemView.getRight();
 
                     Paint p = new Paint();
-                    p.setColor(getColor(R.color.default_gray));
+                    p.setColor(getColor(R.color.delete_red));
 
                     c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
                     deleteIcon.draw(c);
@@ -266,12 +428,15 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                 super.clearView(recyclerView, viewHolder);
-                Log.d(getLocalClassName(), "Yep, I'm cleared...");
                 currentViewHolder[0] = null;
             }
         };
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
-        itemTouchHelper.attachToRecyclerView(messagesThreadRecyclerView);
+
+        ItemTouchHelper itemTouchHelperArchive = new ItemTouchHelper(swipeArchiveCallback);
+        ItemTouchHelper itemTouchHelperDelete = new ItemTouchHelper(swipeDeleteCallback);
+
+        itemTouchHelperArchive.attachToRecyclerView(messagesThreadRecyclerView);
+        itemTouchHelperDelete.attachToRecyclerView(messagesThreadRecyclerView);
     }
 
     private void setRefreshTimer() {
@@ -279,7 +444,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                messagesThreadRecyclerAdapter.notifyDataSetChanged();
+//                messagesThreadRecyclerAdapter.notifyDataSetChanged();
+                messagesThreadViewModel.informChanges(getApplicationContext());
                 mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
             }
         }, recyclerViewTimeUpdateLimit);
@@ -290,12 +456,11 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     public void onNewMessageClick(View view) {
-        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
-        startActivityForResult(intent, 1);
-    }
+//        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+//        startActivityForResult(intent, 1);
 
-    public void onRouterClick(View view) {
-        startActivity(new Intent(this, RouterActivity.class));
+        Intent intent = new Intent(this, ComposeNewMessageActivity.class);
+        startActivity(intent);
     }
 
     private void handleIncomingMessage() {
@@ -311,45 +476,16 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onActivityResult(int reqCode, int resultCode, Intent data) {
-        super.onActivityResult(reqCode, resultCode, data);
-
-        switch (reqCode) {
-            case (1) :
-                if (resultCode == Activity.RESULT_OK) {
-                    Uri contactData = data.getData();
-                    Cursor contactCursor = getApplicationContext().getContentResolver().query(
-                            contactData,
-                            null,
-                            null,
-                            null,
-                            null);
-
-                    if(contactCursor != null) {
-                        if (contactCursor.moveToFirst()) {
-                            int contactIndexInformation = contactCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                            String number = contactCursor.getString(contactIndexInformation);
-
-                            Intent singleMessageThreadIntent = new Intent(this, SMSSendActivity.class);
-                            singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, number);
-                            startActivity(singleMessageThreadIntent);
-                        }
-                    }
-                }
-                break;
-        }
-    }
-
-    @Override
     protected void onResume() {
-//        findViewById(R.id.messages_threads_recycler_view).requestFocus();
         super.onResume();
+        findViewById(R.id.messages_threads_recycler_view).requestFocus();
         messagesThreadViewModel.informChanges(getApplicationContext());
     }
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(incomingBroadcastReceiver);
+        if(incomingBroadcastReceiver != null)
+            unregisterReceiver(incomingBroadcastReceiver);
         super.onDestroy();
     }
 }

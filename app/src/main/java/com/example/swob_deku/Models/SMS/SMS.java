@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.room.Entity;
 
 import java.util.ArrayList;
 
@@ -14,6 +15,11 @@ public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
 
     String body = new String();
+    public String displayName = "";
+
+    public int displayColor = -1;
+
+    public boolean isContact = false;
 
     public String getBody() {
         return body;

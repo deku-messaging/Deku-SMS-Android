@@ -10,6 +10,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.example.swob_deku.BuildConfig;
+import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
@@ -37,23 +38,28 @@ public class MessagesThreadViewModel extends ViewModel {
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
         List<SMS> smsList = new ArrayList<>();
 
-        if(cursor.getCount() > 0) {
-            if (cursor.moveToFirst()) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        do {
-                            SMS sms = new SMS(cursor);
-                            smsList.add(sms);
-                        } while (cursor.moveToNext());
-                        messagesList.postValue(smsList);
-                        cursor.close();
-                    }
-                }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ArchiveHandler archiveHandler = new ArchiveHandler(context);
+                if(cursor.moveToFirst()) {
+                    do {
+                        SMS sms = new SMS(cursor);
+                        try {
+                            if (archiveHandler.isArchived(Long.parseLong(sms.getThreadId()))) {
+                                continue;
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        smsList.add(sms);
+                    } while (cursor.moveToNext());
+                }
+                cursor.close();
+                archiveHandler.close();
+                messagesList.postValue(smsList);
             }
-        }
-        else {
-            messagesList.setValue(smsList);
-        }
+        }).start();
     }
 }

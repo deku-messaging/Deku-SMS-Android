@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:scrollbarSize="7dp"
+    android:theme="@style/Theme.main"
     tools:context=".ImageViewActivity">
 
     <androidx.appcompat.widget.Toolbar
@@ -16,6 +18,40 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/image_details_resolution"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:text="1024x750"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/image_details_original_resolution" />
+
+    <TextView
+        android:id="@+id/image_details_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:text="2.5 KB"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/image_details_resolution" />
+
+    <TextView
+        android:id="@+id/image_details_quality"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:text="10%"
+        android:textColor="@color/primary_highlight_color"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/image_details_original_resolution"
+        app:layout_constraintStart_toEndOf="@+id/image_details_original_resolution" />
+
     <ImageView
         android:id="@+id/compressed_image_holder"
         android:layout_width="0dp"
@@ -24,32 +60,74 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/image_send_btn"
+        app:layout_constraintBottom_toTopOf="@+id/image_details_seeker_progress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/image_details"
+        app:layout_constraintTop_toBottomOf="@+id/image_details_sms_count"
         tools:srcCompat="@tools:sample/avatars" />
 
-    <TextView
-        android:id="@+id/image_details"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="7dp"
-        android:text="TextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/image_view_toolbar" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/image_send_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="156dp"
         android:layout_marginEnd="167dp"
         android:layout_marginBottom="22dp"
+        android:background="@drawable/compose_message_drawable"
+        android:backgroundTint="@color/logo_secondary"
         android:onClick="sendImage"
-        android:text="Send"
+        android:text="send"
+        android:textAllCaps="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <SeekBar
+        android:id="@+id/image_view_change_resolution_seeker"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:max="100"
+        android:scrollbarSize="7dp"
+        app:layout_constraintBottom_toTopOf="@+id/image_send_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/image_details_sms_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="25 Messages"
+        android:textColor="@color/primary_highlight_color"
+        android:textStyle="italic"
+        app:layout_constraintStart_toStartOf="@+id/image_details_size"
+        app:layout_constraintTop_toBottomOf="@+id/image_details_size" />
+
+    <TextView
+        android:id="@+id/image_details_seeker_progress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:text="0"
+        android:textAlignment="textEnd"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toTopOf="@+id/image_view_change_resolution_seeker"
+        app:layout_constraintEnd_toEndOf="@+id/image_view_change_resolution_seeker" />
+
+    <TextView
+        android:id="@+id/image_details_original_resolution"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:text="1024 x 1024"
+        android:textColor="@color/primary_highlight_color"
+        android:textStyle="italic"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/image_view_toolbar" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

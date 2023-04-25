@@ -327,9 +327,9 @@ public class SMSWorkManager extends Worker {
                 smsManager.sendMultipartTextMessage( sms.getBody(), null,
                         dividedMessage, sentPendingIntents, deliveredPendingIntents);
                 Log.d(getClass().getName(), "Image sending content: " + sms.getBody() + ":" + address+":"+dividedMessage.size());
-                cursor.close();
                 break;
             }
+            cursor.close();
         }
     }
 

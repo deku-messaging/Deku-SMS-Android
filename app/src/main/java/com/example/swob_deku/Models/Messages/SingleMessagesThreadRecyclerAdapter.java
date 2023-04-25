@@ -2,6 +2,8 @@ package com.example.swob_deku.Models.Messages;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.provider.Telephony;
 import android.text.format.DateUtils;
 import android.util.Base64;
@@ -9,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -20,6 +23,7 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.ImageViewActivity;
+import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -35,8 +39,11 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.zip.DataFormatException;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
@@ -123,10 +130,43 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         return input;
     }
 
+    private byte[] decryptImageContent(byte[] input) {
+        if(this.secretKey != null &&
+                input.length > 16
+                        + SecurityHelpers.ENCRYPTED_WATERMARK_START.length()
+                        + SecurityHelpers.ENCRYPTED_WATERMARK_END.length()
+                && SecurityHelpers.containersWaterMark(String.valueOf(input))) {
+            try {
+                return SecurityDH.decryptAES(Base64.decode(
+                                SecurityHelpers.removeWaterMarkMessage(String.valueOf(input)), Base64.DEFAULT),
+                        secretKey);
+            } catch(Throwable e ) {
+                e.printStackTrace();
+            }
+        }
+        return input;
+    }
+
+    private String decompress(String input) {
+//        byte[] decompressGZIP = Compression.decompressGZIP(input);
+//        Log.d(getLocalClassName(), "Gzip decompressed: " + decompressGZIP.length);
+//
+        if(secretKey != null && Compression.isDeflateCompressed(input.getBytes(StandardCharsets.UTF_8))) {
+            try {
+                byte[] b64 = Base64.decode(input, Base64.DEFAULT);
+                byte[] tmpByte = Compression.decompressDeflate(b64);
+                input = new String(tmpByte, StandardCharsets.UTF_8);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return input;
+    }
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 //        final SMS sms = (SMS) snapshot().get(position);
-        final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
+        final SMS sms = (SMS) mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
         final String smsId = sms.getId();
 
         String date = sms.getDate();
@@ -139,6 +179,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             date = dateFormat.format(new Date(Long.parseLong(date)));
         }
 
+        String text = sms.getBody();
+//        text = decompress(text);
+        text = decryptContent(text);
+
         if(holder instanceof MessageReceivedViewHandler) {
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
             if(holder instanceof TimestampMessageReceivedViewHandler)
@@ -147,59 +191,68 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 messageReceivedViewHandler.timestamp.setVisibility(View.GONE);
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
-            String text = sms.getBody();
-            text = decryptContent(text);
-            receivedMessage.setText(text);
+
 
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);
-//            dateView.setText(Helpers.formatDate(context, Long.parseLong(sms.getDate())));
+
+            ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
+            if(text.contains(ImageHandler.IMAGE_HEADER)) {
+                try {
+                    byte[] body = Base64.decode(text
+                            .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
+
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(body, 0, body.length);
+                    messageReceivedViewHandler.imageView.setImageBitmap(bitmap);
+
+                    imageConstraint.setVisibility(View.VISIBLE);
+                    receivedMessage.setVisibility(View.GONE);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+                receivedMessage.setText(text);
+            }
             dateView.setText(date);
 
             messageReceivedViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
-                        Intent intent = new Intent(context, ImageViewActivity.class);
-                        intent.putExtra(ImageViewActivity.IMAGE_INTENT_EXTRA, sms.getId());
-                        intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
-                        intent.putExtra(SMSSendActivity.ID, sms.getId());
-
-                        context.startActivity(intent);
-                    } else {
-                        dateView.setVisibility(View.VISIBLE);
+                    if(isHighlighted(sms.getId()))
+                        resetSelectedItem(sms.id, true);
+                    else if(selectedItem.getValue() != null ){
+                        longClickHighlight(messageReceivedViewHandler, smsId);
                     }
+                }
+            });
+
+            messageReceivedViewHandler.imageConstraintLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, ImageViewActivity.class);
+                    intent.putExtra(ImageViewActivity.IMAGE_INTENT_EXTRA, sms.getId());
+                    intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+                    intent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
+                    intent.putExtra(SMSSendActivity.ID, sms.getId());
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    context.startActivity(intent);
                 }
             });
 
             messageReceivedViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
-                        List<String> newItems = new ArrayList<>();
-                        newItems.add(smsId);
-                        mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageReceivedViewHandler);}});
-                        messageReceivedViewHandler.highlight();
-                        messageReceivedViewHandler.setIsRecyclable(false);
-                        return true;
-                    }
-                    else if(!selectedItem.getValue().containsKey(smsId)) {
-                        HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
-                        previousItems.put(smsId, messageReceivedViewHandler);
-                        messageReceivedViewHandler.highlight();
-                        messageReceivedViewHandler.setIsRecyclable(false);
-                        return true;
-                    }
-                    return false;
+                    return longClickHighlight(messageReceivedViewHandler, sms.getId());
                 }
             });
 
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-            String text = sms.getBody();
-            text = decryptContent(text);
-            messageSentViewHandler.sentMessage.setText(text);
+//            String text = sms.getBody();
+//            text = decryptContent(text);
 
             if(position != 0) {
                 messageSentViewHandler.date.setVisibility(View.INVISIBLE);
@@ -226,41 +279,95 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
 
+            if(sms.getBody().contains(ImageHandler.IMAGE_HEADER)) {
+                byte[] body = Base64.decode(sms.getBody()
+                        .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
+
+                Bitmap bitmap = BitmapFactory.decodeByteArray(body, 0, body.length);
+                messageSentViewHandler.imageView.setImageBitmap(bitmap);
+
+                messageSentViewHandler.imageConstraintLayout.setVisibility(View.VISIBLE);
+                messageSentViewHandler.sentMessage.setVisibility(View.GONE);
+            }
+            else {
+                messageSentViewHandler.sentMessage.setText(text);
+            }
+
             messageSentViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    int visibility = messageSentViewHandler.date.getVisibility() == View.VISIBLE ?
-                            View.INVISIBLE : View.VISIBLE;
-                    messageSentViewHandler.date.setVisibility(visibility);
-                    messageSentViewHandler.sentMessageStatus.setVisibility(visibility);
+                    if(isHighlighted(sms.getId()))
+                        resetSelectedItem(sms.id, true);
+                    else if(selectedItem.getValue() != null) {
+                        longClickHighlight(messageSentViewHandler, smsId);
+                    }
+                    else {
+                        int visibility = messageSentViewHandler.date.getVisibility() == View.VISIBLE ?
+                                View.INVISIBLE : View.VISIBLE;
+                        messageSentViewHandler.date.setVisibility(visibility);
+                        messageSentViewHandler.sentMessageStatus.setVisibility(visibility);
+                    }
                 }
             });
 
             messageSentViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
-                        List<String> newItems = new ArrayList<>();
-                        newItems.add(smsId);
-                        mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageSentViewHandler);}});
-                        messageSentViewHandler.highlight();
-                        messageSentViewHandler.setIsRecyclable(false);
-                        return true;
-                    }
-                    else if(!selectedItem.getValue().containsKey(smsId)) {
-                        HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
-                        previousItems.put(smsId, messageSentViewHandler);
-                        mutableSelectedItems.setValue(previousItems);
-                        messageSentViewHandler.highlight();
-                        messageSentViewHandler.setIsRecyclable(false);
-                        return true;
-                    }
-                    return false;
+                    return longClickHighlight(messageSentViewHandler, smsId);
                 }
             });
         }
 
         checkForAbsPositioning(smsId, holder);
+    }
+
+    private boolean longClickHighlight(RecyclerView.ViewHolder holder, String smsId) {
+        if(holder instanceof MessageReceivedViewHandler) {
+            MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
+            if (selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
+                List<String> newItems = new ArrayList<>();
+                newItems.add(smsId);
+                mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>() {{
+                    put(smsId, messageReceivedViewHandler);
+                }});
+                messageReceivedViewHandler.highlight();
+                messageReceivedViewHandler.setIsRecyclable(false);
+                return true;
+            } else if (!selectedItem.getValue().containsKey(smsId)) {
+                HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
+                previousItems.put(smsId, messageReceivedViewHandler);
+                mutableSelectedItems.setValue(previousItems);
+                messageReceivedViewHandler.highlight();
+                messageReceivedViewHandler.setIsRecyclable(false);
+                return true;
+            }
+        }
+        else {
+            MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
+            if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
+                List<String> newItems = new ArrayList<>();
+                newItems.add(smsId);
+                mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageSentViewHandler);}});
+                messageSentViewHandler.highlight();
+                messageSentViewHandler.setIsRecyclable(false);
+                return true;
+            }
+            else if(!selectedItem.getValue().containsKey(smsId)) {
+                HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
+                previousItems.put(smsId, messageSentViewHandler);
+                mutableSelectedItems.setValue(previousItems);
+                messageSentViewHandler.highlight();
+                messageSentViewHandler.setIsRecyclable(false);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isHighlighted(String smsId){
+        if(selectedItem.getValue() == null)
+            return false;
+        return selectedItem.getValue().containsKey(smsId);
     }
 
     public void checkForAbsPositioning(String smsId, RecyclerView.ViewHolder holder) {
@@ -276,7 +383,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
     }
 
-    public void resetSelectedItem(String key) {
+    public void resetSelectedItem(String key, boolean removeList) {
         HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
         if(items != null) {
             RecyclerView.ViewHolder view = items.get(key);
@@ -289,8 +396,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 else if (view instanceof MessageSentViewHandler)
                     ((MessageSentViewHandler) view).unHighlight();
             }
-            items.remove(key);
-            mutableSelectedItems.setValue(items);
+            if(removeList) {
+                items.remove(key);
+                mutableSelectedItems.setValue(items);
+            }
         }
     }
 
@@ -298,7 +407,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
 
         for(String key: items.keySet())
-            resetSelectedItem(key);
+            resetSelectedItem(key, false);
 
         mutableSelectedItems.setValue(new HashMap<>());
     }
@@ -329,6 +438,17 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         return mDiffer.getCurrentList().size();
     }
 
+    public void removeAllItems(String[] _keys) {
+        List<String> keys = new ArrayList<>(Arrays.asList(_keys));
+        List<SMS> sms = new ArrayList<>(mDiffer.getCurrentList());
+        List<SMS> smsNew = new ArrayList<>();
+        for(SMS sms1 : sms)
+            if(!keys.contains(sms1.getId()))
+                smsNew.add(sms1);
+
+        mDiffer.submitList(smsNew);
+    }
+
     public void removeItem(String keys) {
         List<SMS> sms = new ArrayList<>(mDiffer.getCurrentList());
         for(int i=0; i< sms.size(); ++i) {
@@ -346,7 +466,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
          TextView date;
          TextView timestamp;
 
-         ConstraintLayout constraintLayout;
+         ImageView imageView;
+
+         ConstraintLayout constraintLayout, imageConstraintLayout;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_sent_text);
@@ -354,6 +476,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             date = itemView.findViewById(R.id.message_thread_sent_date_text);
             timestamp = itemView.findViewById(R.id.sent_message_date_segment);
             constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
+            imageConstraintLayout = itemView.findViewById(R.id.message_sent_image_container);
+            imageView = itemView.findViewById(R.id.message_sent_image_view);
         }
 
         public void highlight() {
@@ -375,8 +499,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         TextView receivedMessage;
         TextView date;
         TextView timestamp;
+        ImageView imageView;
 
-        ConstraintLayout constraintLayout;
+        ConstraintLayout constraintLayout, imageConstraintLayout;
 
         public MessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
@@ -384,6 +509,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             date = itemView.findViewById(R.id.message_thread_received_date_text);
             timestamp = itemView.findViewById(R.id.received_message_date_segment);
             constraintLayout = itemView.findViewById(R.id.message_received_constraint);
+            imageConstraintLayout = itemView.findViewById(R.id.message_received_image_container);
+            imageView = itemView.findViewById(R.id.message_received_image_view);
         }
 
         public void highlight() {

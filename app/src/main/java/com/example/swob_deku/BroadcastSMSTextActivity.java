@@ -1,7 +1,5 @@
 package com.example.swob_deku;
 
-import static com.example.swob_deku.Models.SMS.SMSHandler.interpret_PDU;
-
 import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -10,14 +8,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.StyleSpan;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -30,18 +26,16 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
-import com.example.swob_deku.Commons.Contacts;
+import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServer.GatewayServer;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
+import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -72,26 +66,37 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                                 new String(currentSMS.getUserData(), StandardCharsets.UTF_8) :
                                 displayMessage;
                         messageBuffer.append(displayMessage);
-
                     }
 
                     String message = messageBuffer.toString();
-                    String finalAddress = address;
+                    final String finalAddress = address;
 
                     long messageId = -1;
                     try {
+//                        SecurityDH securityDH = new SecurityDH(context);
+//                        if(securityDH.hasSecretKey(finalAddress)){
+//                            try {
+//                                byte[] messageData = Base64.decode(message, Base64.DEFAULT);
+//                                messageData = SMSSendActivity.decompress(Base64.decode(messageData, Base64.DEFAULT));
+//                                message = Base64.encodeToString(messageData, Base64.DEFAULT);
+////                                message = new String(messageData, StandardCharsets.UTF_8);
+//                            } catch(Exception e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
                         messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message);
                     }
                     catch (Exception e) {
-
+                        e.printStackTrace();
                     }
                     long finalMessageId = messageId;
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            sendNotification(context, message, finalAddress, finalMessageId);
+                            sendNotification(context, null, finalAddress, finalMessageId);
                         }
                     }).start();
+                    final String messageFinal = message;
 
                     new Thread(new Runnable() {
                         @Override
@@ -99,8 +104,8 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                             try {
 //                                CharsetDecoder charsetDecoder = StandardCharsets.UTF_8.newDecoder();
 //                                charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
-                                Base64.decode(message, Base64.DEFAULT);
-                                createWorkForMessage(finalAddress, message, finalMessageId);
+                                Base64.decode(messageFinal, Base64.DEFAULT);
+                                createWorkForMessage(finalAddress, messageFinal, finalMessageId);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -165,7 +170,6 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
         Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
 
         receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
-//        receivedSmsIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
 
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
 
@@ -181,30 +185,44 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     SMS unreadSMS = new SMS(cursor1);
 
                     SpannableStringBuilder spannable = new SpannableStringBuilder(contactName);
+
                     StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+                    StyleSpan ItalicSpan = new StyleSpan(Typeface.ITALIC);
+
                     spannable.setSpan(boldSpan, 0, contactName.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
-                    unreadMessages.add(new NotificationCompat.MessagingStyle.Message(unreadSMS.getBody(),
-                            Long.parseLong(unreadSMS.getDate()),
-                            spannable));
+                    String message = unreadSMS.getBody().contains(ImageHandler.IMAGE_HEADER) ?
+                            context.getString(R.string.notification_title_new_photo):
+                            unreadSMS.getBody();
+
+                    if(unreadSMS.getBody().contains(ImageHandler.IMAGE_HEADER)) {
+                        SpannableStringBuilder spannableMessage = new SpannableStringBuilder(message);
+                        spannableMessage.setSpan(ItalicSpan, 0, message.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                        unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
+                                spannableMessage,
+                                Long.parseLong(unreadSMS.getDate()),
+                                spannable));
+                    }
+                    else {
+                        unreadMessages.add(new NotificationCompat.MessagingStyle.Message(message + "\n",
+                                Long.parseLong(unreadSMS.getDate()),
+                                spannable));
+                    }
                 } while(cursor1.moveToNext());
             }
             cursor1.close();
 
-            Log.d(BroadcastSMSTextActivity.class.getName(), "Unread messages for notific: " + unreadMessages.size());
-
             receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             // TODO: check request code and make some changes
-            PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity(
-                    context, 0, receivedSmsIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
+                    Integer.parseInt(sms.getThreadId()),
+                    receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
+//                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
             NotificationCompat.Builder builder = new NotificationCompat.Builder(
                     context, context.getString(R.string.CHANNEL_ID))
                     .setDefaults(Notification.DEFAULT_ALL)
-                    .setSmallIcon(R.drawable.ic_round_chat_bubble_24)
-                    .setContentTitle("New messages")
-//                    .setContentText("New messages")
+                    .setSmallIcon(R.drawable.ic_stat_name)
                     .setContentIntent(pendingReceivedSmsIntent)
                     .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                     .setAutoCancel(true)
@@ -212,6 +230,8 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
             NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle("Me");
+            messagingStyle.setConversationTitle(context.getString(R.string.notification_title));
+//            messagingStyle.setConversationTitle(contactName);
             for(NotificationCompat.MessagingStyle.Message message : unreadMessages) {
                 messagingStyle.addMessage(message);
             }
