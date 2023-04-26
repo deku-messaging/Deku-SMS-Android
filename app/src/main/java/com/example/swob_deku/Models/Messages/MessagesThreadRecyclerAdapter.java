@@ -276,6 +276,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         String address = sms.getAddress();
 
+        final int color = Helpers.generateColor(address.charAt(address.length() -1));
         if(holder.isContact) {
             String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
             if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
@@ -289,21 +290,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 //                final int blue = (int) (green * 1.25);
 
 //                final int randomColor = Color.rgb(red, green, blue);
-                final int randomColor = Helpers.generateColor(address.charAt(0));
-                holder.contactInitials.setAvatarInitialsBackgroundColor(randomColor);
+                holder.contactInitials.setAvatarInitialsBackgroundColor(color);
             }
+        } else {
+//            Drawable drawable = holder.contactPhoto.getDrawable();
+//            drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+//            holder.contactPhoto.setImageDrawable(drawable);
         }
 
         holder.address.setText(address);
-
-        holder.mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
-                holder.date.setText(date);
-                holder.mHandler.postDelayed(this, holder.recyclerViewTimeUpdateLimit);
-            }
-        }, holder.recyclerViewTimeUpdateLimit);
 
         String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
         holder.date.setText(date);
@@ -370,6 +365,13 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             }
         };
 
+        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return false;
+            }
+        };
+
         holder.layout.setOnClickListener(onClickListener);
     }
 
@@ -409,8 +411,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         ConstraintLayout layout;
 
-        Handler mHandler = new Handler();
-
         final int recyclerViewTimeUpdateLimit = 60 * 1000;
         public ViewHolder(@NonNull View itemView, boolean isContact) {
             super(itemView);
@@ -428,18 +428,17 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             this.isContact = isContact;
 
 
-            if(!isContact) {
-                final Random random = new Random();
-                final int red = random.nextInt(150) + 50;
-                final int green = random.nextInt(150) + 50;
-                final int blue = random.nextInt(150) + 50;
-
-                final int randomColor = Color.rgb(red, green, blue);
-
-                Drawable drawable = contactPhoto.getDrawable();
-                drawable.setColorFilter(randomColor, PorterDuff.Mode.SRC_IN);
-                contactPhoto.setImageDrawable(drawable);
-            } else {
+//                final Random random = new Random();
+//                final int red = random.nextInt(150) + 50;
+//                final int green = random.nextInt(150) + 50;
+//                final int blue = random.nextInt(150) + 50;
+//
+//                final int randomColor = Color.rgb(red, green, blue);
+//
+//                Drawable drawable = contactPhoto.getDrawable();
+//                drawable.setColorFilter(randomColor, PorterDuff.Mode.SRC_IN);
+//                contactPhoto.setImageDrawable(drawable);
+            if(isContact) {
                 contactInitials.setVisibility(View.VISIBLE);
                 contactPhoto.setVisibility(View.GONE);
 //                this.setIsRecyclable(false);
