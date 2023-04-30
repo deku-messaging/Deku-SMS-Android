@@ -2,6 +2,7 @@ package com.example.swob_deku;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
@@ -25,6 +26,7 @@ import android.os.Handler;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -60,6 +62,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     Handler mHandler = new Handler();
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +76,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         }
 
 //        cancelAllNotifications();
+        toolbar = findViewById(R.id.messages_threads_toolbar);
         handleIncomingMessage();
 
         messagesThreadViewModel = new ViewModelProvider(this).get(
@@ -107,6 +112,13 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         setRefreshTimer();
         loadSubroutines();
+
+        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<List<String>>() {
+            @Override
+            public void onChanged(List<String> strings) {
+                highlightListener(strings.size());
+            }
+        });
     }
 
     private void loadSubroutines() {
@@ -480,6 +492,18 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onResume();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
         messagesThreadViewModel.informChanges(getApplicationContext());
+    }
+
+    private void highlightListener(int size){
+        Menu menu = toolbar.getMenu();
+        Log.d(getLocalClassName(), "Size: " + size);
+        if(size < 1) {
+            menu.setGroupVisible(R.id.threads_menu, false);
+            findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.GONE);
+            menu.setGroupVisible(R.id.threads_menu, true);
+        }
     }
 
     @Override

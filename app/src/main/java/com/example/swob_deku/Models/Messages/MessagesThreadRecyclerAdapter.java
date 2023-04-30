@@ -25,6 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
@@ -66,6 +67,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     WorkManager workManager;
     LiveData<List<WorkInfo>> workers;
+
+    public MutableLiveData<List<String>> selectedItems = new MutableLiveData<>();
 
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
@@ -349,31 +352,61 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
-                singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
-                singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
-
-                if (searchString != null && !searchString.isEmpty()) {
-                    int calculatedOffset = SMSHandler.calculateOffset(context, sms.getThreadId(), sms.getId());
-                    singleMessageThreadIntent
-                            .putExtra(SMSSendActivity.ID, sms.getId())
-                            .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
-                            .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
-                            .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
+                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
+                    List<String> items = selectedItems.getValue();
+                    if(selectedItems.getValue().contains(holder.id)) {
+                        items.remove(holder.id);
+                        holder.unHighlight();
+                    }
+                    else {
+                        items = selectedItems.getValue();
+                        items.add(holder.id);
+                        holder.highlight();
+                    }
+                    selectedItems.postValue(items);
                 }
+                else {
+                    Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+                    singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
+                    singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
 
-                context.startActivity(singleMessageThreadIntent);
+                    if (searchString != null && !searchString.isEmpty()) {
+                        int calculatedOffset = SMSHandler.calculateOffset(context, sms.getThreadId(), sms.getId());
+                        singleMessageThreadIntent
+                                .putExtra(SMSSendActivity.ID, sms.getId())
+                                .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
+                                .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
+                                .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
+                    }
+
+                    context.startActivity(singleMessageThreadIntent);
+                }
             }
         };
 
         View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                return false;
+                List<String> items = new ArrayList<>();
+                if(selectedItems.getValue() != null && selectedItems.getValue().contains(holder.id)) {
+                    items = selectedItems.getValue();
+                    items.remove(holder.id);
+                    holder.unHighlight();
+                }
+                else {
+                    if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
+                        items = selectedItems.getValue();
+                    }
+                    items.add(holder.id);
+                    holder.highlight();
+                }
+                selectedItems.setValue(items);
+                return true;
             }
         };
 
         holder.layout.setOnClickListener(onClickListener);
+        holder.layout.setOnLongClickListener(onLongClickListener);
     }
 
     @Override
@@ -444,6 +477,16 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
                 contactPhoto.setVisibility(View.GONE);
 //                this.setIsRecyclable(false);
             }
+        }
+
+        public void highlight(){
+            layout.setBackgroundResource(R.drawable.received_messages_drawable);
+            this.setIsRecyclable(false);
+        }
+
+        public void unHighlight(){
+            layout.setBackgroundResource(0);
+            this.setIsRecyclable(true);
         }
 
     }
