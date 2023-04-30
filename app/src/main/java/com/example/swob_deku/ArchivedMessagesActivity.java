@@ -94,7 +94,7 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         myToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                if(item.getItemId() == R.id.threads_delete) {
+                if(item.getItemId() == R.id.archive_unarchive) {
                     try {
                         String[] ids = archivedThreadRecyclerAdapter.selectedItems.getValue()
                                 .keySet().toArray(new String[0]);
@@ -104,6 +104,19 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                             longArr[i] = Long.parseLong(ids[i]);
 
                         ArchiveHandler.removeMultipleFromArchive(getApplicationContext(), longArr);
+                        archivedThreadRecyclerAdapter.resetAllSelectedItems();
+                        archivedViewModel.informChanges();
+                        return true;
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                else if(item.getItemId() == R.id.archive_delete) {
+                    try {
+                        String[] ids = archivedThreadRecyclerAdapter.selectedItems.getValue()
+                                .keySet().toArray(new String[0]);
+
+                        SMSHandler.deleteThreads(getApplicationContext(), ids);
                         archivedThreadRecyclerAdapter.resetAllSelectedItems();
                         archivedViewModel.informChanges();
                         return true;
@@ -129,7 +142,7 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.messages_threads_menu, menu);
+        getMenuInflater().inflate(R.menu.archive_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -137,11 +150,11 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         Menu menu = myToolbar.getMenu();
         Log.d(getLocalClassName(), "Size: " + size);
         if(size < 1) {
-            menu.setGroupVisible(R.id.threads_menu, false);
+            menu.setGroupVisible(R.id.archive_menu, false);
             ab.setTitle(R.string.archived_messages_toolbar_title);
             ab.setHomeAsUpIndicator(null);
         } else {
-            menu.setGroupVisible(R.id.threads_menu, true);
+            menu.setGroupVisible(R.id.archive_menu, true);
             ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
             ab.setTitle(String.valueOf(size));
         }

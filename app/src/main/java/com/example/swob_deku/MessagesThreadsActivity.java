@@ -132,15 +132,29 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+                String[] ids = messagesThreadRecyclerAdapter.selectedItems.getValue()
+                        .keySet().toArray(new String[0]);
                 if(item.getItemId() == R.id.threads_delete) {
                     try {
-                        String[] ids = messagesThreadRecyclerAdapter.selectedItems.getValue()
-                                        .keySet().toArray(new String[0]);
                         SMSHandler.deleteThreads(getApplicationContext(), ids);
                         messagesThreadRecyclerAdapter.resetAllSelectedItems();
                         messagesThreadViewModel.informChanges();
                         return true;
                     } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                else if(item.getItemId() == R.id.threads_archive) {
+                    long[] longArr = new long[ids.length];
+                    for (int i = 0; i < ids.length; i++)
+                        longArr[i] = Long.parseLong(ids[i]);
+
+                    try {
+                        ArchiveHandler.archiveMultipleSMS(getApplicationContext(), longArr);
+                        messagesThreadRecyclerAdapter.resetAllSelectedItems();
+                        messagesThreadViewModel.informChanges();
+                        return true;
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
