@@ -498,8 +498,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(messagesThreadRecyclerAdapter.selectedItems.getValue()!=null &&
-                        !messagesThreadRecyclerAdapter.selectedItems.getValue().isEmpty())
+                if(messagesThreadRecyclerAdapter.selectedItems.getValue()==null ||
+                        messagesThreadRecyclerAdapter.selectedItems.getValue().isEmpty())
                     messagesThreadRecyclerAdapter.notifyDataSetChanged();
                 mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
             }

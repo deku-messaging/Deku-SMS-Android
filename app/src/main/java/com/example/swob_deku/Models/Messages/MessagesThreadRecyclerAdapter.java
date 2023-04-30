@@ -420,7 +420,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         for(Map.Entry<String, ViewHolder> entry : items.entrySet()) {
             entry.getValue().unHighlight();
         }
-        selectedItems.setValue(null);
+        selectedItems.setValue(new HashMap<>());
     }
 
     @Override

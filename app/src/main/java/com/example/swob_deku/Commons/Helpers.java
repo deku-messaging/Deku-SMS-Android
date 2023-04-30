@@ -11,6 +11,7 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
@@ -63,21 +64,33 @@ public class Helpers {
         return arrayOfString;
     }
 
-    public static String formatDate(Context context, long date) {
-        // TODO: if yesterday - should show yesterday instead
-        CharSequence formattedDate = new StringBuffer();
+    public static String formatDate(Context context, long epochTime) {
+//        // TODO: if yesterday - should show yesterday instead
+//        CharSequence formattedDate = new StringBuffer();
+//
+//        if (DateUtils.isToday(date)) {
+//            formattedDate = DateUtils.getRelativeTimeSpanString(date, System.currentTimeMillis(),
+//                    DateUtils.MINUTE_IN_MILLIS);
+//        }
+//        else {
+//            formattedDate = DateUtils.getRelativeDateTimeString(context, date,
+//                    DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS,
+//                    DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_RELATIVE);
+//        }
+//
+//        return formattedDate.toString();
+        long currentTime = System.currentTimeMillis();
+        long diff = currentTime - epochTime;
 
-        if (DateUtils.isToday(date)) {
-            formattedDate = DateUtils.getRelativeTimeSpanString(date, System.currentTimeMillis(),
-                    DateUtils.MINUTE_IN_MILLIS);
+        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
+            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
+        } else if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
+            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
+        } else if (diff < DateUtils.WEEK_IN_MILLIS) { // less than 1 week
+            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_ABBREV_WEEKDAY);
+        } else { // greater than 1 week
+            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_ABBREV_MONTH | DateUtils.FORMAT_SHOW_DATE);
         }
-        else {
-            formattedDate = DateUtils.getRelativeDateTimeString(context, date,
-                    DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS,
-                    DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_RELATIVE);
-        }
-
-        return formattedDate.toString();
     }
 
     public static String formatPhoneNumbers(String data) throws NumberParseException {
