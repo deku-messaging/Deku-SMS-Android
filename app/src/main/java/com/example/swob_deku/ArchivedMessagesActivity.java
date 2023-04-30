@@ -9,13 +9,20 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
+import com.example.swob_deku.Models.Archive.Archive;
+import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Archive.ArchivedViewModel;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Router.RouterViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class ArchivedMessagesActivity extends AppCompatActivity {
@@ -23,19 +30,21 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
     public MessagesThreadRecyclerAdapter archivedThreadRecyclerAdapter;
 
     ArchivedViewModel archivedViewModel;
+    Toolbar myToolbar;
+    ActionBar ab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_archived_messages);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.messages_archived_toolbar);
-        myToolbar.setTitle(R.string.archived_messages_toolbar_title);
+        myToolbar = (Toolbar) findViewById(R.id.messages_archived_toolbar);
 
         setSupportActionBar(myToolbar);
 
         // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
+        ab = getSupportActionBar();
+        ab.setTitle(R.string.archived_messages_toolbar_title);
 
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
@@ -72,6 +81,69 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                     });
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
+        }
+
+
+        archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder>>() {
+            @Override
+            public void onChanged(HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder> stringViewHolderHashMap) {
+                highlightListener(stringViewHolderHashMap.size());
+            }
+        });
+
+        myToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if(item.getItemId() == R.id.threads_delete) {
+                    try {
+                        String[] ids = archivedThreadRecyclerAdapter.selectedItems.getValue()
+                                .keySet().toArray(new String[0]);
+
+                        long[] longArr = new long[ids.length];
+                        for (int i = 0; i < ids.length; i++)
+                            longArr[i] = Long.parseLong(ids[i]);
+
+                        ArchiveHandler.removeMultipleFromArchive(getApplicationContext(), longArr);
+                        archivedThreadRecyclerAdapter.resetAllSelectedItems();
+                        archivedViewModel.informChanges();
+                        return true;
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home
+                && archivedThreadRecyclerAdapter.selectedItems.getValue() != null &&
+                !archivedThreadRecyclerAdapter.selectedItems.getValue().isEmpty()) {
+            archivedThreadRecyclerAdapter.resetAllSelectedItems();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.messages_threads_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    private void highlightListener(int size){
+        Menu menu = myToolbar.getMenu();
+        Log.d(getLocalClassName(), "Size: " + size);
+        if(size < 1) {
+            menu.setGroupVisible(R.id.threads_menu, false);
+            ab.setTitle(R.string.archived_messages_toolbar_title);
+            ab.setHomeAsUpIndicator(null);
+        } else {
+            menu.setGroupVisible(R.id.threads_menu, true);
+            ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
+            ab.setTitle(String.valueOf(size));
         }
     }
 }

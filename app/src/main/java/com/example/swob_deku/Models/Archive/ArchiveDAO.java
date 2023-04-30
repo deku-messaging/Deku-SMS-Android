@@ -26,4 +26,7 @@ public interface ArchiveDAO {
 
     @Delete
     void remove(Archive archive);
+
+    @Delete
+    void removeMultiple(Archive[] archive);
 }

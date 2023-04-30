@@ -26,7 +26,11 @@ public class ArchivedViewModel extends ViewModel {
         return liveData;
     }
 
-    public void loadMessages() throws InterruptedException {
+    public void informChanges() throws InterruptedException {
+        loadMessages();
+    }
+
+    private void loadMessages() throws InterruptedException {
         List<Archive> archiveList = ArchiveHandler.loadAllMessages(context);
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
 

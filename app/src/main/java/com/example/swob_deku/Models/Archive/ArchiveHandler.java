@@ -62,6 +62,28 @@ public class ArchiveHandler {
         thread.join();
     }
 
+    public static void removeMultipleFromArchive(Context context, long[] threadId) throws InterruptedException {
+        Archive[] archives = new Archive[threadId.length];
+
+        for(int i=0;i<threadId.length;++i)
+            archives[i] = new Archive(threadId[i]);
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                                Datastore.databaseName)
+                        .fallbackToDestructiveMigration()
+                        .build();
+                ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
+                archiveDAO.removeMultiple(archives);
+                databaseConnector.close();
+            }
+        });
+        thread.start();
+        thread.join();
+    }
+
     public static List<Archive> loadAllMessages(Context context) throws InterruptedException {
         final List<Archive>[] fetchedData = new List[]{new ArrayList<>()};
         Thread thread = new Thread(new Runnable() {
