@@ -421,9 +421,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 //        ItemSnapshotList snapshotList = this.snapshot();
         List snapshotList = mDiffer.getCurrentList();
         SMS sms = (SMS) snapshotList.get(position);
-        if (position != 0 && (position == snapshotList.size() - 1 ||
-                !SMSHandler.isSameHour(sms,
-                        (SMS) snapshotList.get(position + 1)))) {
+//        if (position != 0 && (position == snapshotList.size() - 1 ||
+        if (position == snapshotList.size() - 1 ||
+                !SMSHandler.isSameHour(sms, (SMS) snapshotList.get(position + 1))) {
             return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                     TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
         } else {

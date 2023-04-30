@@ -5,7 +5,7 @@
     <group
         android:id="@+id/default_menu_items">
         <item
-            android:icon="@drawable/ic_baseline_call_24"
+            android:icon="@drawable/round_call_24"
             android:id="@+id/make_call"
             app:showAsAction="always"
             android:title="Call"/>

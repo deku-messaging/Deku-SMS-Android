@@ -41,7 +41,7 @@
                 app:boxStrokeColor="@android:color/transparent"
                 app:boxStrokeWidth="0dp"
                 app:boxStrokeWidthFocused="0dp"
-                app:endIconDrawable="@drawable/ic_baseline_more_vert_24"
+                app:endIconDrawable="@drawable/round_more_vert_24"
                 app:endIconMode="custom"
                 app:helperTextEnabled="true"
                 app:hintEnabled="true"
