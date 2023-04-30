@@ -354,9 +354,9 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
+                if(selectedItems.getValue() != null) {
                     HashMap<String, ViewHolder> items = selectedItems.getValue();
-                    if(items.containsKey(items)) {
+                    if(items.containsKey(holder.id)) {
                         holder.unHighlight();
                         items.remove(holder.id);
                     }
@@ -391,7 +391,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             public boolean onLongClick(View v) {
                 HashMap<String, ViewHolder> items = selectedItems.getValue();
                 if(items != null && !items.isEmpty()) {
-                    if(items.containsKey(items)) {
+                    if(items.containsKey(holder.id)) {
                         holder.unHighlight();
                         items.remove(holder.id);
                     }

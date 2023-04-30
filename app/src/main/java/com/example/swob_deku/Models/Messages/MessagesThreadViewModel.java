@@ -21,20 +21,23 @@ public class MessagesThreadViewModel extends ViewModel {
     private MutableLiveData<List<SMS>> messagesList;
     private LiveData<List<SMS>> messagesListLiveData;
 
+    Context context;
+
     public LiveData<List<SMS>> getMessages(Context context){
         if(messagesListLiveData == null) {
             messagesList = new MutableLiveData<>();
             messagesListLiveData = messagesList;
-            loadSMSThreads(context);
+            this.context = context;
+            loadSMSThreads();
         }
         return messagesListLiveData;
     }
 
-    public void informChanges(Context context) {
-        loadSMSThreads(context);
+    public void informChanges() {
+        loadSMSThreads();
     }
 
-    private void loadSMSThreads(Context context) {
+    private void loadSMSThreads() {
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
         List<SMS> smsList = new ArrayList<>();
 

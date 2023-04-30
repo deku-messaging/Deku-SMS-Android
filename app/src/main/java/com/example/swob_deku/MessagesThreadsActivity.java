@@ -128,6 +128,25 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 highlightListener(stringViewHolderHashMap.size());
             }
         });
+
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if(item.getItemId() == R.id.threads_delete) {
+                    try {
+                        String[] ids = messagesThreadRecyclerAdapter.selectedItems.getValue()
+                                        .keySet().toArray(new String[0]);
+                        SMSHandler.deleteThreads(getApplicationContext(), ids);
+                        messagesThreadRecyclerAdapter.resetAllSelectedItems();
+                        messagesThreadViewModel.informChanges();
+                        return true;
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     private void loadSubroutines() {
@@ -220,7 +239,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 try {
                     Archive archive = new Archive(Long.parseLong(threadId));
                     ArchiveHandler.archiveSMS(getApplicationContext(), archive);
-                    messagesThreadViewModel.informChanges(getApplicationContext());
+                    messagesThreadViewModel.informChanges();
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -352,7 +371,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         SMSHandler.deleteThread(getApplicationContext(), threadId);
                     }
                     cursor.close();
-                    messagesThreadViewModel.informChanges(getApplicationContext());
+                    messagesThreadViewModel.informChanges();
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -465,8 +484,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                messagesThreadRecyclerAdapter.notifyDataSetChanged();
-//                messagesThreadViewModel.informChanges(getApplicationContext());
+                if(messagesThreadRecyclerAdapter.selectedItems.getValue()!=null &&
+                        !messagesThreadRecyclerAdapter.selectedItems.getValue().isEmpty())
+                    messagesThreadRecyclerAdapter.notifyDataSetChanged();
                 mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
             }
         }, recyclerViewTimeUpdateLimit);
@@ -488,7 +508,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                messagesThreadViewModel.informChanges(getApplicationContext());
+                messagesThreadViewModel.informChanges();
             }
         };
 
@@ -497,10 +517,16 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.messages_threads_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
-        messagesThreadViewModel.informChanges(getApplicationContext());
+        messagesThreadViewModel.informChanges();
     }
 
     private void highlightListener(int size){

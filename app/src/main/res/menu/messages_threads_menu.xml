@@ -5,7 +5,7 @@
         android:id="@+id/threads_menu"
         android:visible="false">
         <item
-            android:id="@+id/delete_multiple"
+            android:id="@+id/threads_delete"
             android:icon="@drawable/round_delete_24"
             android:title="delete"
             app:showAsAction="always" />
