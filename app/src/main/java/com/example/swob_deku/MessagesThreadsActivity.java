@@ -1,6 +1,7 @@
 package com.example.swob_deku;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
@@ -50,6 +51,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
+import java.util.HashMap;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -63,6 +65,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     Handler mHandler = new Handler();
 
     Toolbar toolbar;
+    ActionBar ab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +80,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
 //        cancelAllNotifications();
         toolbar = findViewById(R.id.messages_threads_toolbar);
+        setSupportActionBar(toolbar);
+        // Get a support ActionBar corresponding to this toolbar
+        ab = getSupportActionBar();
+        // Enable the Up button
+//        ab.setDisplayHomeAsUpEnabled(true);
+
         handleIncomingMessage();
 
         messagesThreadViewModel = new ViewModelProvider(this).get(
@@ -113,10 +122,10 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         setRefreshTimer();
         loadSubroutines();
 
-        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<List<String>>() {
+        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder>>() {
             @Override
-            public void onChanged(List<String> strings) {
-                highlightListener(strings.size());
+            public void onChanged(HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder> stringViewHolderHashMap) {
+                highlightListener(stringViewHolderHashMap.size());
             }
         });
     }
@@ -500,10 +509,26 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         if(size < 1) {
             menu.setGroupVisible(R.id.threads_menu, false);
             findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.VISIBLE);
+            ab.setDisplayHomeAsUpEnabled(false);
+            ab.setHomeAsUpIndicator(null);
         } else {
             findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.GONE);
             menu.setGroupVisible(R.id.threads_menu, true);
+            ab.setDisplayHomeAsUpEnabled(true);
+            ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
+            ab.setTitle(String.valueOf(size));
         }
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home
+                && messagesThreadRecyclerAdapter.selectedItems.getValue() != null) {
+            messagesThreadRecyclerAdapter.resetAllSelectedItems();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

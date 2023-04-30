@@ -49,7 +49,9 @@ import com.example.swob_deku.SMSSendActivity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import io.getstream.avatarview.AvatarView;
@@ -68,7 +70,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     WorkManager workManager;
     LiveData<List<WorkInfo>> workers;
 
-    public MutableLiveData<List<String>> selectedItems = new MutableLiveData<>();
+    public MutableLiveData<HashMap<String, ViewHolder>> selectedItems = new MutableLiveData<>();
 
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
@@ -353,15 +355,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             @Override
             public void onClick(View view) {
                 if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
-                    List<String> items = selectedItems.getValue();
-                    if(selectedItems.getValue().contains(holder.id)) {
-                        items.remove(holder.id);
+                    HashMap<String, ViewHolder> items = selectedItems.getValue();
+                    if(items.containsKey(items)) {
                         holder.unHighlight();
+                        items.remove(holder.id);
                     }
                     else {
                         items = selectedItems.getValue();
-                        items.add(holder.id);
                         holder.highlight();
+                        items.put(holder.id, holder);
                     }
                     selectedItems.postValue(items);
                 }
@@ -387,18 +389,22 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                List<String> items = new ArrayList<>();
-                if(selectedItems.getValue() != null && selectedItems.getValue().contains(holder.id)) {
-                    items = selectedItems.getValue();
-                    items.remove(holder.id);
-                    holder.unHighlight();
-                }
-                else {
-                    if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
-                        items = selectedItems.getValue();
+                HashMap<String, ViewHolder> items = selectedItems.getValue();
+                if(items != null && !items.isEmpty()) {
+                    if(items.containsKey(items)) {
+                        holder.unHighlight();
+                        items.remove(holder.id);
                     }
-                    items.add(holder.id);
+                    else {
+                        items = selectedItems.getValue();
+                        holder.highlight();
+                        items.put(holder.id, holder);
+                    }
+                    selectedItems.postValue(items);
+                } else {
+                    items = new HashMap<>();
                     holder.highlight();
+                    items.put(holder.id, holder);
                 }
                 selectedItems.setValue(items);
                 return true;
@@ -407,6 +413,14 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         holder.layout.setOnClickListener(onClickListener);
         holder.layout.setOnLongClickListener(onLongClickListener);
+    }
+
+    public void resetAllSelectedItems() {
+        HashMap<String, ViewHolder> items = selectedItems.getValue();
+        for(Map.Entry<String, ViewHolder> entry : items.entrySet()) {
+            entry.getValue().unHighlight();
+        }
+        selectedItems.setValue(new HashMap<>());
     }
 
     @Override
