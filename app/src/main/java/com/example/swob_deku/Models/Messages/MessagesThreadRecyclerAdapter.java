@@ -74,8 +74,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    private final int CONTACT_VIEW_TYPE = 100;
-    private final int NOT_CONTACT_VIEW_TYPE = 200;
+    private final int CONTACT_VIEW_TYPE = 136;
+    private final int NOT_CONTACT_VIEW_TYPE = 235;
     private final int RECEIVED_VIEW_TYPE = 1;
     private final int RECEIVED_UNREAD_VIEW_TYPE = 2;
     private final int RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE = 3;
@@ -178,44 +178,44 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(this.renderLayout, parent, false);
 
-        if(viewType == (RECEIVED_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        if(viewType == (RECEIVED_UNREAD_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new UnreadViewHolder(view, true);
-        else if(viewType == (RECEIVED_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_UNREAD_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new UnreadViewHolder(view, false);
 
-        else if(viewType == (SENT_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_UNREAD_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new SentViewHolderUnread(view, true);
-        else if(viewType == (SENT_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_UNREAD_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new SentViewHolderUnread(view, false);
 
-        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new UnreadEncryptedViewHolder(view, true);
-        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new UnreadEncryptedViewHolder(view, false);
 
-         else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+         else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new SentEncryptedViewHolderUnread(view, true);
-        else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new SentEncryptedViewHolderUnread(view, false);
 
-        else if(viewType == (SENT_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new SentViewHolder(view, true);
-        else if(viewType == (SENT_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new SentViewHolder(view, false);
 
-         else if(viewType == (RECEIVED_VIEW_TYPE | CONTACT_VIEW_TYPE))
+         else if(viewType == (RECEIVED_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new ViewHolder(view, true);
-        else if(viewType == (RECEIVED_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new ViewHolder(view, false);
 
-        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new SentEncryptedViewHolder(view, true);
-        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new SentEncryptedViewHolder(view, false);
 
-        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new EncryptedViewHolder(view, true);
-        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new EncryptedViewHolder(view, false);
 
 
@@ -243,29 +243,30 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         if(SecurityHelpers.containersWaterMark(sms.getBody())) {
             if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE | type;
+                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE + type;
                 else
-                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE | type;
+                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + type;
             }
             else {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_VIEW_TYPE | type;
+                    return SENT_ENCRYPTED_VIEW_TYPE + type;
                 else
-                    return RECEIVED_ENCRYPTED_VIEW_TYPE | type;
+                    return RECEIVED_ENCRYPTED_VIEW_TYPE + type;
             }
         } else {
             if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_UNREAD_VIEW_TYPE | type;
+                    return SENT_UNREAD_VIEW_TYPE + type;
                 else
-                    return RECEIVED_UNREAD_VIEW_TYPE | type;
+                    return RECEIVED_UNREAD_VIEW_TYPE + type;
             }else {
-                if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_VIEW_TYPE | type;
+                if(sms.getType() != MESSAGE_TYPE_INBOX) {
+                    return SENT_VIEW_TYPE + type;
+                }
             }
         }
 
-        return RECEIVED_VIEW_TYPE | type;
+        return RECEIVED_VIEW_TYPE + type;
     }
 
     @Override
@@ -276,11 +277,11 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         String address = sms.getAddress();
 
-        final int color = Helpers.generateColor(address.charAt(address.length() -1));
         if(holder.isContact) {
             String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
             if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
                 address = addressInPhone;
+                final int color = Helpers.generateColor(address.charAt(address.length() -1));
                 holder.contactInitials.setAvatarInitials(address.substring(0, 1));
 
 //                final int colorValue = (int) address.charAt(0);
