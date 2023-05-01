@@ -26,48 +26,8 @@ public class DataHelper {
         return binary;
     }
 
-    public static char[] byteToChar(byte[] bytes) {
-        char[] chars = new char[bytes.length];
-        for (int i = 0; i < bytes.length; i++) {
-            chars[i] = (char) bytes[i];
-        }
-        return chars;
-    }
-
-    public static int findInBytes(String searchQuery, byte[] bytes) {
-        int returnValue = -1;
-        int searchLen = searchQuery.length();
-
-        if(bytes.length < searchLen)
-            return returnValue;
-
-        String window = new String(byteToChar(bytes));
-
-        return window.indexOf(searchQuery);
-    }
-
     public static int[] getNibbleFromByte(byte b) {
         return new int[]{(b & 0x0F), ((b >> 4) & 0x0F)};
-    }
-
-    public static String toHexString(byte[] bytes) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-
-        for(byte b: bytes)
-            stringBuilder.append(Integer.toHexString(b));
-        return stringBuilder.toString();
-    }
-
-    public static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len/2];
-
-        for(int i = 0; i < len; i+=2){
-            data[i/2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i+1), 16));
-        }
-
-        return data;
     }
 
     public static String getHexOfByte(byte[] bytes) {
@@ -79,26 +39,6 @@ public class DataHelper {
         return buffer.toString();
     }
 
-    public static byte[] intArrayToByteArray(int[] ints) {
-        byte[] array = new byte[ints.length];
-
-        for(int i=0;i<ints.length;++i)
-            array[i] = (byte) ints[i];
-
-        return array;
-    }
-
-    public static byte[] stringToNibble(String strData) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        for(int i=0; i<strData.length(); i+=2 ) {
-            int val1 = Integer.parseInt(strData.substring(i, i+1));
-            int val2 = Integer.parseInt(strData.substring(i+1, i+2));
-            byteArrayOutputStream.write((byte) ((val1 << 4) | val2 ));
-        }
-
-        return byteArrayOutputStream.toByteArray();
-    }
-
     public static int[] bytesToNibbleArray(byte[] bytes) {
         int ints[] = new int[bytes.length * 2];
         for(int i=0, j=0;i<bytes.length; ++i, j+=2) {
@@ -108,40 +48,6 @@ public class DataHelper {
         }
         return ints;
     }
-
-    public static String hexToAscii(String hexStr) {
-        StringBuilder output = new StringBuilder();
-        for (int i = 0; i < hexStr.length(); i += 2) {
-            String str = hexStr.substring(i, i + 2);
-            output.append((char) Integer.parseInt(str, 16));
-        }
-        return output.toString();
-    }
-
-    private static String destinationNumberLength(String number) {
-        number = number.replace("[^\\d]", "");
-        return stringHexLength(number.length());
-    }
-
-    /**
-     * returns the length of given length l as hexvalue String.
-     *
-     * @param l
-     * @return
-     */
-    private static String stringHexLength(int l) {
-        String length = Integer.toHexString(l);
-        if (length.length() < 2)
-            length = "0" + length;
-
-        return length;
-    }
-
-    public static int intToNibble(int value1, int value2) {
-        int nibble = (value1 & 0xF0) | (value2 & 0x0F);
-        return nibble;
-    }
-
 
     public static byte intToByte(int data) {
         return (byte) (data & 0xFF);

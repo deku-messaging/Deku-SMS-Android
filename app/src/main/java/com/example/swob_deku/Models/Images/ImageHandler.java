@@ -19,6 +19,8 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.Surface;
 
+import androidx.room.Dao;
+
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -27,12 +29,16 @@ import com.example.swob_deku.Models.Security.SecurityAES;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -406,54 +412,102 @@ public class ImageHandler {
         return result;
     }
 
-//    public static void extractContainerInformation(String filePath) throws IOException {
-//
-//        // Open the WebP image file as a RandomAccessFile
-//        RandomAccessFile file = new RandomAccessFile(filePath, "r");
-//
-//        try {
-//            // Read the RIFF header
-//            byte[] riffHeader = new byte[4];
+    public static boolean hasICCProfile(byte[] imageBytes) {
+        return false;
+    }
+
+
+
+    public static byte[] extractContainerInformation(byte[] data) throws IOException {
+        try {
+            // Read the RIFF header
+            byte[] riffHeader = new byte[4];
 //            file.readFully(riffHeader);
-//            if (!new String(riffHeader, "US-ASCII").equals("RIFF")) {
-//                throw new IOException("Not a WebP file: missing RIFF header");
-//            }
-//
-//            // Read the file size (total size of the WebP container)
+            int iterator = riffHeader.length;
+            System.arraycopy(data, 0, riffHeader, 0, riffHeader.length);
+            if (!new String(riffHeader, StandardCharsets.US_ASCII).equals("RIFF")) {
+                throw new IOException("Not a WebP file: missing RIFF header");
+            }
+
+            // Read the file size (total size of the WebP container)
 //            file.readInt(); // skip the file size (4 bytes)
-//
-//            // Read the file type (should be "WEBP")
-//            byte[] webpHeader = new byte[4];
+            byte[] fileSize = new byte[4];
+            System.arraycopy(data, iterator, fileSize, 0, fileSize.length);
+            Log.d(ImageHandler.class.getName(), "File size: " +
+                    ByteBuffer.wrap(fileSize).order(ByteOrder.LITTLE_ENDIAN).getInt());
+            iterator += 4;
+
+            // Read the file type (should be "WEBP")
+            byte[] webpHeader = new byte[4];
 //            file.readFully(webpHeader);
-//            if (!new String(webpHeader, "US-ASCII").equals("WEBP")) {
-//                throw new IOException("Not a WebP file: missing WEBP header");
-//            }
-//
-//            // Read the VP8 sub-chunk header
-//            byte[] vp8Header = new byte[8];
+            System.arraycopy(data, iterator, webpHeader, 0, webpHeader.length);
+            iterator += webpHeader.length;
+
+            if (!new String(webpHeader, StandardCharsets.US_ASCII).equals("WEBP")) {
+                throw new IOException("Not a WebP file: missing WEBP header: " +
+                        new String(webpHeader, StandardCharsets.US_ASCII));
+            }
+
+            // Read the VP8 sub-chunk header
+            byte[] vp8Header = new byte[8];
 //            file.readFully(vp8Header);
-//            String vp8HeaderId = new String(vp8Header, 0, 4, "US-ASCII");
-//            int vp8HeaderSize = ByteBuffer.wrap(vp8Header, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
-//            if (!vp8HeaderId.equals("VP8 ")) {
-//                throw new IOException("Not a WebP file: missing VP8 sub-chunk");
-//            }
-//
-//            // Skip the VP8 sub-chunk data
+            System.arraycopy(data, iterator, vp8Header, 0, vp8Header.length);
+            String vp8HeaderId = new String(vp8Header, 0, 4, StandardCharsets.US_ASCII);
+            int vp8HeaderSize = ByteBuffer.wrap(vp8Header, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+            if (!vp8HeaderId.equals("VP8X") && !vp8HeaderId.equals("VP8 ")) {
+                throw new IOException("Not a WebP file: missing VP8 sub-chunk: " + vp8HeaderId);
+            }
+            Log.d(ImageHandler.class.getName(), vp8HeaderId + " - " + vp8HeaderSize);
+
+            // Skip the VP8 sub-chunk data
 //            file.skipBytes(vp8HeaderSize);
-//
+            iterator += vp8HeaderSize;
+
 //            // Read the other sub-chunks and extract the container information
-//            while (file.getFilePointer() < file.length()) {
-//                byte[] subChunkHeader = new byte[8];
+            List<String> subChunkHeaders = new ArrayList<String>();
+            subChunkHeaders.add("VP8X");
+            subChunkHeaders.add("VP8 ");
+            subChunkHeaders.add("ICCP");
+            subChunkHeaders.add("ANIM");
+            subChunkHeaders.add("EXIF");
+            subChunkHeaders.add("XMP ");
+            subChunkHeaders.add("ALPH");
+            while (iterator < data.length) {
+                byte[] subChunkHeader = new byte[8];
 //                file.readFully(subChunkHeader);
-//                String subChunkId = new String(subChunkHeader, 0, 4, "US-ASCII");
-//                int subChunkSize = ByteBuffer.wrap(subChunkHeader, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
-//
-//                if (subChunkId.equals("VP8X")) {
-//                    // Read the VP8X sub-chunk data and extract the extended format information
-//                    byte[] vp8xData = new byte[subChunkSize];
+                System.arraycopy(data, iterator, subChunkHeader, 0, subChunkHeader.length);
+                String subChunkId = new String(subChunkHeader, 0, 4, StandardCharsets.US_ASCII);
+                int subChunkSize = ByteBuffer.wrap(subChunkHeader, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+                iterator += subChunkHeader.length;
+
+//                if (subChunkId.equals("VP8X") || subChunkId.equals("VP8 ")) {
+                if (subChunkHeaders.contains(subChunkId)) {
+                    // Read the VP8X sub-chunk data and extract the extended format information
+                    byte[] vp8xData = new byte[subChunkSize];
 //                    file.readFully(vp8xData);
+                    // TODO: extract extended format information from VP8X sub-chunk data
+                    Log.d(ImageHandler.class.getName(), subChunkId + ":" + vp8xData.length + ":"
+                            + new String(vp8xData, StandardCharsets.US_ASCII));
+                    System.arraycopy(data, iterator, vp8xData, 0, vp8xData.length);
+                    if(subChunkId.equals("ICCP")) {
+                        byte[] dataMinusICCP = new byte[data.length - (subChunkSize + subChunkHeader.length)];
+                        System.arraycopy(data, 0, dataMinusICCP, 0, iterator - subChunkHeader.length);
+                        System.arraycopy(data, iterator + subChunkSize, dataMinusICCP, iterator - subChunkHeader.length,
+                                data.length - (iterator + subChunkSize));
+                        data = dataMinusICCP;
+                        iterator -= subChunkHeader.length;
+                    } else iterator += subChunkSize;
+                }
+//                else if (subChunkId.equals("ICCP")) {
+//                    // Read the VP8X sub-chunk data and extract the extended format information
+//                    byte[] iccp = new byte[subChunkSize];
+////                    file.readFully(vp8xData);
 //                    // TODO: extract extended format information from VP8X sub-chunk data
-//                } else if (subChunkId.equals("EXIF")) {
+//                    System.arraycopy(data, iterator, iccp, 0, iccp.length);
+//                    Log.d(ImageHandler.class.getName(), subChunkId + ":" + new String(iccp, StandardCharsets.US_ASCII));
+//                    iterator += subChunkSize;
+//                }
+//                else if (subChunkId.equals("EXIF")) {
 //                    // Read the EXIF sub-chunk data and extract the metadata
 //                    byte[] exifData = new byte[subChunkSize];
 //                    file.readFully(exifData);
@@ -462,10 +516,10 @@ public class ImageHandler {
 //                    // Skip unknown sub-chunks
 //                    file.skipBytes(subChunkSize);
 //                }
-//            }
-//        } finally {
-//            // Close the file
-//            file.close();
-//        }
-//    }
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
 }
