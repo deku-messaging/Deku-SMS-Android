@@ -94,21 +94,31 @@ public class Helpers {
     }
 
     public static String formatPhoneNumbers(String data) throws NumberParseException {
-        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-        try {
-            String formattedData = data.replaceAll("%2B", "+")
-                    .replaceAll("%20", "")
-                    .replaceAll("-", "")
-                    .replaceAll("\\s", "");
+//        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+//        try {
+//            String formattedData = data.replaceAll("%2B", "+")
+//                    .replaceAll("%20", "")
+//                    .replaceAll("-", "")
+//                    .replaceAll("\\s", "");
+//
+//            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(formattedData, "US");
+//            // use the formattedPhoneNumber
+//            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
+//            data = formattedData;
+//        } catch (NumberParseException e) {
+//            // handle the exception
+//            e.printStackTrace();
+//        }
+//        return data;
+        // Remove any non-digit characters except the plus sign at the beginning of the string
+        String strippedNumber = data.replaceAll("[^0-9+]", "");
 
-            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(formattedData, "US");
-            // use the formattedPhoneNumber
-            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
-            data = formattedData;
-        } catch (NumberParseException e) {
-            // handle the exception
-            e.printStackTrace();
+        // If the stripped number starts with a plus sign followed by one or more digits, return it as is
+        if (strippedNumber.matches("^\\+\\d+") || strippedNumber.length() >=7) {
+            return strippedNumber;
         }
+
+        // If the stripped number is not a valid phone number, return an empty string
         return data;
     }
 

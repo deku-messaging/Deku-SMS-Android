@@ -42,7 +42,7 @@
     <string name="route_state">Routing URL</string>
 
     <string name="send_sms_activity_user_not_secure">
-        Your communications with [insert name] is not secured.\nWould you like to send a request to begin a secure conversation with to [insert name]?
+        Your communications with [insert name] is not secure.\nWould you like to send a request to begin a secure conversation with [insert name]?
     </string>
     <string name="send_sms_activity_user_not_secure_no_agreed">
         [insert name] has requested to secure this conversation.\nWould you like to respond to them?
