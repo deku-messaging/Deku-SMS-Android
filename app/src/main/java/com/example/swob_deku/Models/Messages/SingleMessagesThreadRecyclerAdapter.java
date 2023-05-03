@@ -196,8 +196,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);
 
-            ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
             if(text.contains(ImageHandler.IMAGE_HEADER)) {
+                ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
                 try {
                     byte[] body = Base64.decode(text
                             .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
@@ -210,6 +210,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 } catch(Exception e) {
                     e.printStackTrace();
                 }
+            }
+            else if(text.contains(SecurityHelpers.FIRST_HEADER) &&
+                    text.contains(SecurityHelpers.END_HEADER)) {
+                ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
+
+                messageReceivedViewHandler.imageView.setImageDrawable(context.getDrawable(R.drawable.round_key_24));
+                imageConstraint.setVisibility(View.VISIBLE);
+                receivedMessage.setVisibility(View.GONE);
             }
             else {
                 receivedMessage.setText(text);
@@ -500,7 +508,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         TextView date;
         TextView timestamp;
         ImageView imageView;
-
         ConstraintLayout constraintLayout, imageConstraintLayout;
 
         public MessageReceivedViewHandler(@NonNull View itemView) {
