@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/messages_threads_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -115,4 +116,15 @@
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
         app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
+
+    <ImageView
+        android:id="@+id/messages_thread_secured_lock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/messages_thread_address_text"
+        app:layout_constraintStart_toEndOf="@+id/messages_thread_address_text"
+        app:srcCompat="@drawable/round_lock_24" />
 </androidx.constraintlayout.widget.ConstraintLayout>

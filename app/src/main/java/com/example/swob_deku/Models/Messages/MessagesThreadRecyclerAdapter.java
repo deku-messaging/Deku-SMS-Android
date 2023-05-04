@@ -507,10 +507,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     public static class EncryptedViewHolder extends ViewHolder {
 
+        ImageView encryptedLock;
+
         public EncryptedViewHolder(@NonNull View itemView, boolean isContact) {
             super(itemView, isContact);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
             snippet.setText(R.string.messages_thread_encrypted_content);
+
+            encryptedLock = itemView.findViewById(R.id.messages_thread_secured_lock);
+            encryptedLock.setVisibility(View.VISIBLE);
         }
     }
 
