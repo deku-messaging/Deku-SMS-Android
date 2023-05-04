@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
@@ -39,8 +40,10 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
         MessagesThreadRecyclerAdapter.ContactsViewHolder viewHolder =
                 (MessagesThreadRecyclerAdapter.ContactsViewHolder) holder;
 
+        final int color = Helpers.generateColor(contacts.contactName.charAt(contacts.contactName.length() -1));
         viewHolder.address.setText(contacts.contactName);
         viewHolder.contactInitials.setAvatarInitials(contacts.contactName.substring(0, 1));
+        viewHolder.contactInitials.setAvatarInitialsBackgroundColor(color);
         viewHolder.snippet.setText(contacts.number);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {

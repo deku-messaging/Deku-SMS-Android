@@ -135,4 +135,8 @@ public class SecurityHelpers {
                 text.indexOf(SecurityHelpers.ENCRYPTED_WATERMARK_END) ==
                         text.length() - SecurityHelpers.ENCRYPTED_WATERMARK_END.length();
     }
+
+    public static boolean isKeyExchange(String body) {
+        return body.contains(FIRST_HEADER) && body.contains(END_HEADER);
+    }
 }

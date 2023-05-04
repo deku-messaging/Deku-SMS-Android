@@ -1,7 +1,9 @@
 package com.example.swob_deku;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
@@ -25,6 +27,7 @@ import android.os.Handler;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,6 +51,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
+import java.util.HashMap;
 import java.util.List;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
@@ -57,8 +61,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     RecyclerView messagesThreadRecyclerView;
 
     BroadcastReceiver incomingBroadcastReceiver;
+    BroadcastReceiver incomingDataBroadcastReceiver;
 
     Handler mHandler = new Handler();
+
+    Toolbar toolbar;
+    ActionBar ab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +80,13 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         }
 
 //        cancelAllNotifications();
+        toolbar = findViewById(R.id.messages_threads_toolbar);
+        setSupportActionBar(toolbar);
+        // Get a support ActionBar corresponding to this toolbar
+        ab = getSupportActionBar();
+        // Enable the Up button
+//        ab.setDisplayHomeAsUpEnabled(true);
+
         handleIncomingMessage();
 
         messagesThreadViewModel = new ViewModelProvider(this).get(
@@ -107,6 +122,46 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         setRefreshTimer();
         loadSubroutines();
+
+        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder>>() {
+            @Override
+            public void onChanged(HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder> stringViewHolderHashMap) {
+                highlightListener(stringViewHolderHashMap.size());
+            }
+        });
+
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                String[] ids = messagesThreadRecyclerAdapter.selectedItems.getValue()
+                        .keySet().toArray(new String[0]);
+                if(item.getItemId() == R.id.threads_delete) {
+                    try {
+                        SMSHandler.deleteThreads(getApplicationContext(), ids);
+                        messagesThreadRecyclerAdapter.resetAllSelectedItems();
+                        messagesThreadViewModel.informChanges();
+                        return true;
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                else if(item.getItemId() == R.id.threads_archive) {
+                    long[] longArr = new long[ids.length];
+                    for (int i = 0; i < ids.length; i++)
+                        longArr[i] = Long.parseLong(ids[i]);
+
+                    try {
+                        ArchiveHandler.archiveMultipleSMS(getApplicationContext(), longArr);
+                        messagesThreadRecyclerAdapter.resetAllSelectedItems();
+                        messagesThreadViewModel.informChanges();
+                        return true;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     private void loadSubroutines() {
@@ -199,7 +254,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 try {
                     Archive archive = new Archive(Long.parseLong(threadId));
                     ArchiveHandler.archiveSMS(getApplicationContext(), archive);
-                    messagesThreadViewModel.informChanges(getApplicationContext());
+                    messagesThreadViewModel.informChanges();
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -331,7 +386,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         SMSHandler.deleteThread(getApplicationContext(), threadId);
                     }
                     cursor.close();
-                    messagesThreadViewModel.informChanges(getApplicationContext());
+                    messagesThreadViewModel.informChanges();
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -444,8 +499,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-//                messagesThreadRecyclerAdapter.notifyDataSetChanged();
-                messagesThreadViewModel.informChanges(getApplicationContext());
+                if(messagesThreadRecyclerAdapter.selectedItems.getValue()==null ||
+                        messagesThreadRecyclerAdapter.selectedItems.getValue().isEmpty())
+                    messagesThreadRecyclerAdapter.notifyDataSetChanged();
                 mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
             }
         }, recyclerViewTimeUpdateLimit);
@@ -467,19 +523,63 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                messagesThreadViewModel.informChanges(getApplicationContext());
+                messagesThreadViewModel.informChanges();
+            }
+        };
+
+        incomingDataBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                messagesThreadViewModel.informChanges();
             }
         };
 
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
+
+        registerReceiver(incomingDataBroadcastReceiver,
+                new IntentFilter(BroadcastSMSDataActivity.DATA_BROADCAST_INTENT));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.messages_threads_menu, menu);
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
-        messagesThreadViewModel.informChanges(getApplicationContext());
+        messagesThreadViewModel.informChanges();
+    }
+
+    private void highlightListener(int size){
+        Menu menu = toolbar.getMenu();
+        Log.d(getLocalClassName(), "Size: " + size);
+        if(size < 1) {
+            menu.setGroupVisible(R.id.threads_menu, false);
+            findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.VISIBLE);
+            ab.setDisplayHomeAsUpEnabled(false);
+            ab.setHomeAsUpIndicator(null);
+        } else {
+            findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.GONE);
+            menu.setGroupVisible(R.id.threads_menu, true);
+            ab.setDisplayHomeAsUpEnabled(true);
+            ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
+            ab.setTitle(String.valueOf(size));
+        }
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home
+                && messagesThreadRecyclerAdapter.selectedItems.getValue() != null) {
+            messagesThreadRecyclerAdapter.resetAllSelectedItems();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

@@ -438,7 +438,7 @@ public class SMSSendActivity extends AppCompatActivity {
 //                if(singleMessageViewModel.getLastUsedKey() == 0)
 //                    singleMessagesThreadRecyclerAdapter.refresh();
                 singleMessageViewModel.informNewItemChanges();
-                cancelNotifications(getIntent().getStringExtra(THREAD_ID));
+                cancelNotifications(threadId);
             }
         };
 
@@ -446,7 +446,12 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 singleMessageViewModel.informNewItemChanges();
-//                cancelNotifications(getIntent().getStringExtra(THREAD_ID));
+//                cancelNotifications(threadId);
+                try {
+                    checkEncryptedMessaging();
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
+                }
             }
         };
 
@@ -456,8 +461,9 @@ public class SMSSendActivity extends AppCompatActivity {
 
         registerReceiver(incomingDataBroadcastReceiver,
                 new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
+
         registerReceiver(incomingDataBroadcastReceiver,
-                new IntentFilter(BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION"));
+                new IntentFilter(BroadcastSMSDataActivity.DATA_BROADCAST_INTENT));
     }
 
     public void handleBroadcast() {
@@ -536,7 +542,7 @@ public class SMSSendActivity extends AppCompatActivity {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
                 getApplicationContext());
 
-        if(getIntent().hasExtra(THREAD_ID))
+        if(!threadId.isEmpty())
             notificationManager.cancel(Integer.parseInt(threadId));
     }
 

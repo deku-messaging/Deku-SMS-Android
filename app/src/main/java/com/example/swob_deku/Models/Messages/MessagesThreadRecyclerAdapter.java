@@ -25,6 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
@@ -48,7 +49,9 @@ import com.example.swob_deku.SMSSendActivity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import io.getstream.avatarview.AvatarView;
@@ -66,6 +69,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
     WorkManager workManager;
     LiveData<List<WorkInfo>> workers;
+
+    public MutableLiveData<HashMap<String, ViewHolder>> selectedItems = new MutableLiveData<>();
 
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
@@ -178,44 +183,44 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(this.renderLayout, parent, false);
 
-        if(viewType == (RECEIVED_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        if(viewType == (RECEIVED_UNREAD_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new UnreadViewHolder(view, true);
-        else if(viewType == (RECEIVED_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_UNREAD_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new UnreadViewHolder(view, false);
 
-        else if(viewType == (SENT_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_UNREAD_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new SentViewHolderUnread(view, true);
-        else if(viewType == (SENT_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_UNREAD_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new SentViewHolderUnread(view, false);
 
-        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new UnreadEncryptedViewHolder(view, true);
-        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new UnreadEncryptedViewHolder(view, false);
 
-         else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE | CONTACT_VIEW_TYPE))
+         else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new SentEncryptedViewHolderUnread(view, true);
-        else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new SentEncryptedViewHolderUnread(view, false);
 
-        else if(viewType == (SENT_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new SentViewHolder(view, true);
-        else if(viewType == (SENT_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new SentViewHolder(view, false);
 
-         else if(viewType == (RECEIVED_VIEW_TYPE | CONTACT_VIEW_TYPE))
+         else if(viewType == (RECEIVED_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new ViewHolder(view, true);
-        else if(viewType == (RECEIVED_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new ViewHolder(view, false);
 
-        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new SentEncryptedViewHolder(view, true);
-        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new SentEncryptedViewHolder(view, false);
 
-        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE | CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE + CONTACT_VIEW_TYPE))
             return new EncryptedViewHolder(view, true);
-        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE | NOT_CONTACT_VIEW_TYPE))
+        else if(viewType == (RECEIVED_ENCRYPTED_VIEW_TYPE + NOT_CONTACT_VIEW_TYPE))
             return new EncryptedViewHolder(view, false);
 
 
@@ -240,32 +245,33 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         int type = smsIsContact ? CONTACT_VIEW_TYPE : NOT_CONTACT_VIEW_TYPE;
 
-        if(SecurityHelpers.containersWaterMark(sms.getBody())) {
+        if(SecurityHelpers.containersWaterMark(sms.getBody()) || SecurityHelpers.isKeyExchange(sms.getBody())) {
             if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE | type;
+                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE + type;
                 else
-                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE | type;
+                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + type;
             }
             else {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_VIEW_TYPE | type;
+                    return SENT_ENCRYPTED_VIEW_TYPE + type;
                 else
-                    return RECEIVED_ENCRYPTED_VIEW_TYPE | type;
+                    return RECEIVED_ENCRYPTED_VIEW_TYPE + type;
             }
         } else {
             if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_UNREAD_VIEW_TYPE | type;
+                    return SENT_UNREAD_VIEW_TYPE + type;
                 else
-                    return RECEIVED_UNREAD_VIEW_TYPE | type;
+                    return RECEIVED_UNREAD_VIEW_TYPE + type;
             }else {
-                if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_VIEW_TYPE | type;
+                if(sms.getType() != MESSAGE_TYPE_INBOX) {
+                    return SENT_VIEW_TYPE + type;
+                }
             }
         }
 
-        return RECEIVED_VIEW_TYPE | type;
+        return RECEIVED_VIEW_TYPE + type;
     }
 
     @Override
@@ -280,6 +286,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
             if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
                 address = addressInPhone;
+                final int color = Helpers.generateColor(address.charAt(address.length() -1));
                 holder.contactInitials.setAvatarInitials(address.substring(0, 1));
 
 //                final int colorValue = (int) address.charAt(0);
@@ -289,21 +296,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 //                final int blue = (int) (green * 1.25);
 
 //                final int randomColor = Color.rgb(red, green, blue);
-                final int randomColor = Helpers.generateColor(address.charAt(0));
-                holder.contactInitials.setAvatarInitialsBackgroundColor(randomColor);
+                holder.contactInitials.setAvatarInitialsBackgroundColor(color);
             }
+        } else {
+//            Drawable drawable = holder.contactPhoto.getDrawable();
+//            drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+//            holder.contactPhoto.setImageDrawable(drawable);
         }
 
         holder.address.setText(address);
-
-        holder.mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
-                holder.date.setText(date);
-                holder.mHandler.postDelayed(this, holder.recyclerViewTimeUpdateLimit);
-            }
-        }, holder.recyclerViewTimeUpdateLimit);
 
         String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
         holder.date.setText(date);
@@ -353,24 +354,73 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
-                singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
-                singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
-
-                if (searchString != null && !searchString.isEmpty()) {
-                    int calculatedOffset = SMSHandler.calculateOffset(context, sms.getThreadId(), sms.getId());
-                    singleMessageThreadIntent
-                            .putExtra(SMSSendActivity.ID, sms.getId())
-                            .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
-                            .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
-                            .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
+                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
+                    HashMap<String, ViewHolder> items = selectedItems.getValue();
+                    if(items.containsKey(holder.id)) {
+                        holder.unHighlight();
+                        items.remove(holder.id);
+                    }
+                    else {
+                        items = selectedItems.getValue();
+                        holder.highlight();
+                        items.put(holder.id, holder);
+                    }
+                    selectedItems.postValue(items);
                 }
+                else {
+                    Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+                    singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
+                    singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
 
-                context.startActivity(singleMessageThreadIntent);
+                    if (searchString != null && !searchString.isEmpty()) {
+                        int calculatedOffset = SMSHandler.calculateOffset(context, sms.getThreadId(), sms.getId());
+                        singleMessageThreadIntent
+                                .putExtra(SMSSendActivity.ID, sms.getId())
+                                .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
+                                .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
+                                .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
+                    }
+
+                    context.startActivity(singleMessageThreadIntent);
+                }
+            }
+        };
+
+        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                HashMap<String, ViewHolder> items = selectedItems.getValue();
+                if(items != null && !items.isEmpty()) {
+                    if(items.containsKey(holder.id)) {
+                        holder.unHighlight();
+                        items.remove(holder.id);
+                    }
+                    else {
+                        items = selectedItems.getValue();
+                        holder.highlight();
+                        items.put(holder.id, holder);
+                    }
+                    selectedItems.postValue(items);
+                } else {
+                    items = new HashMap<>();
+                    holder.highlight();
+                    items.put(holder.id, holder);
+                }
+                selectedItems.setValue(items);
+                return true;
             }
         };
 
         holder.layout.setOnClickListener(onClickListener);
+        holder.layout.setOnLongClickListener(onLongClickListener);
+    }
+
+    public void resetAllSelectedItems() {
+        HashMap<String, ViewHolder> items = selectedItems.getValue();
+        for(Map.Entry<String, ViewHolder> entry : items.entrySet()) {
+            entry.getValue().unHighlight();
+        }
+        selectedItems.setValue(new HashMap<>());
     }
 
     @Override
@@ -409,8 +459,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         ConstraintLayout layout;
 
-        Handler mHandler = new Handler();
-
         final int recyclerViewTimeUpdateLimit = 60 * 1000;
         public ViewHolder(@NonNull View itemView, boolean isContact) {
             super(itemView);
@@ -428,22 +476,31 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             this.isContact = isContact;
 
 
-            if(!isContact) {
-                final Random random = new Random();
-                final int red = random.nextInt(150) + 50;
-                final int green = random.nextInt(150) + 50;
-                final int blue = random.nextInt(150) + 50;
-
-                final int randomColor = Color.rgb(red, green, blue);
-
-                Drawable drawable = contactPhoto.getDrawable();
-                drawable.setColorFilter(randomColor, PorterDuff.Mode.SRC_IN);
-                contactPhoto.setImageDrawable(drawable);
-            } else {
+//                final Random random = new Random();
+//                final int red = random.nextInt(150) + 50;
+//                final int green = random.nextInt(150) + 50;
+//                final int blue = random.nextInt(150) + 50;
+//
+//                final int randomColor = Color.rgb(red, green, blue);
+//
+//                Drawable drawable = contactPhoto.getDrawable();
+//                drawable.setColorFilter(randomColor, PorterDuff.Mode.SRC_IN);
+//                contactPhoto.setImageDrawable(drawable);
+            if(isContact) {
                 contactInitials.setVisibility(View.VISIBLE);
                 contactPhoto.setVisibility(View.GONE);
 //                this.setIsRecyclable(false);
             }
+        }
+
+        public void highlight(){
+            layout.setBackgroundResource(R.drawable.received_messages_drawable);
+            this.setIsRecyclable(false);
+        }
+
+        public void unHighlight(){
+            layout.setBackgroundResource(0);
+            this.setIsRecyclable(true);
         }
 
     }

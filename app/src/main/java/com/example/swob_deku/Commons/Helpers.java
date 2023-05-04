@@ -11,37 +11,11 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
 public class Helpers {
-    /*
-     * Converts a byte to hex digit and writes to the supplied buffer
-     */
-    public static void byte2hex(byte b, StringBuffer buf) {
-        char[] hexChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
-                '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-        int high = ((b & 0xf0) >> 4);
-        int low = (b & 0x0f);
-        buf.append(hexChars[high]);
-        buf.append(hexChars[low]);
-    }
-
-    /*
-     * Converts a byte array to hex string
-     */
-    public static String toHexString(byte[] block) {
-        StringBuffer buf = new StringBuffer();
-        int len = block.length;
-        for (int i = 0; i < len; i++) {
-            byte2hex(block[i], buf);
-            if (i < len-1) {
-                buf.append(":");
-            }
-        }
-        return buf.toString();
-    }
-
     public static long generateRandomNumber() {
         Random random = new Random();
         return random.nextInt(Integer.MAX_VALUE);
@@ -63,39 +37,61 @@ public class Helpers {
         return arrayOfString;
     }
 
-    public static String formatDate(Context context, long date) {
-        // TODO: if yesterday - should show yesterday instead
-        CharSequence formattedDate = new StringBuffer();
+    public static String formatDate(Context context, long epochTime) {
+//        // TODO: if yesterday - should show yesterday instead
+//        CharSequence formattedDate = new StringBuffer();
+//
+//        if (DateUtils.isToday(date)) {
+//            formattedDate = DateUtils.getRelativeTimeSpanString(date, System.currentTimeMillis(),
+//                    DateUtils.MINUTE_IN_MILLIS);
+//        }
+//        else {
+//            formattedDate = DateUtils.getRelativeDateTimeString(context, date,
+//                    DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS,
+//                    DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_RELATIVE);
+//        }
+//
+//        return formattedDate.toString();
+        long currentTime = System.currentTimeMillis();
+        long diff = currentTime - epochTime;
 
-        if (DateUtils.isToday(date)) {
-            formattedDate = DateUtils.getRelativeTimeSpanString(date, System.currentTimeMillis(),
-                    DateUtils.MINUTE_IN_MILLIS);
+        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
+            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
+        } else if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
+            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
+        } else if (diff < DateUtils.WEEK_IN_MILLIS) { // less than 1 week
+            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_ABBREV_WEEKDAY);
+        } else { // greater than 1 week
+            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_ABBREV_MONTH | DateUtils.FORMAT_SHOW_DATE);
         }
-        else {
-            formattedDate = DateUtils.getRelativeDateTimeString(context, date,
-                    DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS,
-                    DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_RELATIVE);
-        }
-
-        return formattedDate.toString();
     }
 
     public static String formatPhoneNumbers(String data) throws NumberParseException {
-        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-        try {
-            String formattedData = data.replaceAll("%2B", "+")
-                    .replaceAll("%20", "")
-                    .replaceAll("-", "")
-                    .replaceAll("\\s", "");
+//        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+//        try {
+//            String formattedData = data.replaceAll("%2B", "+")
+//                    .replaceAll("%20", "")
+//                    .replaceAll("-", "")
+//                    .replaceAll("\\s", "");
+//
+//            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(formattedData, "US");
+//            // use the formattedPhoneNumber
+//            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
+//            data = formattedData;
+//        } catch (NumberParseException e) {
+//            // handle the exception
+//            e.printStackTrace();
+//        }
+//        return data;
+        // Remove any non-digit characters except the plus sign at the beginning of the string
+        String strippedNumber = data.replaceAll("[^0-9+]", "");
 
-            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(formattedData, "US");
-            // use the formattedPhoneNumber
-            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
-            data = formattedData;
-        } catch (NumberParseException e) {
-            // handle the exception
-            e.printStackTrace();
+        // If the stripped number starts with a plus sign followed by one or more digits, return it as is
+        if (strippedNumber.matches("^\\+\\d+") || strippedNumber.length() >=7) {
+            return strippedNumber;
         }
+
+        // If the stripped number is not a valid phone number, return an empty string
         return data;
     }
 

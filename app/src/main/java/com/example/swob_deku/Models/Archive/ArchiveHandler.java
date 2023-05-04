@@ -41,6 +41,26 @@ public class ArchiveHandler {
         thread.join();
     }
 
+    public static void archiveMultipleSMS(Context context, long[] threadId) throws InterruptedException {
+        Archive[] archives = new Archive[threadId.length];
+
+        for(int i=0;i<threadId.length;++i)
+            archives[i] = new Archive(threadId[i]);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                                Datastore.databaseName)
+                        .fallbackToDestructiveMigration()
+                        .build();
+                ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
+                archiveDAO.insert(archives);
+            }
+        });
+        thread.start();
+        thread.join();
+    }
+
     public boolean isArchived(long threadId) throws InterruptedException {
         return archiveDAO.fetch(threadId) != null;
     }
@@ -55,6 +75,28 @@ public class ArchiveHandler {
                         .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.remove(new Archive(threadId));
+                databaseConnector.close();
+            }
+        });
+        thread.start();
+        thread.join();
+    }
+
+    public static void removeMultipleFromArchive(Context context, long[] threadId) throws InterruptedException {
+        Archive[] archives = new Archive[threadId.length];
+
+        for(int i=0;i<threadId.length;++i)
+            archives[i] = new Archive(threadId[i]);
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                                Datastore.databaseName)
+                        .fallbackToDestructiveMigration()
+                        .build();
+                ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
+                archiveDAO.remove(archives);
                 databaseConnector.close();
             }
         });

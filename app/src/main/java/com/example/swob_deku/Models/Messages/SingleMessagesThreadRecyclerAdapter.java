@@ -183,6 +183,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 //        text = decompress(text);
         text = decryptContent(text);
 
+        boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
         if(holder instanceof MessageReceivedViewHandler) {
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
             if(holder instanceof TimestampMessageReceivedViewHandler)
@@ -196,8 +197,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);
 
-            ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
             if(text.contains(ImageHandler.IMAGE_HEADER)) {
+                ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
                 try {
                     byte[] body = Base64.decode(text
                             .replace(ImageHandler.IMAGE_HEADER, ""), Base64.DEFAULT);
@@ -210,6 +211,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 } catch(Exception e) {
                     e.printStackTrace();
                 }
+            }
+            else if(isEncryptionKey) {
+                ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
+
+                messageReceivedViewHandler.imageView.setImageDrawable(context.getDrawable(R.drawable.round_key_24));
+                imageConstraint.setVisibility(View.VISIBLE);
+                receivedMessage.setVisibility(View.GONE);
             }
             else {
                 receivedMessage.setText(text);
@@ -287,6 +295,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 messageSentViewHandler.imageView.setImageBitmap(bitmap);
 
                 messageSentViewHandler.imageConstraintLayout.setVisibility(View.VISIBLE);
+                messageSentViewHandler.sentMessage.setVisibility(View.GONE);
+            }
+            else if(isEncryptionKey) {
+                ConstraintLayout imageConstraint = messageSentViewHandler.imageConstraintLayout;
+
+                messageSentViewHandler.imageView.setImageDrawable(context.getDrawable(R.drawable.round_key_24));
+                imageConstraint.setVisibility(View.VISIBLE);
                 messageSentViewHandler.sentMessage.setVisibility(View.GONE);
             }
             else {
@@ -421,9 +436,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 //        ItemSnapshotList snapshotList = this.snapshot();
         List snapshotList = mDiffer.getCurrentList();
         SMS sms = (SMS) snapshotList.get(position);
-        if (position != 0 && (position == snapshotList.size() - 1 ||
-                !SMSHandler.isSameHour(sms,
-                        (SMS) snapshotList.get(position + 1)))) {
+//        if (position != 0 && (position == snapshotList.size() - 1 ||
+        if (position == snapshotList.size() - 1 ||
+                !SMSHandler.isSameHour(sms, (SMS) snapshotList.get(position + 1))) {
             return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                     TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
         } else {
@@ -500,7 +515,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         TextView date;
         TextView timestamp;
         ImageView imageView;
-
         ConstraintLayout constraintLayout, imageConstraintLayout;
 
         public MessageReceivedViewHandler(@NonNull View itemView) {

@@ -24,6 +24,12 @@ public interface ArchiveDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(Archive archive);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insert(Archive[] archive);
+
     @Delete
     void remove(Archive archive);
+
+    @Delete
+    void remove(Archive[] archive);
 }

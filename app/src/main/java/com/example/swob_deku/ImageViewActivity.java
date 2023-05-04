@@ -278,6 +278,9 @@ public class ImageViewActivity extends AppCompatActivity {
         imageBitmap = ImageHandler.removeAlpha(imageBitmap);
 
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
+        Log.d(getLocalClassName(), "Before ICCP extraction: " + compressedBytes.length);
+        compressedBytes = ImageHandler.extractContainerInformation(compressedBytes);
+        Log.d(getLocalClassName(), "After ICCP extraction: " + compressedBytes.length);
 //        Log.d(getLocalClassName(), Base64.encodeToString(compressedBytes, Base64.DEFAULT));
 //        System.out.println(Base64.encodeToString(compressedBytes, Base64.DEFAULT));
 
