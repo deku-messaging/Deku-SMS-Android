@@ -446,7 +446,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 singleMessageViewModel.informNewItemChanges();
-                cancelNotifications(threadId);
+//                cancelNotifications(threadId);
                 try {
                     checkEncryptedMessaging();
                 } catch (GeneralSecurityException | IOException e) {
@@ -461,6 +461,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
         registerReceiver(incomingDataBroadcastReceiver,
                 new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
+
         registerReceiver(incomingDataBroadcastReceiver,
                 new IntentFilter(BroadcastSMSDataActivity.DATA_BROADCAST_INTENT));
     }

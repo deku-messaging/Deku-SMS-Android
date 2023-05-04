@@ -34,6 +34,7 @@ import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -191,22 +192,26 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 
                     spannable.setSpan(boldSpan, 0, contactName.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
-                    String message = unreadSMS.getBody().contains(ImageHandler.IMAGE_HEADER) ?
-                            context.getString(R.string.notification_title_new_photo):
-                            unreadSMS.getBody();
-
                     if(unreadSMS.getBody().contains(ImageHandler.IMAGE_HEADER)) {
+                        String message = context.getString(R.string.notification_title_new_photo);
                         SpannableStringBuilder spannableMessage = new SpannableStringBuilder(message);
                         spannableMessage.setSpan(ItalicSpan, 0, message.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                         unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
                                 spannableMessage,
                                 Long.parseLong(unreadSMS.getDate()),
                                 spannable));
-                    }
-                    else {
-                        unreadMessages.add(new NotificationCompat.MessagingStyle.Message(message + "\n",
+                    } else if(SecurityHelpers.isKeyExchange(unreadSMS.getBody())){
+                        String message = context.getString(R.string.notification_title_new_key);
+                        SpannableStringBuilder spannableMessage = new SpannableStringBuilder(message);
+                        spannableMessage.setSpan(ItalicSpan, 0, message.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                        unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
+                                spannableMessage,
                                 Long.parseLong(unreadSMS.getDate()),
                                 spannable));
+                    } else {
+                        unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
+                                unreadSMS.getBody() + "\n",
+                                Long.parseLong(unreadSMS.getDate()), spannable));
                     }
                 } while(cursor1.moveToNext());
             }

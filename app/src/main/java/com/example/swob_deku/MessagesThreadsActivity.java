@@ -61,6 +61,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     RecyclerView messagesThreadRecyclerView;
 
     BroadcastReceiver incomingBroadcastReceiver;
+    BroadcastReceiver incomingDataBroadcastReceiver;
 
     Handler mHandler = new Handler();
 
@@ -526,8 +527,18 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             }
         };
 
+        incomingDataBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                messagesThreadViewModel.informChanges();
+            }
+        };
+
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
+
+        registerReceiver(incomingDataBroadcastReceiver,
+                new IntentFilter(BroadcastSMSDataActivity.DATA_BROADCAST_INTENT));
     }
 
     @Override

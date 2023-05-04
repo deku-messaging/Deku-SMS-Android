@@ -76,6 +76,10 @@
         Photo
     </string>
 
+    <string name="notification_title_new_key">
+        Secure communication request
+    </string>
+
     <string name="messages_thread_you">
         You:
     </string>
