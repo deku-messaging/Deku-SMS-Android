@@ -40,7 +40,7 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
         MessagesThreadRecyclerAdapter.ContactsViewHolder viewHolder =
                 (MessagesThreadRecyclerAdapter.ContactsViewHolder) holder;
 
-        final int color = Helpers.generateColor(contacts.contactName.charAt(contacts.contactName.length() -1));
+        final int color = Helpers.generateColor(contacts.contactName);
         viewHolder.address.setText(contacts.contactName);
         viewHolder.contactInitials.setAvatarInitials(contacts.contactName.substring(0, 1));
         viewHolder.contactInitials.setAvatarInitialsBackgroundColor(color);

@@ -95,11 +95,28 @@ public class Helpers {
         return data;
     }
 
-    public static int generateColor(char letter) {
-        int hue = (int) ((letter - 'A') * 15f) % 360; // Map letters to hue values
-        float saturation = 0.7f; // Set fixed saturation and brightness values
-        float brightness = 0.9f;
-        float[] hsv = {hue, saturation, brightness};
-        return Color.HSVToColor(hsv); // Convert HSB values to RGB color
+    public static int generateColor(String input) {
+        int hue;
+        int saturation = 100;
+        int value = 100;
+
+        if (input.length() == 0) {
+            // Return a default color if the input is empty
+            hue = 0;
+        } else if (input.length() == 1) {
+            // Use the first character of the input to generate the hue
+            char firstChar = input.charAt(0);
+            hue = Math.abs(firstChar * 31 % 360);
+        } else {
+            // Use the first and second characters of the input to generate the hue
+            char firstChar = input.charAt(0);
+            char secondChar = input.charAt(1);
+            hue = Math.abs((firstChar + secondChar) * 31 % 360);
+        }
+
+        // Convert the HSV color to RGB and return the color as an int
+        float[] hsv = {hue, saturation, value};
+        int color = Color.HSVToColor(hsv);
+        return color;
     }
 }

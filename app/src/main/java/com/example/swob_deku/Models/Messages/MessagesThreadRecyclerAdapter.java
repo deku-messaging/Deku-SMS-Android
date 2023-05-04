@@ -286,22 +286,16 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
             String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
             if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
                 address = addressInPhone;
-                final int color = Helpers.generateColor(address.charAt(address.length() -1));
+
+                final int color = Helpers.generateColor(address);
                 holder.contactInitials.setAvatarInitials(address.substring(0, 1));
-
-//                final int colorValue = (int) address.charAt(0);
-//                final int red = colorValue + 10;
-//                final int green = (int) (red * 1.5);
-////                final int blue = address.length() > 1 ? colorValue + (int) address.charAt(1) : colorValue;
-//                final int blue = (int) (green * 1.25);
-
-//                final int randomColor = Color.rgb(red, green, blue);
                 holder.contactInitials.setAvatarInitialsBackgroundColor(color);
             }
         } else {
-//            Drawable drawable = holder.contactPhoto.getDrawable();
-//            drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-//            holder.contactPhoto.setImageDrawable(drawable);
+            final int color = Helpers.generateColor(address);
+            Drawable drawable = holder.contactPhoto.getDrawable();
+            drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+            holder.contactPhoto.setImageDrawable(drawable);
         }
 
         holder.address.setText(address);
