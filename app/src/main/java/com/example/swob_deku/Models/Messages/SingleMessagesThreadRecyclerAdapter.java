@@ -183,6 +183,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 //        text = decompress(text);
         text = decryptContent(text);
 
+        boolean isEncryptionKey = text.contains(SecurityHelpers.FIRST_HEADER) &&
+                text.contains(SecurityHelpers.END_HEADER);
         if(holder instanceof MessageReceivedViewHandler) {
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
             if(holder instanceof TimestampMessageReceivedViewHandler)
@@ -211,8 +213,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                     e.printStackTrace();
                 }
             }
-            else if(text.contains(SecurityHelpers.FIRST_HEADER) &&
-                    text.contains(SecurityHelpers.END_HEADER)) {
+            else if(isEncryptionKey) {
                 ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;
 
                 messageReceivedViewHandler.imageView.setImageDrawable(context.getDrawable(R.drawable.round_key_24));
@@ -295,6 +296,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 messageSentViewHandler.imageView.setImageBitmap(bitmap);
 
                 messageSentViewHandler.imageConstraintLayout.setVisibility(View.VISIBLE);
+                messageSentViewHandler.sentMessage.setVisibility(View.GONE);
+            }
+            else if(isEncryptionKey) {
+                ConstraintLayout imageConstraint = messageSentViewHandler.imageConstraintLayout;
+
+                messageSentViewHandler.imageView.setImageDrawable(context.getDrawable(R.drawable.round_key_24));
+                imageConstraint.setVisibility(View.VISIBLE);
                 messageSentViewHandler.sentMessage.setVisibility(View.GONE);
             }
             else {
