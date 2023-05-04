@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,10 +20,8 @@ import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Log;
 import android.view.Menu;
@@ -42,15 +39,10 @@ import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
 import java.util.HashMap;
 import java.util.List;
 
@@ -380,9 +372,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 try {
                     Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);
                     if(cursor.moveToFirst()) {
-                        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+                        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
                         String address = new SMS(cursor).getAddress();
-                        securityDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
+                        securityECDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
                         SMSHandler.deleteThread(getApplicationContext(), threadId);
                     }
                     cursor.close();

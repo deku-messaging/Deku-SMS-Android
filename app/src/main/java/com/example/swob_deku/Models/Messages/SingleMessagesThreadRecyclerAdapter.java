@@ -27,7 +27,7 @@ import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
@@ -42,8 +42,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.zip.DataFormatException;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
@@ -71,7 +69,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    SecurityDH securityDH;
+    SecurityECDH securityECDH;
     byte[] secretKey = null;
 
     String address;
@@ -81,12 +79,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         this.context = context;
         this.selectedItem = mutableSelectedItems;
 
-        this.securityDH = new SecurityDH(context);
+        this.securityECDH = new SecurityECDH(context);
 
         this.address = address;
 
-        if(securityDH.hasSecretKey(address))
-            secretKey = Base64.decode(securityDH.securelyFetchSecretKey(address), Base64.DEFAULT);
+        if(securityECDH.hasSecretKey(address))
+            secretKey = Base64.decode(securityECDH.securelyFetchSecretKey(address), Base64.DEFAULT);
     }
 
     @NonNull
@@ -119,7 +117,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         + SecurityHelpers.ENCRYPTED_WATERMARK_END.length()
                 && SecurityHelpers.containersWaterMark(input)) {
             try {
-                byte[] encryptedContent = SecurityDH.decryptAES(Base64.decode(
+                byte[] encryptedContent = SecurityECDH.decryptAES(Base64.decode(
                         SecurityHelpers.removeWaterMarkMessage(input), Base64.DEFAULT),
                         secretKey);
                 input = new String(encryptedContent, StandardCharsets.UTF_8);
@@ -137,7 +135,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         + SecurityHelpers.ENCRYPTED_WATERMARK_END.length()
                 && SecurityHelpers.containersWaterMark(String.valueOf(input))) {
             try {
-                return SecurityDH.decryptAES(Base64.decode(
+                return SecurityECDH.decryptAES(Base64.decode(
                                 SecurityHelpers.removeWaterMarkMessage(String.valueOf(input)), Base64.DEFAULT),
                         secretKey);
             } catch(Throwable e ) {

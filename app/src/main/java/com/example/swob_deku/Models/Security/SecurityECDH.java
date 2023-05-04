@@ -20,7 +20,6 @@ import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
@@ -28,20 +27,13 @@ import java.security.spec.ECParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyAgreement;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.interfaces.DHPublicKey;
-import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class SecurityDH {
+public class SecurityECDH {
 
     public final static String DEFAULT_PROVIDER = "AndroidKeyStore";
 //    public final String DEFAULT_ALGORITHM = "DH";
@@ -59,7 +51,7 @@ public class SecurityDH {
     MasterKey masterKeyAlias;
 
     Context context;
-    public SecurityDH(Context context) throws GeneralSecurityException, IOException {
+    public SecurityECDH(Context context) throws GeneralSecurityException, IOException {
         this.context = context;
 
         this.masterKeyAlias = new MasterKey.Builder(context)
@@ -177,7 +169,7 @@ public class SecurityDH {
         if(!sharedPreferencesEditor.commit()) {
             throw new RuntimeException("Failed to store MSISDN");
         } else {
-            Log.d(SecurityDH.class.getName(), "Securely stored private key");
+            Log.d(SecurityECDH.class.getName(), "Securely stored private key");
         }
     }
 
@@ -237,7 +229,7 @@ public class SecurityDH {
     }
 
     public void removeAllKeys(String keystoreAlias) throws GeneralSecurityException, IOException {
-        Log.d(SecurityDH.class.getName(), "Removing preferences for: " + keystoreAlias);
+        Log.d(SecurityECDH.class.getName(), "Removing preferences for: " + keystoreAlias);
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,
                 keystoreAlias,

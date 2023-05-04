@@ -3,7 +3,6 @@ package com.example.swob_deku;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.compose.ui.graphics.ImageBitmap;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -29,18 +28,12 @@ import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.zip.DataFormatException;
-import java.util.zip.Deflater;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.Inflater;
 
 public class ImageViewActivity extends AppCompatActivity {
 
@@ -290,7 +283,7 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView.setImageBitmap(compressedBitmap);
 //        compressedBitmap.recycle();
 
-        SecurityDH securityDH = new SecurityDH(getApplicationContext());
+        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
         int numberOfmessages = -1;
 
         String content = ImageHandler.IMAGE_HEADER +
@@ -298,9 +291,9 @@ public class ImageViewActivity extends AppCompatActivity {
 //        byte[] c = compress(content.getBytes(StandardCharsets.UTF_8));
         byte[] c = content.getBytes(StandardCharsets.UTF_8);
 
-        if(securityDH.hasSecretKey(address)){
-            String secretKeyB64 = securityDH.securelyFetchSecretKey(address);
-            c = SecurityDH.encryptAES(c, Base64.decode(secretKeyB64, Base64.DEFAULT));
+        if(securityECDH.hasSecretKey(address)){
+            String secretKeyB64 = securityECDH.securelyFetchSecretKey(address);
+            c = SecurityECDH.encryptAES(c, Base64.decode(secretKeyB64, Base64.DEFAULT));
             content = Base64.encodeToString(c, Base64.DEFAULT);
             c = SecurityHelpers.waterMarkMessage(content)
                     .getBytes(StandardCharsets.UTF_8);

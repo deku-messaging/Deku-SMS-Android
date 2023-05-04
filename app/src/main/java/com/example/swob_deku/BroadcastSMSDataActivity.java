@@ -6,13 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
-import android.util.Base64;
 import android.util.Log;
 
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -93,8 +91,8 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
     }
 
     private String registerIncomingAgreement(Context context, String msisdn, byte[] keyPart, int part) throws GeneralSecurityException, IOException {
-        SecurityDH securityDH = new SecurityDH(context);
-        return securityDH.securelyStorePublicKeyKeyPair(context, msisdn, keyPart, part);
+        SecurityECDH securityECDH = new SecurityECDH(context);
+        return securityECDH.securelyStorePublicKeyKeyPair(context, msisdn, keyPart, part);
     }
 
 
@@ -104,7 +102,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
     }
 
     private boolean checkMessagesAvailable(Context context, String msisdn) throws GeneralSecurityException, IOException {
-        SecurityDH securityDH = new SecurityDH(context);
-        return securityDH.peerAgreementPublicKeysAvailable(context, msisdn);
+        SecurityECDH securityECDH = new SecurityECDH(context);
+        return securityECDH.peerAgreementPublicKeysAvailable(context, msisdn);
     }
 }
