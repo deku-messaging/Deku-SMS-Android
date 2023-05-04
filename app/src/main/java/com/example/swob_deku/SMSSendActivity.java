@@ -446,7 +446,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 singleMessageViewModel.informNewItemChanges();
-//                cancelNotifications(threadId);
+                cancelNotifications(threadId);
                 try {
                     checkEncryptedMessaging();
                 } catch (GeneralSecurityException | IOException e) {

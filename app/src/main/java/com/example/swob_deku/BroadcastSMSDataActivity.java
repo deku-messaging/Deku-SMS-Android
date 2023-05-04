@@ -59,10 +59,9 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                 try {
                     String strMessage = messageBuffer.toString();
                     Log.d(getClass().getName(), "Data received broadcast: " + strMessage);
-                    if(strMessage.contains(SecurityHelpers.FIRST_HEADER) &&
-                            strMessage.contains(SecurityHelpers.END_HEADER)) {
-                        strMessage = registerIncomingAgreement(context, address,
-                                messageBuffer.toByteArray(), -1);
+                    if(SecurityHelpers.isKeyExchange(strMessage)) {
+                        strMessage = registerIncomingAgreement(context,
+                                address, messageBuffer.toByteArray(), -1);
                     }
                     else if (strMessage.contains(SecurityHelpers.FIRST_HEADER)) {
                         // TODO: register message and store the reference in a shared reference location
@@ -83,6 +82,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                         messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
                         BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
+                        broadcastIntent(context);
                     }
 
                 } catch (Exception e) {

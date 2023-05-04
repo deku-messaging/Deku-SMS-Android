@@ -98,7 +98,7 @@ public class Helpers {
     public static int generateColor(String input) {
         int hue;
         int saturation = 100;
-        int value = 100;
+        int value = 60; // Reduced value component for darker colors
 
         if (input.length() == 0) {
             // Return a default color if the input is empty
