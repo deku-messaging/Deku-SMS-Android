@@ -183,8 +183,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 //        text = decompress(text);
         text = decryptContent(text);
 
-        boolean isEncryptionKey = text.contains(SecurityHelpers.FIRST_HEADER) &&
-                text.contains(SecurityHelpers.END_HEADER);
+        boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
         if(holder instanceof MessageReceivedViewHandler) {
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
             if(holder instanceof TimestampMessageReceivedViewHandler)

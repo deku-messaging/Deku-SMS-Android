@@ -79,8 +79,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    private final int CONTACT_VIEW_TYPE = 136;
-    private final int NOT_CONTACT_VIEW_TYPE = 235;
+    private final int CONTACT_VIEW_TYPE = 100;
+    private final int NOT_CONTACT_VIEW_TYPE = 200;
     private final int RECEIVED_VIEW_TYPE = 1;
     private final int RECEIVED_UNREAD_VIEW_TYPE = 2;
     private final int RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE = 3;
@@ -245,7 +245,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Messages
 
         int type = smsIsContact ? CONTACT_VIEW_TYPE : NOT_CONTACT_VIEW_TYPE;
 
-        if(SecurityHelpers.containersWaterMark(sms.getBody())) {
+        if(SecurityHelpers.containersWaterMark(sms.getBody()) || SecurityHelpers.isKeyExchange(sms.getBody())) {
             if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
                     return SENT_ENCRYPTED_UNREAD_VIEW_TYPE + type;
