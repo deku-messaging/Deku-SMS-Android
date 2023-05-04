@@ -24,6 +24,7 @@ import java.security.GeneralSecurityException;
 
 public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
+    public static String DATA_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION" ;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -99,7 +100,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
 
     private void broadcastIntent(Context context) {
-        Intent intent = new Intent(BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION");
+        Intent intent = new Intent(DATA_BROADCAST_INTENT);
         context.sendBroadcast(intent);
     }
 
