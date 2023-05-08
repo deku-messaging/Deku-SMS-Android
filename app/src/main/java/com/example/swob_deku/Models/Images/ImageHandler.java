@@ -8,8 +8,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ImageDecoder;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.media.ExifInterface;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -19,6 +22,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.Surface;
 
+import androidx.heifwriter.HeifWriter;
 import androidx.room.Dao;
 
 import com.example.swob_deku.BuildConfig;
@@ -27,6 +31,7 @@ import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityAES;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -494,4 +499,5 @@ public class ImageHandler {
         }
         return data;
     }
+
 }

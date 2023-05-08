@@ -5,6 +5,7 @@ import android.util.Log;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 
 public class DataHelper {
 
@@ -52,5 +53,14 @@ public class DataHelper {
     public static byte intToByte(int data) {
         return (byte) (data & 0xFF);
     }
+
+    public static byte[] intArrayToByteArray(int[] intArray) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(intArray.length * 4); // 4 bytes per int
+        for (int i = 0; i < intArray.length; i++) {
+            byteBuffer.putInt(intArray[i]);
+        }
+        return byteBuffer.array();
+    }
+
 
 }

@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
@@ -32,6 +33,7 @@ import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 
 import java.io.IOException;
+import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.DataFormatException;
 
@@ -49,9 +51,9 @@ public class ImageViewActivity extends AppCompatActivity {
 
     ImageHandler imageHandler;
 
-    final int MAX_RESOLUTION = 768;
+    final int MAX_RESOLUTION = 400;
     final int MIN_RESOLUTION = MAX_RESOLUTION / 2;
-    int COMPRESSION_RATIO = 0;
+    int COMPRESSION_RATIO = 5;
 
     public double changedResolution;
 
@@ -259,36 +261,26 @@ public class ImageViewActivity extends AppCompatActivity {
         SmsManager smsManager = Build.VERSION.SDK_INT > Build.VERSION_CODES.R ?
                 getSystemService(SmsManager.class) : SmsManager.getDefault();
 
-//        compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageHandler.bitmap);
-//        compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
-//        imageHandler.bitmap = compressedBitmap;
-//        Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
-//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//        imageBitmap.compress(Bitmap.CompressFormat.WEBP, 100, byteArrayOutputStream);
-//        compressedBytes = byteArrayOutputStream.toByteArray();
-
         Bitmap imageBitmap = imageHandler.resizeImage(changedResolution);
         imageBitmap = ImageHandler.removeAlpha(imageBitmap);
 
         compressedBytes = imageHandler.compressImage(COMPRESSION_RATIO, imageBitmap);
         Log.d(getLocalClassName(), "Before ICCP extraction: " + compressedBytes.length);
+
         compressedBytes = ImageHandler.extractContainerInformation(compressedBytes);
         Log.d(getLocalClassName(), "After ICCP extraction: " + compressedBytes.length);
-//        Log.d(getLocalClassName(), Base64.encodeToString(compressedBytes, Base64.DEFAULT));
-//        System.out.println(Base64.encodeToString(compressedBytes, Base64.DEFAULT));
 
-//        compressedBytes = compress(compressedBytes);
-//        compressedBytes = decompress(compressedBytes);
+        imageHandler.bitmap.recycle();
+
         Bitmap compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
         imageView.setImageBitmap(compressedBitmap);
-//        compressedBitmap.recycle();
 
         SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
         int numberOfmessages = -1;
 
         String content = ImageHandler.IMAGE_HEADER +
                 Base64.encodeToString(compressedBytes, Base64.DEFAULT);
-//        byte[] c = compress(content.getBytes(StandardCharsets.UTF_8));
+
         byte[] c = content.getBytes(StandardCharsets.UTF_8);
 
         if(securityECDH.hasSecretKey(address)){
@@ -303,9 +295,6 @@ public class ImageViewActivity extends AppCompatActivity {
 
         numberOfmessages =
                 smsManager.divideMessage( Base64.encodeToString(c, Base64.DEFAULT)).size();
-
-//        byte[] riffHeader = SMSHandler.copyBytes(compressedBytes, 0, 12);
-//        byte[] vp8Header = SMSHandler.copyBytes(compressedBytes, 12, 4);
 
         TextView imageResolution = findViewById(R.id.image_details_resolution);
         imageResolution.setText("New resolution: " + imageBitmap.getWidth() + " x " + imageBitmap.getHeight());
