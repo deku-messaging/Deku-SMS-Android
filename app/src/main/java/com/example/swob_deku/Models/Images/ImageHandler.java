@@ -22,7 +22,6 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.Surface;
 
-import androidx.heifwriter.HeifWriter;
 import androidx.room.Dao;
 
 import com.example.swob_deku.BuildConfig;

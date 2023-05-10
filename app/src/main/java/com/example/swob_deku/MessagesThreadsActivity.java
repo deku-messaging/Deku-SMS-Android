@@ -37,6 +37,7 @@ import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
+import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
@@ -86,8 +87,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,
                 LinearLayoutManager.VERTICAL, false);
-        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, R.layout.messages_threads_layout);
+        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( this);
 
         messagesThreadRecyclerView = findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
@@ -115,9 +115,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         setRefreshTimer();
         loadSubroutines();
 
-        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder>>() {
+        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, TemplateViewHolder>>() {
             @Override
-            public void onChanged(HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder> stringViewHolderHashMap) {
+            public void onChanged(HashMap<String, TemplateViewHolder> stringViewHolderHashMap) {
                 highlightListener(stringViewHolderHashMap.size());
             }
         });
@@ -241,7 +241,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                  * TODO: swip LEFT - delete
                  * TODO: increase threshold before permanent delete
                  */
-                MessagesThreadRecyclerAdapter.ViewHolder itemView = (MessagesThreadRecyclerAdapter.ViewHolder) viewHolder;
+                TemplateViewHolder itemView = (TemplateViewHolder) viewHolder;
                 String threadId = itemView.id;
                 try {
                     Archive archive = new Archive(Long.parseLong(threadId));
@@ -367,7 +367,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                  * TODO: swip LEFT - delete
                  * TODO: increase threshold before permanent delete
                  */
-                MessagesThreadRecyclerAdapter.ViewHolder itemView = (MessagesThreadRecyclerAdapter.ViewHolder) viewHolder;
+                TemplateViewHolder itemView = (TemplateViewHolder) viewHolder;
                 String threadId = itemView.id;
                 try {
                     Cursor cursor = SMSHandler.fetchSMSForThread(getApplicationContext(), threadId, 1, 0);

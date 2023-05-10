@@ -52,7 +52,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 MessagesSearchViewModel.class);
 
         MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, R.layout.messages_threads_layout, true, searchString.getValue());
+                this, true, searchString.getValue());
 
         TextInputEditText searchTextInput = findViewById(R.id.new_gateway_client_url_input);
         searchTextInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
 
@@ -31,14 +32,13 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(R.layout.messages_threads_layout, parent, false);
-        return new MessagesThreadRecyclerAdapter.ContactsViewHolder(view, true);
+        return new ContactsViewHolder(view, true);
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Contacts contacts = mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
-        MessagesThreadRecyclerAdapter.ContactsViewHolder viewHolder =
-                (MessagesThreadRecyclerAdapter.ContactsViewHolder) holder;
+        ContactsViewHolder viewHolder = (ContactsViewHolder) holder;
 
         final int color = Helpers.generateColor(contacts.contactName);
         viewHolder.address.setText(contacts.contactName);
@@ -63,5 +63,21 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
     public void submitList(List<Contacts> contactsList) {
         mDiffer.submitList(contactsList);
+    }
+
+    public static class ContactsViewHolder extends TemplateViewHolder {
+        public ContactsViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView);
+
+            snippet.setMaxLines(1);
+            address.setMaxLines(1);
+
+            routingUrl.setVisibility(View.GONE);
+            routingURLText.setVisibility(View.GONE);
+            date.setVisibility(View.GONE);
+            state.setVisibility(View.GONE);
+            contactPhoto.setVisibility(View.GONE);
+            contactInitials.setVisibility(View.VISIBLE);
+        }
     }
 }
