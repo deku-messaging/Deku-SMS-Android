@@ -22,6 +22,7 @@
             android:layout_width="37dp"
             android:layout_height="37dp"
             android:visibility="gone"
+            app:avatarViewInitialsTextColor="@color/primary_background_color"
             app:avatarViewBorderRadius="0dp"
             app:avatarViewBorderWidth="0dp"
             app:avatarViewInitialsTextSize="18sp"
