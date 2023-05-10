@@ -8,10 +8,6 @@
         696969
     </string>
 
-    <string name="messages_threads_recents">
-        Messages
-    </string>
-
     <string name="router_name">
         Routed Messages
     </string>
@@ -22,10 +18,6 @@
 
     <string name="no_showable_router_message">
         No routed message to show!
-    </string>
-
-    <string name="routing_url">
-        https://developers.smswithoutborders.com:15000/sms/platform/gateway-client
     </string>
 
     <string name="save_new_gateway_client">Save</string>
@@ -54,10 +46,6 @@
 
     <string name="send_sms_activity_user_not_secure_yes_agree">
         Agree
-    </string>
-
-    <string name="send_sms_activity_user_not_secure_dismiss">
-        Dismiss
     </string>
 
     <string name="send_sms_activity_user_not_encrypted">

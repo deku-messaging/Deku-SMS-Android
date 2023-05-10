@@ -18,6 +18,7 @@ import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Archive.ArchivedViewModel;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.example.swob_deku.Models.Router.RouterViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -57,8 +58,8 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         archivedMessagesRecyclerView.setLayoutManager(linearLayoutManager);
 
         // TODO: search - and goto message in adapter
-        archivedThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, R.layout.messages_threads_layout, true, "", this);
+        archivedThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( this,
+                true, "", this);
 
         archivedMessagesRecyclerView.setAdapter(archivedThreadRecyclerAdapter);
 
@@ -84,9 +85,9 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         }
 
 
-        archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder>>() {
+        archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, TemplateViewHolder>>() {
             @Override
-            public void onChanged(HashMap<String, MessagesThreadRecyclerAdapter.ViewHolder> stringViewHolderHashMap) {
+            public void onChanged(HashMap<String, TemplateViewHolder> stringViewHolderHashMap) {
                 highlightListener(stringViewHolderHashMap.size());
             }
         });

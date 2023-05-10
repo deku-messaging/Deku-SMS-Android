@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/messages_threads_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clickable="true"
-    android:focusable="true"
-    android:theme="@style/Theme.main">
+    android:focusable="true">
 
     <FrameLayout
         android:id="@+id/messages_threads_contact_photo_id"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:layout_marginStart="12dp"
         android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -42,6 +42,7 @@
         android:layout_marginTop="16dp"
         android:fontFamily="sans-serif"
         android:text="TextView"
+        android:textColor="@color/secondary_text_color"
         android:textSize="18sp"
         app:layout_constraintStart_toEndOf="@+id/messages_threads_contact_photo_id"
         app:layout_constraintTop_toTopOf="parent" />
@@ -57,6 +58,7 @@
         android:fontFamily="sans-serif"
         android:maxLines="3"
         android:text="TextView"
+        android:textColor="@color/secondary_text_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/messages_route_state"
         app:layout_constraintStart_toEndOf="@+id/message_you_label"
@@ -70,6 +72,7 @@
         android:layout_marginEnd="16dp"
         android:fontFamily="sans-serif-medium"
         android:textSize="12sp"
+        android:textColor="@color/secondary_text_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -78,6 +81,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
+        android:textColor="@color/secondary_text_color"
         android:textSize="11dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
@@ -89,6 +93,7 @@
         android:layout_marginTop="8dp"
         android:text="@string/route_state"
         android:textSize="10dp"
+        android:textColor="@color/secondary_text_color"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="@+id/messages_thread_text"
         app:layout_constraintTop_toBottomOf="@+id/messages_thread_text" />
@@ -99,6 +104,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="3dp"
         android:layout_marginBottom="3dp"
+        android:textColor="@color/secondary_text_color"
         android:text="TextView"
         android:textSize="11dp"
         android:visibility="gone"
@@ -113,6 +119,18 @@
         android:text="@string/messages_thread_you"
         android:textStyle="normal"
         android:visibility="gone"
+        android:textColor="@color/secondary_text_color"
         app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
         app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
+
+    <ImageView
+        android:id="@+id/messages_thread_secured_lock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/messages_thread_address_text"
+        app:layout_constraintStart_toEndOf="@+id/messages_thread_address_text"
+        app:srcCompat="@drawable/round_lock_24" />
 </androidx.constraintlayout.widget.ConstraintLayout>

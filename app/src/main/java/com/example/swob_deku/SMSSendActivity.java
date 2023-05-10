@@ -7,14 +7,12 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -23,7 +21,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -57,7 +54,7 @@ import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
@@ -77,7 +74,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.DataFormatException;
 
 public class SMSSendActivity extends AppCompatActivity {
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
@@ -109,6 +105,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
     String threadId = "";
     String address = "";
+    String unformattedAddress = "";
 
     String contactName = "";
 
@@ -292,22 +289,17 @@ public class SMSSendActivity extends AppCompatActivity {
 
             if(cursor.moveToFirst()) {
                 int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
-                address = String.valueOf(cursor.getString(addressIndex));
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Found Address: " + address);
+                unformattedAddress = String.valueOf(cursor.getString(addressIndex));
             }
 
             cursor.close();
         }
 
-        else if(getIntent().hasExtra(ADDRESS) || !address.isEmpty()) {
-            if(address.isEmpty())
-                address = getIntent().getStringExtra(ADDRESS);
+        else if(getIntent().hasExtra(ADDRESS) || !unformattedAddress.isEmpty()) {
+            if(unformattedAddress.isEmpty())
+                unformattedAddress = getIntent().getStringExtra(ADDRESS);
 
-            if(BuildConfig.DEBUG)
-                Log.d(getLocalClassName(), "Searching thread ID with address: " + address);
-
-            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), address);
+            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), unformattedAddress);
             if(cursor.moveToFirst()) {
                 int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
                 threadId = String.valueOf(cursor.getString(threadIdIndex));
@@ -319,7 +311,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }
 
         try {
-            address = Helpers.formatPhoneNumbers(address);
+            address = Helpers.formatPhoneNumbers(unformattedAddress);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -362,7 +354,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    if (!PhoneNumberUtils.isWellFormedSmsAddress(address)) {
+                    if (!PhoneNumberUtils.isWellFormedSmsAddress(unformattedAddress)) {
                         ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
                         smsLayout.setVisibility(View.GONE);
                     }
@@ -373,7 +365,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
 
         try {
-            contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+            contactName = Contacts.retrieveContactName(getApplicationContext(), unformattedAddress);
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -399,12 +391,9 @@ public class SMSSendActivity extends AppCompatActivity {
 //            sendToString = Helpers.formatPhoneNumbers(sendToString);
 
             if(sendToString.contains("smsto:") || sendToString.contains("sms:")) {
-               address = sendToString.substring(sendToString.indexOf(':') + 1);
-               address = Helpers.formatPhoneNumbers(address);
+               unformattedAddress = sendToString.substring(sendToString.indexOf(':') + 1);
+//               address = Helpers.formatPhoneNumbers(address);
                String text = getIntent().getStringExtra("sms_body");
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Processing shared body: " + text);
-
                // TODO: should inform view about data being available
 //               if(getIntent().hasExtra(Intent.EXTRA_INTENT)) {
 //                   byte[] bytesData = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
@@ -446,7 +435,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 singleMessageViewModel.informNewItemChanges();
-//                cancelNotifications(threadId);
+                cancelNotifications(threadId);
                 try {
                     checkEncryptedMessaging();
                 } catch (GeneralSecurityException | IOException e) {
@@ -582,14 +571,14 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private String encryptContent(String data) throws Throwable {
-        SecurityDH securityDH = new SecurityDH(getApplicationContext());
-        if(securityDH.hasSecretKey(address)) {
-            byte[] secretKey = Base64.decode(securityDH.securelyFetchSecretKey(address), Base64.DEFAULT);
+        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+        if(securityECDH.hasSecretKey(address)) {
+            byte[] secretKey = Base64.decode(securityECDH.securelyFetchSecretKey(address), Base64.DEFAULT);
             // TODO: begin encrypting data
             // TODO: if can't encrypt data return original data
 
             try {
-                byte[] encryptedContent = SecurityDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
+                byte[] encryptedContent = SecurityECDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
                         secretKey);
                 data = Base64.encodeToString(encryptedContent, Base64.DEFAULT);
             } catch(Exception e ) {
@@ -622,7 +611,7 @@ public class SMSSendActivity extends AppCompatActivity {
         Log.d(getLocalClassName(), "Sending new text message..");
         try {
 
-            SecurityDH securityDH = new SecurityDH(getApplicationContext());
+            SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
 
             if(messageId == null)
                 messageId = Helpers.generateRandomNumber();
@@ -632,7 +621,7 @@ public class SMSSendActivity extends AppCompatActivity {
             handleBroadcast();
 
             String tmpThreadId = null;
-            if(securityDH.hasSecretKey(address)) {
+            if(securityECDH.hasSecretKey(address)) {
                 text = encryptContent(text);
                 text = SecurityHelpers.waterMarkMessage(text);
 //                text = Base64.encodeToString(compress(text.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
@@ -724,7 +713,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    if (PhoneNumberUtils.isWellFormedSmsAddress(address)) {
+                    if (PhoneNumberUtils.isWellFormedSmsAddress(unformattedAddress)) {
                         checkEncryptedMessaging();
                         if(getIntent().hasExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION)) {
                             long messageId = getIntent().getLongExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION, -1);
@@ -844,11 +833,9 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
-        SecurityDH securityDH = new SecurityDH(getApplicationContext());
-        Log.d(getLocalClassName(), "Has private key: " + securityDH.hasPrivateKey(address));
-        Log.d(getLocalClassName(), "Has private key for address: " + address);
+        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
 
-        if(securityDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
+        if(securityECDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
             String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
 
@@ -858,9 +845,9 @@ public class SMSSendActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     try {
-                        byte[] peerPublicKey = Base64.decode(securityDH.getPeerAgreementPublicKey(address),
+                        byte[] peerPublicKey = Base64.decode(securityECDH.getPeerAgreementPublicKey(address),
                                 Base64.DEFAULT);
-                        KeyPair keyPair = securityDH.generateKeyPairFromPublicKey(peerPublicKey);
+                        KeyPair keyPair = securityECDH.generateKeyPairFromPublicKey(peerPublicKey);
 
                         Thread remotePeerHandshake = new Thread(new Runnable() {
                             @Override
@@ -885,7 +872,7 @@ public class SMSSendActivity extends AppCompatActivity {
                                     }
                                 });
                                 try {
-                                    securityDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
+                                    securityECDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
                                             address, keyPair);
                                 } catch (GeneralSecurityException | IOException e) {
                                     throw new RuntimeException(e);
@@ -895,7 +882,7 @@ public class SMSSendActivity extends AppCompatActivity {
                             }
                         });
                         try {
-                            if(!securityDH.hasPrivateKey(address)) {
+                            if(!securityECDH.hasPrivateKey(address)) {
                                 // TODO: support for multi-sim
                                 remotePeerHandshake.start();
                                 remotePeerHandshake.join();
@@ -906,9 +893,10 @@ public class SMSSendActivity extends AppCompatActivity {
 
                         Log.d(getLocalClassName(), "Agreement value for secret: " +
                                 Base64.encodeToString(peerPublicKey, Base64.DEFAULT));
-                        byte[] secret = securityDH.generateSecretKey(peerPublicKey, address);
-                        securityDH.securelyStoreSecretKey(address, secret);
+                        byte[] secret = securityECDH.generateSecretKey(peerPublicKey, address);
+                        securityECDH.securelyStoreSecretKey(address, secret);
                         ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
+                        singleMessagesThreadRecyclerAdapter.generateSecretKey();
 
                     } catch (GeneralSecurityException | IOException e) {
                         throw new RuntimeException(e);
@@ -927,7 +915,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             });
         }
-        else if(!securityDH.hasEncryption(address)) {
+        else if(!securityECDH.hasEncryption(address)) {
 
             String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
 
@@ -1008,7 +996,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.single_messages_menu, menu);
+        if(PhoneNumberUtils.isWellFormedSmsAddress(unformattedAddress))
+            getMenuInflater().inflate(R.menu.single_messages_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -1261,8 +1250,8 @@ public class SMSSendActivity extends AppCompatActivity {
 //        }
     }
     public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException {
-        SecurityDH securityDH = new SecurityDH(getApplicationContext());
-        PublicKey publicKey = securityDH.generateKeyPair(getApplicationContext(), address);
+        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+        PublicKey publicKey = securityECDH.generateKeyPair(getApplicationContext(), address);
         Log.d(getLocalClassName(), "Public key: " + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT));
         return publicKey.getEncoded();
     }

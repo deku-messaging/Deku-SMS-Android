@@ -67,8 +67,8 @@ public class RouterActivity extends AppCompatActivity {
         routedMessageRecyclerView.setLayoutManager(linearLayoutManager);
 
         // TODO: search - and goto message in adapter
-        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, R.layout.messages_threads_layout, true, "", this);
+        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( this,
+                true, "", this);
 
         routedMessageRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 

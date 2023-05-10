@@ -6,13 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
-import android.util.Base64;
 import android.util.Log;
 
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityDH;
+import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -59,10 +57,9 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                 try {
                     String strMessage = messageBuffer.toString();
                     Log.d(getClass().getName(), "Data received broadcast: " + strMessage);
-                    if(strMessage.contains(SecurityHelpers.FIRST_HEADER) &&
-                            strMessage.contains(SecurityHelpers.END_HEADER)) {
-                        strMessage = registerIncomingAgreement(context, address,
-                                messageBuffer.toByteArray(), -1);
+                    if(SecurityHelpers.isKeyExchange(strMessage)) {
+                        strMessage = registerIncomingAgreement(context,
+                                address, messageBuffer.toByteArray(), -1);
                     }
                     else if (strMessage.contains(SecurityHelpers.FIRST_HEADER)) {
                         // TODO: register message and store the reference in a shared reference location
@@ -83,6 +80,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
 
                         messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
                         BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
+                        broadcastIntent(context);
                     }
 
                 } catch (Exception e) {
@@ -93,8 +91,8 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
     }
 
     private String registerIncomingAgreement(Context context, String msisdn, byte[] keyPart, int part) throws GeneralSecurityException, IOException {
-        SecurityDH securityDH = new SecurityDH(context);
-        return securityDH.securelyStorePublicKeyKeyPair(context, msisdn, keyPart, part);
+        SecurityECDH securityECDH = new SecurityECDH(context);
+        return securityECDH.securelyStorePublicKeyKeyPair(context, msisdn, keyPart, part);
     }
 
 
@@ -104,7 +102,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
     }
 
     private boolean checkMessagesAvailable(Context context, String msisdn) throws GeneralSecurityException, IOException {
-        SecurityDH securityDH = new SecurityDH(context);
-        return securityDH.peerAgreementPublicKeysAvailable(context, msisdn);
+        SecurityECDH securityECDH = new SecurityECDH(context);
+        return securityECDH.peerAgreementPublicKeysAvailable(context, msisdn);
     }
 }
