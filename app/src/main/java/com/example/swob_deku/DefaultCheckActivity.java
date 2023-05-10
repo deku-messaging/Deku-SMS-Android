@@ -17,7 +17,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.view.View;
+import android.widget.MediaController;
 import android.widget.Toast;
+
+import java.io.IOException;
+
+import pl.droidsonroids.gif.GifDrawable;
+import pl.droidsonroids.gif.GifImageView;
 
 public class DefaultCheckActivity extends AppCompatActivity {
 

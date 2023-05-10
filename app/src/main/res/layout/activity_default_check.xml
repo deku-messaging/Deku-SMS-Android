@@ -13,13 +13,12 @@
         android:layout_marginStart="64dp"
         android:layout_marginTop="100dp"
         android:layout_marginEnd="64dp"
-        android:layout_marginBottom="100dp"
         app:layout_constraintBottom_toTopOf="@+id/textView2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.413"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/undraw_choose_re_7d5a" />
+        app:srcCompat="@drawable/hello_rafiki" />
 
     <TextView
         android:id="@+id/textView2"
@@ -28,8 +27,9 @@
         android:layout_marginStart="72dp"
         android:layout_marginEnd="73dp"
         android:layout_marginBottom="8dp"
+        android:fontFamily="sans-serif-condensed"
         android:text="@string/default_check_text"
-        android:textSize="15sp"
+        android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/button2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -42,10 +42,11 @@
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="156dp"
         android:background="@drawable/compose_message_drawable"
+        android:fontFamily="sans-serif"
         android:onClick="makeDefault"
         android:text="@string/default_check_btn_text"
         android:textAllCaps="false"
-        android:textColor="@color/primary_background_color"
+        android:textColor="@color/received_message_color"
         android:textSize="14sp"
         app:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toTopOf="@+id/textView3"
