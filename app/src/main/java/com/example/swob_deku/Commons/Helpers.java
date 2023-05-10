@@ -69,11 +69,6 @@ public class Helpers {
     public static String formatPhoneNumbers(String data) throws NumberParseException {
 //        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
 //        try {
-//            String formattedData = data.replaceAll("%2B", "+")
-//                    .replaceAll("%20", "")
-//                    .replaceAll("-", "")
-//                    .replaceAll("\\s", "");
-//
 //            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(formattedData, "US");
 //            // use the formattedPhoneNumber
 //            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
@@ -83,6 +78,12 @@ public class Helpers {
 //            e.printStackTrace();
 //        }
 //        return data;
+
+        data = data.replaceAll("%2B", "+")
+                .replaceAll("%20", "")
+                .replaceAll("-", "")
+                .replaceAll("\\s", "");
+
         // Remove any non-digit characters except the plus sign at the beginning of the string
         String strippedNumber = data.replaceAll("[^0-9+]", "");
 
