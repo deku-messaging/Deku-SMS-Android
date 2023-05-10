@@ -105,6 +105,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
     String threadId = "";
     String address = "";
+    String unformattedAddress = "";
 
     String contactName = "";
 
@@ -288,20 +289,15 @@ public class SMSSendActivity extends AppCompatActivity {
 
             if(cursor.moveToFirst()) {
                 int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
-                address = String.valueOf(cursor.getString(addressIndex));
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Found Address: " + address);
+                unformattedAddress = String.valueOf(cursor.getString(addressIndex));
             }
 
             cursor.close();
         }
 
-        else if(getIntent().hasExtra(ADDRESS) || !address.isEmpty()) {
-            if(address.isEmpty())
-                address = getIntent().getStringExtra(ADDRESS);
-
-            if(BuildConfig.DEBUG)
-                Log.d(getLocalClassName(), "Searching thread ID with address: " + address);
+        else if(getIntent().hasExtra(ADDRESS) || !unformattedAddress.isEmpty()) {
+            if(unformattedAddress.isEmpty())
+                unformattedAddress = getIntent().getStringExtra(ADDRESS);
 
             Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), address);
             if(cursor.moveToFirst()) {
@@ -315,7 +311,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }
 
         try {
-            address = Helpers.formatPhoneNumbers(address);
+            address = Helpers.formatPhoneNumbers(unformattedAddress);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -358,7 +354,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    if (!PhoneNumberUtils.isWellFormedSmsAddress(address)) {
+                    if (!PhoneNumberUtils.isWellFormedSmsAddress(unformattedAddress)) {
                         ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
                         smsLayout.setVisibility(View.GONE);
                     }
@@ -395,12 +391,9 @@ public class SMSSendActivity extends AppCompatActivity {
 //            sendToString = Helpers.formatPhoneNumbers(sendToString);
 
             if(sendToString.contains("smsto:") || sendToString.contains("sms:")) {
-               address = sendToString.substring(sendToString.indexOf(':') + 1);
-               address = Helpers.formatPhoneNumbers(address);
+               unformattedAddress = sendToString.substring(sendToString.indexOf(':') + 1);
+//               address = Helpers.formatPhoneNumbers(address);
                String text = getIntent().getStringExtra("sms_body");
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Processing shared body: " + text);
-
                // TODO: should inform view about data being available
 //               if(getIntent().hasExtra(Intent.EXTRA_INTENT)) {
 //                   byte[] bytesData = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
@@ -720,7 +713,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    if (PhoneNumberUtils.isWellFormedSmsAddress(address)) {
+                    if (PhoneNumberUtils.isWellFormedSmsAddress(unformattedAddress)) {
                         checkEncryptedMessaging();
                         if(getIntent().hasExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION)) {
                             long messageId = getIntent().getLongExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION, -1);
@@ -1004,8 +997,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-
-        if(PhoneNumberUtils.isWellFormedSmsAddress(address))
+        if(PhoneNumberUtils.isWellFormedSmsAddress(unformattedAddress))
             getMenuInflater().inflate(R.menu.single_messages_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }

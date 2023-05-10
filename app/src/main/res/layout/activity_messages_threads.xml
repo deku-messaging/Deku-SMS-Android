@@ -43,8 +43,6 @@
                 app:boxStrokeWidthFocused="0dp"
                 app:endIconDrawable="@drawable/round_more_vert_24"
                 app:endIconMode="custom"
-                app:helperTextEnabled="true"
-                app:hintEnabled="true"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -54,10 +52,12 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/recent_search_edittext_clickable"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:clickable="false"
                     android:cursorVisible="false"
-                    android:focusableInTouchMode="true" />
+                    android:focusableInTouchMode="true"
+                    android:inputType="none"
+                    android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.appcompat.widget.Toolbar>
