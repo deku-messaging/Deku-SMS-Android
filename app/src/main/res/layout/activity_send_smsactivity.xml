@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:theme="@style/Theme.main"
-    android:id="@+id/linearLayout"
     android:layout_width="match_parent"
     tools:context=".SMSSendActivity"
     android:layout_height="match_parent" >
@@ -39,7 +38,6 @@
 
 
             <androidx.core.widget.NestedScrollView
-                android:id="@+id/nestedScrollView"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:fillViewport="true"
@@ -49,7 +47,6 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/primary_constrain"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:clickable="false">
@@ -65,7 +62,6 @@
                         app:layout_constraintTop_toTopOf="parent">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
-                            android:id="@+id/content_layout"
                             android:layout_width="match_parent"
                             android:layout_height="0dp"
                             app:layout_constraintBottom_toBottomOf="parent"
@@ -110,7 +106,7 @@
                             app:layout_constraintBottom_toBottomOf="@+id/sms_send_button"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="@+id/sms_send_button"
-                            app:srcCompat="@drawable/baseline_image_24" />
+                            app:srcCompat="@drawable/imagegallery_120168" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/send_text"
