@@ -299,7 +299,7 @@ public class SMSSendActivity extends AppCompatActivity {
             if(unformattedAddress.isEmpty())
                 unformattedAddress = getIntent().getStringExtra(ADDRESS);
 
-            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), address);
+            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), unformattedAddress);
             if(cursor.moveToFirst()) {
                 int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
                 threadId = String.valueOf(cursor.getString(threadIdIndex));
@@ -365,7 +365,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
 
         try {
-            contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+            contactName = Contacts.retrieveContactName(getApplicationContext(), unformattedAddress);
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -834,8 +834,6 @@ public class SMSSendActivity extends AppCompatActivity {
 
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
         SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-        Log.d(getLocalClassName(), "Has private key: " + securityECDH.hasPrivateKey(address));
-        Log.d(getLocalClassName(), "Has private key for address: " + address);
 
         if(securityECDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
             String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
@@ -898,6 +896,7 @@ public class SMSSendActivity extends AppCompatActivity {
                         byte[] secret = securityECDH.generateSecretKey(peerPublicKey, address);
                         securityECDH.securelyStoreSecretKey(address, secret);
                         ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
+                        singleMessagesThreadRecyclerAdapter.generateSecretKey();
 
                     } catch (GeneralSecurityException | IOException e) {
                         throw new RuntimeException(e);

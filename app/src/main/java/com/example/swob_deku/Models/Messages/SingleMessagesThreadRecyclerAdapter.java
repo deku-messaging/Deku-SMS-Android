@@ -110,6 +110,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         return new MessageSentViewHandler(view);
     }
 
+    public void generateSecretKey() throws GeneralSecurityException, IOException {
+        if(securityECDH.hasSecretKey(address))
+            secretKey = Base64.decode(securityECDH.securelyFetchSecretKey(address), Base64.DEFAULT);
+    }
+
     private String decryptContent(String input) {
         if(this.secretKey != null &&
                 input.getBytes(StandardCharsets.UTF_8).length > 16

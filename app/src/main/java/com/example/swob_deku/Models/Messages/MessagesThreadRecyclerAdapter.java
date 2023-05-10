@@ -42,6 +42,7 @@ import com.example.swob_deku.Models.Messages.ViewHolders.SentMessagesViewHolder;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.RouterActivity;
@@ -49,6 +50,8 @@ import com.example.swob_deku.BroadcastSMSTextActivity;
 import com.example.swob_deku.SMSSendActivity;
 
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -247,6 +250,15 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
                 }
                 holder.snippet.setText(spannable);
             } else holder.snippet.setText(message);
+        } else {
+            try {
+                SecurityECDH securityECDH = new SecurityECDH(context);
+                if(securityECDH.hasSecretKey(sms.getAddress()) ) {
+                    holder.encryptedLock.setVisibility(View.VISIBLE);
+                }
+            } catch (GeneralSecurityException | IOException e) {
+                e.printStackTrace();
+            }
         }
 
 

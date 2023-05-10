@@ -45,6 +45,7 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         youLabel = itemView.findViewById(R.id.message_you_label);
         contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
         contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
+        encryptedLock = itemView.findViewById(R.id.messages_thread_secured_lock);
     }
 
     public static class ReadViewHolder extends TemplateViewHolder{
@@ -73,9 +74,6 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
             super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
-
-            encryptedLock = itemView.findViewById(R.id.messages_thread_secured_lock);
-            encryptedLock.setVisibility(View.VISIBLE);
         }
     }
 
@@ -84,9 +82,6 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
             super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
-
-            encryptedLock = itemView.findViewById(R.id.messages_thread_secured_lock);
-            encryptedLock.setVisibility(View.VISIBLE);
         }
     }
 
