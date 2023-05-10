@@ -29,9 +29,6 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
     public ImageView contactPhoto;
     public ImageView encryptedLock;
 
-    public boolean isContact = false;
-
-
     public ConstraintLayout layout;
 
     final int recyclerViewTimeUpdateLimit = 60 * 1000;
@@ -48,12 +45,6 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         youLabel = itemView.findViewById(R.id.message_you_label);
         contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
         contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
-//        this.isContact = isContact;
-//
-//        if(isContact) {
-//            contactInitials.setVisibility(View.VISIBLE);
-//            contactPhoto.setVisibility(View.GONE);
-//        }
     }
 
     public static class ReadViewHolder extends TemplateViewHolder{
@@ -67,8 +58,13 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         public UnreadViewHolder(@NonNull View itemView) {
             super(itemView);
             address.setTypeface(Typeface.DEFAULT_BOLD);
+            address.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
+
             snippet.setTypeface(Typeface.DEFAULT_BOLD);
+            snippet.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
+
             date.setTypeface(Typeface.DEFAULT_BOLD);
+            date.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
         }
     }
 

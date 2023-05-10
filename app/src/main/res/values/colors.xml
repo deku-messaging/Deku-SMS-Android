@@ -19,6 +19,7 @@
 
     <color name="primary_background_color_material_dark">#121212</color>
     <color name="primary_text_color">@color/black</color>
+    <color name="secondary_text_color">@color/primary_background_color_material_dark</color>
     <color name="primary_background_color">@color/white</color>
     <color name="primary_background_color_transparent">#FFFFFF</color>
     <color name="primary_background_color_transparent_secondary">#D2FFFFFF</color>

@@ -2,6 +2,7 @@
 <resources>
     <color name="avatar_color">@color/black</color>
     <color name="primary_text_color">@color/white</color>
+    <color name="secondary_text_color">#CFC2C2</color>
 <!--    <color name="primary_background_color_transparent">#000000</color>-->
     <color name="primary_background_color_transparent">#121212</color>
     <color name="primary_background_color_transparent_secondary">#E2121212</color>
