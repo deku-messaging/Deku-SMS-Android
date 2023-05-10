@@ -2,6 +2,7 @@ package com.example.swob_deku.Commons;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.telephony.PhoneNumberUtils;
 import android.text.format.DateUtils;
 
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -67,25 +68,15 @@ public class Helpers {
     }
 
     public static String formatPhoneNumbers(String data) throws NumberParseException {
-//        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-//        try {
-//            Phonenumber.PhoneNumber parsedPhoneNumber = phoneNumberUtil.parse(formattedData, "US");
-//            // use the formattedPhoneNumber
-//            phoneNumberUtil.format(parsedPhoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
-//            data = formattedData;
-//        } catch (NumberParseException e) {
-//            // handle the exception
-//            e.printStackTrace();
-//        }
 //        return data;
 
-        data = data.replaceAll("%2B", "+")
+        String formattedString = data.replaceAll("%2B", "+")
                 .replaceAll("%20", "")
                 .replaceAll("-", "")
                 .replaceAll("\\s", "");
 
         // Remove any non-digit characters except the plus sign at the beginning of the string
-        String strippedNumber = data.replaceAll("[^0-9+]", "");
+        String strippedNumber = formattedString.replaceAll("[^0-9+]", "");
 
         // If the stripped number starts with a plus sign followed by one or more digits, return it as is
         if (strippedNumber.matches("^\\+\\d+") || strippedNumber.length() >=7) {

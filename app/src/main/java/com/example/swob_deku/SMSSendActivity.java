@@ -1004,7 +1004,9 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.single_messages_menu, menu);
+
+        if(PhoneNumberUtils.isWellFormedSmsAddress(address))
+            getMenuInflater().inflate(R.menu.single_messages_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
