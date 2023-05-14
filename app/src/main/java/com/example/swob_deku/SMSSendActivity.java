@@ -295,23 +295,18 @@ public class SMSSendActivity extends AppCompatActivity {
             cursor.close();
         }
 
-        else if(getIntent().hasExtra(ADDRESS) || !unformattedAddress.isEmpty()) {
-            if(unformattedAddress.isEmpty())
-                unformattedAddress = getIntent().getStringExtra(ADDRESS);
-
-            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), unformattedAddress);
+        try {
+            if(getIntent().hasExtra(ADDRESS) || !unformattedAddress.isEmpty()) {
+                if (unformattedAddress.isEmpty())
+                    unformattedAddress = getIntent().getStringExtra(ADDRESS);
+            }
+            address = Helpers.formatPhoneNumbers(unformattedAddress);
+            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), address);
             if(cursor.moveToFirst()) {
                 int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
                 threadId = String.valueOf(cursor.getString(threadIdIndex));
-
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Found thread ID: " + threadId);
             }
             cursor.close();
-        }
-
-        try {
-            address = Helpers.formatPhoneNumbers(unformattedAddress);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -365,7 +360,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
 
         try {
-            contactName = Contacts.retrieveContactName(getApplicationContext(), unformattedAddress);
+            contactName = Contacts.retrieveContactName(getApplicationContext(), address);
         } catch(Exception e) {
             e.printStackTrace();
         }
