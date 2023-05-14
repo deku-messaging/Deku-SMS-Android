@@ -234,6 +234,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         resetSelectedItem(sms.id, true);
                     else if(selectedItem.getValue() != null ){
                         longClickHighlight(messageReceivedViewHandler, smsId);
+                    } else {
+                        dateView.setVisibility(dateView.getVisibility() == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
                     }
                 }
             });
