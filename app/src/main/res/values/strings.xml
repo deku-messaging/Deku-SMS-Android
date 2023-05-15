@@ -84,4 +84,11 @@
     <string name="default_check_btn_text">Set default SMS app</string>
     <string name="default_check_privacy_policy">Read our privacy policy</string>
 
+
+    <string name="sms_status_delivered">Delivered</string>
+    <string name="sms_status_sent">Sent</string>
+    <string name="sms_status_sending">sending...</string>
+    <string name="sms_status_failed">failed, click to retry.</string>
+    <string name="sms_sent_date_today">Today </string>
+
 </resources>

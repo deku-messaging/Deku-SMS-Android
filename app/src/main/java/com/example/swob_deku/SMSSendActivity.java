@@ -41,6 +41,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ExpandableListAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -262,6 +263,19 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
                 selectedItems = integers;
                 itemOperationsNeeded(integers.size());
+            }
+        });
+
+        singleMessagesThreadRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
+            @Override
+            public void onChanged(String[] strings) {
+                try {
+                    SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
+
+                    sendSMSMessage(null, strings[1], null);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
