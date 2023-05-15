@@ -8,6 +8,7 @@
     <color name="light_blue"> #FF219BCC </color>
     <color name="logo_primary">#061892</color>
     <color name="logo_secondary">#9bbef1</color>
+    <color name="failed_red">#FF3B58</color>
 
     <color name="primary_background_color_material_dark">#121212</color>
     <color name="primary_text_color">@color/black</color>

@@ -281,14 +281,18 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
             if(status == Telephony.TextBasedSmsColumns.STATUS_PENDING )
                 statusMessage = context.getString(R.string.sms_status_sending);
-
-            else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED ) {
+            if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED ) {
                 statusMessage = context.getString(R.string.sms_status_failed);
                 messageSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
                 messageSentViewHandler.date.setVisibility(View.VISIBLE);
+                messageSentViewHandler.sentMessageStatus.setTextColor(
+                        context.getResources().getColor(R.color.failed_red, context.getTheme()));
+                messageSentViewHandler.date.setTextColor(
+                        context.getResources().getColor(R.color.failed_red, context.getTheme()));
+            } else {
+                statusMessage = "• " + statusMessage;
             }
 
-            statusMessage = "• " + statusMessage;
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
 
