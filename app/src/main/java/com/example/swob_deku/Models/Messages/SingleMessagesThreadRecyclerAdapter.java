@@ -291,6 +291,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         context.getResources().getColor(R.color.failed_red, context.getTheme()));
             } else {
                 statusMessage = "• " + statusMessage;
+                messageSentViewHandler.sentMessageStatus.invalidate();
+                messageSentViewHandler.date.invalidate();
             }
 
 

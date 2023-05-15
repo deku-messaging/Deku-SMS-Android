@@ -271,7 +271,6 @@ public class SMSSendActivity extends AppCompatActivity {
             public void onChanged(String[] strings) {
                 try {
                     SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
-
                     sendSMSMessage(null, strings[1], null);
                 } catch(Exception e) {
                     e.printStackTrace();
