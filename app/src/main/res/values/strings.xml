@@ -96,8 +96,10 @@
     <string name="settings_security_category_end_to_end_encryption">End-to-End Encryption</string>
     <string name="settings_security_category_end_to_end_encryption_summary">Configure your end-to-end encryption.</string>
     <string name="settings_security_category_end_to_end_duration">End-to-End duration</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="settings_SMS_routing_title">SMS routing</string>
+    <string name="settings_SMS_routing_SMSWithoutBorders">SMSWithoutBorders</string>
+    <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for SMSWithoutBorders</string>
 
 
 </resources>

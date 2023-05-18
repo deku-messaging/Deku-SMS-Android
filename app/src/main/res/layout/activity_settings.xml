@@ -18,12 +18,11 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/settings_fragment"
-        android:name="com.example.swob_deku.SettingsFragment"
+        android:name="com.example.swob_deku.Fragments.SettingsFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/settings_toolbar"
-        tools:layout="@layout/fragment_settings" />
+        app:layout_constraintTop_toBottomOf="@id/settings_toolbar"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

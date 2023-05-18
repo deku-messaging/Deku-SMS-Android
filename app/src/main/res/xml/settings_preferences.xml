@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:title="Security">
-
+        android:title="@string/settings_security_category_title">
         <Preference
-            android:key="pref_end_to_end_encryption"
-            android:title="End-to-End Encryption"
-            android:summary="Enable end-to-end encryption for secure communication"/>
+            android:key="security_id_end_to_end_encryption"
+            android:title="@string/settings_security_category_end_to_end_encryption"
+            android:summary="@string/settings_security_category_end_to_end_encryption_summary"/>
+    </PreferenceCategory>
 
+    <PreferenceCategory
+        android:title="@string/settings_SMS_routing_title">
+        <Preference
+            android:key="settings_sms_routing_gateway_clients"
+            android:title="@string/settings_SMS_routing_SMSWithoutBorders"
+            android:summary="@string/settings_SMS_routing_SMSWithoutBorders_summary"/>
     </PreferenceCategory>
 
 </PreferenceScreen>

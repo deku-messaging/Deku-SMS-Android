@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
+import com.example.swob_deku.Fragments.SettingsFragment;
+
 public class SettingsActivity extends AppCompatActivity {
 
     @Override
