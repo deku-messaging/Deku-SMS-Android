@@ -173,7 +173,7 @@ public class SecurityECDH {
         }
     }
 
-    public String securelyStorePublicKeyKeyPair(Context context, String keystoreAlias, byte[] keyValue, int part) throws GeneralSecurityException, IOException {
+    public String securelyStorePeerAgreementKey(Context context, String keystoreAlias, byte[] keyValue) throws GeneralSecurityException, IOException {
         // TODO: make alias know it's private key stored now
         SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
                 context,
@@ -184,46 +184,11 @@ public class SecurityECDH {
 
         SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
 
-        String returnString = "";
-        if(part == -1) {
-            byte[] merged = SecurityHelpers.rxAgreementFormatter(keyValue);
-            returnString = Base64.encodeToString(merged, Base64.DEFAULT);
-            sharedPreferencesEditor.putString(keystoreAlias + "-agreement-key", returnString);
-            if(!sharedPreferencesEditor.commit()) {
-                throw new RuntimeException("Failed to store merged agreement");
-            }
-        } else {
-            String formattedKeystoreAlias = keystoreAlias + "-public-key-" + part;
-            String otherFormattedKeystoreAlias = keystoreAlias + "-public-key-" + (part == 1 ? 0 : 1);
-
-            if(encryptedSharedPreferences.contains(otherFormattedKeystoreAlias)) {
-                // TODO: build the key now
-                String otherPart = encryptedSharedPreferences.getString(otherFormattedKeystoreAlias, "");
-
-                byte[] otherPartByte = Base64.decode(otherPart, Base64.DEFAULT);
-
-                byte[][] rxMergeNeeded =  part == 0?
-                        new byte[][]{keyValue, otherPartByte} : new byte[][]{otherPartByte, keyValue};
-
-                byte[] merged = SecurityHelpers.rxAgreementFormatter(rxMergeNeeded);
-
-                returnString = Base64.encodeToString(merged, Base64.DEFAULT);
-                sharedPreferencesEditor
-                        .remove(otherFormattedKeystoreAlias)
-                        .remove(formattedKeystoreAlias)
-                        .putString(keystoreAlias + "-agreement-key", returnString);
-
-                if(!sharedPreferencesEditor.commit()) {
-                    throw new RuntimeException("Failed to store merged agreement");
-                }
-            } else {
-                returnString = Base64.encodeToString(keyValue, Base64.DEFAULT);
-                sharedPreferencesEditor.putString(formattedKeystoreAlias, returnString);
-
-                if (!sharedPreferencesEditor.commit()) {
-                    throw new RuntimeException("Failed to store public key part");
-                }
-            }
+        byte[] merged = SecurityHelpers.rxAgreementFormatter(keyValue);
+        String returnString = Base64.encodeToString(merged, Base64.DEFAULT);
+        sharedPreferencesEditor.putString(keystoreAlias + "-agreement-key", returnString);
+        if(!sharedPreferencesEditor.commit()) {
+            throw new RuntimeException("Failed to store merged agreement");
         }
         return returnString;
     }

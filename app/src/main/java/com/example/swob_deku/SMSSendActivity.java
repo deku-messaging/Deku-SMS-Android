@@ -23,12 +23,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
+import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -73,8 +75,11 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import io.michaelrocks.libphonenumber.android.PhoneNumberUtil;
 
 public class SMSSendActivity extends AppCompatActivity {
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
@@ -313,7 +318,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 if (unformattedAddress.isEmpty())
                     unformattedAddress = getIntent().getStringExtra(ADDRESS);
             }
-            address = Helpers.formatPhoneNumbers(unformattedAddress);
+            address = Helpers.formatPhoneNumbers(getApplicationContext(), unformattedAddress);
             Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), address);
             if(cursor.moveToFirst()) {
                 int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
@@ -802,37 +807,18 @@ public class SMSSendActivity extends AppCompatActivity {
         snackbar.show();
     }
 
-    private void rxKeys(byte[][] txAgreementKey, long messageId, int subscriptionId){
+    private void rxKeys(byte[] txAgreementKey, long messageId, int subscriptionId){
         try {
             PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
 
             handleBroadcast();
-            if(txAgreementKey[1].length == 0) {
-                SMSHandler.sendDataSMS(getApplicationContext(),
-                        address,
-                        txAgreementKey[0],
-                        pendingIntents[0],
-                        pendingIntents[1],
-                        messageId,
-                        subscriptionId);
-            } else {
-                SMSHandler.sendDataSMS(getApplicationContext(),
-                        address,
-                        txAgreementKey[0],
-                        pendingIntents[0],
-                        pendingIntents[1],
-                        messageId,
-                        subscriptionId);
-
-                handleBroadcast();
-                SMSHandler.sendDataSMS(getApplicationContext(),
-                        address,
-                        txAgreementKey[1],
-                        pendingIntents[0],
-                        pendingIntents[1],
-                        messageId,
-                        subscriptionId);
-            }
+            SMSHandler.sendDataSMS(getApplicationContext(),
+                    address,
+                    txAgreementKey,
+                    pendingIntents[0],
+                    pendingIntents[1],
+                    messageId,
+                    subscriptionId);
         } catch (InterruptedException e) {
             e.printStackTrace();
             SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
@@ -840,8 +826,10 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
+
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
         SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+        Log.d(getLocalClassName(), "Has private key: " + securityECDH.hasPrivateKey(address));
 
         if(securityECDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
             String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
@@ -861,7 +849,7 @@ public class SMSSendActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 PublicKey publicKey = keyPair.getPublic();
-                                byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
+                                byte[] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
 
                                 String agreementText = SecurityHelpers.FIRST_HEADER
                                         + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT)
@@ -889,11 +877,17 @@ public class SMSSendActivity extends AppCompatActivity {
 
                             }
                         });
+
+
                         try {
                             if(!securityECDH.hasPrivateKey(address)) {
                                 // TODO: support for multi-sim
                                 remotePeerHandshake.start();
                                 remotePeerHandshake.join();
+                                Log.d(getLocalClassName(), "Private key not available for address: " + address);
+                            }
+                            else {
+                                Log.d(getLocalClassName(), "Private key available for address: " + address);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -937,7 +931,7 @@ public class SMSSendActivity extends AppCompatActivity {
                     // TODO: send the key as 2 data messages
                     try {
                         byte[] agreementKey = dhAgreementInitiation();
-                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
+                        byte[] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
 
                         String text = SecurityHelpers.FIRST_HEADER
                                 + Base64.encodeToString(agreementKey, Base64.DEFAULT)

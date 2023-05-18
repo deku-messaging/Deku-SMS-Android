@@ -2,11 +2,12 @@ package com.example.swob_deku.Commons;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.telephony.PhoneNumberUtils;
+import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 
 import com.google.i18n.phonenumbers.NumberParseException;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 
 import java.sql.Date;
@@ -15,6 +16,8 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
+
+import io.michaelrocks.libphonenumber.android.PhoneNumberUtil;
 
 public class Helpers {
     public static long generateRandomNumber() {
@@ -67,9 +70,25 @@ public class Helpers {
         }
     }
 
-    public static String formatPhoneNumbers(String data) throws NumberParseException {
-//        return data;
+    public static String getUserCountry(Context context) {
+        String countryCode = null;
 
+        // Check if network information is available
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm != null) {
+            // Get the TelephonyManager to access network-related information
+            TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            if (tm != null) {
+                // Get the ISO country code from the network
+                countryCode = tm.getNetworkCountryIso().toUpperCase(Locale.US);
+            }
+        }
+        return String.valueOf(
+                PhoneNumberUtil.createInstance(context).getCountryCodeForRegion(countryCode));
+//        return countryCode;
+    }
+
+    public static String formatPhoneNumbers(Context context, String data) throws NumberParseException {
         String formattedString = data.replaceAll("%2B", "+")
                 .replaceAll("%20", "")
                 .replaceAll("-", "")
@@ -79,8 +98,12 @@ public class Helpers {
         String strippedNumber = formattedString.replaceAll("[^0-9+]", "");
 
         // If the stripped number starts with a plus sign followed by one or more digits, return it as is
-        if (strippedNumber.matches("^\\+\\d+") || strippedNumber.length() >=7) {
+        if (strippedNumber.matches("^\\+\\d+") )
             return strippedNumber;
+        else if(strippedNumber.length() >=7) {
+            String dialingCode = getUserCountry(context);
+           strippedNumber = "+" + dialingCode + strippedNumber;
+           return strippedNumber;
         }
 
         // If the stripped number is not a valid phone number, return an empty string

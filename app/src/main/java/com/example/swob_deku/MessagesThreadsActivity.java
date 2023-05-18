@@ -374,7 +374,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     if(cursor.moveToFirst()) {
                         SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
                         String address = new SMS(cursor).getAddress();
-                        securityECDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
+                        securityECDH.removeAllKeys(Helpers.formatPhoneNumbers(getApplicationContext(), address));
                         SMSHandler.deleteThread(getApplicationContext(), threadId);
                     }
                     cursor.close();
