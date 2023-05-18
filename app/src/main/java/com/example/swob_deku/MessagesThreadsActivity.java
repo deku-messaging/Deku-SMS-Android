@@ -198,6 +198,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         else if (item.getItemId() == R.id.messages_threads_menu_item_routed) {
                             startActivity(new Intent(getApplicationContext(), RouterActivity.class));
                         }
+                        else if (item.getItemId() == R.id.messages_threads_settings) {
+                            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+                        }
                         return false;
                     }
                 });

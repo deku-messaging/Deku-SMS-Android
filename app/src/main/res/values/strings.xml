@@ -78,7 +78,7 @@
 
     <string name="search_nothing_found">Nothing found</string>
     <string name="search_title">Search</string>
-    <string name="lengthy_sms_sample"/>
+    <string name="lengthy_sms_sample" />
 
     <string name="default_check_text">To use Deku, make it your default SMS app</string>
     <string name="default_check_btn_text">Set default SMS app</string>
@@ -90,5 +90,14 @@
     <string name="sms_status_sending">sending...</string>
     <string name="sms_status_failed">failed, click to retry.</string>
     <string name="sms_sent_date_today">Today </string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_security_category_title">Security</string>
+    <string name="settings_security_category_end_to_end_encryption">End-to-End Encryption</string>
+    <string name="settings_security_category_end_to_end_encryption_summary">Configure your end-to-end encryption.</string>
+    <string name="settings_security_category_end_to_end_duration">End-to-End duration</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 
 </resources>
