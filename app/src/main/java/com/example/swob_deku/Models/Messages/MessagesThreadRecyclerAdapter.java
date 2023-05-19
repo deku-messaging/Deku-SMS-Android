@@ -277,6 +277,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         }
         else {
             holder.routingURLText.setVisibility(View.GONE);
+            holder.routingUrl.setVisibility(View.GONE);
         }
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
