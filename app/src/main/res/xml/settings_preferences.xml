@@ -18,15 +18,6 @@
             app:key="settings_sms_routing_gateway_clients"
             app:title="@string/settings_SMS_routing_custom_server"
             app:summary="@string/settings_SMS_routing_SMSWithoutBorders_summary"/>
-
-        <ListPreference
-            app:key="settings_sms_routing_gateway_clients_type"
-            app:title="@string/settings_SMS_routing_type"
-            app:defaultValue="@string/settings_SMS_routing_type_base64_value"
-            app:useSimpleSummaryProvider="true"
-            app:entries="@array/routing_messages_options"
-            app:entryValues="@array/routing_messages_values"/>
-
     </PreferenceCategory>
 
 </PreferenceScreen>

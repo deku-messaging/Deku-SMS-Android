@@ -4,36 +4,33 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import android.content.Intent;
-import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServer.GatewayServer;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerHandler;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerRecyclerAdapter;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerViewModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GatewayServerListingActivity extends AppCompatActivity {
     Datastore databaseConnector;
     GatewayServerDAO gatewayServerDAO;
+
+    Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,15 +52,11 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
         recentsRecyclerView.setLayoutManager(linearLayoutManager);
 
-        GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter(this,
-                R.layout.layout_gateway_server_list);
+        GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter(this);
         recentsRecyclerView.setAdapter(gatewayServerRecyclerAdapter);
 
         GatewayServerViewModel gatewayServerViewModel = new ViewModelProvider(this).get(
                 GatewayServerViewModel.class);
-
-//        gatewayServerViewModel.getGatewayServers(gatewayServerDAO).observe(this,
-//                list -> gatewayServerRecyclerAdapter.submitList(list));
 
         databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
                 Datastore.databaseName).build();
@@ -80,11 +73,24 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                         gatewayServerRecyclerAdapter.submitList(gatewayServerList);
                     }
                 });
+
+        setRefreshTimer(gatewayServerRecyclerAdapter);
+    }
+
+    private void setRefreshTimer(GatewayServerRecyclerAdapter adapter) {
+        final int recyclerViewTimeUpdateLimit = 60 * 1000;
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                adapter.notifyDataSetChanged();
+                mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
+            }
+        }, recyclerViewTimeUpdateLimit);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.gateway_client_add, menu);
+        getMenuInflater().inflate(R.menu.gateway_client_add_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
