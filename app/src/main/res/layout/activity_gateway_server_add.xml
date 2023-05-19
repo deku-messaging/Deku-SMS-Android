@@ -26,7 +26,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:text="@string/new_gateway_client_url"
-        android:textColor="@color/default_gray"
+        android:textColor="@color/disabled_gray"
         app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
         app:layout_constraintTop_toBottomOf="@id/new_gateway_client_toolbar" />
 
@@ -46,7 +46,7 @@
             android:id="@+id/new_gateway_client_url_holder"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:fontFamily="sans-serif-thin"
             android:gravity="center"
             app:boxBackgroundColor="@color/received_message_color"
@@ -67,7 +67,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/new_gateway_client_url_input"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:imeOptions="actionGo"
                 android:inputType="text|textUri|textMultiLine"
                 android:maxLines="7" />

@@ -46,9 +46,8 @@
         android:onClick="makeDefault"
         android:text="@string/default_check_btn_text"
         android:textAllCaps="false"
-        android:textColor="@color/received_message_color"
+        android:textColor="@color/colorSecondary"
         android:textSize="14sp"
-        app:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toTopOf="@+id/textView3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -60,7 +59,7 @@
         android:layout_marginBottom="25dp"
         android:onClick="clickPrivacyPolicy"
         android:text="@string/default_check_privacy_policy"
-        android:textColor="@color/logo_secondary"
+        android:textColor="@color/colorSecondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

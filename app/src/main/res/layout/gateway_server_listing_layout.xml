@@ -9,6 +9,7 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="1dp"
         android:layout_marginBottom="16dp"
         app:cardBackgroundColor="@android:color/transparent"
@@ -37,18 +38,29 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/gateway_server_method"
+                android:id="@+id/gateway_server_protocol"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="4dp"
                 android:layout_marginEnd="16dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="POST"
-                android:textColor="@color/primary_highlight_color"
+                android:textColor="@color/disabled_gray"
+                android:textSize="12sp"
                 app:layout_constraintEnd_toStartOf="@+id/gateway_server_date"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/gateway_server_url" />
+                app:layout_constraintStart_toStartOf="@+id/gateway_server_protocol_description"
+                app:layout_constraintTop_toBottomOf="@+id/gateway_server_protocol_description" />
+
+            <TextView
+                android:id="@+id/gateway_server_data_format"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Base64"
+                android:textColor="@color/disabled_gray"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="@+id/textView7"
+                app:layout_constraintTop_toBottomOf="@+id/textView7" />
 
             <TextView
                 android:id="@+id/gateway_server_date"
@@ -57,10 +69,28 @@
                 android:layout_marginEnd="16dp"
                 android:fontFamily="sans-serif"
                 android:text="2022-12-22"
-                android:textSize="12sp"
                 android:textColor="@color/primary_highlight_color"
+                android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/gateway_server_method" />
+                app:layout_constraintTop_toTopOf="@+id/gateway_server_data_format" />
+
+            <TextView
+                android:id="@+id/gateway_server_protocol_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/settings_gateway_server_protocol_description"
+                app:layout_constraintStart_toStartOf="@+id/gateway_server_url"
+                app:layout_constraintTop_toBottomOf="@+id/gateway_server_url" />
+
+            <TextView
+                android:id="@+id/textView7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/settings_gateway_server_data_format_description"
+                app:layout_constraintStart_toStartOf="@+id/gateway_server_protocol"
+                app:layout_constraintTop_toBottomOf="@+id/gateway_server_protocol" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

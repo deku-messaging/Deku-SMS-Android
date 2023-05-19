@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 2,
-    "identityHash": "196ef51e51221e63b5a6749bee414e01",
+    "version": 4,
+    "identityHash": "02583ec4556cf041353e91203ec5f135",
     "entities": [
       {
         "tableName": "GatewayServer",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`URL` TEXT, `method` TEXT, `format` TEXT, `date` INTEGER, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`URL` TEXT, `protocol` TEXT, `format` TEXT, `date` INTEGER, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
         "fields": [
           {
             "fieldPath": "URL",
@@ -15,8 +15,8 @@
             "notNull": false
           },
           {
-            "fieldPath": "method",
-            "columnName": "method",
+            "fieldPath": "protocol",
+            "columnName": "protocol",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -92,7 +92,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '196ef51e51221e63b5a6749bee414e01')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '02583ec4556cf041353e91203ec5f135')"
     ]
   }
 }

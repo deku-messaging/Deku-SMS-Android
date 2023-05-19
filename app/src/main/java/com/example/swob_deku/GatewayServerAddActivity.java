@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.RadioGroup;
 
 import com.example.swob_deku.Models.GatewayServer.GatewayServer;
 import com.example.swob_deku.Models.GatewayServer.GatewayServerHandler;
@@ -16,6 +17,7 @@ import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class GatewayServerAddActivity extends AppCompatActivity {
+    MaterialCheckBox all, base64;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +37,8 @@ public class GatewayServerAddActivity extends AppCompatActivity {
     }
 
     private void dataTypeFilter(){
-        MaterialCheckBox all = findViewById(R.id.add_gateway_data_format_all);
-        MaterialCheckBox base64 = findViewById(R.id.add_gateway_data_format_base64);
+        all = findViewById(R.id.add_gateway_data_format_all);
+        base64 = findViewById(R.id.add_gateway_data_format_base64);
 
         all.addOnCheckedStateChangedListener(new MaterialCheckBox.OnCheckedStateChangedListener() {
             @Override
@@ -60,9 +62,22 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         TextInputEditText textInputEditTextUrl = findViewById(R.id.new_gateway_client_url_input);
         String gatewayServerUrl = textInputEditTextUrl.getText().toString();
 
-        // TODO: test if valid url
+        String formats = "";
+        String protocol = GatewayServer.POST_PROTOCOL;
 
+        if(base64.isChecked())
+            formats = GatewayServer.BASE64_FORMAT;
+
+        RadioGroup radioGroup = findViewById(R.id.add_gateway_server_protocol_group);
+        int checkedRadioId = radioGroup.getCheckedRadioButtonId();
+        if(checkedRadioId == R.id.add_gateway_protocol_GET)
+            protocol = GatewayServer.GET_PROTOCOL;
+
+        // TODO: test if valid url
         GatewayServer gatewayServer = new GatewayServer(gatewayServerUrl);
+        gatewayServer.setFormat(formats);
+        gatewayServer.setProtocol(protocol);
+
         try {
             GatewayServerHandler.add(getApplicationContext(), gatewayServer);
         } catch(InterruptedException e) {

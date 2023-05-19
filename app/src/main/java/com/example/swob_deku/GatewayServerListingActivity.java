@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
@@ -51,6 +52,10 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
         recentsRecyclerView.setLayoutManager(linearLayoutManager);
+
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(getApplicationContext(),
+                linearLayoutManager.getOrientation());
+        recentsRecyclerView.addItemDecoration(dividerItemDecoration);
 
         GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter(this);
         recentsRecyclerView.setAdapter(gatewayServerRecyclerAdapter);

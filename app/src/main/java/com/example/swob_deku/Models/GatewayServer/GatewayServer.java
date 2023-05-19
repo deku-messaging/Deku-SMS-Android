@@ -8,6 +8,11 @@ import androidx.room.PrimaryKey;
 
 @Entity(indices = {@Index(value={"URL"}, unique = true)})
 public class GatewayServer {
+
+    public static String BASE64_FORMAT = "base_64";
+    public static String POST_PROTOCOL = "POST";
+    public static String GET_PROTOCOL = "GET";
+
     @ColumnInfo(name="URL")
     public String URL;
 
@@ -19,12 +24,12 @@ public class GatewayServer {
         this.URL = URL;
     }
 
-    public String getMethod() {
-        return method;
+    public String getProtocol() {
+        return protocol;
     }
 
-    public void setMethod(String method) {
-        this.method = method;
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     public Long getDate() {
@@ -35,8 +40,19 @@ public class GatewayServer {
         this.date = date;
     }
 
-    @ColumnInfo(name="method")
-    public String method = "POST";
+    @ColumnInfo(name="protocol")
+    public String protocol = POST_PROTOCOL;
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    @ColumnInfo(name="format")
+    public String format;
 
     @ColumnInfo(name="date")
     public Long date;
@@ -57,7 +73,7 @@ public class GatewayServer {
             GatewayServer gatewayServer = (GatewayServer) obj;
             return gatewayServer.id == this.id &&
                     gatewayServer.URL.equals(this.URL) &&
-                    gatewayServer.method.equals(this.method) &&
+                    gatewayServer.protocol.equals(this.protocol) &&
                     gatewayServer.date.equals(this.date);
         }
         return false;
