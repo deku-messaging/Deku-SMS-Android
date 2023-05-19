@@ -166,12 +166,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 }
             }
         });
-        searchTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
-            }
-        });
+//        searchTextView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
+//            }
+//        });
 
         TextInputLayout searchTextViewLayout = findViewById(R.id.search_messages_text_clickable);
         searchTextViewLayout.setEndIconOnClickListener(new View.OnClickListener() {
