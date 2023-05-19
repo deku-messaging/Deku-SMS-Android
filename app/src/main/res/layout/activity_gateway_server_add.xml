@@ -87,9 +87,8 @@
         android:onClick="onSaveGatewayServer"
         android:text="@string/save_new_gateway_client"
         android:textAllCaps="false"
-        android:textColor="@color/received_message_color"
+        android:textColor="@color/colorSecondary"
         android:textSize="14sp"
-        app:backgroundTint="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="@+id/new_gateway_client_input_constraint"
         app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
         app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
@@ -122,12 +121,15 @@
 
     <TextView
         android:id="@+id/add_gateway_server_protocol_description"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="@string/settings_add_gateway_server_protocol_description"
-        app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-        app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_input_constraint" />
+        android:layout_marginTop="3dp"
+        android:text="@string/settings_add_gateway_server_protocol_meta_description"
+        android:textColor="@color/disabled_gray"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="@+id/new_gateway_client_input_constraint"
+        app:layout_constraintStart_toStartOf="@+id/textView6"
+        app:layout_constraintTop_toBottomOf="@+id/textView6" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
@@ -142,6 +144,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
+            android:checked="true"
             android:text="@string/settings_SMS_routing_type_all_option"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/add_gateway_data_format_base64"
@@ -164,7 +167,18 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="@string/settings_add_gateway_server_protocol_data_format"
+        android:textSize="16sp"
         app:layout_constraintStart_toStartOf="@+id/add_gateway_server_protocol_group"
         app:layout_constraintTop_toBottomOf="@+id/add_gateway_server_protocol_group" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/settings_add_gateway_server_protocol_description"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
+        app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_input_constraint" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

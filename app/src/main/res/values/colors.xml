@@ -5,6 +5,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="highlight_yellow">#fde293</color>
     <color name="default_gray">#242f35</color>
+    <color name="disabled_gray">#455056</color>
     <color name="light_blue"> #FF219BCC </color>
     <color name="logo_primary">#061892</color>
     <color name="logo_secondary">#9bbef1</color>
@@ -27,6 +28,6 @@
 
     <color name="delete_red">#E91E63</color>
 
-    <color name="colorPrimary">@color/logo_primary</color>
-    <color name="colorSecondary">@color/logo_secondary</color>
+    <color name="colorPrimary">@color/logo_secondary</color>
+    <color name="colorSecondary">@color/logo_primary</color>
 </resources>

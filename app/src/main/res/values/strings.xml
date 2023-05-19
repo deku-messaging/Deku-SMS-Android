@@ -107,5 +107,7 @@
     <string name="settings_SMS_routing_type_all_option">All</string>
 
     <string name="settings_add_gateway_server_protocol_description">Choose the routing protocol</string>
+    <string name="settings_add_gateway_server_protocol_meta_description">All POST are routed as JSON formats.\nAll formats use the following key/value format:\n\n<b>MSISDN</b>:-The address of the incoming message in E.164 Format\n\n<b>text</b>:-The text body of the incoming message
+    </string>
     <string name="settings_add_gateway_server_protocol_data_format">Choose data format (default all)</string>
 </resources>
