@@ -1,21 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        android:title="@string/settings_security_category_title">
+        app:key="sms_security"
+        app:title="@string/settings_security_category_title">
         <Preference
-            android:key="security_id_end_to_end_encryption"
-            android:title="@string/settings_security_category_end_to_end_encryption"
-            android:summary="@string/settings_security_category_end_to_end_encryption_summary"/>
+            app:key="security_id_end_to_end_encryption"
+            app:title="@string/settings_security_category_end_to_end_encryption"
+            app:summary="@string/settings_security_category_end_to_end_encryption_summary"/>
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/settings_SMS_routing_title">
+        app:key="sms_routing"
+        app:title="@string/settings_SMS_routing_title">
         <Preference
-            android:key="settings_sms_routing_gateway_clients"
-            android:title="@string/settings_SMS_routing_SMSWithoutBorders"
-            android:summary="@string/settings_SMS_routing_SMSWithoutBorders_summary"/>
+            app:key="settings_sms_routing_gateway_clients"
+            app:title="@string/settings_SMS_routing_SMSWithoutBorders"
+            app:summary="@string/settings_SMS_routing_SMSWithoutBorders_summary"/>
+
+        <ListPreference
+            app:key="settings_sms_routing_gateway_clients_type"
+            app:title="@string/settings_SMS_routing_type"
+            app:defaultValue="@string/settings_SMS_routing_type_base64_value"
+            app:useSimpleSummaryProvider="true"
+            app:entries="@array/routing_messages_options"
+            app:entryValues="@array/routing_messages_values"/>
+
     </PreferenceCategory>
 
 </PreferenceScreen>

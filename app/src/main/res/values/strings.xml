@@ -95,7 +95,13 @@
 
     <string name="settings_SMS_routing_title">SMS routing</string>
     <string name="settings_SMS_routing_SMSWithoutBorders">SMSWithoutBorders</string>
+    <string name="settings_SMS_routing_type">Choose format of messages</string>
+    <string name="settings_SMS_routing_type_summary">Only messages that match the chosen formats get routed</string>
     <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for SMSWithoutBorders</string>
 
+    <string name="settings_SMS_routing_type_base64_value">base_64</string>
+    <string name="settings_SMS_routing_type_all_value">all</string>
 
+    <string name="settings_SMS_routing_type_base64_option">Base64</string>
+    <string name="settings_SMS_routing_type_all_option">All</string>
 </resources>

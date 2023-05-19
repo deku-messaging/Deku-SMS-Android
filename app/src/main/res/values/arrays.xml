@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="routing_messages_options">
+        <item>@string/settings_SMS_routing_type_all_option</item>
+        <item>@string/settings_SMS_routing_type_base64_option</item>
+    </string-array>
+
+    <string-array name="routing_messages_values">
+        <item>@string/settings_SMS_routing_type_all_value</item>
+        <item>@string/settings_SMS_routing_type_base64_value</item>
+    </string-array>
+</resources>
