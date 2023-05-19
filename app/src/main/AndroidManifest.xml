@@ -22,6 +22,7 @@
         android:usesCleartextTraffic="false">
         <activity
             android:name=".SettingsActivity"
+            android:parentActivityName=".MessagesThreadsActivity"
             android:exported="false" />
         <activity
             android:name=".ComposeNewMessageActivity"

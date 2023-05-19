@@ -1,5 +1,6 @@
 package com.example.swob_deku.Fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -13,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.swob_deku.GatewayServerListingActivity;
 import com.example.swob_deku.R;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
@@ -23,5 +25,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
         Preference securityPrivacyPreference = findPreference("security_id_end_to_end_encryption");
         securityPrivacyPreference.setFragment(EndToEndFragments.class.getCanonicalName());
+
+        Preference smsRoutingSMSWithoutBorders = findPreference("settings_sms_routing_gateway_clients");
+        smsRoutingSMSWithoutBorders.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(@NonNull Preference preference) {
+                startActivity(new Intent(getContext(), GatewayServerListingActivity.class));
+                return true;
+            }
+        });
     }
 }

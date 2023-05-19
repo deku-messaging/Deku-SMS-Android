@@ -181,14 +181,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        if (item.getItemId() == R.id.messages_threads_menu_item_settings) {
-                            Intent settingsIntent = new Intent(getApplicationContext(),
-                                    GatewayServerListingActivity.class);
-                            settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(settingsIntent);
-                            return true;
-                        }
-                        else if (item.getItemId() == R.id.messages_threads_menu_item_archived) {
+                        if (item.getItemId() == R.id.messages_threads_menu_item_archived) {
                             Intent archivedIntent = new Intent(getApplicationContext(),
                                     ArchivedMessagesActivity.class);
                             archivedIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -196,10 +189,14 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                             return true;
                         }
                         else if (item.getItemId() == R.id.messages_threads_menu_item_routed) {
-                            startActivity(new Intent(getApplicationContext(), RouterActivity.class));
+                            Intent routingIntent = new Intent(getApplicationContext(), RouterActivity.class);
+                            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(routingIntent);
                         }
                         else if (item.getItemId() == R.id.messages_threads_settings) {
-                            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+                            Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
+                            settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(settingsIntent);
                         }
                         return false;
                     }

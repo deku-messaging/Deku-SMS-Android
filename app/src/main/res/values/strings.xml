@@ -8,10 +8,6 @@
         696969
     </string>
 
-    <string name="router_name">
-        Routed Messages
-    </string>
-
     <string name="search_messages_text">
         Search messages
     </string>
@@ -24,7 +20,7 @@
     <string name="archived_messages_toolbar_title">Archive</string>
     <string name="new_gateway_client_url">Online routing server url</string>
     <string name="homepage_menu_archived">Archived</string>
-    <string name="homepage_menu_routed">Routed</string>
+    <string name="homepage_menu_routed">Routing history</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="gateway_clients">Gateway Clients</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
