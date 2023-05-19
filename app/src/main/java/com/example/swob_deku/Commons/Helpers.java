@@ -3,16 +3,21 @@ package com.example.swob_deku.Commons;
 import android.content.Context;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
+import android.nfc.Tag;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
+import android.util.Base64;
+import android.util.Log;
 
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.Phonenumber;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
@@ -133,5 +138,18 @@ public class Helpers {
         float[] hsv = {hue, saturation, value};
         int color = Color.HSVToColor(hsv);
         return color;
+    }
+
+    public static boolean isBase64Encoded(String input) {
+        try {
+            byte[] decodedBytes = Base64.decode(input, Base64.DEFAULT);
+            String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
+            String reencodedString = Base64.encodeToString(
+                    decodedString.getBytes(StandardCharsets.UTF_8), Base64.DEFAULT)
+                            .replaceAll("\\n", "");
+            return input.equals(reencodedString);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -1,0 +1,44 @@
+Inbox:
+------
+1. Security
+	- Encrypt all incoming and outgoing messages 
+	- Add ability to decrypt messages that have been encrypted
+	- Disable screenshots
+
+	- *Disable encryption notice
+
+2. UX
+	- Enable ability to copy parts of a message not necessary all
+
+
+Incoming
+--------
+1. Notifications:
+	- Mark as read from notification
+	- Add reply from notifications bar
+
+2. Routing
+	- Modify gateway servers
+	- Delete dateway servers
+	- Enable GET methods for routing
+	- [w]Enable "All" routing [R]
+
+Outgoing
+--------
+1. UX
+	- Enable message scheduling
+	- Share contacts attachements (VCards??)
+
+
+Global features:
+---------------
+1. Add ability for groups
+2. Add ability for MMS
+
+
+Experimental features:
+-----------------------
+1. Send and receive some other types of files
+2. Audio like voicenotes?
+3. Small Gifs
+4. Reactions to messages

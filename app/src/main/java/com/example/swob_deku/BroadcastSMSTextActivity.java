@@ -14,6 +14,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.StyleSpan;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -26,6 +27,7 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServer.GatewayServer;
@@ -74,17 +76,6 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 
                     long messageId = -1;
                     try {
-//                        SecurityDH securityDH = new SecurityDH(context);
-//                        if(securityDH.hasSecretKey(finalAddress)){
-//                            try {
-//                                byte[] messageData = Base64.decode(message, Base64.DEFAULT);
-//                                messageData = SMSSendActivity.decompress(Base64.decode(messageData, Base64.DEFAULT));
-//                                message = Base64.encodeToString(messageData, Base64.DEFAULT);
-////                                message = new String(messageData, StandardCharsets.UTF_8);
-//                            } catch(Exception e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
                         messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message);
                     }
                     catch (Exception e) {
@@ -103,9 +94,6 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                         @Override
                         public void run() {
                             try {
-//                                CharsetDecoder charsetDecoder = StandardCharsets.UTF_8.newDecoder();
-//                                charsetDecoder.decode(ByteBuffer.wrap(Base64.decode(message, Base64.DEFAULT)));
-                                Base64.decode(messageFinal, Base64.DEFAULT);
                                 createWorkForMessage(finalAddress, messageFinal, finalMessageId);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -132,6 +120,11 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                 List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
 
                 for (GatewayServer gatewayServer : gatewayServerList) {
+                    if(gatewayServer.getFormat().equals(GatewayServer.BASE64_FORMAT) &&
+                            !Helpers.isBase64Encoded(message)) {
+                        continue;
+                    }
+
                     try {
                         OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
                                 .setConstraints(constraints)
@@ -160,7 +153,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                                 ExistingWorkPolicy.KEEP,
                                 routeMessageWorkRequest);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        throw e;
                     }
                 }
             }

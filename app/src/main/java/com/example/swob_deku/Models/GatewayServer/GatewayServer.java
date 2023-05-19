@@ -10,6 +10,7 @@ import androidx.room.PrimaryKey;
 public class GatewayServer {
 
     public static String BASE64_FORMAT = "base_64";
+    public static String ALL_FORMAT = "all";
     public static String POST_PROTOCOL = "POST";
     public static String GET_PROTOCOL = "GET";
 
