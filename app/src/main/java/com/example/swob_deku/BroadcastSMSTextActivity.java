@@ -235,7 +235,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
             NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle("Me");
-            messagingStyle.setConversationTitle(context.getString(R.string.notification_title));
+//            messagingStyle.setConversationTitle(context.getString(R.string.notification_title));
 //            messagingStyle.setConversationTitle(contactName);
             for(NotificationCompat.MessagingStyle.Message message : unreadMessages) {
                 messagingStyle.addMessage(message);
