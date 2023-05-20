@@ -38,6 +38,8 @@ Global features:
 ---------------
 1. Add ability for groups
 2. Add ability for MMS
+3. Add some usability UX at the start of the App
+4. Add some about us details
 
 
 Experimental features:

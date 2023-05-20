@@ -10,6 +10,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,6 +22,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -827,8 +829,15 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
+    private boolean checkEncryptedMessagingDisabled() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        return sharedPreferences.getBoolean("encryption_disable", false);
+    }
 
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
+        if(checkEncryptedMessagingDisabled())
+            return;
+
         SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
         Log.d(getLocalClassName(), "Has private key: " + securityECDH.hasPrivateKey(address));
 
