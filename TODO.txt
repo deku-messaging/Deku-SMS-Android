@@ -7,8 +7,7 @@ Inbox:
 	- Enable ability to lock app
 	- Enable ability to lock messages
 	- Lock ability to change security settings
-
-	- *Disable encryption notice
+	- [w]*Disable encryption notice [R]
 
 2. UX
 	- Enable ability to copy parts of a message not necessary all
