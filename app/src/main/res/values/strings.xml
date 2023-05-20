@@ -72,6 +72,10 @@
         Secure communication request
     </string>
 
+    <string name="notification_title_reply_you">
+        You
+    </string>
+
     <string name="messages_thread_you">
         You:
     </string>

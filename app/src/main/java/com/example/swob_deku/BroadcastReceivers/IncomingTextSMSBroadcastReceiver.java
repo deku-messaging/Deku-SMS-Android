@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.provider.Telephony;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsMessage;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -16,6 +17,7 @@ import android.text.style.StyleSpan;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 import androidx.room.Room;
 import androidx.work.BackoffPolicy;
@@ -173,46 +175,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
-            String contactName = Contacts.retrieveContactName(context, address);
-            contactName = (contactName.equals("null") || contactName.isEmpty()) ?
-                    address : contactName;
-            List<NotificationCompat.MessagingStyle.Message> unreadMessages = new ArrayList<>();
             Cursor cursor1 = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, sms.getThreadId());
-            if(cursor1.moveToFirst()) {
-                do {
-                    SMS unreadSMS = new SMS(cursor1);
-
-                    SpannableStringBuilder spannable = new SpannableStringBuilder(contactName);
-
-                    StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
-                    StyleSpan ItalicSpan = new StyleSpan(Typeface.ITALIC);
-
-                    spannable.setSpan(boldSpan, 0, contactName.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-
-                    if(unreadSMS.getBody().contains(ImageHandler.IMAGE_HEADER)) {
-                        String message = context.getString(R.string.notification_title_new_photo);
-                        SpannableStringBuilder spannableMessage = new SpannableStringBuilder(message);
-                        spannableMessage.setSpan(ItalicSpan, 0, message.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                        unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
-                                spannableMessage,
-                                Long.parseLong(unreadSMS.getDate()),
-                                spannable));
-                    } else if(SecurityHelpers.isKeyExchange(unreadSMS.getBody())){
-                        String message = context.getString(R.string.notification_title_new_key);
-                        SpannableStringBuilder spannableMessage = new SpannableStringBuilder(message);
-                        spannableMessage.setSpan(ItalicSpan, 0, message.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                        unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
-                                spannableMessage,
-                                Long.parseLong(unreadSMS.getDate()),
-                                spannable));
-                    } else {
-                        unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
-                                unreadSMS.getBody() + "\n",
-                                Long.parseLong(unreadSMS.getDate()), spannable));
-                    }
-                } while(cursor1.moveToNext());
-            }
-            cursor1.close();
 
             receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             // TODO: check request code and make some changes
@@ -220,45 +183,20 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     Integer.parseInt(sms.getThreadId()),
                     receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
 
-            String replyLabel = context.getResources().getString(R.string.notifications_reply_label);
-            RemoteInput remoteInput = new RemoteInput.Builder(KEY_TEXT_REPLY)
-                    .setLabel(replyLabel)
-                    .build();
+            Intent replyBroadcastIntent = null;
+            if(PhoneNumberUtils.isWellFormedSmsAddress(sms.getAddress())) {
+                replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+                replyBroadcastIntent.putExtra(SMSSendActivity.ADDRESS, address);
+                replyBroadcastIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+                replyBroadcastIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_BROADCAST_INTENT);
+            }
 
-            Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
-            replyBroadcastIntent.putExtra(SMSSendActivity.ADDRESS, address);
-            replyBroadcastIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_BROADCAST_INTENT);
-
-            PendingIntent replyPendingIntent =
-                    PendingIntent.getBroadcast(context, Integer.parseInt(sms.getId()),
-                            replyBroadcastIntent,
-                            PendingIntent.FLAG_MUTABLE);
-
-            NotificationCompat.Action action = new NotificationCompat.Action.Builder(null, replyLabel, replyPendingIntent)
-                    .addRemoteInput(remoteInput)
-                    .build();
+            NotificationCompat.Builder builder = getNotificationHandler(context, cursor1,
+                    null, replyBroadcastIntent, Integer.parseInt(sms.getId()))
+                    .setContentIntent(pendingReceivedSmsIntent);
+            cursor1.close();
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                    context, context.getString(R.string.CHANNEL_ID))
-                    .setDefaults(Notification.DEFAULT_ALL)
-                    .setSmallIcon(R.drawable.ic_stat_name)
-                    .setContentIntent(pendingReceivedSmsIntent)
-                    .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                    .setAutoCancel(true)
-                    .addAction(action)
-                    .setPriority(NotificationCompat.PRIORITY_MAX)
-                    .setCategory(NotificationCompat.CATEGORY_MESSAGE);
-
-            NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle("Me");
-//            messagingStyle.setConversationTitle(context.getString(R.string.notification_title));
-//            messagingStyle.setConversationTitle(contactName);
-            for(NotificationCompat.MessagingStyle.Message message : unreadMessages) {
-                messagingStyle.addMessage(message);
-            }
-            builder.setStyle(messagingStyle);
-
-
 
             /**
              * TODO: Using the same ID leaves notifications updated (not appended).
@@ -291,5 +229,89 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 PendingIntent.FLAG_IMMUTABLE);
 
         return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
+    }
+
+    public static NotificationCompat.Builder
+    getNotificationHandler(Context context, Cursor cursor,
+                           List<NotificationCompat.MessagingStyle.Message> customMessages,
+                           Intent replyBroadcastIntent, int smsId){
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(
+                context, context.getString(R.string.CHANNEL_ID))
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setSmallIcon(R.drawable.ic_stat_name)
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+        if(replyBroadcastIntent != null) {
+            PendingIntent replyPendingIntent =
+                    PendingIntent.getBroadcast(context, smsId,
+                            replyBroadcastIntent,
+                            PendingIntent.FLAG_MUTABLE);
+
+            String replyLabel = context.getResources().getString(R.string.notifications_reply_label);
+            RemoteInput remoteInput = new RemoteInput.Builder(KEY_TEXT_REPLY)
+                    .setLabel(replyLabel)
+                    .build();
+
+            NotificationCompat.Action action = new NotificationCompat.Action.Builder(null, replyLabel, replyPendingIntent)
+                    .addRemoteInput(remoteInput)
+                    .build();
+            builder.addAction(action);
+        }
+
+        Person person = new Person.Builder()
+                .setName(context.getString(R.string.notification_title_reply_you))
+                .build();
+        NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person);
+
+        List<NotificationCompat.MessagingStyle.Message> unreadMessages = new ArrayList<>();
+        if(cursor.moveToFirst()) {
+            do {
+                SMS unreadSMS = new SMS(cursor);
+                String contactName = Contacts.retrieveContactName(context, unreadSMS.getAddress());
+                contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                        unreadSMS.getAddress() : contactName;
+                SpannableStringBuilder spannable = new SpannableStringBuilder(contactName);
+
+                StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+                StyleSpan ItalicSpan = new StyleSpan(Typeface.ITALIC);
+
+                spannable.setSpan(boldSpan, 0, contactName.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+                if(unreadSMS.getBody().contains(ImageHandler.IMAGE_HEADER)) {
+                    String message = context.getString(R.string.notification_title_new_photo);
+                    SpannableStringBuilder spannableMessage = new SpannableStringBuilder(message);
+                    spannableMessage.setSpan(ItalicSpan, 0, message.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
+                            spannableMessage,
+                            Long.parseLong(unreadSMS.getDate()),
+                            spannable));
+                } else if(SecurityHelpers.isKeyExchange(unreadSMS.getBody())){
+                    String message = context.getString(R.string.notification_title_new_key);
+                    SpannableStringBuilder spannableMessage = new SpannableStringBuilder(message);
+                    spannableMessage.setSpan(ItalicSpan, 0, message.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
+                            spannableMessage,
+                            Long.parseLong(unreadSMS.getDate()),
+                            spannable));
+                } else {
+                    unreadMessages.add(new NotificationCompat.MessagingStyle.Message(
+                            unreadSMS.getBody() + "\n",
+                            Long.parseLong(unreadSMS.getDate()), spannable));
+                }
+            } while(cursor.moveToNext());
+        }
+
+        for(NotificationCompat.MessagingStyle.Message message : unreadMessages) {
+            messagingStyle.addMessage(message);
+        }
+        if(customMessages != null) {
+            for(NotificationCompat.MessagingStyle.Message message : customMessages) {
+                messagingStyle.addMessage(message);
+            }
+        }
+        return builder.setStyle(messagingStyle);
     }
 }
