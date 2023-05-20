@@ -63,6 +63,7 @@
     </string>
 
     <string name="notifications_reply_label">Reply</string>
+    <string name="notifications_mark_as_read_label">Mark as read</string>
 
     <string name="notification_title_new_photo">
         Photo

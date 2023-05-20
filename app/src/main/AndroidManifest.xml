@@ -152,6 +152,7 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
+                <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
                 <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
                 <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
             </intent-filter>

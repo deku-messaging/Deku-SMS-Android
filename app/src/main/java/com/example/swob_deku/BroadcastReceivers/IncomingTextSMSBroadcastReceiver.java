@@ -192,7 +192,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             }
 
             NotificationCompat.Builder builder = getNotificationHandler(context, cursor1,
-                    null, replyBroadcastIntent, Integer.parseInt(sms.getId()))
+                    null, replyBroadcastIntent, Integer.parseInt(sms.getId()), sms.getThreadId())
                     .setContentIntent(pendingReceivedSmsIntent);
             cursor1.close();
 
@@ -234,7 +234,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static NotificationCompat.Builder
     getNotificationHandler(Context context, Cursor cursor,
                            List<NotificationCompat.MessagingStyle.Message> customMessages,
-                           Intent replyBroadcastIntent, int smsId){
+                           Intent replyBroadcastIntent, int smsId, String threadId){
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.CHANNEL_ID))
                 .setDefaults(Notification.DEFAULT_ALL)
@@ -243,6 +243,22 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE);
+
+        String markAsReadLabel = context.getResources().getString(R.string.notifications_mark_as_read_label);
+
+        Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+        markAsReadIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+        markAsReadIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.MARK_AS_READ_BROADCAST_INTENT);
+
+        PendingIntent markAsReadPendingIntent =
+                PendingIntent.getBroadcast(context, smsId,
+                        markAsReadIntent,
+                        PendingIntent.FLAG_MUTABLE);
+
+        NotificationCompat.Action markAsReadAction = new NotificationCompat.Action.Builder(null,
+                markAsReadLabel, markAsReadPendingIntent)
+                .build();
+        builder.addAction(markAsReadAction);
 
         if(replyBroadcastIntent != null) {
             PendingIntent replyPendingIntent =
@@ -255,10 +271,12 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     .setLabel(replyLabel)
                     .build();
 
-            NotificationCompat.Action action = new NotificationCompat.Action.Builder(null, replyLabel, replyPendingIntent)
+            NotificationCompat.Action replyAction = new NotificationCompat.Action.Builder(null,
+                    replyLabel, replyPendingIntent)
                     .addRemoteInput(remoteInput)
                     .build();
-            builder.addAction(action);
+
+            builder.addAction(replyAction);
         }
 
         Person person = new Person.Builder()

@@ -832,7 +832,7 @@ public class SMSHandler {
         }
     }
 
-    public static int updateThreadMessagesThread(Context context, String threadId) {
+    public static int updateMarkThreadMessagesAsRead(Context context, String threadId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");
         try {

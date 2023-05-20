@@ -18,7 +18,7 @@ Incoming
 --------
 1. Notifications:
 	- Mark as read from notification
-	- Add reply from notifications bar
+	- [w]Add reply from notifications bar [R]
 	- Retry routing messages
 
 2. Routing

@@ -36,6 +36,7 @@ import java.util.List;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
     public static String REPLY_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".REPLY_BROADCAST_ACTION";
+    public static String MARK_AS_READ_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".MARK_AS_READ_BROADCAST_ACTION";
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(getClass().getName(), "Received manifest broadcast now: " + intent.getAction());
@@ -71,7 +72,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                             receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
                     NotificationCompat.Builder builder = IncomingTextSMSBroadcastReceiver
                             .getNotificationHandler(context, cursor, messages, intent,
-                                    Integer.parseInt(String.valueOf(messageId)))
+                                    Integer.parseInt(String.valueOf(messageId)), threadId)
                                     .setContentIntent(pendingReceivedSmsIntent);
                     cursor.close();
 
@@ -82,6 +83,16 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        }
+        else if(intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
+            String threadId = intent.getStringExtra(SMSSendActivity.THREAD_ID);
+            try {
+                SMSHandler.updateMarkThreadMessagesAsRead(context, threadId);
+                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+                notificationManager.cancel(Integer.parseInt(threadId));
+            } catch(Exception e) {
+                e.printStackTrace();
             }
         }
         else if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT)) {

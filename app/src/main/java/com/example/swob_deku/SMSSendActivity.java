@@ -296,7 +296,7 @@ public class SMSSendActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-               int updatedCount = SMSHandler.updateThreadMessagesThread(getApplicationContext(), threadId);
+               int updatedCount = SMSHandler.updateMarkThreadMessagesAsRead(getApplicationContext(), threadId);
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Updating read for threadID: " + threadId + "->"+ updatedCount);
             }
