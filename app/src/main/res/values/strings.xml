@@ -62,6 +62,8 @@
         New message
     </string>
 
+    <string name="notifications_reply_label">Reply</string>
+
     <string name="notification_title_new_photo">
         Photo
     </string>

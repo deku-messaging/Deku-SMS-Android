@@ -1,4 +1,4 @@
-package com.example.swob_deku;
+package com.example.swob_deku.BroadcastReceivers;
 
 import android.app.Activity;
 import android.app.Notification;
@@ -13,11 +13,10 @@ import android.telephony.SmsMessage;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.StyleSpan;
-import android.util.Base64;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.RemoteInput;
 import androidx.room.Room;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
@@ -27,6 +26,7 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
+import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.Datastore;
@@ -37,70 +37,74 @@ import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
+import com.example.swob_deku.R;
+import com.example.swob_deku.SMSSendActivity;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class BroadcastSMSTextActivity extends BroadcastReceiver {
+public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     Context context;
 
     public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
     public static final String TAG_ROUTING_URL = "swob.work.route.url,";
     public static final String TAG_WORKER_ID = "swob.work.id.";
 
+    // Key for the string that's delivered in the action's intent.
+    public static final String KEY_TEXT_REPLY = "key_text_reply";
+
+    public static String SMS_SENT_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SMS_SENT_BROADCAST_INTENT";
+    public static String SMS_DELIVERED_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
 
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
-            switch (getResultCode()) {
-                case Activity.RESULT_OK:
-                    StringBuffer messageBuffer = new StringBuffer();
-                    String address = new String();
+            if (getResultCode() == Activity.RESULT_OK) {
+                StringBuffer messageBuffer = new StringBuffer();
+                String address = new String();
 
-                    for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                        // TODO: Fetch address name from contact list if present
-                        address = currentSMS.getDisplayOriginatingAddress();
-                        String displayMessage = currentSMS.getDisplayMessageBody();
-                        displayMessage = displayMessage == null ?
-                                new String(currentSMS.getUserData(), StandardCharsets.UTF_8) :
-                                displayMessage;
-                        messageBuffer.append(displayMessage);
-                    }
+                for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
+                    // TODO: Fetch address name from contact list if present
+                    address = currentSMS.getDisplayOriginatingAddress();
+                    String displayMessage = currentSMS.getDisplayMessageBody();
+                    displayMessage = displayMessage == null ?
+                            new String(currentSMS.getUserData(), StandardCharsets.UTF_8) :
+                            displayMessage;
+                    messageBuffer.append(displayMessage);
+                }
 
-                    String message = messageBuffer.toString();
-                    final String finalAddress = address;
+                String message = messageBuffer.toString();
+                final String finalAddress = address;
 
-                    long messageId = -1;
-                    try {
-                        messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message);
+                long messageId = -1;
+                try {
+                    messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                long finalMessageId = messageId;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendNotification(context, null, finalAddress, finalMessageId);
                     }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    long finalMessageId = messageId;
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            sendNotification(context, null, finalAddress, finalMessageId);
+                }).start();
+                final String messageFinal = message;
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            createWorkForMessage(finalAddress, messageFinal, finalMessageId);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    }).start();
-                    final String messageFinal = message;
-
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                createWorkForMessage(finalAddress, messageFinal, finalMessageId);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }).start();
-                    break;
+                    }
+                }).start();
             }
         }
     }
@@ -160,7 +164,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
         }).start();
     }
 
-    public static void sendNotification(Context context, String text, String address, long messageId) {
+    public static void sendNotification(Context context, String text, final String address, long messageId) {
         Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
 
         receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
@@ -215,7 +219,25 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
             PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
                     Integer.parseInt(sms.getThreadId()),
                     receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
-//                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+            String replyLabel = context.getResources().getString(R.string.notifications_reply_label);
+            RemoteInput remoteInput = new RemoteInput.Builder(KEY_TEXT_REPLY)
+                    .setLabel(replyLabel)
+                    .build();
+
+            Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+            replyBroadcastIntent.putExtra(SMSSendActivity.ADDRESS, address);
+            replyBroadcastIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_BROADCAST_INTENT);
+
+            PendingIntent replyPendingIntent =
+                    PendingIntent.getBroadcast(context, Integer.parseInt(sms.getId()),
+                            replyBroadcastIntent,
+                            PendingIntent.FLAG_MUTABLE);
+
+            NotificationCompat.Action action = new NotificationCompat.Action.Builder(null, replyLabel, replyPendingIntent)
+                    .addRemoteInput(remoteInput)
+                    .build();
+
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
             NotificationCompat.Builder builder = new NotificationCompat.Builder(
                     context, context.getString(R.string.CHANNEL_ID))
@@ -224,6 +246,7 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
                     .setContentIntent(pendingReceivedSmsIntent)
                     .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                     .setAutoCancel(true)
+                    .addAction(action)
                     .setPriority(NotificationCompat.PRIORITY_MAX)
                     .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
@@ -235,6 +258,8 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
             }
             builder.setStyle(messagingStyle);
 
+
+
             /**
              * TODO: Using the same ID leaves notifications updated (not appended).
              * TODO: Recommendation: use groups for notifications to allow for appending them.
@@ -243,5 +268,28 @@ public class BroadcastSMSTextActivity extends BroadcastReceiver {
 //            notificationManager.notify(Integer.parseInt(sms.id), builder.build());
         }
         cursor.close();
+    }
+
+
+    public static PendingIntent[] getPendingIntents(Context context, long messageId) {
+        Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
+        sentIntent.setPackage(context.getPackageName());
+        sentIntent.putExtra(SMSSendActivity.ID, messageId);
+
+        Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
+        deliveredIntent.setPackage(context.getPackageName());
+        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
+
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
+                Integer.parseInt(String.valueOf(messageId)),
+                sentIntent,
+                PendingIntent.FLAG_IMMUTABLE);
+
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
+                Integer.parseInt(String.valueOf(messageId)),
+                deliveredIntent,
+                PendingIntent.FLAG_IMMUTABLE);
+
+        return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
     }
 }

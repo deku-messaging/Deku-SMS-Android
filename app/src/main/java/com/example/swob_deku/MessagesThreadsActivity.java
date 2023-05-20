@@ -32,6 +32,7 @@ import android.view.ViewConfiguration;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
@@ -72,7 +73,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             return;
         }
 
-//        cancelAllNotifications();
+        cancelAllNotifications();
         toolbar = findViewById(R.id.messages_threads_toolbar);
         setSupportActionBar(toolbar);
         // Get a support ActionBar corresponding to this toolbar
@@ -516,6 +517,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges();
+                cancelAllNotifications();
             }
         };
 
@@ -523,6 +525,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges();
+                cancelAllNotifications();
             }
         };
 
@@ -530,7 +533,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
 
         registerReceiver(incomingDataBroadcastReceiver,
-                new IntentFilter(BroadcastSMSDataActivity.DATA_BROADCAST_INTENT));
+                new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT));
     }
 
     @Override

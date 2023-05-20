@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:enabled="true"
@@ -97,7 +98,7 @@
         </activity>
 
         <receiver
-            android:name=".BroadcastSMSDataActivity"
+            android:name=".BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -109,7 +110,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BroadcastSMSTextActivity"
+            android:name=".BroadcastReceivers.IncomingTextSMSBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -120,7 +121,7 @@
             </intent-filter>
         </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
         <receiver
-            android:name=".MMSReceiverActivity"
+            android:name=".BroadcastReceivers.MMSReceiverBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter>
@@ -144,6 +145,18 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
+
+        <receiver
+            android:name=".BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

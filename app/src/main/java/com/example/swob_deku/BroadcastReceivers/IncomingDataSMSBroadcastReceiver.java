@@ -1,4 +1,4 @@
-package com.example.swob_deku;
+package com.example.swob_deku.BroadcastReceivers;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -8,6 +8,7 @@ import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
+import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
@@ -20,7 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-public class BroadcastSMSDataActivity extends BroadcastReceiver {
+public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
     public static String DATA_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION" ;
 
@@ -71,7 +72,7 @@ public class BroadcastSMSDataActivity extends BroadcastReceiver {
                                 strMessage + SecurityHelpers.END_HEADER;
 
                         messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
-                        BroadcastSMSTextActivity.sendNotification(context, notificationNote, address, messageId);
+                        IncomingTextSMSBroadcastReceiver.sendNotification(context, notificationNote, address, messageId);
                         broadcastIntent(context);
                     }
 

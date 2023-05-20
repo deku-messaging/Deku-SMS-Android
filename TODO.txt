@@ -1,7 +1,8 @@
 Inbox:
 ------
 1. Security
-	- Encrypt all incoming and outgoing messages and store seperately from default messaging inbox
+	- Encrypt all incoming and outgoing messages and store seperately 
+		from default messaging inbox
 	- Add ability to decrypt messages that have been encrypted
 	- Disable screenshots
 	- Enable ability to lock app
@@ -18,6 +19,7 @@ Incoming
 1. Notifications:
 	- Mark as read from notification
 	- Add reply from notifications bar
+	- Retry routing messages
 
 2. Routing
 	- Modify gateway servers
@@ -31,6 +33,10 @@ Outgoing
 	- Enable message scheduling
 	- Share contacts attachements (VCards??)
 	- Show encrypted version of message in real time
+2. Images
+	[Notes] - Resolution is more important to quality than compression
+	[Notes] - Compression just makes things bigger without gain in 
+			quality if resolution is too small
 
 
 Global features:

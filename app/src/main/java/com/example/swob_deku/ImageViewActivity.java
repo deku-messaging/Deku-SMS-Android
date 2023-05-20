@@ -270,8 +270,6 @@ public class ImageViewActivity extends AppCompatActivity {
         compressedBytes = ImageHandler.extractContainerInformation(compressedBytes);
         Log.d(getLocalClassName(), "After ICCP extraction: " + compressedBytes.length);
 
-        imageHandler.bitmap.recycle();
-
         Bitmap compressedBitmap = BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.length);
         imageView.setImageBitmap(compressedBitmap);
 

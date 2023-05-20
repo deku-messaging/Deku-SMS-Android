@@ -14,7 +14,6 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -26,14 +25,12 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
-import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -46,11 +43,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ExpandableListAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
+import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
@@ -78,11 +76,8 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import io.michaelrocks.libphonenumber.android.PhoneNumberUtil;
 
 public class SMSSendActivity extends AppCompatActivity {
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
@@ -112,6 +107,7 @@ public class SMSSendActivity extends AppCompatActivity {
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 200;
     private final int RESULT_GALLERY = 100;
 
+
     String threadId = "";
     String address = "";
     String unformattedAddress = "";
@@ -126,6 +122,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
     BroadcastReceiver incomingDataBroadcastReceiver;
     BroadcastReceiver incomingBroadcastReceiver;
+
+    BroadcastReceiver messageStateChangedBroadcast;
 
     private String abSubtitle = "";
 
@@ -145,6 +143,8 @@ public class SMSSendActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
+
+        handleBroadcast();
 
         if(!checkIsDefaultApp()) {
             startActivity(new Intent(this, DefaultCheckActivity.class));
@@ -391,36 +391,14 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void processForSharedIntent() throws NumberParseException {
-//        String indentAction = getIntent().getAction();
-//
-//        if(BuildConfig.DEBUG)
-//            Log.d(getLocalClassName(), "Processing shared..." + indentAction);
-
         if(getIntent().getAction() != null && getIntent().getAction().equals(Intent.ACTION_SENDTO) ){
             String sendToString = getIntent().getDataString();
 
             if(BuildConfig.DEBUG)
                 Log.d("", "Processing shared #: " + sendToString);
-
-//            sendToString = sendToString.replace("%2B", "+")
-//                            .replace("%20", "");
-//            sendToString = Helpers.formatPhoneNumbers(sendToString);
-
             if(sendToString.contains("smsto:") || sendToString.contains("sms:")) {
                unformattedAddress = sendToString.substring(sendToString.indexOf(':') + 1);
-//               address = Helpers.formatPhoneNumbers(address);
                String text = getIntent().getStringExtra("sms_body");
-               // TODO: should inform view about data being available
-//               if(getIntent().hasExtra(Intent.EXTRA_INTENT)) {
-//                   byte[] bytesData = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
-//                   if (bytesData != null) {
-//                       Log.d(getClass().getName(), "Byte data: " + bytesData);
-//                       Log.d(getClass().getName(), "Byte data: " + new String(bytesData, StandardCharsets.UTF_8));
-//
-//                       text = new String(bytesData, StandardCharsets.UTF_8);
-//                       getIntent().putExtra(Intent.EXTRA_INTENT, getIntent().getByteArrayExtra(Intent.EXTRA_INTENT));
-//                   }
-//               }
 
                if(text != null && !text.isEmpty()) {
                    smsTextView.setText(text);
@@ -468,79 +446,21 @@ public class SMSSendActivity extends AppCompatActivity {
                 new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
 
         registerReceiver(incomingDataBroadcastReceiver,
-                new IntentFilter(BroadcastSMSDataActivity.DATA_BROADCAST_INTENT));
+                new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT));
     }
 
     public void handleBroadcast() {
 //        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
 
-        BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
+        messageStateChangedBroadcast = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
-                long id = intent.getLongExtra(ID, -1);
-
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Broadcast received for sent: " + id);
-
-                switch(getResultCode()) {
-                    case Activity.RESULT_OK:
-                        try {
-                            SMSHandler.registerSentMessage(getApplicationContext(), id);
-                        }
-                        catch(Exception e) {
-                            e.printStackTrace();
-                        }
-                        break;
-
-                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                    case SmsManager.RESULT_ERROR_NO_SERVICE:
-                    case SmsManager.RESULT_ERROR_NULL_PDU:
-                    case SmsManager.RESULT_ERROR_RADIO_OFF:
-                    default:
-                        try {
-                            SMSHandler.registerFailedMessage(context, id, getResultCode());
-                        } catch(Exception e) {
-                            e.printStackTrace();
-                        }
-
-                        if(BuildConfig.DEBUG) {
-                            Log.d(getLocalClassName(), "Failed to send: " + getResultCode());
-                            Log.d(getLocalClassName(), "Failed to send: " + getResultData());
-                            Log.d(getLocalClassName(), "Failed to send: " + intent.getData());
-                        }
-                }
-
-//                if(singleMessageViewModel.getLastUsedKey() == 0)
-//                    singleMessagesThreadRecyclerAdapter.refresh();
-
                 singleMessageViewModel.informNewItemChanges();
-                unregisterReceiver(this);
             }
         };
 
-        BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                long id = intent.getLongExtra(ID, -1);
-
-                if (getResultCode() == Activity.RESULT_OK) {
-                    SMSHandler.registerDeliveredMessage(context, id);
-                } else {
-                    if (BuildConfig.DEBUG)
-                        Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
-                }
-
-//                if(singleMessageViewModel.getLastUsedKey() == 0)
-//                    singleMessagesThreadRecyclerAdapter.refresh();
-
-                singleMessageViewModel.informNewItemChanges();
-                unregisterReceiver(this);
-            }
-        };
-
-        registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
-        registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
-
+        registerReceiver(messageStateChangedBroadcast,
+                new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
     }
 
     public void cancelNotifications(String threadId) {
@@ -549,24 +469,6 @@ public class SMSSendActivity extends AppCompatActivity {
 
         if(!threadId.isEmpty())
             notificationManager.cancel(Integer.parseInt(threadId));
-    }
-
-    public static PendingIntent[] getPendingIntents(Context context, long messageId) {
-        Intent sentIntent = new Intent(SMS_SENT_INTENT);
-        sentIntent.putExtra(SMSSendActivity.ID, messageId);
-
-        Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
-        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
-
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)), sentIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
-
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)), deliveredIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
-
-        return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
     }
 
     public void sendTextMessage(View view) {
@@ -632,9 +534,10 @@ public class SMSSendActivity extends AppCompatActivity {
             if(messageId == null)
                 messageId = Helpers.generateRandomNumber();
 
-            PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
+            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
+                    getApplicationContext(), messageId);
 
-            handleBroadcast();
+//            handleBroadcast();
 
             String tmpThreadId = null;
             if(securityECDH.hasSecretKey(address)) {
@@ -780,10 +683,6 @@ public class SMSSendActivity extends AppCompatActivity {
                 spannable, BaseTransientBottomBar.LENGTH_INDEFINITE);
 
         View snackbarView = snackbar.getView();
-//            Snackbar.SnackbarLayout snackbarLayout = (Snackbar.SnackbarLayout) snackbarView;
-//            LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-//            View customView = inflater.inflate(R.layout.layout_security_snackbar, this.);
-//            snackbarLayout.addView(customView, 0);
 
         snackbar.setTextColor(textColor);
 
@@ -812,9 +711,10 @@ public class SMSSendActivity extends AppCompatActivity {
 
     private void rxKeys(byte[] txAgreementKey, long messageId, int subscriptionId){
         try {
-            PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
+            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
+                    getApplicationContext(), messageId);
 
-            handleBroadcast();
+//            handleBroadcast();
             SMSHandler.sendDataSMS(getApplicationContext(),
                     address,
                     txAgreementKey,
@@ -1069,6 +969,9 @@ public class SMSSendActivity extends AppCompatActivity {
 
         if(incomingDataBroadcastReceiver != null)
             unregisterReceiver(incomingDataBroadcastReceiver);
+
+        if(messageStateChangedBroadcast != null)
+            unregisterReceiver(messageStateChangedBroadcast);
     }
 
     public void onLongClickSend(View view) {
