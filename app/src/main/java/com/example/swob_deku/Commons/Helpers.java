@@ -143,11 +143,16 @@ public class Helpers {
     public static boolean isBase64Encoded(String input) {
         try {
             byte[] decodedBytes = Base64.decode(input, Base64.DEFAULT);
-            String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
-            String reencodedString = Base64.encodeToString(
-                    decodedString.getBytes(StandardCharsets.UTF_8), Base64.DEFAULT)
+//            String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
+
+//            Log.d(Helpers.class.getName(), "De-Encoded string: " + decodedString);
+
+            String reencodedString = Base64.encodeToString(decodedBytes, Base64.DEFAULT)
                             .replaceAll("\\n", "");
-            return input.equals(reencodedString);
+
+            Log.d(Helpers.class.getName(), "Re-Encoded string: " + reencodedString);
+
+            return input.replaceAll("\\n", "").equals(reencodedString);
         } catch (Exception e) {
             return false;
         }
