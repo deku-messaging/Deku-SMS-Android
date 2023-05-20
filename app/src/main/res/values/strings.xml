@@ -32,8 +32,14 @@
     <string name="send_sms_activity_user_not_secure">
         Your communications with [insert name] is not secure.\nWould you like to send a request to begin a secure conversation with [insert name]?
     </string>
+    <string name="send_sms_activity_user_not_secure_pending">
+        Your request to [insert name] is still pending their approval.\nWould you like to send another request to begin a secure conversation?
+    </string>
     <string name="send_sms_activity_user_not_secure_no_agreed">
         [insert name] has requested to secure this conversation.\nWould you like to respond to them?
+    </string>
+    <string name="send_sms_activity_user_not_secure_agree">
+        [insert name] has agreed to secure this conversation.\nClick confirm to begin encrypting your outgoing messages.
     </string>
 
     <string name="send_sms_activity_user_not_secure_yes">
@@ -89,9 +95,12 @@
 
     <string name="settings_title">Settings</string>
     <string name="settings_security_category_title">Security</string>
-    <string name="settings_security_category_end_to_end_encryption">End-to-End Encryption</string>
-    <string name="settings_security_category_end_to_end_encryption_summary">Configure your end-to-end encryption.</string>
-    <string name="settings_security_category_end_to_end_duration">End-to-End duration</string>
+    <string name="settings_security_category_end_to_end_encryption">Communication Encryption</string>
+    <string name="settings_security_category_end_to_end_encryption_summary">Configure how you encryption work. Where you also go to disable encryption</string>
+    <string name="settings_security_category_end_to_end_duration">Allow request for encryption to expire</string>
+    <string name="settings_security_category_end_to_end_disable">Disable request to secure messages</string>
+    <string name="settings_security_category_end_to_end_disable_summary">Will not affect contacts you are already communicating securely with, but you will not be asked to secure communications with other contacts</string>
+    <string name="settings_security_category_end_to_end_duration_summary">When enabled, encryption request sent to contacts would expire after <b>1 hour</b> of not being agreed.</string>
 
     <string name="settings_SMS_routing_title">SMS routing</string>
     <string name="settings_SMS_routing_SMSWithoutBorders">SMSWithoutBorders</string>

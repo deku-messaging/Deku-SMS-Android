@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.Uri;
@@ -758,7 +759,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
-    private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor) {
+    private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor, Integer textColor) {
         String insertDetails = contactName.isEmpty() ? address : contactName;
         insertDetails = insertDetails.replaceAll("\\+", "");
         String insertText = text.replaceAll("\\[insert name\\]", insertDetails);
@@ -782,15 +783,15 @@ public class SMSSendActivity extends AppCompatActivity {
 //            View customView = inflater.inflate(R.layout.layout_security_snackbar, this.);
 //            snackbarLayout.addView(customView, 0);
 
-        snackbar.setTextColor(getResources().getColor(R.color.default_gray, getTheme()));
+        snackbar.setTextColor(textColor);
 
         if(bgColor == null)
             bgColor = getResources().getColor(R.color.primary_warning_background_color,
                     getTheme());
 
         snackbar.setBackgroundTint(bgColor);
-        snackbar.setTextMaxLines(4);
-        snackbar.setActionTextColor(getResources().getColor(R.color.white, getTheme()));
+        snackbar.setTextMaxLines(10);
+        snackbar.setActionTextColor(textColor);
         snackbar.setAction(actionText, onClickListener);
         snackbar.getView().setOnClickListener(new View.OnClickListener() {
             @Override
@@ -832,11 +833,13 @@ public class SMSSendActivity extends AppCompatActivity {
         Log.d(getLocalClassName(), "Has private key: " + securityECDH.hasPrivateKey(address));
 
         if(securityECDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
-            String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
+            String text = securityECDH.hasPrivateKey(address) ?
+                    getString(R.string.send_sms_activity_user_not_secure_agree):
+                    getString(R.string.send_sms_activity_user_not_secure_no_agreed);
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
 
             // TODO: change bgColor to match the intended use
-            Integer bgColor = getResources().getColor(R.color.purple_200, getTheme());
+            Integer bgColor = getResources().getColor(R.color.highlight_yellow, getTheme());
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -908,7 +911,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
 
             // TODO: check if has private key
-            lunchSnackBar(text, actionText, onClickListener, bgColor);
+            lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -919,7 +922,15 @@ public class SMSSendActivity extends AppCompatActivity {
         }
         else if(!securityECDH.hasEncryption(address)) {
 
+            int textColor = Color.WHITE;
+            Integer bgColor = getResources().getColor(R.color.failed_red, getTheme());
             String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
+
+            if(securityECDH.hasPrivateKey(address)) {
+                bgColor = getResources().getColor(R.color.purple_200, getTheme());
+                conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure_pending);
+                textColor = Color.BLACK;
+            }
 
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
 
@@ -953,6 +964,7 @@ public class SMSSendActivity extends AppCompatActivity {
                             public void run() {
                                 try {
                                     rxKeys(txAgreementKey, messageId, subscriptionId);
+                                    checkEncryptedMessaging();
                                 } catch(Exception e) {
                                                  e.printStackTrace();
                                                  }
@@ -965,7 +977,8 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             };
 
-            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, null);
+//            Integer bgColor = null;
+            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, textColor);
 
             runOnUiThread(new Runnable() {
                 @Override

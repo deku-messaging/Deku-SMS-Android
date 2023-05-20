@@ -1,9 +1,12 @@
 Inbox:
 ------
 1. Security
-	- Encrypt all incoming and outgoing messages 
+	- Encrypt all incoming and outgoing messages and store seperately from default messaging inbox
 	- Add ability to decrypt messages that have been encrypted
 	- Disable screenshots
+	- Enable ability to lock app
+	- Enable ability to lock messages
+	- Lock ability to change security settings
 
 	- *Disable encryption notice
 
@@ -19,7 +22,7 @@ Incoming
 
 2. Routing
 	- Modify gateway servers
-	- Delete dateway servers
+	- Delete gateway servers
 	- Enable GET methods for routing
 	- [w]Enable "All" routing [R]
 
@@ -28,6 +31,7 @@ Outgoing
 1. UX
 	- Enable message scheduling
 	- Share contacts attachements (VCards??)
+	- Show encrypted version of message in real time
 
 
 Global features:
