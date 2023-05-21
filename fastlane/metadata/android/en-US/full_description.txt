@@ -1,0 +1,14 @@
+Deku SMS is a feature-rich, open-source default SMS app designed to enhance your messaging experience while prioritizing your privacy and security. With Deku SMS, you can seamlessly send and receive end-to-end encrypted SMS messages, ensuring that your conversations remain confidential.
+
+One of the standout features of Deku SMS is its ability to send images over SMS. This is our experimental feature which allows you to share memorable moments or funny pictures. Our goal for this feature is to help communication in areas with limited connectivity but require the need for communicating important documents or images.
+
+In addition to its privacy and multimedia capabilities, Deku SMS enables users with the option to configure the app to forward their SMS messages to their online servers. This convenient feature ensures that you can access your messages even when you're away from your device, providing you with greater flexibility and convenience in managing your conversations.
+
+Key Features:
+- End-to-end encryption: Protect your SMS conversations with robust encryption, giving you peace of mind that your messages are secure.
+- Image sharing: Easily send and receive images over SMS, making your conversations more engaging and expressive.
+- Message forwarding: Configure the app to forward your SMS messages to your online servers, allowing you to access your messages from any device.
+
+Deku SMS is an open-source project, and we believe in the power of community collaboration. We encourage developers and enthusiasts to explore our codebase on GitHub, where they can contribute to the app's development and customization. We greatly appreciate stars, pull requests, forks and issues. This will greatly help improve the experience for everyone.
+
+Visit our GitHub repository at: https://github.com/deku-messaging/Deku-SMS-Android
