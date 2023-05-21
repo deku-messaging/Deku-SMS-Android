@@ -832,6 +832,13 @@ public class SMSHandler {
         }
     }
 
+    public static String calculateSMS(String message) {
+        int numberOfMessages = (int) Math.ceil(message.length() / 140f);
+        int sizeIntoNewMessage = (140 * numberOfMessages) - message.length();
+
+        return sizeIntoNewMessage + "/" + numberOfMessages;
+    }
+
     public static int updateMarkThreadMessagesAsRead(Context context, String threadId) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Telephony.TextBasedSmsColumns.READ, "1");

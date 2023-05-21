@@ -35,6 +35,7 @@ import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
+import android.text.method.ScrollingMovementMethod;
 import android.text.style.StyleSpan;
 import android.util.Base64;
 import android.util.Log;
@@ -334,7 +335,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
     }
 
-    private void improveMessagingUX() {
+    private void improveMessagingUX() throws GeneralSecurityException, IOException {
         smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -349,7 +350,10 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         });
 
+        TextView encryptedMessageTextView = findViewById(R.id.send_sms_encrypted_version);
+        encryptedMessageTextView.setMovementMethod(new ScrollingMovementMethod());
 
+        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
         smsTextView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -363,6 +367,24 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 mutableLiveDataComposeMessage.setValue(s.toString());
+
+                try {
+                    if(!s.toString().isEmpty() && securityECDH.hasSecretKey(address)) {
+                        String stats = SMSHandler.calculateSMS(s.toString());
+                        String displayedString = s + "\n\n" + stats;
+
+                        encryptedMessageTextView.setVisibility(View.VISIBLE);
+                        encryptedMessageTextView.setText(displayedString);
+                        if(encryptedMessageTextView.getLayout() != null)
+                            encryptedMessageTextView.scrollTo(0,
+                                    encryptedMessageTextView.getLayout().getLineTop(
+                                            encryptedMessageTextView.getLineCount()) - encryptedMessageTextView.getHeight());
+                    } else {
+                        encryptedMessageTextView.setVisibility(View.GONE);
+                    }
+                } catch (GeneralSecurityException | IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 
@@ -618,7 +640,11 @@ public class SMSSendActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        improveMessagingUX();
+        try {
+            improveMessagingUX();
+        } catch (GeneralSecurityException | IOException e) {
+            throw new RuntimeException(e);
+        }
         ab.setTitle(contactName);
 
         new Thread(new Runnable() {
