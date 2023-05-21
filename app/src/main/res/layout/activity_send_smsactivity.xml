@@ -95,6 +95,22 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent">
 
+                        <TextView
+                            android:id="@+id/send_sms_encrypted_version"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:maxLines="7"
+                            android:scrollbars="vertical"
+                            android:textColor="@color/secondary_text_color"
+                            android:textSize="16sp"
+                            android:visibility="gone"
+                            android:verticalScrollbarPosition="defaultPosition"
+                            app:layout_constraintEnd_toEndOf="@+id/send_text"
+                            app:layout_constraintStart_toStartOf="@+id/send_text"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+
                         <ImageButton
                             android:id="@+id/image_upload_btn"
                             android:layout_width="wrap_content"
@@ -116,8 +132,6 @@
                             android:layout_marginStart="4dp"
                             android:layout_marginEnd="8dp"
                             android:layout_marginBottom="5dp"
-                            android:backgroundTint="@color/received_message_color"
-                            android:backgroundTintMode="add"
                             android:fontFamily="sans-serif-thin"
                             android:hint="Text Message"
                             app:boxCornerRadiusBottomStart="12dp"
@@ -128,10 +142,11 @@
                             app:endIconMode="custom"
                             app:hintAnimationEnabled="true"
                             app:hintEnabled="true"
+                            app:hintTextColor="@color/received_message_color"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@+id/sms_send_button"
                             app:layout_constraintStart_toEndOf="@+id/image_upload_btn"
-                            app:layout_constraintTop_toTopOf="parent">
+                            app:layout_constraintTop_toBottomOf="@id/send_sms_encrypted_version">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/sms_text"

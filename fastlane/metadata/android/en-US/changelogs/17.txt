@@ -1,0 +1,4 @@
+- New ability for users to remove encryption notifications
+- Incoming notifications can now be mark as read or replied to directly from the notification itself
+- Routing incoming messages can now be done better with base64 or all messages depending on settings
+- Encryption versions of messages can now be displayed in real time as the user types them

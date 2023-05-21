@@ -1,34 +1,23 @@
 package com.example.swob_deku.Models.Messages;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
 import android.provider.Telephony;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.AsyncListDiffer;
-import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
@@ -46,7 +35,7 @@ import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.RouterActivity;
-import com.example.swob_deku.BroadcastSMSTextActivity;
+import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.SMSSendActivity;
 
 
@@ -58,9 +47,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-
-import io.getstream.avatarview.AvatarView;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
 
@@ -277,6 +263,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         }
         else {
             holder.routingURLText.setVisibility(View.GONE);
+            holder.routingUrl.setVisibility(View.GONE);
         }
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -385,7 +372,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     private void workManagerFactories() {
 
         WorkQuery workQuery = WorkQuery.Builder
-                .fromTags(Collections.singletonList(BroadcastSMSTextActivity.TAG_NAME))
+                .fromTags(Collections.singletonList(IncomingTextSMSBroadcastReceiver.TAG_NAME))
                 .addStates(Arrays.asList(
                         WorkInfo.State.ENQUEUED,
                         WorkInfo.State.FAILED,

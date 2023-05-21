@@ -28,7 +28,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/gateway_client_add" />
+        app:menu="@menu/gateway_client_add_menu" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/gateway_server_listing_recycler_view"

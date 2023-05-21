@@ -4,7 +4,6 @@
     <item
         android:id="@+id/add_gateway_server"
         android:icon="@drawable/ic_round_add_circle_outline_24"
-        android:iconTint="@color/white"
         android:title="add"
         app:showAsAction="always" />
 

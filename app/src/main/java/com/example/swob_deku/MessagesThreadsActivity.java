@@ -32,6 +32,7 @@ import android.view.ViewConfiguration;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
@@ -72,7 +73,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             return;
         }
 
-//        cancelAllNotifications();
+        cancelAllNotifications();
         toolbar = findViewById(R.id.messages_threads_toolbar);
         setSupportActionBar(toolbar);
         // Get a support ActionBar corresponding to this toolbar
@@ -166,12 +167,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 }
             }
         });
-        searchTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
-            }
-        });
+//        searchTextView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
+//            }
+//        });
 
         TextInputLayout searchTextViewLayout = findViewById(R.id.search_messages_text_clickable);
         searchTextViewLayout.setEndIconOnClickListener(new View.OnClickListener() {
@@ -181,14 +182,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        if (item.getItemId() == R.id.messages_threads_menu_item_settings) {
-                            Intent settingsIntent = new Intent(getApplicationContext(),
-                                    GatewayServerListingActivity.class);
-                            settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(settingsIntent);
-                            return true;
-                        }
-                        else if (item.getItemId() == R.id.messages_threads_menu_item_archived) {
+                        if (item.getItemId() == R.id.messages_threads_menu_item_archived) {
                             Intent archivedIntent = new Intent(getApplicationContext(),
                                     ArchivedMessagesActivity.class);
                             archivedIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -196,7 +190,14 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                             return true;
                         }
                         else if (item.getItemId() == R.id.messages_threads_menu_item_routed) {
-                            startActivity(new Intent(getApplicationContext(), RouterActivity.class));
+                            Intent routingIntent = new Intent(getApplicationContext(), RouterActivity.class);
+                            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(routingIntent);
+                        }
+                        else if (item.getItemId() == R.id.messages_threads_settings) {
+                            Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
+                            settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(settingsIntent);
                         }
                         return false;
                     }
@@ -374,7 +375,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     if(cursor.moveToFirst()) {
                         SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
                         String address = new SMS(cursor).getAddress();
-                        securityECDH.removeAllKeys(Helpers.formatPhoneNumbers(address));
+                        securityECDH.removeAllKeys(Helpers.formatPhoneNumbers(getApplicationContext(), address));
                         SMSHandler.deleteThread(getApplicationContext(), threadId);
                     }
                     cursor.close();
@@ -516,6 +517,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges();
+                cancelAllNotifications();
             }
         };
 
@@ -523,6 +525,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges();
+                cancelAllNotifications();
             }
         };
 
@@ -530,7 +533,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
 
         registerReceiver(incomingDataBroadcastReceiver,
-                new IntentFilter(BroadcastSMSDataActivity.DATA_BROADCAST_INTENT));
+                new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT));
     }
 
     @Override

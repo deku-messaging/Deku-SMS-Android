@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        app:key="sms_security"
+        app:title="@string/settings_security_category_title">
+        <Preference
+            app:key="security_id_end_to_end_encryption"
+            app:title="@string/settings_security_category_end_to_end_encryption"
+            app:summary="@string/settings_security_category_end_to_end_encryption_summary"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="sms_routing"
+        app:title="@string/settings_SMS_routing_title">
+        <Preference
+            app:key="settings_sms_routing_gateway_clients"
+            app:title="@string/settings_SMS_routing_custom_server"
+            app:summary="@string/settings_SMS_routing_SMSWithoutBorders_summary"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

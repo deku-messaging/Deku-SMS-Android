@@ -22,9 +22,6 @@ import android.widget.Toast;
 
 import java.io.IOException;
 
-import pl.droidsonroids.gif.GifDrawable;
-import pl.droidsonroids.gif.GifImageView;
-
 public class DefaultCheckActivity extends AppCompatActivity {
 
     public static final int READ_SMS_PERMISSION_REQUEST_CODE = 1;

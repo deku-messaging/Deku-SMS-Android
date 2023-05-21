@@ -1,0 +1,55 @@
+Inbox:
+------
+1. Security
+	- Encrypt all incoming and outgoing messages and store seperately 
+		from default messaging inbox
+	- Add ability to decrypt messages that have been encrypted
+	- Disable screenshots
+	- Enable ability to lock app
+	- Enable ability to lock messages
+	- Lock ability to change security settings
+	- [w]*Disable encryption notice [R]
+
+2. UX
+	- Enable ability to copy parts of a message not necessary all
+
+
+Incoming
+--------
+1. Notifications:
+	- [w]Mark as read from notification [R]
+	- [w]Add reply from notifications bar [R]
+
+2. Routing
+	- Modify gateway servers
+	- Delete gateway servers
+	- Enable GET methods for routing
+	- [w]Enable "All" routing [R]
+	- Retry routing messages
+
+Outgoing
+--------
+1. UX
+	- Enable message scheduling
+	- Share contacts attachements (VCards??)
+	- [w] Show encrypted version of message in real time [R]
+2. Images
+	[Notes] - Resolution is more important to quality than compression
+	[Notes] - Compression just makes things bigger without gain in 
+			quality if resolution is too small
+
+
+Global features:
+---------------
+1. Add ability for groups
+2. Add ability for MMS
+3. Add some usability UX at the start of the App
+4. Add some about us details
+
+
+Experimental features:
+-----------------------
+1. Send and receive some other types of files
+2. Audio like voicenotes?
+3. Small Gifs
+4. Reactions to messages

@@ -2,7 +2,6 @@ package com.example.swob_deku.Models.Router;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -11,18 +10,16 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
-import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.BroadcastSMSTextActivity;
+import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 
 public class RouterViewModel extends ViewModel {
     private MutableLiveData<List<SMS>> messagesList;
@@ -83,7 +80,7 @@ public class RouterViewModel extends ViewModel {
 
         WorkQuery workQuery = WorkQuery.Builder
                 .fromTags(Arrays.asList(
-                        BroadcastSMSTextActivity.TAG_NAME))
+                        IncomingTextSMSBroadcastReceiver.TAG_NAME))
                 .addStates(Arrays.asList(
                         WorkInfo.State.SUCCEEDED,
                         WorkInfo.State.ENQUEUED,
@@ -105,11 +102,11 @@ public class RouterViewModel extends ViewModel {
             for(WorkInfo workInfo : workInfoList) {
                 String[] Alltags = Helpers.convertSetToStringArray(workInfo.getTags());
                 for(int i = 0; i< Alltags.length; ++i) {
-                    if (Alltags[i].contains(BroadcastSMSTextActivity.TAG_WORKER_ID)) {
+                    if (Alltags[i].contains(IncomingTextSMSBroadcastReceiver.TAG_WORKER_ID)) {
                         String[] tags = Alltags[i].split("\\.");
                         messageId = tags[tags.length - 1];
                     }
-                    if (Alltags[i].contains(BroadcastSMSTextActivity.TAG_ROUTING_URL)) {
+                    if (Alltags[i].contains(IncomingTextSMSBroadcastReceiver.TAG_ROUTING_URL)) {
                         String[] tags = Alltags[i].split(",");
                         gatewayServerUrl = tags[tags.length - 1];
                     }

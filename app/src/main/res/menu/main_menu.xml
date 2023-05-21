@@ -12,6 +12,6 @@
 
     <item
         android:theme="@style/Theme.main"
-        android:id="@+id/messages_threads_menu_item_settings"
-        android:title="@string/gateway_clients" />
+        android:id="@+id/messages_threads_settings"
+        android:title="@string/settings_title" />
 </menu>

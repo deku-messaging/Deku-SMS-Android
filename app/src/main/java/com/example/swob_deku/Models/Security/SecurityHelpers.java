@@ -54,38 +54,22 @@ public class SecurityHelpers {
 //        return new JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer));
 //    }
 
-    public static byte[][] txAgreementFormatter(byte[] agreementKey) {
+    public static byte[] txAgreementFormatter(byte[] agreementKey) {
         Log.d(SecurityHelpers.class.getName(), "Public key len: " + agreementKey.length);
 
         byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
         byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
 
         int SMS_CONSTANT = 130;
-        int dstLen = SMS_CONSTANT - firstHeader.length;
-        int dstLen1 = agreementKey.length - SMS_CONSTANT;
 
-        byte[] startKey;
-        byte[] endKey;
-
+        byte[] startKey = new byte[agreementKey.length + firstHeader.length + endHeader.length];
         if(agreementKey.length + firstHeader.length + endHeader.length <= SMS_CONSTANT) {
-            startKey = new byte[agreementKey.length + firstHeader.length + endHeader.length];
-            endKey = new byte[0];
             System.arraycopy(firstHeader, 0, startKey, 0, firstHeader.length);
             System.arraycopy(agreementKey, 0, startKey, firstHeader.length, agreementKey.length);
             System.arraycopy(endHeader, 0, startKey, agreementKey.length + firstHeader.length,
                     endHeader.length);
         }
-        else {
-            startKey = new byte[SMS_CONSTANT];
-            endKey = new byte[agreementKey.length - dstLen + endHeader.length];
-            System.arraycopy(firstHeader, 0, startKey, 0, firstHeader.length);
-            System.arraycopy(agreementKey, 0, startKey, firstHeader.length,  dstLen);
-
-            System.arraycopy(endHeader, 0, endKey, 0, endHeader.length);
-            System.arraycopy(agreementKey, dstLen, endKey, endHeader.length,  agreementKey.length-dstLen);
-        }
-
-        return new byte[][]{startKey, endKey};
+        return startKey;
     }
 
     public static byte[] rxAgreementFormatter(byte[][] agreementKey) {

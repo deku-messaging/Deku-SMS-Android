@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreference
+        android:key="encryption_disable"
+        android:title="@string/settings_security_category_end_to_end_disable"
+        android:summary="@string/settings_security_category_end_to_end_disable_summary"
+        android:defaultValue="false"/>
+
+    <SwitchPreference
+        android:key="encryption_expiration_duration"
+        android:title="@string/settings_security_category_end_to_end_duration"
+        android:summary="@string/settings_security_category_end_to_end_duration_summary"
+        android:enabled="false"
+        android:defaultValue="false"/>
+
+</PreferenceScreen>

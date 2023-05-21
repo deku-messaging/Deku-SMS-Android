@@ -53,6 +53,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     private int selectedItemAbsPosition = RecyclerView.NO_POSITION;
     public LiveData<HashMap<String, RecyclerView.ViewHolder>> selectedItem = new MutableLiveData<>();
     MutableLiveData<HashMap<String, RecyclerView.ViewHolder>> mutableSelectedItems = new MutableLiveData<>();
+    public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
 
     public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
 
@@ -168,23 +169,21 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-//        final SMS sms = (SMS) snapshot().get(position);
-        final SMS sms = (SMS) mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
+        final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
+//        final SMS sms = (SMS) mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
         final String smsId = sms.getId();
 
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
-            date = "Today " + dateFormat.format(new Date(Long.parseLong(date)));
+            date = context.getString(R.string.sms_sent_date_today) + " " + dateFormat.format(new Date(Long.parseLong(date)));
         }
         else {
             DateFormat dateFormat = new SimpleDateFormat("EE h:mm a");
             date = dateFormat.format(new Date(Long.parseLong(date)));
         }
 
-        String text = sms.getBody();
-//        text = decompress(text);
-        text = decryptContent(text);
+        final String text = decryptContent(sms.getBody());
 
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
         if(holder instanceof MessageReceivedViewHandler) {
@@ -234,6 +233,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         resetSelectedItem(sms.id, true);
                     else if(selectedItem.getValue() != null ){
                         longClickHighlight(messageReceivedViewHandler, smsId);
+                    } else {
+                        dateView.setVisibility(dateView.getVisibility() == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
                     }
                 }
             });
@@ -262,9 +263,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-//            String text = sms.getBody();
-//            text = decryptContent(text);
-
             if(position != 0) {
                 messageSentViewHandler.date.setVisibility(View.INVISIBLE);
                 messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
@@ -278,15 +276,24 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
             final int status = sms.getStatusCode();
             String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?
-                    "delivered" : "sent";
+                    context.getString(R.string.sms_status_delivered) : context.getString(R.string.sms_status_sent);
 
-            statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_PENDING ?
-                    "sending..." : statusMessage;
+            if(status == Telephony.TextBasedSmsColumns.STATUS_PENDING )
+                statusMessage = context.getString(R.string.sms_status_sending);
+            if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED ) {
+                statusMessage = context.getString(R.string.sms_status_failed);
+                messageSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
+                messageSentViewHandler.date.setVisibility(View.VISIBLE);
+                messageSentViewHandler.sentMessageStatus.setTextColor(
+                        context.getResources().getColor(R.color.failed_red, context.getTheme()));
+                messageSentViewHandler.date.setTextColor(
+                        context.getResources().getColor(R.color.failed_red, context.getTheme()));
+            } else {
+                statusMessage = "• " + statusMessage;
+                messageSentViewHandler.sentMessageStatus.invalidate();
+                messageSentViewHandler.date.invalidate();
+            }
 
-            statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_FAILED ?
-                    "failed!" : statusMessage;
-
-            statusMessage = "• " + statusMessage;
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
 
@@ -318,6 +325,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         resetSelectedItem(sms.id, true);
                     else if(selectedItem.getValue() != null) {
                         longClickHighlight(messageSentViewHandler, smsId);
+                    }
+                    else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
+                        String[] messageValues = new String[2];
+                        messageValues[0] = sms.id;
+//                        messageValues[1] = sms.getBody();
+                        messageValues[1] = text;
+                        retryFailedMessage.setValue(messageValues);
                     }
                     else {
                         int visibility = messageSentViewHandler.date.getVisibility() == View.VISIBLE ?

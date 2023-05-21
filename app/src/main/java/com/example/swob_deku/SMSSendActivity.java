@@ -10,10 +10,10 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -21,7 +21,9 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -33,6 +35,7 @@ import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
+import android.text.method.ScrollingMovementMethod;
 import android.text.style.StyleSpan;
 import android.util.Base64;
 import android.util.Log;
@@ -45,6 +48,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
+import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
@@ -103,6 +108,7 @@ public class SMSSendActivity extends AppCompatActivity {
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 200;
     private final int RESULT_GALLERY = 100;
 
+
     String threadId = "";
     String address = "";
     String unformattedAddress = "";
@@ -117,6 +123,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
     BroadcastReceiver incomingDataBroadcastReceiver;
     BroadcastReceiver incomingBroadcastReceiver;
+
+    BroadcastReceiver messageStateChangedBroadcast;
 
     private String abSubtitle = "";
 
@@ -136,6 +144,8 @@ public class SMSSendActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
+
+        handleBroadcast();
 
         if(!checkIsDefaultApp()) {
             startActivity(new Intent(this, DefaultCheckActivity.class));
@@ -264,6 +274,18 @@ public class SMSSendActivity extends AppCompatActivity {
                 itemOperationsNeeded(integers.size());
             }
         });
+
+        singleMessagesThreadRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
+            @Override
+            public void onChanged(String[] strings) {
+                try {
+                    SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
+                    sendSMSMessage(null, strings[1], null);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void getAddressAndThreadId() throws InterruptedException, NumberParseException {
@@ -275,7 +297,7 @@ public class SMSSendActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-               int updatedCount = SMSHandler.updateThreadMessagesThread(getApplicationContext(), threadId);
+               int updatedCount = SMSHandler.updateMarkThreadMessagesAsRead(getApplicationContext(), threadId);
                 if(BuildConfig.DEBUG)
                     Log.d(getLocalClassName(), "Updating read for threadID: " + threadId + "->"+ updatedCount);
             }
@@ -295,30 +317,25 @@ public class SMSSendActivity extends AppCompatActivity {
             cursor.close();
         }
 
-        else if(getIntent().hasExtra(ADDRESS) || !unformattedAddress.isEmpty()) {
-            if(unformattedAddress.isEmpty())
-                unformattedAddress = getIntent().getStringExtra(ADDRESS);
-
-            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), unformattedAddress);
+        try {
+            if(getIntent().hasExtra(ADDRESS) || !unformattedAddress.isEmpty()) {
+                if (unformattedAddress.isEmpty())
+                    unformattedAddress = getIntent().getStringExtra(ADDRESS);
+            }
+            address = Helpers.formatPhoneNumbers(getApplicationContext(), unformattedAddress);
+            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), address);
             if(cursor.moveToFirst()) {
                 int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
                 threadId = String.valueOf(cursor.getString(threadIdIndex));
-
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Found thread ID: " + threadId);
             }
             cursor.close();
-        }
-
-        try {
-            address = Helpers.formatPhoneNumbers(unformattedAddress);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    private void improveMessagingUX() {
+    private void improveMessagingUX() throws GeneralSecurityException, IOException {
         smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -333,7 +350,10 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         });
 
+        TextView encryptedMessageTextView = findViewById(R.id.send_sms_encrypted_version);
+        encryptedMessageTextView.setMovementMethod(new ScrollingMovementMethod());
 
+        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
         smsTextView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -347,6 +367,29 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 mutableLiveDataComposeMessage.setValue(s.toString());
+
+                try {
+                    if(!s.toString().isEmpty() && securityECDH.hasSecretKey(address)) {
+                        String encryptedString = Base64.encodeToString(SecurityECDH.encryptAES(s.toString().getBytes(StandardCharsets.UTF_8),
+                                Base64.decode(securityECDH.securelyFetchSecretKey(address).getBytes(), Base64.DEFAULT)), Base64.DEFAULT);
+                        encryptedString = SecurityHelpers.waterMarkMessage(encryptedString);
+
+                        String stats = SMSHandler.calculateSMS(encryptedString);
+
+                        String displayedString = encryptedString + "\n\n" + stats;
+
+                        encryptedMessageTextView.setVisibility(View.VISIBLE);
+                        encryptedMessageTextView.setText(displayedString);
+                        if(encryptedMessageTextView.getLayout() != null)
+                            encryptedMessageTextView.scrollTo(0,
+                                    encryptedMessageTextView.getLayout().getLineTop(
+                                            encryptedMessageTextView.getLineCount()) - encryptedMessageTextView.getHeight());
+                    } else {
+                        encryptedMessageTextView.setVisibility(View.GONE);
+                    }
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 
@@ -365,7 +408,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }).start();
 
         try {
-            contactName = Contacts.retrieveContactName(getApplicationContext(), unformattedAddress);
+            contactName = Contacts.retrieveContactName(getApplicationContext(), address);
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -375,36 +418,14 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void processForSharedIntent() throws NumberParseException {
-//        String indentAction = getIntent().getAction();
-//
-//        if(BuildConfig.DEBUG)
-//            Log.d(getLocalClassName(), "Processing shared..." + indentAction);
-
         if(getIntent().getAction() != null && getIntent().getAction().equals(Intent.ACTION_SENDTO) ){
             String sendToString = getIntent().getDataString();
 
             if(BuildConfig.DEBUG)
                 Log.d("", "Processing shared #: " + sendToString);
-
-//            sendToString = sendToString.replace("%2B", "+")
-//                            .replace("%20", "");
-//            sendToString = Helpers.formatPhoneNumbers(sendToString);
-
             if(sendToString.contains("smsto:") || sendToString.contains("sms:")) {
                unformattedAddress = sendToString.substring(sendToString.indexOf(':') + 1);
-//               address = Helpers.formatPhoneNumbers(address);
                String text = getIntent().getStringExtra("sms_body");
-               // TODO: should inform view about data being available
-//               if(getIntent().hasExtra(Intent.EXTRA_INTENT)) {
-//                   byte[] bytesData = getIntent().getByteArrayExtra(Intent.EXTRA_STREAM);
-//                   if (bytesData != null) {
-//                       Log.d(getClass().getName(), "Byte data: " + bytesData);
-//                       Log.d(getClass().getName(), "Byte data: " + new String(bytesData, StandardCharsets.UTF_8));
-//
-//                       text = new String(bytesData, StandardCharsets.UTF_8);
-//                       getIntent().putExtra(Intent.EXTRA_INTENT, getIntent().getByteArrayExtra(Intent.EXTRA_INTENT));
-//                   }
-//               }
 
                if(text != null && !text.isEmpty()) {
                    smsTextView.setText(text);
@@ -452,79 +473,21 @@ public class SMSSendActivity extends AppCompatActivity {
                 new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
 
         registerReceiver(incomingDataBroadcastReceiver,
-                new IntentFilter(BroadcastSMSDataActivity.DATA_BROADCAST_INTENT));
+                new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT));
     }
 
     public void handleBroadcast() {
 //        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
 
-        BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
+        messageStateChangedBroadcast = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
-                long id = intent.getLongExtra(ID, -1);
-
-                if(BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Broadcast received for sent: " + id);
-
-                switch(getResultCode()) {
-                    case Activity.RESULT_OK:
-                        try {
-                            SMSHandler.registerSentMessage(getApplicationContext(), id);
-                        }
-                        catch(Exception e) {
-                            e.printStackTrace();
-                        }
-                        break;
-
-                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                    case SmsManager.RESULT_ERROR_NO_SERVICE:
-                    case SmsManager.RESULT_ERROR_NULL_PDU:
-                    case SmsManager.RESULT_ERROR_RADIO_OFF:
-                    default:
-                        try {
-                            SMSHandler.registerFailedMessage(context, id, getResultCode());
-                        } catch(Exception e) {
-                            e.printStackTrace();
-                        }
-
-                        if(BuildConfig.DEBUG) {
-                            Log.d(getLocalClassName(), "Failed to send: " + getResultCode());
-                            Log.d(getLocalClassName(), "Failed to send: " + getResultData());
-                            Log.d(getLocalClassName(), "Failed to send: " + intent.getData());
-                        }
-                }
-
-//                if(singleMessageViewModel.getLastUsedKey() == 0)
-//                    singleMessagesThreadRecyclerAdapter.refresh();
-
                 singleMessageViewModel.informNewItemChanges();
-                unregisterReceiver(this);
             }
         };
 
-        BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                long id = intent.getLongExtra(ID, -1);
-
-                if (getResultCode() == Activity.RESULT_OK) {
-                    SMSHandler.registerDeliveredMessage(context, id);
-                } else {
-                    if (BuildConfig.DEBUG)
-                        Log.d(getLocalClassName(), "Failed to deliver: " + getResultCode());
-                }
-
-//                if(singleMessageViewModel.getLastUsedKey() == 0)
-//                    singleMessagesThreadRecyclerAdapter.refresh();
-
-                singleMessageViewModel.informNewItemChanges();
-                unregisterReceiver(this);
-            }
-        };
-
-        registerReceiver(deliveredBroadcastReceiver, new IntentFilter(SMS_DELIVERED_INTENT));
-        registerReceiver(sentBroadcastReceiver, new IntentFilter(SMS_SENT_INTENT));
-
+        registerReceiver(messageStateChangedBroadcast,
+                new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
     }
 
     public void cancelNotifications(String threadId) {
@@ -533,24 +496,6 @@ public class SMSSendActivity extends AppCompatActivity {
 
         if(!threadId.isEmpty())
             notificationManager.cancel(Integer.parseInt(threadId));
-    }
-
-    public static PendingIntent[] getPendingIntents(Context context, long messageId) {
-        Intent sentIntent = new Intent(SMS_SENT_INTENT);
-        sentIntent.putExtra(SMSSendActivity.ID, messageId);
-
-        Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
-        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
-
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)), sentIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
-
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)), deliveredIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
-
-        return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
     }
 
     public void sendTextMessage(View view) {
@@ -616,9 +561,10 @@ public class SMSSendActivity extends AppCompatActivity {
             if(messageId == null)
                 messageId = Helpers.generateRandomNumber();
 
-            PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
+            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
+                    getApplicationContext(), messageId);
 
-            handleBroadcast();
+//            handleBroadcast();
 
             String tmpThreadId = null;
             if(securityECDH.hasSecretKey(address)) {
@@ -699,7 +645,11 @@ public class SMSSendActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        improveMessagingUX();
+        try {
+            improveMessagingUX();
+        } catch (GeneralSecurityException | IOException e) {
+            throw new RuntimeException(e);
+        }
         ab.setTitle(contactName);
 
         new Thread(new Runnable() {
@@ -745,7 +695,7 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
-    private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor) {
+    private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor, Integer textColor) {
         String insertDetails = contactName.isEmpty() ? address : contactName;
         insertDetails = insertDetails.replaceAll("\\+", "");
         String insertText = text.replaceAll("\\[insert name\\]", insertDetails);
@@ -764,20 +714,16 @@ public class SMSSendActivity extends AppCompatActivity {
                 spannable, BaseTransientBottomBar.LENGTH_INDEFINITE);
 
         View snackbarView = snackbar.getView();
-//            Snackbar.SnackbarLayout snackbarLayout = (Snackbar.SnackbarLayout) snackbarView;
-//            LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-//            View customView = inflater.inflate(R.layout.layout_security_snackbar, this.);
-//            snackbarLayout.addView(customView, 0);
 
-        snackbar.setTextColor(getResources().getColor(R.color.default_gray, getTheme()));
+        snackbar.setTextColor(textColor);
 
         if(bgColor == null)
             bgColor = getResources().getColor(R.color.primary_warning_background_color,
                     getTheme());
 
         snackbar.setBackgroundTint(bgColor);
-        snackbar.setTextMaxLines(4);
-        snackbar.setActionTextColor(getResources().getColor(R.color.white, getTheme()));
+        snackbar.setTextMaxLines(10);
+        snackbar.setActionTextColor(textColor);
         snackbar.setAction(actionText, onClickListener);
         snackbar.getView().setOnClickListener(new View.OnClickListener() {
             @Override
@@ -794,37 +740,19 @@ public class SMSSendActivity extends AppCompatActivity {
         snackbar.show();
     }
 
-    private void rxKeys(byte[][] txAgreementKey, long messageId, int subscriptionId){
+    private void rxKeys(byte[] txAgreementKey, long messageId, int subscriptionId){
         try {
-            PendingIntent[] pendingIntents = getPendingIntents(getApplicationContext(), messageId);
+            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
+                    getApplicationContext(), messageId);
 
-            handleBroadcast();
-            if(txAgreementKey[1].length == 0) {
-                SMSHandler.sendDataSMS(getApplicationContext(),
-                        address,
-                        txAgreementKey[0],
-                        pendingIntents[0],
-                        pendingIntents[1],
-                        messageId,
-                        subscriptionId);
-            } else {
-                SMSHandler.sendDataSMS(getApplicationContext(),
-                        address,
-                        txAgreementKey[0],
-                        pendingIntents[0],
-                        pendingIntents[1],
-                        messageId,
-                        subscriptionId);
-
-                handleBroadcast();
-                SMSHandler.sendDataSMS(getApplicationContext(),
-                        address,
-                        txAgreementKey[1],
-                        pendingIntents[0],
-                        pendingIntents[1],
-                        messageId,
-                        subscriptionId);
-            }
+//            handleBroadcast();
+            SMSHandler.sendDataSMS(getApplicationContext(),
+                    address,
+                    txAgreementKey,
+                    pendingIntents[0],
+                    pendingIntents[1],
+                    messageId,
+                    subscriptionId);
         } catch (InterruptedException e) {
             e.printStackTrace();
             SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
@@ -832,15 +760,26 @@ public class SMSSendActivity extends AppCompatActivity {
         }
     }
 
+    private boolean checkEncryptedMessagingDisabled() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        return sharedPreferences.getBoolean("encryption_disable", false);
+    }
+
     public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
+        if(checkEncryptedMessagingDisabled())
+            return;
+
         SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+        Log.d(getLocalClassName(), "Has private key: " + securityECDH.hasPrivateKey(address));
 
         if(securityECDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
-            String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
+            String text = securityECDH.hasPrivateKey(address) ?
+                    getString(R.string.send_sms_activity_user_not_secure_agree):
+                    getString(R.string.send_sms_activity_user_not_secure_no_agreed);
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
 
             // TODO: change bgColor to match the intended use
-            Integer bgColor = getResources().getColor(R.color.purple_200, getTheme());
+            Integer bgColor = getResources().getColor(R.color.highlight_yellow, getTheme());
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -853,7 +792,7 @@ public class SMSSendActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 PublicKey publicKey = keyPair.getPublic();
-                                byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
+                                byte[] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
 
                                 String agreementText = SecurityHelpers.FIRST_HEADER
                                         + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT)
@@ -881,11 +820,17 @@ public class SMSSendActivity extends AppCompatActivity {
 
                             }
                         });
+
+
                         try {
                             if(!securityECDH.hasPrivateKey(address)) {
                                 // TODO: support for multi-sim
                                 remotePeerHandshake.start();
                                 remotePeerHandshake.join();
+                                Log.d(getLocalClassName(), "Private key not available for address: " + address);
+                            }
+                            else {
+                                Log.d(getLocalClassName(), "Private key available for address: " + address);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -906,7 +851,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
 
             // TODO: check if has private key
-            lunchSnackBar(text, actionText, onClickListener, bgColor);
+            lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -917,7 +862,15 @@ public class SMSSendActivity extends AppCompatActivity {
         }
         else if(!securityECDH.hasEncryption(address)) {
 
+            int textColor = Color.WHITE;
+            Integer bgColor = getResources().getColor(R.color.failed_red, getTheme());
             String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
+
+            if(securityECDH.hasPrivateKey(address)) {
+                bgColor = getResources().getColor(R.color.purple_200, getTheme());
+                conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure_pending);
+                textColor = Color.BLACK;
+            }
 
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
 
@@ -929,7 +882,7 @@ public class SMSSendActivity extends AppCompatActivity {
                     // TODO: send the key as 2 data messages
                     try {
                         byte[] agreementKey = dhAgreementInitiation();
-                        byte[][] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
+                        byte[] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
 
                         String text = SecurityHelpers.FIRST_HEADER
                                 + Base64.encodeToString(agreementKey, Base64.DEFAULT)
@@ -951,6 +904,7 @@ public class SMSSendActivity extends AppCompatActivity {
                             public void run() {
                                 try {
                                     rxKeys(txAgreementKey, messageId, subscriptionId);
+                                    checkEncryptedMessaging();
                                 } catch(Exception e) {
                                                  e.printStackTrace();
                                                  }
@@ -963,7 +917,8 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             };
 
-            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, null);
+//            Integer bgColor = null;
+            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, textColor);
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -1045,6 +1000,9 @@ public class SMSSendActivity extends AppCompatActivity {
 
         if(incomingDataBroadcastReceiver != null)
             unregisterReceiver(incomingDataBroadcastReceiver);
+
+        if(messageStateChangedBroadcast != null)
+            unregisterReceiver(messageStateChangedBroadcast);
     }
 
     public void onLongClickSend(View view) {

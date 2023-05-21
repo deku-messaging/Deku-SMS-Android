@@ -4,15 +4,14 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.R;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,13 +21,10 @@ import java.util.List;
 public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewayServerRecyclerAdapter.ViewHolder> {
 
     private final AsyncListDiffer<GatewayServer> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
-
-    int recentsRenderLayout;
     Context context;
 
-    public GatewayServerRecyclerAdapter(Context context, int recentsRenderLayout) {
+    public GatewayServerRecyclerAdapter(Context context) {
         this.context = context;
-        this.recentsRenderLayout = recentsRenderLayout;
     }
 
     public GatewayServerRecyclerAdapter() {}
@@ -37,7 +33,7 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
-        View view = inflater.inflate(this.recentsRenderLayout, parent, false);
+        View view = inflater.inflate(R.layout.gateway_server_listing_layout, parent, false);
         return new GatewayServerRecyclerAdapter.ViewHolder(view);
     }
 
@@ -46,8 +42,13 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
 //        GatewayServer gatewayServer = gatewayServerList.get(position);
         GatewayServer gatewayServer = mDiffer.getCurrentList().get(position);
         holder.url.setText(gatewayServer.getURL());
-        holder.method.setText(gatewayServer.getMethod());
-        holder.date.setText(Long.toString(gatewayServer.getDate()));
+        holder.protocol.setText(gatewayServer.getProtocol());
+
+        String dataFormat = gatewayServer.getFormat().isEmpty() ? "All" : gatewayServer.getFormat();
+        holder.format.setText(dataFormat);
+
+        String date = Helpers.formatDate(context, gatewayServer.getDate());
+        holder.date.setText(date);
     }
 
     @Override
@@ -59,15 +60,14 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
         mDiffer.submitList(list);
     }
     public class ViewHolder extends RecyclerView.ViewHolder {
-        TextView url;
-        TextView method;
-        TextView date;
+        TextView date, format, protocol, url;
 
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
             this.url = itemView.findViewById(R.id.gateway_server_url);
-            this.method = itemView.findViewById(R.id.gateway_server_method);
+            this.protocol = itemView.findViewById(R.id.gateway_server_protocol);
             this.date = itemView.findViewById(R.id.gateway_server_date);
+            this.format = itemView.findViewById(R.id.gateway_server_data_format);
         }
     }
 

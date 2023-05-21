@@ -10,6 +10,6 @@
     <color name="sent_message_color">@color/logo_secondary</color>
     <color name="received_message_color">@color/default_gray</color>
 
-    <color name="colorPrimary">@color/logo_secondary</color>
-    <color name="colorSecondary">@color/logo_primary</color>
+    <color name="colorPrimary">@color/logo_primary</color>
+    <color name="colorSecondary">@color/logo_secondary</color>
 </resources>

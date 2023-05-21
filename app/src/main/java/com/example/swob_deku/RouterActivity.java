@@ -50,7 +50,7 @@ public class RouterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_router);
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.routed_messages_toolbar);
-        myToolbar.setTitle(R.string.router_name);
+        myToolbar.setTitle(R.string.homepage_menu_routed);
 
         setSupportActionBar(myToolbar);
 
