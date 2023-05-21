@@ -40,7 +40,6 @@ dependencies {
     implementation "androidx.work:work-runtime:2.8.1"
     implementation "androidx.work:work-rxjava2:2.8.1"
     // optional - GCMNetworkManager support
-    implementation "androidx.work:work-gcm:2.8.1"
     implementation 'androidx.core:core-ktx:1.10.0'
     implementation 'androidx.paging:paging-guava:3.1.1'
     // optional - Test helpers
