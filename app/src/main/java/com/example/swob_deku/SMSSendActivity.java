@@ -370,8 +370,13 @@ public class SMSSendActivity extends AppCompatActivity {
 
                 try {
                     if(!s.toString().isEmpty() && securityECDH.hasSecretKey(address)) {
-                        String stats = SMSHandler.calculateSMS(s.toString());
-                        String displayedString = s + "\n\n" + stats;
+                        String encryptedString = Base64.encodeToString(SecurityECDH.encryptAES(s.toString().getBytes(StandardCharsets.UTF_8),
+                                Base64.decode(securityECDH.securelyFetchSecretKey(address).getBytes(), Base64.DEFAULT)), Base64.DEFAULT);
+                        encryptedString = SecurityHelpers.waterMarkMessage(encryptedString);
+
+                        String stats = SMSHandler.calculateSMS(encryptedString);
+
+                        String displayedString = encryptedString + "\n\n" + stats;
 
                         encryptedMessageTextView.setVisibility(View.VISIBLE);
                         encryptedMessageTextView.setText(displayedString);
@@ -382,7 +387,7 @@ public class SMSSendActivity extends AppCompatActivity {
                     } else {
                         encryptedMessageTextView.setVisibility(View.GONE);
                     }
-                } catch (GeneralSecurityException | IOException e) {
+                } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
             }
