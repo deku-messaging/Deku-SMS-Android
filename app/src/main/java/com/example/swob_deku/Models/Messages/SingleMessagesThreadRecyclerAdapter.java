@@ -169,8 +169,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-//        final SMS sms = (SMS) snapshot().get(position);
-        final SMS sms = (SMS) mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
+        final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
+//        final SMS sms = (SMS) mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
         final String smsId = sms.getId();
 
         String date = sms.getDate();
@@ -183,8 +183,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             date = dateFormat.format(new Date(Long.parseLong(date)));
         }
 
-        String text = sms.getBody();
-        text = decryptContent(text);
+        final String text = decryptContent(sms.getBody());
 
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
         if(holder instanceof MessageReceivedViewHandler) {
@@ -330,7 +329,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                     else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
                         String[] messageValues = new String[2];
                         messageValues[0] = sms.id;
-                        messageValues[1] = sms.getBody();
+//                        messageValues[1] = sms.getBody();
+                        messageValues[1] = text;
                         retryFailedMessage.setValue(messageValues);
                     }
                     else {
