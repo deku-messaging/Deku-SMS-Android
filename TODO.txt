@@ -17,22 +17,22 @@ Inbox:
 Incoming
 --------
 1. Notifications:
-	- Mark as read from notification
+	- [w]Mark as read from notification [R]
 	- [w]Add reply from notifications bar [R]
-	- Retry routing messages
 
 2. Routing
 	- Modify gateway servers
 	- Delete gateway servers
 	- Enable GET methods for routing
 	- [w]Enable "All" routing [R]
+	- Retry routing messages
 
 Outgoing
 --------
 1. UX
 	- Enable message scheduling
 	- Share contacts attachements (VCards??)
-	- Show encrypted version of message in real time
+	- [w] Show encrypted version of message in real time
 2. Images
 	[Notes] - Resolution is more important to quality than compression
 	[Notes] - Compression just makes things bigger without gain in 

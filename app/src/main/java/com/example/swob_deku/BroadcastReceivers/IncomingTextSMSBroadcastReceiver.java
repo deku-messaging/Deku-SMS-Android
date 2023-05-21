@@ -241,6 +241,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                 .setAutoCancel(true)
+                .setOnlyAlertOnce(true)
+                .setAllowSystemGeneratedContextualActions(true)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 

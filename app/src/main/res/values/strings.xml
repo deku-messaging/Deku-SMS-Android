@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Deku</string>
+    <string name="app_name">Deku SMS</string>
     <string name="channel_name">deku_incoming_message</string>
     <string name="channel_description">
         Gets called when a new message is received.
