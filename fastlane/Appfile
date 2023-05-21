@@ -1,0 +1,2 @@
+json_key_file("/home/sh3rlock/Documents/smswithoutborders-308610-5473b76d0b41.json") # Path to the json secret file - Follow https://docs.fastlane.tools/actions/supply/#setup to get one
+package_name("com.afkanerd.deku") # e.g. com.krausefx.app

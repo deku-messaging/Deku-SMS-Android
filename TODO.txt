@@ -32,7 +32,7 @@ Outgoing
 1. UX
 	- Enable message scheduling
 	- Share contacts attachements (VCards??)
-	- [w] Show encrypted version of message in real time
+	- [w] Show encrypted version of message in real time [R]
 2. Images
 	[Notes] - Resolution is more important to quality than compression
 	[Notes] - Compression just makes things bigger without gain in 
