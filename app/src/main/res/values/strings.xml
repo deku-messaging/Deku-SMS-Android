@@ -4,9 +4,7 @@
     <string name="channel_description">
         Gets called when a new message is received.
     </string>
-    <string name="CHANNEL_ID">
-        696969
-    </string>
+    <string name="CHANNEL_ID">deku_incoming_message</string>
 
     <string name="search_messages_text">
         Search messages

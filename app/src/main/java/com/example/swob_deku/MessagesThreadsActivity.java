@@ -517,7 +517,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges();
-                cancelAllNotifications();
+//                cancelAllNotifications();
             }
         };
 
@@ -525,7 +525,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges();
-                cancelAllNotifications();
+//                cancelAllNotifications();
             }
         };
 
@@ -534,6 +534,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         registerReceiver(incomingDataBroadcastReceiver,
                 new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT));
+
+        registerReceiver(incomingBroadcastReceiver,
+                new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
     }
 
     @Override
