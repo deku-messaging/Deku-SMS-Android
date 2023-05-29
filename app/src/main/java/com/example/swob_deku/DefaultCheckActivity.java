@@ -95,7 +95,6 @@ public class DefaultCheckActivity extends AppCompatActivity {
         }
     }
 
-
     private List<String> clearOutOldNotificationChannels() {
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         List<String> notificationChannelList = new ArrayList<>();
@@ -130,7 +129,6 @@ public class DefaultCheckActivity extends AppCompatActivity {
             }
         }
     }
-
 
     public boolean checkPermissionToReadContacts() {
         int check = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);

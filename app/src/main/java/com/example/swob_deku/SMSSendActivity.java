@@ -267,13 +267,17 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         });
 
-        singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
-            @Override
-            public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
-                selectedItems = integers;
-                itemOperationsNeeded(integers.size());
-            }
-        });
+        try {
+            singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
+                @Override
+                public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
+                    selectedItems = integers;
+                    itemOperationsNeeded(integers.size());
+                }
+            });
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
 
         singleMessagesThreadRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
             @Override
