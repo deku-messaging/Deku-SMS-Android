@@ -39,6 +39,7 @@ import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
+import com.example.swob_deku.Models.RMQConnectionService;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
@@ -208,6 +209,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             }
         });
 
+        Intent intent = new Intent(this, RMQConnectionService.class);
+        startService(intent);
     }
 
     private boolean checkIsDefaultApp() {
