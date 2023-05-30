@@ -1,4 +1,4 @@
-package com.example.swob_deku.Models;
+package com.example.swob_deku.Services;
 
 import android.app.Service;
 import android.content.Intent;
@@ -26,9 +26,10 @@ public class RMQConnectionService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        factory.setUsername("sherlock");
-        factory.setPassword("");
-        factory.setVirtualHost("/");
+        factory.setUsername("AC68fac19d933395056cbd9647fd5529d2");
+        factory.setPassword("aa301a03be0961409aaf5355fde7d5f205e0668a1c4c0ec848209ed241c767c2");
+//        factory.setVirtualHost("/");
+        factory.setVirtualHost("AC68fac19d933395056cbd9647fd5529d2");
         factory.setHost("staging.smswithoutborders.com");
         factory.setPort(5672);
         factory.setConnectionTimeout(10000);

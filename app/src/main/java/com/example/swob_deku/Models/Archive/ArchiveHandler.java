@@ -1,13 +1,10 @@
 package com.example.swob_deku.Models.Archive;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.room.Room;
 
 import com.example.swob_deku.Models.Datastore;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
-import com.example.swob_deku.Models.SMS.SMS;
 
 import java.util.ArrayList;
 import java.util.List;

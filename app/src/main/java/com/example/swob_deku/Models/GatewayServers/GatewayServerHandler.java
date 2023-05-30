@@ -1,14 +1,10 @@
-package com.example.swob_deku.Models.GatewayServer;
+package com.example.swob_deku.Models.GatewayServers;
 
 import android.content.Context;
 
 import androidx.room.Room;
 
 import com.example.swob_deku.Models.Datastore;
-import com.google.android.material.textfield.TextInputEditText;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class GatewayServerHandler {
     public static void add(Context context, GatewayServer gatewayServer) throws InterruptedException {

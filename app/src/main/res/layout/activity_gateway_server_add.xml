@@ -25,7 +25,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="@string/new_gateway_client_url"
+        android:text="@string/new_gateway_server_url"
         android:textColor="@color/disabled_gray"
         app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
         app:layout_constraintTop_toBottomOf="@id/new_gateway_client_toolbar" />

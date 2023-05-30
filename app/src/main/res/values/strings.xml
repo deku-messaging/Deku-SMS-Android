@@ -16,7 +16,13 @@
 
     <string name="save_new_gateway_client">Add</string>
     <string name="archived_messages_toolbar_title">Archive</string>
-    <string name="new_gateway_client_url">Enter URL - e.g. https://example.com:8080/api/</string>
+    <string name="new_gateway_server_url">Enter URL - e.g. https://example.com:8080/api/</string>
+    <string name="new_gateway_client_url">Enter URL - e.g. https://example.com</string>
+    <string name="new_gateway_client_username">Enter username</string>
+    <string name="new_gateway_client_password">Enter password</string>
+    <string name="new_gateway_client_friendly_name">Enter a friendly name - e.g. Example Node</string>
+    <string name="new_gateway_client_virtualhost_name">Enter a virtualhost - <i>default /</i></string>
+    <string name="new_gateway_client_port">Port: <i>default 5672</i></string>
     <string name="homepage_menu_archived">Archived</string>
     <string name="homepage_menu_routed">Routing history</string>
     <string name="homepage_no_message">Send your first message</string>
@@ -121,6 +127,7 @@
     <string name="settings_SMS_routing_type_all_option">All (default)</string>
 
     <string name="settings_add_gateway_server_protocol_description">Choose the routing protocol</string>
+    <string name="settings_add_gateway_client_protocol_description">Choose the Listening protocol</string>
     <string name="settings_add_gateway_server_protocol_meta_description">All POST are routed as JSON formats.\nAll formats use the following key/value format:\n\n<b>MSISDN</b>:-The address of the incoming message in E.164 Format\n\n<b>text</b>:-The text body of the incoming message </string>
     <string name="settings_add_gateway_server_protocol_data_format">Choose data format</string>
 

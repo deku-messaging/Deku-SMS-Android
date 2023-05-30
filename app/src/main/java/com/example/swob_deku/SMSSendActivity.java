@@ -56,7 +56,6 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
-import com.example.swob_deku.Models.RMQConnectionService;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -191,8 +190,6 @@ public class SMSSendActivity extends AppCompatActivity {
         });
 
         eventListeners();
-
-        stopService(new Intent(this, RMQConnectionService.class));
     }
 
     private boolean checkIsDefaultApp() {

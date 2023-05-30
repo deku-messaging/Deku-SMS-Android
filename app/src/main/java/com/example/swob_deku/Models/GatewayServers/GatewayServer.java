@@ -1,6 +1,8 @@
-package com.example.swob_deku.Models.GatewayServer;
+package com.example.swob_deku.Models.GatewayServers;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Index;
@@ -79,4 +81,17 @@ public class GatewayServer {
         }
         return false;
     }
+
+    public static final DiffUtil.ItemCallback<GatewayServer> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<GatewayServer>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull GatewayServer oldItem, @NonNull GatewayServer newItem) {
+                    return oldItem.id == newItem.id;
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull GatewayServer oldItem, @NonNull GatewayServer newItem) {
+                    return oldItem.equals(newItem);
+                }
+            };
 }

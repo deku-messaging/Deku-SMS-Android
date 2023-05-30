@@ -21,9 +21,15 @@
         android:theme="@style/Theme.main"
         android:usesCleartextTraffic="false">
         <activity
-            android:name=".SettingsActivity"
-            android:parentActivityName=".MessagesThreadsActivity"
+            android:name=".GatewayClientAddActivity"
             android:exported="false" />
+        <activity
+            android:name=".GatewayClientListingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MessagesThreadsActivity" />
         <activity
             android:name=".ComposeNewMessageActivity"
             android:exported="false"
@@ -158,11 +164,9 @@
         </receiver>
 
         <service
-            android:name=".Models.RMQConnectionService"
+            android:name=".Services.RMQConnectionService"
             android:enabled="true"
             android:exported="false" />
-
     </application>
-
 
 </manifest>
