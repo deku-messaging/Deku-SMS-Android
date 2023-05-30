@@ -114,11 +114,14 @@
     <string name="settings_security_category_end_to_end_duration_summary">When enabled, encryption request sent to contacts would expire after <b>1 hour</b> of not being agreed.</string>
 
     <string name="settings_SMS_routing_title">SMS routing</string>
+    <string name="settings_SMS_listening_title">SMS listening</string>
     <string name="settings_SMS_routing_SMSWithoutBorders">SMSWithoutBorders</string>
     <string name="settings_SMS_routing_custom_server">Configure SMS routing Gateways</string>
+    <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
     <string name="settings_SMS_routing_type">Choose format of messages</string>
     <string name="settings_SMS_routing_type_summary">Only messages that match the chosen formats get routed</string>
     <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for routing SMS messages through HTTP/s</string>
+    <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
 
     <string name="settings_SMS_routing_type_base64_value">base_64</string>
     <string name="settings_SMS_routing_type_all_value">all</string>

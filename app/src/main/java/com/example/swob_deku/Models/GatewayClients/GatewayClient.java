@@ -2,10 +2,12 @@ package com.example.swob_deku.Models.GatewayClients;
 
 import androidx.room.Entity;
 import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
 @Entity(indices = {@Index(value={"hostUrl"}, unique = true)})
 public class GatewayClient {
 
+    @PrimaryKey(autoGenerate = true)
     int id;
 
 

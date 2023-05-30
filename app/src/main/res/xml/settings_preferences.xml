@@ -20,4 +20,13 @@
             app:summary="@string/settings_SMS_routing_SMSWithoutBorders_summary"/>
     </PreferenceCategory>
 
+    <PreferenceCategory
+        app:key="sms_listening"
+        app:title="@string/settings_SMS_listening_title">
+        <Preference
+            app:key="settings_sms_listening_gateway_clients"
+            app:title="@string/settings_SMS_listening_server"
+            app:summary="@string/settings_SMS_listening_SMSWithoutBorders_summary"/>
+    </PreferenceCategory>
+
 </PreferenceScreen>
