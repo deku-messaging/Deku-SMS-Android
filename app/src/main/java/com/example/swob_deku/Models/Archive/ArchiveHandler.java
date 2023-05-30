@@ -17,7 +17,6 @@ public class ArchiveHandler {
         this.context = context;
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
-                .fallbackToDestructiveMigration()
                 .build();
         archiveDAO = databaseConnector.archiveDAO();
     }
@@ -28,7 +27,6 @@ public class ArchiveHandler {
             public void run() {
                 Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
                         .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.insert(archive);
@@ -48,7 +46,6 @@ public class ArchiveHandler {
             public void run() {
                 Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                                 Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
                         .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.insert(archives);
@@ -68,7 +65,6 @@ public class ArchiveHandler {
             public void run() {
                 Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                                 Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
                         .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.remove(new Archive(threadId));
@@ -90,7 +86,6 @@ public class ArchiveHandler {
             public void run() {
                 Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                                 Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
                         .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.remove(archives);
@@ -108,7 +103,6 @@ public class ArchiveHandler {
             public void run() {
                 Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                                 Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
                         .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 fetchedData[0] = archiveDAO.fetchAll();
