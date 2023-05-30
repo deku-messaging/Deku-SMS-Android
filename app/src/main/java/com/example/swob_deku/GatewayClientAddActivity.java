@@ -6,6 +6,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.RadioGroup;
 
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
@@ -45,7 +46,7 @@ public class GatewayClientAddActivity extends AppCompatActivity {
             return;
         }
         if(password.getText().toString().isEmpty()) {
-            password.setError(getResources().getString(R.string.settings_gateway_client_cannot_be_empty));
+            password.setError(getString(R.string.settings_gateway_client_cannot_be_empty));
             return;
         }
         if(virtualHost.getText().toString().isEmpty()) {
@@ -61,10 +62,16 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         gatewayClient.setPassword(password.getText().toString());
         gatewayClient.setVirtualHost(virtualHost.getText().toString());
         gatewayClient.setPort(Integer.parseInt(port.getText().toString()));
+        gatewayClient.setDate(System.currentTimeMillis());
 
         if(!friendlyName.getText().toString().isEmpty()) {
             gatewayClient.setFriendlyConnectionName(friendlyName.getText().toString());
         }
+
+        RadioGroup radioGroup = findViewById(R.id.add_gateway_client_protocol_group);
+        int checkedRadioId = radioGroup.getCheckedRadioButtonId();
+        if(checkedRadioId == R.id.add_gateway_client_protocol_amqp)
+            gatewayClient.setProtocol(getString(R.string.settings_gateway_client_amqp_protocol));
 
         GatewayClientHandler.add(getApplicationContext(), gatewayClient);
         finish();

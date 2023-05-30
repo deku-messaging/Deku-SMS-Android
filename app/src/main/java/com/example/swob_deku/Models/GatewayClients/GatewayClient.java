@@ -2,6 +2,9 @@ package com.example.swob_deku.Models.GatewayClients;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.Index;
@@ -132,5 +135,31 @@ public class GatewayClient {
     public void setProtocol(String protocol) {
         this.protocol = protocol;
     }
+
+
+    public boolean equals(@Nullable Object obj) {
+//        return super.equals(obj);
+        if(obj instanceof GatewayClient) {
+            GatewayClient gatewayServer = (GatewayClient) obj;
+            return gatewayServer.id == this.id &&
+                    gatewayServer.hostUrl.equals(this.hostUrl) &&
+                    gatewayServer.protocol.equals(this.protocol) &&
+                    gatewayServer.port == this.port &&
+                    gatewayServer.date == this.date;
+        }
+        return false;
+    }
+    public static final DiffUtil.ItemCallback<GatewayClient> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<GatewayClient>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull GatewayClient oldItem, @NonNull GatewayClient newItem) {
+                    return oldItem.id == newItem.id;
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull GatewayClient oldItem, @NonNull GatewayClient newItem) {
+                    return oldItem.equals(newItem);
+                }
+            };
 
 }

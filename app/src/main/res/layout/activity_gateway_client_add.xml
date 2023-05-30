@@ -363,11 +363,11 @@
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintStart_toStartOf="@+id/add_gateway_server_protocol_group"
-            app:layout_constraintTop_toBottomOf="@+id/add_gateway_server_protocol_group" />
+            app:layout_constraintStart_toStartOf="@+id/add_gateway_client_protocol_group"
+            app:layout_constraintTop_toBottomOf="@+id/add_gateway_client_protocol_group" />
 
         <RadioGroup
-            android:id="@+id/add_gateway_server_protocol_group"
+            android:id="@+id/add_gateway_client_protocol_group"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -377,19 +377,19 @@
             app:layout_constraintTop_toBottomOf="@+id/textView6">
 
             <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/add_gateway_protocol_POST"
+                android:id="@+id/add_gateway_client_protocol_amqp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:fontFamily="sans-serif"
-                android:text="AMQP"
+                android:text="@string/settings_gateway_client_amqp_protocol"
                 android:textSize="14sp" />
 
             <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/add_gateway_protocol_GET"
+                android:id="@+id/add_gateway_client_protocol_amqps"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:enabled="false"
-                android:text="AMQP/SSL" />
+                android:text="@string/settings_gateway_client_amqps_protocol" />
         </RadioGroup>
 
         <TextView

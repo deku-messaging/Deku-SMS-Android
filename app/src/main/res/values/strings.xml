@@ -136,8 +136,13 @@
     <string name="settings_add_gateway_server_protocol_data_format">Choose data format</string>
 
     <string name="settings_gateway_server_protocol_description">Protocol</string>
+    <string name="settings_gateway_client_username_description">Username</string>
     <string name="settings_gateway_server_data_format_description">Data format</string>
+    <string name="settings_gateway_client_virtualhost_description">Virtual Host</string>
     <string name="settings_gateway_client_cannot_be_empty">Cannot be empty!</string>
     <string name="settings_gateway_client_default_virtualhost">/</string>
     <string name="settings_gateway_client_default_port">5672</string>
+
+    <string name="settings_gateway_client_amqp_protocol">AMQP</string>
+    <string name="settings_gateway_client_amqps_protocol">AMQP/SSL</string>
 </resources>
