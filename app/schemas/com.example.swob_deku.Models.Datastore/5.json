@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "c5299eb7ad01ebd492b64e8a7cfd407a",
+    "identityHash": "5731b72aedbe34a38817030a2aeb514b",
     "entities": [
       {
         "tableName": "GatewayServer",
@@ -90,7 +90,7 @@
       },
       {
         "tableName": "GatewayClient",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `hostUrl` TEXT, `username` TEXT, `password` TEXT, `port` INTEGER NOT NULL, `friendlyConnectionName` TEXT, `virtualHost` TEXT, `connectionTimeout` INTEGER NOT NULL, `prefetch_count` INTEGER NOT NULL, `heartbeat` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `hostUrl` TEXT, `username` TEXT, `password` TEXT, `port` INTEGER NOT NULL, `friendlyConnectionName` TEXT, `virtualHost` TEXT, `connectionTimeout` INTEGER NOT NULL, `prefetch_count` INTEGER NOT NULL, `heartbeat` INTEGER NOT NULL, `protocol` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -157,6 +157,12 @@
             "columnName": "heartbeat",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "protocol",
+            "columnName": "protocol",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -182,7 +188,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c5299eb7ad01ebd492b64e8a7cfd407a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5731b72aedbe34a38817030a2aeb514b')"
     ]
   }
 }

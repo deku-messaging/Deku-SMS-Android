@@ -17,10 +17,13 @@ public class ArchivedViewModel extends ViewModel {
 
     MutableLiveData<List<SMS>> liveData;
     Context context;
+
+    ArchiveHandler archiveHandler;
     public LiveData<List<SMS>> getMessages(Context context) throws InterruptedException {
         this.context = context;
         if(liveData == null) {
             liveData = new MutableLiveData<>();
+            archiveHandler = new ArchiveHandler(context);
             loadMessages();
         }
         return liveData;
@@ -31,7 +34,7 @@ public class ArchivedViewModel extends ViewModel {
     }
 
     private void loadMessages() throws InterruptedException {
-        List<Archive> archiveList = ArchiveHandler.loadAllMessages(context);
+        List<Archive> archiveList = archiveHandler.loadAllMessages(context);
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
 
         List<SMS> smsList = new ArrayList<>();

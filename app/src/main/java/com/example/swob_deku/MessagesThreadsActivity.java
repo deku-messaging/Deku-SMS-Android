@@ -63,10 +63,19 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     Toolbar toolbar;
     ActionBar ab;
 
+    ArchiveHandler archiveHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages_threads);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                archiveHandler = new ArchiveHandler(getApplicationContext());
+            }
+        }).start();
 
         if(!checkIsDefaultApp()) {
             startActivity(new Intent(this, DefaultCheckActivity.class));
@@ -145,7 +154,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         longArr[i] = Long.parseLong(ids[i]);
 
                     try {
-                        ArchiveHandler.archiveMultipleSMS(getApplicationContext(), longArr);
+                        archiveHandler.archiveMultipleSMS(getApplicationContext(), longArr);
                         messagesThreadRecyclerAdapter.resetAllSelectedItems();
                         messagesThreadViewModel.informChanges();
                         return true;
@@ -208,9 +217,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 popup.show();
             }
         });
-
-        Intent intent = new Intent(this, RMQConnectionService.class);
-        startService(intent);
     }
 
     private boolean checkIsDefaultApp() {
@@ -249,7 +255,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 String threadId = itemView.id;
                 try {
                     Archive archive = new Archive(Long.parseLong(threadId));
-                    ArchiveHandler.archiveSMS(getApplicationContext(), archive);
+                    archiveHandler.archiveSMS(getApplicationContext(), archive);
                     messagesThreadViewModel.informChanges();
                 }catch (Exception e) {
                     e.printStackTrace();

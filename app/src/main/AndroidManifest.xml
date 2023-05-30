@@ -22,9 +22,11 @@
         android:usesCleartextTraffic="false">
         <activity
             android:name=".GatewayClientAddActivity"
+            android:parentActivityName=".GatewayClientListingActivity"
             android:exported="false" />
         <activity
             android:name=".GatewayClientListingActivity"
+            android:parentActivityName=".SettingsActivity"
             android:exported="false" />
         <activity
             android:name=".SettingsActivity"
@@ -52,7 +54,7 @@
         <activity
             android:name=".GatewayServerListingActivity"
             android:exported="false"
-            android:parentActivityName=".MessagesThreadsActivity">
+            android:parentActivityName=".SettingsActivity">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />

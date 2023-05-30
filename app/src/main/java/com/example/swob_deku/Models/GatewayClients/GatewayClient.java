@@ -1,11 +1,17 @@
 package com.example.swob_deku.Models.GatewayClients;
 
+import android.content.Context;
+
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import com.example.swob_deku.R;
+
 @Entity(indices = {@Index(value={"hostUrl"}, unique = true)})
 public class GatewayClient {
+    public GatewayClient() {}
 
     @PrimaryKey(autoGenerate = true)
     int id;
@@ -21,13 +27,15 @@ public class GatewayClient {
     int port;
 
     String friendlyConnectionName;
-    String virtualHost = "/";
+    String virtualHost;
 
     int connectionTimeout = 10000;
 
     int prefetch_count = 1;
 
     int heartbeat = 30;
+
+    String protocol = "amqp";
 
     public String getUsername() {
         return username;
@@ -116,4 +124,13 @@ public class GatewayClient {
     public void setDate(long date) {
         this.date = date;
     }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
+
 }

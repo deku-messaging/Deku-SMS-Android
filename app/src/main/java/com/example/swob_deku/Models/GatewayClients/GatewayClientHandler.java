@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.room.Room;
 
 import com.example.swob_deku.Models.Datastore;
+import com.example.swob_deku.Models.Migrations;
 
 public class GatewayClientHandler {
 
@@ -15,7 +16,9 @@ public class GatewayClientHandler {
             @Override
             public void run() {
                 Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName).build();
+                        Datastore.databaseName)
+                        .addMigrations(new Migrations.Migration4To5())
+                        .build();
                 GatewayClientDAO gatewayClientDAO = databaseConnector.gatewayClientDAO();
                 gatewayClientDAO.insert(gatewayClient);
             }

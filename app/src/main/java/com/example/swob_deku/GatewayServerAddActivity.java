@@ -23,7 +23,7 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_server_add);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.new_gateway_client_toolbar);
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.new_gateway_server_toolbar);
         setSupportActionBar(myToolbar);
 
         // Get a support ActionBar corresponding to this toolbar

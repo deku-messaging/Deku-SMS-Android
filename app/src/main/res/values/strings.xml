@@ -17,7 +17,7 @@
     <string name="save_new_gateway_client">Add</string>
     <string name="archived_messages_toolbar_title">Archive</string>
     <string name="new_gateway_server_url">Enter URL - e.g. https://example.com:8080/api/</string>
-    <string name="new_gateway_client_url">Enter URL - e.g. https://example.com</string>
+    <string name="new_gateway_client_url">Enter URL - e.g. example.com <i>(do not include protocol)</i></string>
     <string name="new_gateway_client_username">Enter username</string>
     <string name="new_gateway_client_password">Enter password</string>
     <string name="new_gateway_client_friendly_name">Enter a friendly name - e.g. Example Node</string>
@@ -29,6 +29,7 @@
     <string name="gateway_clients">Gateway Clients</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">SMS routing Gateways</string>
+    <string name="gateway_client_listing_toolbar_title">SMS listening Gateways</string>
     <string name="add_new_gateway_server_toolbar_title">Add Gateway</string>
 
     <string name="route_state">Routing URL</string>
@@ -136,4 +137,7 @@
 
     <string name="settings_gateway_server_protocol_description">Protocol</string>
     <string name="settings_gateway_server_data_format_description">Data format</string>
+    <string name="settings_gateway_client_cannot_be_empty">Cannot be empty!</string>
+    <string name="settings_gateway_client_default_virtualhost">/</string>
+    <string name="settings_gateway_client_default_port">5672</string>
 </resources>

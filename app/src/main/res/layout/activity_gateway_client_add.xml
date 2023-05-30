@@ -11,12 +11,11 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/new_gateway_client_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="1dp"
-            android:layout_marginEnd="1dp"
             android:minHeight="?attr/actionBarSize"
             android:theme="?attr/actionBarTheme"
             app:layout_constraintEnd_toEndOf="parent"
@@ -229,7 +228,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/baseline_3p_24">
+                app:startIconDrawable="@drawable/round_computer_24">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/new_gateway_client_friendly_name"
@@ -288,7 +287,8 @@
                     android:id="@+id/new_gateway_client_virtualhost"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"/>
+                    android:inputType="text"
+                    android:text="@string/settings_gateway_client_default_virtualhost" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -341,7 +341,8 @@
                     android:id="@+id/new_gateway_client_port"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal" />
+                    android:inputType="numberDecimal"
+                    android:text="@string/settings_gateway_client_default_port" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -355,7 +356,7 @@
             android:layout_marginBottom="16dp"
             android:background="@drawable/compose_message_drawable"
             android:fontFamily="sans-serif"
-            android:onClick="onSaveGatewayServer"
+            android:onClick="onSaveGatewayClient"
             android:text="@string/save_new_gateway_client"
             android:textAllCaps="false"
             android:textColor="@color/colorSecondary"

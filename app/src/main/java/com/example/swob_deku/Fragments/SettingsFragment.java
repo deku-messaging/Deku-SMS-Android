@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.swob_deku.GatewayClientAddActivity;
+import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.GatewayServerListingActivity;
 import com.example.swob_deku.R;
 
@@ -40,7 +41,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         smsListeningSMSWithoutBorders.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(@NonNull Preference preference) {
-                startActivity(new Intent(getContext(), GatewayClientAddActivity.class));
+                startActivity(new Intent(getContext(), GatewayClientListingActivity.class));
                 return true;
             }
         });

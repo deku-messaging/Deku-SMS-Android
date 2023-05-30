@@ -8,7 +8,7 @@
     tools:context=".GatewayServerAddActivity">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/new_gateway_client_toolbar"
+        android:id="@+id/new_gateway_server_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="1dp"
@@ -28,7 +28,7 @@
         android:text="@string/new_gateway_server_url"
         android:textColor="@color/disabled_gray"
         app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-        app:layout_constraintTop_toBottomOf="@id/new_gateway_client_toolbar" />
+        app:layout_constraintTop_toBottomOf="@id/new_gateway_server_toolbar" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/new_gateway_client_input_constraint"

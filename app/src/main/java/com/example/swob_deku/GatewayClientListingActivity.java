@@ -17,7 +17,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_gateway_client_listing);
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.gateway_client_listing_toolbar);
-        myToolbar.setTitle(R.string.gateway_server_listing_toolbar_title);
+        myToolbar.setTitle(R.string.gateway_client_listing_toolbar_title);
 
         setSupportActionBar(myToolbar);
 
