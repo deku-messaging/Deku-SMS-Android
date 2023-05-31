@@ -142,6 +142,8 @@
     <string name="settings_gateway_client_cannot_be_empty">Cannot be empty!</string>
     <string name="settings_gateway_client_default_virtualhost">/</string>
     <string name="settings_gateway_client_default_port">5672</string>
+    <string name="settings_gateway_client_start">Listen</string>
+    <string name="settings_gateway_client_stop">Stop Listening</string>
 
     <string name="settings_gateway_client_amqp_protocol">AMQP</string>
     <string name="settings_gateway_client_amqps_protocol">AMQP/SSL</string>

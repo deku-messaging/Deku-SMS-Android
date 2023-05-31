@@ -23,10 +23,18 @@ import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientDAO;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientViewModel;
+import com.example.swob_deku.Services.RMQConnectionService;
 
 import java.util.List;
 
 public class GatewayClientListingActivity extends AppCompatActivity {
+
+    public static String GATEWAY_CLIENT_ID = "GATEWAY_CLIENT_ID";
+    public static String GATEWAY_CLIENT_USERNAME = "GATEWAY_CLIENT_USERNAME";
+    public static String GATEWAY_CLIENT_PASSWORD = "GATEWAY_CLIENT_PASSWORD";
+    public static String GATEWAY_CLIENT_VIRTUAL_HOST = "GATEWAY_CLIENT_VIRTUAL_HOST";
+    public static String GATEWAY_CLIENT_HOST = "GATEWAY_CLIENT_HOST";
+    public static String GATEWAY_CLIENT_PORT = "GATEWAY_CLIENT_PORT";
     Datastore databaseConnector;
 
     GatewayClientDAO gatewayClientDAO;
@@ -109,4 +117,5 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         }
         return false;
     }
+
 }
