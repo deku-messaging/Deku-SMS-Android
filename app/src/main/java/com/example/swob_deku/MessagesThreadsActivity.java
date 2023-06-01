@@ -1,5 +1,7 @@
 package com.example.swob_deku;
 
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +18,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -43,6 +46,7 @@ import com.example.swob_deku.Services.RMQConnectionService;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
+import com.example.swob_deku.Services.ServiceHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -64,6 +68,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     ActionBar ab;
 
     ArchiveHandler archiveHandler;
+
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -217,6 +223,15 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 popup.show();
             }
         });
+    }
+
+    private void verifyServices() {
+        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+        if(!ServiceHandler.getRunningService(getApplicationContext()).contains(RMQConnectionService.class.getCanonicalName())) {
+            sharedPreferences.edit()
+                    .clear()
+                    .apply();
+        }
     }
 
     private boolean checkIsDefaultApp() {
@@ -559,6 +574,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onResume();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
         messagesThreadViewModel.informChanges();
+        verifyServices();
     }
 
     private void highlightListener(int size){

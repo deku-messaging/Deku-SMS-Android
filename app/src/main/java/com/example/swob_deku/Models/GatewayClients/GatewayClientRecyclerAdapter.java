@@ -1,15 +1,24 @@
 package com.example.swob_deku.Models.GatewayClients;
 
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_FRIENDLY_NAME;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_HOST;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PASSWORD;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PORT;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_STOP_LISTENERS;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_VIRTUAL_HOST;
 import static com.example.swob_deku.Models.GatewayClients.GatewayClient.DIFF_CALLBACK;
 
 import android.app.ActivityManager;
+import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceConfigurationError;
 
 public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayClientRecyclerAdapter.ViewHolder>{
     private final AsyncListDiffer<GatewayClient> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
@@ -42,9 +52,11 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
 
     Context context;
 
+    SharedPreferences sharedPreferences;
     public GatewayClientRecyclerAdapter(Context context) {
         this.context = context;
         runningServiceInfoList = ServiceHandler.getRunningService(context);
+        sharedPreferences = context.getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
     }
 
     @NonNull
@@ -52,7 +64,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(R.layout.gateway_client_listing_layout, parent, false);
-        return new GatewayClientRecyclerAdapter.ViewHolder(view);
+        return new ViewHolder(view);
     }
 
     @Override
@@ -76,27 +88,25 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         else
             holder.friendlyName.setText(gatewayClient.getFriendlyConnectionName());
 
-        boolean automaticToggle = false;
-        for(ActivityManager.RunningServiceInfo runningServiceInfo : runningServiceInfoList) {
-            if (runningServiceInfo.service.getClassName().equals(RMQConnectionService.class.getName())) {
-                holder.listeningSwitch.setChecked(true);
-                automaticToggle = true;
-            }
+        if(sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
+            holder.listeningSwitch.setChecked(true);
         }
-
-        final boolean _automaticToggle = automaticToggle;
 
         holder.listeningSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(!_automaticToggle) {
-                    if (isChecked) {
-                        startListening(gatewayClient);
-                    } else
-                        stopListening(gatewayClient);
+                if (isChecked && !sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
+                    startListening(gatewayClient);
+                } else if(!isChecked){
+                    stopListening(gatewayClient);
                 }
             }
         });
+    }
+
+    public void rmqConnectionStateChanged() {
+        runningServiceInfoList = ServiceHandler.getRunningService(context);
+        notifyDataSetChanged();
     }
 
     public void startListening(GatewayClient gatewayClient) {
@@ -105,16 +115,17 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         intent.putExtra(GATEWAY_CLIENT_USERNAME, gatewayClient.getUsername());
         intent.putExtra(GATEWAY_CLIENT_PASSWORD, gatewayClient.getPassword());
         intent.putExtra(GATEWAY_CLIENT_HOST, gatewayClient.getHostUrl());
+        intent.putExtra(GATEWAY_CLIENT_PORT, gatewayClient.getPort());
         intent.putExtra(GATEWAY_CLIENT_VIRTUAL_HOST, gatewayClient.getVirtualHost());
+        intent.putExtra(GATEWAY_CLIENT_FRIENDLY_NAME, gatewayClient.getFriendlyConnectionName());
         context.startService(intent);
-        runningServiceInfoList = ServiceHandler.getRunningService(context);
     }
 
     public void stopListening(GatewayClient gatewayClient) {
         Intent intent = new Intent(context, RMQConnectionService.class);
         intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
-        context.stopService(intent);
-        runningServiceInfoList = ServiceHandler.getRunningService(context);
+        intent.putExtra(GATEWAY_CLIENT_STOP_LISTENERS, true);
+        context.startService(intent);
     }
 
     public void submitList(List<GatewayClient> gatewayClientList) {
@@ -126,7 +137,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         return mDiffer.getCurrentList().size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView url, virtualHost, friendlyName, date;
 

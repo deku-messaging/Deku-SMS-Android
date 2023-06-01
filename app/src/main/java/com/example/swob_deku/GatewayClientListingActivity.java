@@ -10,7 +10,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -24,6 +28,7 @@ import com.example.swob_deku.Models.GatewayClients.GatewayClientDAO;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientViewModel;
 import com.example.swob_deku.Services.RMQConnectionService;
+import com.example.swob_deku.Services.ServiceHandler;
 
 import java.util.List;
 
@@ -35,11 +40,22 @@ public class GatewayClientListingActivity extends AppCompatActivity {
     public static String GATEWAY_CLIENT_VIRTUAL_HOST = "GATEWAY_CLIENT_VIRTUAL_HOST";
     public static String GATEWAY_CLIENT_HOST = "GATEWAY_CLIENT_HOST";
     public static String GATEWAY_CLIENT_PORT = "GATEWAY_CLIENT_PORT";
+    public static String GATEWAY_CLIENT_FRIENDLY_NAME = "GATEWAY_CLIENT_FRIENDLY_NAME";
+
+    public static String GATEWAY_CLIENT_LISTENERS = "GATEWAY_CLIENT_LISTENERS";
+    public static String GATEWAY_CLIENT_STOP_LISTENERS = "GATEWAY_CLIENT_STOP_LISTENERS";
+
+    SharedPreferences sharedPreferences;
     Datastore databaseConnector;
 
     GatewayClientDAO gatewayClientDAO;
 
     Handler mHandler = new Handler();
+
+    GatewayClientRecyclerAdapter gatewayClientRecyclerAdapter;
+
+    BroadcastReceiver rmqSuccessBroadcastReceiver;
+    BroadcastReceiver rmqFailBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +73,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
+        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         RecyclerView recyclerView = findViewById(R.id.gateway_client_listing_recycler_view);
@@ -66,7 +83,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
                 linearLayoutManager.getOrientation());
         recyclerView.addItemDecoration(dividerItemDecoration);
 
-        GatewayClientRecyclerAdapter gatewayClientRecyclerAdapter = new GatewayClientRecyclerAdapter(this);
+        gatewayClientRecyclerAdapter = new GatewayClientRecyclerAdapter(this);
         recyclerView.setAdapter(gatewayClientRecyclerAdapter);
 
         GatewayClientViewModel gatewayClientViewModel = new ViewModelProvider(this).get(
@@ -88,7 +105,10 @@ public class GatewayClientListingActivity extends AppCompatActivity {
                 });
 
         setRefreshTimer(gatewayClientRecyclerAdapter);
+
+        broadcastListeners();
     }
+
 
     private void setRefreshTimer(GatewayClientRecyclerAdapter adapter) {
         final int recyclerViewTimeUpdateLimit = 60 * 1000;
@@ -118,4 +138,54 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         return false;
     }
 
+    private boolean saveListenerConfiguration(int id) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        return editor.putLong(String.valueOf(id), System.currentTimeMillis())
+                .commit();
+    }
+
+    private boolean removeListenerConfiguration(int id) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        return editor.remove(String.valueOf(id))
+                        .commit();
+    }
+
+    private void broadcastListeners(){
+        rmqSuccessBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(getLocalClassName(), "Received success intent broadcast!");
+                int id = intent.getIntExtra(GATEWAY_CLIENT_ID, -1);
+                saveListenerConfiguration(id);
+                gatewayClientRecyclerAdapter.rmqConnectionStateChanged();
+            }
+        };
+
+        rmqFailBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(getLocalClassName(), "Received failed intent broadcast!");
+                int id = intent.getIntExtra(GATEWAY_CLIENT_ID, -1);
+                removeListenerConfiguration(id);
+                gatewayClientRecyclerAdapter.rmqConnectionStateChanged();
+            }
+        };
+
+        registerReceiver(rmqSuccessBroadcastReceiver,
+                new IntentFilter(RMQConnectionService.RMQ_SUCCESS_BROADCAST_INTENT));
+
+        registerReceiver(rmqFailBroadcastReceiver,
+                new IntentFilter(RMQConnectionService.RMQ_STOP_BROADCAST_INTENT));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(rmqFailBroadcastReceiver != null)
+            unregisterReceiver(rmqFailBroadcastReceiver);
+
+        if(rmqSuccessBroadcastReceiver != null)
+            unregisterReceiver(rmqSuccessBroadcastReceiver);
+
+    }
 }

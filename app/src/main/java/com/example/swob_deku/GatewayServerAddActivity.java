@@ -79,12 +79,12 @@ public class GatewayServerAddActivity extends AppCompatActivity {
 
         try {
             GatewayServerHandler.add(getApplicationContext(), gatewayServer);
-        } catch(InterruptedException e) {
-            e.printStackTrace();
-        } finally {
+
             Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
             gatewayServerListIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(gatewayServerListIntent);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

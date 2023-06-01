@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -137,6 +137,19 @@
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
+
+        <receiver
+            android:name=".BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
+                <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".RespondViaMessageActivity"
             android:exported="true"
@@ -152,18 +165,6 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-
-        <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
-                <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
-                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
-            </intent-filter>
-        </receiver>
 
         <service
             android:name=".Services.RMQConnectionService"

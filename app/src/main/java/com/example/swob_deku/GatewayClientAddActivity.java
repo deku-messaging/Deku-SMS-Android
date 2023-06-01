@@ -75,10 +75,13 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         RadioGroup radioGroup = findViewById(R.id.add_gateway_client_protocol_group);
         int checkedRadioId = radioGroup.getCheckedRadioButtonId();
         if(checkedRadioId == R.id.add_gateway_client_protocol_amqp)
-            gatewayClient.setProtocol(getString(R.string.settings_gateway_client_amqp_protocol));
+            gatewayClient.setProtocol(getString(R.string.settings_gateway_client_amqp_protocol).toLowerCase());
 
         GatewayClientHandler.add(getApplicationContext(), gatewayClient);
-        finish();
+
+        Intent intent = new Intent(this, GatewayClientAddActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
     }
 
 }
