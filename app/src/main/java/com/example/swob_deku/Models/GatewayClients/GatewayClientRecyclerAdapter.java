@@ -88,16 +88,14 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         else
             holder.friendlyName.setText(gatewayClient.getFriendlyConnectionName());
 
-        if(sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
-            holder.listeningSwitch.setChecked(true);
-        }
+        holder.listeningSwitch.setChecked(sharedPreferences.contains(String.valueOf(gatewayClient.getId())));
 
         holder.listeningSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked && !sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
                     startListening(gatewayClient);
-                } else if(!isChecked){
+                } else if(!isChecked && sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
                     stopListening(gatewayClient);
                 }
             }

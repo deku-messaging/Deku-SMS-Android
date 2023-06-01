@@ -72,7 +72,7 @@ public class RMQConnectionService extends Service {
                         broadcastIntent(getApplicationContext(), RMQ_SUCCESS_BROADCAST_INTENT, gatewayClientId);
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
-                        stopService(intent);
+                        stopService(gatewayClientId);
                     }
                 }
             }).start();
@@ -82,13 +82,7 @@ public class RMQConnectionService extends Service {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-//                            connectionList.get(gatewayClientId).close();
-                            connectionList.remove(gatewayClientId).close();
-                            broadcastIntent(getApplicationContext(), RMQ_STOP_BROADCAST_INTENT, gatewayClientId);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        stopService(gatewayClientId);
                     }
                 }).start();
             }
@@ -96,6 +90,16 @@ public class RMQConnectionService extends Service {
 
         // return super.onStartCommand(intent, flags, startId);
         return START_NOT_STICKY;
+    }
+
+    private void stopService(int gatewayClientId) {
+        try {
+            if(connectionList.containsKey(gatewayClientId))
+                connectionList.remove(gatewayClientId).close();
+            broadcastIntent(getApplicationContext(), RMQ_STOP_BROADCAST_INTENT, gatewayClientId);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void broadcastIntent(Context context, String broadcastIntent, int id) {
