@@ -6,6 +6,7 @@
         app:key="sms_security"
         app:title="@string/settings_security_category_title">
         <Preference
+            app:icon="@drawable/round_security_24"
             app:key="security_id_end_to_end_encryption"
             app:title="@string/settings_security_category_end_to_end_encryption"
             app:summary="@string/settings_security_category_end_to_end_encryption_summary"/>
@@ -15,6 +16,7 @@
         app:key="sms_routing"
         app:title="@string/settings_SMS_routing_title">
         <Preference
+            app:icon="@drawable/baseline_alt_route_24"
             app:key="settings_sms_routing_gateway_clients"
             app:title="@string/settings_SMS_routing_custom_server"
             app:summary="@string/settings_SMS_routing_SMSWithoutBorders_summary"/>
@@ -24,6 +26,7 @@
         app:key="sms_listening"
         app:title="@string/settings_SMS_listening_title">
         <Preference
+            app:icon="@drawable/baseline_route_24"
             app:key="settings_sms_listening_gateway_clients"
             app:title="@string/settings_SMS_listening_server"
             app:summary="@string/settings_SMS_listening_SMSWithoutBorders_summary"/>
