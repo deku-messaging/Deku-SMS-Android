@@ -24,6 +24,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -88,14 +89,22 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         else
             holder.friendlyName.setText(gatewayClient.getFriendlyConnectionName());
 
+        holder.progressBar.setVisibility(View.GONE);
+        holder.listeningSwitch.setVisibility(View.VISIBLE);
+
         holder.listeningSwitch.setChecked(sharedPreferences.contains(String.valueOf(gatewayClient.getId())));
 
         holder.listeningSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked && !sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
+                    holder.progressBar.setVisibility(View.VISIBLE);
+                    holder.listeningSwitch.setVisibility(View.GONE);
+
                     startListening(gatewayClient);
                 } else if(!isChecked && sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
+                    holder.progressBar.setVisibility(View.VISIBLE);
+                    holder.listeningSwitch.setVisibility(View.GONE);
                     stopListening(gatewayClient);
                 }
             }
@@ -141,6 +150,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
 
         SwitchCompat listeningSwitch;
 
+        ProgressBar progressBar;
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
 
@@ -149,6 +159,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
             friendlyName = itemView.findViewById(R.id.gateway_client_friendly_name_text);
             date = itemView.findViewById(R.id.gateway_client_date);
             listeningSwitch = itemView.findViewById(R.id.gateway_client_start_listening_switch);
+            progressBar = itemView.findViewById(R.id.gateway_client_start_listening_loader);
         }
     }
 }
