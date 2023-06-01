@@ -30,11 +30,11 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="8dp"
                 android:fontFamily="sans-serif-condensed"
                 android:text="example.com"
                 android:textSize="20sp"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/gateway_client_start_listening_switch"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -103,23 +103,16 @@
                 android:textSize="12sp"
                 app:layout_constraintStart_toStartOf="@+id/gateway_client_url"
                 app:layout_constraintTop_toBottomOf="@+id/gateway_client_url" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/gateway_client_start_listening_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                app:layout_constraintBottom_toBottomOf="@+id/gateway_client_url"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/gateway_client_start_btn"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="32dp"
-        android:text="@string/settings_gateway_client_start"
-        android:textAllCaps="false"
-        android:textColor="@color/colorSecondary"
-        android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/gateway_client_card" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -14,9 +14,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,6 +28,7 @@ import com.example.swob_deku.R;
 import com.example.swob_deku.Services.RMQConnectionService;
 import com.example.swob_deku.Services.ServiceHandler;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -72,24 +76,25 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         else
             holder.friendlyName.setText(gatewayClient.getFriendlyConnectionName());
 
-        boolean running = false;
+        boolean automaticToggle = false;
         for(ActivityManager.RunningServiceInfo runningServiceInfo : runningServiceInfoList) {
             if (runningServiceInfo.service.getClassName().equals(RMQConnectionService.class.getName())) {
-                holder.startListeningBtn.setText(context.getString(R.string.settings_gateway_client_stop));
-                running = true;
+                holder.listeningSwitch.setChecked(true);
+                automaticToggle = true;
             }
         }
 
-        final boolean _running = running;
+        final boolean _automaticToggle = automaticToggle;
 
-        holder.startListeningBtn.setOnClickListener(new View.OnClickListener() {
+        holder.listeningSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                Log.d(getClass().getName(), "Service is running..." + _running);
-                if(!_running)
-                    startListening(gatewayClient);
-                else
-                    stopListening(gatewayClient);
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(!_automaticToggle) {
+                    if (isChecked) {
+                        startListening(gatewayClient);
+                    } else
+                        stopListening(gatewayClient);
+                }
             }
         });
     }
@@ -124,7 +129,8 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView url, virtualHost, friendlyName, date;
-        MaterialButton startListeningBtn;
+
+        SwitchCompat listeningSwitch;
 
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
@@ -133,7 +139,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
             virtualHost = itemView.findViewById(R.id.gateway_client_virtual_host);
             friendlyName = itemView.findViewById(R.id.gateway_client_friendly_name_text);
             date = itemView.findViewById(R.id.gateway_client_date);
-            startListeningBtn = itemView.findViewById(R.id.gateway_client_start_btn);
+            listeningSwitch = itemView.findViewById(R.id.gateway_client_start_listening_switch);
         }
     }
 }
