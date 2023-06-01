@@ -10,6 +10,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.example.swob_deku.GatewayClientListingActivity;
+import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
 import com.example.swob_deku.R;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -66,13 +67,15 @@ public class RMQConnectionService extends Service {
                 @Override
                 public void run() {
                     Connection connection = null;
+                    int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
                     try {
                         connection = factory.newConnection(consumerExecutorService, friendlyName);
                         connectionList.put(gatewayClientId, connection);
-                        broadcastIntent(getApplicationContext(), RMQ_SUCCESS_BROADCAST_INTENT, gatewayClientId);
+                        broadcastIntent(getApplicationContext(), RMQ_SUCCESS_BROADCAST_INTENT,
+                                gatewayClientId, adapterPosition);
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
-                        stopService(gatewayClientId);
+                        stopService(gatewayClientId, adapterPosition);
                     }
                 }
             }).start();
@@ -82,7 +85,8 @@ public class RMQConnectionService extends Service {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        stopService(gatewayClientId);
+                        int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
+                        stopService(gatewayClientId, adapterPosition);
                     }
                 }).start();
             }
@@ -92,19 +96,20 @@ public class RMQConnectionService extends Service {
         return START_NOT_STICKY;
     }
 
-    private void stopService(int gatewayClientId) {
+    private void stopService(int gatewayClientId, int adapterPosition) {
         try {
             if(connectionList.containsKey(gatewayClientId))
                 connectionList.remove(gatewayClientId).close();
-            broadcastIntent(getApplicationContext(), RMQ_STOP_BROADCAST_INTENT, gatewayClientId);
+            broadcastIntent(getApplicationContext(), RMQ_STOP_BROADCAST_INTENT, gatewayClientId, adapterPosition);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void broadcastIntent(Context context, String broadcastIntent, int id) {
+    private void broadcastIntent(Context context, String broadcastIntent, int id, int adapterPosition) {
         Intent intent = new Intent(broadcastIntent);
         intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id);
+        intent.putExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, adapterPosition);
         context.sendBroadcast(intent);
     }
 

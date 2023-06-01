@@ -52,6 +52,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
     List<ActivityManager.RunningServiceInfo> runningServiceInfoList = new ArrayList<>();
 
     Context context;
+    public static final String ADAPTER_POSITION = "ADAPTER_POSITION";
 
     SharedPreferences sharedPreferences;
     public GatewayClientRecyclerAdapter(Context context) {
@@ -101,22 +102,22 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
                     holder.progressBar.setVisibility(View.VISIBLE);
                     holder.listeningSwitch.setVisibility(View.GONE);
 
-                    startListening(gatewayClient);
+                    startListening(gatewayClient, holder.getAbsoluteAdapterPosition());
                 } else if(!isChecked && sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
                     holder.progressBar.setVisibility(View.VISIBLE);
                     holder.listeningSwitch.setVisibility(View.GONE);
-                    stopListening(gatewayClient);
+                    stopListening(gatewayClient, holder.getAbsoluteAdapterPosition());
                 }
             }
         });
     }
 
-    public void rmqConnectionStateChanged() {
+    public void rmqConnectionStateChanged(int adapterPosition) {
         runningServiceInfoList = ServiceHandler.getRunningService(context);
-        notifyDataSetChanged();
+        notifyItemChanged(adapterPosition);
     }
 
-    public void startListening(GatewayClient gatewayClient) {
+    public void startListening(GatewayClient gatewayClient, int adapterPosition) {
         Intent intent = new Intent(context, RMQConnectionService.class);
         intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
         intent.putExtra(GATEWAY_CLIENT_USERNAME, gatewayClient.getUsername());
@@ -125,13 +126,15 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         intent.putExtra(GATEWAY_CLIENT_PORT, gatewayClient.getPort());
         intent.putExtra(GATEWAY_CLIENT_VIRTUAL_HOST, gatewayClient.getVirtualHost());
         intent.putExtra(GATEWAY_CLIENT_FRIENDLY_NAME, gatewayClient.getFriendlyConnectionName());
+        intent.putExtra(ADAPTER_POSITION, adapterPosition);
         context.startService(intent);
     }
 
-    public void stopListening(GatewayClient gatewayClient) {
+    public void stopListening(GatewayClient gatewayClient, int adapterPosition) {
         Intent intent = new Intent(context, RMQConnectionService.class);
         intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
         intent.putExtra(GATEWAY_CLIENT_STOP_LISTENERS, true);
+        intent.putExtra(ADAPTER_POSITION, adapterPosition);
         context.startService(intent);
     }
 

@@ -30,6 +30,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:fontFamily="sans-serif-condensed"
                 android:text="example.com"
@@ -108,9 +109,10 @@
                 android:id="@+id/gateway_client_state_container"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 app:layout_constraintBottom_toBottomOf="@+id/gateway_client_url"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toTopOf="@id/gateway_client_url">
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/gateway_client_start_listening_switch"

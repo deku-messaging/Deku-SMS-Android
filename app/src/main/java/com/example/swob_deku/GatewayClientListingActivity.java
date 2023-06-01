@@ -156,8 +156,9 @@ public class GatewayClientListingActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 Log.d(getLocalClassName(), "Received success intent broadcast!");
                 int id = intent.getIntExtra(GATEWAY_CLIENT_ID, -1);
+                int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
                 saveListenerConfiguration(id);
-                gatewayClientRecyclerAdapter.rmqConnectionStateChanged();
+                gatewayClientRecyclerAdapter.rmqConnectionStateChanged(adapterPosition);
             }
         };
 
@@ -166,8 +167,9 @@ public class GatewayClientListingActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 Log.d(getLocalClassName(), "Received failed intent broadcast!");
                 int id = intent.getIntExtra(GATEWAY_CLIENT_ID, -1);
+                int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
                 removeListenerConfiguration(id);
-                gatewayClientRecyclerAdapter.rmqConnectionStateChanged();
+                gatewayClientRecyclerAdapter.rmqConnectionStateChanged(adapterPosition);
             }
         };
 
