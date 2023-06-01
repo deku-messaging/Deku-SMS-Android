@@ -16,4 +16,7 @@ public interface GatewayClientDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(GatewayClient gatewayClient);
+
+    @Query("SELECT * FROM GatewayClient WHERE id=:id")
+    GatewayClient fetch(int id);
 }

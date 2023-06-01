@@ -77,7 +77,8 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         if(checkedRadioId == R.id.add_gateway_client_protocol_amqp)
             gatewayClient.setProtocol(getString(R.string.settings_gateway_client_amqp_protocol).toLowerCase());
 
-        GatewayClientHandler.add(getApplicationContext(), gatewayClient);
+        new GatewayClientHandler(getApplicationContext())
+                .add(gatewayClient);
 
         Intent intent = new Intent(this, GatewayClientAddActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

@@ -39,6 +39,8 @@ import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
+import com.example.swob_deku.Models.GatewayClients.GatewayClient;
+import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
@@ -52,6 +54,8 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
     // TODO: Change address to friendly name if in phonebook
@@ -225,12 +229,18 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         });
     }
 
-    private void verifyServices() {
+    private void verifyServices() throws InterruptedException {
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
-        if(!ServiceHandler.getRunningService(getApplicationContext()).contains(RMQConnectionService.class.getCanonicalName())) {
-            sharedPreferences.edit()
-                    .clear()
-                    .apply();
+        Map<String, ?> services = sharedPreferences.getAll();
+        if(!services.isEmpty()) {
+            if (!ServiceHandler.getRunningService(getApplicationContext())
+                    .contains(RMQConnectionService.class.getCanonicalName())) {
+                GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+                for (Map.Entry<String, ?> entrySet : services.entrySet()) {
+                    Intent intent = gatewayClientHandler.getIntent(Integer.parseInt(entrySet.getKey()));
+                    startService(intent);
+                }
+            }
         }
     }
 
@@ -574,7 +584,16 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onResume();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
         messagesThreadViewModel.informChanges();
-        verifyServices();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    verifyServices();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     private void highlightListener(int size){
