@@ -83,7 +83,8 @@ public class RMQConnectionService extends Service {
                     @Override
                     public void run() {
                         try {
-                            connectionList.get(gatewayClientId).close();
+//                            connectionList.get(gatewayClientId).close();
+                            connectionList.remove(gatewayClientId).close();
                             broadcastIntent(getApplicationContext(), RMQ_STOP_BROADCAST_INTENT, gatewayClientId);
                         } catch (IOException e) {
                             e.printStackTrace();
