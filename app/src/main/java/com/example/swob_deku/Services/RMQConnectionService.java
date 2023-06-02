@@ -73,6 +73,14 @@ public class RMQConnectionService extends Service {
                         connectionList.put(gatewayClientId, connection);
                         broadcastIntent(getApplicationContext(), RMQ_SUCCESS_BROADCAST_INTENT,
                                 gatewayClientId, adapterPosition);
+
+                        RMQConnection rmqConnection = new RMQConnection();
+
+                        rmqConnection.setConnection(connection);
+
+                        rmqConnection.setChannel(connection.createChannel());
+
+                        rmqConnection.createQueue(queueName, deliverCallback);
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
                         stopService(gatewayClientId, adapterPosition);
