@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/new_gateway_client_url"
+            android:text="@string/gateway_client_project_name"
             android:textColor="@color/disabled_gray"
             app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
             app:layout_constraintTop_toBottomOf="@id/new_gateway_client_toolbar" />
@@ -63,8 +63,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/baseline_add_link_24">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/new_gateway_client_url_input"
@@ -82,7 +81,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/new_gateway_client_username"
+            android:text="@string/gateway_client_project_binding"
             android:textColor="@color/disabled_gray"
             app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
             app:layout_constraintTop_toBottomOf="@id/new_gateway_client_input_constraint" />
@@ -118,8 +117,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/round_person_24">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/new_gateway_client_username"

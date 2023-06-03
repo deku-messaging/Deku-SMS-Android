@@ -148,7 +148,6 @@
     <string name="settings_gateway_client_amqp_protocol">AMQP</string>
     <string name="settings_gateway_client_amqps_protocol">AMQP/SSL</string>
 
-
     <string name="gateway_client_project_name">Enter project name - (Exchange)</string>
-    <string name="gateway_client_project_name">Enter project name - (Exchange)</string>
+    <string name="gateway_client_project_binding">Enter project binding - <i>(default project_name.operator_country.operator_name)</i></string>
 </resources>

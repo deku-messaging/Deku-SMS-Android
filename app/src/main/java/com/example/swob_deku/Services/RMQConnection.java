@@ -15,7 +15,7 @@ public class RMQConnection {
     boolean autoDelete = false;
     boolean autoAck = true;
 
-    String queueName;
+    String queueName, bindingKey;
 
     Connection connection;
 
@@ -39,12 +39,14 @@ public class RMQConnection {
         this.channel = channel;
     }
 
-    public void createQueue(String queueName, DeliverCallback deliverCallback) throws IOException {
-        this.queueName = queueName;
+    public void createQueue(String exchangeName, String operatorCountry, String operatorName,
+                            DeliverCallback deliverCallback) throws IOException {
+        this.queueName = exchangeName + "_" + operatorCountry + "_" + operatorName;
+        this.bindingKey = exchangeName + "." + operatorCountry + "." + operatorName;
         this.deliverCallback = deliverCallback;
 
         this.channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
-        this.channel.queueBind(queueName, exchangeName, routingKey);
+        this.channel.queueBind(queueName, exchangeName, bindingKey);
     }
 
     public void consume() throws IOException {
