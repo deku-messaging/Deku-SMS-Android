@@ -21,13 +21,16 @@
         android:theme="@style/Theme.main"
         android:usesCleartextTraffic="false">
         <activity
-            android:name=".GatewayClientAddActivity"
-            android:parentActivityName=".GatewayClientListingActivity"
+            android:name=".GatewayClientCustomizationActivity"
             android:exported="false" />
         <activity
+            android:name=".GatewayClientAddActivity"
+            android:exported="false"
+            android:parentActivityName=".GatewayClientListingActivity" />
+        <activity
             android:name=".GatewayClientListingActivity"
-            android:parentActivityName=".SettingsActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
@@ -137,7 +140,6 @@
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
-
         <receiver
             android:name=".BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
             android:enabled="true"
@@ -165,7 +167,6 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-
         <service
             android:name=".Services.RMQConnectionService"
             android:enabled="true"
