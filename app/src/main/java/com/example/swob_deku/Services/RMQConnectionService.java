@@ -14,9 +14,12 @@ import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
 import com.example.swob_deku.R;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DeliverCallback;
+import com.rabbitmq.client.Delivery;
 import com.rabbitmq.client.impl.DefaultExceptionHandler;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -74,13 +77,17 @@ public class RMQConnectionService extends Service {
                         broadcastIntent(getApplicationContext(), RMQ_SUCCESS_BROADCAST_INTENT,
                                 gatewayClientId, adapterPosition);
 
-                        RMQConnection rmqConnection = new RMQConnection();
+                        RMQConnection rmqConnection = new RMQConnection(connection);
+                        DeliverCallback deliverCallback = new DeliverCallback() {
+                            @Override
+                            public void handle(String consumerTag, Delivery delivery) throws IOException {
+                                String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+                                rmqConnection.getChannel().basicAck(delivery.getEnvelope().getDeliveryTag(),
+                                        false);
+                            }
+                        };
 
-                        rmqConnection.setConnection(connection);
-
-                        rmqConnection.setChannel(connection.createChannel());
-
-                        rmqConnection.createQueue(queueName, deliverCallback);
+                        rmqConnection.createQueue(projectName, operatorCountry, operatorName, deliverCallback);
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
                         stopService(gatewayClientId, adapterPosition);

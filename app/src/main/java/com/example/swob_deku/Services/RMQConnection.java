@@ -10,35 +10,41 @@ import java.util.List;
 
 public class RMQConnection {
 
-    boolean durable = true;
-    boolean exclusive = false;
-    boolean autoDelete = false;
-    boolean autoAck = true;
+    private boolean durable = true;
+    private boolean exclusive = false;
+    private boolean autoDelete = false;
+    private boolean autoAck = true;
 
-    String queueName, bindingKey;
+    private String queueName, bindingKey;
 
-    Connection connection;
+    private Connection connection;
 
-    Channel channel;
+    private Channel channel;
 
-    DeliverCallback deliverCallback;
+    private DeliverCallback deliverCallback;
+
+    public RMQConnection(Connection connection) throws IOException {
+        this.connection = connection;
+
+        this.channel = this.connection.createChannel();
+    }
 
     public Connection getConnection() {
         return connection;
-    }
-
-    public void setConnection(Connection connection) {
-        this.connection = connection;
     }
 
     public Channel getChannel() {
         return channel;
     }
 
-    public void setChannel(Channel channel) {
-        this.channel = channel;
-    }
-
+    /**
+     *
+     * @param exchangeName
+     * @param operatorCountry
+     * @param operatorName
+     * @param deliverCallback
+     * @throws IOException
+     */
     public void createQueue(String exchangeName, String operatorCountry, String operatorName,
                             DeliverCallback deliverCallback) throws IOException {
         this.queueName = exchangeName + "_" + operatorCountry + "_" + operatorName;
