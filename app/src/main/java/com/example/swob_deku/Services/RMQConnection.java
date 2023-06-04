@@ -40,15 +40,12 @@ public class RMQConnection {
     /**
      *
      * @param exchangeName
-     * @param operatorCountry
-     * @param operatorName
      * @param deliverCallback
      * @throws IOException
      */
-    public void createQueue(String exchangeName, String operatorCountry, String operatorName,
-                            DeliverCallback deliverCallback) throws IOException {
-        this.queueName = exchangeName + "_" + operatorCountry + "_" + operatorName;
-        this.bindingKey = exchangeName + "." + operatorCountry + "." + operatorName;
+    public void createQueue(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
+        this.queueName = bindingKey.replaceAll("\\.", "_");
+        this.bindingKey = bindingKey;
         this.deliverCallback = deliverCallback;
 
         this.channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);

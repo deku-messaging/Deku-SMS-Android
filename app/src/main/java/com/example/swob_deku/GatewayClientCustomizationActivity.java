@@ -6,12 +6,19 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.telephony.SubscriptionInfo;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
+import com.example.swob_deku.Models.SIMHandler;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.List;
 
 public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
@@ -54,6 +61,32 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
         if(!gatewayClient.getProjectBinding().isEmpty())
             projectBinding.setText(gatewayClient.getProjectBinding());
+
+        final String operatorCountry = Helpers.getUserCountry(getApplicationContext());
+        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
+        String operatorName = "";
+
+        for(SubscriptionInfo subscriptionInfo : simcards)
+            operatorName = subscriptionInfo.getCarrierName().toString();
+        final String f_operatorName = operatorName;
+
+        projectName.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String bindingKey = s + "." + operatorCountry + "." + f_operatorName;
+                projectBinding.setText(bindingKey);
+            }
+        });
     }
 
     public void onSaveGatewayClientConfiguration(View view) throws InterruptedException {

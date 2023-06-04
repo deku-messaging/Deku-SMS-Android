@@ -96,16 +96,12 @@ public class RMQConnectionService extends Service {
                         GatewayClient gatewayClient = new GatewayClientHandler(getApplicationContext())
                                 .fetch(gatewayClientId);
 
-                        String operatorCountry = Helpers.getUserCountry(getApplicationContext());
+                        if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
+                            rmqConnection.createQueue(gatewayClient.getProjectName(),
+                                    gatewayClient.getProjectBinding(), deliverCallback);
+                            rmqConnection.consume();
+                        }
 
-                        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
-                        String operatorName = "";
-
-                        for(SubscriptionInfo subscriptionInfo : simcards)
-                            operatorName = subscriptionInfo.getCarrierName().toString();
-
-                        if(!operatorName.isEmpty() && gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty())
-                            rmqConnection.createQueue(gatewayClient.getProjectName(), operatorCountry, operatorName, deliverCallback);
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
                         stopService(gatewayClientId, adapterPosition);
