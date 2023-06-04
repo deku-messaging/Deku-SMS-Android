@@ -22,7 +22,8 @@
         android:usesCleartextTraffic="false">
         <activity
             android:name=".GatewayClientCustomizationActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".GatewayClientListingActivity" />
         <activity
             android:name=".GatewayClientAddActivity"
             android:exported="false"
