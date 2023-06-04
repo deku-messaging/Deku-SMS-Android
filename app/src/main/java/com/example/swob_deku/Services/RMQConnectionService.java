@@ -5,12 +5,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.telephony.SubscriptionInfo;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientListingActivity;
+import com.example.swob_deku.Models.GatewayClients.GatewayClient;
+import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.R;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -21,6 +26,7 @@ import com.rabbitmq.client.impl.DefaultExceptionHandler;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
@@ -87,10 +93,24 @@ public class RMQConnectionService extends Service {
                             }
                         };
 
-                        rmqConnection.createQueue(projectName, operatorCountry, operatorName, deliverCallback);
+                        GatewayClient gatewayClient = new GatewayClientHandler(getApplicationContext())
+                                .fetch(gatewayClientId);
+
+                        String operatorCountry = Helpers.getUserCountry(getApplicationContext());
+
+                        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
+                        String operatorName = "";
+
+                        for(SubscriptionInfo subscriptionInfo : simcards)
+                            operatorName = subscriptionInfo.getCarrierName().toString();
+
+                        if(!operatorName.isEmpty() && gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty())
+                            rmqConnection.createQueue(gatewayClient.getProjectName(), operatorCountry, operatorName, deliverCallback);
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
                         stopService(gatewayClientId, adapterPosition);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 }
             }).start();

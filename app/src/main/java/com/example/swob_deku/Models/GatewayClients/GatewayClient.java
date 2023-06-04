@@ -17,28 +17,49 @@ public class GatewayClient {
     public GatewayClient() {}
 
     @PrimaryKey(autoGenerate = true)
-    int id;
+    private int id;
 
 
-    long date;
+    private long date;
 
-    String hostUrl;
+    private String hostUrl;
 
-    String username;
-    String password;
+    private String username;
+    private String password;
 
-    int port;
+    private int port;
 
-    String friendlyConnectionName;
-    String virtualHost;
+    private String friendlyConnectionName;
+    private String virtualHost;
 
-    int connectionTimeout = 10000;
+    private int connectionTimeout = 10000;
 
-    int prefetch_count = 1;
+    private int prefetch_count = 1;
 
-    int heartbeat = 30;
+    private int heartbeat = 30;
 
-    String protocol = "amqp";
+    private String protocol = "amqp";
+
+    private String projectName;
+
+    private String projectBinding;
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public String getProjectBinding() {
+        return projectBinding;
+    }
+
+    public void setProjectBinding(String projectBinding) {
+        this.projectBinding = projectBinding;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
 
     public String getUsername() {
         return username;
@@ -140,12 +161,14 @@ public class GatewayClient {
     public boolean equals(@Nullable Object obj) {
 //        return super.equals(obj);
         if(obj instanceof GatewayClient) {
-            GatewayClient gatewayServer = (GatewayClient) obj;
-            return gatewayServer.id == this.id &&
-                    gatewayServer.hostUrl.equals(this.hostUrl) &&
-                    gatewayServer.protocol.equals(this.protocol) &&
-                    gatewayServer.port == this.port &&
-                    gatewayServer.date == this.date;
+            GatewayClient gatewayClient = (GatewayClient) obj;
+            return gatewayClient.id == this.id &&
+                    gatewayClient.hostUrl.equals(this.hostUrl) &&
+                    gatewayClient.protocol.equals(this.protocol) &&
+                    gatewayClient.port == this.port &&
+                    gatewayClient.projectBinding.equals(this.projectBinding) &&
+                    gatewayClient.projectName.equals(this.projectName) &&
+                    gatewayClient.date == this.date;
         }
         return false;
     }

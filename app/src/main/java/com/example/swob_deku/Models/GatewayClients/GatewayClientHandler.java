@@ -44,6 +44,19 @@ public class GatewayClientHandler {
         thread.join();
     }
 
+    public void update(GatewayClient gatewayClient) throws InterruptedException {
+        gatewayClient.setDate(System.currentTimeMillis());
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                GatewayClientDAO gatewayClientDAO = databaseConnector.gatewayClientDAO();
+                gatewayClientDAO.update(gatewayClient, gatewayClient.getId());
+            }
+        });
+        thread.start();
+        thread.join();
+    }
+
     public GatewayClient fetch(int id) throws InterruptedException {
         final GatewayClient[] gatewayClient = {new GatewayClient()};
         Thread thread = new Thread(new Runnable() {
