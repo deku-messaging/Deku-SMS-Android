@@ -11,7 +11,6 @@ import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_
 import android.content.Context;
 import android.content.Intent;
 
-import androidx.room.Database;
 import androidx.room.Room;
 
 import com.example.swob_deku.Models.Datastore;
@@ -50,7 +49,9 @@ public class GatewayClientHandler {
             @Override
             public void run() {
                 GatewayClientDAO gatewayClientDAO = databaseConnector.gatewayClientDAO();
-                gatewayClientDAO.update(gatewayClient, gatewayClient.getId());
+                gatewayClientDAO.updateProjectNameAndProjectBinding(
+                        gatewayClient.getProjectName(), gatewayClient.getProjectBinding(),
+                        gatewayClient.getId());
             }
         });
         thread.start();

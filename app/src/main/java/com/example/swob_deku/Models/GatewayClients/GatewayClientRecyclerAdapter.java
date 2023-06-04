@@ -30,10 +30,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.GatewayClientCustomizationActivity;
 import com.example.swob_deku.R;
 import com.example.swob_deku.Services.RMQConnectionService;
 import com.example.swob_deku.Services.ServiceHandler;
@@ -110,6 +112,15 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
                 }
             }
         });
+
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, GatewayClientCustomizationActivity.class);
+                intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
+                context.startActivity(intent);
+            }
+        });
     }
 
     public void rmqConnectionStateChanged(int adapterPosition) {
@@ -154,6 +165,8 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         SwitchCompat listeningSwitch;
 
         ProgressBar progressBar;
+
+        CardView cardView;
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
 
@@ -163,6 +176,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
             date = itemView.findViewById(R.id.gateway_client_date);
             listeningSwitch = itemView.findViewById(R.id.gateway_client_start_listening_switch);
             progressBar = itemView.findViewById(R.id.gateway_client_start_listening_loader);
+            cardView = itemView.findViewById(R.id.gateway_client_card);
         }
     }
 }

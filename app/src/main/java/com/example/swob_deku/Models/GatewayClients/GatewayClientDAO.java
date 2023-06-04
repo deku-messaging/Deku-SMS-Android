@@ -20,6 +20,6 @@ public interface GatewayClientDAO {
     @Query("SELECT * FROM GatewayClient WHERE id=:id")
     GatewayClient fetch(int id);
 
-    @Query("UPDATE GatewayClient SET :gatewayClient WHERE id=:id")
-    void update(GatewayClient gatewayClient, int id);
+    @Query("UPDATE GatewayClient SET projectName=:projectName, projectBinding=:projectBinding WHERE id=:id")
+    void updateProjectNameAndProjectBinding(String projectName, String projectBinding, int id);
 }

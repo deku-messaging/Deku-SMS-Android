@@ -45,6 +45,15 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
         int gatewayId = getIntent().getIntExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
         gatewayClient = gatewayClientHandler.fetch(gatewayId);
+
+        TextInputEditText projectName = findViewById(R.id.new_gateway_client_project_name);
+        TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding);
+
+        if(!gatewayClient.getProjectName().isEmpty())
+            projectName.setText(gatewayClient.getProjectName());
+
+        if(!gatewayClient.getProjectBinding().isEmpty())
+            projectBinding.setText(gatewayClient.getProjectBinding());
     }
 
     public void onSaveGatewayClientConfiguration(View view) throws InterruptedException {
@@ -64,7 +73,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         gatewayClient.setProjectBinding(projectBinding.getText().toString());
         gatewayClientHandler.update(gatewayClient);
 
-        Intent intent = new Intent(this, GatewayClientAddActivity.class);
+        Intent intent = new Intent(this, GatewayClientListingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
     }

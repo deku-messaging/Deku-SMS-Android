@@ -80,7 +80,7 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         new GatewayClientHandler(getApplicationContext())
                 .add(gatewayClient);
 
-        Intent intent = new Intent(this, GatewayClientAddActivity.class);
+        Intent intent = new Intent(this, GatewayClientListingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
     }

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "5731b72aedbe34a38817030a2aeb514b",
+    "identityHash": "609133e3e6b0b60743616e18cecdfa52",
     "entities": [
       {
         "tableName": "GatewayServer",
@@ -90,7 +90,7 @@
       },
       {
         "tableName": "GatewayClient",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `hostUrl` TEXT, `username` TEXT, `password` TEXT, `port` INTEGER NOT NULL, `friendlyConnectionName` TEXT, `virtualHost` TEXT, `connectionTimeout` INTEGER NOT NULL, `prefetch_count` INTEGER NOT NULL, `heartbeat` INTEGER NOT NULL, `protocol` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `hostUrl` TEXT, `username` TEXT, `password` TEXT, `port` INTEGER NOT NULL, `friendlyConnectionName` TEXT, `virtualHost` TEXT, `connectionTimeout` INTEGER NOT NULL, `prefetch_count` INTEGER NOT NULL, `heartbeat` INTEGER NOT NULL, `protocol` TEXT, `projectName` TEXT, `projectBinding` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -163,6 +163,18 @@
             "columnName": "protocol",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "projectName",
+            "columnName": "projectName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "projectBinding",
+            "columnName": "projectBinding",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -188,7 +200,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5731b72aedbe34a38817030a2aeb514b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '609133e3e6b0b60743616e18cecdfa52')"
     ]
   }
 }
