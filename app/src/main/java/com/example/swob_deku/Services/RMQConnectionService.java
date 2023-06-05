@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
+import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
@@ -71,20 +72,30 @@ public class RMQConnectionService extends Service {
                 // TODO: in case this intent comes back but the internet connection broke to send back acknowledgement
                 // TODO: should store pending confirmations in a place
 
-                if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT) &&
+                Log.d(getClass().getName(), "Contains required: " + intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY));
+
+                if(intent.hasExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE) &&
+                        intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)
+                                .equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT) &&
                         intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
                     Log.d(getClass().getName(), "Service received a broadcast and should acknowledge to rmq from here");
 
-                    long globalMessageId = intent.getIntExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, -1);
+                    long globalMessageId = intent.getLongExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, -1);
                     if(globalMessageId != -1) {
                         Map<Long, Channel> deliveryChannel = channelList.get(globalMessageId);
                         Long deliveryTag = deliveryChannel.keySet().iterator().next();
-                        try {
-                            Channel channel = deliveryChannel.get(deliveryTag);
-                            if(channel != null && channel.isOpen())
-                                channel.basicAck(deliveryTag, false);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        Channel channel = deliveryChannel.get(deliveryTag);
+                        if(channel != null && channel.isOpen()) {
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        channel.basicAck(deliveryTag, false);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }).start();
                         }
                     }
                 }
@@ -104,6 +115,8 @@ public class RMQConnectionService extends Service {
                     JSONObject jsonObject = new JSONObject(message);
 
                     String body = jsonObject.getString(RMQConnection.MESSAGE_BODY_KEY);
+                    Log.d(getClass().getName(), "New request body: " + body);
+
                     String msisdn = jsonObject.getString(RMQConnection.MESSAGE_MSISDN_KEY);
                     String globalMessageKey = jsonObject.getString(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY);
 
@@ -168,8 +181,9 @@ public class RMQConnectionService extends Service {
 
                         RMQConnection rmqConnection = new RMQConnection(connection);
 
-                        GatewayClient gatewayClient = new GatewayClientHandler(getApplicationContext())
-                                .fetch(gatewayClientId);
+                        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+                        GatewayClient gatewayClient = gatewayClientHandler.fetch(gatewayClientId);
+                        gatewayClientHandler.close();
 
                         if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
                             rmqConnection.createQueue(gatewayClient.getProjectName(),
@@ -223,6 +237,8 @@ public class RMQConnectionService extends Service {
     @Override
     public void onDestroy() {
         Log.d(getClass().getName(), "Ending connection...");
+        if(messageStateChangedBroadcast != null)
+            unregisterReceiver(messageStateChangedBroadcast);
 //        consumerExecutorService.shutdown(); // Shutdown the executor when the service is destroyed    }
     }
 

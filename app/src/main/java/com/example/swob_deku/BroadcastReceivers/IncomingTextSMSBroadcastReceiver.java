@@ -241,7 +241,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
         deliveredIntent.setPackage(context.getPackageName());
         deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
-        deliveredIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
 
         PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)),

@@ -30,11 +30,15 @@ import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
+import com.example.swob_deku.Services.RMQConnection;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
+    public static String BROADCAST_STATE = BuildConfig.APPLICATION_ID + ".BROADCAST_STATE";
+    public static String SENT_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SENT_BROADCAST_INTENT";
+    public static String DELIVERED_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".DELIVERED_BROADCAST_INTENT";
     public static String REPLY_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".REPLY_BROADCAST_ACTION";
     public static String MARK_AS_READ_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".MARK_AS_READ_BROADCAST_ACTION";
     @Override
@@ -97,6 +101,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
         }
         else if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT)) {
             long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+            intent.putExtra(BROADCAST_STATE, SENT_BROADCAST_INTENT);
             switch(getResultCode()) {
                 case Activity.RESULT_OK:
                     try {
@@ -122,7 +127,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
             }
         }
         else if(intent.getAction().equals(SMS_DELIVERED_BROADCAST_INTENT)) {
-            Log.d(getClass().getName(), "Received in BIG BOY TOO");
+            intent.putExtra(BROADCAST_STATE, DELIVERED_BROADCAST_INTENT);
             long id = intent.getLongExtra(SMSSendActivity.ID, -1);
             if (getResultCode() == Activity.RESULT_OK) {
                 SMSHandler.registerDeliveredMessage(context, id);
@@ -132,6 +137,10 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                             + getResultCode());
             }
         }
-        context.sendBroadcast(new Intent(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
+
+        Intent newIntent = new Intent(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT);
+        newIntent.putExtras(intent.getExtras());
+
+        context.sendBroadcast(newIntent);
     }
 }

@@ -10,9 +10,9 @@ import java.util.List;
 
 public class RMQConnection {
 
-    public static final String MESSAGE_BODY_KEY = "MESSAGE_BODY_KEY";
-    public static final String MESSAGE_MSISDN_KEY = "MESSAGE_MSISDN_KEY";
-    public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "MESSAGE_GLOBAL_MESSAGE_ID_KEY";
+    public static final String MESSAGE_BODY_KEY = "body";
+    public static final String MESSAGE_MSISDN_KEY = "msisdn";
+    public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "message_id";
 
     private final boolean durable = true;
     private final boolean exclusive = false;
