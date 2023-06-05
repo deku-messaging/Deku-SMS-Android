@@ -41,6 +41,7 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
+import com.example.swob_deku.Services.RMQConnection;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -217,6 +218,30 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
         deliveredIntent.setPackage(context.getPackageName());
         deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
+
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
+                Integer.parseInt(String.valueOf(messageId)),
+                sentIntent,
+                PendingIntent.FLAG_IMMUTABLE);
+
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
+                Integer.parseInt(String.valueOf(messageId)),
+                deliveredIntent,
+                PendingIntent.FLAG_IMMUTABLE);
+
+        return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
+    }
+
+    public static PendingIntent[] getPendingIntentsForServerRequest(Context context, long messageId, long globalMessageId) {
+        Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
+        sentIntent.setPackage(context.getPackageName());
+        sentIntent.putExtra(SMSSendActivity.ID, messageId);
+        sentIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
+
+        Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
+        deliveredIntent.setPackage(context.getPackageName());
+        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
+        deliveredIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
 
         PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)),

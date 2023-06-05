@@ -10,10 +10,14 @@ import java.util.List;
 
 public class RMQConnection {
 
+    public static final String MESSAGE_BODY_KEY = "MESSAGE_BODY_KEY";
+    public static final String MESSAGE_MSISDN_KEY = "MESSAGE_MSISDN_KEY";
+    public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "MESSAGE_GLOBAL_MESSAGE_ID_KEY";
+
     private boolean durable = true;
     private boolean exclusive = false;
     private boolean autoDelete = false;
-    private boolean autoAck = true;
+    private boolean autoAck = false;
 
     private String queueName, bindingKey;
 
@@ -27,6 +31,10 @@ public class RMQConnection {
         this.connection = connection;
 
         this.channel = this.connection.createChannel();
+    }
+
+    public void close() throws IOException {
+        connection.close();
     }
 
     public Connection getConnection() {

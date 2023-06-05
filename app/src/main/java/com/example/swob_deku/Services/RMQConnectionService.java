@@ -1,32 +1,44 @@
 package com.example.swob_deku.Services;
 
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
 import android.telephony.SubscriptionInfo;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
 import com.example.swob_deku.Models.SIMHandler;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
+import com.example.swob_deku.SMSSendActivity;
+import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
 import com.rabbitmq.client.impl.DefaultExceptionHandler;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
@@ -35,15 +47,85 @@ public class RMQConnectionService extends Service {
     public final static String RMQ_SUCCESS_BROADCAST_INTENT = "RMQ_SUCCESS_BROADCAST_INTENT";
     public final static String RMQ_STOP_BROADCAST_INTENT = "RMQ_STOP_BROADCAST_INTENT";
 
-    HashMap<Integer, Connection> connectionList = new HashMap<>();
+    private HashMap<Integer, RMQConnection> connectionList = new HashMap<>();
 
     private ExecutorService consumerExecutorService;
+
+    private BroadcastReceiver messageStateChangedBroadcast;
+
+    private HashMap<Long, Map<Long, Channel>> channelList = new HashMap<>();
 
     @Override
     public void onCreate() {
         super.onCreate();
         consumerExecutorService = Executors.newFixedThreadPool(5); // Create a pool of 5 worker threads
+        handleBroadcast();
    }
+
+    private void handleBroadcast() {
+        messageStateChangedBroadcast = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, @NonNull Intent intent) {
+                // TODO: check for sent against delivered
+
+                // TODO: in case this intent comes back but the internet connection broke to send back acknowledgement
+                // TODO: should store pending confirmations in a place
+
+                if(intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
+                    long globalMessageId = intent.getIntExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, -1);
+                    if(globalMessageId != -1) {
+                        Map<Long, Channel> deliveryChannel = channelList.get(globalMessageId);
+                        Long deliveryTag = deliveryChannel.keySet().iterator().next();
+                        try {
+                            Channel channel = deliveryChannel.get(deliveryTag);
+                            if(channel != null && channel.isOpen())
+                                channel.basicAck(deliveryTag, false);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        };
+
+        registerReceiver(messageStateChangedBroadcast,
+                new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
+    }
+
+    private DeliverCallback getDeliverCallback(RMQConnection rmqConnection) {
+        return new DeliverCallback() {
+            @Override
+            public void handle(String consumerTag, Delivery delivery) throws IOException {
+                String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+                try {
+                    JSONObject jsonObject = new JSONObject(message);
+
+                    String body = jsonObject.getString(RMQConnection.MESSAGE_BODY_KEY);
+                    String msisdn = jsonObject.getString(RMQConnection.MESSAGE_MSISDN_KEY);
+                    String globalMessageKey = jsonObject.getString(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY);
+
+                    long messageId = Helpers.generateRandomNumber();
+
+                    PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver
+                            .getPendingIntentsForServerRequest(getApplicationContext(), messageId,
+                                    Long.parseLong(globalMessageKey));
+
+                    // TODO: fix subscriptionId to actually be the value
+                    SMSHandler.sendTextSMS(getApplicationContext(), msisdn, body,
+                            pendingIntents[0], pendingIntents[1], messageId, null);
+
+                    Map<Long, Channel> deliveryChannelMap = new HashMap<>();
+                    deliveryChannelMap.put(delivery.getEnvelope().getDeliveryTag(), rmqConnection.getChannel());
+
+                    channelList.put(Long.valueOf(globalMessageKey), deliveryChannelMap);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -79,34 +161,24 @@ public class RMQConnectionService extends Service {
                     int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
                     try {
                         connection = factory.newConnection(consumerExecutorService, friendlyName);
-                        connectionList.put(gatewayClientId, connection);
-                        broadcastIntent(getApplicationContext(), RMQ_SUCCESS_BROADCAST_INTENT,
-                                gatewayClientId, adapterPosition);
 
                         RMQConnection rmqConnection = new RMQConnection(connection);
-                        DeliverCallback deliverCallback = new DeliverCallback() {
-                            @Override
-                            public void handle(String consumerTag, Delivery delivery) throws IOException {
-                                String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-                                rmqConnection.getChannel().basicAck(delivery.getEnvelope().getDeliveryTag(),
-                                        false);
-                            }
-                        };
 
                         GatewayClient gatewayClient = new GatewayClientHandler(getApplicationContext())
                                 .fetch(gatewayClientId);
 
                         if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
                             rmqConnection.createQueue(gatewayClient.getProjectName(),
-                                    gatewayClient.getProjectBinding(), deliverCallback);
+                                    gatewayClient.getProjectBinding(), getDeliverCallback(rmqConnection));
                             rmqConnection.consume();
                         }
+                        connectionList.put(gatewayClientId, rmqConnection);
+                        broadcastIntent(getApplicationContext(), RMQ_SUCCESS_BROADCAST_INTENT,
+                                gatewayClientId, adapterPosition);
 
-                    } catch (IOException | TimeoutException e) {
+                    } catch (IOException | TimeoutException | InterruptedException e) {
                         e.printStackTrace();
                         stopService(gatewayClientId, adapterPosition);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
                     }
                 }
             }).start();
