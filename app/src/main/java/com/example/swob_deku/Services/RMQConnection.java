@@ -14,10 +14,12 @@ public class RMQConnection {
     public static final String MESSAGE_MSISDN_KEY = "MESSAGE_MSISDN_KEY";
     public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "MESSAGE_GLOBAL_MESSAGE_ID_KEY";
 
-    private boolean durable = true;
-    private boolean exclusive = false;
-    private boolean autoDelete = false;
-    private boolean autoAck = false;
+    private final boolean durable = true;
+    private final boolean exclusive = false;
+    private final boolean autoDelete = false;
+    private final boolean autoAck = false;
+
+    private final int prefetchCount = 1;
 
     private String queueName, bindingKey;
 
@@ -31,6 +33,7 @@ public class RMQConnection {
         this.connection = connection;
 
         this.channel = this.connection.createChannel();
+        this.channel.basicQos(this.prefetchCount);
     }
 
     public void close() throws IOException {

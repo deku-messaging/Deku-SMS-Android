@@ -1,5 +1,7 @@
 package com.example.swob_deku.Services;
 
+import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
+
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -66,12 +68,13 @@ public class RMQConnectionService extends Service {
         messageStateChangedBroadcast = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
-                // TODO: check for sent against delivered
-
                 // TODO: in case this intent comes back but the internet connection broke to send back acknowledgement
                 // TODO: should store pending confirmations in a place
 
-                if(intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
+                if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT) &&
+                        intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
+                    Log.d(getClass().getName(), "Service received a broadcast and should acknowledge to rmq from here");
+
                     long globalMessageId = intent.getIntExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, -1);
                     if(globalMessageId != -1) {
                         Map<Long, Channel> deliveryChannel = channelList.get(globalMessageId);
@@ -120,6 +123,7 @@ public class RMQConnectionService extends Service {
                     channelList.put(Long.valueOf(globalMessageKey), deliveryChannelMap);
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    rmqConnection.getChannel().basicReject(delivery.getEnvelope().getDeliveryTag(), false);
                 } catch(Exception e) {
                     e.printStackTrace();
                 }

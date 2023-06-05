@@ -240,6 +240,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     Intent intent = gatewayClientHandler.getIntent(Integer.parseInt(entrySet.getKey()));
                     startService(intent);
                 }
+                gatewayClientHandler.close();
             }
         }
     }

@@ -87,4 +87,8 @@ public class GatewayClientHandler {
 
         return intent;
     }
+
+    public void close() {
+        databaseConnector.close();
+    }
 }
