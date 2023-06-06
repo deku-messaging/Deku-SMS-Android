@@ -30,11 +30,14 @@ import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
+import com.rabbitmq.client.BlockedListener;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
+import com.rabbitmq.client.ShutdownListener;
+import com.rabbitmq.client.ShutdownSignalException;
 import com.rabbitmq.client.impl.DefaultExceptionHandler;
 
 import org.json.JSONException;
@@ -48,6 +51,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 
 public class RMQConnectionService extends Service {
     public final static String RMQ_SUCCESS_BROADCAST_INTENT = "RMQ_SUCCESS_BROADCAST_INTENT";
@@ -200,14 +204,22 @@ public class RMQConnectionService extends Service {
             factory.setConnectionTimeout(15000);
             factory.setExceptionHandler(new DefaultExceptionHandler());
 
+            // TODO: create a full handler to manage the retry to connection
+            // TODO: which matches the Android WorkManager methods
+
             // Perform your background task
             Log.d(this.getClass().getName(), "Starting rmq connection: " + username + ":" + password + "@" + host);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    Connection connection = null;
                     try {
-                        connection = factory.newConnection(consumerExecutorService, friendlyName);
+                        Connection connection = factory.newConnection(consumerExecutorService, friendlyName);
+                        connection.addShutdownListener(new ShutdownListener() {
+                            @Override
+                            public void shutdownCompleted(ShutdownSignalException cause) {
+                                Log.d(getClass().getName(), "Connection shutdown cause: " + cause.toString());
+                            }
+                        });
 
                         RMQConnection rmqConnection = new RMQConnection(connection);
 
