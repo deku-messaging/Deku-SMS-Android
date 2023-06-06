@@ -1,6 +1,7 @@
 package com.example.swob_deku.Services;
 
 import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import android.app.PendingIntent;
 import android.app.Service;
@@ -8,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.telephony.SubscriptionInfo;
@@ -58,11 +60,36 @@ public class RMQConnectionService extends Service {
 
     private HashMap<Long, Map<Long, Channel>> channelList = new HashMap<>();
 
+    private SharedPreferences sharedPreferences;
+
+    private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
+
     @Override
     public void onCreate() {
         super.onCreate();
         consumerExecutorService = Executors.newFixedThreadPool(5); // Create a pool of 5 worker threads
         handleBroadcast();
+
+        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+
+        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                Log.d(getClass().getName(), "Shared preferences changed: " + key);
+
+                if(connectionList.containsKey(Integer.parseInt(key)) &&
+                        connectionList.get(Integer.parseInt(key)) != null) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+//                            int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
+//                            stopService(gatewayClientId, adapterPosition);
+                        }
+                    }).start();
+                }
+            }
+        };
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
    }
 
     private void handleBroadcast() {
@@ -239,7 +266,7 @@ public class RMQConnectionService extends Service {
         Log.d(getClass().getName(), "Ending connection...");
         if(messageStateChangedBroadcast != null)
             unregisterReceiver(messageStateChangedBroadcast);
-//        consumerExecutorService.shutdown(); // Shutdown the executor when the service is destroyed    }
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
     }
 
     @Nullable
