@@ -105,35 +105,6 @@
                 android:textSize="12sp"
                 app:layout_constraintStart_toStartOf="@+id/gateway_client_url"
                 app:layout_constraintTop_toBottomOf="@+id/gateway_client_url" />
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/gateway_client_state_container"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:layout_constraintBottom_toBottomOf="@+id/gateway_client_url"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/gateway_client_url">
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/gateway_client_start_listening_switch"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginTop="1dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ProgressBar
-                    android:id="@+id/gateway_client_start_listening_loader"
-                    style="?android:attr/progressBarStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="gone"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

@@ -54,8 +54,6 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
     GatewayClientRecyclerAdapter gatewayClientRecyclerAdapter;
 
-    BroadcastReceiver rmqSuccessBroadcastReceiver;
-    BroadcastReceiver rmqFailBroadcastReceiver;
     GatewayClientViewModel gatewayClientViewModel;
 
     @Override
@@ -107,9 +105,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
         setRefreshTimer(gatewayClientRecyclerAdapter);
 
-        broadcastListeners();
     }
-
 
     private void setRefreshTimer(GatewayClientRecyclerAdapter adapter) {
         final int recyclerViewTimeUpdateLimit = 60 * 1000;
@@ -149,46 +145,5 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         return editor.remove(String.valueOf(id))
                         .commit();
-    }
-
-    private void broadcastListeners(){
-        rmqSuccessBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.d(getLocalClassName(), "Received success intent broadcast!");
-                int id = intent.getIntExtra(GATEWAY_CLIENT_ID, -1);
-                int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
-                saveListenerConfiguration(id);
-                gatewayClientRecyclerAdapter.rmqConnectionStateChanged(adapterPosition);
-            }
-        };
-
-        rmqFailBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.d(getLocalClassName(), "Received failed intent broadcast!");
-                int id = intent.getIntExtra(GATEWAY_CLIENT_ID, -1);
-                int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
-                removeListenerConfiguration(id);
-                gatewayClientRecyclerAdapter.rmqConnectionStateChanged(adapterPosition);
-            }
-        };
-
-        registerReceiver(rmqSuccessBroadcastReceiver,
-                new IntentFilter(RMQConnectionService.RMQ_SUCCESS_BROADCAST_INTENT));
-
-        registerReceiver(rmqFailBroadcastReceiver,
-                new IntentFilter(RMQConnectionService.RMQ_STOP_BROADCAST_INTENT));
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(rmqFailBroadcastReceiver != null)
-            unregisterReceiver(rmqFailBroadcastReceiver);
-
-        if(rmqSuccessBroadcastReceiver != null)
-            unregisterReceiver(rmqSuccessBroadcastReceiver);
-
     }
 }

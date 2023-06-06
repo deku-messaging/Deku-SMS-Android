@@ -1,6 +1,7 @@
 package com.example.swob_deku.Services;
 
 import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import android.app.PendingIntent;
@@ -79,13 +80,16 @@ public class RMQConnectionService extends Service {
 
                 if(connectionList.containsKey(Integer.parseInt(key)) &&
                         connectionList.get(Integer.parseInt(key)) != null) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-//                            int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
-//                            stopService(gatewayClientId, adapterPosition);
-                        }
-                    }).start();
+
+                    if(!sharedPreferences.contains(key)) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                stopService(Integer.parseInt(key));
+                            }
+                        }).start();
+
+                    }
                 }
             }
         };
@@ -202,7 +206,6 @@ public class RMQConnectionService extends Service {
                 @Override
                 public void run() {
                     Connection connection = null;
-                    int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
                     try {
                         connection = factory.newConnection(consumerExecutorService, friendlyName);
 
@@ -218,47 +221,25 @@ public class RMQConnectionService extends Service {
                             rmqConnection.consume();
                         }
                         connectionList.put(gatewayClientId, rmqConnection);
-                        broadcastIntent(getApplicationContext(), RMQ_SUCCESS_BROADCAST_INTENT,
-                                gatewayClientId, adapterPosition);
-
+                        sharedPreferences.edit().putLong(String.valueOf(gatewayClientId), System.currentTimeMillis()).apply();
                     } catch (IOException | TimeoutException | InterruptedException e) {
                         e.printStackTrace();
-                        stopService(gatewayClientId, adapterPosition);
+                        stopService(gatewayClientId);
                     }
                 }
             }).start();
         }
-        else if(intent.hasExtra(GatewayClientListingActivity.GATEWAY_CLIENT_STOP_LISTENERS)) {
-            if(connectionList.containsKey(gatewayClientId) && connectionList.get(gatewayClientId) != null) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        int adapterPosition = intent.getIntExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, -1);
-                        stopService(gatewayClientId, adapterPosition);
-                    }
-                }).start();
-            }
-        }
-
         // return super.onStartCommand(intent, flags, startId);
         return START_NOT_STICKY;
     }
 
-    private void stopService(int gatewayClientId, int adapterPosition) {
+    private void stopService(int gatewayClientId) {
         try {
             if(connectionList.containsKey(gatewayClientId))
                 connectionList.remove(gatewayClientId).close();
-            broadcastIntent(getApplicationContext(), RMQ_STOP_BROADCAST_INTENT, gatewayClientId, adapterPosition);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private void broadcastIntent(Context context, String broadcastIntent, int id, int adapterPosition) {
-        Intent intent = new Intent(broadcastIntent);
-        intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id);
-        intent.putExtra(GatewayClientRecyclerAdapter.ADAPTER_POSITION, adapterPosition);
-        context.sendBroadcast(intent);
     }
 
     @Override

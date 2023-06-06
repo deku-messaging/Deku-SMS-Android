@@ -88,7 +88,10 @@ public class GatewayClientHandler {
 
     public Intent getIntent(int id) throws InterruptedException {
         GatewayClient gatewayClient = fetch(id);
+        return getIntent(gatewayClient);
+    }
 
+    public Intent getIntent(GatewayClient gatewayClient) throws InterruptedException {
         Intent intent = new Intent(context, RMQConnectionService.class);
         intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
         intent.putExtra(GATEWAY_CLIENT_USERNAME, gatewayClient.getUsername());

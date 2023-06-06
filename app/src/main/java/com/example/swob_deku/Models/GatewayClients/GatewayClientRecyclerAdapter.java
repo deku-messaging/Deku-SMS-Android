@@ -92,27 +92,6 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         else
             holder.friendlyName.setText(gatewayClient.getFriendlyConnectionName());
 
-        holder.progressBar.setVisibility(View.GONE);
-        holder.listeningSwitch.setVisibility(View.VISIBLE);
-
-        holder.listeningSwitch.setChecked(sharedPreferences.contains(String.valueOf(gatewayClient.getId())));
-
-        holder.listeningSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked && !sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
-                    holder.progressBar.setVisibility(View.VISIBLE);
-                    holder.listeningSwitch.setVisibility(View.GONE);
-
-                    startListening(gatewayClient, holder.getAbsoluteAdapterPosition());
-                } else if(!isChecked && sharedPreferences.contains(String.valueOf(gatewayClient.getId()))) {
-                    holder.progressBar.setVisibility(View.VISIBLE);
-                    holder.listeningSwitch.setVisibility(View.GONE);
-                    stopListening(gatewayClient, holder.getAbsoluteAdapterPosition());
-                }
-            }
-        });
-
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -123,31 +102,6 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         });
     }
 
-    public void rmqConnectionStateChanged(int adapterPosition) {
-        runningServiceInfoList = ServiceHandler.getRunningService(context);
-        notifyItemChanged(adapterPosition);
-    }
-
-    public void startListening(GatewayClient gatewayClient, int adapterPosition) {
-        Intent intent = new Intent(context, RMQConnectionService.class);
-        intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
-        intent.putExtra(GATEWAY_CLIENT_USERNAME, gatewayClient.getUsername());
-        intent.putExtra(GATEWAY_CLIENT_PASSWORD, gatewayClient.getPassword());
-        intent.putExtra(GATEWAY_CLIENT_HOST, gatewayClient.getHostUrl());
-        intent.putExtra(GATEWAY_CLIENT_PORT, gatewayClient.getPort());
-        intent.putExtra(GATEWAY_CLIENT_VIRTUAL_HOST, gatewayClient.getVirtualHost());
-        intent.putExtra(GATEWAY_CLIENT_FRIENDLY_NAME, gatewayClient.getFriendlyConnectionName());
-        intent.putExtra(ADAPTER_POSITION, adapterPosition);
-        context.startService(intent);
-    }
-
-    public void stopListening(GatewayClient gatewayClient, int adapterPosition) {
-        Intent intent = new Intent(context, RMQConnectionService.class);
-        intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
-        intent.putExtra(GATEWAY_CLIENT_STOP_LISTENERS, true);
-        intent.putExtra(ADAPTER_POSITION, adapterPosition);
-        context.startService(intent);
-    }
 
     public void submitList(List<GatewayClient> gatewayClientList) {
         mDiffer.submitList(gatewayClientList);
@@ -162,10 +116,6 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
 
         TextView url, virtualHost, friendlyName, date;
 
-        SwitchCompat listeningSwitch;
-
-        ProgressBar progressBar;
-
         CardView cardView;
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
@@ -174,8 +124,6 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
             virtualHost = itemView.findViewById(R.id.gateway_client_virtual_host);
             friendlyName = itemView.findViewById(R.id.gateway_client_friendly_name_text);
             date = itemView.findViewById(R.id.gateway_client_date);
-            listeningSwitch = itemView.findViewById(R.id.gateway_client_start_listening_switch);
-            progressBar = itemView.findViewById(R.id.gateway_client_start_listening_loader);
             cardView = itemView.findViewById(R.id.gateway_client_card);
         }
     }

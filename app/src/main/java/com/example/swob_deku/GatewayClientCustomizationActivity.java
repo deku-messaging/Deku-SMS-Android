@@ -1,14 +1,30 @@
 package com.example.swob_deku;
 
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_FRIENDLY_NAME;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_HOST;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PASSWORD;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PORT;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_VIRTUAL_HOST;
+import static com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter.ADAPTER_POSITION;
+
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,7 +33,9 @@ import android.widget.TextView;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
+import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
 import com.example.swob_deku.Models.SIMHandler;
+import com.example.swob_deku.Services.RMQConnectionService;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
@@ -27,12 +45,16 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
     GatewayClient gatewayClient;
     GatewayClientHandler gatewayClientHandler;
 
+    SharedPreferences sharedPreferences;
+    SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
+
+    Toolbar myToolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_customization);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.gateway_client_customization_toolbar);
+        myToolbar = (Toolbar) findViewById(R.id.gateway_client_customization_toolbar);
         setSupportActionBar(myToolbar);
 
         // Get a support ActionBar corresponding to this toolbar
@@ -47,12 +69,31 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                ab.invalidateOptionsMenu();
+            }
+        };
+
+        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+
+    }
+
+    private void changeMenu(boolean connected) {
+        MenuItem menuConnected = findViewById(R.id.gateway_client_connect);
+        MenuItem menuDisconnected = findViewById(R.id.gateway_client_disconnect);
+
+        menuConnected.setVisible(!connected);
+        menuDisconnected.setVisible(connected);
     }
 
     private void getGatewayClient() throws InterruptedException {
         gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
 
-        int gatewayId = getIntent().getIntExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+        int gatewayId = getIntent().getIntExtra(GATEWAY_CLIENT_ID, -1);
         gatewayClient = gatewayClientHandler.fetch(gatewayId);
 
         TextInputEditText projectName = findViewById(R.id.new_gateway_client_project_name);
@@ -116,7 +157,10 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        boolean connected = sharedPreferences.contains(String.valueOf(gatewayClient.getId()));
         getMenuInflater().inflate(R.menu.gateway_client_customization_menu, menu);
+        menu.findItem(R.id.gateway_client_connect).setVisible(!connected);
+        menu.findItem(R.id.gateway_client_disconnect).setVisible(connected);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -130,11 +174,40 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                break;
+
+            case R.id.gateway_client_connect:
+                try {
+                    item.setEnabled(false);
+                    item.setTitle(getString(R.string.gateway_client_customization_connecting));
+                    startListening();
+                    return true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                break;
+
+            case R.id.gateway_client_disconnect:
+                item.setEnabled(false);
+                item.setTitle(getString(R.string.gateway_client_customization_disconnecting));
+                stopListening();
+                return true;
         }
         return false;
     }
 
+    public void startListening() throws InterruptedException {
+        Intent intent = gatewayClientHandler.getIntent(gatewayClient);
+        startService(intent);
+    }
+
+    public void stopListening() {
+        sharedPreferences.edit().remove(String.valueOf(gatewayClient.getId()))
+                .apply();
+    }
+
     private void deleteGatewayClient() throws InterruptedException {
+        stopListening();
         gatewayClientHandler.delete(gatewayClient);
         startActivity(new Intent(this, GatewayClientListingActivity.class));
         finish();
@@ -144,5 +217,6 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         gatewayClientHandler.close();
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
     }
 }

@@ -237,8 +237,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                     .contains(RMQConnectionService.class.getCanonicalName())) {
                 GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
                 for (Map.Entry<String, ?> entrySet : services.entrySet()) {
-                    Intent intent = gatewayClientHandler.getIntent(Integer.parseInt(entrySet.getKey()));
-                    startService(intent);
+                    try {
+                        Intent intent = gatewayClientHandler.getIntent(Integer.parseInt(entrySet.getKey()));
+                        startService(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 gatewayClientHandler.close();
             }
