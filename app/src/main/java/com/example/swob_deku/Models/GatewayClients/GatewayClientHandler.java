@@ -43,6 +43,19 @@ public class GatewayClientHandler {
         thread.join();
     }
 
+    public void delete(GatewayClient gatewayClient) throws InterruptedException {
+        gatewayClient.setDate(System.currentTimeMillis());
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                GatewayClientDAO gatewayClientDAO = databaseConnector.gatewayClientDAO();
+                gatewayClientDAO.delete(gatewayClient);
+            }
+        });
+        thread.start();
+        thread.join();
+    }
+
     public void update(GatewayClient gatewayClient) throws InterruptedException {
         gatewayClient.setDate(System.currentTimeMillis());
         Thread thread = new Thread(new Runnable() {

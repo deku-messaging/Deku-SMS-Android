@@ -2,6 +2,7 @@ package com.example.swob_deku.Models.GatewayClients;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
@@ -16,6 +17,9 @@ public interface GatewayClientDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(GatewayClient gatewayClient);
+
+    @Delete
+    int delete(GatewayClient gatewayClient);
 
     @Query("SELECT * FROM GatewayClient WHERE id=:id")
     GatewayClient fetch(int id);

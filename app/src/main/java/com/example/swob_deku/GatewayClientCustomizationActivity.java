@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -56,10 +58,10 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         TextInputEditText projectName = findViewById(R.id.new_gateway_client_project_name);
         TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding);
 
-        if(!gatewayClient.getProjectName().isEmpty())
+        if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty())
             projectName.setText(gatewayClient.getProjectName());
 
-        if(!gatewayClient.getProjectBinding().isEmpty())
+        if(gatewayClient.getProjectBinding() != null && !gatewayClient.getProjectBinding().isEmpty())
             projectBinding.setText(gatewayClient.getProjectBinding());
 
         final String operatorCountry = Helpers.getUserCountry(getApplicationContext());
@@ -109,5 +111,38 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         Intent intent = new Intent(this, GatewayClientListingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.gateway_client_customization_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.gateway_client_delete:
+                try {
+                    deleteGatewayClient();
+                    return true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+        }
+        return false;
+    }
+
+    private void deleteGatewayClient() throws InterruptedException {
+        gatewayClientHandler.delete(gatewayClient);
+        startActivity(new Intent(this, GatewayClientListingActivity.class));
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        gatewayClientHandler.close();
     }
 }

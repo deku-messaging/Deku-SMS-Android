@@ -10,17 +10,23 @@ import java.util.List;
 
 public class GatewayClientViewModel extends ViewModel {
 
-    LiveData<List<GatewayClient>> gatewayClientList;
+    private LiveData<List<GatewayClient>> gatewayClientList;
+    GatewayClientDAO gatewayClientDAO;
 
     public LiveData<List<GatewayClient>> getGatewayClientList(GatewayClientDAO gatewayClientDAO) {
         if(gatewayClientList == null) {
+            this.gatewayClientDAO = gatewayClientDAO;
             gatewayClientList = new MutableLiveData<>();
-            loadGatewayClients(gatewayClientDAO);
+            loadGatewayClients();
         }
         return gatewayClientList;
     }
 
-    public void loadGatewayClients(GatewayClientDAO gatewayClientDAO) {
+    public void refresh() {
+        loadGatewayClients();
+    }
+
+    private void loadGatewayClients() {
         gatewayClientList = gatewayClientDAO.getAll();
     }
 }

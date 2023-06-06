@@ -56,6 +56,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
     BroadcastReceiver rmqSuccessBroadcastReceiver;
     BroadcastReceiver rmqFailBroadcastReceiver;
+    GatewayClientViewModel gatewayClientViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +87,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         gatewayClientRecyclerAdapter = new GatewayClientRecyclerAdapter(this);
         recyclerView.setAdapter(gatewayClientRecyclerAdapter);
 
-        GatewayClientViewModel gatewayClientViewModel = new ViewModelProvider(this).get(
+        gatewayClientViewModel = new ViewModelProvider(this).get(
                 GatewayClientViewModel.class);
 
         databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
@@ -98,8 +99,8 @@ public class GatewayClientListingActivity extends AppCompatActivity {
                 new Observer<List<GatewayClient>>() {
                     @Override
                     public void onChanged(List<GatewayClient> gatewayServerList) {
-//                        if(gatewayServerList.size() < 1 )
-//                            findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
+                        if(gatewayServerList.size() < 1 )
+                            findViewById(R.id.gateway_client_no_gateway_client_label).setVisibility(View.VISIBLE);
                         gatewayClientRecyclerAdapter.submitList(gatewayServerList);
                     }
                 });

@@ -20,7 +20,8 @@
             android:theme="?attr/actionBarTheme"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            app:menu="@menu/gateway_client_customization_menu" />
 
         <TextView
             android:id="@+id/new_gateway_descriptive_text"
