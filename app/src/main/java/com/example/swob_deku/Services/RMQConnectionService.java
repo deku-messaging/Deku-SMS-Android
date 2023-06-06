@@ -36,6 +36,8 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
+import com.rabbitmq.client.ExceptionHandler;
+import com.rabbitmq.client.RecoveryDelayHandler;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
 import com.rabbitmq.client.impl.DefaultExceptionHandler;
@@ -44,6 +46,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -89,7 +96,11 @@ public class RMQConnectionService extends Service {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                stopService(Integer.parseInt(key));
+                                try {
+                                    stopService(Integer.parseInt(key));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }).start();
 
@@ -196,6 +207,15 @@ public class RMQConnectionService extends Service {
             Log.d(getClass().getName(), "Starting new service connection...");
             ConnectionFactory factory = new ConnectionFactory();
 
+            factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
+                @Override
+                public long getDelay(int recoveryAttempts) {
+                    // TODO: send notification informing reconnecting is being attempted
+                    Log.d(getClass().getName(), "Attempting auto recovery...");
+                    return 10000;
+                }
+            });
+
             factory.setUsername(username);
             factory.setPassword(password);
             factory.setVirtualHost(virtualHost);
@@ -214,6 +234,7 @@ public class RMQConnectionService extends Service {
                 public void run() {
                     try {
                         Connection connection = factory.newConnection(consumerExecutorService, friendlyName);
+
                         connection.addShutdownListener(new ShutdownListener() {
                             @Override
                             public void shutdownCompleted(ShutdownSignalException cause) {
@@ -236,7 +257,7 @@ public class RMQConnectionService extends Service {
                         sharedPreferences.edit().putLong(String.valueOf(gatewayClientId), System.currentTimeMillis()).apply();
                     } catch (IOException | TimeoutException | InterruptedException e) {
                         e.printStackTrace();
-                        stopService(gatewayClientId);
+                        // TODO: send a notification indicating this, with options to retry the connection
                     }
                 }
             }).start();

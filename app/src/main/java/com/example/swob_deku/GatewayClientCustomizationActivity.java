@@ -82,14 +82,6 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
     }
 
-    private void changeMenu(boolean connected) {
-        MenuItem menuConnected = findViewById(R.id.gateway_client_connect);
-        MenuItem menuDisconnected = findViewById(R.id.gateway_client_disconnect);
-
-        menuConnected.setVisible(!connected);
-        menuDisconnected.setVisible(connected);
-    }
-
     private void getGatewayClient() throws InterruptedException {
         gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
 
@@ -109,8 +101,13 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
         String operatorName = "";
 
-        for(SubscriptionInfo subscriptionInfo : simcards)
-            operatorName = subscriptionInfo.getCarrierName().toString();
+        for(SubscriptionInfo subscriptionInfo : simcards) {
+            try{
+                operatorName = subscriptionInfo.getCarrierName().toString();
+            } catch (Exception e ) {
+                e.printStackTrace();
+            }
+        }
         final String f_operatorName = operatorName;
 
         projectName.addTextChangedListener(new TextWatcher() {
@@ -179,7 +176,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
             case R.id.gateway_client_connect:
                 try {
                     item.setEnabled(false);
-                    item.setTitle(getString(R.string.gateway_client_customization_connecting));
+//                    item.setTitle(getString(R.string.gateway_client_customization_connecting));
                     startListening();
                     return true;
                 } catch (InterruptedException e) {
@@ -189,7 +186,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
             case R.id.gateway_client_disconnect:
                 item.setEnabled(false);
-                item.setTitle(getString(R.string.gateway_client_customization_disconnecting));
+//                item.setTitle(getString(R.string.gateway_client_customization_disconnecting));
                 stopListening();
                 return true;
         }
