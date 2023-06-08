@@ -11,11 +11,18 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -36,9 +43,12 @@ import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
+import com.example.swob_deku.Models.GatewayClients.GatewayClient;
+import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
+import com.example.swob_deku.Models.RMQ.RMQWorkManager;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
@@ -47,6 +57,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
     // TODO: Change address to friendly name if in phonebook
@@ -62,10 +73,22 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     Toolbar toolbar;
     ActionBar ab;
 
+    ArchiveHandler archiveHandler;
+
+
+    public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages_threads);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                archiveHandler = new ArchiveHandler(getApplicationContext());
+            }
+        }).start();
 
         if(!checkIsDefaultApp()) {
             startActivity(new Intent(this, DefaultCheckActivity.class));
@@ -73,7 +96,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             return;
         }
 
-        cancelAllNotifications();
+//        cancelAllNotifications();
         toolbar = findViewById(R.id.messages_threads_toolbar);
         setSupportActionBar(toolbar);
         // Get a support ActionBar corresponding to this toolbar
@@ -144,7 +167,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                         longArr[i] = Long.parseLong(ids[i]);
 
                     try {
-                        ArchiveHandler.archiveMultipleSMS(getApplicationContext(), longArr);
+                        archiveHandler.archiveMultipleSMS(getApplicationContext(), longArr);
                         messagesThreadRecyclerAdapter.resetAllSelectedItems();
                         messagesThreadViewModel.informChanges();
                         return true;
@@ -155,6 +178,14 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        try {
+            GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+            gatewayClientHandler.startServices();
+            gatewayClientHandler.close();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadSubroutines() {
@@ -207,8 +238,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 popup.show();
             }
         });
-
     }
+
 
     private boolean checkIsDefaultApp() {
         final String myPackageName = getPackageName();
@@ -246,7 +277,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 String threadId = itemView.id;
                 try {
                     Archive archive = new Archive(Long.parseLong(threadId));
-                    ArchiveHandler.archiveSMS(getApplicationContext(), archive);
+                    archiveHandler.archiveSMS(getApplicationContext(), archive);
                     messagesThreadViewModel.informChanges();
                 }catch (Exception e) {
                     e.printStackTrace();
@@ -517,7 +548,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges();
-                cancelAllNotifications();
+//                cancelAllNotifications();
             }
         };
 
@@ -525,7 +556,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 messagesThreadViewModel.informChanges();
-                cancelAllNotifications();
+//                cancelAllNotifications();
             }
         };
 
@@ -534,6 +565,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
         registerReceiver(incomingDataBroadcastReceiver,
                 new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT));
+
+        registerReceiver(incomingBroadcastReceiver,
+                new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
     }
 
     @Override

@@ -76,6 +76,8 @@ public class Helpers {
     }
 
     public static String getUserCountry(Context context) {
+
+        // TODO: make this work for double sim phones
         String countryCode = null;
 
         // Check if network information is available

@@ -128,6 +128,8 @@ public class SMSSendActivity extends AppCompatActivity {
 
     private String abSubtitle = "";
 
+    ArchiveHandler archiveHandler;
+
     private void configureToolbars() {
         toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
         setSupportActionBar(toolbar);
@@ -146,6 +148,12 @@ public class SMSSendActivity extends AppCompatActivity {
         setContentView(R.layout.activity_send_smsactivity);
 
         handleBroadcast();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                archiveHandler = new ArchiveHandler(getApplicationContext());
+            }
+        }).start();
 
         if(!checkIsDefaultApp()) {
             startActivity(new Intent(this, DefaultCheckActivity.class));
@@ -267,13 +275,17 @@ public class SMSSendActivity extends AppCompatActivity {
             }
         });
 
-        singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
-            @Override
-            public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
-                selectedItems = integers;
-                itemOperationsNeeded(integers.size());
-            }
-        });
+        try {
+            singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
+                @Override
+                public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
+                    selectedItems = integers;
+                    itemOperationsNeeded(integers.size());
+                }
+            });
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
 
         singleMessagesThreadRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
             @Override
@@ -610,7 +622,7 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void removeFromArchive() throws InterruptedException {
-        ArchiveHandler.removeFromArchive(getApplicationContext(), Long.parseLong(threadId));
+        archiveHandler.removeFromArchive(getApplicationContext(), Long.parseLong(threadId));
     }
 
     private void resetSmsTextView() {

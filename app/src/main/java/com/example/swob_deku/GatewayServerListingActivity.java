@@ -20,10 +20,10 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.swob_deku.Models.Datastore;
-import com.example.swob_deku.Models.GatewayServer.GatewayServer;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerRecyclerAdapter;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerViewModel;
+import com.example.swob_deku.Models.GatewayServers.GatewayServer;
+import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
+import com.example.swob_deku.Models.GatewayServers.GatewayServerRecyclerAdapter;
+import com.example.swob_deku.Models.GatewayServers.GatewayServerViewModel;
 
 import java.util.List;
 

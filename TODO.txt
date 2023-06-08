@@ -8,7 +8,6 @@ Inbox:
 	- Enable ability to lock app
 	- Enable ability to lock messages
 	- Lock ability to change security settings
-	- [w]*Disable encryption notice [R]
 
 2. UX
 	- Enable ability to copy parts of a message not necessary all
@@ -16,27 +15,23 @@ Inbox:
 
 Incoming
 --------
-1. Notifications:
-	- [w]Mark as read from notification [R]
-	- [w]Add reply from notifications bar [R]
-
-2. Routing
+1. Routing
 	- Modify gateway servers
 	- Delete gateway servers
 	- Enable GET methods for routing
-	- [w]Enable "All" routing [R]
 	- Retry routing messages
 
 Outgoing
 --------
-1. UX
-	- Enable message scheduling
+1. Attachments
 	- Share contacts attachements (VCards??)
-	- [w] Show encrypted version of message in real time [R]
+
 2. Images
 	[Notes] - Resolution is more important to quality than compression
 	[Notes] - Compression just makes things bigger without gain in 
 			quality if resolution is too small
+3. Messaging
+	- Enable drafts
 
 
 Global features:
@@ -53,3 +48,4 @@ Experimental features:
 2. Audio like voicenotes?
 3. Small Gifs
 4. Reactions to messages
+5 Enable message scheduling

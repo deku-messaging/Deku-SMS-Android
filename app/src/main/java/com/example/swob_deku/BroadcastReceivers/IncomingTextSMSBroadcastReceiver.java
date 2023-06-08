@@ -32,8 +32,8 @@ import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.Datastore;
-import com.example.swob_deku.Models.GatewayServer.GatewayServer;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
+import com.example.swob_deku.Models.GatewayServers.GatewayServer;
+import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -41,6 +41,7 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
+import com.example.swob_deku.Models.RMQ.RMQConnection;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -231,12 +232,35 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
     }
 
+    public static PendingIntent[] getPendingIntentsForServerRequest(Context context, long messageId, long globalMessageId) {
+        Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
+        sentIntent.setPackage(context.getPackageName());
+        sentIntent.putExtra(SMSSendActivity.ID, messageId);
+        sentIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
+
+        Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
+        deliveredIntent.setPackage(context.getPackageName());
+        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
+
+        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
+                Integer.parseInt(String.valueOf(messageId)),
+                sentIntent,
+                PendingIntent.FLAG_IMMUTABLE);
+
+        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
+                Integer.parseInt(String.valueOf(messageId)),
+                deliveredIntent,
+                PendingIntent.FLAG_IMMUTABLE);
+
+        return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
+    }
+
     public static NotificationCompat.Builder
     getNotificationHandler(Context context, Cursor cursor,
                            List<NotificationCompat.MessagingStyle.Message> customMessages,
                            Intent replyBroadcastIntent, int smsId, String threadId){
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                context, context.getString(R.string.CHANNEL_ID))
+                context, context.getString(R.string.incoming_messages_channel_id))
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)

@@ -7,12 +7,11 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.RadioGroup;
 
-import com.example.swob_deku.Models.GatewayServer.GatewayServer;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerHandler;
+import com.example.swob_deku.Models.GatewayServers.GatewayServer;
+import com.example.swob_deku.Models.GatewayServers.GatewayServerHandler;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -24,7 +23,7 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_server_add);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.new_gateway_client_toolbar);
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.new_gateway_server_toolbar);
         setSupportActionBar(myToolbar);
 
         // Get a support ActionBar corresponding to this toolbar
@@ -80,12 +79,12 @@ public class GatewayServerAddActivity extends AppCompatActivity {
 
         try {
             GatewayServerHandler.add(getApplicationContext(), gatewayServer);
-        } catch(InterruptedException e) {
-            e.printStackTrace();
-        } finally {
+
             Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
             gatewayServerListIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(gatewayServerListIntent);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }
