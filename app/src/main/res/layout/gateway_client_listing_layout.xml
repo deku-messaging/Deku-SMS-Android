@@ -41,7 +41,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/gateway_client_protocol"
+                android:id="@+id/gateway_client_username"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -92,8 +92,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/settings_gateway_client_virtualhost_description"
-                app:layout_constraintStart_toStartOf="@+id/gateway_client_protocol"
-                app:layout_constraintTop_toBottomOf="@+id/gateway_client_protocol" />
+                app:layout_constraintStart_toStartOf="@+id/gateway_client_username"
+                app:layout_constraintTop_toBottomOf="@+id/gateway_client_username" />
 
             <TextView
                 android:id="@+id/gateway_client_friendly_name_text"

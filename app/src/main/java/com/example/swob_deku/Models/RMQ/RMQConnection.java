@@ -11,21 +11,14 @@ import java.util.List;
 public class RMQConnection {
 
     public static final String MESSAGE_BODY_KEY = "body";
-    public static final String MESSAGE_MSISDN_KEY = "msisdn";
-    public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "message_id";
+    public static final String MESSAGE_MSISDN_KEY = "to";
+    public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "id";
 
-    private final boolean durable = true;
-    private final boolean exclusive = false;
-    private final boolean autoDelete = false;
-    private final boolean autoAck = false;
+    private String queueName;
 
-    private final int prefetchCount = 1;
+    private final Connection connection;
 
-    private String queueName, bindingKey;
-
-    private Connection connection;
-
-    private Channel channel;
+    private final Channel channel;
 
     private DeliverCallback deliverCallback;
 
@@ -33,7 +26,8 @@ public class RMQConnection {
         this.connection = connection;
 
         this.channel = this.connection.createChannel();
-        this.channel.basicQos(this.prefetchCount);
+        int prefetchCount = 1;
+        this.channel.basicQos(prefetchCount);
     }
 
     public void close() throws IOException {
@@ -56,9 +50,11 @@ public class RMQConnection {
      */
     public void createQueue(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
         this.queueName = bindingKey.replaceAll("\\.", "_");
-        this.bindingKey = bindingKey;
         this.deliverCallback = deliverCallback;
 
+        boolean autoDelete = false;
+        boolean exclusive = false;
+        boolean durable = true;
         this.channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
         this.channel.queueBind(queueName, exchangeName, bindingKey);
     }
@@ -72,6 +68,7 @@ public class RMQConnection {
          * 4. Can all be used in combination with each
          * 5. We can translate this into managing multiple service providers
          */
+        boolean autoAck = false;
         this.channel.basicConsume(this.queueName, autoAck, deliverCallback, consumerTag -> {});
     }
 }

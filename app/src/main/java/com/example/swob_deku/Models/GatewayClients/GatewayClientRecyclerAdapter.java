@@ -62,6 +62,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         holder.url.setText(urlBuilder);
         holder.virtualHost.setText(gatewayClient.getVirtualHost());
         holder.friendlyName.setText(gatewayClient.getFriendlyConnectionName());
+        holder.username.setText(gatewayClient.getUsername());
 
         String date = Helpers.formatDate(context, gatewayClient.getDate());
         holder.date.setText(date);
@@ -94,7 +95,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView url, virtualHost, friendlyName, date;
+        TextView url, virtualHost, friendlyName, date, username;
 
         CardView cardView;
         public ViewHolder(@NonNull @NotNull View itemView) {
@@ -105,6 +106,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
             friendlyName = itemView.findViewById(R.id.gateway_client_friendly_name_text);
             date = itemView.findViewById(R.id.gateway_client_date);
             cardView = itemView.findViewById(R.id.gateway_client_card);
+            username = itemView.findViewById(R.id.gateway_client_username);
         }
     }
 }
