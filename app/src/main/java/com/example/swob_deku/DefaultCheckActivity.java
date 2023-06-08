@@ -2,7 +2,6 @@ package com.example.swob_deku;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
@@ -18,10 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.view.View;
-import android.widget.MediaController;
-import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,16 +26,10 @@ public class DefaultCheckActivity extends AppCompatActivity {
     public static final int READ_SMS_PERMISSION_REQUEST_CODE = 1;
     public static final int READ_CONTACTS_PERMISSION_REQUEST_CODE = 2;
 
-    CharSequence incomingNotificationsName;
-
-    String incomingNotificationsDescription;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_default_check);
-        incomingNotificationsName = getString(R.string.channel_name);
-        incomingNotificationsDescription = getString(R.string.channel_description);
     }
 
     public void clickPrivacyPolicy(View view) {
@@ -95,13 +85,18 @@ public class DefaultCheckActivity extends AppCompatActivity {
         }
     }
 
+    ArrayList<String> notificationsChannelIds = new ArrayList<>();
+    ArrayList<String> notificationsChannelNames = new ArrayList<>();
+
     private List<String> clearOutOldNotificationChannels() {
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         List<String> notificationChannelList = new ArrayList<>();
+
         for(NotificationChannel notificationChannel : notificationManager.getNotificationChannels()) {
-            if(!notificationChannel.getId().equals(incomingNotificationsName))
+            if(!notificationsChannelIds.contains(notificationChannel.getId()))
                 notificationManager.deleteNotificationChannel(notificationChannel.getId());
-            notificationChannelList.add(notificationChannel.getId());
+            else
+                notificationChannelList.add(notificationChannel.getId());
         }
 
         return notificationChannelList;
@@ -109,18 +104,41 @@ public class DefaultCheckActivity extends AppCompatActivity {
 
 
     private void createNotificationChannel() {
+        notificationsChannelIds.add(getString(R.string.incoming_messages_channel_id));
+        notificationsChannelNames.add(getString(R.string.incoming_messages_channel_name));
+
+        notificationsChannelIds.add(getString(R.string.running_gateway_clients_channel_id));
+        notificationsChannelNames.add(getString(R.string.running_gateway_clients_channel_name));
+
         // TODO: Read more: https://developer.android.com/training/notify-user/channels
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if(!clearOutOldNotificationChannels().contains(incomingNotificationsName)) {
+            List<String> activeNotifications = clearOutOldNotificationChannels();
+
+            if(!activeNotifications.contains(notificationsChannelIds.get(0))) {
                 int importance = NotificationManager.IMPORTANCE_HIGH;
 
-                NotificationChannel channel = new NotificationChannel(getString(R.string.CHANNEL_ID), incomingNotificationsName, importance);
-                channel.setDescription(incomingNotificationsDescription);
+                NotificationChannel channel = new NotificationChannel(
+                        notificationsChannelIds.get(0), notificationsChannelNames.get(0), importance);
+                channel.setDescription(getString(R.string.incoming_messages_channel_description));
                 channel.enableLights(true);
                 channel.setLightColor(R.color.logo_primary);
                 channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+                // Register the channel with the system; you can't change the importance
+                // or other notification behaviors after this
+                NotificationManager notificationManager = getSystemService(NotificationManager.class);
+                notificationManager.createNotificationChannel(channel);
+            }
+
+            if(!activeNotifications.contains(notificationsChannelIds.get(1))) {
+                int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                NotificationChannel channel = new NotificationChannel(
+                        notificationsChannelIds.get(1), notificationsChannelNames.get(1), importance);
+                channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
+                channel.setLightColor(R.color.logo_primary);
+                channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
 
                 // Register the channel with the system; you can't change the importance
                 // or other notification behaviors after this

@@ -1,35 +1,19 @@
 package com.example.swob_deku.Models.GatewayClients;
 
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_FRIENDLY_NAME;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_HOST;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PASSWORD;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PORT;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_STOP_LISTENERS;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_VIRTUAL_HOST;
 import static com.example.swob_deku.Models.GatewayClients.GatewayClient.DIFF_CALLBACK;
 
 import android.app.ActivityManager;
-import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.os.IBinder;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
-import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,16 +21,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientCustomizationActivity;
 import com.example.swob_deku.R;
-import com.example.swob_deku.Services.RMQConnectionService;
-import com.example.swob_deku.Services.ServiceHandler;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.materialswitch.MaterialSwitch;
+import com.example.swob_deku.Models.ServiceHandler;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ServiceConfigurationError;
 
 public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayClientRecyclerAdapter.ViewHolder>{
     private final AsyncListDiffer<GatewayClient> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);

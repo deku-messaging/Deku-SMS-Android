@@ -12,7 +12,7 @@ import androidx.room.PrimaryKey;
 
 import com.example.swob_deku.R;
 
-@Entity(indices = {@Index(value={"hostUrl"}, unique = true)})
+@Entity
 public class GatewayClient {
     public GatewayClient() {}
 

@@ -15,7 +15,7 @@ import androidx.room.Room;
 
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.Migrations;
-import com.example.swob_deku.Services.RMQConnectionService;
+import com.example.swob_deku.Models.RMQ.RMQConnectionService;
 
 public class GatewayClientHandler {
 

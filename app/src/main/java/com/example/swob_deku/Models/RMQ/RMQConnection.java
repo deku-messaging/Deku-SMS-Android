@@ -1,4 +1,4 @@
-package com.example.swob_deku.Services;
+package com.example.swob_deku.Models.RMQ;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;

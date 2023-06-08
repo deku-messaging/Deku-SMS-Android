@@ -41,7 +41,7 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
-import com.example.swob_deku.Services.RMQConnection;
+import com.example.swob_deku.Models.RMQ.RMQConnection;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -260,7 +260,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                            List<NotificationCompat.MessagingStyle.Message> customMessages,
                            Intent replyBroadcastIntent, int smsId, String threadId){
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                context, context.getString(R.string.CHANNEL_ID))
+                context, context.getString(R.string.incoming_messages_channel_id))
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)

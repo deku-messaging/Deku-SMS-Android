@@ -1,7 +1,5 @@
 package com.example.swob_deku;
 
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +11,12 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -40,22 +44,19 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
-import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
-import com.example.swob_deku.Services.RMQConnectionService;
+import com.example.swob_deku.Models.RMQ.RMQWorkManager;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
-import com.example.swob_deku.Services.ServiceHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
     // TODO: Change address to friendly name if in phonebook
@@ -75,6 +76,8 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     SharedPreferences sharedPreferences;
 
+    public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,7 +96,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
             return;
         }
 
-        cancelAllNotifications();
+//        cancelAllNotifications();
         toolbar = findViewById(R.id.messages_threads_toolbar);
         setSupportActionBar(toolbar);
         // Get a support ActionBar corresponding to this toolbar
@@ -175,6 +178,12 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        try {
+            startServices();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadSubroutines() {
@@ -229,23 +238,29 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         });
     }
 
-    private void verifyServices() throws InterruptedException {
-        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
-        Map<String, ?> services = sharedPreferences.getAll();
-        if(!services.isEmpty()) {
-            if (!ServiceHandler.getRunningService(getApplicationContext())
-                    .contains(RMQConnectionService.class.getCanonicalName())) {
-                GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-                for (Map.Entry<String, ?> entrySet : services.entrySet()) {
-                    try {
-                        Intent intent = gatewayClientHandler.getIntent(Integer.parseInt(entrySet.getKey()));
-                        startService(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                gatewayClientHandler.close();
-            }
+    private void startServices() throws InterruptedException {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresBatteryNotLow(true)
+                .build();
+
+        try {
+            OneTimeWorkRequest gatewayClientListenerWorker = new OneTimeWorkRequest.Builder(RMQWorkManager.class)
+                    .setConstraints(constraints)
+                    .setBackoffCriteria(
+                            BackoffPolicy.LINEAR,
+                            OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                            TimeUnit.MILLISECONDS
+                    )
+                    .addTag(GatewayClient.class.getName())
+                    .build();
+
+            WorkManager workManager = WorkManager.getInstance(getApplicationContext());
+            workManager.enqueueUniqueWork(UNIQUE_WORK_MANAGER_NAME,
+                    ExistingWorkPolicy.KEEP,
+                    gatewayClientListenerWorker);
+        } catch(Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -589,16 +604,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         super.onResume();
         findViewById(R.id.messages_threads_recycler_view).requestFocus();
         messagesThreadViewModel.informChanges();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    verifyServices();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
     }
 
     private void highlightListener(int size){

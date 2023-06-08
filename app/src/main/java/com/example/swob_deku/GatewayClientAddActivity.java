@@ -1,7 +1,5 @@
 package com.example.swob_deku;
 
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
-
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -13,7 +11,6 @@ import android.widget.RadioGroup;
 
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
-import com.example.swob_deku.Services.RMQConnectionService;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class GatewayClientAddActivity extends AppCompatActivity {

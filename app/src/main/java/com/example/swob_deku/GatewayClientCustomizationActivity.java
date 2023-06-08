@@ -1,41 +1,27 @@
 package com.example.swob_deku;
 
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_FRIENDLY_NAME;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_HOST;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PASSWORD;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PORT;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_VIRTUAL_HOST;
-import static com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter.ADAPTER_POSITION;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.Toolbar;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
-import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
 import com.example.swob_deku.Models.SIMHandler;
-import com.example.swob_deku.Services.RMQConnectionService;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
@@ -194,8 +180,9 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
     }
 
     public void startListening() throws InterruptedException {
-        Intent intent = gatewayClientHandler.getIntent(gatewayClient);
-        startService(intent);
+        sharedPreferences.edit()
+                .putLong(String.valueOf(gatewayClient.getId()), System.currentTimeMillis())
+                .apply();
     }
 
     public void stopListening() {

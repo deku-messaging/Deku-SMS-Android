@@ -5,19 +5,13 @@ import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastR
 import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
 
 import android.app.Activity;
-import android.app.Notification;
 import android.app.PendingIntent;
-import android.app.Person;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.telephony.SmsManager;
-import android.text.SpannableStringBuilder;
-import android.text.format.DateUtils;
-import android.text.style.StyleSpan;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -26,11 +20,9 @@ import androidx.core.app.RemoteInput;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
-import com.example.swob_deku.Services.RMQConnection;
 
 import java.util.ArrayList;
 import java.util.List;

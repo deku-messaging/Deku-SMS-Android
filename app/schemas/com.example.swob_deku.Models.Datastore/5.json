@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "609133e3e6b0b60743616e18cecdfa52",
+    "identityHash": "7d393ee930984d4befcd113558cdc6d1",
     "entities": [
       {
         "tableName": "GatewayServer",
@@ -183,24 +183,14 @@
             "id"
           ]
         },
-        "indices": [
-          {
-            "name": "index_GatewayClient_hostUrl",
-            "unique": true,
-            "columnNames": [
-              "hostUrl"
-            ],
-            "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_GatewayClient_hostUrl` ON `${TABLE_NAME}` (`hostUrl`)"
-          }
-        ],
+        "indices": [],
         "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '609133e3e6b0b60743616e18cecdfa52')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7d393ee930984d4befcd113558cdc6d1')"
     ]
   }
 }

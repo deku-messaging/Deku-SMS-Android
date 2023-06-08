@@ -10,14 +10,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,8 +24,6 @@ import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientDAO;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientViewModel;
-import com.example.swob_deku.Services.RMQConnectionService;
-import com.example.swob_deku.Services.ServiceHandler;
 
 import java.util.List;
 

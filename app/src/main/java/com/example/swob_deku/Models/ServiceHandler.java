@@ -1,4 +1,4 @@
-package com.example.swob_deku.Services;
+package com.example.swob_deku.Models;
 
 import android.app.ActivityManager;
 import android.content.Context;

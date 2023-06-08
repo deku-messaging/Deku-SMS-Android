@@ -168,8 +168,9 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
+
         <service
-            android:name=".Services.RMQConnectionService"
+            android:name=".Models.RMQ.RMQConnectionService"
             android:enabled="true"
             android:exported="false" />
     </application>

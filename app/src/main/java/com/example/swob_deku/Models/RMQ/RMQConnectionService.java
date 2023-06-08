@@ -1,9 +1,8 @@
-package com.example.swob_deku.Services;
+package com.example.swob_deku.Models.RMQ;
 
-import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
-import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -11,13 +10,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.os.Binder;
 import android.os.IBinder;
-import android.telephony.SubscriptionInfo;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
@@ -25,18 +24,14 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
-import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
-import com.example.swob_deku.Models.SIMHandler;
+import com.example.swob_deku.Models.RMQ.RMQConnection;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
-import com.example.swob_deku.SMSSendActivity;
-import com.rabbitmq.client.BlockedListener;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
-import com.rabbitmq.client.ExceptionHandler;
 import com.rabbitmq.client.RecoveryDelayHandler;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
@@ -46,21 +41,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Predicate;
 
 public class RMQConnectionService extends Service {
+    final int NOTIFICATION_ID = 1234;
     public final static String RMQ_SUCCESS_BROADCAST_INTENT = "RMQ_SUCCESS_BROADCAST_INTENT";
     public final static String RMQ_STOP_BROADCAST_INTENT = "RMQ_STOP_BROADCAST_INTENT";
 
@@ -79,36 +69,52 @@ public class RMQConnectionService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
         consumerExecutorService = Executors.newFixedThreadPool(5); // Create a pool of 5 worker threads
         handleBroadcast();
 
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
 
-        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                Log.d(getClass().getName(), "Shared preferences changed: " + key);
+        registerListeners();
 
-                if(connectionList.containsKey(Integer.parseInt(key)) &&
-                        connectionList.get(Integer.parseInt(key)) != null) {
+        createForegroundNotification();
+    }
 
-                    if(!sharedPreferences.contains(key)) {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    stopService(Integer.parseInt(key));
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }).start();
-
-                    }
-                }
-            }
-        };
-        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+   private void registerListeners() {
+       sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+           @Override
+           public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+               Log.d(getClass().getName(), "Shared preferences changed: " + key);
+               if(connectionList.containsKey(Integer.parseInt(key)) &&
+                       connectionList.get(Integer.parseInt(key)) != null &&
+                       !sharedPreferences.contains(key) ) {
+                   new Thread(new Runnable() {
+                       @Override
+                       public void run() {
+                           try {
+                               stop(Integer.parseInt(key));
+                           } catch (Exception e) {
+                               e.printStackTrace();
+                           }
+                       }
+                   }).start();
+               } else {
+                   new Thread(new Runnable() {
+                       @Override
+                       public void run() {
+                           GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+                           try {
+                               GatewayClient gatewayClient = gatewayClientHandler.fetch(Integer.parseInt(key));
+                               connectGatewayClient(gatewayClient);
+                           } catch (InterruptedException e) {
+                               e.printStackTrace();
+                           }
+                       }
+                   }).start();
+               }
+           }
+       };
+       sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
    }
 
     private void handleBroadcast() {
@@ -193,20 +199,24 @@ public class RMQConnectionService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(getClass().getName(), "Request to start service received...");
+        Map<String, ?> storedGatewayClients = sharedPreferences.getAll();
+        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+        for(String gatewayClientIds : storedGatewayClients.keySet()) {
+            try {
+                GatewayClient gatewayClient = gatewayClientHandler.fetch(Integer.parseInt(gatewayClientIds));
+                Log.d(getClass().getName(), "* Starting new RMQ connection: " + gatewayClient.getFriendlyConnectionName());
+                connectGatewayClient(gatewayClient);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return START_STICKY;
+    }
 
-        final Integer gatewayClientId = intent.getIntExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
-        if(!connectionList.containsKey(gatewayClientId)) {
-            String username = intent.getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME);
-            String password = intent.getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_PASSWORD);
-            String virtualHost = intent.getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_VIRTUAL_HOST);
-            String host = intent.getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_HOST);
-            String friendlyName = intent.getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_FRIENDLY_NAME);
-            int port = intent.getIntExtra(GatewayClientListingActivity.GATEWAY_CLIENT_PORT,
-                    Integer.parseInt(getResources().getString(R.string.settings_gateway_client_default_port)));
-
+    public void connectGatewayClient(GatewayClient gatewayClient) {
+        if(!connectionList.containsKey(gatewayClient.getId())) {
             Log.d(getClass().getName(), "Starting new service connection...");
             ConnectionFactory factory = new ConnectionFactory();
-
             factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
                 @Override
                 public long getDelay(int recoveryAttempts) {
@@ -216,24 +226,22 @@ public class RMQConnectionService extends Service {
                 }
             });
 
-            factory.setUsername(username);
-            factory.setPassword(password);
-            factory.setVirtualHost(virtualHost);
-            factory.setHost(host);
-            factory.setPort(port);
+            factory.setUsername(gatewayClient.getUsername());
+            factory.setPassword(gatewayClient.getPassword());
+            factory.setVirtualHost(gatewayClient.getVirtualHost());
+            factory.setHost(gatewayClient.getHostUrl());
+            factory.setPort(gatewayClient.getPort());
             factory.setConnectionTimeout(15000);
             factory.setExceptionHandler(new DefaultExceptionHandler());
 
             // TODO: create a full handler to manage the retry to connection
             // TODO: which matches the Android WorkManager methods
-
-            // Perform your background task
-            Log.d(this.getClass().getName(), "Starting rmq connection: " + username + ":" + password + "@" + host);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        Connection connection = factory.newConnection(consumerExecutorService, friendlyName);
+                        Connection connection = factory.newConnection(consumerExecutorService,
+                                gatewayClient.getFriendlyConnectionName());
 
                         connection.addShutdownListener(new ShutdownListener() {
                             @Override
@@ -244,18 +252,16 @@ public class RMQConnectionService extends Service {
 
                         RMQConnection rmqConnection = new RMQConnection(connection);
 
-                        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-                        GatewayClient gatewayClient = gatewayClientHandler.fetch(gatewayClientId);
-                        gatewayClientHandler.close();
-
                         if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
                             rmqConnection.createQueue(gatewayClient.getProjectName(),
                                     gatewayClient.getProjectBinding(), getDeliverCallback(rmqConnection));
                             rmqConnection.consume();
                         }
-                        connectionList.put(gatewayClientId, rmqConnection);
-                        sharedPreferences.edit().putLong(String.valueOf(gatewayClientId), System.currentTimeMillis()).apply();
-                    } catch (IOException | TimeoutException | InterruptedException e) {
+                        connectionList.put(gatewayClient.getId(), rmqConnection);
+                        sharedPreferences.edit().putLong(String.valueOf(gatewayClient.getId()),
+                                System.currentTimeMillis()).apply();
+
+                    } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
                         // TODO: send a notification indicating this, with options to retry the connection
                     }
@@ -263,10 +269,9 @@ public class RMQConnectionService extends Service {
             }).start();
         }
         // return super.onStartCommand(intent, flags, startId);
-        return START_NOT_STICKY;
     }
 
-    private void stopService(int gatewayClientId) {
+    private void stop(int gatewayClientId) {
         try {
             if(connectionList.containsKey(gatewayClientId))
                 connectionList.remove(gatewayClientId).close();
@@ -275,8 +280,7 @@ public class RMQConnectionService extends Service {
         }
     }
 
-    @Override
-    public void onDestroy() {
+    public void close() {
         Log.d(getClass().getName(), "Ending connection...");
         if(messageStateChangedBroadcast != null)
             unregisterReceiver(messageStateChangedBroadcast);
@@ -287,5 +291,25 @@ public class RMQConnectionService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private void createForegroundNotification() {
+        Intent notificationIntent = new Intent(getApplicationContext(), GatewayClientListingActivity.class);
+        PendingIntent pendingIntent =
+                PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent,
+                        PendingIntent.FLAG_IMMUTABLE);
+
+        Notification notification =
+                new NotificationCompat.Builder(getApplicationContext(), getString(R.string.running_gateway_clients_channel_id))
+                        .setContentTitle(getString(R.string.gateway_client_running_title))
+                        .setSmallIcon(R.drawable.ic_stat_name)
+                        .setPriority(NotificationCompat.DEFAULT_ALL)
+                        .setSilent(true)
+
+                        .setContentText(getString(R.string.gateway_client_running_description))
+                        .setContentIntent(pendingIntent)
+                        .build();
+
+        startForeground(NOTIFICATION_ID, notification);
     }
 }
