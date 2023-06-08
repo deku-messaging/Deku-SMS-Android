@@ -110,6 +110,9 @@ public class DefaultCheckActivity extends AppCompatActivity {
         notificationsChannelIds.add(getString(R.string.running_gateway_clients_channel_id));
         notificationsChannelNames.add(getString(R.string.running_gateway_clients_channel_name));
 
+        notificationsChannelIds.add(getString(R.string.foreground_service_failed_channel_id));
+        notificationsChannelNames.add(getString(R.string.foreground_service_failed_channel_name));
+
         // TODO: Read more: https://developer.android.com/training/notify-user/channels
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -136,6 +139,20 @@ public class DefaultCheckActivity extends AppCompatActivity {
                 int importance = NotificationManager.IMPORTANCE_DEFAULT;
                 NotificationChannel channel = new NotificationChannel(
                         notificationsChannelIds.get(1), notificationsChannelNames.get(1), importance);
+                channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
+                channel.setLightColor(R.color.logo_primary);
+                channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
+
+                // Register the channel with the system; you can't change the importance
+                // or other notification behaviors after this
+                NotificationManager notificationManager = getSystemService(NotificationManager.class);
+                notificationManager.createNotificationChannel(channel);
+            }
+
+            if(!activeNotifications.contains(notificationsChannelIds.get(2))) {
+                int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                NotificationChannel channel = new NotificationChannel(
+                        notificationsChannelIds.get(2), notificationsChannelNames.get(2), importance);
                 channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
                 channel.setLightColor(R.color.logo_primary);
                 channel.setLockscreenVisibility(Notification.DEFAULT_ALL);

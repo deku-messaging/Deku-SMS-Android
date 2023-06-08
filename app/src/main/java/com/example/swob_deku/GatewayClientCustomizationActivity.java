@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -66,6 +67,12 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
 
+//        checkForBatteryOptimization();
+    }
+
+    public void checkForBatteryOptimization() {
+        Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+        startActivity(intent);
     }
 
     private void getGatewayClient() throws InterruptedException {

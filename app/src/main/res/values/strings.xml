@@ -2,12 +2,15 @@
     <string name="app_name">Deku SMS</string>
     <string name="incoming_messages_channel_name">Incoming Messages</string>
     <string name="running_gateway_clients_channel_name">Running Gateway Clients</string>
+    <string name="foreground_service_failed_channel_name">Gateway clients auto-reconnect</string>
 
     <string name="incoming_messages_channel_description">Gets called when a new message is received.</string>
     <string name="running_gateway_clients_channel_description">Alerts when gateway clients are listening.</string>
+    <string name="foreground_service_failed_channel_description">Click to reconnect Gateway clients</string>
 
     <string name="incoming_messages_channel_id">@string/incoming_messages_channel_name</string>
     <string name="running_gateway_clients_channel_id">@string/running_gateway_clients_channel_name</string>
+    <string name="foreground_service_failed_channel_id">@string/foreground_service_failed_channel_name</string>
 
     <string name="search_messages_text">
         Search messages
