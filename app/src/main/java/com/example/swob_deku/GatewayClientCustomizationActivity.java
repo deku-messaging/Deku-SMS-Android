@@ -168,8 +168,6 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
             case R.id.gateway_client_connect:
                 try {
-                    item.setEnabled(false);
-//                    item.setTitle(getString(R.string.gateway_client_customization_connecting));
                     startListening();
                     return true;
                 } catch (InterruptedException e) {
@@ -178,12 +176,21 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
                 break;
 
             case R.id.gateway_client_disconnect:
-                item.setEnabled(false);
-//                item.setTitle(getString(R.string.gateway_client_customization_disconnecting));
                 stopListening();
+                return true;
+
+            case R.id.gateway_client_edit:
+                editGatewayClient();
                 return true;
         }
         return false;
+    }
+
+    private void editGatewayClient() {
+        Intent intent = new Intent(this, GatewayClientAddActivity.class);
+        intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
+
+        startActivity(intent);
     }
 
     public void startListening() throws InterruptedException {

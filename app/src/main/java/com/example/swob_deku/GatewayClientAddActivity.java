@@ -28,6 +28,37 @@ public class GatewayClientAddActivity extends AppCompatActivity {
 
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
+
+        if(getIntent().hasExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID)) {
+            try {
+                editGatewayClient();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void editGatewayClient() throws InterruptedException {
+        int gatewayClientId = getIntent().getIntExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+
+        if(gatewayClientId != -1 ) {
+            TextInputEditText url = findViewById(R.id.new_gateway_client_url_input);
+            TextInputEditText username = findViewById(R.id.new_gateway_client_username);
+            TextInputEditText password = findViewById(R.id.new_gateway_password);
+            TextInputEditText friendlyName = findViewById(R.id.new_gateway_client_friendly_name);
+            TextInputEditText virtualHost = findViewById(R.id.new_gateway_client_virtualhost);
+            TextInputEditText port = findViewById(R.id.new_gateway_client_port);
+
+            GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+            GatewayClient gatewayClient = gatewayClientHandler.fetch(gatewayClientId);
+            url.setText(gatewayClient.getHostUrl());
+            username.setText(gatewayClient.getUsername());
+            password.setText(gatewayClient.getPassword());
+            friendlyName.setText(gatewayClient.getFriendlyConnectionName());
+            virtualHost.setText(gatewayClient.getVirtualHost());
+            port.setText(String.valueOf(gatewayClient.getPort()));
+            gatewayClientHandler.close();
+        }
     }
 
     public void onSaveGatewayClient(View view) throws InterruptedException {
@@ -74,8 +105,21 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         if(checkedRadioId == R.id.add_gateway_client_protocol_amqp)
             gatewayClient.setProtocol(getString(R.string.settings_gateway_client_amqp_protocol).toLowerCase());
 
-        new GatewayClientHandler(getApplicationContext())
-                .add(gatewayClient);
+        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+        if(getIntent().hasExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID)) {
+            int gatewayClientId = getIntent().getIntExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+
+            GatewayClient gatewayClient1 = gatewayClientHandler.fetch(gatewayClientId);
+
+            gatewayClient.setId(gatewayClient1.getId());
+            gatewayClient.setProjectName(gatewayClient1.getProjectName());
+            gatewayClient.setProjectBinding(gatewayClient1.getProjectBinding());
+            gatewayClientHandler.update(gatewayClient);
+        }
+        else {
+            gatewayClientHandler.add(gatewayClient);
+        }
+        gatewayClientHandler.close();
 
         Intent intent = new Intent(this, GatewayClientListingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
