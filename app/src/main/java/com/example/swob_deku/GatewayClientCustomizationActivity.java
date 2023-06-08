@@ -183,6 +183,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         sharedPreferences.edit()
                 .putLong(String.valueOf(gatewayClient.getId()), System.currentTimeMillis())
                 .apply();
+        gatewayClientHandler.startServices();
     }
 
     public void stopListening() {

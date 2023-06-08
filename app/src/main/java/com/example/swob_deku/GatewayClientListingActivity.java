@@ -141,4 +141,10 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         return editor.remove(String.valueOf(id))
                         .commit();
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        databaseConnector.close();
+    }
 }

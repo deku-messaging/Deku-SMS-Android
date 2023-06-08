@@ -54,6 +54,8 @@ public class RMQConnectionService extends Service {
     public final static String RMQ_SUCCESS_BROADCAST_INTENT = "RMQ_SUCCESS_BROADCAST_INTENT";
     public final static String RMQ_STOP_BROADCAST_INTENT = "RMQ_STOP_BROADCAST_INTENT";
 
+    private int runningGatewayClientCount = 0;
+
     private HashMap<Integer, RMQConnection> connectionList = new HashMap<>();
 
     private ExecutorService consumerExecutorService;
@@ -77,7 +79,6 @@ public class RMQConnectionService extends Service {
 
         registerListeners();
 
-        createForegroundNotification();
     }
 
    private void registerListeners() {
@@ -223,8 +224,7 @@ public class RMQConnectionService extends Service {
                     // TODO: send notification informing reconnecting is being attempted
                     Log.d(getClass().getName(), "Attempting auto recovery...");
                     return 10000;
-                }
-            });
+                } });
 
             factory.setUsername(gatewayClient.getUsername());
             factory.setPassword(gatewayClient.getPassword());
@@ -260,6 +260,7 @@ public class RMQConnectionService extends Service {
                         connectionList.put(gatewayClient.getId(), rmqConnection);
                         sharedPreferences.edit().putLong(String.valueOf(gatewayClient.getId()),
                                 System.currentTimeMillis()).apply();
+                        createForegroundNotification(++runningGatewayClientCount);
 
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
@@ -273,14 +274,23 @@ public class RMQConnectionService extends Service {
 
     private void stop(int gatewayClientId) {
         try {
-            if(connectionList.containsKey(gatewayClientId))
+            if(connectionList.containsKey(gatewayClientId)) {
                 connectionList.remove(gatewayClientId).close();
+                if(connectionList.isEmpty()) {
+                    stopForeground(true);
+                    stopSelf();
+                }
+                else
+                    createForegroundNotification(--runningGatewayClientCount);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void close() {
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
         Log.d(getClass().getName(), "Ending connection...");
         if(messageStateChangedBroadcast != null)
             unregisterReceiver(messageStateChangedBroadcast);
@@ -293,12 +303,13 @@ public class RMQConnectionService extends Service {
         return null;
     }
 
-    private void createForegroundNotification() {
+    private void createForegroundNotification(int runningGatewayClientCount) {
         Intent notificationIntent = new Intent(getApplicationContext(), GatewayClientListingActivity.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE);
 
+        String description = runningGatewayClientCount + " " + getString(R.string.gateway_client_running_description);
         Notification notification =
                 new NotificationCompat.Builder(getApplicationContext(), getString(R.string.running_gateway_clients_channel_id))
                         .setContentTitle(getString(R.string.gateway_client_running_title))
@@ -306,7 +317,7 @@ public class RMQConnectionService extends Service {
                         .setPriority(NotificationCompat.DEFAULT_ALL)
                         .setSilent(true)
                         .setOngoing(true)
-                        .setContentText(getString(R.string.gateway_client_running_description))
+                        .setContentText(description)
                         .setContentIntent(pendingIntent)
                         .build();
 

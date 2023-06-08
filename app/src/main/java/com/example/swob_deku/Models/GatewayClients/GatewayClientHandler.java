@@ -7,15 +7,25 @@ import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PORT;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_VIRTUAL_HOST;
+import static com.example.swob_deku.MessagesThreadsActivity.UNIQUE_WORK_MANAGER_NAME;
 
 import android.content.Context;
 import android.content.Intent;
 
 import androidx.room.Room;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.Migrations;
 import com.example.swob_deku.Models.RMQ.RMQConnectionService;
+import com.example.swob_deku.Models.RMQ.RMQWorkManager;
+
+import java.util.concurrent.TimeUnit;
 
 public class GatewayClientHandler {
 
@@ -106,5 +116,32 @@ public class GatewayClientHandler {
 
     public void close() {
         databaseConnector.close();
+    }
+
+
+    public void startServices() throws InterruptedException {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresBatteryNotLow(true)
+                .build();
+
+        try {
+            OneTimeWorkRequest gatewayClientListenerWorker = new OneTimeWorkRequest.Builder(RMQWorkManager.class)
+                    .setConstraints(constraints)
+                    .setBackoffCriteria(
+                            BackoffPolicy.LINEAR,
+                            OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                            TimeUnit.MILLISECONDS
+                    )
+                    .addTag(GatewayClient.class.getName())
+                    .build();
+
+            WorkManager workManager = WorkManager.getInstance(context);
+            workManager.enqueueUniqueWork(UNIQUE_WORK_MANAGER_NAME,
+                    ExistingWorkPolicy.KEEP,
+                    gatewayClientListenerWorker);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 }

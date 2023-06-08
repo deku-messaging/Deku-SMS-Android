@@ -44,6 +44,7 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
+import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
@@ -74,7 +75,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     ArchiveHandler archiveHandler;
 
-    SharedPreferences sharedPreferences;
 
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
 
@@ -180,7 +180,9 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         });
 
         try {
-            startServices();
+            GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+            gatewayClientHandler.startServices();
+            gatewayClientHandler.close();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -238,31 +240,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
         });
     }
 
-    private void startServices() throws InterruptedException {
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .setRequiresBatteryNotLow(true)
-                .build();
-
-        try {
-            OneTimeWorkRequest gatewayClientListenerWorker = new OneTimeWorkRequest.Builder(RMQWorkManager.class)
-                    .setConstraints(constraints)
-                    .setBackoffCriteria(
-                            BackoffPolicy.LINEAR,
-                            OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                            TimeUnit.MILLISECONDS
-                    )
-                    .addTag(GatewayClient.class.getName())
-                    .build();
-
-            WorkManager workManager = WorkManager.getInstance(getApplicationContext());
-            workManager.enqueueUniqueWork(UNIQUE_WORK_MANAGER_NAME,
-                    ExistingWorkPolicy.KEEP,
-                    gatewayClientListenerWorker);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     private boolean checkIsDefaultApp() {
         final String myPackageName = getPackageName();
