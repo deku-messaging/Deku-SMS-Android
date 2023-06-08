@@ -305,7 +305,7 @@ public class RMQConnectionService extends Service {
                         .setSmallIcon(R.drawable.ic_stat_name)
                         .setPriority(NotificationCompat.DEFAULT_ALL)
                         .setSilent(true)
-
+                        .setOngoing(true)
                         .setContentText(getString(R.string.gateway_client_running_description))
                         .setContentIntent(pendingIntent)
                         .build();

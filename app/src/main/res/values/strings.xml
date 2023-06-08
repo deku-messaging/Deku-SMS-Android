@@ -161,6 +161,6 @@
     <string name="gateway_client_customization_disconnecting">Disconnecting</string>
     <string name="gateway_client_customization_delete">Delete</string>
 
-    <string name="gateway_client_running_title">Gateway Actively listening</string>
-    <string name="gateway_client_running_description">Gateways clients are connected to the cloud server and listening for incoming request in the background.</string>
+    <string name="gateway_client_running_title">Gateway Client: Node Running</string>
+    <string name="gateway_client_running_description"># of active connections</string>
 </resources>

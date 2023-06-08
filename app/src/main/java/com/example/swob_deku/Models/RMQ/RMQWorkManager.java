@@ -28,7 +28,12 @@ public class RMQWorkManager extends Worker {
     @Override
     public Result doWork() {
         Intent intent = new Intent(getApplicationContext(), RMQConnectionService.class);
-        context.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        }
+        else {
+            context.startService(intent);
+        }
         return Result.success();
     }
 
