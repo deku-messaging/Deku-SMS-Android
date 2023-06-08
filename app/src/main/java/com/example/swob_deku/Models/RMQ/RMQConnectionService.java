@@ -202,7 +202,7 @@ public class RMQConnectionService extends Service {
         Log.d(getClass().getName(), "Request to start service received...");
         Map<String, ?> storedGatewayClients = sharedPreferences.getAll();
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        for(String gatewayClientIds : storedGatewayClients.keySet()) {
+        for (String gatewayClientIds : storedGatewayClients.keySet()) {
             try {
                 GatewayClient gatewayClient = gatewayClientHandler.fetch(Integer.parseInt(gatewayClientIds));
                 Log.d(getClass().getName(), "* Starting new RMQ connection: " + gatewayClient.getFriendlyConnectionName());

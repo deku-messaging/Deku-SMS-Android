@@ -1,10 +1,13 @@
 package com.example.swob_deku.Models.RMQ;
 
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+
 import android.app.ForegroundServiceStartNotAllowedException;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
@@ -22,33 +25,37 @@ public class RMQWorkManager extends Worker {
     final int NOTIFICATION_ID = 12345;
     Context context;
 
+    SharedPreferences sharedPreferences;
+
     public RMQWorkManager(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
         this.context = context;
+        sharedPreferences = context.getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
     }
 
     @NonNull
     @Override
     public Result doWork() {
         Intent intent = new Intent(getApplicationContext(), RMQConnectionService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                context.startForegroundService(intent);
-            } catch(Exception e ) {
-                e.printStackTrace();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    if(e instanceof ForegroundServiceStartNotAllowedException) {
-                        notifyUserToReconnectSMSServices();
+        if(!sharedPreferences.getAll().isEmpty()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                try {
+                    context.startForegroundService(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        if (e instanceof ForegroundServiceStartNotAllowedException) {
+                            notifyUserToReconnectSMSServices();
+                        }
                     }
+                    return Result.failure();
                 }
-
-                return Result.failure();
+            } else {
+                context.startService(intent);
             }
+            return Result.success();
         }
-        else {
-            context.startService(intent);
-        }
-        return Result.success();
+        return null;
     }
 
     private void notifyUserToReconnectSMSServices(){
