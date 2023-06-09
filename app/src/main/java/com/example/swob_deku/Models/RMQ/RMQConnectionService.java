@@ -260,11 +260,16 @@ public class RMQConnectionService extends Service {
                         connectionList.put(gatewayClient.getId(), rmqConnection);
                         sharedPreferences.edit().putLong(String.valueOf(gatewayClient.getId()),
                                 System.currentTimeMillis()).apply();
+
                         createForegroundNotification(++runningGatewayClientCount);
 
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
+//                        if(e.getCause() instanceof ShutdownSignalException) {
+//
+//                        }
                         // TODO: send a notification indicating this, with options to retry the connection
+                        createForegroundNotification(runningGatewayClientCount);
                     }
                 }
             }).start();
