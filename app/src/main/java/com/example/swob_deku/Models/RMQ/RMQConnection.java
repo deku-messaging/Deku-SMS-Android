@@ -10,7 +10,7 @@ import java.util.List;
 
 public class RMQConnection {
 
-    public static final String MESSAGE_BODY_KEY = "body";
+    public static final String MESSAGE_BODY_KEY = "text";
     public static final String MESSAGE_MSISDN_KEY = "to";
     public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "id";
 
