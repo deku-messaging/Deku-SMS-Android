@@ -124,31 +124,51 @@ public class RMQConnectionService extends Service {
             public void onReceive(Context context, @NonNull Intent intent) {
                 // TODO: in case this intent comes back but the internet connection broke to send back acknowledgement
                 // TODO: should store pending confirmations in a place
+                if (intent.hasExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)) {
+                    if (intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)
+                            .equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT) &&
+                            intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
+                        Log.d(getClass().getName(), "Service received a broadcast and should acknowledge to rmq from here");
 
-                Log.d(getClass().getName(), "Contains required: " + intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY));
-
-                if(intent.hasExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE) &&
-                        intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)
-                                .equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT) &&
-                        intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
-                    Log.d(getClass().getName(), "Service received a broadcast and should acknowledge to rmq from here");
-
-                    long globalMessageId = intent.getLongExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, -1);
-                    if(globalMessageId != -1) {
-                        Map<Long, Channel> deliveryChannel = channelList.get(globalMessageId);
-                        Long deliveryTag = deliveryChannel.keySet().iterator().next();
-                        Channel channel = deliveryChannel.get(deliveryTag);
-                        if(channel != null && channel.isOpen()) {
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        channel.basicAck(deliveryTag, false);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
+                        long globalMessageId = intent.getLongExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, -1);
+                        if (globalMessageId != -1) {
+                            Map<Long, Channel> deliveryChannel = channelList.get(globalMessageId);
+                            Long deliveryTag = deliveryChannel.keySet().iterator().next();
+                            Channel channel = deliveryChannel.get(deliveryTag);
+                            if (channel != null && channel.isOpen()) {
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            channel.basicAck(deliveryTag, false);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
                                     }
-                                }
-                            }).start();
+                                }).start();
+                            }
+                        }
+                    } else if (intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)
+                            .equals(IncomingTextSMSReplyActionBroadcastReceiver.FAILED_BROADCAST_INTENT) &&
+                            intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
+
+                        long globalMessageId = intent.getLongExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, -1);
+                        if (globalMessageId != -1) {
+                            Map<Long, Channel> deliveryChannel = channelList.get(globalMessageId);
+                            Long deliveryTag = deliveryChannel.keySet().iterator().next();
+                            Channel channel = deliveryChannel.get(deliveryTag);
+                            if (channel != null && channel.isOpen()) {
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            channel.basicReject(deliveryTag, true);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }).start();
+                            }
                         }
                     }
                 }
