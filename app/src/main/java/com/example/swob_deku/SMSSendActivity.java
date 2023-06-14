@@ -1015,6 +1015,9 @@ public class SMSSendActivity extends AppCompatActivity {
 
         if(messageStateChangedBroadcast != null)
             unregisterReceiver(messageStateChangedBroadcast);
+
+        if(archiveHandler != null)
+            archiveHandler.close();
     }
 
     public void onLongClickSend(View view) {

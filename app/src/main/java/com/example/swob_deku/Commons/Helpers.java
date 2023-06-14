@@ -183,7 +183,10 @@ public class Helpers {
 
     public static void highlightLinks(TextView textView, String text) {
         // Regular expression to find URLs in the text
-        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|(\\+\\d{1,3})\\d+";
+//        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|(\\+\\d{1,3})\\d+";
+//        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|\\b\\+?\\d+\\b|\\b\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
+        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|\\+\\b\\d+\\b|\\b\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
+
 
         SpannableString spannableString = new SpannableString(text);
 
@@ -202,6 +205,18 @@ public class Helpers {
                         Intent dialIntent = new Intent(Intent.ACTION_DIAL, phoneNumberUri);
                         dialIntent.setFlags(FLAG_ACTIVITY_NEW_TASK);
                         widget.getContext().startActivity(dialIntent);
+                    }
+                };
+                spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if(tmp_url.contains("@")) {
+                final String email = tmp_url;
+                ClickableSpan clickableSpan = new ClickableSpan() {
+                    @Override
+                    public void onClick(View widget) {
+                        Intent intent = new Intent(Intent.ACTION_SENDTO);
+                        intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+                        intent.setData(Uri.parse("mailto:" + email));
+                        widget.getContext().startActivity(intent);
                     }
                 };
                 spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
