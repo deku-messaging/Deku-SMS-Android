@@ -7,7 +7,9 @@
     <color name="default_gray">#242f35</color>
     <color name="disabled_gray">#525D63</color>
     <color name="light_blue"> #FF219BCC </color>
+    <color name="link">#4786FA</color>
     <color name="logo_primary">#061892</color>
+    <color name="logo_third">#135cc5</color>
     <color name="logo_secondary">#9bbef1</color>
     <color name="failed_red">#FF3B58</color>
 

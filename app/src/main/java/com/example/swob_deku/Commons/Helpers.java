@@ -1,15 +1,28 @@
 package com.example.swob_deku.Commons;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.nfc.Tag;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.format.DateUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
 import android.util.Base64;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.swob_deku.R;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.Phonenumber;
 
@@ -21,6 +34,8 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.michaelrocks.libphonenumber.android.PhoneNumberUtil;
 
@@ -158,5 +173,55 @@ public class Helpers {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static void highlightLinks(TextView textView, String text) {
+        // Regular expression to find URLs in the text
+        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|(\\+\\d{1,3})\\d+";
+
+        SpannableString spannableString = new SpannableString(text);
+
+        // Find all URLs in the text
+        Pattern pattern = Pattern.compile(urlPattern);
+        Matcher matcher = pattern.matcher(spannableString);
+
+        while (matcher.find()) {
+            String tmp_url = matcher.group();
+            if(PhoneNumberUtils.isWellFormedSmsAddress(tmp_url)) {
+                final String tel = tmp_url;
+                ClickableSpan clickableSpan = new ClickableSpan() {
+                    @Override
+                    public void onClick(View widget) {
+                        Uri phoneNumberUri = Uri.parse("tel:" + tel);
+                        Intent dialIntent = new Intent(Intent.ACTION_DIAL, phoneNumberUri);
+                        dialIntent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+                        widget.getContext().startActivity(dialIntent);
+                    }
+                };
+                spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            else {
+                if (!tmp_url.startsWith("http://") && !tmp_url.startsWith("https://")) {
+                    tmp_url = "http://" + tmp_url;
+                }
+                final String url = tmp_url;
+
+                ClickableSpan clickableSpan = new ClickableSpan() {
+                    @Override
+                    public void onClick(View widget) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+                        widget.getContext().startActivity(intent);
+                    }
+                };
+                spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            spannableString.setSpan(new ForegroundColorSpan(
+                    textView.getContext().getResources().getColor(R.color.logo_third, textView.getContext().getTheme())),
+                    matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
+        textView.setText(spannableString);
     }
 }

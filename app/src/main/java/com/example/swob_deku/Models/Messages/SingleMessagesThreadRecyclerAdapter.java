@@ -1,11 +1,22 @@
 package com.example.swob_deku.Models.Messages;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.provider.Telephony;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.format.DateUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.URLSpan;
+import android.text.util.Linkify;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +33,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.ImageViewActivity;
 import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Images.ImageHandler;
@@ -42,6 +54,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
@@ -195,7 +209,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
 
-
             TextView dateView = messageReceivedViewHandler.date;
             dateView.setVisibility(View.INVISIBLE);
 
@@ -222,11 +235,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 receivedMessage.setVisibility(View.GONE);
             }
             else {
-                receivedMessage.setText(text);
+//                receivedMessage.setText(text);
+                Helpers.highlightLinks(receivedMessage, text);
             }
             dateView.setText(date);
 
-            messageReceivedViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
+            messageReceivedViewHandler.receivedMessage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(isHighlighted(sms.getId()))
@@ -247,13 +261,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                     intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
                     intent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
                     intent.putExtra(SMSSendActivity.ID, sms.getId());
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
 
                     context.startActivity(intent);
                 }
             });
 
-            messageReceivedViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            messageReceivedViewHandler.receivedMessage.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     return longClickHighlight(messageReceivedViewHandler, sms.getId());
@@ -315,10 +329,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 messageSentViewHandler.sentMessage.setVisibility(View.GONE);
             }
             else {
-                messageSentViewHandler.sentMessage.setText(text);
+//                messageSentViewHandler.sentMessage.setText(text);
+//                messageSentViewHandler.highlightLinks(messageSentViewHandler.sentMessage, text);
+                Helpers.highlightLinks(messageSentViewHandler.sentMessage, text);
             }
 
-            messageSentViewHandler.constraintLayout.setOnClickListener(new View.OnClickListener() {
+            messageSentViewHandler.sentMessage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(isHighlighted(sms.getId()))
@@ -342,7 +358,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 }
             });
 
-            messageSentViewHandler.constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            messageSentViewHandler.sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     return longClickHighlight(messageSentViewHandler, smsId);
@@ -512,6 +528,21 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             imageView = itemView.findViewById(R.id.message_sent_image_view);
         }
 
+        static class ClickableURLSpan extends URLSpan {
+            ClickableURLSpan(String url) {
+                super(url);
+            }
+
+            @Override
+            public void onClick(View widget) {
+                Log.d(getClass().getName(), "Link clicked!");
+                Uri uri = Uri.parse(getURL());
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+                widget.getContext().startActivity(intent);
+            }
+        }
+
         public void highlight() {
             constraintLayout.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
         }
@@ -542,6 +573,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             constraintLayout = itemView.findViewById(R.id.message_received_constraint);
             imageConstraintLayout = itemView.findViewById(R.id.message_received_image_container);
             imageView = itemView.findViewById(R.id.message_received_image_view);
+
         }
 
         public void highlight() {
