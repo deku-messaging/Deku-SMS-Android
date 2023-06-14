@@ -236,7 +236,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             }
             else {
 //                receivedMessage.setText(text);
-                Helpers.highlightLinks(receivedMessage, text);
+                Helpers.highlightLinks(receivedMessage, text, context.getColor(R.color.primary_text_color));
             }
             dateView.setText(date);
 
@@ -331,7 +331,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             else {
 //                messageSentViewHandler.sentMessage.setText(text);
 //                messageSentViewHandler.highlightLinks(messageSentViewHandler.sentMessage, text);
-                Helpers.highlightLinks(messageSentViewHandler.sentMessage, text);
+                Helpers.highlightLinks(messageSentViewHandler.sentMessage, text,
+                        context.getColor(R.color.primary_background_color));
             }
 
             messageSentViewHandler.sentMessage.setOnClickListener(new View.OnClickListener() {
