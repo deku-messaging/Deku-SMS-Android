@@ -409,7 +409,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    if (!PhoneNumberUtils.isWellFormedSmsAddress(unformattedAddress)) {
+                    if (!Helpers.isWellFormedNumber(unformattedAddress)){
                         ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
                         smsLayout.setVisibility(View.GONE);
                     }
@@ -675,7 +675,7 @@ public class SMSSendActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    if (PhoneNumberUtils.isWellFormedSmsAddress(unformattedAddress)) {
+                    if (Helpers.isWellFormedNumber(unformattedAddress)) {
                         checkEncryptedMessaging();
                         if(getIntent().hasExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION)) {
                             long messageId = getIntent().getLongExtra(ImageViewActivity.SMS_IMAGE_PENDING_LOCATION, -1);
@@ -963,7 +963,7 @@ public class SMSSendActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        if(PhoneNumberUtils.isWellFormedSmsAddress(unformattedAddress))
+        if(Helpers.isWellFormedNumber(unformattedAddress))
             getMenuInflater().inflate(R.menu.single_messages_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }

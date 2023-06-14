@@ -110,6 +110,12 @@ public class Helpers {
 //        return countryCode;
     }
 
+    public static boolean isWellFormedNumber(String data) {
+        Pattern pattern = Pattern.compile("[a-zA-Z]");
+        Matcher matcher = pattern.matcher(data);
+        return PhoneNumberUtils.isWellFormedSmsAddress(data) && !matcher.find();
+    }
+
     public static String formatPhoneNumbers(Context context, String data) throws NumberParseException {
         String formattedString = data.replaceAll("%2B", "+")
                 .replaceAll("%20", "")
@@ -119,13 +125,13 @@ public class Helpers {
         // Remove any non-digit characters except the plus sign at the beginning of the string
         String strippedNumber = formattedString.replaceAll("[^0-9+]", "");
 
-        // If the stripped number starts with a plus sign followed by one or more digits, return it as is
-        if (strippedNumber.matches("^\\+\\d+") )
+        if(strippedNumber.length() > 6) {
+            // If the stripped number starts with a plus sign followed by one or more digits, return it as is
+            if (!strippedNumber.matches("^\\+\\d+")) {
+                String dialingCode = getUserCountry(context);
+                strippedNumber = "+" + dialingCode + strippedNumber;
+            }
             return strippedNumber;
-        else if(strippedNumber.length() >=7) {
-            String dialingCode = getUserCountry(context);
-           strippedNumber = "+" + dialingCode + strippedNumber;
-           return strippedNumber;
         }
 
         // If the stripped number is not a valid phone number, return an empty string
