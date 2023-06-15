@@ -11,6 +11,7 @@ import static com.example.swob_deku.MessagesThreadsActivity.UNIQUE_WORK_MANAGER_
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 
 import androidx.room.Room;
 import androidx.work.BackoffPolicy;
@@ -20,10 +21,12 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
+import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.Migrations;
 import com.example.swob_deku.Models.RMQ.RMQConnectionService;
 import com.example.swob_deku.Models.RMQ.RMQWorkManager;
+import com.example.swob_deku.R;
 
 import java.util.concurrent.TimeUnit;
 
@@ -144,5 +147,19 @@ public class GatewayClientHandler {
         } catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static String getConnectionStatus(Context context, String gatewayClientId) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS,
+                Context.MODE_PRIVATE);
+
+        if(sharedPreferences.contains(gatewayClientId)) {
+            if(sharedPreferences.getBoolean(gatewayClientId, false)) {
+                return context.getString(R.string.gateway_client_customization_connected);
+            } else {
+                return context.getString(R.string.gateway_client_customization_reconnecting);
+            }
+        }
+        return context.getString(R.string.gateway_client_customization_deactivated);
     }
 }

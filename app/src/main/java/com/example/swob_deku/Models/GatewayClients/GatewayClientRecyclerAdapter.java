@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientCustomizationActivity;
+import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.R;
 import com.example.swob_deku.Models.ServiceHandler;
 
@@ -63,6 +64,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         holder.virtualHost.setText(gatewayClient.getVirtualHost());
         holder.friendlyName.setText(gatewayClient.getFriendlyConnectionName());
         holder.username.setText(gatewayClient.getUsername());
+        holder.connectionStatus.setText(gatewayClient.getConnectionStatus());
 
         String date = Helpers.formatDate(context, gatewayClient.getDate());
         holder.date.setText(date);
@@ -95,7 +97,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView url, virtualHost, friendlyName, date, username;
+        TextView url, virtualHost, friendlyName, date, username, connectionStatus;
 
         CardView cardView;
         public ViewHolder(@NonNull @NotNull View itemView) {
@@ -107,6 +109,8 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
             date = itemView.findViewById(R.id.gateway_client_date);
             cardView = itemView.findViewById(R.id.gateway_client_card);
             username = itemView.findViewById(R.id.gateway_client_username);
+            username = itemView.findViewById(R.id.gateway_client_username);
+            connectionStatus = itemView.findViewById(R.id.gateway_client_connection_status);
         }
     }
 }

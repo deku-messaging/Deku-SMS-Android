@@ -16,6 +16,17 @@ import com.example.swob_deku.R;
 public class GatewayClient {
     public GatewayClient() {}
 
+    @Ignore
+    private String connectionStatus;
+
+    public String getConnectionStatus() {
+        return connectionStatus;
+    }
+
+    public void setConnectionStatus(String connectionStatus) {
+        this.connectionStatus = connectionStatus;
+    }
+
     @PrimaryKey(autoGenerate = true)
     private int id;
 
@@ -168,6 +179,7 @@ public class GatewayClient {
                     gatewayClient.port == this.port &&
                     gatewayClient.projectBinding.equals(this.projectBinding) &&
                     gatewayClient.projectName.equals(this.projectName) &&
+                    gatewayClient.connectionStatus.equals(this.connectionStatus) &&
                     gatewayClient.date == this.date;
         }
         return false;

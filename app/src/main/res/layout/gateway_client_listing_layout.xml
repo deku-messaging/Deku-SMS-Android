@@ -105,6 +105,17 @@
                 android:textSize="12sp"
                 app:layout_constraintStart_toStartOf="@+id/gateway_client_url"
                 app:layout_constraintTop_toBottomOf="@+id/gateway_client_url" />
+
+            <TextView
+                android:id="@+id/gateway_client_connection_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="connected"
+                android:textColor="@color/secondary_text_color"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="@+id/gateway_client_friendly_name_text"
+                app:layout_constraintEnd_toEndOf="@+id/gateway_client_url"
+                app:layout_constraintTop_toTopOf="@+id/gateway_client_friendly_name_text" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

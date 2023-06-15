@@ -14,7 +14,7 @@ import java.util.List;
 public interface GatewayClientDAO {
 
     @Query("SELECT * FROM GatewayClient")
-    LiveData<List<GatewayClient>> getAll();
+    List<GatewayClient> getAll();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(GatewayClient gatewayClient);

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -32,6 +33,8 @@ public class GatewayServerListingActivity extends AppCompatActivity {
     GatewayServerDAO gatewayServerDAO;
 
     Handler mHandler = new Handler();
+
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +84,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
         setRefreshTimer(gatewayServerRecyclerAdapter);
     }
+
 
     private void setRefreshTimer(GatewayServerRecyclerAdapter adapter) {
         final int recyclerViewTimeUpdateLimit = 60 * 1000;

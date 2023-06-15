@@ -51,6 +51,8 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
     GatewayClientViewModel gatewayClientViewModel;
 
+    SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,7 +90,8 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
         gatewayClientDAO = databaseConnector.gatewayClientDAO();
 
-        gatewayClientViewModel.getGatewayClientList(gatewayClientDAO).observe(this,
+        gatewayClientViewModel.getGatewayClientList(
+                getApplicationContext(), gatewayClientDAO).observe(this,
                 new Observer<List<GatewayClient>>() {
                     @Override
                     public void onChanged(List<GatewayClient> gatewayServerList) {
@@ -98,8 +101,20 @@ public class GatewayClientListingActivity extends AppCompatActivity {
                     }
                 });
 
-        setRefreshTimer(gatewayClientRecyclerAdapter);
+        registerListeners();
 
+        setRefreshTimer(gatewayClientRecyclerAdapter);
+    }
+
+    private void registerListeners() {
+        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                gatewayClientViewModel.refresh(getApplicationContext());
+            }
+        };
+
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
     }
 
     private void setRefreshTimer(GatewayClientRecyclerAdapter adapter) {
