@@ -158,13 +158,14 @@
     <string name="gateway_client_project_binding">Enter project binding - <i>(default project_name.operator_country.operator_name)</i></string>
     <string name="gateway_client_no_available_gateway_clients">No listening Gateway clients</string>
 
-    <string name="gateway_client_customization_connect">Connect</string>
+    <string name="gateway_client_customization_activate">Activate</string>
     <string name="gateway_client_customization_connecting">Connecting</string>
-    <string name="gateway_client_customization_disconnect">Disconnect</string>
+    <string name="gateway_client_customization_deactivate">Deactivate</string>
     <string name="gateway_client_customization_disconnecting">Disconnecting</string>
     <string name="gateway_client_customization_delete">Delete</string>
     <string name="gateway_client_customization_edit">Edit</string>
 
     <string name="gateway_client_running_title">Gateway Client: Node Running</string>
     <string name="gateway_client_running_description">Gateway clients connected</string>
+    <string name="gateway_client_reconnecting_description">Gateway clients reconnecting…</string>
 </resources>

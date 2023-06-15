@@ -16,7 +16,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
@@ -24,7 +23,6 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
-import com.example.swob_deku.Models.RMQ.RMQConnection;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.rabbitmq.client.Channel;
@@ -44,19 +42,18 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 public class RMQConnectionService extends Service {
     final int NOTIFICATION_ID = 1234;
+    final long DELAY_TIMEOUT = 10000;
+
     public final static String RMQ_SUCCESS_BROADCAST_INTENT = "RMQ_SUCCESS_BROADCAST_INTENT";
     public final static String RMQ_STOP_BROADCAST_INTENT = "RMQ_STOP_BROADCAST_INTENT";
 
-    private int runningGatewayClientCount = 0;
-
-    private HashMap<Integer, RMQConnection> connectionList = new HashMap<>();
+    private HashMap<Integer, RMQMonitor> connectionList = new HashMap<>();
 
     private ExecutorService consumerExecutorService;
 
@@ -81,25 +78,53 @@ public class RMQConnectionService extends Service {
 
     }
 
+    public int[] getGatewayClientNumbers() {
+        Map<String, ?> keys = sharedPreferences.getAll();
+        int running = 0;
+        int reconnecting = 0;
+
+        for(String _key : keys.keySet()) {
+            if (sharedPreferences.getBoolean(_key, false))
+                ++running;
+            else
+                ++reconnecting;
+        }
+
+        return new int[]{running, reconnecting};
+    }
+
    private void registerListeners() {
        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
            @Override
            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                Log.d(getClass().getName(), "Shared preferences changed: " + key);
-               if(connectionList.containsKey(Integer.parseInt(key)) &&
-                       connectionList.get(Integer.parseInt(key)) != null &&
-                       !sharedPreferences.contains(key) ) {
-                   new Thread(new Runnable() {
-                       @Override
-                       public void run() {
-                           try {
-                               stop(Integer.parseInt(key));
-                           } catch (Exception e) {
-                               e.printStackTrace();
+               if(connectionList.containsKey(Integer.parseInt(key))) {
+                   if(connectionList.get(Integer.parseInt(key)) != null &&
+                           !sharedPreferences.contains(key) ) {
+                       new Thread(new Runnable() {
+                           @Override
+                           public void run() {
+                               try {
+                                   stop(Integer.parseInt(key));
+                               } catch (Exception e) {
+                                   e.printStackTrace();
+                               }
                            }
-                       }
-                   }).start();
-               } else {
+                       }).start();
+                   } else if(connectionList.get(Integer.parseInt(key)) != null &&
+                           sharedPreferences.contains(key) ){
+                       // This means something connected
+                       int[] states = getGatewayClientNumbers();
+                       createForegroundNotification(states[0], states[1]);
+                   }
+//                   else if(connectionList.get(Integer.parseInt(key)) != null &&
+//                           sharedPreferences.contains(key) && !sharedPreferences.getBoolean(key, false)) {
+//                       // This means something connected
+//                       createForegroundNotification(--runningGatewayClientCount,
+//                               ++reconnectingGatewayClientCount);
+//                   }
+               }
+               else {
                    new Thread(new Runnable() {
                        @Override
                        public void run() {
@@ -234,17 +259,22 @@ public class RMQConnectionService extends Service {
         return START_STICKY;
     }
 
-    public void connectGatewayClient(GatewayClient gatewayClient) {
+    public void connectGatewayClient(GatewayClient gatewayClient) throws InterruptedException {
         if(!connectionList.containsKey(gatewayClient.getId())) {
             Log.d(getClass().getName(), "Starting new service connection...");
             ConnectionFactory factory = new ConnectionFactory();
+
             factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
                 @Override
                 public long getDelay(int recoveryAttempts) {
                     // TODO: send notification informing reconnecting is being attempted
                     Log.d(getClass().getName(), "Attempting auto recovery...");
-                    return 10000;
-                } });
+
+                    connectionList.get(gatewayClient.getId()).setConnected(DELAY_TIMEOUT);
+                    Log.d(getClass().getName(), "Done setting reconnect");
+                    return DELAY_TIMEOUT;
+                }
+            });
 
             factory.setUsername(gatewayClient.getUsername());
             factory.setPassword(gatewayClient.getPassword());
@@ -256,57 +286,73 @@ public class RMQConnectionService extends Service {
 
             // TODO: create a full handler to manage the retry to connection
             // TODO: which matches the Android WorkManager methods
-            new Thread(new Runnable() {
+            Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
+                        /**
+                         * Avoid risk of :ForegroundServiceDidNotStartInTimeException
+                         * - Put RMQ connection in list before connecting which could take a while
+                         */
+
+                        RMQConnection rmqConnection = new RMQConnection();
+
+                        RMQMonitor rmqMonitor = new RMQMonitor(getApplicationContext(),
+                                gatewayClient.getId(),
+                                rmqConnection);
+                        connectionList.put(gatewayClient.getId(), rmqMonitor);
+
+                        rmqMonitor.setConnected(DELAY_TIMEOUT);
+
                         Connection connection = factory.newConnection(consumerExecutorService,
                                 gatewayClient.getFriendlyConnectionName());
 
+                        rmqMonitor.setConnected(0L);
                         connection.addShutdownListener(new ShutdownListener() {
                             @Override
                             public void shutdownCompleted(ShutdownSignalException cause) {
                                 Log.d(getClass().getName(), "Connection shutdown cause: " + cause.toString());
                             }
                         });
-
-                        RMQConnection rmqConnection = new RMQConnection(connection);
+                        rmqMonitor.getRmqConnection().setConnection(connection);
 
                         if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
                             rmqConnection.createQueue(gatewayClient.getProjectName(),
                                     gatewayClient.getProjectBinding(), getDeliverCallback(rmqConnection));
                             rmqConnection.consume();
                         }
-                        connectionList.put(gatewayClient.getId(), rmqConnection);
-                        sharedPreferences.edit().putLong(String.valueOf(gatewayClient.getId()),
-                                System.currentTimeMillis()).apply();
 
-                        createForegroundNotification(++runningGatewayClientCount);
+//                        sharedPreferences.edit().putBoolean(String.valueOf(gatewayClient.getId()), true)
+//                                        .apply();
+
+//                        createForegroundNotification(++runningGatewayClientCount,
+//                                reconnectingGatewayClientCount);
 
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();
-//                        if(e.getCause() instanceof ShutdownSignalException) {
-//
-//                        }
                         // TODO: send a notification indicating this, with options to retry the connection
-                        createForegroundNotification(runningGatewayClientCount);
+                        int[] states = getGatewayClientNumbers();
+                        createForegroundNotification(states[0], states[1]);
                     }
                 }
-            }).start();
+            });
+            thread.start();
         }
-        // return super.onStartCommand(intent, flags, startId);
     }
 
     private void stop(int gatewayClientId) {
         try {
             if(connectionList.containsKey(gatewayClientId)) {
-                connectionList.remove(gatewayClientId).close();
+                connectionList.remove(gatewayClientId)
+                        .getRmqConnection().close();
                 if(connectionList.isEmpty()) {
                     stopForeground(true);
                     stopSelf();
                 }
-                else
-                    createForegroundNotification(--runningGatewayClientCount);
+                else {
+                    int[] states = getGatewayClientNumbers();
+                    createForegroundNotification(states[0], states[1]);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -328,13 +374,17 @@ public class RMQConnectionService extends Service {
         return null;
     }
 
-    private void createForegroundNotification(int runningGatewayClientCount) {
+    private void createForegroundNotification(int runningGatewayClientCount, int reconnecting) {
         Intent notificationIntent = new Intent(getApplicationContext(), GatewayClientListingActivity.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE);
 
         String description = runningGatewayClientCount + " " + getString(R.string.gateway_client_running_description);
+
+        if(reconnecting > 0)
+            description += "\n" + reconnecting + " " + getString(R.string.gateway_client_reconnecting_description);
+
         Notification notification =
                 new NotificationCompat.Builder(getApplicationContext(), getString(R.string.running_gateway_clients_channel_id))
                         .setContentTitle(getString(R.string.gateway_client_running_title))

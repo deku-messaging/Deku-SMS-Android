@@ -16,13 +16,26 @@ public class RMQConnection {
 
     private String queueName;
 
-    private final Connection connection;
+    private Connection connection;
 
-    private final Channel channel;
+    private Channel channel;
+
+    private boolean reconnecting = false;
+
+    public void setReconnecting(boolean reconnecting) {
+        this.reconnecting = reconnecting;
+    }
 
     private DeliverCallback deliverCallback;
 
     public RMQConnection(Connection connection) throws IOException {
+        this.setConnection(connection);
+    }
+
+    public RMQConnection(){
+    }
+
+    public void setConnection(Connection connection) throws IOException {
         this.connection = connection;
 
         this.channel = this.connection.createChannel();
