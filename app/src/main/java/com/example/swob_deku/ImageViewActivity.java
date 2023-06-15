@@ -21,7 +21,6 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
@@ -33,7 +32,6 @@ import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 
 import java.io.IOException;
-import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.DataFormatException;
 
@@ -285,7 +283,7 @@ public class ImageViewActivity extends AppCompatActivity {
             String secretKeyB64 = securityECDH.securelyFetchSecretKey(address);
             c = SecurityECDH.encryptAES(c, Base64.decode(secretKeyB64, Base64.DEFAULT));
             content = Base64.encodeToString(c, Base64.DEFAULT);
-            c = SecurityHelpers.waterMarkMessage(content)
+            c = SecurityHelpers.putEncryptedMessageWaterMark(content)
                     .getBytes(StandardCharsets.UTF_8);
             Log.d(getLocalClassName(), "Original no compression: " + c.length);
 //            c = compress(c);

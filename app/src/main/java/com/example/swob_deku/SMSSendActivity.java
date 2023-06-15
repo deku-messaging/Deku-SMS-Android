@@ -28,7 +28,6 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
@@ -298,6 +297,28 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             }
         });
+
+        singleMessagesThreadRecyclerAdapter.retryFailedDataMessage.observe(this, new Observer<String[]>() {
+            @Override
+            public void onChanged(String[] strings) {
+                try {
+                    SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
+
+                    long messageId = Helpers.generateRandomNumber();
+                    int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+
+                    String text = SecurityHelpers.FIRST_HEADER
+                            + strings[1]
+                            + SecurityHelpers.END_HEADER;
+
+                    String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                            address, text, messageId, subscriptionId);
+                    rxKeys(Base64.decode(strings[1], Base64.DEFAULT), messageId, subscriptionId);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void getAddressAndThreadId() throws InterruptedException, NumberParseException {
@@ -384,7 +405,7 @@ public class SMSSendActivity extends AppCompatActivity {
                     if(!s.toString().isEmpty() && securityECDH.hasSecretKey(address)) {
                         String encryptedString = Base64.encodeToString(SecurityECDH.encryptAES(s.toString().getBytes(StandardCharsets.UTF_8),
                                 Base64.decode(securityECDH.securelyFetchSecretKey(address).getBytes(), Base64.DEFAULT)), Base64.DEFAULT);
-                        encryptedString = SecurityHelpers.waterMarkMessage(encryptedString);
+                        encryptedString = SecurityHelpers.putEncryptedMessageWaterMark(encryptedString);
 
                         String stats = SMSHandler.calculateSMS(encryptedString);
 
@@ -491,6 +512,7 @@ public class SMSSendActivity extends AppCompatActivity {
     public void handleBroadcast() {
 //        https://developer.android.com/reference/android/telephony/SmsManager.html#sendTextMessage(java.lang.String,%20java.lang.String,%20java.lang.String,%20android.app.PendingIntent,%20android.app.PendingIntent,%20long)
 
+        Log.d(getLocalClassName(), "Received a broadcast");
         messageStateChangedBroadcast = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
@@ -581,7 +603,7 @@ public class SMSSendActivity extends AppCompatActivity {
             String tmpThreadId = null;
             if(securityECDH.hasSecretKey(address)) {
                 text = encryptContent(text);
-                text = SecurityHelpers.waterMarkMessage(text);
+                text = SecurityHelpers.putEncryptedMessageWaterMark(text);
 //                text = Base64.encodeToString(compress(text.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
                 tmpThreadId = SMSHandler.sendEncryptedTextSMS(getApplicationContext(), address, text,
                         pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
@@ -769,6 +791,7 @@ public class SMSSendActivity extends AppCompatActivity {
             e.printStackTrace();
             SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
                     SmsManager.RESULT_ERROR_GENERIC_FAILURE);
+            singleMessageViewModel.informNewItemChanges();
         }
     }
 

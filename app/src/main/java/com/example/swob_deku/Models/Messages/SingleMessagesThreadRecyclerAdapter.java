@@ -2,21 +2,16 @@ package com.example.swob_deku.Models.Messages;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.Telephony;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
+import android.telephony.SmsManager;
 import android.text.format.DateUtils;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
-import android.text.style.ForegroundColorSpan;
 import android.text.style.URLSpan;
-import android.text.util.Linkify;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,6 +28,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.ImageViewActivity;
 import com.example.swob_deku.Models.Compression;
@@ -54,8 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
@@ -68,6 +62,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     public LiveData<HashMap<String, RecyclerView.ViewHolder>> selectedItem = new MutableLiveData<>();
     MutableLiveData<HashMap<String, RecyclerView.ViewHolder>> mutableSelectedItems = new MutableLiveData<>();
     public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
+    public MutableLiveData<String[]> retryFailedDataMessage = new MutableLiveData<>();
 
     public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
 
@@ -138,7 +133,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 && SecurityHelpers.containersWaterMark(input)) {
             try {
                 byte[] encryptedContent = SecurityECDH.decryptAES(Base64.decode(
-                        SecurityHelpers.removeWaterMarkMessage(input), Base64.DEFAULT),
+                        SecurityHelpers.removeEncryptedMessageWaterMark(input), Base64.DEFAULT),
                         secretKey);
                 input = new String(encryptedContent, StandardCharsets.UTF_8);
             } catch(Throwable e ) {
@@ -156,7 +151,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 && SecurityHelpers.containersWaterMark(String.valueOf(input))) {
             try {
                 return SecurityECDH.decryptAES(Base64.decode(
-                                SecurityHelpers.removeWaterMarkMessage(String.valueOf(input)), Base64.DEFAULT),
+                                SecurityHelpers.removeEncryptedMessageWaterMark(String.valueOf(input)), Base64.DEFAULT),
                         secretKey);
             } catch(Throwable e ) {
                 e.printStackTrace();
@@ -344,6 +339,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                         longClickHighlight(messageSentViewHandler, smsId);
                     }
                     else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
+                        Log.d(getClass().getName(), "Resending message...");
                         String[] messageValues = new String[2];
                         messageValues[0] = sms.id;
 //                        messageValues[1] = sms.getBody();
@@ -359,6 +355,16 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 }
             });
 
+            messageSentViewHandler.imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
+                        String plainText = SecurityHelpers.removeKeyWaterMark(text);
+                        retryFailedDataMessage.setValue(new String[]{sms.id, plainText});
+                    }
+                }
+            });
+
             messageSentViewHandler.sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -368,6 +374,26 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
 
         checkForAbsPositioning(smsId, holder);
+    }
+
+    private void rxKeys(byte[] txAgreementKey, long messageId, int subscriptionId){
+        try {
+            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
+                    context, messageId);
+
+//            handleBroadcast();
+            SMSHandler.sendDataSMS(context,
+                    address,
+                    txAgreementKey,
+                    pendingIntents[0],
+                    pendingIntents[1],
+                    messageId,
+                    subscriptionId);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            SMSHandler.registerFailedMessage(context, messageId,
+                    SmsManager.RESULT_ERROR_GENERIC_FAILURE);
+        }
     }
 
     private boolean longClickHighlight(RecyclerView.ViewHolder holder, String smsId) {
