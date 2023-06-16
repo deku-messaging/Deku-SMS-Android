@@ -31,5 +31,5 @@
     <color name="delete_red">#E91E63</color>
 
     <color name="colorPrimary">@color/logo_primary</color>
-    <color name="colorSecondary">@color/logo_secondary</color>
+    <color name="colorSecondary">@color/logo_third</color>
 </resources>

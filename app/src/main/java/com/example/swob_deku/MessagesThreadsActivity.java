@@ -3,6 +3,7 @@ package com.example.swob_deku;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationManagerCompat;
@@ -38,6 +39,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
@@ -55,6 +57,7 @@ import com.example.swob_deku.Models.RMQ.RMQWorkManager;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -105,20 +108,16 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     private void loadSubroutines() {
-        TextInputLayout searchTextViewLayout = findViewById(R.id.search_messages_text_clickable);
-//        searchTextViewLayout.requestFocus();
-
-        TextInputEditText searchTextView = findViewById(R.id.recent_search_edittext_clickable);
-        searchTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        MaterialCardView cardView = findViewById(R.id.homepage_search_card);
+        cardView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onFocusChange(View view, boolean b) {
-                if (b) {
-                    startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
-                }
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
             }
         });
 
-        searchTextViewLayout.setEndIconOnClickListener(new View.OnClickListener() {
+        ImageButton imageButton = findViewById(R.id.homepage_search_image_btn);
+        imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 PopupMenu popup = new PopupMenu(getApplicationContext(), v);

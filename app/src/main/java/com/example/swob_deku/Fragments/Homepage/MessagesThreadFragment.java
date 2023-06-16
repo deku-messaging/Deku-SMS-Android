@@ -478,7 +478,6 @@ public class MessagesThreadFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        getView().findViewById(R.id.messages_threads_recycler_view).requestFocus();
         try {
             messagesThreadViewModel.informChanges(getContext());
         } catch (GeneralSecurityException | IOException e) {

@@ -177,7 +177,7 @@
     <string name="gateway_client_running_description">Gateway clients connected</string>
     <string name="gateway_client_reconnecting_description">Gateway clients reconnecting…</string>
 
-    <string name="homepage_fragment_tab_all">All SMS</string>
-    <string name="homepage_fragment_tab_plain">Plain SMS</string>
-    <string name="homepage_fragment_tab_encrypted">Encrypted SMS</string>
+    <string name="homepage_fragment_tab_all">All</string>
+    <string name="homepage_fragment_tab_plain">Plain</string>
+    <string name="homepage_fragment_tab_encrypted">Encrypted</string>
 </resources>
