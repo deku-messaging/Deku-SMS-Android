@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
@@ -63,6 +64,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MessagesThreadsActivity extends AppCompatActivity {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
+    FragmentManager fragmentManager = getSupportFragmentManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +94,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     }
 
     private void fragmentManagement() {
-        FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.view_fragment,
                         HomepageFragment.class, null, "HOMEPAGE_TAG")
                 .setReorderingAllowed(true)
@@ -105,7 +106,7 @@ public class MessagesThreadsActivity extends AppCompatActivity {
 
     private void loadSubroutines() {
         TextInputLayout searchTextViewLayout = findViewById(R.id.search_messages_text_clickable);
-        searchTextViewLayout.requestFocus();
+//        searchTextViewLayout.requestFocus();
 
         TextInputEditText searchTextView = findViewById(R.id.recent_search_edittext_clickable);
         searchTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -116,13 +117,6 @@ public class MessagesThreadsActivity extends AppCompatActivity {
                 }
             }
         });
-//        searchTextView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                if(view.isFocused())
-//                    startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
-//            }
-//        });
 
         searchTextViewLayout.setEndIconOnClickListener(new View.OnClickListener() {
             @Override

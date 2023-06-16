@@ -43,6 +43,8 @@ import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.R;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -61,6 +63,11 @@ public class MessagesThreadFragment extends Fragment {
 
     Handler mHandler = new Handler();
 
+    public static final String MESSAGES_THREAD_FRAGMENT_TYPE = "MESSAGES_THREAD_FRAGMENT_TYPE";
+    public static final String ALL_MESSAGES_THREAD_FRAGMENT = "ALL_MESSAGES_THREAD_FRAGMENT";
+    public static final String PLAIN_MESSAGES_THREAD_FRAGMENT = "PLAIN_MESSAGES_THREAD_FRAGMENT";
+    public static final String ENCRYPTED_MESSAGES_THREAD_FRAGMENT = "ENCRYPTED_MESSAGES_THREAD_FRAGMENT";
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -70,6 +77,9 @@ public class MessagesThreadFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        Bundle args = getArguments();
+        String messageType = args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -92,21 +102,25 @@ public class MessagesThreadFragment extends Fragment {
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
 
-        messagesThreadViewModel.getMessages(getContext()).observe(getViewLifecycleOwner(),
-                new Observer<List<SMS>>() {
-                    @Override
-                    public void onChanged(List<SMS> smsList) {
-                        TextView textView = view.findViewById(R.id.homepage_no_message);
-                        if(smsList.isEmpty()) {
-                            textView.setVisibility(View.VISIBLE);
+        try {
+            messagesThreadViewModel.getMessages(getContext(), messageType).observe(getViewLifecycleOwner(),
+                    new Observer<List<SMS>>() {
+                        @Override
+                        public void onChanged(List<SMS> smsList) {
+                            TextView textView = view.findViewById(R.id.homepage_no_message);
+                            if(smsList.isEmpty()) {
+                                textView.setVisibility(View.VISIBLE);
+                            }
+                            else {
+                                textView.setVisibility(View.GONE);
+                            }
+    //                        smsList = smsList.subList(0, 10);
+                            messagesThreadRecyclerAdapter.submitList(smsList);
                         }
-                        else {
-                            textView.setVisibility(View.GONE);
-                        }
-//                        smsList = smsList.subList(0, 10);
-                        messagesThreadRecyclerAdapter.submitList(smsList);
-                    }
-                });
+                    });
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
 
 
         messagesThreadRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
@@ -133,7 +147,7 @@ public class MessagesThreadFragment extends Fragment {
                     try {
                         SMSHandler.deleteThreads(getContext(), ids);
                         messagesThreadRecyclerAdapter.resetAllSelectedItems();
-                        messagesThreadViewModel.informChanges();
+                        messagesThreadViewModel.informChanges(getContext());
                         return true;
                     } catch(Exception e) {
                         e.printStackTrace();
@@ -147,9 +161,9 @@ public class MessagesThreadFragment extends Fragment {
                     try {
                         archiveHandler.archiveMultipleSMS(getContext(), longArr);
                         messagesThreadRecyclerAdapter.resetAllSelectedItems();
-                        messagesThreadViewModel.informChanges();
+                        messagesThreadViewModel.informChanges(getContext());
                         return true;
-                    } catch (InterruptedException e) {
+                    } catch (InterruptedException | GeneralSecurityException | IOException e) {
                         e.printStackTrace();
                     }
                 }
@@ -216,7 +230,7 @@ public class MessagesThreadFragment extends Fragment {
                 try {
                     Archive archive = new Archive(Long.parseLong(threadId));
                     archiveHandler.archiveSMS(getContext(), archive);
-                    messagesThreadViewModel.informChanges();
+                    messagesThreadViewModel.informChanges(getContext());
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -334,7 +348,7 @@ public class MessagesThreadFragment extends Fragment {
                         SMSHandler.deleteThread(getContext(), threadId);
                     }
                     cursor.close();
-                    messagesThreadViewModel.informChanges();
+                    messagesThreadViewModel.informChanges(getContext());
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -432,16 +446,22 @@ public class MessagesThreadFragment extends Fragment {
         incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                messagesThreadViewModel.informChanges();
-//                cancelAllNotifications();
+                try {
+                    messagesThreadViewModel.informChanges(getContext());
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
+                }
             }
         };
 
         incomingDataBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                messagesThreadViewModel.informChanges();
-//                cancelAllNotifications();
+                try {
+                    messagesThreadViewModel.informChanges(getContext());
+                } catch (GeneralSecurityException | IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         };
 
@@ -459,7 +479,11 @@ public class MessagesThreadFragment extends Fragment {
     public void onResume() {
         super.onResume();
         getView().findViewById(R.id.messages_threads_recycler_view).requestFocus();
-        messagesThreadViewModel.informChanges();
+        try {
+            messagesThreadViewModel.informChanges(getContext());
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

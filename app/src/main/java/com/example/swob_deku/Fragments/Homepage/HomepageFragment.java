@@ -17,9 +17,13 @@ import com.example.swob_deku.R;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HomepageFragment extends Fragment {
-    DemoCollectionAdapter demoCollectionAdapter;
+    HomepageFragmentAdapter homepageFragmentAdapter;
     ViewPager2 viewPager;
+    List<String> fragmentListNames = new ArrayList<>();
 
     public HomepageFragment() {
         // Required empty public constructor
@@ -28,6 +32,9 @@ public class HomepageFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_all));
+        fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_encrypted));
+        fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_plain));
     }
 
     @Override
@@ -39,43 +46,43 @@ public class HomepageFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        demoCollectionAdapter = new DemoCollectionAdapter(this);
+        homepageFragmentAdapter = new HomepageFragmentAdapter(this);
         viewPager = view.findViewById(R.id.pager);
-        viewPager.setAdapter(demoCollectionAdapter);
+        viewPager.setAdapter(homepageFragmentAdapter);
+
 
         TabLayout tabLayout = view.findViewById(R.id.tab_layout);
         new TabLayoutMediator(tabLayout, viewPager, new TabLayoutMediator.TabConfigurationStrategy() {
             @Override
             public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
-                if(position == 0)
-                    tab.setText("PlainText");
-                if(position == 1)
-                    tab.setText("EncryptedText");
+                tab.setText(fragmentListNames.get(position));
             }
         }).attach();
     }
 
-    public class DemoCollectionAdapter extends FragmentStateAdapter {
-        public DemoCollectionAdapter(Fragment fragment) {
+    public static class HomepageFragmentAdapter extends FragmentStateAdapter {
+        List<String> fragmentList = new ArrayList<>();
+        public HomepageFragmentAdapter(Fragment fragment) {
             super(fragment);
+
+            fragmentList.add(MessagesThreadFragment.ALL_MESSAGES_THREAD_FRAGMENT);
+            fragmentList.add(MessagesThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT);
+            fragmentList.add(MessagesThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT);
         }
 
         @NonNull
         @Override
         public Fragment createFragment(int position) {
-            Log.d(getTag(), "Creating tab at: " + position);
-            // Return a NEW fragment instance in createFragment(int)
             Fragment fragment = new MessagesThreadFragment();
-//            Bundle args = new Bundle();
-//            // Our object is just an integer :-P
-//            args.putInt(DemoObjectFragment.ARG_OBJECT, position + 1);
-//            fragment.setArguments(args);
+            Bundle args = new Bundle();
+            args.putString(MessagesThreadFragment.MESSAGES_THREAD_FRAGMENT_TYPE, fragmentList.get(position));
+            fragment.setArguments(args);
             return fragment;
         }
 
         @Override
         public int getItemCount() {
-            return 2;
+            return fragmentList.size();
         }
     }
 }

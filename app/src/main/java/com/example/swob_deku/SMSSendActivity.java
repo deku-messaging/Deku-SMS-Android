@@ -895,7 +895,7 @@ public class SMSSendActivity extends AppCompatActivity {
                 }
             });
         }
-        else if(!securityECDH.hasEncryption(address)) {
+        else if(!securityECDH.hasSecretKey(address)) {
 
             int textColor = Color.WHITE;
             Integer bgColor = getResources().getColor(R.color.failed_red, getTheme());

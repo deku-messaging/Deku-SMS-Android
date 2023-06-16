@@ -11,6 +11,7 @@
         android:id="@+id/messages_threads_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:focusable="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -35,6 +36,7 @@
                 android:layout_marginEnd="24dp"
                 android:fontFamily="sans-serif-thin"
                 android:hint="@string/search_messages_text"
+                android:focusable="true"
                 app:hintTextColor="@color/received_message_color"
                 app:boxBackgroundColor="@color/received_message_color"
                 app:boxStrokeColor="@android:color/transparent"
@@ -46,15 +48,13 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/ic_outline_search_24">
+                app:startIconDrawable="@drawable/ic_outline_search_24" >
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/recent_search_edittext_clickable"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:clickable="false"
                     android:cursorVisible="false"
-                    android:focusableInTouchMode="true"
                     android:textSize="14sp" />
             </com.google.android.material.textfield.TextInputLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>

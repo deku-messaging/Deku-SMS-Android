@@ -294,21 +294,6 @@ public class SecurityECDH {
         }
     }
 
-    public boolean hasEncryption(String keystoreAlias) throws GeneralSecurityException, IOException {
-        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
-                context,
-                keystoreAlias,
-                masterKeyAlias,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
-
-        return encryptedSharedPreferences.contains(keystoreAlias);
-//        String keystorevalue = encryptedSharedPreferences.getString(keystoreAlias, "");
-//        Log.d(getClass().getName(), "Got keystore value: " + keystorevalue);
-//
-//        return !keystorevalue.isEmpty();
-    }
-
     public static byte[] decryptAES(byte[] input, byte[] secretKey) throws Throwable {
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, 16, "AES");
