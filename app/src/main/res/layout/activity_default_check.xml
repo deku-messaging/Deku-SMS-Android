@@ -30,12 +30,12 @@
         android:fontFamily="sans-serif-condensed"
         android:text="@string/default_check_text"
         android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@+id/button2"
+        app:layout_constraintBottom_toTopOf="@+id/default_check_make_default_btn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/button2"
+        android:id="@+id/default_check_make_default_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -43,7 +43,6 @@
         android:layout_marginBottom="156dp"
         android:background="@drawable/compose_message_drawable"
         android:fontFamily="sans-serif"
-        android:onClick="makeDefault"
         android:text="@string/default_check_btn_text"
         android:textAllCaps="false"
         android:textColor="@color/colorSecondary"

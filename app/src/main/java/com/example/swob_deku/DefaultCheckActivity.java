@@ -16,7 +16,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.util.Log;
 import android.view.View;
+
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +33,14 @@ public class DefaultCheckActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_default_check);
+
+        MaterialButton materialButton = findViewById(R.id.default_check_make_default_btn);
+        materialButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                makeDefault(v);
+            }
+        });
     }
 
     public void clickPrivacyPolicy(View view) {
@@ -38,14 +49,9 @@ public class DefaultCheckActivity extends AppCompatActivity {
         startActivity(shareIntent);
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceStates) {
-        super.onPostCreate(savedInstanceStates);
-
-    }
-
     public void makeDefault(View view) {
-        final String myPackageName = getPackageName();
+        Log.d(getLocalClassName(), "Got into make default function..");
+        final String myPackageName = getApplicationContext().getPackageName();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
             Intent roleManagerIntent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS);
