@@ -78,13 +78,12 @@
 
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/materialButton"
+        android:id="@+id/gateway_server_add_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:background="@drawable/compose_message_drawable"
         android:fontFamily="sans-serif"
-        android:onClick="onSaveGatewayServer"
         android:text="@string/save_new_gateway_client"
         android:textAllCaps="false"
         android:textColor="@color/colorSecondary"

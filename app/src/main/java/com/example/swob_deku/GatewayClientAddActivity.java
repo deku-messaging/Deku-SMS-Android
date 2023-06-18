@@ -11,6 +11,7 @@ import android.widget.RadioGroup;
 
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class GatewayClientAddActivity extends AppCompatActivity {
@@ -36,6 +37,18 @@ public class GatewayClientAddActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+
+        MaterialButton materialButton = findViewById(R.id.gateway_server_add_btn);
+        materialButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    onSaveGatewayClient(v);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     public void editGatewayClient() throws InterruptedException {

@@ -12,6 +12,7 @@ import android.widget.RadioGroup;
 
 import com.example.swob_deku.Models.GatewayServers.GatewayServer;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerHandler;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -33,6 +34,14 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         dataTypeFilter();
+
+        MaterialButton materialButton = findViewById(R.id.gateway_server_add_btn);
+        materialButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSaveGatewayServer(v);
+            }
+        });
     }
 
     private void dataTypeFilter(){
