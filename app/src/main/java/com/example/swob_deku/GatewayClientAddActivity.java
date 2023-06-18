@@ -38,7 +38,7 @@ public class GatewayClientAddActivity extends AppCompatActivity {
             }
         }
 
-        MaterialButton materialButton = findViewById(R.id.gateway_server_add_btn);
+        MaterialButton materialButton = findViewById(R.id.gateway_client_customization_save_btn);
         materialButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

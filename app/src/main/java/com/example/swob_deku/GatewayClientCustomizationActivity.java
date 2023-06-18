@@ -23,6 +23,7 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
 import com.example.swob_deku.Models.SIMHandler;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
@@ -68,6 +69,18 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
 
 //        checkForBatteryOptimization();
+
+        MaterialButton materialButton = findViewById(R.id.gateway_client_customization_save_btn);
+        materialButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    onSaveGatewayClientConfiguration(v);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     public void checkForBatteryOptimization() {
