@@ -6,6 +6,7 @@ import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.provider.Settings;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -149,6 +151,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     public void onSaveGatewayClientConfiguration(View view) throws InterruptedException {
@@ -156,6 +159,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
         TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding_sim_1);
         TextInputEditText projectBinding2 = findViewById(R.id.new_gateway_client_project_binding_sim_2);
+        ConstraintLayout projectBindingConstraint = findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint);
 
         if(projectName.getText() == null || projectName.getText().toString().isEmpty()) {
             projectName.setError(getString(R.string.settings_gateway_client_cannot_be_empty));
@@ -167,7 +171,8 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
             return;
         }
 
-        if(projectBinding2.getText() == null || projectBinding2.getText().toString().isEmpty()) {
+        if(projectBindingConstraint.getVisibility() == View.VISIBLE &&
+                (projectBinding2.getText() == null || projectBinding2.getText().toString().isEmpty())) {
             projectBinding2.setError(getString(R.string.settings_gateway_client_cannot_be_empty));
             return;
         }
@@ -175,7 +180,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         gatewayClient.setProjectName(projectName.getText().toString());
         gatewayClient.setProjectBinding(projectBinding.getText().toString());
 
-        if(projectBinding2.getText() != null)
+        if(projectBinding2.getVisibility() == View.VISIBLE && projectBinding2.getText() != null)
             gatewayClient.setProjectBinding2(projectBinding2.getText().toString());
 
         gatewayClientHandler.update(gatewayClient);

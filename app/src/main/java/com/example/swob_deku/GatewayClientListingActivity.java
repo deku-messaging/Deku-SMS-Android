@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
+import androidx.room.migration.Migration;
 
 import android.content.Context;
 import android.content.Intent;
@@ -24,6 +25,7 @@ import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientDAO;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientRecyclerAdapter;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientViewModel;
+import com.example.swob_deku.Models.Migrations;
 
 import java.util.List;
 
@@ -86,7 +88,9 @@ public class GatewayClientListingActivity extends AppCompatActivity {
                 GatewayClientViewModel.class);
 
         databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                Datastore.databaseName).build();
+                Datastore.databaseName)
+                .addMigrations(new Migrations.Migration5To6())
+                .build();
 
         gatewayClientDAO = databaseConnector.gatewayClientDAO();
 
