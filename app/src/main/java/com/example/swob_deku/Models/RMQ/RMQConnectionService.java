@@ -229,12 +229,12 @@ public class RMQConnectionService extends Service {
                             pendingIntents[0], pendingIntents[1], messageId, null);
 
                     Map<Long, Channel> deliveryChannelMap = new HashMap<>();
-                    deliveryChannelMap.put(delivery.getEnvelope().getDeliveryTag(), rmqConnection.getChannel());
+                    deliveryChannelMap.put(delivery.getEnvelope().getDeliveryTag(), rmqConnection.getChannel1());
 
                     channelList.put(Long.valueOf(globalMessageKey), deliveryChannelMap);
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    rmqConnection.getChannel().basicReject(delivery.getEnvelope().getDeliveryTag(), false);
+                    rmqConnection.getChannel1().basicReject(delivery.getEnvelope().getDeliveryTag(), false);
                 } catch(Exception e) {
                     e.printStackTrace();
                 }
@@ -303,9 +303,11 @@ public class RMQConnectionService extends Service {
                         connectionList.put(gatewayClient.getId(), rmqMonitor);
 
                         rmqMonitor.setConnected(DELAY_TIMEOUT);
+                        Log.d(getClass().getName(), "Attempting to make connection...");
 
                         Connection connection = factory.newConnection(consumerExecutorService,
                                 gatewayClient.getFriendlyConnectionName());
+                        Log.d(getClass().getName(), "Connection made..");
 
                         rmqMonitor.setConnected(0L);
                         connection.addShutdownListener(new ShutdownListener() {
@@ -317,16 +319,17 @@ public class RMQConnectionService extends Service {
                         rmqMonitor.getRmqConnection().setConnection(connection);
 
                         if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
-                            rmqConnection.createQueue(gatewayClient.getProjectName(),
+                            rmqConnection.createQueue1(gatewayClient.getProjectName(),
                                     gatewayClient.getProjectBinding(), getDeliverCallback(rmqConnection));
-                            rmqConnection.consume();
+                            rmqConnection.consume1();
                         }
 
-//                        sharedPreferences.edit().putBoolean(String.valueOf(gatewayClient.getId()), true)
-//                                        .apply();
-
-//                        createForegroundNotification(++runningGatewayClientCount,
-//                                reconnectingGatewayClientCount);
+                        if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()
+                                && gatewayClient.getProjectBinding2() != null && !gatewayClient.getProjectBinding2().isEmpty()) {
+                            rmqConnection.createQueue2(gatewayClient.getProjectName(),
+                                    gatewayClient.getProjectBinding2(), getDeliverCallback(rmqConnection));
+                            rmqConnection.consume2();
+                        }
 
                     } catch (IOException | TimeoutException e) {
                         e.printStackTrace();

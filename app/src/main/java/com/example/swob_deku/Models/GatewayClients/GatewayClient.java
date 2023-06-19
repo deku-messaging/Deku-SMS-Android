@@ -55,6 +55,16 @@ public class GatewayClient {
 
     private String projectBinding;
 
+    public String getProjectBinding2() {
+        return projectBinding2;
+    }
+
+    public void setProjectBinding2(String projectBinding2) {
+        this.projectBinding2 = projectBinding2;
+    }
+
+    private String projectBinding2;
+
     public String getProjectName() {
         return projectName;
     }

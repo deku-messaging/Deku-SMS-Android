@@ -18,4 +18,16 @@ public class Migrations {
         }
     }
 
+    public static class Migration5To6 extends Migration {
+        public Migration5To6() {
+            super(5, 6);
+        }
+
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // Step 1: Create the new table
+            database.execSQL("ALTER TABLE GatewayClient ADD COLUMN projectBinding2 TEXT");
+        }
+    }
+
 }

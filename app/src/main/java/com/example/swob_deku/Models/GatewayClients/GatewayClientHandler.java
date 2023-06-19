@@ -40,6 +40,7 @@ public class GatewayClientHandler {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration4To5())
+                .addMigrations(new Migrations.Migration5To6())
                 .build();
     }
 

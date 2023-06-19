@@ -81,6 +81,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     public void checkForBatteryOptimization() {
@@ -89,13 +90,14 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
     }
 
     private void getGatewayClient() throws InterruptedException {
+        TextInputEditText projectName = findViewById(R.id.new_gateway_client_project_name);
+        TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding_sim_1);
+        TextInputEditText projectBinding2 = findViewById(R.id.new_gateway_client_project_binding_sim_2);
+
         gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
 
         int gatewayId = getIntent().getIntExtra(GATEWAY_CLIENT_ID, -1);
         gatewayClient = gatewayClientHandler.fetch(gatewayId);
-
-        TextInputEditText projectName = findViewById(R.id.new_gateway_client_project_name);
-        TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding);
 
         if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty())
             projectName.setText(gatewayClient.getProjectName());
@@ -103,18 +105,27 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         if(gatewayClient.getProjectBinding() != null && !gatewayClient.getProjectBinding().isEmpty())
             projectBinding.setText(gatewayClient.getProjectBinding());
 
-        final String operatorCountry = Helpers.getUserCountry(getApplicationContext());
         List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
-        String operatorName = "";
-
-        for(SubscriptionInfo subscriptionInfo : simcards) {
-            try{
-                operatorName = subscriptionInfo.getCarrierName().toString();
-            } catch (Exception e ) {
-                e.printStackTrace();
-            }
+        if(simcards.size() > 1) {
+            findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint).setVisibility(View.VISIBLE);
+            if(gatewayClient.getProjectBinding2() != null && !gatewayClient.getProjectBinding2().isEmpty())
+                projectBinding2.setText(gatewayClient.getProjectBinding2());
         }
-        final String f_operatorName = operatorName;
+
+        final String operatorCountry = Helpers.getUserCountry(getApplicationContext());
+
+        String operator1Name = "";
+        String operator2Name = "";
+
+        for(int i=0;i<simcards.size(); ++i) {
+            if (i == 0)
+                operator1Name = simcards.get(i).getCarrierName().toString();
+            else if (i == 1)
+                operator2Name = simcards.get(i).getCarrierName().toString();
+        }
+
+        final String operator1NameFinal = operator1Name;
+        final String operator2NameFinal = operator2Name;
 
         projectName.addTextChangedListener(new TextWatcher() {
             @Override
@@ -129,27 +140,44 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String bindingKey = s + "." + operatorCountry + "." + f_operatorName;
+                String bindingKey = s + "." + operatorCountry + "." + operator1NameFinal;
                 projectBinding.setText(bindingKey);
+
+                if(!operator2NameFinal.isEmpty()) {
+                    bindingKey = s + "." + operatorCountry + "." + operator2NameFinal;
+                    projectBinding2.setText(bindingKey);
+                }
             }
         });
     }
 
     public void onSaveGatewayClientConfiguration(View view) throws InterruptedException {
         TextInputEditText projectName = findViewById(R.id.new_gateway_client_project_name);
-        TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding);
+
+        TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding_sim_1);
+        TextInputEditText projectBinding2 = findViewById(R.id.new_gateway_client_project_binding_sim_2);
 
         if(projectName.getText() == null || projectName.getText().toString().isEmpty()) {
             projectName.setError(getString(R.string.settings_gateway_client_cannot_be_empty));
             return;
         }
+
         if(projectBinding.getText() == null || projectBinding.getText().toString().isEmpty()) {
             projectBinding.setError(getString(R.string.settings_gateway_client_cannot_be_empty));
             return;
         }
 
+        if(projectBinding2.getText() == null || projectBinding2.getText().toString().isEmpty()) {
+            projectBinding2.setError(getString(R.string.settings_gateway_client_cannot_be_empty));
+            return;
+        }
+
         gatewayClient.setProjectName(projectName.getText().toString());
         gatewayClient.setProjectBinding(projectBinding.getText().toString());
+
+        if(projectBinding2.getText() != null)
+            gatewayClient.setProjectBinding2(projectBinding2.getText().toString());
+
         gatewayClientHandler.update(gatewayClient);
 
         Intent intent = new Intent(this, GatewayClientListingActivity.class);
@@ -208,7 +236,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
     public void startListening() throws InterruptedException {
         sharedPreferences.edit()
-                .putLong(String.valueOf(gatewayClient.getId()), System.currentTimeMillis())
+                .putBoolean(String.valueOf(gatewayClient.getId()), false)
                 .apply();
         gatewayClientHandler.startServices();
     }

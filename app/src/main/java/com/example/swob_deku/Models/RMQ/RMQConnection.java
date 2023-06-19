@@ -1,24 +1,26 @@
 package com.example.swob_deku.Models.RMQ;
 
-import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DeliverCallback;
 
 import java.io.IOException;
-import java.util.List;
 
 public class RMQConnection {
+    final boolean autoDelete = false;
+    final boolean exclusive = false;
+    final boolean durable = true;
+    final boolean autoAck = false;
 
     public static final String MESSAGE_BODY_KEY = "text";
     public static final String MESSAGE_MSISDN_KEY = "to";
     public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "id";
 
-    private String queueName;
+    private String queueName, queueName2;
 
     private Connection connection;
 
-    private Channel channel;
+    private Channel channel1, channel2;
 
     private boolean reconnecting = false;
 
@@ -38,9 +40,12 @@ public class RMQConnection {
     public void setConnection(Connection connection) throws IOException {
         this.connection = connection;
 
-        this.channel = this.connection.createChannel();
+        this.channel1 = this.connection.createChannel();
+        this.channel2 = this.connection.createChannel();
+
         int prefetchCount = 1;
-        this.channel.basicQos(prefetchCount);
+        this.channel1.basicQos(prefetchCount);
+        this.channel2.basicQos(prefetchCount);
     }
 
     public void close() throws IOException {
@@ -51,8 +56,8 @@ public class RMQConnection {
         return connection;
     }
 
-    public Channel getChannel() {
-        return channel;
+    public Channel getChannel1() {
+        return channel1;
     }
 
     /**
@@ -61,18 +66,23 @@ public class RMQConnection {
      * @param deliverCallback
      * @throws IOException
      */
-    public void createQueue(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
+    public void createQueue1(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
         this.queueName = bindingKey.replaceAll("\\.", "_");
         this.deliverCallback = deliverCallback;
 
-        boolean autoDelete = false;
-        boolean exclusive = false;
-        boolean durable = true;
-        this.channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
-        this.channel.queueBind(queueName, exchangeName, bindingKey);
+        this.channel1.queueDeclare(queueName, durable, exclusive, autoDelete, null);
+        this.channel1.queueBind(queueName, exchangeName, bindingKey);
     }
 
-    public void consume() throws IOException {
+    public void createQueue2(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
+        this.queueName2 = bindingKey.replaceAll("\\.", "_");
+        this.deliverCallback = deliverCallback;
+
+        this.channel2.queueDeclare(queueName2, durable, exclusive, autoDelete, null);
+        this.channel2.queueBind(queueName2, exchangeName, bindingKey);
+    }
+
+    public void consume1() throws IOException {
         /**
          * - Binding information dumb:
          * 1. .usd. = <anything>.usd.</anything>
@@ -81,7 +91,10 @@ public class RMQConnection {
          * 4. Can all be used in combination with each
          * 5. We can translate this into managing multiple service providers
          */
-        boolean autoAck = false;
-        this.channel.basicConsume(this.queueName, autoAck, deliverCallback, consumerTag -> {});
+        this.channel1.basicConsume(this.queueName, autoAck, deliverCallback, consumerTag -> {});
+    }
+
+    public void consume2() throws IOException {
+        this.channel2.basicConsume(this.queueName2, autoAck, deliverCallback, consumerTag -> {});
     }
 }
