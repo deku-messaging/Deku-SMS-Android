@@ -35,6 +35,7 @@ public class HomepageFragment extends Fragment {
         fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_all));
         fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_encrypted));
         fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_plain));
+//        fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_automated));
     }
 
     @Override
@@ -68,6 +69,7 @@ public class HomepageFragment extends Fragment {
             fragmentList.add(MessagesThreadFragment.ALL_MESSAGES_THREAD_FRAGMENT);
             fragmentList.add(MessagesThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT);
             fragmentList.add(MessagesThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT);
+//            fragmentList.add(MessagesThreadFragment.AUTOMATED_MESSAGES_THREAD_FRAGMENT);
         }
 
         @NonNull

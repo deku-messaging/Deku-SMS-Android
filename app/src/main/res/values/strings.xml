@@ -180,4 +180,5 @@
     <string name="homepage_fragment_tab_all">All</string>
     <string name="homepage_fragment_tab_plain">Plain</string>
     <string name="homepage_fragment_tab_encrypted">Encrypted</string>
+    <string name="homepage_fragment_tab_automated">Automated</string>
 </resources>
