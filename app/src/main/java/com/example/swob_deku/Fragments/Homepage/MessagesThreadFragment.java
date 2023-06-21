@@ -118,6 +118,7 @@ public class MessagesThreadFragment extends Fragment {
                             }
     //                        smsList = smsList.subList(0, 10);
                             messagesThreadRecyclerAdapter.submitList(smsList);
+                            view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
                         }
                     });
         } catch (GeneralSecurityException | IOException e) {
@@ -468,7 +469,8 @@ public class MessagesThreadFragment extends Fragment {
         };
 
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
-        getContext().registerReceiver(incomingBroadcastReceiver, new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
+        getContext().registerReceiver(incomingBroadcastReceiver,
+                new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
 
         getContext().registerReceiver(incomingDataBroadcastReceiver,
                 new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT));

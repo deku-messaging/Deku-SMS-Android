@@ -51,7 +51,6 @@ public class HomepageFragment extends Fragment {
         viewPager = view.findViewById(R.id.pager);
         viewPager.setAdapter(homepageFragmentAdapter);
 
-
         TabLayout tabLayout = view.findViewById(R.id.tab_layout);
         new TabLayoutMediator(tabLayout, viewPager, new TabLayoutMediator.TabConfigurationStrategy() {
             @Override
