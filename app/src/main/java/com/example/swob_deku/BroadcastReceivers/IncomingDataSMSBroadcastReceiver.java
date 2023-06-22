@@ -6,10 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
@@ -38,9 +40,11 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
             if (getResultCode() == Activity.RESULT_OK) {
                 ByteArrayOutputStream messageBuffer = new ByteArrayOutputStream();
                 String address = "";
+                String subscriptionId = "";
 
                 for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                     address = currentSMS.getDisplayOriginatingAddress();
+                    subscriptionId = SIMHandler.getOperatorName(context, currentSMS.getServiceCenterAddress());
                     Log.d(getClass().getName(), "Display originating address: " + address);
                     Log.d(getClass().getName(), "Meta originating address: " + currentSMS.getOriginatingAddress());
                     try {
@@ -71,7 +75,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                         strMessage = SecurityHelpers.FIRST_HEADER +
                                 strMessage + SecurityHelpers.END_HEADER;
 
-                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
+                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage, subscriptionId);
                         IncomingTextSMSBroadcastReceiver.sendNotification(context, notificationNote, address, messageId);
                         broadcastIntent(context);
                     }

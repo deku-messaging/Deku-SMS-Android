@@ -434,6 +434,7 @@ public class SMSHandler {
                 Telephony.TextBasedSmsColumns.PERSON,
                 Telephony.TextBasedSmsColumns.DATE,
                 Telephony.TextBasedSmsColumns.BODY,
+//                Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
                 Telephony.TextBasedSmsColumns.TYPE};
 
         Cursor smsMessagesCursor = context.getContentResolver().query(
@@ -453,6 +454,7 @@ public class SMSHandler {
                 Telephony.TextBasedSmsColumns.THREAD_ID,
                 Telephony.TextBasedSmsColumns.ADDRESS,
                 Telephony.TextBasedSmsColumns.BODY,
+//                Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
                 Telephony.TextBasedSmsColumns.TYPE,
                 "MAX(date) as date"};
 
@@ -520,13 +522,14 @@ public class SMSHandler {
                 "date ASC");
     }
 
-    public static long registerIncomingMessage(Context context, String address, String body) {
+    public static long registerIncomingMessage(Context context, String address, String body, String subscriptionId) {
         long messageId = Helpers.generateRandomNumber();
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, body);
+//        contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 
         try {

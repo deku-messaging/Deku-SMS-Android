@@ -11,9 +11,11 @@ import android.graphics.Typeface;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.StyleSpan;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -36,6 +38,7 @@ import com.example.swob_deku.Models.GatewayServers.GatewayServer;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Router.Router;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
@@ -69,10 +72,14 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             if (getResultCode() == Activity.RESULT_OK) {
                 StringBuffer messageBuffer = new StringBuffer();
                 String address = new String();
+                String subscriptionId = new String();
 
                 for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                     // TODO: Fetch address name from contact list if present
                     address = currentSMS.getDisplayOriginatingAddress();
+//                    subscriptionId = SIMHandler.getOperatorName(context, currentSMS.getServiceCenterAddress());
+//                    subscriptionId = currentSMS.getServiceCenterAddress();
+                    Log.d(getClass().getName(), "Subscription id of incoming: " + subscriptionId);
                     String displayMessage = currentSMS.getDisplayMessageBody();
                     displayMessage = displayMessage == null ?
                             new String(currentSMS.getUserData(), StandardCharsets.UTF_8) :
@@ -85,7 +92,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
                 long messageId = -1;
                 try {
-                    messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message);
+                    messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message, subscriptionId);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -169,7 +176,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
     public static void sendNotification(Context context, String text, final String address, long messageId) {
         Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
-
         receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
 
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
@@ -259,6 +265,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     getNotificationHandler(Context context, Cursor cursor,
                            List<NotificationCompat.MessagingStyle.Message> customMessages,
                            Intent replyBroadcastIntent, int smsId, String threadId){
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.incoming_messages_channel_id))
                 .setDefaults(Notification.DEFAULT_ALL)
@@ -320,6 +327,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 SpannableStringBuilder spannable = new SpannableStringBuilder(contactName);
 
                 StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+//                StyleSpan boldSpan = new StyleSpan(Typeface.NORMAL);
                 StyleSpan ItalicSpan = new StyleSpan(Typeface.ITALIC);
 
                 spannable.setSpan(boldSpan, 0, contactName.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);

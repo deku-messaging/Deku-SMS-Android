@@ -33,6 +33,7 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.ImageViewActivity;
 import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Images.ImageHandler;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
@@ -143,39 +144,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         return input;
     }
 
-    private byte[] decryptImageContent(byte[] input) {
-        if(this.secretKey != null &&
-                input.length > 16
-                        + SecurityHelpers.ENCRYPTED_WATERMARK_START.length()
-                        + SecurityHelpers.ENCRYPTED_WATERMARK_END.length()
-                && SecurityHelpers.containersWaterMark(String.valueOf(input))) {
-            try {
-                return SecurityECDH.decryptAES(Base64.decode(
-                                SecurityHelpers.removeEncryptedMessageWaterMark(String.valueOf(input)), Base64.DEFAULT),
-                        secretKey);
-            } catch(Throwable e ) {
-                e.printStackTrace();
-            }
-        }
-        return input;
-    }
-
-    private String decompress(String input) {
-//        byte[] decompressGZIP = Compression.decompressGZIP(input);
-//        Log.d(getLocalClassName(), "Gzip decompressed: " + decompressGZIP.length);
-//
-        if(secretKey != null && Compression.isDeflateCompressed(input.getBytes(StandardCharsets.UTF_8))) {
-            try {
-                byte[] b64 = Base64.decode(input, Base64.DEFAULT);
-                byte[] tmpByte = Compression.decompressDeflate(b64);
-                input = new String(tmpByte, StandardCharsets.UTF_8);
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
-        return input;
-    }
-
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
@@ -233,6 +201,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 //                receivedMessage.setText(text);
                 Helpers.highlightLinks(receivedMessage, text, context.getColor(R.color.primary_text_color));
             }
+
+//            Log.d(getClass().getName(), "Subscription id: " + sms.getSubscriptionId());
+//            String dateStatus = date + " • " + SIMHandler.getSubscriptionName(context, sms.getSubscriptionId());
+//            String dateStatus = date + " • " + sms.getSubscriptionId();
+//            dateView.setText(dateStatus);
             dateView.setText(date);
 
             messageReceivedViewHandler.receivedMessage.setOnClickListener(new View.OnClickListener() {
@@ -374,26 +347,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
         }
 
         checkForAbsPositioning(smsId, holder);
-    }
-
-    private void rxKeys(byte[] txAgreementKey, long messageId, int subscriptionId){
-        try {
-            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
-                    context, messageId);
-
-//            handleBroadcast();
-            SMSHandler.sendDataSMS(context,
-                    address,
-                    txAgreementKey,
-                    pendingIntents[0],
-                    pendingIntents[1],
-                    messageId,
-                    subscriptionId);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            SMSHandler.registerFailedMessage(context, messageId,
-                    SmsManager.RESULT_ERROR_GENERIC_FAILURE);
-        }
     }
 
     private boolean longClickHighlight(RecyclerView.ViewHolder holder, String smsId) {

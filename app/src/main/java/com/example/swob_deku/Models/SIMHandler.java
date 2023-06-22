@@ -79,4 +79,36 @@ public class SIMHandler {
 
         return subscriptionInfo.getSubscriptionId();
     }
+
+    public static String getSubscriptionName(Context context, String subscriptionId) {
+        int subId = Integer.parseInt(subscriptionId);
+
+        List<SubscriptionInfo> subscriptionInfos = getSimCardInformation(context);
+
+        for(SubscriptionInfo subscriptionInfo : subscriptionInfos)
+            if(subscriptionInfo.getSubscriptionId() == subId)
+                return subscriptionInfo.getCarrierName().toString();
+
+        return null;
+    }
+
+    public static String getOperatorName(Context context, String serviceCenterAddress) {
+        if(serviceCenterAddress == null)
+            return null;
+
+        SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+
+        if (subscriptionManager.getActiveSubscriptionInfoCount() > 0) {
+            for (SubscriptionInfo subscriptionInfo : subscriptionManager.getActiveSubscriptionInfoList()) {
+                String smscNumber = subscriptionInfo.getSubscriptionId() + "";
+
+                // Compare the serviceCenterAddress with the SMS center number
+                if (serviceCenterAddress.equals(smscNumber)) {
+                    return subscriptionInfo.getCarrierName().toString();
+                }
+            }
+        }
+
+        return null; // Return null if operator name not found or no active subscriptions
+    }
 }

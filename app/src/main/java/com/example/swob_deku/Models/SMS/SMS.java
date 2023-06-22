@@ -109,6 +109,64 @@ public class SMS {
 
     public String routerStatus = new String();
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public int getDisplayColor() {
+        return displayColor;
+    }
+
+    public void setDisplayColor(int displayColor) {
+        this.displayColor = displayColor;
+    }
+
+    public boolean isContact() {
+        return isContact;
+    }
+
+    public void setContact(boolean contact) {
+        isContact = contact;
+    }
+
+    public int getMessageCount() {
+        return messageCount;
+    }
+
+    public void setMessageCount(int messageCount) {
+        this.messageCount = messageCount;
+    }
+
+    public int getRead() {
+        return read;
+    }
+
+    public String getSubscriptionId() {
+        return subscriptionId;
+    }
+
+    public void setSubscriptionId(String subscriptionId) {
+        this.subscriptionId = subscriptionId;
+    }
+
+    public Boolean getDatesOnly() {
+        return datesOnly;
+    }
+
+    public void setDatesOnly(Boolean datesOnly) {
+        this.datesOnly = datesOnly;
+    }
+
+    public ArrayList<String> getRoutingUrls() {
+        return routingUrls;
+    }
+
+    public String subscriptionId = new String();
+
     public Boolean datesOnly = false;
 
     public Boolean isDatesOnly() {
@@ -150,6 +208,7 @@ public class SMS {
         int statusCodeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.STATUS);
         int readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ);
         int idIndex = cursor.getColumnIndex(Telephony.Sms._ID);
+        int subscriptionIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID);
 
         this.type =  cursor.getInt(typeIndex);
         this.body = String.valueOf(cursor.getString(bodyIndex));
@@ -157,6 +216,8 @@ public class SMS {
         this.threadId = cursor.getString(threadIdIndex);
         this.date = String.valueOf(cursor.getString(dateIndex));
 
+        if(subscriptionIdIndex > -1)
+            this.subscriptionId = String.valueOf(cursor.getString(subscriptionIdIndex));
 
         if(idIndex > -1 ) {
             this.id = String.valueOf(cursor.getString(idIndex));
