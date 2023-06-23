@@ -1,5 +1,6 @@
 package com.example.swob_deku.Fragments.Homepage;
 
+import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,11 +19,10 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
@@ -59,7 +59,6 @@ public class MessagesThreadFragment extends Fragment {
     ArchiveHandler archiveHandler;
 
     Toolbar toolbar;
-    ActionBar ab;
 
     Handler mHandler = new Handler();
 
@@ -69,6 +68,15 @@ public class MessagesThreadFragment extends Fragment {
     public static final String ENCRYPTED_MESSAGES_THREAD_FRAGMENT = "ENCRYPTED_MESSAGES_THREAD_FRAGMENT";
 
     public static final String AUTOMATED_MESSAGES_THREAD_FRAGMENT = "AUTOMATED_MESSAGES_THREAD_FRAGMENT";
+
+    private OnViewManipulationListener mListener;
+
+    public interface OnViewManipulationListener {
+        void activateDefaultToolbar();
+        void deactivateDefaultToolbar(int size);
+
+        Toolbar getToolbar();
+    }
 
     @Nullable
     @Override
@@ -90,8 +98,11 @@ public class MessagesThreadFragment extends Fragment {
         }).start();
 
         // toolbar = view.findViewById(R.id.messages_threads_toolbar);
-        toolbar = new Toolbar(getContext());
-        getActivity().setActionBar(toolbar);
+//        toolbar = new Toolbar(getContext());
+        toolbar = mListener.getToolbar();
+//        getActivity().setActionBar(toolbar);
+//        ab = getActivity().getActionBar();
+
 
         messagesThreadViewModel = new ViewModelProvider(this).get(
                 MessagesThreadViewModel.class);
@@ -179,15 +190,10 @@ public class MessagesThreadFragment extends Fragment {
         Menu menu = toolbar.getMenu();
         if(size < 1) {
             menu.setGroupVisible(R.id.threads_menu, false);
-            view.findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.VISIBLE);
-            ab.setDisplayHomeAsUpEnabled(false);
-            ab.setHomeAsUpIndicator(null);
+            mListener.activateDefaultToolbar();
         } else {
-            view.findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.GONE);
+            mListener.deactivateDefaultToolbar(size);
             menu.setGroupVisible(R.id.threads_menu, true);
-            ab.setDisplayHomeAsUpEnabled(true);
-            ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
-            ab.setTitle(String.valueOf(size));
         }
     }
 
@@ -486,6 +492,18 @@ public class MessagesThreadFragment extends Fragment {
             messagesThreadViewModel.informChanges(getContext());
         } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        // Verify that the parent activity implements the interface
+        if (context instanceof OnViewManipulationListener) {
+            mListener = (OnViewManipulationListener) context;
+        } else {
+            throw new RuntimeException(context.toString() + " must implement OnViewManipulationListener");
         }
     }
 

@@ -1,78 +1,41 @@
 package com.example.swob_deku;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.work.BackoffPolicy;
-import androidx.work.Constraints;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.Telephony;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 
-import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
-import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Fragments.Homepage.HomepageFragment;
-import com.example.swob_deku.Models.Archive.Archive;
-import com.example.swob_deku.Models.Archive.ArchiveHandler;
-import com.example.swob_deku.Models.GatewayClients.GatewayClient;
+import com.example.swob_deku.Fragments.Homepage.MessagesThreadFragment;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
-import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
-import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
-import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
-import com.example.swob_deku.Models.RMQ.RMQWorkManager;
-import com.example.swob_deku.Models.SMS.SMS;
-import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-public class MessagesThreadsActivity extends AppCompatActivity {
+public class MessagesThreadsActivity extends AppCompatActivity implements MessagesThreadFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
     FragmentManager fragmentManager = getSupportFragmentManager();
+
+    Toolbar toolbar;
+    ActionBar ab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages_threads);
+
+        toolbar = findViewById(R.id.messages_threads_toolbar);
+        setSupportActionBar(toolbar);
+        ab = getSupportActionBar();
 
         if(!checkIsDefaultApp()) {
             startActivity(new Intent(this, DefaultCheckActivity.class));
@@ -176,5 +139,25 @@ public class MessagesThreadsActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.messages_threads_menu, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public void activateDefaultToolbar() {
+        findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.VISIBLE);
+        ab.setDisplayHomeAsUpEnabled(true);
+        ab.setHomeAsUpIndicator(null);
+    }
+
+    @Override
+    public void deactivateDefaultToolbar(int size) {
+        findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.GONE);
+        ab.setDisplayHomeAsUpEnabled(true);
+        ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
+        ab.setTitle(String.valueOf(size));
+    }
+
+    @Override
+    public Toolbar getToolbar() {
+        return toolbar;
     }
 }

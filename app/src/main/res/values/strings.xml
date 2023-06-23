@@ -32,7 +32,6 @@
     <string name="homepage_menu_archived">Archived</string>
     <string name="homepage_menu_routed">Routing history</string>
     <string name="homepage_no_message">Send your first message</string>
-    <string name="gateway_clients">Gateway Clients</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">SMS routing Gateways</string>
     <string name="gateway_client_listing_toolbar_title">SMS listening Gateways</string>
@@ -67,10 +66,6 @@
 
     <string name="send_sms_activity_user_encrypted">
         Secured
-    </string>
-
-    <string name="notification_title">
-        New message
     </string>
 
     <string name="notifications_reply_label">Reply</string>
@@ -122,16 +117,10 @@
 
     <string name="settings_SMS_routing_title">SMS routing</string>
     <string name="settings_SMS_listening_title">SMS listening</string>
-    <string name="settings_SMS_routing_SMSWithoutBorders">SMSWithoutBorders</string>
     <string name="settings_SMS_routing_custom_server">Configure SMS routing Gateways</string>
     <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
-    <string name="settings_SMS_routing_type">Choose format of messages</string>
-    <string name="settings_SMS_routing_type_summary">Only messages that match the chosen formats get routed</string>
     <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for routing SMS messages through HTTP/s</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
-
-    <string name="settings_SMS_routing_type_base64_value">base_64</string>
-    <string name="settings_SMS_routing_type_all_value">all</string>
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
     <string name="settings_SMS_routing_type_all_option">All (default)</string>
@@ -148,8 +137,6 @@
     <string name="settings_gateway_client_cannot_be_empty">Cannot be empty!</string>
     <string name="settings_gateway_client_default_virtualhost">/</string>
     <string name="settings_gateway_client_default_port">5672</string>
-    <string name="settings_gateway_client_start">Listen</string>
-    <string name="settings_gateway_client_stop">Stop Listening</string>
 
     <string name="settings_gateway_client_amqp_protocol">AMQP</string>
     <string name="settings_gateway_client_amqps_protocol">AMQP/SSL</string>
@@ -158,16 +145,13 @@
     <string name="gateway_client_project_binding">Enter project binding - <i>(default project_name.operator_country.operator_name)</i></string>
     <string name="gateway_client_no_available_gateway_clients">No listening Gateway clients</string>
 
-    <string name="gateway_client_customization_connecting">Connecting</string>
     <string name="gateway_client_customization_connected">Connected</string>
 
     <string name="gateway_client_customization_activate">Activate</string>
-    <string name="gateway_client_customization_activated">Activated</string>
 
     <string name="gateway_client_customization_deactivate">Deactivate</string>
     <string name="gateway_client_customization_deactivated">Deactivated</string>
 
-    <string name="gateway_client_customization_disconnecting">Disconnecting</string>
     <string name="gateway_client_customization_reconnecting">Reconnecting</string>
 
     <string name="gateway_client_customization_delete">Delete</string>
@@ -180,5 +164,4 @@
     <string name="homepage_fragment_tab_all">All</string>
     <string name="homepage_fragment_tab_plain">Plain</string>
     <string name="homepage_fragment_tab_encrypted">Encrypted</string>
-    <string name="homepage_fragment_tab_automated">Automated</string>
 </resources>

@@ -46,7 +46,6 @@
             app:layout_constraintTop_toBottomOf="@id/new_gateway_descriptive_text">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/new_gateway_client_url_holder"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -101,7 +100,6 @@
             app:layout_constraintTop_toBottomOf="@id/new_gateway_client_username_text">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/new_gateway_client_username_holder"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -155,7 +153,6 @@
             app:layout_constraintTop_toBottomOf="@id/new_gateway_password_text">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/new_gateway_password_text_holder"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -209,7 +206,6 @@
             app:layout_constraintTop_toBottomOf="@id/new_gateway_client_friendly_name_descriptive_text">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/new_gateway_client_friendly_name_holder"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -262,7 +258,6 @@
             app:layout_constraintTop_toBottomOf="@id/new_gateway_client_virtualhost_descriptive_text">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/new_gateway_client_virtualhost_holder"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -316,7 +311,6 @@
             app:layout_constraintTop_toBottomOf="@id/new_gateway_client_port_descriptive_text">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/new_gateway_client_port_holder"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -385,7 +379,6 @@
                 android:textSize="14sp" />
 
             <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/add_gateway_client_protocol_amqps"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:enabled="false"

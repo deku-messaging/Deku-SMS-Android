@@ -43,7 +43,6 @@
         app:layout_constraintTop_toBottomOf="@id/new_gateway_descriptive_text">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/new_gateway_client_url_holder"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

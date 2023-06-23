@@ -46,7 +46,6 @@
             app:layout_constraintTop_toBottomOf="@id/new_gateway_descriptive_text">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/new_gateway_client_project_name_holder"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -100,7 +99,6 @@
             app:layout_constraintTop_toBottomOf="@id/new_gateway_client_username_text">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/new_gateway_client_project_binding_sim_1_holder"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -144,7 +142,6 @@
             app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_project_binding_sim_1_constraint">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/new_gateway_client_project_binding_sim_2_holder"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
