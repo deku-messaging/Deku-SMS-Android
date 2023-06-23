@@ -176,13 +176,14 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
     public static void sendNotification(Context context, String text, final String address, long messageId) {
         Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
-        receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
 
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
-
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
             Cursor cursor1 = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, sms.getThreadId());
+            receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
+            receivedSmsIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+            Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), sms.getAddress() + " : " + sms.getThreadId());
 
             receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             // TODO: check request code and make some changes

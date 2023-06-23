@@ -338,6 +338,7 @@ public class SMSSendActivity extends AppCompatActivity {
     }
 
     private void getMessagesThreadId() throws NumberParseException {
+        Log.d(getLocalClassName(), "Finding message thread Id");
         if(getIntent().hasExtra(THREAD_ID)) {
             threadId = getIntent().getStringExtra(THREAD_ID);
             Log.d(getLocalClassName(), "Thread-ID for this message: " +  threadId);
