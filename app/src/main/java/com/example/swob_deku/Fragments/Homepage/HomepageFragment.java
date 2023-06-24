@@ -1,5 +1,6 @@
 package com.example.swob_deku.Fragments.Homepage;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -8,7 +9,6 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +24,8 @@ public class HomepageFragment extends Fragment {
     HomepageFragmentAdapter homepageFragmentAdapter;
     ViewPager2 viewPager;
     List<String> fragmentListNames = new ArrayList<>();
+
+    private TabListenerInterface mListener;
 
     public HomepageFragment() {
         // Required empty public constructor
@@ -45,6 +47,23 @@ public class HomepageFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_homepage, container, false);
     }
 
+    public interface TabListenerInterface {
+        void tabUnselected(int position);
+        void tabSelected(int position);
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        // Verify that the parent activity implements the interface
+        if (context instanceof TabListenerInterface) {
+            mListener = (TabListenerInterface) context;
+        } else {
+            throw new RuntimeException(context.toString() + " must implement OnViewManipulationListener");
+        }
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         homepageFragmentAdapter = new HomepageFragmentAdapter(this);
@@ -52,6 +71,22 @@ public class HomepageFragment extends Fragment {
         viewPager.setAdapter(homepageFragmentAdapter);
 
         TabLayout tabLayout = view.findViewById(R.id.tab_layout);
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                mListener.tabSelected(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                mListener.tabUnselected(tab.getPosition());
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
         new TabLayoutMediator(tabLayout, viewPager, new TabLayoutMediator.TabConfigurationStrategy() {
             @Override
             public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
@@ -61,13 +96,12 @@ public class HomepageFragment extends Fragment {
     }
 
     public static class HomepageFragmentAdapter extends FragmentStateAdapter {
-        List<String> fragmentList = new ArrayList<>();
+        public static String[] fragmentList = new String[]{
+                MessagesThreadFragment.ALL_MESSAGES_THREAD_FRAGMENT,
+                MessagesThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT,
+                MessagesThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT };
         public HomepageFragmentAdapter(Fragment fragment) {
             super(fragment);
-
-            fragmentList.add(MessagesThreadFragment.ALL_MESSAGES_THREAD_FRAGMENT);
-            fragmentList.add(MessagesThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT);
-            fragmentList.add(MessagesThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT);
 //            fragmentList.add(MessagesThreadFragment.AUTOMATED_MESSAGES_THREAD_FRAGMENT);
         }
 
@@ -76,14 +110,14 @@ public class HomepageFragment extends Fragment {
         public Fragment createFragment(int position) {
             Fragment fragment = new MessagesThreadFragment();
             Bundle args = new Bundle();
-            args.putString(MessagesThreadFragment.MESSAGES_THREAD_FRAGMENT_TYPE, fragmentList.get(position));
+            args.putString(MessagesThreadFragment.MESSAGES_THREAD_FRAGMENT_TYPE, fragmentList[position]);
             fragment.setArguments(args);
             return fragment;
         }
 
         @Override
         public int getItemCount() {
-            return fragmentList.size();
+            return fragmentList.length;
         }
     }
 }

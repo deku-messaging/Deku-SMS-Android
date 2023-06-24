@@ -1,17 +1,16 @@
 package com.example.swob_deku.Fragments.Homepage;
 
-import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Telephony;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,13 +25,13 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
-import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
@@ -40,7 +39,6 @@ import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.R;
 
 import java.io.IOException;
@@ -71,10 +69,12 @@ public class MessagesThreadFragment extends Fragment {
 
     private OnViewManipulationListener mListener;
 
-    public interface OnViewManipulationListener {
+    public interface OnViewManipulationListener extends HomepageFragment.TabListenerInterface{
         void activateDefaultToolbar();
         void deactivateDefaultToolbar(int size);
 
+        void setRecyclerViewAdapter(String name, MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter);
+        void setViewModel(String name, MessagesThreadViewModel messagesThreadViewModel);
         Toolbar getToolbar();
     }
 
@@ -110,6 +110,9 @@ public class MessagesThreadFragment extends Fragment {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
         messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( getContext());
+        mListener.setRecyclerViewAdapter(messageType, messagesThreadRecyclerAdapter);
+        mListener.setViewModel(messageType, messagesThreadViewModel);
+        Log.d(getClass().getName(), "MessageTypes: " + messageType);
 
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
@@ -145,46 +148,11 @@ public class MessagesThreadFragment extends Fragment {
             }
         });
 
-        configureToolbarEvents();
         handleIncomingMessage();
-        enableSwipeAction();
+//        enableSwipeAction();
         setRefreshTimer();
     }
 
-    private void configureToolbarEvents() {
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                String[] ids = messagesThreadRecyclerAdapter.selectedItems.getValue()
-                        .keySet().toArray(new String[0]);
-                if(item.getItemId() == R.id.threads_delete) {
-                    try {
-                        SMSHandler.deleteThreads(getContext(), ids);
-                        messagesThreadRecyclerAdapter.resetAllSelectedItems();
-                        messagesThreadViewModel.informChanges(getContext());
-                        return true;
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                else if(item.getItemId() == R.id.threads_archive) {
-                    long[] longArr = new long[ids.length];
-                    for (int i = 0; i < ids.length; i++)
-                        longArr[i] = Long.parseLong(ids[i]);
-
-                    try {
-                        archiveHandler.archiveMultipleSMS(getContext(), longArr);
-                        messagesThreadRecyclerAdapter.resetAllSelectedItems();
-                        messagesThreadViewModel.informChanges(getContext());
-                        return true;
-                    } catch (InterruptedException | GeneralSecurityException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return false;
-            }
-        });
-    }
 
     private void highlightListener(int size, View view){
         Menu menu = toolbar.getMenu();
@@ -326,129 +294,9 @@ public class MessagesThreadFragment extends Fragment {
             }
         };
 
-        ItemTouchHelper.SimpleCallback swipeDeleteCallback = new ItemTouchHelper.SimpleCallback(
-                0, ItemTouchHelper.LEFT ) {
-            private Drawable deleteIcon;
-            private int intrinsicWidth;
-            private int intrinsicHeight;
-
-            private int mSwipeSlop;
-
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                /**
-                 * TODO: swip RIGHT, - archive
-                 * TODO: swip LEFT - delete
-                 * TODO: increase threshold before permanent delete
-                 */
-                TemplateViewHolder itemView = (TemplateViewHolder) viewHolder;
-                String threadId = itemView.id;
-                try {
-                    Cursor cursor = SMSHandler.fetchSMSForThread(getContext(), threadId, 1, 0);
-                    if(cursor.moveToFirst()) {
-                        SecurityECDH securityECDH = new SecurityECDH(getContext());
-                        String address = new SMS(cursor).getAddress();
-                        securityECDH.removeAllKeys(Helpers.formatPhoneNumbers(getContext(), address));
-                        SMSHandler.deleteThread(getContext(), threadId);
-                    }
-                    cursor.close();
-                    messagesThreadViewModel.informChanges(getContext());
-                }catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public boolean isLongPressDragEnabled() {
-                return true; // Enable long-press drag functionality
-            }
-
-            @Override
-            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-                super.onSelectedChanged(viewHolder, actionState);
-
-                if(viewHolder != null)
-                    currentViewHolder[0] = viewHolder;
-
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.received_messages_drawable);
-                }
-
-                if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
-                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.messages_default_drawable);
-                }
-            }
-
-            @Override
-            public void onChildDraw(Canvas c, RecyclerView recyclerView,
-                                    RecyclerView.ViewHolder viewHolder, float dX, float dY,
-                                    int actionState, boolean isCurrentlyActive) {
-
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    if (deleteIcon == null) {
-                        deleteIcon = ContextCompat.getDrawable(getContext(), R.drawable.round_delete_24);
-                        intrinsicWidth = deleteIcon.getIntrinsicWidth();
-                        intrinsicHeight = deleteIcon.getIntrinsicHeight();
-                    }
-
-                    float iconMargin = (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
-                    float iconTop = viewHolder.itemView.getTop() + (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
-                    float iconBottom = iconTop + intrinsicHeight;
-                    float iconLeft, iconRight;
-
-                    if (mSwipeSlop == 0) {
-                        mSwipeSlop = ViewConfiguration.get(recyclerView.getContext()).getScaledTouchSlop();
-                    }
-                    float threshold = mSwipeSlop * 3;
-
-                    // Set swipe distance limit
-                    if (Math.abs(dX) > threshold) {
-                        dX = Math.signum(dX) * threshold;
-                    }
-
-                    if (dX > 0) {
-                        iconLeft = viewHolder.itemView.getLeft() + iconMargin;
-                        iconRight = viewHolder.itemView.getLeft() + iconMargin + intrinsicWidth;
-                    } else {
-                        iconRight = viewHolder.itemView.getRight() - iconMargin;
-                        iconLeft = viewHolder.itemView.getRight() - iconMargin - intrinsicWidth;
-                    }
-
-                    deleteIcon.setBounds((int) iconLeft, (int) iconTop, (int) iconRight, (int) iconBottom);
-
-                    View itemView = viewHolder.itemView;
-                    int itemHeight = itemView.getHeight();
-                    int itemWidth = itemView.getWidth();
-                    int itemLeft = itemView.getLeft();
-                    int itemRight = itemView.getRight();
-
-                    Paint p = new Paint();
-                    p.setColor(getContext().getColor(R.color.delete_red));
-
-                    c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
-                    deleteIcon.draw(c);
-                }
-            }
-
-            @Override
-            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-                super.clearView(recyclerView, viewHolder);
-                currentViewHolder[0] = null;
-            }
-        };
-
         ItemTouchHelper itemTouchHelperArchive = new ItemTouchHelper(swipeArchiveCallback);
-        ItemTouchHelper itemTouchHelperDelete = new ItemTouchHelper(swipeDeleteCallback);
 
         itemTouchHelperArchive.attachToRecyclerView(messagesThreadRecyclerView);
-        itemTouchHelperDelete.attachToRecyclerView(messagesThreadRecyclerView);
     }
 
     private void handleIncomingMessage() {
@@ -507,15 +355,6 @@ public class MessagesThreadFragment extends Fragment {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home
-                && messagesThreadRecyclerAdapter.selectedItems.getValue() != null) {
-            messagesThreadRecyclerAdapter.resetAllSelectedItems();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public void onDestroy() {

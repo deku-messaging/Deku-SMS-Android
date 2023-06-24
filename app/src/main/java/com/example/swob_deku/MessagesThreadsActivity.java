@@ -5,10 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModel;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,8 +20,16 @@ import android.widget.PopupMenu;
 
 import com.example.swob_deku.Fragments.Homepage.HomepageFragment;
 import com.example.swob_deku.Fragments.Homepage.MessagesThreadFragment;
+import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
+import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.google.android.material.card.MaterialCardView;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.HashMap;
 
 public class MessagesThreadsActivity extends AppCompatActivity implements MessagesThreadFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
@@ -27,6 +37,11 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
 
     Toolbar toolbar;
     ActionBar ab;
+
+    HashMap<String, MessagesThreadRecyclerAdapter> messagesThreadRecyclerAdapterHashMap = new HashMap<>();
+    HashMap<String, MessagesThreadViewModel> stringMessagesThreadViewModelHashMap = new HashMap<>();
+
+    String ITEM_TYPE = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +58,7 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
             return;
         }
 
+        configureToolbarEvents();
         loadSubroutines();
         fragmentManagement();
         startServices();
@@ -114,6 +130,44 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
         });
     }
 
+
+    private void configureToolbarEvents() {
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                String[] ids = messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()
+                        .keySet().toArray(new String[0]);
+                if(item.getItemId() == R.id.threads_delete) {
+                    try {
+                        SMSHandler.deleteThreads(getApplicationContext(), ids);
+                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+                        stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+                        return true;
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                else if(item.getItemId() == R.id.threads_archive) {
+                    long[] longArr = new long[ids.length];
+                    for (int i = 0; i < ids.length; i++)
+                        longArr[i] = Long.parseLong(ids[i]);
+
+                    try {
+                        ArchiveHandler archiveHandler = new ArchiveHandler(getApplicationContext());
+                        archiveHandler.archiveMultipleSMS(getApplicationContext(), longArr);
+                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+                        stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+                        archiveHandler.close();
+                        return true;
+                    } catch (InterruptedException | GeneralSecurityException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return false;
+            }
+        });
+    }
+
     private boolean checkIsDefaultApp() {
         final String myPackageName = getPackageName();
         final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
@@ -144,7 +198,7 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
     @Override
     public void activateDefaultToolbar() {
         findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.VISIBLE);
-        ab.setDisplayHomeAsUpEnabled(true);
+        ab.setDisplayHomeAsUpEnabled(false);
         ab.setHomeAsUpIndicator(null);
     }
 
@@ -157,7 +211,44 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
     }
 
     @Override
+    public void setRecyclerViewAdapter(String itemType, MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter) {
+        this.ITEM_TYPE = itemType;
+        this.messagesThreadRecyclerAdapterHashMap.put(itemType, messagesThreadRecyclerAdapter);
+//        this.messagesThreadRecyclerAdapter = messagesThreadRecyclerAdapter;
+    }
+
+    @Override
+    public void setViewModel(String itemType, MessagesThreadViewModel messagesThreadViewModel) {
+        this.ITEM_TYPE = itemType;
+        this.stringMessagesThreadViewModelHashMap.put(itemType, messagesThreadViewModel);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home
+                && this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue() != null) {
+            this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public Toolbar getToolbar() {
         return toolbar;
+    }
+
+    @Override
+    public void tabUnselected(int position) {
+        String itemType = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
+        if(this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
+                this.messagesThreadRecyclerAdapterHashMap.get(itemType).selectedItems.getValue() != null) {
+            this.messagesThreadRecyclerAdapterHashMap.get(itemType).resetAllSelectedItems();
+        }
+    }
+
+    @Override
+    public void tabSelected(int position) {
+        this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
     }
 }

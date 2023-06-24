@@ -332,8 +332,10 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
 
     public void resetAllSelectedItems() {
         HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
-        for(Map.Entry<String, TemplateViewHolder> entry : items.entrySet()) {
-            entry.getValue().unHighlight();
+        if(items != null) {
+            for (Map.Entry<String, TemplateViewHolder> entry : items.entrySet()) {
+                entry.getValue().unHighlight();
+            }
         }
         selectedItems.setValue(new HashMap<>());
     }
