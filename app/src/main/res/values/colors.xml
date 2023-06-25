@@ -27,8 +27,6 @@
     <color name="primary_highlight_color">#AEB3B9</color>
     <color name="primary_warning_background_color">#FD6839</color>
 
-    <color name="delete_red">#E91E63</color>
-
     <color name="colorPrimary">@color/logo_primary</color>
     <color name="colorSecondary">@color/logo_third</color>
 </resources>

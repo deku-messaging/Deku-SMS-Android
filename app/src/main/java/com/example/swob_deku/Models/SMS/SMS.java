@@ -1,15 +1,23 @@
 package com.example.swob_deku.Models.SMS;
 
+import static com.example.swob_deku.Commons.Helpers.getUserCountry;
+
+import android.content.Context;
 import android.database.Cursor;
 import android.provider.Telephony;
-import android.util.Log;
+import android.telephony.PhoneNumberUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
-import androidx.room.Entity;
+
+import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.Contacts.Contacts;
+import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
@@ -264,4 +272,71 @@ public class SMS {
             return oldItem.equals(newItem);
         }
     };
+
+    public static class SMSMetaEntity {
+        public static final String THREAD_ID = "THREAD_ID";
+        public static final String ADDRESS = "ADDRESS";
+
+        private String address, threadId;
+
+        public void setThreadId(String threadId) {
+            this.threadId = threadId;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public String getThreadId() {
+            return this.threadId;
+        }
+        public String getAddress(Context context){
+            try {
+                return formatPhoneNumbers(context, address);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return this.address;
+        }
+
+        public boolean isShortCode() {
+            Pattern pattern = Pattern.compile("[a-zA-Z]");
+            Matcher matcher = pattern.matcher(this.address);
+            return PhoneNumberUtils.isWellFormedSmsAddress(this.address) && !matcher.find();
+        }
+
+        private String formatPhoneNumbers(Context context, String data) throws NumberParseException {
+            String formattedString = data.replaceAll("%2B", "+")
+                    .replaceAll("%20", "")
+                    .replaceAll("-", "")
+                    .replaceAll("\\s", "");
+
+            if(!PhoneNumberUtils.isWellFormedSmsAddress(formattedString))
+                return data;
+
+            // Remove any non-digit characters except the plus sign at the beginning of the string
+            String strippedNumber = formattedString.replaceAll("[^0-9+]", "");
+
+            if(strippedNumber.length() > 6) {
+                // If the stripped number starts with a plus sign followed by one or more digits, return it as is
+                if (!strippedNumber.matches("^\\+\\d+")) {
+                    String dialingCode = getUserCountry(context);
+                    strippedNumber = "+" + dialingCode + data;
+                }
+                return strippedNumber;
+            }
+
+            // If the stripped number is not a valid phone number, return an empty string
+            return data;
+        }
+
+        public String getContactName(Context context) {
+            try {
+                return Contacts.retrieveContactName(context, getAddress(context));
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            return this.address;
+        }
+    }
 }
