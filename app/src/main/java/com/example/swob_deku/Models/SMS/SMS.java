@@ -356,7 +356,9 @@ public class SMS {
 
         public String getContactName(Context context) {
             try {
-                return Contacts.retrieveContactName(context, getAddress());
+                String contactName = Contacts.retrieveContactName(context, getAddress());
+                if(!contactName.isEmpty())
+                    return contactName;
             } catch(Exception e) {
                 e.printStackTrace();
             }
@@ -438,6 +440,7 @@ public class SMS {
 
         public void call(Context context) {
             Intent callIntent = new Intent(Intent.ACTION_DIAL);
+            callIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             callIntent.setData(Uri.parse("tel:" + getAddress()));
 
             context.startActivity(callIntent);

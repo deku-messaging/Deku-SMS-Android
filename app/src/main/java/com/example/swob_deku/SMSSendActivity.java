@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
@@ -87,10 +86,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     LinearLayoutManager linearLayoutManager;
     RecyclerView singleMessagesThreadRecyclerView;
 
-
     SMS.SMSMetaEntity smsMetaEntity;
-
-    private SecurityECDH securityECDH;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,7 +131,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             }
         }).start();
 
-        if(SettingsHandler.checkEncryptedMessagingDisabled(getApplicationContext())) {
+        if(!smsMetaEntity.isShortCode() &&
+                !SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
             try {
                 _checkEncryptionStatus();
             } catch (GeneralSecurityException | IOException e) {
@@ -209,7 +206,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
         linearLayoutManager = new LinearLayoutManager(this);
 
-        securityECDH = new SecurityECDH(getApplicationContext());
+        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
     }
 
     private void _configureRecyclerView() {
@@ -466,6 +463,105 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }
     }
 
+    private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
+        Log.d(getLocalClassName(), "Encryption status: " + smsMetaEntity.getEncryptionState(getApplicationContext()));
+        if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.NOT_ENCRYPTED) {
+            ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
+
+            int textColor = Color.WHITE;
+            Integer bgColor = getResources().getColor(R.color.failed_red, getTheme());
+            String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
+
+            View.OnClickListener onClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
+
+                        String text = SecurityHelpers.FIRST_HEADER
+                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
+                                + SecurityHelpers.END_HEADER;
+
+                        // TODO: refactor the entire send sms thing to inform when dual-sim
+                        // TODO: support for multi-sim
+
+                        long messageId = Helpers.generateRandomNumber();
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+
+                        SMSHandler.registerPendingMessage(getApplicationContext(),
+                                smsMetaEntity.getAddress(),
+                                text,
+                                messageId,
+                                subscriptionId);
+
+                        rxKeys(agreementKey, messageId, subscriptionId);
+                    } catch (GeneralSecurityException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+
+            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, textColor);
+        }
+        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST) {
+            String text = getString(R.string.send_sms_activity_user_not_secure_agree);
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
+            Integer bgColor = getResources().getColor(R.color.highlight_yellow, getTheme());
+            View.OnClickListener onClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        byte[] peerAgreementKey = smsMetaEntity.agreePeerRequest(getApplicationContext());
+                        String agreementText = SecurityHelpers.FIRST_HEADER
+                                + Base64.encodeToString(peerAgreementKey, Base64.DEFAULT)
+                                + SecurityHelpers.END_HEADER;
+
+                        long messageId = Helpers.generateRandomNumber();
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                                smsMetaEntity.getAddress(),
+                                agreementText,
+                                messageId,
+                                subscriptionId);
+                        if(smsMetaEntity.getThreadId() == null)
+                            smsMetaEntity.setThreadId(threadIdRx);
+
+                        rxKeys(peerAgreementKey, messageId, subscriptionId);
+                    } catch (GeneralSecurityException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+
+            lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
+        }
+        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT) {
+            String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
+            int bgColor = getResources().getColor(R.color.purple_200, getTheme());
+
+            View.OnClickListener onClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        smsMetaEntity.agreePeerRequest(getApplicationContext());
+                    } catch (GeneralSecurityException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
+        }
+        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.ENCRYPTED) {
+            ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
+        }
+    }
+
     // TODO: use standardized message sending method
     public void sendTextMessage(View view) {
         String text = smsTextView.getText().toString();
@@ -597,104 +693,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
                     SmsManager.RESULT_ERROR_GENERIC_FAILURE);
             singleMessageViewModel.informNewItemChanges(getApplicationContext());
-        }
-    }
-
-    private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
-        if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.NOT_ENCRYPTED) {
-            ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
-
-            int textColor = Color.WHITE;
-            Integer bgColor = getResources().getColor(R.color.failed_red, getTheme());
-            String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
-            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
-
-            View.OnClickListener onClickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
-
-                        String text = SecurityHelpers.FIRST_HEADER
-                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
-                                + SecurityHelpers.END_HEADER;
-
-                        // TODO: refactor the entire send sms thing to inform when dual-sim
-                        // TODO: support for multi-sim
-
-                        long messageId = Helpers.generateRandomNumber();
-                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-
-                        SMSHandler.registerPendingMessage(getApplicationContext(),
-                                smsMetaEntity.getAddress(),
-                                text,
-                                messageId,
-                                subscriptionId);
-
-                        rxKeys(agreementKey, messageId, subscriptionId);
-                    } catch (GeneralSecurityException | IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
-
-            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, textColor);
-        }
-        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST) {
-            String text = getString(R.string.send_sms_activity_user_not_secure_agree);
-            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
-            Integer bgColor = getResources().getColor(R.color.highlight_yellow, getTheme());
-            View.OnClickListener onClickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        byte[] peerAgreementKey = smsMetaEntity.agreePeerRequest(getApplicationContext());
-                        String agreementText = SecurityHelpers.FIRST_HEADER
-                                + Base64.encodeToString(peerAgreementKey, Base64.DEFAULT)
-                                + SecurityHelpers.END_HEADER;
-
-                        long messageId = Helpers.generateRandomNumber();
-                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                                smsMetaEntity.getAddress(),
-                                agreementText,
-                                messageId,
-                                subscriptionId);
-                        if(smsMetaEntity.getThreadId() == null)
-                            smsMetaEntity.setThreadId(threadIdRx);
-
-                        rxKeys(peerAgreementKey, messageId, subscriptionId);
-                    } catch (GeneralSecurityException | IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
-
-            lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
-        }
-        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT) {
-            String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
-            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
-            int bgColor = getResources().getColor(R.color.purple_200, getTheme());
-
-            View.OnClickListener onClickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        smsMetaEntity.agreePeerRequest(getApplicationContext());
-                    } catch (GeneralSecurityException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
-        }
-        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.ENCRYPTED) {
-            ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
         }
     }
 

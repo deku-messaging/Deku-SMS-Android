@@ -65,12 +65,13 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
     }
 
     private void startServices() {
+        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
         try {
-            GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
             gatewayClientHandler.startServices();
-            gatewayClientHandler.close();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            gatewayClientHandler.close();
         }
 
     }

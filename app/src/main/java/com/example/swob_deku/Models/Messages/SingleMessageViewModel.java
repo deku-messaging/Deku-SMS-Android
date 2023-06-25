@@ -105,7 +105,6 @@ public class SingleMessageViewModel extends ViewModel {
 
             Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
             mutableLiveData.setValue(mergedList);
-
         }
         this.offset = offset == 0 ? null : offset;
         return newSMS.size();

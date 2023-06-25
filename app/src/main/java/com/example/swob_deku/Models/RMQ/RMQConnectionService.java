@@ -247,100 +247,102 @@ public class RMQConnectionService extends Service {
         Log.d(getClass().getName(), "Request to start service received...");
         Map<String, ?> storedGatewayClients = sharedPreferences.getAll();
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+
         for (String gatewayClientIds : storedGatewayClients.keySet()) {
-            try {
-                GatewayClient gatewayClient = gatewayClientHandler.fetch(Integer.parseInt(gatewayClientIds));
-                Log.d(getClass().getName(), "* Starting new RMQ connection: " + gatewayClient.getFriendlyConnectionName());
-                connectGatewayClient(gatewayClient);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if(!connectionList.containsKey(Integer.parseInt(gatewayClientIds))) {
+                try {
+                    GatewayClient gatewayClient = gatewayClientHandler.fetch(Integer.parseInt(gatewayClientIds));
+                    Log.d(getClass().getName(), "* Starting new RMQ connection: " + gatewayClient.getFriendlyConnectionName());
+                    connectGatewayClient(gatewayClient);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
+        gatewayClientHandler.close();
         return START_STICKY;
     }
 
     public void connectGatewayClient(GatewayClient gatewayClient) throws InterruptedException {
-        if(!connectionList.containsKey(gatewayClient.getId())) {
-            Log.d(getClass().getName(), "Starting new service connection...");
-            ConnectionFactory factory = new ConnectionFactory();
+        Log.d(getClass().getName(), "Starting new service connection...");
+        ConnectionFactory factory = new ConnectionFactory();
 
-            factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
-                @Override
-                public long getDelay(int recoveryAttempts) {
-                    // TODO: send notification informing reconnecting is being attempted
-                    Log.d(getClass().getName(), "Attempting auto recovery...");
+        factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
+            @Override
+            public long getDelay(int recoveryAttempts) {
+                // TODO: send notification informing reconnecting is being attempted
+                Log.d(getClass().getName(), "Attempting auto recovery...");
 
-                    connectionList.get(gatewayClient.getId()).setConnected(DELAY_TIMEOUT);
-                    Log.d(getClass().getName(), "Done setting reconnect");
-                    return DELAY_TIMEOUT;
-                }
-            });
+                connectionList.get(gatewayClient.getId()).setConnected(DELAY_TIMEOUT);
+                Log.d(getClass().getName(), "Done setting reconnect");
+                return DELAY_TIMEOUT;
+            }
+        });
 
-            factory.setUsername(gatewayClient.getUsername());
-            factory.setPassword(gatewayClient.getPassword());
-            factory.setVirtualHost(gatewayClient.getVirtualHost());
-            factory.setHost(gatewayClient.getHostUrl());
-            factory.setPort(gatewayClient.getPort());
-            factory.setConnectionTimeout(15000);
-            factory.setExceptionHandler(new DefaultExceptionHandler());
+        factory.setUsername(gatewayClient.getUsername());
+        factory.setPassword(gatewayClient.getPassword());
+        factory.setVirtualHost(gatewayClient.getVirtualHost());
+        factory.setHost(gatewayClient.getHostUrl());
+        factory.setPort(gatewayClient.getPort());
+        factory.setConnectionTimeout(15000);
+        factory.setExceptionHandler(new DefaultExceptionHandler());
 
-            // TODO: create a full handler to manage the retry to connection
-            // TODO: which matches the Android WorkManager methods
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        /**
-                         * Avoid risk of :ForegroundServiceDidNotStartInTimeException
-                         * - Put RMQ connection in list before connecting which could take a while
-                         */
+        // TODO: create a full handler to manage the retry to connection
+        // TODO: which matches the Android WorkManager methods
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    /**
+                     * Avoid risk of :ForegroundServiceDidNotStartInTimeException
+                     * - Put RMQ connection in list before connecting which could take a while
+                     */
 
-                        RMQConnection rmqConnection = new RMQConnection();
+                    RMQConnection rmqConnection = new RMQConnection();
 
-                        RMQMonitor rmqMonitor = new RMQMonitor(getApplicationContext(),
-                                gatewayClient.getId(),
-                                rmqConnection);
-                        connectionList.put(gatewayClient.getId(), rmqMonitor);
+                    RMQMonitor rmqMonitor = new RMQMonitor(getApplicationContext(),
+                            gatewayClient.getId(),
+                            rmqConnection);
+                    connectionList.put(gatewayClient.getId(), rmqMonitor);
 
-                        rmqMonitor.setConnected(DELAY_TIMEOUT);
-                        Log.d(getClass().getName(), "Attempting to make connection...");
+                    rmqMonitor.setConnected(DELAY_TIMEOUT);
+                    Log.d(getClass().getName(), "Attempting to make connection...");
 
-                        Connection connection = factory.newConnection(consumerExecutorService,
-                                gatewayClient.getFriendlyConnectionName());
-                        Log.d(getClass().getName(), "Connection made..");
+                    Connection connection = factory.newConnection(consumerExecutorService,
+                            gatewayClient.getFriendlyConnectionName());
+                    Log.d(getClass().getName(), "Connection made..");
 
-                        rmqMonitor.setConnected(0L);
-                        connection.addShutdownListener(new ShutdownListener() {
-                            @Override
-                            public void shutdownCompleted(ShutdownSignalException cause) {
-                                Log.d(getClass().getName(), "Connection shutdown cause: " + cause.toString());
-                            }
-                        });
-                        rmqMonitor.getRmqConnection().setConnection(connection);
-
-                        if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
-                            rmqConnection.createQueue1(gatewayClient.getProjectName(),
-                                    gatewayClient.getProjectBinding(), getDeliverCallback(rmqConnection));
-                            rmqConnection.consume1();
+                    rmqMonitor.setConnected(0L);
+                    connection.addShutdownListener(new ShutdownListener() {
+                        @Override
+                        public void shutdownCompleted(ShutdownSignalException cause) {
+                            Log.d(getClass().getName(), "Connection shutdown cause: " + cause.toString());
                         }
+                    });
+                    rmqMonitor.getRmqConnection().setConnection(connection);
 
-                        if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()
-                                && gatewayClient.getProjectBinding2() != null && !gatewayClient.getProjectBinding2().isEmpty()) {
-                            rmqConnection.createQueue2(gatewayClient.getProjectName(),
-                                    gatewayClient.getProjectBinding2(), getDeliverCallback(rmqConnection));
-                            rmqConnection.consume2();
-                        }
-
-                    } catch (IOException | TimeoutException e) {
-                        e.printStackTrace();
-                        // TODO: send a notification indicating this, with options to retry the connection
-                        int[] states = getGatewayClientNumbers();
-                        createForegroundNotification(states[0], states[1]);
+                    if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
+                        rmqConnection.createQueue1(gatewayClient.getProjectName(),
+                                gatewayClient.getProjectBinding(), getDeliverCallback(rmqConnection));
+                        rmqConnection.consume1();
                     }
+
+                    if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()
+                            && gatewayClient.getProjectBinding2() != null && !gatewayClient.getProjectBinding2().isEmpty()) {
+                        rmqConnection.createQueue2(gatewayClient.getProjectName(),
+                                gatewayClient.getProjectBinding2(), getDeliverCallback(rmqConnection));
+                        rmqConnection.consume2();
+                    }
+
+                } catch (IOException | TimeoutException e) {
+                    e.printStackTrace();
+                    // TODO: send a notification indicating this, with options to retry the connection
+                    int[] states = getGatewayClientNumbers();
+                    createForegroundNotification(states[0], states[1]);
                 }
-            });
-            thread.start();
-        }
+            }
+        });
+        thread.start();
     }
 
     private void stop(int gatewayClientId) {

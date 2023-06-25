@@ -47,14 +47,13 @@ public class MessagesThreadViewModel extends ViewModel {
         loadSMSThreads(context);
     }
 
-    private void loadSMSThreads(Context context) throws GeneralSecurityException, IOException {
+    private void loadSMSThreads(Context context) {
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
         List<SMS> smsList = new ArrayList<>();
         ArchiveHandler archiveHandler = new ArchiveHandler(context);
 
         switch (messagesType) {
             case MessagesThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT: {
-                SecurityECDH securityECDH = new SecurityECDH(context);
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -110,7 +109,6 @@ public class MessagesThreadViewModel extends ViewModel {
                 break;
             }
             case MessagesThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT: {
-                SecurityECDH securityECDH = new SecurityECDH(context);
                 new Thread(new Runnable() {
                     @Override
                     public void run() {

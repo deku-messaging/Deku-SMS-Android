@@ -97,12 +97,7 @@ public class MessagesThreadFragment extends Fragment {
             }
         }).start();
 
-        // toolbar = view.findViewById(R.id.messages_threads_toolbar);
-//        toolbar = new Toolbar(getContext());
         toolbar = mListener.getToolbar();
-//        getActivity().setActionBar(toolbar);
-//        ab = getActivity().getActionBar();
-
 
         messagesThreadViewModel = new ViewModelProvider(this).get(
                 MessagesThreadViewModel.class);
@@ -149,7 +144,6 @@ public class MessagesThreadFragment extends Fragment {
         });
 
         handleIncomingMessage();
-//        enableSwipeAction();
         setRefreshTimer();
     }
 
@@ -177,128 +171,6 @@ public class MessagesThreadFragment extends Fragment {
             }
         }, recyclerViewTimeUpdateLimit);
     }
-    private void enableSwipeAction() {
-        final RecyclerView.ViewHolder[] currentViewHolder = {null};
-//        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-
-//        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT | ItemTouchHelper.RIGHT) {
-        ItemTouchHelper.SimpleCallback swipeArchiveCallback = new ItemTouchHelper.SimpleCallback(
-                0, ItemTouchHelper.RIGHT ) {
-            private Drawable deleteIcon;
-            private int intrinsicWidth;
-            private int intrinsicHeight;
-
-            private int mSwipeSlop;
-
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                /**
-                 * TODO: swip RIGHT, - archive
-                 * TODO: swip LEFT - delete
-                 * TODO: increase threshold before permanent delete
-                 */
-                TemplateViewHolder itemView = (TemplateViewHolder) viewHolder;
-                String threadId = itemView.id;
-                try {
-                    Archive archive = new Archive(Long.parseLong(threadId));
-                    archiveHandler.archiveSMS(getContext(), archive);
-                    messagesThreadViewModel.informChanges(getContext());
-                }catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public boolean isLongPressDragEnabled() {
-                return true; // Enable long-press drag functionality
-            }
-
-            @Override
-            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-                super.onSelectedChanged(viewHolder, actionState);
-
-                if(viewHolder != null)
-                    currentViewHolder[0] = viewHolder;
-
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.archive_slide_drawable);
-                }
-
-                if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
-                    currentViewHolder[0].itemView.setBackgroundResource(R.drawable.messages_default_drawable);
-                }
-            }
-
-            @Override
-            public void onChildDraw(Canvas c, RecyclerView recyclerView,
-                                    RecyclerView.ViewHolder viewHolder, float dX, float dY,
-                                    int actionState, boolean isCurrentlyActive) {
-
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    if (deleteIcon == null) {
-                        deleteIcon = ContextCompat.getDrawable(getContext(), R.drawable.round_archive_24);
-                        intrinsicWidth = deleteIcon.getIntrinsicWidth();
-                        intrinsicHeight = deleteIcon.getIntrinsicHeight();
-                    }
-
-                    float iconMargin = (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
-                    float iconTop = viewHolder.itemView.getTop() + (viewHolder.itemView.getHeight() - intrinsicHeight) / 2.0f;
-                    float iconBottom = iconTop + intrinsicHeight;
-                    float iconLeft, iconRight;
-
-                    if (mSwipeSlop == 0) {
-                        mSwipeSlop = ViewConfiguration.get(recyclerView.getContext()).getScaledTouchSlop();
-                    }
-                    float threshold = mSwipeSlop * 3;
-
-                    // Set swipe distance limit
-                    if (Math.abs(dX) > threshold) {
-                        dX = Math.signum(dX) * threshold;
-                    }
-
-                    if (dX > 0) {
-                        iconLeft = viewHolder.itemView.getLeft() + iconMargin;
-                        iconRight = viewHolder.itemView.getLeft() + iconMargin + intrinsicWidth;
-                    } else {
-                        iconRight = viewHolder.itemView.getRight() - iconMargin;
-                        iconLeft = viewHolder.itemView.getRight() - iconMargin - intrinsicWidth;
-                    }
-
-                    deleteIcon.setBounds((int) iconLeft, (int) iconTop, (int) iconRight, (int) iconBottom);
-
-                    View itemView = viewHolder.itemView;
-                    int itemHeight = itemView.getHeight();
-                    int itemWidth = itemView.getWidth();
-                    int itemLeft = itemView.getLeft();
-                    int itemRight = itemView.getRight();
-
-                    Paint p = new Paint();
-                    p.setColor(getContext().getColor(R.color.light_blue));
-
-                    c.drawRect(itemLeft, itemView.getTop(), itemRight, itemView.getBottom(), p);
-                    deleteIcon.draw(c);
-                }
-            }
-
-            @Override
-            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-                super.clearView(recyclerView, viewHolder);
-                currentViewHolder[0] = null;
-            }
-        };
-
-        ItemTouchHelper itemTouchHelperArchive = new ItemTouchHelper(swipeArchiveCallback);
-
-        itemTouchHelperArchive.attachToRecyclerView(messagesThreadRecyclerView);
-    }
-
     private void handleIncomingMessage() {
         incomingBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -360,6 +232,10 @@ public class MessagesThreadFragment extends Fragment {
     public void onDestroy() {
         if(incomingBroadcastReceiver != null)
             getContext().unregisterReceiver(incomingBroadcastReceiver);
+
+        if(archiveHandler != null)
+            archiveHandler.close();
+
         super.onDestroy();
     }
 }
