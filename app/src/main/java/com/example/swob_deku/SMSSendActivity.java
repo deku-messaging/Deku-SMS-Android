@@ -127,7 +127,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             @Override
             public void run() {
                 if(getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID)) {
-                    singleMessageViewModel.informNewItemChanges();
+                    singleMessageViewModel.informNewItemChanges(getApplicationContext());
                     cancelNotifications(SMS.SMSMetaEntity.THREAD_ID);
                 }
             }
@@ -142,7 +142,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                _updateThreadToRead();
+                if(getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID))
+                    _updateThreadToRead();
             }
         }).start();
     }
@@ -175,8 +176,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
         smsMetaEntity = new SMS.SMSMetaEntity();
         if(getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
-            // TODO: derive the ADDRESS or the THREAD ID
-            // TODO: add derivations to the Intent
+            String sendToString = getIntent().getDataString();
+            if (sendToString.contains("smsto:") || sendToString.contains("sms:")) {
+                getIntent().putExtra(SMS.SMSMetaEntity.ADDRESS,
+                        sendToString.substring(sendToString.indexOf(':') + 1));
+            }
         }
 
         if(!getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID) &&
@@ -335,7 +339,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     private void _configureMessagesTextBox() {
-        if (mutableLiveDataComposeMessage.getValue() == null || mutableLiveDataComposeMessage.getValue().isEmpty())
+        if (mutableLiveDataComposeMessage.getValue() == null ||
+                mutableLiveDataComposeMessage.getValue().isEmpty())
             findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
 
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
@@ -414,6 +419,18 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 }
             }
         });
+
+        if (getIntent().hasExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY)) {
+            smsTextView.setText(getIntent().getStringExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY));
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mutableLiveDataComposeMessage
+                            .setValue(getIntent().getStringExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY));
+                }
+            });
+        }
     }
 
     private void _configureLayoutForMessageType() {
@@ -424,86 +441,16 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }
     }
 
-    private void getAddressAndThreadId() throws InterruptedException, NumberParseException {
-        processForSharedIntent();
-        getMessagesThreadId();
-    }
-
     private void _updateThreadToRead() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                int updatedCount = SMSHandler.updateMarkThreadMessagesAsRead(getApplicationContext(), smsMetaEntity);
-                if (BuildConfig.DEBUG)
-                    Log.d(getLocalClassName(), "Updating read for threadID: " + threadId + "->" + updatedCount);
+                int updatedCount = SMSHandler.updateMarkThreadMessagesAsRead(getApplicationContext(),
+                        smsMetaEntity.getThreadId());
             }
         }).start();
     }
 
-    private void getMessagesThreadId() throws NumberParseException {
-        Log.d(getLocalClassName(), "Finding message thread Id");
-        if (getIntent().hasExtra(THREAD_ID)) {
-            threadId = getIntent().getStringExtra(THREAD_ID);
-            Log.d(getLocalClassName(), "Thread-ID for this message: " + threadId);
-            Cursor cursor = SMSHandler.fetchSMSAddressFromThreadId(getApplicationContext(), threadId);
-
-            if (cursor.moveToFirst()) {
-                int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
-                unformattedAddress = String.valueOf(cursor.getString(addressIndex));
-            }
-
-            cursor.close();
-        }
-
-        try {
-            if (getIntent().hasExtra(ADDRESS) || !unformattedAddress.isEmpty()) {
-                if (unformattedAddress.isEmpty())
-                    unformattedAddress = getIntent().getStringExtra(ADDRESS);
-            }
-            address = Helpers.formatPhoneNumbers(getApplicationContext(), unformattedAddress);
-            Cursor cursor = SMSHandler.fetchSMSThreadIdFromAddress(getApplicationContext(), address);
-            if (cursor.moveToFirst()) {
-                int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
-                threadId = String.valueOf(cursor.getString(threadIdIndex));
-            }
-            cursor.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void processForSharedIntent() throws NumberParseException {
-        if (getIntent().getAction() != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
-            String sendToString = getIntent().getDataString();
-
-            if (BuildConfig.DEBUG)
-                Log.d("", "Processing shared #: " + sendToString);
-            if (sendToString.contains("smsto:") || sendToString.contains("sms:")) {
-                unformattedAddress = sendToString.substring(sendToString.indexOf(':') + 1);
-                String text = getIntent().getStringExtra("sms_body");
-
-                if (text != null && !text.isEmpty()) {
-                    smsTextView.setText(text);
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mutableLiveDataComposeMessage.setValue(text);
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    public void cancelNotifications(String threadId) {
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
-                getApplicationContext());
-
-        if (!threadId.isEmpty())
-            notificationManager.cancel(Integer.parseInt(threadId));
-    }
 
     public void sendTextMessage(View view) {
         String text = smsTextView.getText().toString();
@@ -987,10 +934,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 hideDefaultToolbar(toolbar.getMenu(), size);
             }
         }
-    }
-
-    public void enableToolbar() {
-
     }
 
     public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException {

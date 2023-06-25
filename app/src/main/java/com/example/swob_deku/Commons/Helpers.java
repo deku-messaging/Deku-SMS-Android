@@ -110,10 +110,6 @@ public class Helpers {
 //        return countryCode;
     }
 
-    public static boolean isWellFormedNumber(String data) {
-    }
-
-
     public static int generateColor(String input) {
         int hue;
         int saturation = 100;

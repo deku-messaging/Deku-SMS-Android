@@ -10,6 +10,7 @@ import android.provider.Telephony;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.ViewModel;
 
 import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
@@ -113,6 +114,14 @@ public class CustomAppCompactActivity extends AppCompatActivity {
 
         if (archiveHandler != null)
             archiveHandler.close();
+    }
+
+    public void cancelNotifications(String threadId) {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
+                getApplicationContext());
+
+        if (!threadId.isEmpty())
+            notificationManager.cancel(Integer.parseInt(threadId));
     }
 
 }

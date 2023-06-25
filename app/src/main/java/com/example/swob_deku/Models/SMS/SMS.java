@@ -277,6 +277,8 @@ public class SMS {
         public static final String THREAD_ID = "THREAD_ID";
         public static final String ADDRESS = "ADDRESS";
 
+        public static final String SHARED_SMS_BODY = "sms_body";
+
         private String address, threadId;
 
         public void setThreadId(String threadId) {
