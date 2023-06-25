@@ -307,30 +307,31 @@ public class ImageViewActivity extends AppCompatActivity {
     }
 
     public void sendImage(View view) throws InterruptedException {
-        Intent intent = new Intent(this, SMSSendActivity.class);
-        intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
-
-        long messageId = Helpers.generateRandomNumber();
-
-        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-
-        String content = ImageHandler.IMAGE_HEADER +
-                Base64.encodeToString(compressedBytes, Base64.DEFAULT);
-
-//        content = Base64.encodeToString(compress(content.getBytes(StandardCharsets.UTF_8)),
-//                Base64.DEFAULT);
-
-        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                address,
-                content,
-                messageId,
-                subscriptionId);
-
-        intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadIdRx);
-        intent.putExtra(SMS_IMAGE_PENDING_LOCATION, messageId);
-
-        startActivity(intent);
-        finish();
+        // TODO: fix this
+//        Intent intent = new Intent(this, SMSSendActivity.class);
+//        intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
+//
+//        long messageId = Helpers.generateRandomNumber();
+//
+//        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+//
+//        String content = ImageHandler.IMAGE_HEADER +
+//                Base64.encodeToString(compressedBytes, Base64.DEFAULT);
+//
+////        content = Base64.encodeToString(compress(content.getBytes(StandardCharsets.UTF_8)),
+////                Base64.DEFAULT);
+//
+//        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+//                address,
+//                content,
+//                messageId,
+//                subscriptionId);
+//
+//        intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadIdRx);
+//        intent.putExtra(SMS_IMAGE_PENDING_LOCATION, messageId);
+//
+//        startActivity(intent);
+//        finish();
     }
 
 

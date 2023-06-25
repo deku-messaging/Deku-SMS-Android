@@ -220,13 +220,14 @@ public class RMQConnectionService extends Service {
 
                     long messageId = Helpers.generateRandomNumber();
 
-                    PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver
-                            .getPendingIntentsForServerRequest(getApplicationContext(), messageId,
-                                    Long.parseLong(globalMessageKey));
-
-                    // TODO: fix subscriptionId to actually be the value
-                    SMSHandler.sendTextSMS(getApplicationContext(), msisdn, body,
-                            pendingIntents[0], pendingIntents[1], messageId, null);
+                    // TODO: fix this
+//                    PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver
+//                            .getPendingIntentsForServerRequest(getApplicationContext(), messageId,
+//                                    Long.parseLong(globalMessageKey));
+//
+//                    // TODO: fix subscriptionId to actually be the value
+//                    SMSHandler.sendTextSMS(getApplicationContext(), msisdn, body,
+//                            pendingIntents[0], pendingIntents[1], messageId, null);
 
                     Map<Long, Channel> deliveryChannelMap = new HashMap<>();
                     deliveryChannelMap.put(delivery.getEnvelope().getDeliveryTag(), rmqConnection.getChannel1());

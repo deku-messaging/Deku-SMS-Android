@@ -1,8 +1,8 @@
 package com.example.swob_deku.BroadcastReceivers;
 
 import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.KEY_TEXT_REPLY;
-import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT;
-import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_DELIVERED_BROADCAST_INTENT;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_SENT_BROADCAST_INTENT;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -48,39 +48,40 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 Log.d(getClass().getName(), "Yep broadcast is called with reply: " + reply.toString());
                 Log.d(getClass().getName(), "Yep broadcast is called with address: " + address);
 
-                try {
-                    long messageId = Helpers.generateRandomNumber();
-                    PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(context, messageId);
-                    SMSHandler.sendTextSMS(context, address, reply.toString(),
-                            pendingIntents[0], pendingIntents[1], messageId, null);
-
-                    List<NotificationCompat.MessagingStyle.Message> messages = new ArrayList<>();
-                    messages.add(new NotificationCompat.MessagingStyle.Message(reply,
-                            System.currentTimeMillis(),
-                            context.getString(R.string.notification_title_reply_you)));
-
-                    Cursor cursor = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, threadId);
-
-                    Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
-                    receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
-                    receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                    PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
-                            Integer.parseInt(threadId),
-                            receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
-                    NotificationCompat.Builder builder = IncomingTextSMSBroadcastReceiver
-                            .getNotificationHandler(context, cursor, messages, intent,
-                                    Integer.parseInt(String.valueOf(messageId)), threadId)
-                                    .setContentIntent(pendingReceivedSmsIntent);
-                    cursor.close();
-
-                    // Issue the new notification.
-                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-                    notificationManager.notify(Integer.parseInt(threadId), builder.build());
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                // TODO: fix this
+//                try {
+//                    long messageId = Helpers.generateRandomNumber();
+//                    PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(context, messageId);
+//                    SMSHandler.sendTextSMS(context, address, reply.toString(),
+//                            pendingIntents[0], pendingIntents[1], messageId, null);
+//
+//                    List<NotificationCompat.MessagingStyle.Message> messages = new ArrayList<>();
+//                    messages.add(new NotificationCompat.MessagingStyle.Message(reply,
+//                            System.currentTimeMillis(),
+//                            context.getString(R.string.notification_title_reply_you)));
+//
+//                    Cursor cursor = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, threadId);
+//
+//                    Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
+//                    receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
+//                    receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//
+//                    PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
+//                            Integer.parseInt(threadId),
+//                            receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
+//                    NotificationCompat.Builder builder = IncomingTextSMSBroadcastReceiver
+//                            .getNotificationHandler(context, cursor, messages, intent,
+//                                    Integer.parseInt(String.valueOf(messageId)), threadId)
+//                                    .setContentIntent(pendingReceivedSmsIntent);
+//                    cursor.close();
+//
+//                    // Issue the new notification.
+//                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+//                    notificationManager.notify(Integer.parseInt(threadId), builder.build());
+//
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
             }
         }
         else if(intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
@@ -133,9 +134,6 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
             }
         }
 
-        Intent newIntent = new Intent(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT);
-        newIntent.putExtras(intent.getExtras());
-
-        context.sendBroadcast(newIntent);
+        SMSHandler.broadcastMessageStateChanged(context, intent);
     }
 }

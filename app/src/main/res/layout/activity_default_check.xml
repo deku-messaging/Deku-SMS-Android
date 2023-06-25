@@ -45,7 +45,7 @@
         android:fontFamily="sans-serif"
         android:text="@string/default_check_btn_text"
         android:textAllCaps="false"
-        android:textColor="@color/colorSecondary"
+        android:textColor="@color/white"
         android:textSize="14sp"
         app:layout_constraintBottom_toTopOf="@+id/textView3"
         app:layout_constraintEnd_toEndOf="parent"

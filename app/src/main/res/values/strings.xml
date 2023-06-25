@@ -164,4 +164,8 @@
     <string name="homepage_fragment_tab_all">All</string>
     <string name="homepage_fragment_tab_plain">Plain</string>
     <string name="homepage_fragment_tab_encrypted">Encrypted</string>
+
+    <string name="send_message_error_no_text_provided">Make sure Address and Text are provided.</string>
+    <string name="send_message_generic_error">Something went wrong, check log stack</string>
+    <string name="default_subscription_id_changed">Default subscription ID changed to </string>
 </resources>

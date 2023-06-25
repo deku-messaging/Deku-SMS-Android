@@ -149,9 +149,12 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     @Override
     public int getItemViewType(int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
+        SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+        smsMetaEntity.setThreadId(sms.getThreadId());
 
+        // TODO: migrate to SMSMetaEntity
         if(SecurityHelpers.containersWaterMark(sms.getBody()) || SecurityHelpers.isKeyExchange(sms.getBody())) {
-            if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+            if(smsMetaEntity.hasUnreadMessages(context)) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
                     return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
                 else
@@ -163,8 +166,9 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
                 else
                     return RECEIVED_ENCRYPTED_VIEW_TYPE;
             }
-        } else {
-            if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+        }
+        else {
+            if(smsMetaEntity.hasUnreadMessages(context)) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
                     return SENT_UNREAD_VIEW_TYPE;
                 else

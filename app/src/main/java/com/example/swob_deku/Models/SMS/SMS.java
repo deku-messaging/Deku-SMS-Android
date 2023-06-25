@@ -1,6 +1,9 @@
 package com.example.swob_deku.Models.SMS;
 
 import static com.example.swob_deku.Commons.Helpers.getUserCountry;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_CONTENT_URI;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_INBOX_CONTENT_URI;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_OUTBOX_CONTENT_URI;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,13 +11,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
+import android.text.TextUtils;
 import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 
-import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
@@ -26,6 +29,7 @@ import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -163,11 +167,11 @@ public class SMS {
         return read;
     }
 
-    public String getSubscriptionId() {
+    public int getSubscriptionId() {
         return subscriptionId;
     }
 
-    public void setSubscriptionId(String subscriptionId) {
+    public void setSubscriptionId(int subscriptionId) {
         this.subscriptionId = subscriptionId;
     }
 
@@ -183,7 +187,7 @@ public class SMS {
         return routingUrls;
     }
 
-    public String subscriptionId = new String();
+    public int subscriptionId;
 
     public Boolean datesOnly = false;
 
@@ -235,7 +239,7 @@ public class SMS {
         this.date = String.valueOf(cursor.getString(dateIndex));
 
         if(subscriptionIdIndex > -1)
-            this.subscriptionId = String.valueOf(cursor.getString(subscriptionIdIndex));
+            this.subscriptionId = cursor.getInt(subscriptionIdIndex);
 
         if(idIndex > -1 ) {
             this.id = String.valueOf(cursor.getString(idIndex));
@@ -323,6 +327,10 @@ public class SMS {
             return this._address;
         }
 
+        /**
+         * checks if number contains letters and if matches android default wellformedaddresses
+         * @return boolean - true if short code false otherwise
+         */
         public boolean isShortCode() {
             Pattern pattern = Pattern.compile("[a-zA-Z]");
             Matcher matcher = pattern.matcher(getAddress());
@@ -331,21 +339,18 @@ public class SMS {
 
         private String formatPhoneNumbers(Context context, String data) throws NumberParseException {
             String formattedString = data.replaceAll("%2B", "+")
-                    .replaceAll("%20", "")
-                    .replaceAll("-", "")
-                    .replaceAll("\\s", "");
+                    .replaceAll("%20", "");
 
             if(!PhoneNumberUtils.isWellFormedSmsAddress(formattedString))
-                return data;
+                return formattedString;
 
             // Remove any non-digit characters except the plus sign at the beginning of the string
             String strippedNumber = formattedString.replaceAll("[^0-9+]", "");
-
             if(strippedNumber.length() > 6) {
                 // If the stripped number starts with a plus sign followed by one or more digits, return it as is
                 if (!strippedNumber.matches("^\\+\\d+")) {
                     String dialingCode = getUserCountry(context);
-                    strippedNumber = "+" + dialingCode + data;
+                    strippedNumber = "+" + dialingCode + strippedNumber;
                 }
                 return strippedNumber;
             }
@@ -362,7 +367,7 @@ public class SMS {
             } catch(Exception e) {
                 e.printStackTrace();
             }
-            return this.address;
+            return this._address;
         }
 
         /**
@@ -454,6 +459,105 @@ public class SMS {
         public boolean isPendingAgreement(Context context) throws GeneralSecurityException, IOException {
             SecurityECDH securityECDH = new SecurityECDH(context);
             return securityECDH.peerAgreementPublicKeysAvailable(context, getAddress());
+        }
+
+        public void deleteMessage(Context context, String messageId) throws Exception {
+            try {
+                int updateCount = context.getContentResolver().delete(
+                        SMS_CONTENT_URI,
+                        Telephony.Sms._ID + "=?",
+                        new String[]{messageId});
+
+            } catch (Exception e) {
+                throw new Exception(e);
+            }
+        }
+
+        public void deleteMultipleMessages(Context context, String[] ids) {
+            try {
+                int updateCount = context.getContentResolver().delete(SMS_CONTENT_URI,
+                        Telephony.Sms._ID + " in (" +
+                                TextUtils.join(",", Collections.nCopies(ids.length, "?")) + ")", ids);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public boolean hasUnreadMessages(Context context) {
+            try {
+                Cursor cursor = context.getContentResolver().query(
+                        SMS_INBOX_CONTENT_URI,
+                        new String[]{Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID},
+//                    "read=? AND thread_id =? AND type != ?",
+                        Telephony.TextBasedSmsColumns.READ + "=? AND " +
+                                Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                        new String[]{"0",
+                                String.valueOf(threadId)},
+                        "date DESC LIMIT 1");
+
+                boolean hasUnread = cursor.getCount() > 0;
+                cursor.close();
+
+                return hasUnread;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return false;
+        }
+
+        public Cursor fetchMessages(@NonNull Context context, int limit, int offset) {
+            String constrains = "date DESC" + (limit > 0 ? " LIMIT " + limit : "") +
+                    (offset > 0 ? " OFFSET " + offset : "");
+
+            String[] selection = new String[]{Telephony.Sms._ID,
+                    Telephony.TextBasedSmsColumns.STATUS,
+                    Telephony.TextBasedSmsColumns.THREAD_ID,
+                    Telephony.TextBasedSmsColumns.ADDRESS,
+                    Telephony.TextBasedSmsColumns.PERSON,
+                    Telephony.TextBasedSmsColumns.DATE,
+                    Telephony.TextBasedSmsColumns.BODY,
+//                Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
+                    Telephony.TextBasedSmsColumns.TYPE};
+
+            Cursor smsMessagesCursor = context.getContentResolver().query(
+                    SMS_CONTENT_URI,
+                    selection,
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                    new String[]{threadId},
+                    constrains);
+
+            return smsMessagesCursor;
+        }
+
+        public Cursor fetchUnreadMessages(Context context) {
+            return context.getContentResolver().query(
+                    SMS_INBOX_CONTENT_URI,
+                    new String[]{Telephony.Sms._ID,
+                            Telephony.TextBasedSmsColumns.THREAD_ID,
+                            Telephony.TextBasedSmsColumns.ADDRESS,
+                            Telephony.TextBasedSmsColumns.PERSON,
+                            Telephony.TextBasedSmsColumns.DATE,
+                            Telephony.TextBasedSmsColumns.BODY,
+                            Telephony.TextBasedSmsColumns.TYPE},
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND "
+                            + Telephony.Sms.READ + "=?",
+                    new String[]{threadId, "0"},
+                    "date ASC");
+        }
+
+        public Cursor fetchOutboxMessage(@NonNull Context context, long messageId) {
+            Cursor smsMessagesCursor = context.getContentResolver().query(
+                    SMS_OUTBOX_CONTENT_URI,
+                    new String[]{Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                            Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                            Telephony.TextBasedSmsColumns.DATE, Telephony.TextBasedSmsColumns.BODY,
+                            Telephony.TextBasedSmsColumns.TYPE},
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.Sms._ID + "=?",
+                    new String[]{threadId, String.valueOf(messageId)},
+                    null);
+
+            return smsMessagesCursor;
         }
     }
 }

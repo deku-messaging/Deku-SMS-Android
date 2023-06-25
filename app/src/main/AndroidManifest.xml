@@ -153,6 +153,14 @@
                 <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.afkanerd.deku.SMS_NEW_REGISTERED_PENDING_BROADCAST" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".RespondViaMessageActivity"

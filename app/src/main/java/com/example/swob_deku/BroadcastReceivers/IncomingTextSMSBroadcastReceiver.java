@@ -61,8 +61,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     // Key for the string that's delivered in the action's intent.
     public static final String KEY_TEXT_REPLY = "key_text_reply";
 
-    public static String SMS_SENT_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SMS_SENT_BROADCAST_INTENT";
-    public static String SMS_DELIVERED_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -180,7 +178,10 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
-            Cursor cursor1 = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, sms.getThreadId());
+            SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+            smsMetaEntity.setThreadId(sms.getThreadId());
+
+            Cursor cursor1 = smsMetaEntity.fetchUnreadMessages(context);
             receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, sms.getAddress());
             receivedSmsIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
             Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), sms.getAddress() + " : " + sms.getThreadId());
@@ -217,50 +218,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     }
 
 
-    public static PendingIntent[] getPendingIntents(Context context, long messageId) {
-        Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
-        sentIntent.setPackage(context.getPackageName());
-        sentIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
-
-        Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
-        deliveredIntent.setPackage(context.getPackageName());
-        deliveredIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
-
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)),
-                sentIntent,
-                PendingIntent.FLAG_IMMUTABLE);
-
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)),
-                deliveredIntent,
-                PendingIntent.FLAG_IMMUTABLE);
-
-        return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
-    }
-
-    public static PendingIntent[] getPendingIntentsForServerRequest(Context context, long messageId, long globalMessageId) {
-        Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
-        sentIntent.setPackage(context.getPackageName());
-        sentIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
-        sentIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
-
-        Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
-        deliveredIntent.setPackage(context.getPackageName());
-        deliveredIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
-
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)),
-                sentIntent,
-                PendingIntent.FLAG_IMMUTABLE);
-
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)),
-                deliveredIntent,
-                PendingIntent.FLAG_IMMUTABLE);
-
-        return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
-    }
 
     public static NotificationCompat.Builder
     getNotificationHandler(Context context, Cursor cursor,

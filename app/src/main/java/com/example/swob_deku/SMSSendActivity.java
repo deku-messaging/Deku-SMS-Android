@@ -42,6 +42,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.CustomAppCompactActivity;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter;
@@ -88,6 +89,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
     SMS.SMSMetaEntity smsMetaEntity;
 
+    int defaultSubscriptionId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,7 +115,12 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             public void run() {
                 if(getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID)) {
                     singleMessageViewModel.informNewItemChanges(getApplicationContext());
-                    cancelNotifications(SMS.SMSMetaEntity.THREAD_ID);
+                    cancelNotifications(smsMetaEntity.getThreadId());
+                    try {
+                        _checkEncryptionStatus();
+                    } catch (GeneralSecurityException | IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -173,6 +181,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             if (sendToString.contains("smsto:") || sendToString.contains("sms:")) {
                 getIntent().putExtra(SMS.SMSMetaEntity.ADDRESS,
                         sendToString.substring(sendToString.indexOf(':') + 1));
+                Log.d(getLocalClassName(), "Send to data received");
             }
         }
 
@@ -206,7 +215,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
         linearLayoutManager = new LinearLayoutManager(this);
 
-        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+        defaultSubscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+
     }
 
     private void _configureRecyclerView() {
@@ -234,12 +244,13 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         singleMessagesThreadRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
             @Override
             public void onChanged(String[] strings) {
-                try {
-                    SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
-                    sendSMSMessage(null, strings[1], null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                // TODO: fix this
+//                try {
+//                    SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
+//                    sendSMSMessage(null, strings[1], null);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
             }
         });
 
@@ -247,23 +258,24 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             @Override
             public void onChanged(String[] strings) {
                 try {
-                    SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
-
-                    long messageId = Helpers.generateRandomNumber();
-                    int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-
-                    String text = SecurityHelpers.FIRST_HEADER
-                            + strings[1]
-                            + SecurityHelpers.END_HEADER;
-
-                    SMSHandler.registerPendingMessage(getApplicationContext(),
-                            smsMetaEntity.getAddress(),
-                            text,
-                            messageId,
-                            subscriptionId);
-
-                    // TODO: rewrite rxKeys to a more standardized form
-                    rxKeys(Base64.decode(strings[1], Base64.DEFAULT), messageId, subscriptionId);
+                    // TODO: fix this
+//                    SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
+//
+//                    long messageId = Helpers.generateRandomNumber();
+//                    int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+//
+//                    String text = SecurityHelpers.FIRST_HEADER
+//                            + strings[1]
+//                            + SecurityHelpers.END_HEADER;
+//
+//                    SMSHandler.registerPendingMessage(getApplicationContext(),
+//                            smsMetaEntity.getAddress(),
+//                            text,
+//                            messageId,
+//                            subscriptionId);
+//
+//                    // TODO: rewrite rxKeys to a more standardized form
+//                    rxKeys(Base64.decode(strings[1], Base64.DEFAULT), messageId, subscriptionId);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -288,7 +300,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
                     if (newSize > 0)
                         recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
-                } else if (singleMessageViewModel.offsetStartedFromZero &&
+                }
+                else if (singleMessageViewModel.offsetStartedFromZero &&
                         lastTopVisiblePosition >= maximumScrollPosition) {
                     singleMessageViewModel.refresh(getApplicationContext());
                     int itemCount = recyclerView.getAdapter().getItemCount();
@@ -348,7 +361,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         findViewById(R.id.sms_send_button).setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                onLongClickSend(v);
+                _onLongClickSendButton(v);
                 return true;
             }
         });
@@ -380,6 +393,13 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         final boolean hasSecretKey = smsMetaEntity.getEncryptionState(getApplicationContext())
                 == SMS.SMSMetaEntity.ENCRYPTION_STATE.ENCRYPTED;
         final byte[] secretKey = smsMetaEntity.getSecretKey(getApplicationContext());
+
+        findViewById(R.id.sms_send_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendTextMessage(v);
+            }
+        });
 
         smsTextView.addTextChangedListener(new TextWatcher() {
             @Override
@@ -477,29 +497,29 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
-
-                        String text = SecurityHelpers.FIRST_HEADER
-                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
-                                + SecurityHelpers.END_HEADER;
-
-                        // TODO: refactor the entire send sms thing to inform when dual-sim
-                        // TODO: support for multi-sim
-
-                        long messageId = Helpers.generateRandomNumber();
-                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-
-                        SMSHandler.registerPendingMessage(getApplicationContext(),
-                                smsMetaEntity.getAddress(),
-                                text,
-                                messageId,
-                                subscriptionId);
-
-                        rxKeys(agreementKey, messageId, subscriptionId);
-                    } catch (GeneralSecurityException | IOException e) {
-                        throw new RuntimeException(e);
-                    }
+//                    try {
+//                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
+//
+//                        String text = SecurityHelpers.FIRST_HEADER
+//                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
+//                                + SecurityHelpers.END_HEADER;
+//
+//                        // TODO: refactor the entire send sms thing to inform when dual-sim
+//                        // TODO: support for multi-sim
+//
+//                        long messageId = Helpers.generateRandomNumber();
+//                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+//
+//                        SMSHandler.registerPendingMessage(getApplicationContext(),
+//                                smsMetaEntity.getAddress(),
+//                                text,
+//                                messageId,
+//                                subscriptionId);
+//
+//                        rxKeys(agreementKey, messageId, subscriptionId);
+//                    } catch (GeneralSecurityException | IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
                 }
             };
 
@@ -513,26 +533,26 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        byte[] peerAgreementKey = smsMetaEntity.agreePeerRequest(getApplicationContext());
-                        String agreementText = SecurityHelpers.FIRST_HEADER
-                                + Base64.encodeToString(peerAgreementKey, Base64.DEFAULT)
-                                + SecurityHelpers.END_HEADER;
-
-                        long messageId = Helpers.generateRandomNumber();
-                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                                smsMetaEntity.getAddress(),
-                                agreementText,
-                                messageId,
-                                subscriptionId);
-                        if(smsMetaEntity.getThreadId() == null)
-                            smsMetaEntity.setThreadId(threadIdRx);
-
-                        rxKeys(peerAgreementKey, messageId, subscriptionId);
-                    } catch (GeneralSecurityException | IOException e) {
-                        throw new RuntimeException(e);
-                    }
+//                    try {
+//                        byte[] peerAgreementKey = smsMetaEntity.agreePeerRequest(getApplicationContext());
+//                        String agreementText = SecurityHelpers.FIRST_HEADER
+//                                + Base64.encodeToString(peerAgreementKey, Base64.DEFAULT)
+//                                + SecurityHelpers.END_HEADER;
+//
+//                        long messageId = Helpers.generateRandomNumber();
+//                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+//                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+//                                smsMetaEntity.getAddress(),
+//                                agreementText,
+//                                messageId,
+//                                subscriptionId);
+//                        if(smsMetaEntity.getThreadId() == null)
+//                            smsMetaEntity.setThreadId(threadIdRx);
+//
+//                        rxKeys(peerAgreementKey, messageId, subscriptionId);
+//                    } catch (GeneralSecurityException | IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
                 }
             };
 
@@ -562,28 +582,21 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }
     }
 
-    // TODO: use standardized message sending method
     public void sendTextMessage(View view) {
-        String text = smsTextView.getText().toString();
-        sendSMSMessage(null, text, null);
+        if(smsTextView.getText() != null) {
+            String text = smsTextView.getText().toString();
+            sendSMSMessage(defaultSubscriptionId, text);
+            smsTextView.getText().clear();
+        }
     }
 
-    private void sendSMSMessage(Integer subscriptionId, String text, Long messageId) {
-//        // TODO: Don't let sending happen if message box is empty
-//        Log.d(getLocalClassName(), "Sending new text message..");
-//        try {
-//
-//            SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-//
-//            if (messageId == null)
-//                messageId = Helpers.generateRandomNumber();
-//
-//            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
-//                    getApplicationContext(), messageId);
-//
-////            handleBroadcast();
-//
-//            String tmpThreadId = null;
+    private void removeFromArchive() throws InterruptedException {
+        ArchiveHandler archiveHandler = new ArchiveHandler(getApplicationContext());
+        archiveHandler.removeFromArchive(getApplicationContext(),
+                Long.parseLong(smsMetaEntity.getThreadId()));
+    }
+
+    private void ____tmp_format_encrypted_message() {
 //            if (securityECDH.hasSecretKey(address)) {
 //                text = encryptContent(text);
 //                text = SecurityHelpers.putEncryptedMessageWaterMark(text);
@@ -592,46 +605,32 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 //                        pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
 //            } else tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
 //                    pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
-//
-//            resetSmsTextView();
-//
-//            if (threadId == null || threadId.isEmpty()) {
-//                threadId = tmpThreadId;
-//                singleMessageViewModel.informNewItemChanges(threadId);
-//            } else {
-//                singleMessageViewModel.informNewItemChanges();
-//            }
-//
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        removeFromArchive();
-//                    } catch (InterruptedException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                }
-//            }).start();
-//        } catch (IllegalArgumentException e) {
-//            e.printStackTrace();
-//            Toast.makeText(this, "Make sure Address and Text are provided.", Toast.LENGTH_LONG).show();
-//        } catch (Throwable e) {
-//            e.printStackTrace();
-//            Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
-//        }
+
     }
 
-    // TODO: fix this
-//    private void removeFromArchive() throws InterruptedException {
-//        archiveHandler.removeFromArchive(getApplicationContext(), Long.parseLong(threadId));
-//    }
+    private void sendSMSMessage(int subscriptionId, String text) {
+        try {
+            SMSHandler.registerPendingMessage(getApplicationContext(),
+                    smsMetaEntity.getAddress(), text, subscriptionId);
 
-    private void resetSmsTextView() {
-//        smsTextView.setText(null);
-        smsTextView.getText().clear();
+            // Remove messages from archive if pending send
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        removeFromArchive();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor, Integer textColor) {
+    private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener,
+                               Integer bgColor, Integer textColor) {
         String insertDetails = smsMetaEntity.getContactName(getApplicationContext());
         insertDetails = insertDetails.replaceAll("\\+", "");
         String insertText = text.replaceAll("\\[insert name\\]", insertDetails);
@@ -677,31 +676,32 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     private void rxKeys(byte[] txAgreementKey, long messageId, int subscriptionId) {
-        try {
-            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
-                    getApplicationContext(), messageId);
-
-            SMSHandler.sendDataSMS(getApplicationContext(),
-                    smsMetaEntity.getAddress(),
-                    txAgreementKey,
-                    pendingIntents[0],
-                    pendingIntents[1],
-                    messageId,
-                    subscriptionId);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
-                    SmsManager.RESULT_ERROR_GENERIC_FAILURE);
-            singleMessageViewModel.informNewItemChanges(getApplicationContext());
-        }
+        // TODO: fix this
+//        try {
+//            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
+//                    getApplicationContext(), messageId);
+//
+//            SMSHandler.sendDataSMS(getApplicationContext(),
+//                    smsMetaEntity.getAddress(),
+//                    txAgreementKey,
+//                    pendingIntents[0],
+//                    pendingIntents[1],
+//                    messageId,
+//                    subscriptionId);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//            SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
+//                    SmsManager.RESULT_ERROR_GENERIC_FAILURE);
+//            singleMessageViewModel.informNewItemChanges(getApplicationContext());
+//        }
     }
 
     public void uploadImage(View view) {
-        Intent galleryIntent = new Intent(
-                Intent.ACTION_PICK,
-                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
-        startActivityForResult(galleryIntent, RESULT_GALLERY);
+//        Intent galleryIntent = new Intent(
+//                Intent.ACTION_PICK,
+//                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+//
+//        startActivityForResult(galleryIntent, RESULT_GALLERY);
     }
 
 
@@ -722,7 +722,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 //        }
     }
 
-    public void onLongClickSend(View view) {
+    public void _onLongClickSendButton(View view) {
         List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
 
         TextView simcard1 = findViewById(R.id.simcard_select_operator_1_name);
@@ -748,9 +748,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             buttons.get(i).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String text = smsTextView.getText().toString();
-                    sendSMSMessage(subscriptionId, text, null);
+                    defaultSubscriptionId = subscriptionId;
                     findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
+                    String subscriptionText = getString(R.string.default_subscription_id_changed) +
+                            carrierName;
+                    Toast.makeText(getApplicationContext(), subscriptionText, Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -813,19 +815,20 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     private void _deleteItems() {
-        if(singleMessagesThreadRecyclerAdapter.selectedItem.getValue() != null) {
-            final String[] keys = singleMessagesThreadRecyclerAdapter.selectedItem.getValue()
-                    .keySet().toArray(new String[0]);
-            if (keys.length > 1) {
-                SMSHandler.deleteSMSMessagesById(getApplicationContext(), keys);
-                singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
-                singleMessagesThreadRecyclerAdapter.removeAllItems(keys);
-            } else {
-                SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
-                singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
-                singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
-            }
-        }
+        // TODO: fix this
+//        if(singleMessagesThreadRecyclerAdapter.selectedItem.getValue() != null) {
+//            final String[] keys = singleMessagesThreadRecyclerAdapter.selectedItem.getValue()
+//                    .keySet().toArray(new String[0]);
+//            if (keys.length > 1) {
+//                SMSHandler.deleteMultipleMessages(getApplicationContext(), keys);
+//                singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+//                singleMessagesThreadRecyclerAdapter.removeAllItems(keys);
+//            } else {
+//                SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
+//                singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
+//                singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
+//            }
+//        }
     }
 
     @Override

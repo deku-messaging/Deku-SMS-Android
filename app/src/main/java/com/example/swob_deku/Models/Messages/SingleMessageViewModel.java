@@ -43,7 +43,10 @@ public class SingleMessageViewModel extends ViewModel {
             offsetStartedFromZero = false;
             this.offset = offset;
         }
-        this.mutableLiveData = new MutableLiveData<>(loadSMSThreads(context, offset, currentLimit));
+        ArrayList<SMS> loadedSMS = this.threadId != null ?
+                loadSMSThreads(context, offset, currentLimit) :
+                new ArrayList<>();
+        this.mutableLiveData = new MutableLiveData<>(loadedSMS);
         return mutableLiveData;
     }
 

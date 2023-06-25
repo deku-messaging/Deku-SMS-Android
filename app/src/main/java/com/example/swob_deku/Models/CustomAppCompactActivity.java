@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,8 +28,6 @@ public class CustomAppCompactActivity extends AppCompatActivity {
     BroadcastReceiver incomingBroadcastReceiver;
     BroadcastReceiver messageStateChangedBroadcast;
 
-    ArchiveHandler archiveHandler;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,12 +36,6 @@ public class CustomAppCompactActivity extends AppCompatActivity {
             startActivity(new Intent(this, DefaultCheckActivity.class));
             finish();
         }
-
-        _instantiateGlobals();
-    }
-
-    private void _instantiateGlobals(){
-        archiveHandler = new ArchiveHandler(getApplicationContext());
     }
 
     private boolean _checkIsDefaultApp() {
@@ -57,8 +50,6 @@ public class CustomAppCompactActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if(runnable != null) {
-//                    cancelNotifications(threadId);
-//                    defaultViewModel.informNewItemChanges();
                     runnable.run();
                 }
             }
@@ -68,11 +59,7 @@ public class CustomAppCompactActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if(runnable != null) {
-//                try {
-//                    checkEncryptedMessaging();
-//                } catch (GeneralSecurityException | IOException e) {
-//                    e.printStackTrace();
-//                }
+                    runnable.run();
                 }
             }
         };
@@ -80,8 +67,10 @@ public class CustomAppCompactActivity extends AppCompatActivity {
         messageStateChangedBroadcast = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
+                Log.d(getLocalClassName(), SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT +
+                        " Received");
                 if(runnable != null) {
-//                    defaultViewModel.informNewItemChanges();
+                    runnable.run();
                 }
             }
         };
@@ -111,9 +100,6 @@ public class CustomAppCompactActivity extends AppCompatActivity {
 
         if (messageStateChangedBroadcast != null)
             unregisterReceiver(messageStateChangedBroadcast);
-
-        if (archiveHandler != null)
-            archiveHandler.close();
     }
 
     public void cancelNotifications(String threadId) {

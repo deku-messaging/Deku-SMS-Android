@@ -8,35 +8,20 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ImageDecoder;
 import android.graphics.Paint;
-import android.graphics.RectF;
-import android.media.ExifInterface;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
-import android.view.Surface;
 
-import androidx.room.Dao;
-
-import com.example.swob_deku.BuildConfig;
-import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityAES;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +29,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 public class ImageHandler {
 
@@ -72,7 +56,9 @@ public class ImageHandler {
     }
 
     public static byte[] buildImage(byte[][] unstructuredImageBytes ) throws IOException {
-        return SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
+        // TODO: fix this
+//        return SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
+        return null;
     }
 
     public static boolean canComposeImage(Context context, String RIL) {
@@ -187,7 +173,8 @@ public class ImageHandler {
         String appendedBody = IMAGE_HEADER + Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
         SMSHandler.updateMessage(context, headerMessageId, appendedBody);
-        SMSHandler.deleteSMSMessagesById(context, ids);
+        // TODO: Fix this
+//        SMSHandler.deleteMultipleMessages(context, ids);
 
         return Long.parseLong(headerMessageId);
     }
@@ -205,44 +192,45 @@ public class ImageHandler {
     }
 
     public static Cursor getImagesCursor(Context context, String RIL) {
-        RIL = IMAGE_HEADER + RIL;
-
-        Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByRIL(context, RIL);
-        Log.d(ImageHandler.class.getName(), "Data image header RIL: " + RIL);
-        Log.d(ImageHandler.class.getName(), "Data image header counter: " + cursorImageCursor.getCount());
-        if(cursorImageCursor.moveToFirst()) {
-
-            SMS sms = new SMS(cursorImageCursor);
-            cursorImageCursor.close();
-
-            String body = sms.getBody().replace(RIL, "");
-
-            byte[] data = Base64.decode(body, Base64.DEFAULT);
-
-            Log.d(ImageHandler.class.getName(), "Data image ref: " + Byte.toUnsignedInt(data[0]));
-            // TODO: check if data is image
-            int len = Byte.toUnsignedInt(data[2]);
-
-            StringBuilder query = new StringBuilder();
-            String[] parameters = new String[len];
-
-            for(Integer i=0; i<len; ++i ) {
-                if(i + 1 == len)
-                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ?");
-                else
-                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ? OR ");
-
-                parameters[i] = IMAGE_HEADER + Byte.toUnsignedInt(data[0]) + i + "%";
-            }
-
-            Cursor cursor = SMSHandler.fetchSMSForImages(context, query.toString(), parameters, sms.getThreadId());
-            Log.d(ImageHandler.class.getName(), "Data image founder counter: " + cursor.getCount() + "/" + len);
-            if(cursor.getCount() >= len) {
-                cursor.close();
-                return cursor;
-            }
-            cursor.close();
-        }
+        // TODO: fix this
+//        RIL = IMAGE_HEADER + RIL;
+//
+//        Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByRIL(context, RIL);
+//        Log.d(ImageHandler.class.getName(), "Data image header RIL: " + RIL);
+//        Log.d(ImageHandler.class.getName(), "Data image header counter: " + cursorImageCursor.getCount());
+//        if(cursorImageCursor.moveToFirst()) {
+//
+//            SMS sms = new SMS(cursorImageCursor);
+//            cursorImageCursor.close();
+//
+//            String body = sms.getBody().replace(RIL, "");
+//
+//            byte[] data = Base64.decode(body, Base64.DEFAULT);
+//
+//            Log.d(ImageHandler.class.getName(), "Data image ref: " + Byte.toUnsignedInt(data[0]));
+//            // TODO: check if data is image
+//            int len = Byte.toUnsignedInt(data[2]);
+//
+//            StringBuilder query = new StringBuilder();
+//            String[] parameters = new String[len];
+//
+//            for(Integer i=0; i<len; ++i ) {
+//                if(i + 1 == len)
+//                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ?");
+//                else
+//                    query.append(Telephony.TextBasedSmsColumns.BODY + " like ? OR ");
+//
+//                parameters[i] = IMAGE_HEADER + Byte.toUnsignedInt(data[0]) + i + "%";
+//            }
+//
+//            Cursor cursor = SMSHandler.fetchSMSForImages(context, query.toString(), parameters, sms.getThreadId());
+//            Log.d(ImageHandler.class.getName(), "Data image founder counter: " + cursor.getCount() + "/" + len);
+//            if(cursor.getCount() >= len) {
+//                cursor.close();
+//                return cursor;
+//            }
+//            cursor.close();
+//        }
         return null;
     }
 
