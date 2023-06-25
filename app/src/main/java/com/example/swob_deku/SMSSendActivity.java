@@ -5,13 +5,11 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
@@ -37,11 +35,9 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -55,17 +51,14 @@ import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
+import com.example.swob_deku.Settings.SettingsHandler;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
-import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,17 +74,12 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     public static final String SMS_SENT_INTENT = "SMS_SENT";
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
-    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 200;
     private final int RESULT_GALLERY = 100;
     SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
     SingleMessageViewModel singleMessageViewModel;
     TextInputEditText smsTextView;
-    TextInputLayout smsTextInputLayout;
     ConstraintLayout multiSimcardConstraint;
     MutableLiveData<String> mutableLiveDataComposeMessage = new MutableLiveData<>();
-//    String threadId = "";
-//    String address = "";
-//    String unformattedAddress = "";
 
     String contactName = "";
 
@@ -101,8 +89,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     LinearLayoutManager linearLayoutManager;
     RecyclerView singleMessagesThreadRecyclerView;
 
-    HashMap<String, RecyclerView.ViewHolder> selectedItems = new HashMap<>();
-    private String abSubtitle = "";
 
     SMS.SMSMetaEntity smsMetaEntity;
 
@@ -146,6 +132,10 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                     _updateThreadToRead();
             }
         }).start();
+
+        if(SettingsHandler.checkEncryptedMessagingDisabled(getApplicationContext())) {
+            _checkEncryptionStatus();
+        }
     }
 
     @Override
@@ -285,14 +275,14 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 final int maximumScrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
 
                 if (!singleMessageViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
-                    int newSize = singleMessageViewModel.refreshDown();
+                    int newSize = singleMessageViewModel.refreshDown(getApplicationContext());
 
                     if (newSize > 0)
                         recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
 //                    if(itemCount > maximumScrollPosition + 1)
                 } else if (singleMessageViewModel.offsetStartedFromZero &&
                         lastTopVisiblePosition >= maximumScrollPosition) {
-                    singleMessageViewModel.refresh();
+                    singleMessageViewModel.refresh(getApplicationContext());
                     int itemCount = recyclerView.getAdapter().getItemCount();
                     if (itemCount > maximumScrollPosition + 1)
                         recyclerView.scrollToPosition(lastTopVisiblePosition);
@@ -621,177 +611,101 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }
     }
 
-    private boolean checkEncryptedMessagingDisabled() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        return sharedPreferences.getBoolean("encryption_disable", false);
-    }
-
-    public void checkEncryptedMessaging() throws GeneralSecurityException, IOException {
-        if (checkEncryptedMessagingDisabled())
-            return;
-
-        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-        Log.d(getLocalClassName(), "Has private key: " + securityECDH.hasPrivateKey(address));
-
-        if (securityECDH.peerAgreementPublicKeysAvailable(getApplicationContext(), address)) {
-            String text = securityECDH.hasPrivateKey(address) ?
-                    getString(R.string.send_sms_activity_user_not_secure_agree) :
-                    getString(R.string.send_sms_activity_user_not_secure_no_agreed);
-            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
-
-            // TODO: change bgColor to match the intended use
-            Integer bgColor = getResources().getColor(R.color.highlight_yellow, getTheme());
-            View.OnClickListener onClickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        byte[] peerPublicKey = Base64.decode(securityECDH.getPeerAgreementPublicKey(address),
-                                Base64.DEFAULT);
-                        KeyPair keyPair = securityECDH.generateKeyPairFromPublicKey(peerPublicKey);
-
-                        Thread remotePeerHandshake = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                PublicKey publicKey = keyPair.getPublic();
-                                byte[] txAgreementKey = SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
-
-                                String agreementText = SecurityHelpers.FIRST_HEADER
-                                        + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT)
-                                        + SecurityHelpers.END_HEADER;
-                                long messageId = Helpers.generateRandomNumber();
-                                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                                String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                                        address, agreementText, messageId, subscriptionId);
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (threadId.isEmpty()) {
-                                            threadId = threadIdRx;
-                                            singleMessageViewModel.informNewItemChanges(threadId);
-                                        } else singleMessageViewModel.informNewItemChanges();
-                                    }
-                                });
-                                try {
-                                    securityECDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
-                                            address, keyPair);
-                                } catch (GeneralSecurityException | IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                                rxKeys(txAgreementKey, messageId, subscriptionId);
-
-                            }
-                        });
-
-
-                        try {
-                            if (!securityECDH.hasPrivateKey(address)) {
-                                // TODO: support for multi-sim
-                                remotePeerHandshake.start();
-                                remotePeerHandshake.join();
-                                Log.d(getLocalClassName(), "Private key not available for address: " + address);
-                            } else {
-                                Log.d(getLocalClassName(), "Private key available for address: " + address);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
-                        Log.d(getLocalClassName(), "Agreement value for secret: " +
-                                Base64.encodeToString(peerPublicKey, Base64.DEFAULT));
-                        byte[] secret = securityECDH.generateSecretKey(peerPublicKey, address);
-                        securityECDH.securelyStoreSecretKey(address, secret);
-                        ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
-                        singleMessagesThreadRecyclerAdapter.generateSecretKey();
-
-                    } catch (GeneralSecurityException | IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
-
-
-            // TODO: check if has private key
-            lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
-                }
-            });
-        } else if (!securityECDH.hasSecretKey(address)) {
+    private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
+        if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.NOT_ENCRYPTED) {
+            ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
 
             int textColor = Color.WHITE;
             Integer bgColor = getResources().getColor(R.color.failed_red, getTheme());
             String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure);
-
-            if (securityECDH.hasPrivateKey(address)) {
-                bgColor = getResources().getColor(R.color.purple_200, getTheme());
-                conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure_pending);
-                textColor = Color.BLACK;
-            }
-
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes);
 
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // TODO: generate the key
-                    // TODO: register the key as 1 message with data header - hold on to ID in case failure
-                    // TODO: send the key as 2 data messages
                     try {
-                        byte[] agreementKey = dhAgreementInitiation();
-                        byte[] txAgreementKey = SecurityHelpers.txAgreementFormatter(agreementKey);
+                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
 
                         String text = SecurityHelpers.FIRST_HEADER
                                 + Base64.encodeToString(agreementKey, Base64.DEFAULT)
                                 + SecurityHelpers.END_HEADER;
 
-                        long messageId = Helpers.generateRandomNumber();
-
+                        // TODO: refactor the entire send sms thing to inform when dual-sim
                         // TODO: support for multi-sim
+
+                        long messageId = Helpers.generateRandomNumber();
                         int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                                address, text, messageId, subscriptionId);
-                        if (threadId.isEmpty()) {
-                            threadId = threadIdRx;
-                            singleMessageViewModel.informNewItemChanges(threadId);
-                        } else singleMessageViewModel.informNewItemChanges();
 
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    rxKeys(txAgreementKey, messageId, subscriptionId);
-                                    checkEncryptedMessaging();
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }).start();
+                        SMSHandler.registerPendingMessage(getApplicationContext(),
+                                smsMetaEntity.getAddress(getApplicationContext()),
+                                text,
+                                messageId,
+                                subscriptionId);
 
+                        rxKeys(agreementKey, messageId, subscriptionId);
                     } catch (GeneralSecurityException | IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
             };
 
-//            Integer bgColor = null;
             lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, textColor);
+        }
+        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST) {
+            String text = getString(R.string.send_sms_activity_user_not_secure_agree);
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
+            Integer bgColor = getResources().getColor(R.color.highlight_yellow, getTheme());
+            View.OnClickListener onClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        byte[] peerAgreementKey = smsMetaEntity.agreePeerRequest(getApplicationContext());
+                        String agreementText = SecurityHelpers.FIRST_HEADER
+                                + Base64.encodeToString(peerAgreementKey, Base64.DEFAULT)
+                                + SecurityHelpers.END_HEADER;
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
+                        long messageId = Helpers.generateRandomNumber();
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+                                smsMetaEntity.getAddress(getApplicationContext()),
+                                agreementText,
+                                messageId,
+                                subscriptionId);
+                        if(smsMetaEntity.getThreadId() == null)
+                            smsMetaEntity.setThreadId(threadIdRx);
+
+                        rxKeys(peerAgreementKey, messageId, subscriptionId);
+                    } catch (GeneralSecurityException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-            });
-        } else {
-            runOnUiThread(new Runnable() {
+            };
+
+            lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
+        }
+        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT) {
+            String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
+            int bgColor = getResources().getColor(R.color.purple_200, getTheme());
+
+            View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
-                public void run() {
-                    ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
+                public void onClick(View v) {
+                    try {
+                        smsMetaEntity.agreePeerRequest(getApplicationContext());
+                    } catch (GeneralSecurityException | IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            });
+            };
+            lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
+        }
+        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.ENCRYPTED) {
+            ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
         }
     }
 
@@ -934,13 +848,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 hideDefaultToolbar(toolbar.getMenu(), size);
             }
         }
-    }
-
-    public byte[] dhAgreementInitiation() throws GeneralSecurityException, IOException {
-        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-        PublicKey publicKey = securityECDH.generateKeyPair(getApplicationContext(), address);
-        Log.d(getLocalClassName(), "Public key: " + Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT));
-        return publicKey.getEncoded();
     }
 
     @Override

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
+import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,8 +14,14 @@ import androidx.recyclerview.widget.DiffUtil;
 
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Contacts.Contacts;
+import com.example.swob_deku.Models.Security.SecurityECDH;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.i18n.phonenumbers.NumberParseException;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -279,26 +286,37 @@ public class SMS {
 
         public static final String SHARED_SMS_BODY = "sms_body";
 
+        public enum ENCRYPTION_STATE {
+            NOT_ENCRYPTED,
+            SENT_PENDING_AGREEMENT,
+            RECEIVED_PENDING_AGREEMENT,
+
+            RECEIVED_AGREEMENT_REQUEST,
+            ENCRYPTED
+        }
+
         private String address, threadId;
+        private String _address;
 
         public void setThreadId(String threadId) {
             this.threadId = threadId;
         }
 
-        public void setAddress(String address) {
+        public void setAddress(Context context, String address) {
             this.address = address;
+            try {
+                this._address = formatPhoneNumbers(context, this.address);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            this._address = this.address;
         }
 
         public String getThreadId() {
             return this.threadId;
         }
         public String getAddress(Context context){
-            try {
-                return formatPhoneNumbers(context, address);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return this.address;
+            return this._address;
         }
 
         public boolean isShortCode() {
@@ -339,6 +357,68 @@ public class SMS {
                 e.printStackTrace();
             }
             return this.address;
+        }
+
+        /**
+         *
+         * @param context
+         * @return ENCRYPTION_STATE: Informs about the encryption with current address that holds
+         * this entity. Remember, it is always the address' state with you - not yours!
+         * @throws GeneralSecurityException
+         * @throws IOException
+         */
+        public ENCRYPTION_STATE getEncryptionState(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            if(securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress(context)) &&
+                    securityECDH.hasPrivateKey(getAddress(context))) {
+                return ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT;
+            }
+            else if (securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress(context))) {
+                return ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST;
+            }
+            else if(securityECDH.hasPrivateKey(getAddress(context))) {
+                return ENCRYPTION_STATE.SENT_PENDING_AGREEMENT;
+            }
+            else if (securityECDH.hasSecretKey(address)) {
+                return ENCRYPTION_STATE.ENCRYPTED;
+            }
+            return ENCRYPTION_STATE.NOT_ENCRYPTED;
+        }
+
+        /**
+         *
+         * @param context
+         * @return byte[] : Returns the public key. Remember this is your
+         * primary key (you being whomever is initiating the handshake).
+         * @throws GeneralSecurityException
+         * @throws IOException
+         */
+        public byte[] generateAgreements(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            PublicKey publicKey = securityECDH.generateKeyPair(context, getAddress(context));
+
+            // TODO: refactor txAgreementFormatter -> why is exist?
+            return SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
+        }
+
+        /**
+         *
+         * @param context
+         * @return byte[] : Returns the public key generated from the peer agreement key.
+         * Remember this is your primary key (you being whomever is initiating the handshake).
+         * @throws GeneralSecurityException
+         * @throws IOException
+         */
+        public byte[] agreePeerRequest(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            byte[] peerPublicKey = Base64.decode(securityECDH.getPeerAgreementPublicKey(address),
+                    Base64.DEFAULT);
+
+            KeyPair keyPair = securityECDH.generateKeyPairFromPublicKey(peerPublicKey);
+            byte[] secret = securityECDH.generateSecretKey(peerPublicKey, address);
+            securityECDH.securelyStoreSecretKey(address, secret);
+
+            return keyPair.getPublic().getEncoded();
         }
     }
 }
