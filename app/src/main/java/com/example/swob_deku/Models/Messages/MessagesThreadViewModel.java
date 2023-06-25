@@ -61,9 +61,10 @@ public class MessagesThreadViewModel extends ViewModel {
                         if (cursor.moveToFirst()) {
                             do {
                                 SMS sms = new SMS(cursor);
+                                SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                                smsMetaEntity.setAddress(context, sms.getAddress());
                                 try {
-                                    if (!securityECDH.hasSecretKey(
-                                            Helpers.formatPhoneNumbers(context, sms.getAddress())))
+                                    if (!smsMetaEntity.isEncrypted(context))
                                         continue;
                                     else {
                                         if (archiveHandler.isArchived(Long.parseLong(sms.getThreadId()))) {
@@ -71,7 +72,6 @@ public class MessagesThreadViewModel extends ViewModel {
                                         }
                                     }
                                 } catch (GeneralSecurityException | IOException |
-                                         NumberParseException |
                                          InterruptedException e) {
                                     e.printStackTrace();
                                 }
@@ -117,9 +117,10 @@ public class MessagesThreadViewModel extends ViewModel {
                         if (cursor.moveToFirst()) {
                             do {
                                 SMS sms = new SMS(cursor);
+                                SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                                smsMetaEntity.setAddress(context, sms.getAddress());
                                 try {
-                                    if (securityECDH.hasSecretKey(
-                                            Helpers.formatPhoneNumbers(context, sms.getAddress())))
+                                    if (smsMetaEntity.isEncrypted(context))
                                         continue;
                                     else {
                                         if (archiveHandler.isArchived(Long.parseLong(sms.getThreadId()))) {
@@ -127,7 +128,6 @@ public class MessagesThreadViewModel extends ViewModel {
                                         }
                                     }
                                 } catch (GeneralSecurityException | IOException |
-                                         NumberParseException |
                                          InterruptedException e) {
                                     e.printStackTrace();
                                 }

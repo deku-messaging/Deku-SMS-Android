@@ -20,6 +20,7 @@ import androidx.core.app.RemoteInput;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
@@ -41,8 +42,8 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
             Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
             if (remoteInput != null) {
                 CharSequence reply = remoteInput.getCharSequence(KEY_TEXT_REPLY);
-                String address = intent.getStringExtra(SMSSendActivity.ADDRESS);
-                String threadId = intent.getStringExtra(SMSSendActivity.THREAD_ID);
+                String address = intent.getStringExtra(SMS.SMSMetaEntity.ADDRESS);
+                String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
 
                 Log.d(getClass().getName(), "Yep broadcast is called with reply: " + reply.toString());
                 Log.d(getClass().getName(), "Yep broadcast is called with address: " + address);
@@ -61,7 +62,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                     Cursor cursor = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, threadId);
 
                     Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
-                    receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
+                    receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
                     receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
                     PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
@@ -83,7 +84,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
             }
         }
         else if(intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
-            String threadId = intent.getStringExtra(SMSSendActivity.THREAD_ID);
+            String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
             try {
                 SMSHandler.updateMarkThreadMessagesAsRead(context, threadId);
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
@@ -93,7 +94,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
             }
         }
         else if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT)) {
-            long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+            long id = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
             switch(getResultCode()) {
                 case Activity.RESULT_OK:
                     try {
@@ -122,7 +123,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
         }
         else if(intent.getAction().equals(SMS_DELIVERED_BROADCAST_INTENT)) {
             intent.putExtra(BROADCAST_STATE, DELIVERED_BROADCAST_INTENT);
-            long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+            long id = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
             if (getResultCode() == Activity.RESULT_OK) {
                 SMSHandler.registerDeliveredMessage(context, id);
             } else {

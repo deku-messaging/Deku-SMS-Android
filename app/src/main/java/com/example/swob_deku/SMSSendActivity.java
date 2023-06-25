@@ -171,7 +171,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
          */
 
         smsMetaEntity = new SMS.SMSMetaEntity();
-        if(getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
+        if(getIntent().getAction() != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
             String sendToString = getIntent().getDataString();
             if (sendToString.contains("smsto:") || sendToString.contains("sms:")) {
                 getIntent().putExtra(SMS.SMSMetaEntity.ADDRESS,
@@ -193,8 +193,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     private void _instantiateGlobals() throws GeneralSecurityException, IOException {
-
         toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
+        setSupportActionBar(toolbar);
         ab = getSupportActionBar();
 
         smsTextView = findViewById(R.id.sms_text);
@@ -202,7 +202,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext(),
-                smsMetaEntity.getAddress(getApplicationContext()));
+                smsMetaEntity.getAddress());
 
         singleMessageViewModel = new ViewModelProvider(this)
                 .get(SingleMessageViewModel.class);
@@ -260,7 +260,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                             + SecurityHelpers.END_HEADER;
 
                     SMSHandler.registerPendingMessage(getApplicationContext(),
-                            smsMetaEntity.getAddress(getApplicationContext()),
+                            smsMetaEntity.getAddress(),
                             text,
                             messageId,
                             subscriptionId);
@@ -315,7 +315,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     private void _configureToolbars() {
-        setSupportActionBar(toolbar);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -587,7 +586,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                     getApplicationContext(), messageId);
 
             SMSHandler.sendDataSMS(getApplicationContext(),
-                    smsMetaEntity.getAddress(getApplicationContext()),
+                    smsMetaEntity.getAddress(),
                     txAgreementKey,
                     pendingIntents[0],
                     pendingIntents[1],
@@ -628,7 +627,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                         int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
 
                         SMSHandler.registerPendingMessage(getApplicationContext(),
-                                smsMetaEntity.getAddress(getApplicationContext()),
+                                smsMetaEntity.getAddress(),
                                 text,
                                 messageId,
                                 subscriptionId);
@@ -659,7 +658,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                         long messageId = Helpers.generateRandomNumber();
                         int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
                         String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                                smsMetaEntity.getAddress(getApplicationContext()),
+                                smsMetaEntity.getAddress(),
                                 agreementText,
                                 messageId,
                                 subscriptionId);

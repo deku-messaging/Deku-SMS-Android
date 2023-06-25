@@ -286,6 +286,7 @@ public class SMS {
     public static class SMSMetaEntity {
         public static final String THREAD_ID = "THREAD_ID";
         public static final String ADDRESS = "ADDRESS";
+        public static final String ID = "ID";
 
         public static final String SHARED_SMS_BODY = "sms_body";
 
@@ -311,21 +312,21 @@ public class SMS {
                 this._address = formatPhoneNumbers(context, this.address);
             } catch (Exception e) {
                 e.printStackTrace();
+                this._address = this.address;
             }
-            this._address = this.address;
         }
 
         public String getThreadId() {
             return this.threadId;
         }
-        public String getAddress(Context context){
+        public String getAddress(){
             return this._address;
         }
 
         public boolean isShortCode() {
             Pattern pattern = Pattern.compile("[a-zA-Z]");
-            Matcher matcher = pattern.matcher(this.address);
-            return PhoneNumberUtils.isWellFormedSmsAddress(this.address) && !matcher.find();
+            Matcher matcher = pattern.matcher(getAddress());
+            return !PhoneNumberUtils.isWellFormedSmsAddress(getAddress()) || matcher.find();
         }
 
         private String formatPhoneNumbers(Context context, String data) throws NumberParseException {
@@ -355,7 +356,7 @@ public class SMS {
 
         public String getContactName(Context context) {
             try {
-                return Contacts.retrieveContactName(context, getAddress(context));
+                return Contacts.retrieveContactName(context, getAddress());
             } catch(Exception e) {
                 e.printStackTrace();
             }
@@ -372,14 +373,14 @@ public class SMS {
          */
         public ENCRYPTION_STATE getEncryptionState(Context context) throws GeneralSecurityException, IOException {
             SecurityECDH securityECDH = new SecurityECDH(context);
-            if(securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress(context)) &&
-                    securityECDH.hasPrivateKey(getAddress(context))) {
+            if(securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress()) &&
+                    securityECDH.hasPrivateKey(getAddress())) {
                 return ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT;
             }
-            else if (securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress(context))) {
+            else if (securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress())) {
                 return ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST;
             }
-            else if(securityECDH.hasPrivateKey(getAddress(context))) {
+            else if(securityECDH.hasPrivateKey(getAddress())) {
                 return ENCRYPTION_STATE.SENT_PENDING_AGREEMENT;
             }
             else if (securityECDH.hasSecretKey(address)) {
@@ -398,7 +399,7 @@ public class SMS {
          */
         public byte[] generateAgreements(Context context) throws GeneralSecurityException, IOException {
             SecurityECDH securityECDH = new SecurityECDH(context);
-            PublicKey publicKey = securityECDH.generateKeyPair(context, getAddress(context));
+            PublicKey publicKey = securityECDH.generateKeyPair(context, getAddress());
 
             // TODO: refactor txAgreementFormatter -> why is exist?
             return SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
@@ -426,7 +427,7 @@ public class SMS {
 
         public byte[] getSecretKey(Context context) throws GeneralSecurityException, IOException {
             SecurityECDH securityECDH = new SecurityECDH(context);
-            return Base64.decode(securityECDH.securelyFetchSecretKey(getAddress(context)), Base64.DEFAULT);
+            return Base64.decode(securityECDH.securelyFetchSecretKey(getAddress()), Base64.DEFAULT);
         }
 
         public String encryptContent(Context context, String data) throws Throwable {
@@ -437,9 +438,19 @@ public class SMS {
 
         public void call(Context context) {
             Intent callIntent = new Intent(Intent.ACTION_DIAL);
-            callIntent.setData(Uri.parse("tel:" + getAddress(context)));
+            callIntent.setData(Uri.parse("tel:" + getAddress()));
 
             context.startActivity(callIntent);
+        }
+
+        public boolean isEncrypted(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            return securityECDH.hasSecretKey(getAddress());
+        }
+
+        public boolean isPendingAgreement(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            return securityECDH.peerAgreementPublicKeysAvailable(context, getAddress());
         }
     }
 }

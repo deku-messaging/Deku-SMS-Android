@@ -77,8 +77,8 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView = findViewById(R.id.compressed_image_holder);
         imageDescription = findViewById(R.id.image_details_size);
 
-        address = getIntent().getStringExtra(SMSSendActivity.ADDRESS);
-        threadId = getIntent().getStringExtra(SMSSendActivity.THREAD_ID);
+        address = getIntent().getStringExtra(SMS.SMSMetaEntity.ADDRESS);
+        threadId = getIntent().getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
 
         String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
@@ -137,10 +137,10 @@ public class ImageViewActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home ) {
             Intent intent = new Intent(this, SMSSendActivity.class);
-            intent.putExtra(SMSSendActivity.ADDRESS, address);
+            intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
 
             if(!threadId.isEmpty())
-                intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+                intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
 
             startActivity(intent);
             finish();
@@ -308,7 +308,7 @@ public class ImageViewActivity extends AppCompatActivity {
 
     public void sendImage(View view) throws InterruptedException {
         Intent intent = new Intent(this, SMSSendActivity.class);
-        intent.putExtra(SMSSendActivity.ADDRESS, address);
+        intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
 
         long messageId = Helpers.generateRandomNumber();
 
@@ -326,7 +326,7 @@ public class ImageViewActivity extends AppCompatActivity {
                 messageId,
                 subscriptionId);
 
-        intent.putExtra(SMSSendActivity.THREAD_ID, threadIdRx);
+        intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadIdRx);
         intent.putExtra(SMS_IMAGE_PENDING_LOCATION, messageId);
 
         startActivity(intent);
@@ -337,10 +337,10 @@ public class ImageViewActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(this, SMSSendActivity.class);
-        intent.putExtra(SMSSendActivity.ADDRESS, address);
+        intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
 
         if(!threadId.isEmpty())
-            intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+            intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
 
         startActivity(intent);
         finish();

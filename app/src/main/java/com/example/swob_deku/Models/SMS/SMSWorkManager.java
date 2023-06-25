@@ -90,7 +90,7 @@ public class SMSWorkManager extends Worker {
         BroadcastReceiver sentBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
-                long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+                long id = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
 
                 if(intentsIds != null ) {
                     for(int i=0;i< intentsIds.length; ++i) {
@@ -173,7 +173,7 @@ public class SMSWorkManager extends Worker {
         BroadcastReceiver deliveredBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+                long id = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
 
                 if (getResultCode() == Activity.RESULT_OK) {
                     SMSHandler.registerDeliveredMessage(context, id);
@@ -192,10 +192,10 @@ public class SMSWorkManager extends Worker {
 
     public PendingIntent[] getPendingIntents(long messageId) {
         Intent sentIntent = new Intent(SMS_SENT_INTENT);
-        sentIntent.putExtra(SMSSendActivity.ID, messageId);
+        sentIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
 
         Intent deliveredIntent = new Intent(SMS_DELIVERED_INTENT);
-        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
+        deliveredIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
 
         PendingIntent sentPendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
                 Integer.parseInt(String.valueOf(messageId)),

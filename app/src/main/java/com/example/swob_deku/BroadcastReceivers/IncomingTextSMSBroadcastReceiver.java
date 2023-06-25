@@ -181,8 +181,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
             Cursor cursor1 = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, sms.getThreadId());
-            receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
-            receivedSmsIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+            receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, sms.getAddress());
+            receivedSmsIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
             Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), sms.getAddress() + " : " + sms.getThreadId());
 
             receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -194,8 +194,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             Intent replyBroadcastIntent = null;
             if(PhoneNumberUtils.isWellFormedSmsAddress(sms.getAddress())) {
                 replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
-                replyBroadcastIntent.putExtra(SMSSendActivity.ADDRESS, address);
-                replyBroadcastIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+                replyBroadcastIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
+                replyBroadcastIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
                 replyBroadcastIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_BROADCAST_INTENT);
             }
 
@@ -220,11 +220,11 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static PendingIntent[] getPendingIntents(Context context, long messageId) {
         Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
         sentIntent.setPackage(context.getPackageName());
-        sentIntent.putExtra(SMSSendActivity.ID, messageId);
+        sentIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
 
         Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
         deliveredIntent.setPackage(context.getPackageName());
-        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
+        deliveredIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
 
         PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)),
@@ -242,12 +242,12 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static PendingIntent[] getPendingIntentsForServerRequest(Context context, long messageId, long globalMessageId) {
         Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
         sentIntent.setPackage(context.getPackageName());
-        sentIntent.putExtra(SMSSendActivity.ID, messageId);
+        sentIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
         sentIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
 
         Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
         deliveredIntent.setPackage(context.getPackageName());
-        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
+        deliveredIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
 
         PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)),
@@ -281,7 +281,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         String markAsReadLabel = context.getResources().getString(R.string.notifications_mark_as_read_label);
 
         Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
-        markAsReadIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+        markAsReadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
         markAsReadIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.MARK_AS_READ_BROADCAST_INTENT);
 
         PendingIntent markAsReadPendingIntent =

@@ -284,13 +284,13 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
                 }
                 else {
                     Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
-                    singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
-                    singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, sms.getAddress());
+                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
 
                     if (searchString != null && !searchString.isEmpty()) {
                         int calculatedOffset = SMSHandler.calculateOffset(context, sms.getThreadId(), sms.getId());
                         singleMessageThreadIntent
-                                .putExtra(SMSSendActivity.ID, sms.getId())
+                                .putExtra(SMS.SMSMetaEntity.ID, sms.getId())
                                 .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
                                 .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
                                 .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
