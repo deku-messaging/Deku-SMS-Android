@@ -114,7 +114,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             @Override
             public void run() {
                 if(getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID)) {
-                    singleMessageViewModel.informNewItemChanges(getApplicationContext());
+                    if(singleMessageViewModel.threadId == null)
+                        singleMessageViewModel.informNewItemChanges(getApplicationContext(),
+                                smsMetaEntity.getThreadId());
+                    else
+                        singleMessageViewModel.informNewItemChanges(getApplicationContext());
                     cancelNotifications(smsMetaEntity.getThreadId());
                     try {
                         _checkEncryptionStatus();
@@ -397,7 +401,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         findViewById(R.id.sms_send_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendTextMessage(v);
+                try {
+                    sendTextMessage(v);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -582,11 +590,27 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }
     }
 
-    public void sendTextMessage(View view) {
+    public void sendTextMessage(View view) throws Exception {
         if(smsTextView.getText() != null) {
             String text = smsTextView.getText().toString();
-            sendSMSMessage(defaultSubscriptionId, text);
+            String threadId = sendSMSMessage(defaultSubscriptionId, text);
             smsTextView.getText().clear();
+            if(smsMetaEntity.getThreadId() == null && threadId != null) {
+                getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                _setupActivityDependencies();
+            }
+
+            // Remove messages from archive if pending send
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        removeFromArchive();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
         }
     }
 
@@ -608,25 +632,16 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
     }
 
-    private void sendSMSMessage(int subscriptionId, String text) {
+    private String sendSMSMessage(int subscriptionId, String text) {
+        String threadId = new String();
         try {
-            SMSHandler.registerPendingMessage(getApplicationContext(),
+            threadId = SMSHandler.registerPendingMessage(getApplicationContext(),
                     smsMetaEntity.getAddress(), text, subscriptionId);
-
-            // Remove messages from archive if pending send
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        removeFromArchive();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return threadId;
     }
 
     private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener,

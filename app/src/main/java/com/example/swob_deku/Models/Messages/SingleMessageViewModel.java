@@ -23,7 +23,7 @@ import java.util.List;
 import kotlin.jvm.functions.Function0;
 
 public class SingleMessageViewModel extends ViewModel {
-    String threadId;
+    public String threadId;
 
     MutableLiveData<ArrayList<SMS>> mutableLiveData;
     LiveData<ArrayList<SMS>> liveData;

@@ -103,11 +103,11 @@ public class CustomAppCompactActivity extends AppCompatActivity {
     }
 
     public void cancelNotifications(String threadId) {
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
-                getApplicationContext());
-
-        if (!threadId.isEmpty())
+        if (!threadId.isEmpty()) {
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
+                    getApplicationContext());
             notificationManager.cancel(Integer.parseInt(threadId));
+        }
     }
 
 }

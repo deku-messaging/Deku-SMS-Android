@@ -237,7 +237,7 @@ public class SMSHandler {
      * @param text
      * @param subscriptionId
      */
-    public static void registerPendingMessage(Context context, String destinationAddress,
+    public static String registerPendingMessage(Context context, String destinationAddress,
                                               String text, int subscriptionId) {
         long messageId = Helpers.generateRandomNumber();
 
@@ -272,11 +272,13 @@ public class SMSHandler {
                 newIntent.setAction(SMS_NEW_REGISTERED_PENDING_BROADCAST);
 
                 context.sendBroadcast(newIntent);
+                cursor.close();
+                return threadId;
             }
-            cursor.close();
         } catch (Exception e) {
             throw e;
         }
+        return null;
     }
 
     public static void broadcastMessageStateChanged(Context context, Intent intent){
