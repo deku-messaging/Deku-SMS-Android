@@ -81,8 +81,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     ConstraintLayout multiSimcardConstraint;
     MutableLiveData<String> mutableLiveDataComposeMessage = new MutableLiveData<>();
 
-    String contactName = "";
-
     Toolbar toolbar;
     ActionBar ab;
 
@@ -99,11 +97,15 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send_smsactivity);
 
-        _setupActivityDependencies();
-        _instantiateGlobals();
-        _configureToolbars();
-        _configureRecyclerView();
-        _configureMessagesTextBox();
+        try {
+            _setupActivityDependencies();
+            _instantiateGlobals();
+            _configureToolbars();
+            _configureRecyclerView();
+            _configureMessagesTextBox();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -134,7 +136,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }).start();
 
         if(SettingsHandler.checkEncryptedMessagingDisabled(getApplicationContext())) {
-            _checkEncryptionStatus();
+            try {
+                _checkEncryptionStatus();
+            } catch (GeneralSecurityException | IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -182,7 +188,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             smsMetaEntity.setThreadId(getIntent().getStringExtra(SMS.SMSMetaEntity.THREAD_ID));
 
         if(getIntent().hasExtra(SMS.SMSMetaEntity.ADDRESS))
-            smsMetaEntity.setAddress(getIntent().getStringExtra(SMS.SMSMetaEntity.ADDRESS));
+            smsMetaEntity.setAddress(getApplicationContext(),
+                    getIntent().getStringExtra(SMS.SMSMetaEntity.ADDRESS));
     }
 
     private void _instantiateGlobals() throws GeneralSecurityException, IOException {
@@ -252,8 +259,13 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                             + strings[1]
                             + SecurityHelpers.END_HEADER;
 
-                    String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                            address, text, messageId, subscriptionId);
+                    SMSHandler.registerPendingMessage(getApplicationContext(),
+                            smsMetaEntity.getAddress(getApplicationContext()),
+                            text,
+                            messageId,
+                            subscriptionId);
+
+                    // TODO: rewrite rxKeys to a more standardized form
                     rxKeys(Base64.decode(strings[1], Base64.DEFAULT), messageId, subscriptionId);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -279,7 +291,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
                     if (newSize > 0)
                         recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
-//                    if(itemCount > maximumScrollPosition + 1)
                 } else if (singleMessageViewModel.offsetStartedFromZero &&
                         lastTopVisiblePosition >= maximumScrollPosition) {
                     singleMessageViewModel.refresh(getApplicationContext());
@@ -293,9 +304,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         try {
             singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
                 @Override
-                public void onChanged(HashMap<String, RecyclerView.ViewHolder> integers) {
-                    selectedItems = integers;
-                    itemOperationsNeeded(integers.size());
+                public void onChanged(HashMap<String, RecyclerView.ViewHolder> selectedItems) {
+                    _changeToolbarsItemSelected(selectedItems);
                 }
             });
         } catch (Exception e) {
@@ -311,13 +321,13 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             public boolean onMenuItemClick(MenuItem item) {
                 int id = item.getItemId();
                 if (R.id.copy == id) {
-                    copyItems();
+                    _copyItems();
                     return true;
                 } else if (R.id.delete == id || R.id.delete_multiple == id) {
-                    deleteItems();
+                    _deleteItems();
                     return true;
                 } else if (R.id.make_call == id) {
-                    makeCall();
+                    smsMetaEntity.call(getApplicationContext());
                     return true;
                 }
                 return false;
@@ -328,7 +338,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         ab.setTitle(smsMetaEntity.getContactName(getApplicationContext()));
     }
 
-    private void _configureMessagesTextBox() {
+    private void _configureMessagesTextBox() throws GeneralSecurityException, IOException {
         if (mutableLiveDataComposeMessage.getValue() == null ||
                 mutableLiveDataComposeMessage.getValue().isEmpty())
             findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
@@ -371,6 +381,10 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         TextView encryptedMessageTextView = findViewById(R.id.send_sms_encrypted_version);
         encryptedMessageTextView.setMovementMethod(new ScrollingMovementMethod());
 
+        final boolean hasSecretKey = smsMetaEntity.getEncryptionState(getApplicationContext())
+                == SMS.SMSMetaEntity.ENCRYPTION_STATE.ENCRYPTED;
+        final byte[] secretKey = smsMetaEntity.getSecretKey(getApplicationContext());
+
         smsTextView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -386,13 +400,14 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 mutableLiveDataComposeMessage.setValue(s.toString());
 
                 try {
-                    if (!s.toString().isEmpty() && securityECDH.hasSecretKey(address)) {
-                        String encryptedString = Base64.encodeToString(SecurityECDH.encryptAES(s.toString().getBytes(StandardCharsets.UTF_8),
-                                Base64.decode(securityECDH.securelyFetchSecretKey(address).getBytes(), Base64.DEFAULT)), Base64.DEFAULT);
+                    if (!s.toString().isEmpty() && hasSecretKey) {
+                        String encryptedString = Base64.encodeToString(
+                                SecurityECDH.encryptAES(s.toString().getBytes(StandardCharsets.UTF_8),
+                                        secretKey),
+                                Base64.DEFAULT);
+
                         encryptedString = SecurityHelpers.putEncryptedMessageWaterMark(encryptedString);
-
                         String stats = SMSHandler.calculateSMS(encryptedString);
-
                         String displayedString = encryptedString + "\n\n" + stats;
 
                         encryptedMessageTextView.setVisibility(View.VISIBLE);
@@ -405,11 +420,12 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                         encryptedMessageTextView.setVisibility(View.GONE);
                     }
                 } catch (Throwable e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         });
 
+        // Message has been shared from another app to send by SMS
         if (getIntent().hasExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY)) {
             smsTextView.setText(getIntent().getStringExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY));
 
@@ -441,112 +457,87 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }).start();
     }
 
+    private void _changeToolbarsItemSelected(HashMap<String, RecyclerView.ViewHolder> selectedItems) {
+        if (selectedItems != null) {
+            if (selectedItems.isEmpty()) {
+                showDefaultToolbar(toolbar.getMenu());
+            } else {
+                hideDefaultToolbar(toolbar.getMenu(), selectedItems.size());
+            }
+        }
+    }
 
+    // TODO: use standardized message sending method
     public void sendTextMessage(View view) {
         String text = smsTextView.getText().toString();
         sendSMSMessage(null, text, null);
     }
 
-    private String encryptContent(String data) throws Throwable {
-        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-        if (securityECDH.hasSecretKey(address)) {
-            byte[] secretKey = Base64.decode(securityECDH.securelyFetchSecretKey(address), Base64.DEFAULT);
-            // TODO: begin encrypting data
-            // TODO: if can't encrypt data return original data
-
-            try {
-                byte[] encryptedContent = SecurityECDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
-                        secretKey);
-                data = Base64.encodeToString(encryptedContent, Base64.DEFAULT);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return data;
-    }
-
     private void sendSMSMessage(Integer subscriptionId, String text, Long messageId) {
-        // TODO: Don't let sending happen if message box is empty
-        Log.d(getLocalClassName(), "Sending new text message..");
-        try {
-
-            SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-
-            if (messageId == null)
-                messageId = Helpers.generateRandomNumber();
-
-            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
-                    getApplicationContext(), messageId);
-
-//            handleBroadcast();
-
-            String tmpThreadId = null;
-            if (securityECDH.hasSecretKey(address)) {
-                text = encryptContent(text);
-                text = SecurityHelpers.putEncryptedMessageWaterMark(text);
-//                text = Base64.encodeToString(compress(text.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
-                tmpThreadId = SMSHandler.sendEncryptedTextSMS(getApplicationContext(), address, text,
-                        pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
-            } else tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
-                    pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
-
-            resetSmsTextView();
-
-            if (threadId == null || threadId.isEmpty()) {
-                threadId = tmpThreadId;
-                singleMessageViewModel.informNewItemChanges(threadId);
-            } else {
-                singleMessageViewModel.informNewItemChanges();
-            }
-
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        removeFromArchive();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }).start();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Make sure Address and Text are provided.", Toast.LENGTH_LONG).show();
-        } catch (Throwable e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
-        }
+//        // TODO: Don't let sending happen if message box is empty
+//        Log.d(getLocalClassName(), "Sending new text message..");
+//        try {
+//
+//            SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+//
+//            if (messageId == null)
+//                messageId = Helpers.generateRandomNumber();
+//
+//            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
+//                    getApplicationContext(), messageId);
+//
+////            handleBroadcast();
+//
+//            String tmpThreadId = null;
+//            if (securityECDH.hasSecretKey(address)) {
+//                text = encryptContent(text);
+//                text = SecurityHelpers.putEncryptedMessageWaterMark(text);
+////                text = Base64.encodeToString(compress(text.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
+//                tmpThreadId = SMSHandler.sendEncryptedTextSMS(getApplicationContext(), address, text,
+//                        pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
+//            } else tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
+//                    pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
+//
+//            resetSmsTextView();
+//
+//            if (threadId == null || threadId.isEmpty()) {
+//                threadId = tmpThreadId;
+//                singleMessageViewModel.informNewItemChanges(threadId);
+//            } else {
+//                singleMessageViewModel.informNewItemChanges();
+//            }
+//
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    try {
+//                        removeFromArchive();
+//                    } catch (InterruptedException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                }
+//            }).start();
+//        } catch (IllegalArgumentException e) {
+//            e.printStackTrace();
+//            Toast.makeText(this, "Make sure Address and Text are provided.", Toast.LENGTH_LONG).show();
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//            Toast.makeText(this, "Something went wrong, check log stack", Toast.LENGTH_LONG).show();
+//        }
     }
 
-    private void removeFromArchive() throws InterruptedException {
-        archiveHandler.removeFromArchive(getApplicationContext(), Long.parseLong(threadId));
-    }
+    // TODO: fix this
+//    private void removeFromArchive() throws InterruptedException {
+//        archiveHandler.removeFromArchive(getApplicationContext(), Long.parseLong(threadId));
+//    }
 
     private void resetSmsTextView() {
 //        smsTextView.setText(null);
         smsTextView.getText().clear();
     }
 
-    private void handleIncomingPending(long messageId) {
-        if (getIntent().getComponent().getPackageName().equals(BuildConfig.APPLICATION_ID)) {
-            Cursor cursor = SMSHandler.fetchSMSOutboxPendingForMessageInThread(getApplicationContext(),
-                    threadId, messageId);
-
-            if (cursor.moveToFirst()) {
-                SMS sms = new SMS(cursor);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        sendSMSMessage(null, sms.getBody(), Long.parseLong(sms.getId()));
-                    }
-                });
-            }
-            cursor.close();
-        }
-    }
-
     private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener, Integer bgColor, Integer textColor) {
-        String insertDetails = contactName.isEmpty() ? address : contactName;
+        String insertDetails = smsMetaEntity.getContactName(getApplicationContext());
         insertDetails = insertDetails.replaceAll("\\+", "");
         String insertText = text.replaceAll("\\[insert name\\]", insertDetails);
 
@@ -595,9 +586,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
                     getApplicationContext(), messageId);
 
-//            handleBroadcast();
             SMSHandler.sendDataSMS(getApplicationContext(),
-                    address,
+                    smsMetaEntity.getAddress(getApplicationContext()),
                     txAgreementKey,
                     pendingIntents[0],
                     pendingIntents[1],
@@ -607,7 +597,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             e.printStackTrace();
             SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
                     SmsManager.RESULT_ERROR_GENERIC_FAILURE);
-            singleMessageViewModel.informNewItemChanges();
+            singleMessageViewModel.informNewItemChanges(getApplicationContext());
         }
     }
 
@@ -720,19 +710,19 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == RESULT_GALLERY) {
-            if (null != data) {
-                Uri imageUri = data.getData();
-
-                Intent intent = new Intent(getApplicationContext(), ImageViewActivity.class);
-                intent.putExtra(IMAGE_URI, imageUri.toString());
-                intent.putExtra(ADDRESS, address);
-                intent.putExtra(THREAD_ID, threadId);
-                startActivity(intent);
-                finish();
-            }
-        }
+//
+//        if (requestCode == RESULT_GALLERY) {
+//            if (null != data) {
+//                Uri imageUri = data.getData();
+//
+//                Intent intent = new Intent(getApplicationContext(), ImageViewActivity.class);
+//                intent.putExtra(IMAGE_URI, imageUri.toString());
+//                intent.putExtra(ADDRESS, address);
+//                intent.putExtra(THREAD_ID, threadId);
+//                startActivity(intent);
+//                finish();
+//            }
+//        }
     }
 
     public void onLongClickSend(View view) {
@@ -784,8 +774,9 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
         ab.setTitle(String.valueOf(size));
 
-        if (ab.getSubtitle() != null && abSubtitle.isEmpty())
-            abSubtitle = ab.getSubtitle().toString();
+        // TODO: fix this
+//        if (ab.getSubtitle() != null && abSubtitle.isEmpty())
+//            abSubtitle = ab.getSubtitle().toString();
         ab.setSubtitle("");
 
         // experimental
@@ -797,55 +788,45 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         menu.setGroupVisible(R.id.single_message_copy_menu, false);
 
         ab.setHomeAsUpIndicator(null);
-        ab.setSubtitle(abSubtitle);
-        abSubtitle = "";
-        ab.setTitle(contactName);
+        // TODO: fix this
+//        ab.setSubtitle(abSubtitle);
+//        abSubtitle = "";
+        ab.setTitle(smsMetaEntity.getContactName(getApplicationContext()));
     }
 
-    private void copyItems() {
-        String[] keys = selectedItems.keySet().toArray(new String[0]);
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
-        if (cursor.moveToFirst()) {
-            do {
-                SMS sms = new SMS(cursor);
-                ClipData clip = ClipData.newPlainText(keys[0], sms.getBody());
+    private void _copyItems() {
+        if(singleMessagesThreadRecyclerAdapter.selectedItem.getValue() != null) {
+            String[] keys = singleMessagesThreadRecyclerAdapter.selectedItem.getValue()
+                    .keySet().toArray(new String[0]);
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
+            if (cursor.moveToFirst()) {
+                do {
+                    SMS sms = new SMS(cursor);
+                    ClipData clip = ClipData.newPlainText(keys[0], sms.getBody());
 
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT).show();
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT).show();
 
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
-    }
-
-    private void deleteItems() {
-        final String[] keys = selectedItems.keySet().toArray(new String[0]);
-        if (keys.length > 1) {
-            SMSHandler.deleteSMSMessagesById(getApplicationContext(), keys);
-            singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
-            singleMessagesThreadRecyclerAdapter.removeAllItems(keys);
-        } else {
-            SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
             singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
-            singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
         }
     }
 
-    private void makeCall() {
-        Intent callIntent = new Intent(Intent.ACTION_DIAL);
-        callIntent.setData(Uri.parse("tel:" + address));
-
-        startActivity(callIntent);
-    }
-
-    private void itemOperationsNeeded(int size) {
-        if (selectedItems != null) {
-            if (selectedItems.isEmpty()) {
-                showDefaultToolbar(toolbar.getMenu());
+    private void _deleteItems() {
+        if(singleMessagesThreadRecyclerAdapter.selectedItem.getValue() != null) {
+            final String[] keys = singleMessagesThreadRecyclerAdapter.selectedItem.getValue()
+                    .keySet().toArray(new String[0]);
+            if (keys.length > 1) {
+                SMSHandler.deleteSMSMessagesById(getApplicationContext(), keys);
+                singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+                singleMessagesThreadRecyclerAdapter.removeAllItems(keys);
             } else {
-                hideDefaultToolbar(toolbar.getMenu(), size);
+                SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
+                singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
+                singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
             }
         }
     }

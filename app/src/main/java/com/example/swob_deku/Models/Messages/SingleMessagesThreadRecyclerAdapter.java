@@ -221,19 +221,19 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
                 }
             });
 
-            messageReceivedViewHandler.imageConstraintLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(context, ImageViewActivity.class);
-                    intent.putExtra(ImageViewActivity.IMAGE_INTENT_EXTRA, sms.getId());
-                    intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
-                    intent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
-                    intent.putExtra(SMSSendActivity.ID, sms.getId());
-                    intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
-
-                    context.startActivity(intent);
-                }
-            });
+//            messageReceivedViewHandler.imageConstraintLayout.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Intent intent = new Intent(context, ImageViewActivity.class);
+//                    intent.putExtra(ImageViewActivity.IMAGE_INTENT_EXTRA, sms.getId());
+//                    intent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+//                    intent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
+//                    intent.putExtra(SMSSendActivity.ID, sms.getId());
+//                    intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
+//
+//                    context.startActivity(intent);
+//                }
+//            });
 
             messageReceivedViewHandler.receivedMessage.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override

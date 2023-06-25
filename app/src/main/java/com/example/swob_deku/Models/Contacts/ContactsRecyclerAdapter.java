@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
+import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
 
@@ -50,7 +51,7 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
             @Override
             public void onClick(View v) {
                 Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
-                singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, contacts.number);
+                singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, contacts.number);
                 context.startActivity(singleMessageThreadIntent);
             }
         });

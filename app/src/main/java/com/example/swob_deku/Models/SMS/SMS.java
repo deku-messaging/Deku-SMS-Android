@@ -3,7 +3,9 @@ package com.example.swob_deku.Models.SMS;
 import static com.example.swob_deku.Commons.Helpers.getUserCountry;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.util.Base64;
@@ -19,6 +21,7 @@ import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -419,6 +422,24 @@ public class SMS {
             securityECDH.securelyStoreSecretKey(address, secret);
 
             return keyPair.getPublic().getEncoded();
+        }
+
+        public byte[] getSecretKey(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            return Base64.decode(securityECDH.securelyFetchSecretKey(getAddress(context)), Base64.DEFAULT);
+        }
+
+        public String encryptContent(Context context, String data) throws Throwable {
+            byte[] encryptedContent = SecurityECDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
+                    getSecretKey(context));
+            return Base64.encodeToString(encryptedContent, Base64.DEFAULT);
+        }
+
+        public void call(Context context) {
+            Intent callIntent = new Intent(Intent.ACTION_DIAL);
+            callIntent.setData(Uri.parse("tel:" + getAddress(context)));
+
+            context.startActivity(callIntent);
         }
     }
 }
