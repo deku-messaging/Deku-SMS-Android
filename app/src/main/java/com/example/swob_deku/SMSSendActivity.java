@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -37,6 +38,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.security.crypto.EncryptedSharedPreferences;
 
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.CustomAppCompactActivity;
@@ -85,6 +87,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
     SMS.SMSMetaEntity smsMetaEntity;
 
+    SharedPreferences sharedPreferences;
+    SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
     int defaultSubscriptionId;
 
     @Override
@@ -126,6 +130,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         });
 
         _configureLayoutForMessageType();
+        _configureEncryptionListeners();
     }
 
     @Override
@@ -194,9 +199,10 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             smsMetaEntity.setThreadId(getApplicationContext(),
                     getIntent().getStringExtra(SMS.SMSMetaEntity.THREAD_ID));
 
-        if(getIntent().hasExtra(SMS.SMSMetaEntity.ADDRESS))
+        if(getIntent().hasExtra(SMS.SMSMetaEntity.ADDRESS)) {
             smsMetaEntity.setAddress(getApplicationContext(),
                     getIntent().getStringExtra(SMS.SMSMetaEntity.ADDRESS));
+        }
     }
 
     private void _instantiateGlobals() throws GeneralSecurityException, IOException {
@@ -218,6 +224,20 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
         defaultSubscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
 
+        sharedPreferences = getSharedPreferences(smsMetaEntity.getAddress(), Context.MODE_PRIVATE);
+        onSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                // Keys are encrypted so can't check for specifc entries
+                try {
+                    _checkEncryptionStatus();
+                    if(sharedPreferences.contains(key))
+                        _configureMessagesTextBox();
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
     }
 
     private void _configureRecyclerView() {
@@ -488,6 +508,9 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }
     }
 
+    private void _configureEncryptionListeners() {
+        sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+    }
     private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
         Log.d(getLocalClassName(), "Encryption status: " + smsMetaEntity.getEncryptionState(getApplicationContext()));
         if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
@@ -508,12 +531,17 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                         // TODO: refactor the entire send sms thing to inform when dual-sim
                         // TODO: support for multi-sim
                         int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        SMSHandler.registerPendingKeyMessage(getApplicationContext(),
+                        String threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
                                 smsMetaEntity.getAddress(),
                                 agreementKey,
                                 subscriptionId);
-                    } catch (GeneralSecurityException | IOException e) {
-                        throw new RuntimeException(e);
+
+                        if(smsMetaEntity.getThreadId() == null && threadId != null) {
+                            getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                            _setupActivityDependencies();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             };
@@ -550,40 +578,25 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, Color.BLACK);
         }
         else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST) {
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT) {
             String text = getString(R.string.send_sms_activity_user_not_secure_agree);
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
             Integer bgColor = getResources().getColor(R.color.highlight_yellow, getTheme());
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    try {
-//                        byte[] peerAgreementKey = smsMetaEntity.agreePeerRequest(getApplicationContext());
-//                        String agreementText = SecurityHelpers.FIRST_HEADER
-//                                + Base64.encodeToString(peerAgreementKey, Base64.DEFAULT)
-//                                + SecurityHelpers.END_HEADER;
-//
-//                        long messageId = Helpers.generateRandomNumber();
-//                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-//                        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-//                                smsMetaEntity.getAddress(),
-//                                agreementText,
-//                                messageId,
-//                                subscriptionId);
-//                        if(smsMetaEntity.getThreadId() == null)
-//                            smsMetaEntity.setThreadId(threadIdRx);
-//
-//                        rxKeys(peerAgreementKey, messageId, subscriptionId);
-//                    } catch (GeneralSecurityException | IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
+                    try {
+                        smsMetaEntity.agreePeerRequest(getApplicationContext());
+                    } catch (GeneralSecurityException | IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             };
 
             lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
         }
         else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT) {
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST) {
             String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
             int bgColor = getResources().getColor(R.color.purple_200, getTheme());
@@ -592,8 +605,21 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 @Override
                 public void onClick(View v) {
                     try {
-                        smsMetaEntity.agreePeerRequest(getApplicationContext());
-                    } catch (GeneralSecurityException | IOException e) {
+                        byte[] agreementKey = smsMetaEntity.agreePeerRequest(getApplicationContext());
+
+                        // TODO: refactor the entire send sms thing to inform when dual-sim
+                        // TODO: support for multi-sim
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                        String threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
+                                smsMetaEntity.getAddress(),
+                                agreementKey,
+                                subscriptionId);
+
+                        if(smsMetaEntity.getThreadId() == null && threadId != null) {
+                            getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                            _setupActivityDependencies();
+                        }
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -634,18 +660,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         ArchiveHandler archiveHandler = new ArchiveHandler(getApplicationContext());
         archiveHandler.removeFromArchive(getApplicationContext(),
                 Long.parseLong(smsMetaEntity.getThreadId()));
-    }
-
-    private void ____tmp_format_encrypted_message() {
-//            if (securityECDH.hasSecretKey(address)) {
-//                text = encryptContent(text);
-//                text = SecurityHelpers.putEncryptedMessageWaterMark(text);
-////                text = Base64.encodeToString(compress(text.getBytes(StandardCharsets.UTF_8)), Base64.DEFAULT);
-//                tmpThreadId = SMSHandler.sendEncryptedTextSMS(getApplicationContext(), address, text,
-//                        pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
-//            } else tmpThreadId = SMSHandler.sendTextSMS(getApplicationContext(), address, text,
-//                    pendingIntents[0], pendingIntents[1], messageId, subscriptionId);
-
     }
 
     private String _sendSMSMessage(int subscriptionId, String text) {

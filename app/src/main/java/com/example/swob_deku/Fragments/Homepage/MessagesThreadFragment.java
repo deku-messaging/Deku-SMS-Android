@@ -232,6 +232,8 @@ public class MessagesThreadFragment extends Fragment {
     public void onDestroy() {
         if(incomingBroadcastReceiver != null)
             getContext().unregisterReceiver(incomingBroadcastReceiver);
+        if(incomingDataBroadcastReceiver != null)
+            getContext().unregisterReceiver(incomingDataBroadcastReceiver);
 
         if(archiveHandler != null)
             archiveHandler.close();

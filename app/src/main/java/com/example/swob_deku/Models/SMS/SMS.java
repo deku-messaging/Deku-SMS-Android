@@ -398,7 +398,7 @@ public class SMS {
             else if(securityECDH.hasPrivateKey(getAddress())) {
                 return ENCRYPTION_STATE.SENT_PENDING_AGREEMENT;
             }
-            else if (securityECDH.hasSecretKey(address)) {
+            else if (securityECDH.hasSecretKey(getAddress())) {
                 return ENCRYPTION_STATE.ENCRYPTED;
             }
             return ENCRYPTION_STATE.NOT_ENCRYPTED;
@@ -430,12 +430,12 @@ public class SMS {
          */
         public byte[] agreePeerRequest(Context context) throws GeneralSecurityException, IOException {
             SecurityECDH securityECDH = new SecurityECDH(context);
-            byte[] peerPublicKey = Base64.decode(securityECDH.getPeerAgreementPublicKey(address),
+            byte[] peerPublicKey = Base64.decode(securityECDH.getPeerAgreementPublicKey(getAddress()),
                     Base64.DEFAULT);
 
             KeyPair keyPair = securityECDH.generateKeyPairFromPublicKey(peerPublicKey);
-            byte[] secret = securityECDH.generateSecretKey(peerPublicKey, address);
-            securityECDH.securelyStoreSecretKey(address, secret);
+            byte[] secret = securityECDH.generateSecretKey(peerPublicKey, getAddress());
+            securityECDH.securelyStoreSecretKey(getAddress(), secret);
 
             return keyPair.getPublic().getEncoded();
         }

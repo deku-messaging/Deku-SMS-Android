@@ -203,7 +203,7 @@ public class SecurityECDH {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
         SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
-        sharedPreferencesEditor.clear().commit();
+        sharedPreferencesEditor.clear().apply();
 
     }
 
@@ -241,7 +241,7 @@ public class SecurityECDH {
 
         sharedPreferencesEditor.clear()
                 .putString(keystoreAlias, Base64.encodeToString(secret, Base64.DEFAULT))
-                .commit();
+                .apply();
     }
 
     public KeyPair generateKeyPairFromPublicKey(byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
@@ -250,12 +250,6 @@ public class SecurityECDH {
 
         PublicKey publicKey = bobKeyFac.generatePublic(x509KeySpec);
 
-        /*
-         * Bob gets the DH parameters associated with Alice's public key.
-         * He must use the same parameters when he generates his own key
-         * pair.
-         */
-//        DHParameterSpec dhParameterSpec = ((DHPublicKey)publicKey).getParams();
         ECParameterSpec dhParameterSpec = ((BCECPublicKey)publicKey).getParams();
 
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM);
@@ -264,16 +258,8 @@ public class SecurityECDH {
 
         return keyPairGenerator.generateKeyPair();
 
-        // Bob encodes his public key, and sends it over to Alice.
-//        byte[] bobPubKeyEnc = this.keypair.getPublic().getEncoded();
-//
-//        return bobPubKeyEnc;
     }
 
-//    public byte[] generateSecretKey() throws NoSuchAlgorithmException {
-//        KeyAgreement keyAgree  = KeyAgreement.getInstance(DEFAULT_ALGORITHM);
-//        return keyAgree.generateSecret();
-//    }
     public static byte[] encryptAES(byte[] input, byte[] secretKey) throws Throwable {
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, 16, "AES");
