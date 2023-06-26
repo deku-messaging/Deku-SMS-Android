@@ -247,8 +247,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
-
-
         int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
 
         singleMessageViewModel.getMessages(
@@ -664,10 +662,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             if(smsMetaEntity.getThreadId() == null && threadId != null) {
                 getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
                 _setupActivityDependencies();
-//                singleMessageViewModel.informNewItemChanges(getApplicationContext(), threadId);
             }
-//            else
-//                singleMessageViewModel.informNewItemChanges(getApplicationContext());
 
             // Remove messages from archive if pending send
             new Thread(new Runnable() {

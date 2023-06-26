@@ -149,13 +149,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         return new MessageSentViewHandler(view);
     }
 
-    public void generateSecretKey() throws GeneralSecurityException, IOException {
-        if(securityECDH.hasSecretKey(address))
-            secretKey = Base64.decode(securityECDH.securelyFetchSecretKey(address), Base64.DEFAULT);
-    }
-
     public void submitList(List<SMS> smsList) {
         animation = true;
+        Log.d(getClass().getName(), "Submitting a new list received...");
         mDiffer.submitList(smsList);
     }
 
@@ -179,8 +175,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        final SMS sms = (SMS) mDiffer.getCurrentList().get(position);
-//        final SMS sms = (SMS) mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
+        final SMS sms = mDiffer.getCurrentList().get(position);
         final String smsId = sms.getId();
 
         if(animation) {
@@ -425,14 +420,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
 
     @Override
     public int getItemViewType(int position) {
-//        ItemSnapshotList snapshotList = this.snapshot();
-        List snapshotList = mDiffer.getCurrentList();
-        SMS sms = (SMS) snapshotList.get(position);
-//        if (position != 0 && (position == snapshotList.size() - 1 ||
+        List<SMS> snapshotList = mDiffer.getCurrentList();
+        SMS sms = snapshotList.get(position);
+
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
 
-        int viewType = -1;
-
+        int viewType = 0;
         if (position == snapshotList.size() - 1 ||
                 !SMSHandler.isSameHour(sms, (SMS) snapshotList.get(position + 1))) {
             if(isEncryptionKey) {
@@ -450,7 +443,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             else
                 viewType = sms.getType();
         }
-        Log.d(getClass().getName(), "Returning view type: " + viewType);
+        Log.d(getClass().getName(), "Returning view type: " + viewType + ":" + position);
         return viewType;
     }
 
