@@ -350,7 +350,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                     return true;
                 }
                 else if (R.id.delete == id || R.id.delete_multiple == id) {
-                    _deleteItems();
+                    try {
+                        _deleteItems();
+                    }catch(Exception e) {
+                        e.printStackTrace();
+                    }
                     return true;
                 }
                 else if (R.id.make_call == id) {
@@ -830,12 +834,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
         ab.setTitle(String.valueOf(size));
 
-        // TODO: fix this
-//        if (ab.getSubtitle() != null && abSubtitle.isEmpty())
-//            abSubtitle = ab.getSubtitle().toString();
         ab.setSubtitle("");
-
-        // experimental
         ab.setElevation(10);
     }
 
@@ -844,10 +843,12 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         menu.setGroupVisible(R.id.single_message_copy_menu, false);
 
         ab.setHomeAsUpIndicator(null);
-        // TODO: fix this
-//        ab.setSubtitle(abSubtitle);
-//        abSubtitle = "";
         ab.setTitle(smsMetaEntity.getContactName(getApplicationContext()));
+        try {
+            _checkEncryptionStatus();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void _copyItems() {
@@ -871,21 +872,20 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }
     }
 
-    private void _deleteItems() {
-        // TODO: fix this
-//        if(singleMessagesThreadRecyclerAdapter.selectedItem.getValue() != null) {
-//            final String[] keys = singleMessagesThreadRecyclerAdapter.selectedItem.getValue()
-//                    .keySet().toArray(new String[0]);
-//            if (keys.length > 1) {
-//                SMSHandler.deleteMultipleMessages(getApplicationContext(), keys);
-//                singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
-//                singleMessagesThreadRecyclerAdapter.removeAllItems(keys);
-//            } else {
-//                SMSHandler.deleteMessage(getApplicationContext(), keys[0]);
-//                singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
-//                singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
-//            }
-//        }
+    private void _deleteItems() throws Exception {
+        if(singleMessagesThreadRecyclerAdapter.selectedItem.getValue() != null) {
+            final String[] keys = singleMessagesThreadRecyclerAdapter.selectedItem.getValue()
+                    .keySet().toArray(new String[0]);
+            if (keys.length > 1) {
+                smsMetaEntity.deleteMultipleMessages(getApplicationContext(), keys);
+                singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+                singleMessagesThreadRecyclerAdapter.removeAllItems(keys);
+            } else {
+                smsMetaEntity.deleteMessage(getApplicationContext(), keys[0]);
+                singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
+                singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
+            }
+        }
     }
 
     @Override
