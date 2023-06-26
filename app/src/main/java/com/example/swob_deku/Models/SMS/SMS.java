@@ -292,6 +292,7 @@ public class SMS {
         public static final String THREAD_ID = "THREAD_ID";
         public static final String ADDRESS = "ADDRESS";
         public static final String ID = "ID";
+        public static final String TYPE_DATA_KEY = "TYPE_DATA_KEY";
 
         public static final String SHARED_SMS_BODY = "sms_body";
 

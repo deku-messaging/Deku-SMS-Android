@@ -167,6 +167,7 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST"/>
+                <action android:name="com.afkanerd.deku.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST"/>
             </intent-filter>
         </receiver>
 

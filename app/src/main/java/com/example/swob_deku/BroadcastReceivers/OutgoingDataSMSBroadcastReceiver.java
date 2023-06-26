@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 
 import java.nio.charset.StandardCharsets;
@@ -22,40 +23,47 @@ public class OutgoingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Cursor cursor = null;
-        try {
-            long messageId = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
-            String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
+        if(intent.getAction().equals(SMSHandler.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST) ||
+                intent.getAction().equals(SMSHandler.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST)) {
+            Cursor cursor = null;
+            try {
+                long messageId = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
+                String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
 
-            SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-            smsMetaEntity.setThreadId(context, threadId);
+                SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                smsMetaEntity.setThreadId(context, threadId);
 
-            cursor = smsMetaEntity.fetchOutboxMessage(context, messageId);
-            if(cursor.moveToFirst()) {
-                SMS sms = new SMS(cursor);
-                smsMetaEntity.setAddress(context, sms.getAddress());
+                cursor = smsMetaEntity.fetchOutboxMessage(context, messageId);
+                if(cursor.moveToFirst()) {
+                    SMS sms = new SMS(cursor);
+                    smsMetaEntity.setAddress(context, sms.getAddress());
 
-                PendingIntent[] pendingIntents = SMSHandler.getPendingIntents(context, messageId);
-                sendDataSMS(context,
-                        smsMetaEntity.getAddress(),
-                        sms.getBody().getBytes(StandardCharsets.UTF_8),
-                        pendingIntents[0], pendingIntents[1], sms.getSubscriptionId(), intent);
-                cursor.close();
+                    PendingIntent[] pendingIntents = SMSHandler.getPendingIntents(context, messageId);
+                    String body = sms.getBody();
+
+                    if(intent.getAction().equals(SMSHandler.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST))
+                        body = SecurityHelpers.removeKeyWaterMark(body);
+
+                    sendDataSMS(context,
+                            smsMetaEntity.getAddress(),
+                            Base64.decode(body, Base64.DEFAULT),
+                            pendingIntents[0], pendingIntents[1], sms.getSubscriptionId(), intent);
+                    cursor.close();
+                }
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                Toast.makeText(context, context.getString(R.string.send_message_error_no_text_provided),
+                        Toast.LENGTH_LONG).show();
+            } catch (Throwable e) {
+                e.printStackTrace();
+                Toast.makeText(context, context.getString(R.string.send_message_generic_error),
+                        Toast.LENGTH_LONG).show();
             }
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            Toast.makeText(context, context.getString(R.string.send_message_error_no_text_provided),
-                    Toast.LENGTH_LONG).show();
-        } catch (Throwable e) {
-            e.printStackTrace();
-            Toast.makeText(context, context.getString(R.string.send_message_generic_error),
-                    Toast.LENGTH_LONG).show();
+            finally {
+                if(cursor != null && !cursor.isClosed())
+                    cursor.close();
+            }
         }
-        finally {
-            if(cursor != null && !cursor.isClosed())
-                cursor.close();
-        }
-
     }
 
     private void sendDataSMS(Context context, String destinationAddress, byte[] data,
@@ -63,6 +71,7 @@ public class OutgoingDataSMSBroadcastReceiver extends BroadcastReceiver {
                              Integer subscriptionId, Intent intent) throws Exception {
         if (data == null)
             throw new Exception(getClass().getName() + ": Cannot send null data");
+        Log.d(getClass().getName(), "Sending data of size: " + data.length);
 
         SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
         try {

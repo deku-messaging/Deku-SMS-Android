@@ -505,17 +505,13 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                     try {
                         byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
 
-                        String text = SecurityHelpers.FIRST_HEADER
-                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
-                                + SecurityHelpers.END_HEADER;
-
                         // TODO: refactor the entire send sms thing to inform when dual-sim
                         // TODO: support for multi-sim
                         int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        SMSHandler.registerPendingMessage(getApplicationContext(),
+                        SMSHandler.registerPendingKeyMessage(getApplicationContext(),
                                 smsMetaEntity.getAddress(),
-                                text,
-                                subscriptionId, true);
+                                agreementKey,
+                                subscriptionId);
                     } catch (GeneralSecurityException | IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -523,6 +519,35 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             };
 
             lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, textColor);
+        }
+        else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
+                SMS.SMSMetaEntity.ENCRYPTION_STATE.SENT_PENDING_AGREEMENT) {
+            ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
+
+            int bgColor = getResources().getColor(R.color.purple_200, getTheme());
+            String conversationNotSecuredText = getString(R.string.send_sms_activity_user_not_secure_pending);
+            String actionText = getString(R.string.send_sms_activity_user_not_secure_pending_yes);
+
+            View.OnClickListener onClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
+
+                        // TODO: refactor the entire send sms thing to inform when dual-sim
+                        // TODO: support for multi-sim
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                        SMSHandler.registerPendingKeyMessage(getApplicationContext(),
+                                smsMetaEntity.getAddress(),
+                                agreementKey,
+                                subscriptionId);
+                    } catch (GeneralSecurityException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+
+            lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, Color.BLACK);
         }
         else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
                 SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST) {
@@ -627,7 +652,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         String threadId = new String();
         try {
             threadId = SMSHandler.registerPendingMessage(getApplicationContext(),
-                    smsMetaEntity.getAddress(), text, subscriptionId, false);
+                    smsMetaEntity.getAddress(), text, subscriptionId);
         } catch (Exception e) {
             e.printStackTrace();
         }

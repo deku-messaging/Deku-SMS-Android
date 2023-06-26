@@ -55,6 +55,9 @@
     <string name="send_sms_activity_user_not_secure_yes">
         Request
     </string>
+    <string name="send_sms_activity_user_not_secure_pending_yes">
+        Resend
+    </string>
 
     <string name="send_sms_activity_user_not_secure_yes_agree">
         Agree
