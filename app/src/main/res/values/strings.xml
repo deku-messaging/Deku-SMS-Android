@@ -98,7 +98,7 @@
     <string name="search_title">Search</string>
     <string name="lengthy_sms_sample" />
 
-    <string name="default_check_text">To use Deku, make it your default SMS app</string>
+    <string name="default_check_text">To use Deku SMS, make it your default SMS app</string>
     <string name="default_check_btn_text">Set default SMS app</string>
     <string name="default_check_privacy_policy">Read our privacy policy</string>
 

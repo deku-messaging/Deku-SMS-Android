@@ -144,13 +144,10 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             }
         }).start();
 
-        if(!smsMetaEntity.isShortCode() &&
-                !SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
-            try {
-                _checkEncryptionStatus();
-            } catch (GeneralSecurityException | IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            _checkEncryptionStatus();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -513,6 +510,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
     }
     private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
+        if(smsMetaEntity.isShortCode() ||
+                SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
+            return;
+        }
+
         Log.d(getLocalClassName(), "Encryption status: " + smsMetaEntity.getEncryptionState(getApplicationContext()));
         if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
                 SMS.SMSMetaEntity.ENCRYPTION_STATE.NOT_ENCRYPTED) {
