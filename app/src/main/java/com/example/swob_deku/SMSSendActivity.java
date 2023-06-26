@@ -264,13 +264,18 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         singleMessagesThreadRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
             @Override
             public void onChanged(String[] strings) {
-                // TODO: fix this
-//                try {
-//                    SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
-//                    sendSMSMessage(null, strings[1], null);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
+                try {
+                    if(strings.length < 2)
+                        return;
+
+                    smsMetaEntity.deleteMessage(getApplicationContext(), strings[0]);
+                    // TODO: make this use the previously used subscription id
+                    int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                    _sendSMSMessage(subscriptionId, strings[1]);
+                    singleMessagesThreadRecyclerAdapter.retryFailedMessage.setValue(new String[]{});
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -278,24 +283,15 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             @Override
             public void onChanged(String[] strings) {
                 try {
-                    // TODO: fix this
-//                    SMSHandler.deleteMessage(getApplicationContext(), strings[0]);
-//
-//                    long messageId = Helpers.generateRandomNumber();
-//                    int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-//
-//                    String text = SecurityHelpers.FIRST_HEADER
-//                            + strings[1]
-//                            + SecurityHelpers.END_HEADER;
-//
-//                    SMSHandler.registerPendingMessage(getApplicationContext(),
-//                            smsMetaEntity.getAddress(),
-//                            text,
-//                            messageId,
-//                            subscriptionId);
-//
-//                    // TODO: rewrite rxKeys to a more standardized form
-//                    rxKeys(Base64.decode(strings[1], Base64.DEFAULT), messageId, subscriptionId);
+                    if(strings.length < 2)
+                        return;
+
+                    // TODO: fix this to send data without it being key
+                    smsMetaEntity.deleteMessage(getApplicationContext(), strings[0]);
+                    // TODO: make this use the previously used subscription id
+                    int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                    _sendKeyDataMessage(subscriptionId, Base64.decode(strings[1], Base64.DEFAULT));
+                    singleMessagesThreadRecyclerAdapter.retryFailedDataMessage.setValue(new String[]{});
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -352,10 +348,12 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 if (R.id.copy == id) {
                     _copyItems();
                     return true;
-                } else if (R.id.delete == id || R.id.delete_multiple == id) {
+                }
+                else if (R.id.delete == id || R.id.delete_multiple == id) {
                     _deleteItems();
                     return true;
-                } else if (R.id.make_call == id) {
+                }
+                else if (R.id.make_call == id) {
                     smsMetaEntity.call(getApplicationContext());
                     return true;
                 }
@@ -690,6 +688,18 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         try {
             threadId = SMSHandler.registerPendingMessage(getApplicationContext(),
                     smsMetaEntity.getAddress(), text, subscriptionId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return threadId;
+    }
+
+    private String _sendKeyDataMessage(int subscriptionId, byte[] data) {
+        String threadId = new String();
+        try {
+            threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
+                    smsMetaEntity.getAddress(), data, subscriptionId);
         } catch (Exception e) {
             e.printStackTrace();
         }

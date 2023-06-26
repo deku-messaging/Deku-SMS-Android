@@ -287,7 +287,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             Helpers.highlightLinks(messageSentViewHandler.sentMessage, text,
                     context.getColor(R.color.primary_background_color));
 
-            messageSentViewHandler.sentMessage.setOnClickListener(new View.OnClickListener() {
+
+            View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(isHighlighted(sms.getId()))
@@ -296,12 +297,19 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                         longClickHighlight(messageSentViewHandler, smsId);
                     }
                     else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
-                        Log.d(getClass().getName(), "Resending message...");
                         String[] messageValues = new String[2];
                         messageValues[0] = sms.id;
-//                        messageValues[1] = sms.getBody();
-                        messageValues[1] = text;
-                        retryFailedMessage.setValue(messageValues);
+
+                        String _text = text;
+                        if(holder instanceof KeySentViewHandler) {
+                            _text = SecurityHelpers.removeKeyWaterMark(text);
+                            messageValues[1] = _text;
+                            retryFailedDataMessage.setValue(messageValues);
+                        }
+                        else {
+                            messageValues[1] = _text;
+                            retryFailedMessage.setValue(messageValues);
+                        }
                     }
                     else {
                         int visibility = messageSentViewHandler.date.getVisibility() == View.VISIBLE ?
@@ -310,8 +318,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                         messageSentViewHandler.sentMessageStatus.setVisibility(visibility);
                     }
                 }
-            });
+            };
 
+            messageSentViewHandler.imageView.setOnClickListener(onClickListener);
+            messageSentViewHandler.sentMessage.setOnClickListener(onClickListener);
             messageSentViewHandler.sentMessage.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
