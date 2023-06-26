@@ -1,6 +1,5 @@
 package com.example.swob_deku;
 
-import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -9,7 +8,6 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.Spannable;
@@ -40,8 +38,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
-import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.CustomAppCompactActivity;
 import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
@@ -195,7 +191,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }
 
         if(getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID))
-            smsMetaEntity.setThreadId(getIntent().getStringExtra(SMS.SMSMetaEntity.THREAD_ID));
+            smsMetaEntity.setThreadId(getApplicationContext(),
+                    getIntent().getStringExtra(SMS.SMSMetaEntity.THREAD_ID));
 
         if(getIntent().hasExtra(SMS.SMSMetaEntity.ADDRESS))
             smsMetaEntity.setAddress(getApplicationContext(),
@@ -505,29 +502,23 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    try {
-//                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
-//
-//                        String text = SecurityHelpers.FIRST_HEADER
-//                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
-//                                + SecurityHelpers.END_HEADER;
-//
-//                        // TODO: refactor the entire send sms thing to inform when dual-sim
-//                        // TODO: support for multi-sim
-//
-//                        long messageId = Helpers.generateRandomNumber();
-//                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-//
-//                        SMSHandler.registerPendingMessage(getApplicationContext(),
-//                                smsMetaEntity.getAddress(),
-//                                text,
-//                                messageId,
-//                                subscriptionId);
-//
-//                        rxKeys(agreementKey, messageId, subscriptionId);
-//                    } catch (GeneralSecurityException | IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
+                    try {
+                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
+
+                        String text = SecurityHelpers.FIRST_HEADER
+                                + Base64.encodeToString(agreementKey, Base64.DEFAULT)
+                                + SecurityHelpers.END_HEADER;
+
+                        // TODO: refactor the entire send sms thing to inform when dual-sim
+                        // TODO: support for multi-sim
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                        SMSHandler.registerPendingMessage(getApplicationContext(),
+                                smsMetaEntity.getAddress(),
+                                text,
+                                subscriptionId, true);
+                    } catch (GeneralSecurityException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
 
@@ -593,7 +584,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     public void sendTextMessage(View view) throws Exception {
         if(smsTextView.getText() != null) {
             String text = smsTextView.getText().toString();
-            String threadId = sendSMSMessage(defaultSubscriptionId, text);
+            String threadId = _sendSMSMessage(defaultSubscriptionId, text);
             smsTextView.getText().clear();
             if(smsMetaEntity.getThreadId() == null && threadId != null) {
                 getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
@@ -632,11 +623,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
     }
 
-    private String sendSMSMessage(int subscriptionId, String text) {
+    private String _sendSMSMessage(int subscriptionId, String text) {
         String threadId = new String();
         try {
             threadId = SMSHandler.registerPendingMessage(getApplicationContext(),
-                    smsMetaEntity.getAddress(), text, subscriptionId);
+                    smsMetaEntity.getAddress(), text, subscriptionId, false);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -688,27 +679,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         snackbarView.setLayoutParams(params);
 
         snackbar.show();
-    }
-
-    private void rxKeys(byte[] txAgreementKey, long messageId, int subscriptionId) {
-        // TODO: fix this
-//        try {
-//            PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(
-//                    getApplicationContext(), messageId);
-//
-//            SMSHandler.sendDataSMS(getApplicationContext(),
-//                    smsMetaEntity.getAddress(),
-//                    txAgreementKey,
-//                    pendingIntents[0],
-//                    pendingIntents[1],
-//                    messageId,
-//                    subscriptionId);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//            SMSHandler.registerFailedMessage(getApplicationContext(), messageId,
-//                    SmsManager.RESULT_ERROR_GENERIC_FAILURE);
-//            singleMessageViewModel.informNewItemChanges(getApplicationContext());
-//        }
     }
 
     public void uploadImage(View view) {

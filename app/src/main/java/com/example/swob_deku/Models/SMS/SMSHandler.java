@@ -10,18 +10,18 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Telephony;
-import android.telephony.SmsManager;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 
 
 import androidx.annotation.NonNull;
 
+import com.example.swob_deku.BroadcastReceivers.OutgoingDataSMSBroadcastReceiver;
 import com.example.swob_deku.BroadcastReceivers.OutgoingTextSMSBroadcastReceiver;
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.RMQ.RMQConnection;
-import com.example.swob_deku.Models.SIMHandler;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -225,27 +225,37 @@ public class SMSHandler {
     }
 
 
-    public static final String SMS_NEW_REGISTERED_PENDING_BROADCAST = BuildConfig.APPLICATION_ID +
-            ".SMS_NEW_REGISTERED_PENDING_BROADCAST";
-    public static String SMS_SENT_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SMS_SENT_BROADCAST_INTENT";
-    public static String SMS_DELIVERED_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
+    public static final String SMS_NEW_TEXT_REGISTERED_PENDING_BROADCAST =
+            BuildConfig.APPLICATION_ID + ".SMS_NEW_TEXT_REGISTERED_PENDING_BROADCAST";
+
+    public static final String SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST =
+            BuildConfig.APPLICATION_ID + ".SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST";
+    public static String SMS_SENT_BROADCAST_INTENT =
+            BuildConfig.APPLICATION_ID + ".SMS_SENT_BROADCAST_INTENT";
+    public static String SMS_DELIVERED_BROADCAST_INTENT =
+            BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
 
     /**
-     *
+     * This module would send out a broadcast informing the outgoing message modules that there is a
+     * new message available for sending.
      * @param context
      * @param destinationAddress
      * @param text
      * @param subscriptionId
+     * @param data: if true sends the message as a data SMS, if false sends as a text message
+     * @return String
      */
     public static String registerPendingMessage(Context context, String destinationAddress,
-                                              String text, int subscriptionId) {
+                                              String text, int subscriptionId, boolean data) {
         long messageId = Helpers.generateRandomNumber();
 
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(Telephony.Sms._ID, messageId);
-        contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
-        contentValues.put(Telephony.TextBasedSmsColumns.STATUS, Telephony.TextBasedSmsColumns.STATUS_PENDING);
+        contentValues.put(Telephony.TextBasedSmsColumns.TYPE,
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS,
+                Telephony.TextBasedSmsColumns.STATUS_PENDING);
         contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
@@ -266,13 +276,21 @@ public class SMSHandler {
                 String threadId = cursor.getString(
                         cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID));
 
-                Intent newIntent = new Intent(context, OutgoingTextSMSBroadcastReceiver.class);
-                newIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
-                newIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
-                newIntent.setAction(SMS_NEW_REGISTERED_PENDING_BROADCAST);
+                Intent broadcastIntent = data ?
+                        new Intent(context, OutgoingDataSMSBroadcastReceiver.class) :
+                        new Intent(context, OutgoingTextSMSBroadcastReceiver.class);
 
-                context.sendBroadcast(newIntent);
+                String action = data ?
+                        SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST :
+                        SMS_NEW_TEXT_REGISTERED_PENDING_BROADCAST;
+
+                broadcastIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                broadcastIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+                broadcastIntent.setAction(action);
+
+                context.sendBroadcast(broadcastIntent);
                 cursor.close();
+
                 return threadId;
             }
         } catch (Exception e) {

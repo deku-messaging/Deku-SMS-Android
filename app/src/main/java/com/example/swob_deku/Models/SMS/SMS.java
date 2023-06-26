@@ -13,6 +13,7 @@ import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -306,8 +307,14 @@ public class SMS {
         private String address, threadId;
         private String _address;
 
-        public void setThreadId(String threadId) {
+        public void setThreadId(Context context, String threadId) {
             this.threadId = threadId;
+            Cursor cursor = fetchMessages(context, 1, 0);
+            if(cursor.moveToFirst()) {
+                SMS sms = new SMS(cursor);
+                setAddress(context, sms.getAddress());
+            }
+            cursor.close();
         }
 
         public void setAddress(Context context, String address) {

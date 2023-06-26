@@ -150,7 +150,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     public int getItemViewType(int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
         SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-        smsMetaEntity.setThreadId(sms.getThreadId());
+        smsMetaEntity.setThreadId(context, sms.getThreadId());
 
         // TODO: migrate to SMSMetaEntity
         if(SecurityHelpers.containersWaterMark(sms.getBody()) || SecurityHelpers.isKeyExchange(sms.getBody())) {

@@ -179,7 +179,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
             SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-            smsMetaEntity.setThreadId(sms.getThreadId());
+            smsMetaEntity.setThreadId(context, sms.getThreadId());
 
             Cursor cursor1 = smsMetaEntity.fetchUnreadMessages(context);
             receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, sms.getAddress());

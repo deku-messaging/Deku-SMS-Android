@@ -158,7 +158,15 @@
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.afkanerd.deku.SMS_NEW_REGISTERED_PENDING_BROADCAST" />
+                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST"/>
             </intent-filter>
         </receiver>
 

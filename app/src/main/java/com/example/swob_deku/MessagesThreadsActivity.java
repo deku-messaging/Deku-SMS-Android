@@ -24,7 +24,9 @@ import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
+import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.google.android.material.card.MaterialCardView;
 
 import java.io.IOException;
@@ -140,6 +142,13 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
                         .keySet().toArray(new String[0]);
                 if(item.getItemId() == R.id.threads_delete) {
                     try {
+                        // TODO: ask if sure to delete all threads cause dangerous
+                        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+                        for(String id : ids) {
+                            SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                            smsMetaEntity.setThreadId(getApplicationContext(), id);
+                            securityECDH.removeAllKeys(smsMetaEntity.getAddress());
+                        }
                         SMSHandler.deleteThreads(getApplicationContext(), ids);
                         messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
                         stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());

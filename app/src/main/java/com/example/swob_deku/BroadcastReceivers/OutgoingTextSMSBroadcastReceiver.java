@@ -25,7 +25,7 @@ public class OutgoingTextSMSBroadcastReceiver extends BroadcastReceiver {
             String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
 
             SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-            smsMetaEntity.setThreadId(threadId);
+            smsMetaEntity.setThreadId(context, threadId);
 
             cursor = smsMetaEntity.fetchOutboxMessage(context, messageId);
             if(cursor.moveToFirst()) {

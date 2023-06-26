@@ -106,7 +106,7 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
     public static ArrayList<SMS> fetchSMSFromHandlers(Context context, String threadId, int limit, int offset) {
 //        Cursor cursors = SMSHandler.fetchSMSForThread(this.context, this.threadId);
         SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-        smsMetaEntity.setThreadId(threadId);
+        smsMetaEntity.setThreadId(context, threadId);
         Cursor cursors = smsMetaEntity.fetchMessages(context, limit, offset);
 
         ArrayList<SMS> smsArrayList = new ArrayList<>();
