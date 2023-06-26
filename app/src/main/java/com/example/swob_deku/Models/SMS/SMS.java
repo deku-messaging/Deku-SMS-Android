@@ -445,6 +445,11 @@ public class SMS {
             return Base64.decode(securityECDH.securelyFetchSecretKey(getAddress()), Base64.DEFAULT);
         }
 
+        public boolean hasSecretKey(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            return securityECDH.hasSecretKey(getAddress());
+        }
+
         public String encryptContent(Context context, String data) throws Throwable {
             byte[] encryptedContent = SecurityECDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
                     getSecretKey(context));

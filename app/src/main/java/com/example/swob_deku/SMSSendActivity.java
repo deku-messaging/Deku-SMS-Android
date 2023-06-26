@@ -632,9 +632,33 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         }
     }
 
+    /**
+     *  Checks if encryption key is available, if available tries to encrypt the data.
+     *  In case of any key damage or cannot encrypt, returns the original data.
+     * @param data
+     * @return
+     * @throws Throwable
+     */
+    private String _encryptContent(String data, byte[] secretKey) {
+        try {
+            byte[] encryptedContent = SecurityECDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
+                    secretKey);
+            data = Base64.encodeToString(encryptedContent, Base64.DEFAULT);
+        } catch(Throwable e ) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
     public void sendTextMessage(View view) throws Exception {
         if(smsTextView.getText() != null) {
             String text = smsTextView.getText().toString();
+
+            if(smsMetaEntity.hasSecretKey(getApplicationContext())) {
+                text = _encryptContent(text, smsMetaEntity.getSecretKey(getApplicationContext()));
+                text = SecurityHelpers.putEncryptedMessageWaterMark(text);
+            }
+
             String threadId = _sendSMSMessage(defaultSubscriptionId, text);
             smsTextView.getText().clear();
             if(smsMetaEntity.getThreadId() == null && threadId != null) {
