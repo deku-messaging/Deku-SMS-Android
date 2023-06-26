@@ -2,6 +2,9 @@ package com.example.swob_deku.Models.Messages;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -17,11 +20,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.compose.animation.core.Animation;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -53,7 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
-public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
+public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     Context context;
     Toolbar toolbar;
     String highlightedText;
@@ -65,7 +70,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
     public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
     public MutableLiveData<String[]> retryFailedDataMessage = new MutableLiveData<>();
 
-    public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
+    private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
 
 
     final int MESSAGE_TYPE_ALL = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL;
@@ -85,6 +90,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 
     String address;
 
+    private boolean animation = false;
     public SingleMessagesThreadRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
 //        super(SMS.DIFF_CALLBACK);
         this.context = context;
@@ -126,6 +132,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             secretKey = Base64.decode(securityECDH.securelyFetchSecretKey(address), Base64.DEFAULT);
     }
 
+    public void submitList(List<SMS> smsList) {
+        animation = true;
+        mDiffer.submitList(smsList);
+    }
+
     private String decryptContent(String input) {
         if(this.secretKey != null &&
                 input.getBytes(StandardCharsets.UTF_8).length > 16
@@ -150,6 +161,22 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
 //        final SMS sms = (SMS) mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
         final String smsId = sms.getId();
 
+        if(animation) {
+            AnimatorSet animatorSet = new AnimatorSet();
+            // Translation animation: Move the item up from the bottom
+            ObjectAnimator translationAnim = ObjectAnimator.ofFloat(holder.itemView, "translationY", 200f, 0f);
+            translationAnim.setDuration(200);
+
+            // Fade-in animation: Make the item gradually appear
+            ObjectAnimator fadeAnim = ObjectAnimator.ofFloat(holder.itemView, "alpha", 0f, 1f);
+            fadeAnim.setDuration(200);
+
+            // Play both animations together
+            animatorSet.playTogether(translationAnim, fadeAnim);
+            animatorSet.start();
+            animation = false;
+        }
+
         String date = sms.getDate();
         if (DateUtils.isToday(Long.parseLong(date))) {
             DateFormat dateFormat = new SimpleDateFormat("h:mm a");
@@ -173,7 +200,11 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter {
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
 
             TextView dateView = messageReceivedViewHandler.date;
-            dateView.setVisibility(View.INVISIBLE);
+            int dateViewVisibility =
+                    position > (mDiffer.getCurrentList().size() - 1) ?
+                            View.INVISIBLE :
+                            View.VISIBLE;
+            dateView.setVisibility(dateViewVisibility);
 
             if(text.contains(ImageHandler.IMAGE_HEADER)) {
                 ConstraintLayout imageConstraint = messageReceivedViewHandler.imageConstraintLayout;

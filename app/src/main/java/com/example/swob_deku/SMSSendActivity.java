@@ -248,6 +248,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
 
+
         int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
 
         singleMessageViewModel.getMessages(
@@ -255,7 +256,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             @Override
             public void onChanged(List<SMS> smsList) {
                 Log.d(getLocalClassName(), "Paging data changed!");
-                singleMessagesThreadRecyclerAdapter.mDiffer.submitList(smsList);
+                singleMessagesThreadRecyclerAdapter.submitList(smsList);
                 if (getIntent().hasExtra(SEARCH_POSITION))
                     singleMessagesThreadRecyclerView.scrollToPosition(
                             getIntent().getIntExtra(SEARCH_POSITION, -1));
@@ -660,11 +661,13 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             }
 
             String threadId = _sendSMSMessage(defaultSubscriptionId, text);
-            smsTextView.getText().clear();
             if(smsMetaEntity.getThreadId() == null && threadId != null) {
                 getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
                 _setupActivityDependencies();
+//                singleMessageViewModel.informNewItemChanges(getApplicationContext(), threadId);
             }
+//            else
+//                singleMessageViewModel.informNewItemChanges(getApplicationContext());
 
             // Remove messages from archive if pending send
             new Thread(new Runnable() {
@@ -677,6 +680,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                     }
                 }
             }).start();
+            smsTextView.getText().clear();
         }
     }
 
