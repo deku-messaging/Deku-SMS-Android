@@ -143,7 +143,6 @@ public class MessagesThreadFragment extends Fragment {
             }
         });
 
-        handleIncomingMessage();
         setRefreshTimer();
     }
 
@@ -171,39 +170,6 @@ public class MessagesThreadFragment extends Fragment {
             }
         }, recyclerViewTimeUpdateLimit);
     }
-    private void handleIncomingMessage() {
-        incomingBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                try {
-                    messagesThreadViewModel.informChanges(getContext());
-                } catch (GeneralSecurityException | IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        incomingDataBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                try {
-                    messagesThreadViewModel.informChanges(getContext());
-                } catch (GeneralSecurityException | IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-
-        // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
-        getContext().registerReceiver(incomingBroadcastReceiver,
-                new IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION));
-
-        getContext().registerReceiver(incomingDataBroadcastReceiver,
-                new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT));
-
-        getContext().registerReceiver(incomingBroadcastReceiver,
-                new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
-    }
 
     @Override
     public void onResume() {
@@ -219,7 +185,6 @@ public class MessagesThreadFragment extends Fragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
 
-        // Verify that the parent activity implements the interface
         if (context instanceof OnViewManipulationListener) {
             mListener = (OnViewManipulationListener) context;
         } else {
@@ -227,17 +192,10 @@ public class MessagesThreadFragment extends Fragment {
         }
     }
 
-
     @Override
-    public void onDestroy() {
-        if(incomingBroadcastReceiver != null)
-            getContext().unregisterReceiver(incomingBroadcastReceiver);
-        if(incomingDataBroadcastReceiver != null)
-            getContext().unregisterReceiver(incomingDataBroadcastReceiver);
-
-        if(archiveHandler != null)
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (archiveHandler != null)
             archiveHandler.close();
-
-        super.onDestroy();
     }
 }

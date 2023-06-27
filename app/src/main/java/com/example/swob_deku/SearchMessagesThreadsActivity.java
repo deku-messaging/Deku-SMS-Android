@@ -60,14 +60,9 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 if (actionId == EditorInfo.IME_ACTION_GO) {
                     String searchInput = searchView.getText().toString();
                     searchString.setValue(searchInput);
-//                    messagesThreadRecyclerAdapter.setSearchString(searchInput);
-
                     InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 
                     imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
-
-//                    findViewById(R.id.search_results_recycler_view).requestFocus();
-
                     return true;
                 }
                 return false;

@@ -23,6 +23,7 @@ import android.widget.PopupMenu;
 import com.example.swob_deku.Fragments.Homepage.HomepageFragment;
 import com.example.swob_deku.Fragments.Homepage.MessagesThreadFragment;
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
+import com.example.swob_deku.Models.CustomAppCompactActivity;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
@@ -35,7 +36,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 
-public class MessagesThreadsActivity extends AppCompatActivity implements MessagesThreadFragment.OnViewManipulationListener {
+public class MessagesThreadsActivity extends CustomAppCompactActivity implements MessagesThreadFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
     FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -261,6 +262,16 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
     public void setViewModel(String itemType, MessagesThreadViewModel messagesThreadViewModel) {
         this.ITEM_TYPE = itemType;
         this.stringMessagesThreadViewModelHashMap.put(itemType, messagesThreadViewModel);
+        configureBroadcastListeners(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    messagesThreadViewModel.informChanges(getApplicationContext());
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
