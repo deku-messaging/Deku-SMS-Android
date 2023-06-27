@@ -28,7 +28,6 @@ import java.util.List;
 
 public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
-    // TODO: custom search with startIcon being up button
     MessagesSearchViewModel messagesSearchViewModel;
     MutableLiveData<String> searchString = new MutableLiveData<>();
 

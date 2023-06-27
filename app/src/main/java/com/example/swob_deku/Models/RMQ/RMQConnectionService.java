@@ -23,6 +23,7 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.rabbitmq.client.Channel;
@@ -218,17 +219,8 @@ public class RMQConnectionService extends Service {
                     String msisdn = jsonObject.getString(RMQConnection.MESSAGE_MSISDN_KEY);
                     String globalMessageKey = jsonObject.getString(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY);
 
-                    long messageId = Helpers.generateRandomNumber();
-
-                    // TODO: fix this
-//                    PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver
-//                            .getPendingIntentsForServerRequest(getApplicationContext(), messageId,
-//                                    Long.parseLong(globalMessageKey));
-//
-//                    // TODO: fix subscriptionId to actually be the value
-//                    SMSHandler.sendTextSMS(getApplicationContext(), msisdn, body,
-//                            pendingIntents[0], pendingIntents[1], messageId, null);
-
+                    int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                    SMSHandler.registerPendingMessage(getApplicationContext(), msisdn, body, subscriptionId);
                     Map<Long, Channel> deliveryChannelMap = new HashMap<>();
                     deliveryChannelMap.put(delivery.getEnvelope().getDeliveryTag(), rmqConnection.getChannel1());
 
@@ -271,11 +263,7 @@ public class RMQConnectionService extends Service {
         factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
             @Override
             public long getDelay(int recoveryAttempts) {
-                // TODO: send notification informing reconnecting is being attempted
-                Log.d(getClass().getName(), "Attempting auto recovery...");
-
                 connectionList.get(gatewayClient.getId()).setConnected(DELAY_TIMEOUT);
-                Log.d(getClass().getName(), "Done setting reconnect");
                 return DELAY_TIMEOUT;
             }
         });
@@ -288,8 +276,6 @@ public class RMQConnectionService extends Service {
         factory.setConnectionTimeout(15000);
         factory.setExceptionHandler(new DefaultExceptionHandler());
 
-        // TODO: create a full handler to manage the retry to connection
-        // TODO: which matches the Android WorkManager methods
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {

@@ -43,7 +43,6 @@ class RMQMonitor(val context: Context, private val gatewayClientId: Int,
                 .putBoolean(this.gatewayClientId.toString(), (delayTimeout == 0L))
                 .apply();
 
-        // TODO: use some BackOff technique here
         if(delayTimeout > 0 && !activeThreads.containsKey(gatewayClientId.toString()) &&
                 rmqConnection.connection != null)
             setMonitorTimeout(delayTimeout)

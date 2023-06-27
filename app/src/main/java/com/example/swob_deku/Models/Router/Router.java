@@ -61,15 +61,8 @@ public class Router extends Worker {
     private void routeMessagesToGatewayServers(String address, String text,
                                                String gatewayServerUrl)
             throws JSONException, ExecutionException, InterruptedException, TimeoutException {
-        // TODO: Pause to resend if no internet connection
-        // TODO: Pause till routing can happen, but should probably use a broker for this
         Context context = getApplicationContext();
-        // Toast.makeText(context, "Routing messages using workers!", Toast.LENGTH_SHORT).show();
-        if(BuildConfig.DEBUG)
-            Log.d("", "Routing: " + address + " - " + text);
 
-        // TODO: make this come from a config file
-//        String gatewayServerUrl = context.getString(R.string.routing_url);
         try{
             JSONObject jsonBody = new JSONObject( "{\"text\": \"" + text + "\", \"MSISDN\": \"" + address + "\"}");
 
@@ -91,7 +84,6 @@ public class Router extends Worker {
             // Hit the server and came back with error code
             throw e;
         } // Because the server could return a string...
-        // TODO: be sure o fthis cases
         catch(Exception e ) {
             // Fuck
             throw e;

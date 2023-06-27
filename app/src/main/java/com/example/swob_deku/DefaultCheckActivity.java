@@ -119,7 +119,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
         notificationsChannelIds.add(getString(R.string.foreground_service_failed_channel_id));
         notificationsChannelNames.add(getString(R.string.foreground_service_failed_channel_name));
 
-        // TODO: Read more: https://developer.android.com/training/notify-user/channels
+        // Read more: https://developer.android.com/training/notify-user/channels
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -171,4 +171,9 @@
     <string name="send_message_error_no_text_provided">Make sure Address and Text are provided.</string>
     <string name="send_message_generic_error">Something went wrong, check log stack</string>
     <string name="default_subscription_id_changed">Default subscription ID changed to </string>
+
+    <string name="messages_thread_delete_confirmation_title">Delete Confirmation</string>
+    <string name="messages_thread_delete_confirmation_text">Proceed with deleting threads.</string>
+    <string name="messages_thread_delete_confirmation_yes">Yes</string>
+    <string name="messages_thread_delete_confirmation_cancel">Cancel</string>
 </resources>

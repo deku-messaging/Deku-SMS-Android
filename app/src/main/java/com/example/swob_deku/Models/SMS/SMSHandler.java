@@ -164,7 +164,7 @@ public class SMSHandler {
         contentValues.put(Telephony.Sms._ID, messageId);
         contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address);
         contentValues.put(Telephony.TextBasedSmsColumns.BODY, body);
-//        contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
+        contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
         contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 
         try {

@@ -62,20 +62,6 @@ public class Helpers {
     }
 
     public static String formatDate(Context context, long epochTime) {
-//        // TODO: if yesterday - should show yesterday instead
-//        CharSequence formattedDate = new StringBuffer();
-//
-//        if (DateUtils.isToday(date)) {
-//            formattedDate = DateUtils.getRelativeTimeSpanString(date, System.currentTimeMillis(),
-//                    DateUtils.MINUTE_IN_MILLIS);
-//        }
-//        else {
-//            formattedDate = DateUtils.getRelativeDateTimeString(context, date,
-//                    DateUtils.MINUTE_IN_MILLIS, DateUtils.DAY_IN_MILLIS,
-//                    DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_RELATIVE);
-//        }
-//
-//        return formattedDate.toString();
         long currentTime = System.currentTimeMillis();
         long diff = currentTime - epochTime;
 
@@ -91,8 +77,6 @@ public class Helpers {
     }
 
     public static String getUserCountry(Context context) {
-
-        // TODO: make this work for double sim phones
         String countryCode = null;
 
         // Check if network information is available
@@ -107,7 +91,6 @@ public class Helpers {
         }
         return String.valueOf(
                 PhoneNumberUtil.createInstance(context).getCountryCodeForRegion(countryCode));
-//        return countryCode;
     }
 
     public static int generateColor(String input) {

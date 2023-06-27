@@ -56,7 +56,6 @@ public class ImageHandler {
     }
 
     public static byte[] buildImage(byte[][] unstructuredImageBytes ) throws IOException {
-        // TODO: fix this
 //        return SMSHandler.rebuildStructuredSMSMessage(unstructuredImageBytes);
         return null;
     }
@@ -173,7 +172,6 @@ public class ImageHandler {
         String appendedBody = IMAGE_HEADER + Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
         SMSHandler.updateMessage(context, headerMessageId, appendedBody);
-        // TODO: Fix this
 //        SMSHandler.deleteMultipleMessages(context, ids);
 
         return Long.parseLong(headerMessageId);
@@ -192,7 +190,6 @@ public class ImageHandler {
     }
 
     public static Cursor getImagesCursor(Context context, String RIL) {
-        // TODO: fix this
 //        RIL = IMAGE_HEADER + RIL;
 //
 //        Cursor cursorImageCursor = SMSHandler.fetchSMSForImagesByRIL(context, RIL);
@@ -208,7 +205,6 @@ public class ImageHandler {
 //            byte[] data = Base64.decode(body, Base64.DEFAULT);
 //
 //            Log.d(ImageHandler.class.getName(), "Data image ref: " + Byte.toUnsignedInt(data[0]));
-//            // TODO: check if data is image
 //            int len = Byte.toUnsignedInt(data[2]);
 //
 //            StringBuilder query = new StringBuilder();

@@ -416,7 +416,6 @@ public class SMS {
             SecurityECDH securityECDH = new SecurityECDH(context);
             PublicKey publicKey = securityECDH.generateKeyPair(context, getAddress());
 
-            // TODO: refactor txAgreementFormatter -> why is exist?
             return SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
         }
 

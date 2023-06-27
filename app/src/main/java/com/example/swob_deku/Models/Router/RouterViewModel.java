@@ -98,7 +98,6 @@ public class RouterViewModel extends ViewModel {
 
             String messageId = "";
             String gatewayServerUrl = "";
-            // TODO: add multiple urls to an SMS message
             for(WorkInfo workInfo : workInfoList) {
                 String[] Alltags = Helpers.convertSetToStringArray(workInfo.getTags());
                 for(int i = 0; i< Alltags.length; ++i) {

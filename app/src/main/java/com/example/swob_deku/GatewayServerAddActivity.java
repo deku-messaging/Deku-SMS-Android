@@ -81,7 +81,7 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         if(checkedRadioId == R.id.add_gateway_protocol_GET)
             protocol = GatewayServer.GET_PROTOCOL;
 
-        // TODO: test if valid url
+        // Important: test if valid url
         GatewayServer gatewayServer = new GatewayServer(gatewayServerUrl);
         gatewayServer.setFormat(formats);
         gatewayServer.setProtocol(protocol);

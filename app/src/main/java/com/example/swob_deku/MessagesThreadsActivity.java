@@ -1,12 +1,14 @@
 package com.example.swob_deku;
 
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModel;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -134,6 +136,30 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
     }
 
 
+    private void showAlert(Runnable runnable) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.messages_thread_delete_confirmation_title));
+        builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
+
+        builder.setPositiveButton(getString(R.string.messages_thread_delete_confirmation_yes),
+                new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                runnable.run();
+            }
+        });
+
+        builder.setNegativeButton(getString(R.string.messages_thread_delete_confirmation_cancel),
+                new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     private void configureToolbarEvents() {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -141,21 +167,25 @@ public class MessagesThreadsActivity extends AppCompatActivity implements Messag
                 String[] ids = messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()
                         .keySet().toArray(new String[0]);
                 if(item.getItemId() == R.id.threads_delete) {
-                    try {
-                        // TODO: ask if sure to delete all threads cause dangerous
-                        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-                        for(String id : ids) {
-                            SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-                            smsMetaEntity.setThreadId(getApplicationContext(), id);
-                            securityECDH.removeAllKeys(smsMetaEntity.getAddress());
+                    Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+                                for(String id : ids) {
+                                    SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                                    smsMetaEntity.setThreadId(getApplicationContext(), id);
+                                    securityECDH.removeAllKeys(smsMetaEntity.getAddress());
+                                }
+                                SMSHandler.deleteThreads(getApplicationContext(), ids);
+                                messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+                                stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+                            } catch(Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-                        SMSHandler.deleteThreads(getApplicationContext(), ids);
-                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-                        stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
-                        return true;
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                    }
+                    };
+                    showAlert(runnable);
                 }
                 else if(item.getItemId() == R.id.threads_archive) {
                     long[] longArr = new long[ids.length];

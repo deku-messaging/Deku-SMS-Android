@@ -46,8 +46,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                 for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                     _address = currentSMS.getDisplayOriginatingAddress();
 
-                    // TODO: fix this
-//                    subscriptionId = SIMHandler.getOperatorName(context, currentSMS.getServiceCenterAddress());
+                    // The closest thing to subscription id is the serviceCenterAddress
+                    subscriptionId = SIMHandler.getOperatorName(context, currentSMS.getServiceCenterAddress());
                     try {
                         messageBuffer.write(currentSMS.getUserData());
                     } catch (IOException e) {

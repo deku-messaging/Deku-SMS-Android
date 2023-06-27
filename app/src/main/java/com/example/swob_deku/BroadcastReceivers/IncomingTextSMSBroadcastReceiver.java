@@ -68,16 +68,13 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
-                StringBuffer messageBuffer = new StringBuffer();
-                String address = new String();
-                String subscriptionId = new String();
+                StringBuilder messageBuffer = new StringBuilder();
+                String address = "";
+                String subscriptionId = "";
 
                 for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                    // TODO: Fetch address name from contact list if present
                     address = currentSMS.getDisplayOriginatingAddress();
-//                    subscriptionId = SIMHandler.getOperatorName(context, currentSMS.getServiceCenterAddress());
-//                    subscriptionId = currentSMS.getServiceCenterAddress();
-                    Log.d(getClass().getName(), "Subscription id of incoming: " + subscriptionId);
+                    subscriptionId = currentSMS.getServiceCenterAddress();
                     String displayMessage = currentSMS.getDisplayMessageBody();
                     displayMessage = displayMessage == null ?
                             new String(currentSMS.getUserData(), StandardCharsets.UTF_8) :
@@ -187,10 +184,9 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), sms.getAddress() + " : " + sms.getThreadId());
 
             receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            // TODO: check request code and make some changes
             PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
                     Integer.parseInt(sms.getThreadId()),
-                    receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
+                    receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent replyBroadcastIntent = null;
             if(PhoneNumberUtils.isWellFormedSmsAddress(sms.getAddress())) {
@@ -201,18 +197,13 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             }
 
             NotificationCompat.Builder builder = getNotificationHandler(context, cursor1,
-                    null, replyBroadcastIntent, Integer.parseInt(sms.getId()), sms.getThreadId())
+                    null, replyBroadcastIntent, sms.getThreadId())
                     .setContentIntent(pendingReceivedSmsIntent);
             cursor1.close();
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
-            /**
-             * TODO: Using the same ID leaves notifications updated (not appended).
-             * TODO: Recommendation: use groups for notifications to allow for appending them.
-             */
             notificationManager.notify(Integer.parseInt(sms.getThreadId()), builder.build());
-//            notificationManager.notify(Integer.parseInt(sms.id), builder.build());
         }
         cursor.close();
     }
@@ -222,7 +213,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static NotificationCompat.Builder
     getNotificationHandler(Context context, Cursor cursor,
                            List<NotificationCompat.MessagingStyle.Message> customMessages,
-                           Intent replyBroadcastIntent, int smsId, String threadId){
+                           Intent replyBroadcastIntent, String threadId){
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.incoming_messages_channel_id))
@@ -242,7 +233,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         markAsReadIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.MARK_AS_READ_BROADCAST_INTENT);
 
         PendingIntent markAsReadPendingIntent =
-                PendingIntent.getBroadcast(context, smsId,
+                PendingIntent.getBroadcast(context, Integer.parseInt(threadId),
                         markAsReadIntent,
                         PendingIntent.FLAG_MUTABLE);
 
@@ -253,7 +244,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         if(replyBroadcastIntent != null) {
             PendingIntent replyPendingIntent =
-                    PendingIntent.getBroadcast(context, smsId,
+                    PendingIntent.getBroadcast(context, Integer.parseInt(threadId),
                             replyBroadcastIntent,
                             PendingIntent.FLAG_MUTABLE);
 

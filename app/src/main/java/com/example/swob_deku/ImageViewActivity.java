@@ -88,10 +88,6 @@ public class ImageViewActivity extends AppCompatActivity {
         if(getIntent().hasExtra(IMAGE_INTENT_EXTRA)) {
             String smsId = getIntent().getStringExtra(IMAGE_INTENT_EXTRA);
 
-            // TODO: Get all messages which have the Ref ID
-            // TODO: get until the len of messages have been acquired, then fit them together
-            // TODO: until the len has been acquired.
-
             Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), smsId);
             if(cursor.moveToFirst()) {
                 SMS sms = new SMS(cursor);
@@ -162,7 +158,6 @@ public class ImageViewActivity extends AppCompatActivity {
             final int resChangeRatio = Math.round(MIN_RESOLUTION / seekBar.getMax());
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // TODO: change the resolution text
                 double calculatedResolution = progress == 0 ? MAX_RESOLUTION :
                         MAX_RESOLUTION - (resChangeRatio * progress);
 //
@@ -180,12 +175,10 @@ public class ImageViewActivity extends AppCompatActivity {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                // TODO: put loader
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                // TODO: compress the image
                 try {
                     buildImage();
                 } catch (Throwable e) {
@@ -307,7 +300,6 @@ public class ImageViewActivity extends AppCompatActivity {
     }
 
     public void sendImage(View view) throws InterruptedException {
-        // TODO: fix this
 //        Intent intent = new Intent(this, SMSSendActivity.class);
 //        intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
 //

@@ -43,9 +43,12 @@ public class SecurityHelpers {
 //        return new JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer));
 //    }
 
+    /**
+     * Includes the headers required to identify that this is an agreement request.
+     * @param agreementKey
+     * @return
+     */
     public static byte[] txAgreementFormatter(byte[] agreementKey) {
-        Log.d(SecurityHelpers.class.getName(), "Public key len: " + agreementKey.length);
-
         byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
         byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
 

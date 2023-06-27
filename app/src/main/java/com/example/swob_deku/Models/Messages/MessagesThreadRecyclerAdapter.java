@@ -152,7 +152,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
         smsMetaEntity.setThreadId(context, sms.getThreadId());
 
-        // TODO: migrate to SMSMetaEntity
         if(SecurityHelpers.containersWaterMark(sms.getBody()) || SecurityHelpers.isKeyExchange(sms.getBody())) {
             if(smsMetaEntity.hasUnreadMessages(context)) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)

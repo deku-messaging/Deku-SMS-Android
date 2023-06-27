@@ -57,7 +57,6 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                 LinearLayoutManager.VERTICAL, false);
         archivedMessagesRecyclerView.setLayoutManager(linearLayoutManager);
 
-        // TODO: search - and goto message in adapter
         archivedThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( this,
                 true, "", this);
 
