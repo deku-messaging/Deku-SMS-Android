@@ -9,6 +9,7 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.swob_deku.Models.RMQ.RMQConnection;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
@@ -32,7 +33,17 @@ public class OutgoingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 SMS sms = new SMS(cursor);
                 smsMetaEntity.setAddress(context, sms.getAddress());
 
-                PendingIntent[] pendingIntents = SMSHandler.getPendingIntents(context, messageId);
+                PendingIntent[] pendingIntents =
+                        intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY) ?
+                                SMSHandler.getPendingIntentsForServerRequest(context,
+                                        messageId,
+                                        intent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) :
+                                SMSHandler.getPendingIntents(context, messageId);
+
+                Log.d(getClass().getName(), "Global ID for outgoing sms: "
+                        + intent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY));
+                Log.d(getClass().getName(), "Sending with subscription Id: " + sms.getSubscriptionId());
+
                 sendTextSMS(context,
                         smsMetaEntity.getAddress(),
                         sms.getBody(),
@@ -52,8 +63,8 @@ public class OutgoingTextSMSBroadcastReceiver extends BroadcastReceiver {
             if(cursor != null && !cursor.isClosed())
                 cursor.close();
         }
-
     }
+
     private void sendTextSMS(Context context, String destinationAddress, String text,
                                PendingIntent sentIntent, PendingIntent deliveryIntent,
                                Integer subscriptionId, Intent intent) throws Exception {

@@ -239,6 +239,55 @@ public class SMSHandler {
     public static String SMS_DELIVERED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
 
+    public static String registerPendingServerMessage(Context context, String destinationAddress,
+                                                String text, int subscriptionId, String globalMessageKey) {
+        long messageId = Helpers.generateRandomNumber();
+
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(Telephony.Sms._ID, messageId);
+        contentValues.put(Telephony.TextBasedSmsColumns.TYPE,
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
+        contentValues.put(Telephony.TextBasedSmsColumns.STATUS,
+                Telephony.TextBasedSmsColumns.STATUS_PENDING);
+        contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
+        contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
+        contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
+
+        try {
+            Uri uri = context.getContentResolver().insert(
+                    SMS_OUTBOX_CONTENT_URI,
+                    contentValues);
+
+            Cursor cursor = context.getContentResolver().query(
+                    uri,
+                    new String[]{Telephony.TextBasedSmsColumns.THREAD_ID},
+                    null,
+                    null,
+                    null);
+
+            if (cursor.moveToFirst()) {
+                String threadId = cursor.getString(
+                        cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID));
+
+                Intent broadcastIntent = new Intent(context, OutgoingTextSMSBroadcastReceiver.class);
+
+                broadcastIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                broadcastIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+                broadcastIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageKey);
+                broadcastIntent.setAction(SMS_NEW_TEXT_REGISTERED_PENDING_BROADCAST);
+
+                context.sendBroadcast(broadcastIntent);
+                cursor.close();
+
+                return threadId;
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+        return null;
+    }
+
     /**
      * This module would send out a broadcast informing the outgoing message modules that there is a
      * new message available for sending.
@@ -361,8 +410,11 @@ public class SMSHandler {
     public static void broadcastMessageStateChanged(Context context, Intent intent){
         Intent newIntent = new Intent(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT);
 
-        if(intent != null)
+        if(intent != null) {
             newIntent.putExtras(intent.getExtras());
+            Log.d(SMSHandler.class.getName(), "NewIntent broadcast with global key: "
+                    + newIntent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY));
+        }
 
         context.sendBroadcast(newIntent);
     }
@@ -458,7 +510,7 @@ public class SMSHandler {
     }
 
     public static PendingIntent[] getPendingIntentsForServerRequest(Context context, long messageId,
-                                                                    long globalMessageId) {
+                                                                    String globalMessageId) {
         Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
         sentIntent.setPackage(context.getPackageName());
         sentIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);

@@ -507,7 +507,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     private void _configureEncryptionListeners() {
-        sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+        try {
+            sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
         if(smsMetaEntity.isShortCode() ||

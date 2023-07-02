@@ -1,10 +1,15 @@
 package com.example.swob_deku.Models.RMQ;
 
+import android.content.Context;
+import android.telephony.SubscriptionInfo;
+
+import com.example.swob_deku.Models.SIMHandler;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DeliverCallback;
 
 import java.io.IOException;
+import java.util.List;
 
 public class RMQConnection {
     final boolean autoDelete = false;
@@ -20,7 +25,17 @@ public class RMQConnection {
 
     private Connection connection;
 
-    private Channel channel1, channel2;
+    private Channel channel1;
+
+    public Channel getChannel2() {
+        return channel2;
+    }
+
+    public void setChannel2(Channel channel2) {
+        this.channel2 = channel2;
+    }
+
+    private Channel channel2;
 
     private boolean reconnecting = false;
 
@@ -66,7 +81,7 @@ public class RMQConnection {
      * @param deliverCallback
      * @throws IOException
      */
-    public void createQueue1(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
+    public void createQueue1(Context context, String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
         this.queueName = bindingKey.replaceAll("\\.", "_");
         this.deliverCallback = deliverCallback;
 
@@ -74,7 +89,7 @@ public class RMQConnection {
         this.channel1.queueBind(queueName, exchangeName, bindingKey);
     }
 
-    public void createQueue2(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
+    public void createQueue2(Context context, String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
         this.queueName2 = bindingKey.replaceAll("\\.", "_");
         this.deliverCallback = deliverCallback;
 

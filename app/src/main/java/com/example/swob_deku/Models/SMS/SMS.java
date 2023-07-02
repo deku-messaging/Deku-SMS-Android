@@ -529,7 +529,7 @@ public class SMS {
                     Telephony.TextBasedSmsColumns.PERSON,
                     Telephony.TextBasedSmsColumns.DATE,
                     Telephony.TextBasedSmsColumns.BODY,
-//                Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
+                    Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
                     Telephony.TextBasedSmsColumns.TYPE};
 
             Cursor smsMessagesCursor = context.getContentResolver().query(
@@ -562,8 +562,11 @@ public class SMS {
             Cursor smsMessagesCursor = context.getContentResolver().query(
                     SMS_OUTBOX_CONTENT_URI,
                     new String[]{Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
-                            Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
-                            Telephony.TextBasedSmsColumns.DATE, Telephony.TextBasedSmsColumns.BODY,
+                            Telephony.TextBasedSmsColumns.ADDRESS,
+                            Telephony.TextBasedSmsColumns.PERSON,
+                            Telephony.TextBasedSmsColumns.DATE,
+                            Telephony.TextBasedSmsColumns.BODY,
+                            Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
                             Telephony.TextBasedSmsColumns.TYPE},
                     Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.Sms._ID + "=?",
                     new String[]{threadId, String.valueOf(messageId)},
