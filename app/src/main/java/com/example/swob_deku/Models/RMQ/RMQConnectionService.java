@@ -312,7 +312,6 @@ public class RMQConnectionService extends Service {
 
                     if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
                         SubscriptionInfo subscriptionInfo = subscriptionInfoList.get(0);
-                        Log.d(getClass().getName(), "Subscription1: " + subscriptionInfo.getSubscriptionId());
                         rmqConnection.createQueue1(gatewayClient.getProjectName(),
                                 gatewayClient.getProjectBinding(), getDeliverCallback(rmqConnection.getChannel1(),
                                         subscriptionInfo.getSubscriptionId()));
@@ -322,7 +321,6 @@ public class RMQConnectionService extends Service {
                     if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()
                             && gatewayClient.getProjectBinding2() != null && !gatewayClient.getProjectBinding2().isEmpty()) {
                         SubscriptionInfo subscriptionInfo = subscriptionInfoList.get(1);
-                        Log.d(getClass().getName(), "Subscription2: " + subscriptionInfo.getSubscriptionId());
                         rmqConnection.createQueue2(gatewayClient.getProjectName(),
                                 gatewayClient.getProjectBinding2(), getDeliverCallback(rmqConnection.getChannel2(),
                                         subscriptionInfo.getSubscriptionId()));
