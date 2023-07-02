@@ -81,7 +81,7 @@ public class RMQConnection {
      * @param deliverCallback
      * @throws IOException
      */
-    public void createQueue1(Context context, String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
+    public void createQueue1(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
         this.queueName = bindingKey.replaceAll("\\.", "_");
         this.deliverCallback = deliverCallback;
 
@@ -89,7 +89,7 @@ public class RMQConnection {
         this.channel1.queueBind(queueName, exchangeName, bindingKey);
     }
 
-    public void createQueue2(Context context, String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
+    public void createQueue2(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
         this.queueName2 = bindingKey.replaceAll("\\.", "_");
         this.deliverCallback = deliverCallback;
 
