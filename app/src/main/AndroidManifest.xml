@@ -10,8 +10,9 @@
     <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:icon="@mipmap/ic_launcher_round"
@@ -21,9 +22,21 @@
         android:theme="@style/Theme.main"
         android:usesCleartextTraffic="false">
         <activity
+            android:name=".GatewayClientCustomizationActivity"
+            android:exported="false"
+            android:parentActivityName=".GatewayClientListingActivity" />
+        <activity
+            android:name=".GatewayClientAddActivity"
+            android:exported="false"
+            android:parentActivityName=".GatewayClientListingActivity" />
+        <activity
+            android:name=".GatewayClientListingActivity"
+            android:exported="false"
+            android:parentActivityName=".SettingsActivity" />
+        <activity
             android:name=".SettingsActivity"
-            android:parentActivityName=".MessagesThreadsActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".MessagesThreadsActivity" />
         <activity
             android:name=".ComposeNewMessageActivity"
             android:exported="false"
@@ -46,7 +59,7 @@
         <activity
             android:name=".GatewayServerListingActivity"
             android:exported="false"
-            android:parentActivityName=".MessagesThreadsActivity">
+            android:parentActivityName=".SettingsActivity">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
@@ -129,6 +142,35 @@
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
+        <receiver
+            android:name=".BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
+                <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST"/>
+                <action android:name="com.afkanerd.deku.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST"/>
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".RespondViaMessageActivity"
             android:exported="true"
@@ -145,18 +187,10 @@
             </intent-filter>
         </service>
 
-        <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
+        <service
+            android:name=".Models.RMQ.RMQConnectionService"
             android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
-                <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
-                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
-            </intent-filter>
-        </receiver>
-
+            android:exported="false" />
     </application>
 
 </manifest>

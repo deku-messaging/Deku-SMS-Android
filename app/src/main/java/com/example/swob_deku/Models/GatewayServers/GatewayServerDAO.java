@@ -1,4 +1,4 @@
-package com.example.swob_deku.Models.GatewayServer;
+package com.example.swob_deku.Models.GatewayServers;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;

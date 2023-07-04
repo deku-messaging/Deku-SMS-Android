@@ -10,18 +10,7 @@ package com.example.swob_deku.Models.Security;
 
 import android.util.Log;
 
-import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Date;
 
 public class SecurityHelpers {
 
@@ -54,9 +43,12 @@ public class SecurityHelpers {
 //        return new JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer));
 //    }
 
+    /**
+     * Includes the headers required to identify that this is an agreement request.
+     * @param agreementKey
+     * @return
+     */
     public static byte[] txAgreementFormatter(byte[] agreementKey) {
-        Log.d(SecurityHelpers.class.getName(), "Public key len: " + agreementKey.length);
-
         byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
         byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
 
@@ -102,16 +94,21 @@ public class SecurityHelpers {
     }
 
 
-    public static String waterMarkMessage(String text) {
+    public static String putEncryptedMessageWaterMark(String text) {
         return SecurityHelpers.ENCRYPTED_WATERMARK_START
                 + text
                 + SecurityHelpers.ENCRYPTED_WATERMARK_END;
     }
 
-    public static String removeWaterMarkMessage(String text) {
+    public static String removeEncryptedMessageWaterMark(String text) {
         int lastWaterMark = text.lastIndexOf(SecurityHelpers.ENCRYPTED_WATERMARK_END);
 
         return text.substring(SecurityHelpers.ENCRYPTED_WATERMARK_START.length(), lastWaterMark);
+    }
+
+    public static String removeKeyWaterMark(String text) {
+        return text.replace(FIRST_HEADER, "")
+                .replace(END_HEADER, "");
     }
 
     public static boolean containersWaterMark(String text) {

@@ -1,4 +1,6 @@
-package com.example.swob_deku.Models.GatewayServer;
+package com.example.swob_deku.Models.GatewayServers;
+
+import static com.example.swob_deku.Models.GatewayServers.GatewayServer.DIFF_CALLBACK;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -71,16 +73,4 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
         }
     }
 
-    public static final DiffUtil.ItemCallback<GatewayServer> DIFF_CALLBACK =
-        new DiffUtil.ItemCallback<GatewayServer>() {
-            @Override
-            public boolean areItemsTheSame(@NonNull GatewayServer oldItem, @NonNull GatewayServer newItem) {
-                return oldItem.id == newItem.id;
-            }
-
-            @Override
-            public boolean areContentsTheSame(@NonNull GatewayServer oldItem, @NonNull GatewayServer newItem) {
-                return oldItem.equals(newItem);
-            }
-        };
 }

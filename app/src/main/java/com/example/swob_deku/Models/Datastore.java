@@ -9,15 +9,19 @@ import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
 import com.example.swob_deku.Models.Archive.Archive;
 import com.example.swob_deku.Models.Archive.ArchiveDAO;
-import com.example.swob_deku.Models.GatewayServer.GatewayServer;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
+import com.example.swob_deku.Models.GatewayClients.GatewayClient;
+import com.example.swob_deku.Models.GatewayClients.GatewayClientDAO;
+import com.example.swob_deku.Models.GatewayServers.GatewayServer;
+import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 
-@Database(entities = {GatewayServer.class, Archive.class}, version = 4)
+@Database(entities = {GatewayServer.class, Archive.class, GatewayClient.class}, version = 6)
 public abstract class Datastore extends RoomDatabase {
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
 
     public abstract GatewayServerDAO gatewayServerDAO();
     public abstract ArchiveDAO archiveDAO();
+
+    public abstract GatewayClientDAO gatewayClientDAO();
 
     @Override
     public void clearAllTables() {

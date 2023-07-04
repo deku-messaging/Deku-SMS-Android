@@ -149,9 +149,11 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     @Override
     public int getItemViewType(int position) {
         SMS sms = mDiffer.getCurrentList().get(position);
+        SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+        smsMetaEntity.setThreadId(context, sms.getThreadId());
 
         if(SecurityHelpers.containersWaterMark(sms.getBody()) || SecurityHelpers.isKeyExchange(sms.getBody())) {
-            if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+            if(smsMetaEntity.hasUnreadMessages(context)) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
                     return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
                 else
@@ -163,8 +165,9 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
                 else
                     return RECEIVED_ENCRYPTED_VIEW_TYPE;
             }
-        } else {
-            if(SMSHandler.hasUnreadMessages(context, sms.getThreadId())) {
+        }
+        else {
+            if(smsMetaEntity.hasUnreadMessages(context)) {
                 if(sms.getType() != MESSAGE_TYPE_INBOX)
                     return SENT_UNREAD_VIEW_TYPE;
                 else
@@ -284,13 +287,13 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
                 }
                 else {
                     Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
-                    singleMessageThreadIntent.putExtra(SMSSendActivity.ADDRESS, sms.getAddress());
-                    singleMessageThreadIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, sms.getAddress());
+                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
 
                     if (searchString != null && !searchString.isEmpty()) {
                         int calculatedOffset = SMSHandler.calculateOffset(context, sms.getThreadId(), sms.getId());
                         singleMessageThreadIntent
-                                .putExtra(SMSSendActivity.ID, sms.getId())
+                                .putExtra(SMS.SMSMetaEntity.ID, sms.getId())
                                 .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
                                 .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
                                 .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
@@ -332,8 +335,10 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
 
     public void resetAllSelectedItems() {
         HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
-        for(Map.Entry<String, TemplateViewHolder> entry : items.entrySet()) {
-            entry.getValue().unHighlight();
+        if(items != null) {
+            for (Map.Entry<String, TemplateViewHolder> entry : items.entrySet()) {
+                entry.getValue().unHighlight();
+            }
         }
         selectedItems.setValue(new HashMap<>());
     }

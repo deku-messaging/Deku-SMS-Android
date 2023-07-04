@@ -57,7 +57,6 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                 LinearLayoutManager.VERTICAL, false);
         archivedMessagesRecyclerView.setLayoutManager(linearLayoutManager);
 
-        // TODO: search - and goto message in adapter
         archivedThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( this,
                 true, "", this);
 
@@ -104,7 +103,8 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                         for (int i = 0; i < ids.length; i++)
                             longArr[i] = Long.parseLong(ids[i]);
 
-                        ArchiveHandler.removeMultipleFromArchive(getApplicationContext(), longArr);
+                        new ArchiveHandler(getApplicationContext())
+                                .removeMultipleFromArchive(getApplicationContext(), longArr);
                         archivedThreadRecyclerAdapter.resetAllSelectedItems();
                         archivedViewModel.informChanges();
                         return true;

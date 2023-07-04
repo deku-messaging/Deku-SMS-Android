@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:theme="@style/Theme.main"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/gateway_client_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="16dp"
+        android:clickable="true"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/gateway_client_url"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="sans-serif-condensed"
+                android:text="example.com"
+                android:textSize="20sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/gateway_client_username"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="user"
+                android:textColor="@color/disabled_gray"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toStartOf="@+id/gateway_client_date"
+                app:layout_constraintStart_toStartOf="@+id/gateway_client_username_title"
+                app:layout_constraintTop_toBottomOf="@+id/gateway_client_username_title" />
+
+            <TextView
+                android:id="@+id/gateway_client_virtual_host"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="/"
+                android:textColor="@color/disabled_gray"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="@+id/textView7"
+                app:layout_constraintTop_toBottomOf="@+id/textView7" />
+
+            <TextView
+                android:id="@+id/gateway_client_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="sans-serif"
+                android:text="2022-12-22"
+                android:textColor="@color/primary_highlight_color"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/gateway_client_virtual_host" />
+
+            <TextView
+                android:id="@+id/gateway_client_username_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/settings_gateway_client_username_description"
+                app:layout_constraintStart_toStartOf="@+id/gateway_client_friendly_name_text"
+                app:layout_constraintTop_toBottomOf="@+id/gateway_client_friendly_name_text" />
+
+            <TextView
+                android:id="@+id/textView7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/settings_gateway_client_virtualhost_description"
+                app:layout_constraintStart_toStartOf="@+id/gateway_client_username"
+                app:layout_constraintTop_toBottomOf="@+id/gateway_client_username" />
+
+            <TextView
+                android:id="@+id/gateway_client_friendly_name_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="example_friendly_name"
+                android:textColor="@color/secondary_text_color"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="@+id/gateway_client_url"
+                app:layout_constraintTop_toBottomOf="@+id/gateway_client_url" />
+
+            <TextView
+                android:id="@+id/gateway_client_connection_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="connected"
+                android:textColor="@color/secondary_text_color"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="@+id/gateway_client_friendly_name_text"
+                app:layout_constraintEnd_toEndOf="@+id/gateway_client_url"
+                app:layout_constraintTop_toTopOf="@+id/gateway_client_friendly_name_text" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

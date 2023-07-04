@@ -11,9 +11,11 @@ import android.graphics.Typeface;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.StyleSpan;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -32,15 +34,17 @@ import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.Datastore;
-import com.example.swob_deku.Models.GatewayServer.GatewayServer;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
+import com.example.swob_deku.Models.GatewayServers.GatewayServer;
+import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Router.Router;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
+import com.example.swob_deku.Models.RMQ.RMQConnection;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -57,8 +61,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     // Key for the string that's delivered in the action's intent.
     public static final String KEY_TEXT_REPLY = "key_text_reply";
 
-    public static String SMS_SENT_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SMS_SENT_BROADCAST_INTENT";
-    public static String SMS_DELIVERED_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -66,12 +68,13 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
-                StringBuffer messageBuffer = new StringBuffer();
-                String address = new String();
+                StringBuilder messageBuffer = new StringBuilder();
+                String address = "";
+                String subscriptionId = "";
 
                 for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                    // TODO: Fetch address name from contact list if present
                     address = currentSMS.getDisplayOriginatingAddress();
+                    subscriptionId = currentSMS.getServiceCenterAddress();
                     String displayMessage = currentSMS.getDisplayMessageBody();
                     displayMessage = displayMessage == null ?
                             new String(currentSMS.getUserData(), StandardCharsets.UTF_8) :
@@ -84,7 +87,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
                 long messageId = -1;
                 try {
-                    messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message);
+                    messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message, subscriptionId);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -169,74 +172,51 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static void sendNotification(Context context, String text, final String address, long messageId) {
         Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
 
-        receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
-
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
-
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
-            Cursor cursor1 = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, sms.getThreadId());
+            SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+            smsMetaEntity.setThreadId(context, sms.getThreadId());
+
+            Cursor cursor1 = smsMetaEntity.fetchUnreadMessages(context);
+            receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, sms.getAddress());
+            receivedSmsIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
+            Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), sms.getAddress() + " : " + sms.getThreadId());
 
             receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            // TODO: check request code and make some changes
             PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
                     Integer.parseInt(sms.getThreadId()),
-                    receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
+                    receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent replyBroadcastIntent = null;
             if(PhoneNumberUtils.isWellFormedSmsAddress(sms.getAddress())) {
                 replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
-                replyBroadcastIntent.putExtra(SMSSendActivity.ADDRESS, address);
-                replyBroadcastIntent.putExtra(SMSSendActivity.THREAD_ID, sms.getThreadId());
+                replyBroadcastIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
+                replyBroadcastIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
                 replyBroadcastIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_BROADCAST_INTENT);
             }
 
             NotificationCompat.Builder builder = getNotificationHandler(context, cursor1,
-                    null, replyBroadcastIntent, Integer.parseInt(sms.getId()), sms.getThreadId())
+                    null, replyBroadcastIntent, sms.getThreadId())
                     .setContentIntent(pendingReceivedSmsIntent);
             cursor1.close();
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
-            /**
-             * TODO: Using the same ID leaves notifications updated (not appended).
-             * TODO: Recommendation: use groups for notifications to allow for appending them.
-             */
             notificationManager.notify(Integer.parseInt(sms.getThreadId()), builder.build());
-//            notificationManager.notify(Integer.parseInt(sms.id), builder.build());
         }
         cursor.close();
     }
 
 
-    public static PendingIntent[] getPendingIntents(Context context, long messageId) {
-        Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
-        sentIntent.setPackage(context.getPackageName());
-        sentIntent.putExtra(SMSSendActivity.ID, messageId);
-
-        Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
-        deliveredIntent.setPackage(context.getPackageName());
-        deliveredIntent.putExtra(SMSSendActivity.ID, messageId);
-
-        PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)),
-                sentIntent,
-                PendingIntent.FLAG_IMMUTABLE);
-
-        PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
-                Integer.parseInt(String.valueOf(messageId)),
-                deliveredIntent,
-                PendingIntent.FLAG_IMMUTABLE);
-
-        return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
-    }
 
     public static NotificationCompat.Builder
     getNotificationHandler(Context context, Cursor cursor,
                            List<NotificationCompat.MessagingStyle.Message> customMessages,
-                           Intent replyBroadcastIntent, int smsId, String threadId){
+                           Intent replyBroadcastIntent, String threadId){
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                context, context.getString(R.string.CHANNEL_ID))
+                context, context.getString(R.string.incoming_messages_channel_id))
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
@@ -249,11 +229,11 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         String markAsReadLabel = context.getResources().getString(R.string.notifications_mark_as_read_label);
 
         Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
-        markAsReadIntent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+        markAsReadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
         markAsReadIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.MARK_AS_READ_BROADCAST_INTENT);
 
         PendingIntent markAsReadPendingIntent =
-                PendingIntent.getBroadcast(context, smsId,
+                PendingIntent.getBroadcast(context, Integer.parseInt(threadId),
                         markAsReadIntent,
                         PendingIntent.FLAG_MUTABLE);
 
@@ -264,7 +244,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         if(replyBroadcastIntent != null) {
             PendingIntent replyPendingIntent =
-                    PendingIntent.getBroadcast(context, smsId,
+                    PendingIntent.getBroadcast(context, Integer.parseInt(threadId),
                             replyBroadcastIntent,
                             PendingIntent.FLAG_MUTABLE);
 
@@ -296,6 +276,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 SpannableStringBuilder spannable = new SpannableStringBuilder(contactName);
 
                 StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+//                StyleSpan boldSpan = new StyleSpan(Typeface.NORMAL);
                 StyleSpan ItalicSpan = new StyleSpan(Typeface.ITALIC);
 
                 spannable.setSpan(boldSpan, 0, contactName.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);

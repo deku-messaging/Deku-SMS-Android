@@ -21,7 +21,6 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.example.swob_deku.Commons.DataHelper;
 import com.example.swob_deku.Models.Compression;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Commons.Helpers;
@@ -33,7 +32,6 @@ import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 
 import java.io.IOException;
-import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.DataFormatException;
 
@@ -79,8 +77,8 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView = findViewById(R.id.compressed_image_holder);
         imageDescription = findViewById(R.id.image_details_size);
 
-        address = getIntent().getStringExtra(SMSSendActivity.ADDRESS);
-        threadId = getIntent().getStringExtra(SMSSendActivity.THREAD_ID);
+        address = getIntent().getStringExtra(SMS.SMSMetaEntity.ADDRESS);
+        threadId = getIntent().getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
 
         String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
@@ -89,10 +87,6 @@ public class ImageViewActivity extends AppCompatActivity {
         ab.setTitle(contactName);
         if(getIntent().hasExtra(IMAGE_INTENT_EXTRA)) {
             String smsId = getIntent().getStringExtra(IMAGE_INTENT_EXTRA);
-
-            // TODO: Get all messages which have the Ref ID
-            // TODO: get until the len of messages have been acquired, then fit them together
-            // TODO: until the len has been acquired.
 
             Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), smsId);
             if(cursor.moveToFirst()) {
@@ -139,10 +133,10 @@ public class ImageViewActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home ) {
             Intent intent = new Intent(this, SMSSendActivity.class);
-            intent.putExtra(SMSSendActivity.ADDRESS, address);
+            intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
 
             if(!threadId.isEmpty())
-                intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+                intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
 
             startActivity(intent);
             finish();
@@ -164,7 +158,6 @@ public class ImageViewActivity extends AppCompatActivity {
             final int resChangeRatio = Math.round(MIN_RESOLUTION / seekBar.getMax());
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // TODO: change the resolution text
                 double calculatedResolution = progress == 0 ? MAX_RESOLUTION :
                         MAX_RESOLUTION - (resChangeRatio * progress);
 //
@@ -182,12 +175,10 @@ public class ImageViewActivity extends AppCompatActivity {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                // TODO: put loader
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                // TODO: compress the image
                 try {
                     buildImage();
                 } catch (Throwable e) {
@@ -285,7 +276,7 @@ public class ImageViewActivity extends AppCompatActivity {
             String secretKeyB64 = securityECDH.securelyFetchSecretKey(address);
             c = SecurityECDH.encryptAES(c, Base64.decode(secretKeyB64, Base64.DEFAULT));
             content = Base64.encodeToString(c, Base64.DEFAULT);
-            c = SecurityHelpers.waterMarkMessage(content)
+            c = SecurityHelpers.putEncryptedMessageWaterMark(content)
                     .getBytes(StandardCharsets.UTF_8);
             Log.d(getLocalClassName(), "Original no compression: " + c.length);
 //            c = compress(c);
@@ -309,40 +300,40 @@ public class ImageViewActivity extends AppCompatActivity {
     }
 
     public void sendImage(View view) throws InterruptedException {
-        Intent intent = new Intent(this, SMSSendActivity.class);
-        intent.putExtra(SMSSendActivity.ADDRESS, address);
-
-        long messageId = Helpers.generateRandomNumber();
-
-        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-
-        String content = ImageHandler.IMAGE_HEADER +
-                Base64.encodeToString(compressedBytes, Base64.DEFAULT);
-
-//        content = Base64.encodeToString(compress(content.getBytes(StandardCharsets.UTF_8)),
-//                Base64.DEFAULT);
-
-        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
-                address,
-                content,
-                messageId,
-                subscriptionId);
-
-        intent.putExtra(SMSSendActivity.THREAD_ID, threadIdRx);
-        intent.putExtra(SMS_IMAGE_PENDING_LOCATION, messageId);
-
-        startActivity(intent);
-        finish();
+//        Intent intent = new Intent(this, SMSSendActivity.class);
+//        intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
+//
+//        long messageId = Helpers.generateRandomNumber();
+//
+//        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+//
+//        String content = ImageHandler.IMAGE_HEADER +
+//                Base64.encodeToString(compressedBytes, Base64.DEFAULT);
+//
+////        content = Base64.encodeToString(compress(content.getBytes(StandardCharsets.UTF_8)),
+////                Base64.DEFAULT);
+//
+//        String threadIdRx = SMSHandler.registerPendingMessage(getApplicationContext(),
+//                address,
+//                content,
+//                messageId,
+//                subscriptionId);
+//
+//        intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadIdRx);
+//        intent.putExtra(SMS_IMAGE_PENDING_LOCATION, messageId);
+//
+//        startActivity(intent);
+//        finish();
     }
 
 
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(this, SMSSendActivity.class);
-        intent.putExtra(SMSSendActivity.ADDRESS, address);
+        intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
 
         if(!threadId.isEmpty())
-            intent.putExtra(SMSSendActivity.THREAD_ID, threadId);
+            intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
 
         startActivity(intent);
         finish();

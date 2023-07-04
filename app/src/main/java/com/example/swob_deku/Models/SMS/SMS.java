@@ -1,15 +1,38 @@
 package com.example.swob_deku.Models.SMS;
 
+import static com.example.swob_deku.Commons.Helpers.getUserCountry;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_CONTENT_URI;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_INBOX_CONTENT_URI;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_OUTBOX_CONTENT_URI;
+
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.Telephony;
+import android.telephony.PhoneNumberUtils;
+import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
-import androidx.room.Entity;
 
+import com.example.swob_deku.Models.Contacts.Contacts;
+import com.example.swob_deku.Models.Security.SecurityECDH;
+import com.example.swob_deku.Models.Security.SecurityHelpers;
+import com.google.i18n.phonenumbers.NumberParseException;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
@@ -109,6 +132,64 @@ public class SMS {
 
     public String routerStatus = new String();
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public int getDisplayColor() {
+        return displayColor;
+    }
+
+    public void setDisplayColor(int displayColor) {
+        this.displayColor = displayColor;
+    }
+
+    public boolean isContact() {
+        return isContact;
+    }
+
+    public void setContact(boolean contact) {
+        isContact = contact;
+    }
+
+    public int getMessageCount() {
+        return messageCount;
+    }
+
+    public void setMessageCount(int messageCount) {
+        this.messageCount = messageCount;
+    }
+
+    public int getRead() {
+        return read;
+    }
+
+    public int getSubscriptionId() {
+        return subscriptionId;
+    }
+
+    public void setSubscriptionId(int subscriptionId) {
+        this.subscriptionId = subscriptionId;
+    }
+
+    public Boolean getDatesOnly() {
+        return datesOnly;
+    }
+
+    public void setDatesOnly(Boolean datesOnly) {
+        this.datesOnly = datesOnly;
+    }
+
+    public ArrayList<String> getRoutingUrls() {
+        return routingUrls;
+    }
+
+    public int subscriptionId;
+
     public Boolean datesOnly = false;
 
     public Boolean isDatesOnly() {
@@ -150,6 +231,7 @@ public class SMS {
         int statusCodeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.STATUS);
         int readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ);
         int idIndex = cursor.getColumnIndex(Telephony.Sms._ID);
+        int subscriptionIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID);
 
         this.type =  cursor.getInt(typeIndex);
         this.body = String.valueOf(cursor.getString(bodyIndex));
@@ -157,6 +239,8 @@ public class SMS {
         this.threadId = cursor.getString(threadIdIndex);
         this.date = String.valueOf(cursor.getString(dateIndex));
 
+        if(subscriptionIdIndex > -1)
+            this.subscriptionId = cursor.getInt(subscriptionIdIndex);
 
         if(idIndex > -1 ) {
             this.id = String.valueOf(cursor.getString(idIndex));
@@ -203,4 +287,292 @@ public class SMS {
             return oldItem.equals(newItem);
         }
     };
+
+    public static class SMSMetaEntity {
+        public static final String THREAD_ID = "THREAD_ID";
+        public static final String ADDRESS = "ADDRESS";
+        public static final String ID = "ID";
+        public static final String TYPE_DATA_KEY = "TYPE_DATA_KEY";
+
+        public static final String SHARED_SMS_BODY = "sms_body";
+
+        public enum ENCRYPTION_STATE {
+            NOT_ENCRYPTED,
+            SENT_PENDING_AGREEMENT,
+            RECEIVED_PENDING_AGREEMENT,
+
+            RECEIVED_AGREEMENT_REQUEST,
+            ENCRYPTED
+        }
+
+        private String address, threadId;
+        private String _address;
+
+        public void setThreadId(Context context, String threadId) {
+            this.threadId = threadId;
+            Cursor cursor = fetchMessages(context, 1, 0);
+            if(cursor.moveToFirst()) {
+                SMS sms = new SMS(cursor);
+                setAddress(context, sms.getAddress());
+            }
+            cursor.close();
+        }
+
+        public void setAddress(Context context, String address) {
+            this.address = address;
+            try {
+                this._address = formatPhoneNumbers(context, this.address);
+            } catch (Exception e) {
+                e.printStackTrace();
+                this._address = this.address;
+            }
+        }
+
+        public String getThreadId() {
+            return this.threadId;
+        }
+        public String getAddress(){
+            return this._address;
+        }
+
+        /**
+         * checks if number contains letters and if matches android default wellformedaddresses
+         * @return boolean - true if short code false otherwise
+         */
+        public boolean isShortCode() {
+            Pattern pattern = Pattern.compile("[a-zA-Z]");
+            Matcher matcher = pattern.matcher(getAddress());
+            return !PhoneNumberUtils.isWellFormedSmsAddress(getAddress()) || matcher.find();
+        }
+
+        private String formatPhoneNumbers(Context context, String data) throws NumberParseException {
+            String formattedString = data.replaceAll("%2B", "+")
+                    .replaceAll("%20", "");
+
+            if(!PhoneNumberUtils.isWellFormedSmsAddress(formattedString))
+                return formattedString;
+
+            // Remove any non-digit characters except the plus sign at the beginning of the string
+            String strippedNumber = formattedString.replaceAll("[^0-9+]", "");
+            if(strippedNumber.length() > 6) {
+                // If the stripped number starts with a plus sign followed by one or more digits, return it as is
+                if (!strippedNumber.matches("^\\+\\d+")) {
+                    String dialingCode = getUserCountry(context);
+                    strippedNumber = "+" + dialingCode + strippedNumber;
+                }
+                return strippedNumber;
+            }
+
+            // If the stripped number is not a valid phone number, return an empty string
+            return data;
+        }
+
+        public String getContactName(Context context) {
+            try {
+                String contactName = Contacts.retrieveContactName(context, getAddress());
+                if(!contactName.isEmpty())
+                    return contactName;
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            return this._address;
+        }
+
+        /**
+         *
+         * @param context
+         * @return ENCRYPTION_STATE: Informs about the encryption with current address that holds
+         * this entity. Remember, it is always the address' state with you - not yours!
+         * @throws GeneralSecurityException
+         * @throws IOException
+         */
+        public ENCRYPTION_STATE getEncryptionState(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            if(securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress()) &&
+                    securityECDH.hasPrivateKey(getAddress())) {
+                return ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT;
+            }
+            else if (securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress())) {
+                return ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST;
+            }
+            else if(securityECDH.hasPrivateKey(getAddress())) {
+                return ENCRYPTION_STATE.SENT_PENDING_AGREEMENT;
+            }
+            else if (securityECDH.hasSecretKey(getAddress())) {
+                return ENCRYPTION_STATE.ENCRYPTED;
+            }
+            return ENCRYPTION_STATE.NOT_ENCRYPTED;
+        }
+
+        /**
+         *
+         * @param context
+         * @return byte[] : Returns the public key. Remember this is your
+         * primary key (you being whomever is initiating the handshake).
+         * @throws GeneralSecurityException
+         * @throws IOException
+         */
+        public byte[] generateAgreements(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            PublicKey publicKey = securityECDH.generateKeyPair(context, getAddress());
+
+            return SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
+        }
+
+        /**
+         *
+         * @param context
+         * @return byte[] : Returns the public key generated from the peer agreement key.
+         * Remember this is your primary key (you being whomever is initiating the handshake).
+         * @throws GeneralSecurityException
+         * @throws IOException
+         */
+        public byte[] agreePeerRequest(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            byte[] peerPublicKey = Base64.decode(securityECDH.getPeerAgreementPublicKey(getAddress()),
+                    Base64.DEFAULT);
+
+            KeyPair keyPair = securityECDH.generateKeyPairFromPublicKey(peerPublicKey);
+            byte[] secret = securityECDH.generateSecretKey(peerPublicKey, getAddress());
+            securityECDH.securelyStoreSecretKey(getAddress(), secret);
+
+            return keyPair.getPublic().getEncoded();
+        }
+
+        public byte[] getSecretKey(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            return Base64.decode(securityECDH.securelyFetchSecretKey(getAddress()), Base64.DEFAULT);
+        }
+
+        public boolean hasSecretKey(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            return securityECDH.hasSecretKey(getAddress());
+        }
+
+        public String encryptContent(Context context, String data) throws Throwable {
+            byte[] encryptedContent = SecurityECDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
+                    getSecretKey(context));
+            return Base64.encodeToString(encryptedContent, Base64.DEFAULT);
+        }
+
+        public void call(Context context) {
+            Intent callIntent = new Intent(Intent.ACTION_DIAL);
+            callIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            callIntent.setData(Uri.parse("tel:" + getAddress()));
+
+            context.startActivity(callIntent);
+        }
+
+        public boolean isEncrypted(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            return securityECDH.hasSecretKey(getAddress());
+        }
+
+        public boolean isPendingAgreement(Context context) throws GeneralSecurityException, IOException {
+            SecurityECDH securityECDH = new SecurityECDH(context);
+            return securityECDH.peerAgreementPublicKeysAvailable(context, getAddress());
+        }
+
+        public void deleteMessage(Context context, String messageId) throws Exception {
+            try {
+                int updateCount = context.getContentResolver().delete(
+                        SMS_CONTENT_URI,
+                        Telephony.Sms._ID + "=?",
+                        new String[]{messageId});
+
+            } catch (Exception e) {
+                throw new Exception(e);
+            }
+        }
+
+        public void deleteMultipleMessages(Context context, String[] ids) {
+            try {
+                int updateCount = context.getContentResolver().delete(SMS_CONTENT_URI,
+                        Telephony.Sms._ID + " in (" +
+                                TextUtils.join(",", Collections.nCopies(ids.length, "?")) + ")", ids);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public boolean hasUnreadMessages(Context context) {
+            try {
+                Cursor cursor = context.getContentResolver().query(
+                        SMS_INBOX_CONTENT_URI,
+                        new String[]{Telephony.TextBasedSmsColumns.READ, Telephony.TextBasedSmsColumns.THREAD_ID},
+//                    "read=? AND thread_id =? AND type != ?",
+                        Telephony.TextBasedSmsColumns.READ + "=? AND " +
+                                Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                        new String[]{"0",
+                                String.valueOf(threadId)},
+                        "date DESC LIMIT 1");
+
+                boolean hasUnread = cursor.getCount() > 0;
+                cursor.close();
+
+                return hasUnread;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return false;
+        }
+
+        public Cursor fetchMessages(@NonNull Context context, int limit, int offset) {
+            String constrains = "date DESC" + (limit > 0 ? " LIMIT " + limit : "") +
+                    (offset > 0 ? " OFFSET " + offset : "");
+
+            String[] selection = new String[]{Telephony.Sms._ID,
+                    Telephony.TextBasedSmsColumns.STATUS,
+                    Telephony.TextBasedSmsColumns.THREAD_ID,
+                    Telephony.TextBasedSmsColumns.ADDRESS,
+                    Telephony.TextBasedSmsColumns.PERSON,
+                    Telephony.TextBasedSmsColumns.DATE,
+                    Telephony.TextBasedSmsColumns.BODY,
+                    Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
+                    Telephony.TextBasedSmsColumns.TYPE};
+
+            Cursor smsMessagesCursor = context.getContentResolver().query(
+                    SMS_CONTENT_URI,
+                    selection,
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                    new String[]{threadId},
+                    constrains);
+
+            return smsMessagesCursor;
+        }
+
+        public Cursor fetchUnreadMessages(Context context) {
+            return context.getContentResolver().query(
+                    SMS_INBOX_CONTENT_URI,
+                    new String[]{Telephony.Sms._ID,
+                            Telephony.TextBasedSmsColumns.THREAD_ID,
+                            Telephony.TextBasedSmsColumns.ADDRESS,
+                            Telephony.TextBasedSmsColumns.PERSON,
+                            Telephony.TextBasedSmsColumns.DATE,
+                            Telephony.TextBasedSmsColumns.BODY,
+                            Telephony.TextBasedSmsColumns.TYPE},
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND "
+                            + Telephony.Sms.READ + "=?",
+                    new String[]{threadId, "0"},
+                    "date ASC");
+        }
+
+        public Cursor fetchOutboxMessage(@NonNull Context context, long messageId) {
+            Cursor smsMessagesCursor = context.getContentResolver().query(
+                    SMS_OUTBOX_CONTENT_URI,
+                    new String[]{Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                            Telephony.TextBasedSmsColumns.ADDRESS,
+                            Telephony.TextBasedSmsColumns.PERSON,
+                            Telephony.TextBasedSmsColumns.DATE,
+                            Telephony.TextBasedSmsColumns.BODY,
+                            Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
+                            Telephony.TextBasedSmsColumns.TYPE},
+                    Telephony.TextBasedSmsColumns.THREAD_ID + "=? AND " + Telephony.Sms._ID + "=?",
+                    new String[]{threadId, String.valueOf(messageId)},
+                    null);
+
+            return smsMessagesCursor;
+        }
+    }
 }

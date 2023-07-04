@@ -1,13 +1,11 @@
 package com.example.swob_deku.Models.Archive;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.room.Room;
 
+import com.example.swob_deku.Models.Migrations;
 import com.example.swob_deku.Models.Datastore;
-import com.example.swob_deku.Models.GatewayServer.GatewayServerDAO;
-import com.example.swob_deku.Models.SMS.SMS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,19 +18,16 @@ public class ArchiveHandler {
         this.context = context;
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
-                .fallbackToDestructiveMigration()
+                .addMigrations(new Migrations.Migration4To5())
+                .addMigrations(new Migrations.Migration5To6())
                 .build();
         archiveDAO = databaseConnector.archiveDAO();
     }
 
-    public static void archiveSMS(Context context, Archive archive) throws InterruptedException {
+    public void archiveSMS(Context context, Archive archive) throws InterruptedException {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
-                        .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.insert(archive);
             }
@@ -41,7 +36,7 @@ public class ArchiveHandler {
         thread.join();
     }
 
-    public static void archiveMultipleSMS(Context context, long[] threadId) throws InterruptedException {
+    public void archiveMultipleSMS(Context context, long[] threadId) throws InterruptedException {
         Archive[] archives = new Archive[threadId.length];
 
         for(int i=0;i<threadId.length;++i)
@@ -49,10 +44,6 @@ public class ArchiveHandler {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                                Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
-                        .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.insert(archives);
             }
@@ -65,24 +56,19 @@ public class ArchiveHandler {
         return archiveDAO.fetch(threadId) != null;
     }
 
-    public static void removeFromArchive(Context context, long threadId) throws InterruptedException {
+    public void removeFromArchive(Context context, long threadId) throws InterruptedException {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                                Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
-                        .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.remove(new Archive(threadId));
-                databaseConnector.close();
             }
         });
         thread.start();
         thread.join();
     }
 
-    public static void removeMultipleFromArchive(Context context, long[] threadId) throws InterruptedException {
+    public void removeMultipleFromArchive(Context context, long[] threadId) throws InterruptedException {
         Archive[] archives = new Archive[threadId.length];
 
         for(int i=0;i<threadId.length;++i)
@@ -91,28 +77,19 @@ public class ArchiveHandler {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                                Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
-                        .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 archiveDAO.remove(archives);
-                databaseConnector.close();
             }
         });
         thread.start();
         thread.join();
     }
 
-    public static List<Archive> loadAllMessages(Context context) throws InterruptedException {
+    public List<Archive> loadAllMessages(Context context) throws InterruptedException {
         final List<Archive>[] fetchedData = new List[]{new ArrayList<>()};
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                                Datastore.databaseName)
-                        .fallbackToDestructiveMigration()
-                        .build();
                 ArchiveDAO archiveDAO = databaseConnector.archiveDAO();
                 fetchedData[0] = archiveDAO.fetchAll();
                 databaseConnector.close();

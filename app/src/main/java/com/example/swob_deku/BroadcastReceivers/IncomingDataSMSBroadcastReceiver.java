@@ -6,10 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.SIMHandler;
+import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
@@ -37,12 +40,14 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
                 ByteArrayOutputStream messageBuffer = new ByteArrayOutputStream();
-                String address = "";
+                String _address = "";
+                String subscriptionId = "";
 
                 for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                    address = currentSMS.getDisplayOriginatingAddress();
-                    Log.d(getClass().getName(), "Display originating address: " + address);
-                    Log.d(getClass().getName(), "Meta originating address: " + currentSMS.getOriginatingAddress());
+                    _address = currentSMS.getDisplayOriginatingAddress();
+
+                    // The closest thing to subscription id is the serviceCenterAddress
+                    subscriptionId = SIMHandler.getOperatorName(context, currentSMS.getServiceCenterAddress());
                     try {
                         messageBuffer.write(currentSMS.getUserData());
                     } catch (IOException e) {
@@ -51,28 +56,27 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                 }
 
                 long messageId = -1;
-                try {
-                    address = Helpers.formatPhoneNumbers(context, address);
-                    Log.d(getClass().getName(), "Formatted address: " + address);
-                } catch (NumberParseException e) {
-                    throw new RuntimeException(e);
-                }
+                SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                smsMetaEntity.setAddress(context, _address);
+
                 try {
                     String strMessage = messageBuffer.toString();
-                    Log.d(getClass().getName(), "Data received broadcast: " + strMessage);
-
                     if(SecurityHelpers.isKeyExchange(strMessage)) {
-                        strMessage = registerIncomingAgreement(context, address, messageBuffer.toByteArray());
+                        strMessage = registerIncomingAgreement(context, smsMetaEntity.getAddress(),
+                                messageBuffer.toByteArray());
                     }
 
-                    if(configureIncomingKey(context, address)) {
+                    if(smsMetaEntity.isPendingAgreement(context)) {
                         String notificationNote = "New Key request";
 
                         strMessage = SecurityHelpers.FIRST_HEADER +
                                 strMessage + SecurityHelpers.END_HEADER;
 
-                        messageId = SMSHandler.registerIncomingMessage(context, address, strMessage);
-                        IncomingTextSMSBroadcastReceiver.sendNotification(context, notificationNote, address, messageId);
+                        messageId = SMSHandler.registerIncomingMessage(context,
+                                smsMetaEntity.getAddress(), strMessage, subscriptionId);
+
+                        IncomingTextSMSBroadcastReceiver.sendNotification(context, notificationNote,
+                                smsMetaEntity.getAddress(), messageId);
                         broadcastIntent(context);
                     }
 
@@ -92,10 +96,5 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     private void broadcastIntent(Context context) {
         Intent intent = new Intent(DATA_BROADCAST_INTENT);
         context.sendBroadcast(intent);
-    }
-
-    private boolean configureIncomingKey(Context context, String msisdn) throws GeneralSecurityException, IOException {
-        SecurityECDH securityECDH = new SecurityECDH(context);
-        return securityECDH.peerAgreementPublicKeysAvailable(context, msisdn);
     }
 }

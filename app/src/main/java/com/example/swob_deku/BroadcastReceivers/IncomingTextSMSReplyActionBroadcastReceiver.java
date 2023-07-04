@@ -1,23 +1,17 @@
 package com.example.swob_deku.BroadcastReceivers;
 
 import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.KEY_TEXT_REPLY;
-import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT;
-import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_DELIVERED_BROADCAST_INTENT;
+import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_SENT_BROADCAST_INTENT;
 
 import android.app.Activity;
-import android.app.Notification;
 import android.app.PendingIntent;
-import android.app.Person;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.telephony.SmsManager;
-import android.text.SpannableStringBuilder;
-import android.text.format.DateUtils;
-import android.text.style.StyleSpan;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -26,6 +20,8 @@ import androidx.core.app.RemoteInput;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.RMQ.RMQConnection;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
@@ -35,44 +31,47 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
+    public static String BROADCAST_STATE = BuildConfig.APPLICATION_ID + ".BROADCAST_STATE";
+    public static String SENT_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".SENT_BROADCAST_INTENT";
+    public static String FAILED_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".FAILED_BROADCAST_INTENT";
+    public static String DELIVERED_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".DELIVERED_BROADCAST_INTENT";
     public static String REPLY_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".REPLY_BROADCAST_ACTION";
     public static String MARK_AS_READ_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".MARK_AS_READ_BROADCAST_ACTION";
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(getClass().getName(), "Received manifest broadcast now: " + intent.getAction());
         if(intent.getAction().equals(REPLY_BROADCAST_INTENT)) {
             Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
             if (remoteInput != null) {
                 CharSequence reply = remoteInput.getCharSequence(KEY_TEXT_REPLY);
-                String address = intent.getStringExtra(SMSSendActivity.ADDRESS);
-                String threadId = intent.getStringExtra(SMSSendActivity.THREAD_ID);
+                if(reply.toString().isEmpty())
+                    return;
 
-                Log.d(getClass().getName(), "Yep broadcast is called with reply: " + reply.toString());
-                Log.d(getClass().getName(), "Yep broadcast is called with address: " + address);
+                String address = intent.getStringExtra(SMS.SMSMetaEntity.ADDRESS);
+                String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
 
                 try {
-                    long messageId = Helpers.generateRandomNumber();
-                    PendingIntent[] pendingIntents = IncomingTextSMSBroadcastReceiver.getPendingIntents(context, messageId);
-                    SMSHandler.sendTextSMS(context, address, reply.toString(),
-                            pendingIntents[0], pendingIntents[1], messageId, null);
+                    int subscriptionId = SIMHandler.getDefaultSimSubscription(context);
+                    SMSHandler.registerPendingMessage(context, address, reply.toString(), subscriptionId);
 
                     List<NotificationCompat.MessagingStyle.Message> messages = new ArrayList<>();
                     messages.add(new NotificationCompat.MessagingStyle.Message(reply,
                             System.currentTimeMillis(),
                             context.getString(R.string.notification_title_reply_you)));
 
-                    Cursor cursor = SMSHandler.fetchUnreadSMSMessagesForThreadId(context, threadId);
+                    SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                    smsMetaEntity.setThreadId(context, threadId);
+                    Cursor cursor = smsMetaEntity.fetchUnreadMessages(context);
 
                     Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
-                    receivedSmsIntent.putExtra(SMSSendActivity.ADDRESS, address);
+                    receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
                     receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
                     PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
                             Integer.parseInt(threadId),
                             receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
+
                     NotificationCompat.Builder builder = IncomingTextSMSBroadcastReceiver
-                            .getNotificationHandler(context, cursor, messages, intent,
-                                    Integer.parseInt(String.valueOf(messageId)), threadId)
+                            .getNotificationHandler(context, cursor, messages, intent, threadId)
                                     .setContentIntent(pendingReceivedSmsIntent);
                     cursor.close();
 
@@ -86,7 +85,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
             }
         }
         else if(intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
-            String threadId = intent.getStringExtra(SMSSendActivity.THREAD_ID);
+            String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
             try {
                 SMSHandler.updateMarkThreadMessagesAsRead(context, threadId);
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
@@ -96,11 +95,12 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
             }
         }
         else if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT)) {
-            long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+            long id = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
             switch(getResultCode()) {
                 case Activity.RESULT_OK:
                     try {
                         SMSHandler.registerSentMessage(context, id);
+                        intent.putExtra(BROADCAST_STATE, SENT_BROADCAST_INTENT);
                     }
                     catch(Exception e) {
                         e.printStackTrace();
@@ -116,14 +116,15 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 default:
                     try {
                         SMSHandler.registerFailedMessage(context, id, getResultCode());
+                        intent.putExtra(BROADCAST_STATE, FAILED_BROADCAST_INTENT);
                     } catch(Exception e) {
                         e.printStackTrace();
                     }
             }
         }
         else if(intent.getAction().equals(SMS_DELIVERED_BROADCAST_INTENT)) {
-            Log.d(getClass().getName(), "Received in BIG BOY TOO");
-            long id = intent.getLongExtra(SMSSendActivity.ID, -1);
+            intent.putExtra(BROADCAST_STATE, DELIVERED_BROADCAST_INTENT);
+            long id = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
             if (getResultCode() == Activity.RESULT_OK) {
                 SMSHandler.registerDeliveredMessage(context, id);
             } else {
@@ -132,6 +133,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                             + getResultCode());
             }
         }
-        context.sendBroadcast(new Intent(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
+
+        SMSHandler.broadcastMessageStateChanged(context, intent);
     }
 }

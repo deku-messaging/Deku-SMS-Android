@@ -1,12 +1,16 @@
 <resources>
     <string name="app_name">Deku SMS</string>
-    <string name="channel_name">deku_incoming_message</string>
-    <string name="channel_description">
-        Gets called when a new message is received.
-    </string>
-    <string name="CHANNEL_ID">
-        696969
-    </string>
+    <string name="incoming_messages_channel_name">Incoming Messages</string>
+    <string name="running_gateway_clients_channel_name">Running Gateway Clients</string>
+    <string name="foreground_service_failed_channel_name">Gateway clients auto-reconnect</string>
+
+    <string name="incoming_messages_channel_description">Gets called when a new message is received.</string>
+    <string name="running_gateway_clients_channel_description">Alerts when gateway clients are listening.</string>
+    <string name="foreground_service_failed_channel_description">Click to reconnect Gateway clients</string>
+
+    <string name="incoming_messages_channel_id">@string/incoming_messages_channel_name</string>
+    <string name="running_gateway_clients_channel_id">@string/running_gateway_clients_channel_name</string>
+    <string name="foreground_service_failed_channel_id">@string/foreground_service_failed_channel_name</string>
 
     <string name="search_messages_text">
         Search messages
@@ -16,15 +20,21 @@
         No routed message to show!
     </string>
 
-    <string name="save_new_gateway_client">Add</string>
+    <string name="save_new_gateway_client">Save</string>
     <string name="archived_messages_toolbar_title">Archive</string>
-    <string name="new_gateway_client_url">Enter URL - e.g. https://example.com:8080/api/</string>
+    <string name="new_gateway_server_url">Enter URL - e.g. https://example.com:8080/api/</string>
+    <string name="new_gateway_client_url">Enter URL - e.g. example.com <i>(do not include protocol)</i></string>
+    <string name="new_gateway_client_username">Enter username</string>
+    <string name="new_gateway_client_password">Enter password</string>
+    <string name="new_gateway_client_friendly_name">Enter a friendly name - e.g. Example Node</string>
+    <string name="new_gateway_client_virtualhost_name">Enter a virtualhost - <i>default /</i></string>
+    <string name="new_gateway_client_port">Port: <i>default 5672</i></string>
     <string name="homepage_menu_archived">Archived</string>
     <string name="homepage_menu_routed">Routing history</string>
     <string name="homepage_no_message">Send your first message</string>
-    <string name="gateway_clients">Gateway Clients</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">SMS routing Gateways</string>
+    <string name="gateway_client_listing_toolbar_title">SMS listening Gateways</string>
     <string name="add_new_gateway_server_toolbar_title">Add Gateway</string>
 
     <string name="route_state">Routing URL</string>
@@ -43,7 +53,10 @@
     </string>
 
     <string name="send_sms_activity_user_not_secure_yes">
-        Send
+        Request
+    </string>
+    <string name="send_sms_activity_user_not_secure_pending_yes">
+        Resend
     </string>
 
     <string name="send_sms_activity_user_not_secure_yes_agree">
@@ -56,10 +69,6 @@
 
     <string name="send_sms_activity_user_encrypted">
         Secured
-    </string>
-
-    <string name="notification_title">
-        New message
     </string>
 
     <string name="notifications_reply_label">Reply</string>
@@ -89,7 +98,7 @@
     <string name="search_title">Search</string>
     <string name="lengthy_sms_sample" />
 
-    <string name="default_check_text">To use Deku, make it your default SMS app</string>
+    <string name="default_check_text">To use Deku SMS, make it your default SMS app</string>
     <string name="default_check_btn_text">Set default SMS app</string>
     <string name="default_check_privacy_policy">Read our privacy policy</string>
 
@@ -110,22 +119,61 @@
     <string name="settings_security_category_end_to_end_duration_summary">When enabled, encryption request sent to contacts would expire after <b>1 hour</b> of not being agreed.</string>
 
     <string name="settings_SMS_routing_title">SMS routing</string>
-    <string name="settings_SMS_routing_SMSWithoutBorders">SMSWithoutBorders</string>
+    <string name="settings_SMS_listening_title">SMS listening</string>
     <string name="settings_SMS_routing_custom_server">Configure SMS routing Gateways</string>
-    <string name="settings_SMS_routing_type">Choose format of messages</string>
-    <string name="settings_SMS_routing_type_summary">Only messages that match the chosen formats get routed</string>
+    <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
     <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for routing SMS messages through HTTP/s</string>
-
-    <string name="settings_SMS_routing_type_base64_value">base_64</string>
-    <string name="settings_SMS_routing_type_all_value">all</string>
+    <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
     <string name="settings_SMS_routing_type_all_option">All (default)</string>
 
     <string name="settings_add_gateway_server_protocol_description">Choose the routing protocol</string>
+    <string name="settings_add_gateway_client_protocol_description">Choose the Listening protocol</string>
     <string name="settings_add_gateway_server_protocol_meta_description">All POST are routed as JSON formats.\nAll formats use the following key/value format:\n\n<b>MSISDN</b>:-The address of the incoming message in E.164 Format\n\n<b>text</b>:-The text body of the incoming message </string>
     <string name="settings_add_gateway_server_protocol_data_format">Choose data format</string>
 
     <string name="settings_gateway_server_protocol_description">Protocol</string>
+    <string name="settings_gateway_client_username_description">Username</string>
     <string name="settings_gateway_server_data_format_description">Data format</string>
+    <string name="settings_gateway_client_virtualhost_description">Virtual Host</string>
+    <string name="settings_gateway_client_cannot_be_empty">Cannot be empty!</string>
+    <string name="settings_gateway_client_default_virtualhost">/</string>
+    <string name="settings_gateway_client_default_port">5672</string>
+
+    <string name="settings_gateway_client_amqp_protocol">AMQP</string>
+    <string name="settings_gateway_client_amqps_protocol">AMQP/SSL</string>
+
+    <string name="gateway_client_project_name">Enter project name - (Exchange)</string>
+    <string name="gateway_client_project_binding">Enter project binding - <i>(default project_name.operator_country.operator_name)</i></string>
+    <string name="gateway_client_no_available_gateway_clients">No listening Gateway clients</string>
+
+    <string name="gateway_client_customization_connected">Connected</string>
+
+    <string name="gateway_client_customization_activate">Activate</string>
+
+    <string name="gateway_client_customization_deactivate">Deactivate</string>
+    <string name="gateway_client_customization_deactivated">Deactivated</string>
+
+    <string name="gateway_client_customization_reconnecting">Reconnecting</string>
+
+    <string name="gateway_client_customization_delete">Delete</string>
+    <string name="gateway_client_customization_edit">Edit</string>
+
+    <string name="gateway_client_running_title">Gateway Client: Node Running</string>
+    <string name="gateway_client_running_description">Gateway clients connected</string>
+    <string name="gateway_client_reconnecting_description">Gateway clients reconnecting…</string>
+
+    <string name="homepage_fragment_tab_all">All</string>
+    <string name="homepage_fragment_tab_plain">Plain</string>
+    <string name="homepage_fragment_tab_encrypted">Encrypted</string>
+
+    <string name="send_message_error_no_text_provided">Make sure Address and Text are provided.</string>
+    <string name="send_message_generic_error">Something went wrong, check log stack</string>
+    <string name="default_subscription_id_changed">Default subscription ID changed to </string>
+
+    <string name="messages_thread_delete_confirmation_title">Delete Confirmation</string>
+    <string name="messages_thread_delete_confirmation_text">Proceed with deleting threads.</string>
+    <string name="messages_thread_delete_confirmation_yes">Yes</string>
+    <string name="messages_thread_delete_confirmation_cancel">Cancel</string>
 </resources>

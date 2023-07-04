@@ -21,35 +21,11 @@ public class SIMHandler {
         int simCount = getActiveSimcardCount(context);
 
         return subscriptionManager.getActiveSubscriptionInfoList();
-//        for (int simSlot = 0; simSlot < simcards.size(); simSlot++) {
-//            String simOperatorName = subscriptionManager.get
-//            String simCountryIso = telephonyManager.getSimCountryIso(simSlot);
-//            String simState = getSimStateString(telephonyManager.getSimState(simSlot));
-//
-//            String TAG = SIMHandler.class.getName();
-//
-//            Log.d(TAG, "Sim Slot: " + simSlot);
-//            Log.d(TAG, "Serial Number: " + simSerialNumber);
-//            Log.d(TAG, "Operator Name: " + simOperatorName);
-//            Log.d(TAG, "Country ISO: " + simCountryIso);
-//            Log.d(TAG, "Sim State: " + simState);
-//        }
     }
 
     public static int getActiveSimcardCount(Context context) {
-        SubscriptionManager subscriptionManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Log.d(SIMHandler.class.getName(), "Sim card not granted!");
-        }
-        else
-            Log.d(SIMHandler.class.getName(), "Sim card granted!");
+        SubscriptionManager subscriptionManager =
+                (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         return subscriptionManager.getActiveSubscriptionInfoCount();
     }
 
@@ -71,12 +47,41 @@ public class SIMHandler {
         }
     }
     public static int getDefaultSimSubscription(Context context) {
-//        SubscriptionManager subscriptionManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
-//        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-
         int defaultSmsSubscriptionId = SubscriptionManager.getDefaultSmsSubscriptionId();
         SubscriptionInfo subscriptionInfo = SubscriptionManager.from(context).getActiveSubscriptionInfo(defaultSmsSubscriptionId);
 
         return subscriptionInfo.getSubscriptionId();
+    }
+
+    public static String getSubscriptionName(Context context, String subscriptionId) {
+        int subId = Integer.parseInt(subscriptionId);
+
+        List<SubscriptionInfo> subscriptionInfos = getSimCardInformation(context);
+
+        for(SubscriptionInfo subscriptionInfo : subscriptionInfos)
+            if(subscriptionInfo.getSubscriptionId() == subId)
+                return subscriptionInfo.getCarrierName().toString();
+
+        return null;
+    }
+
+    public static String getOperatorName(Context context, String serviceCenterAddress) {
+        if(serviceCenterAddress == null)
+            return null;
+
+        SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+
+        if (subscriptionManager.getActiveSubscriptionInfoCount() > 0) {
+            for (SubscriptionInfo subscriptionInfo : subscriptionManager.getActiveSubscriptionInfoList()) {
+                String smscNumber = subscriptionInfo.getSubscriptionId() + "";
+
+                // Compare the serviceCenterAddress with the SMS center number
+                if (serviceCenterAddress.equals(smscNumber)) {
+                    return subscriptionInfo.getCarrierName().toString();
+                }
+            }
+        }
+
+        return null; // Return null if operator name not found or no active subscriptions
     }
 }
