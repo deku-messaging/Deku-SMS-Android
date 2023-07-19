@@ -453,7 +453,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             else
                 viewType = sms.getType();
         }
-        Log.d(getClass().getName(), "Returning view type: " + viewType + ":" + position);
         return viewType;
     }
 

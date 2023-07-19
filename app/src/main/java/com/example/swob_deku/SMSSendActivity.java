@@ -153,8 +153,9 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!smsMetaEntity.isShortCode())
-            getMenuInflater().inflate(R.menu.single_messages_menu, menu);
+        getMenuInflater().inflate(R.menu.single_messages_menu, menu);
+        if (smsMetaEntity.isShortCode())
+            menu.setGroupVisible(R.id.default_menu_items, false);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -845,7 +846,9 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     private void showDefaultToolbar(Menu menu) {
-        menu.setGroupVisible(R.id.default_menu_items, true);
+        if(!smsMetaEntity.isShortCode())
+            menu.setGroupVisible(R.id.default_menu_items, true);
+//            menu.setGroupVisible(R.id.default_menu_items, false);
         menu.setGroupVisible(R.id.single_message_copy_menu, false);
 
         ab.setHomeAsUpIndicator(null);
