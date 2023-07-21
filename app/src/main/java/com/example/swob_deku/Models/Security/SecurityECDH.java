@@ -27,6 +27,7 @@ import java.security.spec.ECParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Map;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
@@ -117,6 +118,17 @@ public class SecurityECDH {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
         return encryptedSharedPreferences.getString( keystoreAlias, "");
+    }
+
+    public Map<String, ?> securelyFetchAllSecretKey() throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                UNIVERSAL_KEYSTORE_ALIAS,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        return encryptedSharedPreferences.getAll();
     }
 
     public boolean hasPrivateKey(String keystoreAlias) throws GeneralSecurityException, IOException {

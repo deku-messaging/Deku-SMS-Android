@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MessagesThreadViewModel extends ViewModel {
     private MutableLiveData<List<SMS>> messagesList;
@@ -47,38 +48,44 @@ public class MessagesThreadViewModel extends ViewModel {
         loadSMSThreads(context);
     }
 
-    private void loadSMSThreads(Context context) {
+    private void loadSMSThreads(Context context) throws GeneralSecurityException, IOException {
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
         List<SMS> smsList = new ArrayList<>();
         ArchiveHandler archiveHandler = new ArchiveHandler(context);
+        SecurityECDH securityECDH = new SecurityECDH(context);
 
         switch (messagesType) {
             case MessagesThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT: {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        if (cursor.moveToFirst()) {
-                            do {
-                                SMS sms = new SMS(cursor);
-                                SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-                                smsMetaEntity.setAddress(context, sms.getAddress());
-                                try {
-                                    if (!smsMetaEntity.isEncrypted(context))
-                                        continue;
-                                    else {
-                                        if (archiveHandler.isArchived(Long.parseLong(sms.getThreadId()))) {
+                        try {
+                            Map<String, ?> encryptedContacts = securityECDH.securelyFetchAllSecretKey();
+                            if (cursor.moveToFirst()) {
+                                do {
+                                    SMS sms = new SMS(cursor);
+                                    SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                                    smsMetaEntity.setAddress(context, sms.getAddress());
+                                    try {
+                                        if (!encryptedContacts.containsKey(smsMetaEntity.getAddress()))
                                             continue;
+                                        else {
+                                            if (archiveHandler.isArchived(Long.parseLong(sms.getThreadId()))) {
+                                                continue;
+                                            }
                                         }
+                                    } catch ( InterruptedException e) {
+                                        e.printStackTrace();
                                     }
-                                } catch (GeneralSecurityException | IOException |
-                                         InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                                smsList.add(sms);
-                            } while (cursor.moveToNext());
+                                    smsList.add(sms);
+                                } while (cursor.moveToNext());
+                            }
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            cursor.close();
+                            archiveHandler.close();
                         }
-                        cursor.close();
-                        archiveHandler.close();
                         messagesList.postValue(smsList);
                     }
                 }).start();
@@ -112,28 +119,33 @@ public class MessagesThreadViewModel extends ViewModel {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        if (cursor.moveToFirst()) {
-                            do {
-                                SMS sms = new SMS(cursor);
-                                SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-                                smsMetaEntity.setAddress(context, sms.getAddress());
-                                try {
-                                    if (smsMetaEntity.isEncrypted(context))
-                                        continue;
-                                    else {
-                                        if (archiveHandler.isArchived(Long.parseLong(sms.getThreadId()))) {
+                        try {
+                            Map<String, ?> encryptedContacts = securityECDH.securelyFetchAllSecretKey();
+                            if (cursor.moveToFirst()) {
+                                do {
+                                    SMS sms = new SMS(cursor);
+                                    SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                                    smsMetaEntity.setAddress(context, sms.getAddress());
+                                    try {
+                                        if (encryptedContacts.containsKey(smsMetaEntity.getAddress()))
                                             continue;
+                                        else {
+                                            if (archiveHandler.isArchived(Long.parseLong(sms.getThreadId()))) {
+                                                continue;
+                                            }
                                         }
+                                    } catch ( InterruptedException e) {
+                                        e.printStackTrace();
                                     }
-                                } catch (GeneralSecurityException | IOException |
-                                         InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                                smsList.add(sms);
-                            } while (cursor.moveToNext());
+                                    smsList.add(sms);
+                                } while (cursor.moveToNext());
+                            }
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            cursor.close();
+                            archiveHandler.close();
                         }
-                        cursor.close();
-                        archiveHandler.close();
                         messagesList.postValue(smsList);
                     }
                 }).start();

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class SMSHandler {
     public static final int ASCII_MAGIC_NUMBER = 127;
@@ -121,7 +122,13 @@ public class SMSHandler {
         Uri targetedURI = Telephony.Sms.CONTENT_URI;
         Cursor cursor = context.getContentResolver().query(
                 targetedURI,
-                new String[]{Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID, Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON, Telephony.TextBasedSmsColumns.DATE, Telephony.TextBasedSmsColumns.BODY, Telephony.TextBasedSmsColumns.TYPE},
+                new String[]{Telephony.Sms._ID,
+                        Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS,
+                        Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,
+                        Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE},
                 "body like '%" + searchInput + "%'",
                 null,
                 "date DESC");
