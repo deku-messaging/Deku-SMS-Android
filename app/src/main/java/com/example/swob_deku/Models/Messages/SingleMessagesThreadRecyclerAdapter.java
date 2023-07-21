@@ -194,15 +194,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             animation = false;
         }
 
-        String date = sms.getDate();
-        if (DateUtils.isToday(Long.parseLong(date))) {
-            DateFormat dateFormat = new SimpleDateFormat("h:mm a");
-            date = context.getString(R.string.sms_sent_date_today) + " " + dateFormat.format(new Date(Long.parseLong(date)));
-        }
-        else {
-            DateFormat dateFormat = new SimpleDateFormat("EE h:mm a");
-            date = dateFormat.format(new Date(Long.parseLong(date)));
-        }
+        String date = Helpers.formatDateExtended(context, Long.parseLong(sms.getDate()));
+
+        DateFormat dateFormat = new SimpleDateFormat("h:mm a");
+        String timeStamp = dateFormat.format(new Date(Long.parseLong(sms.getDate())));
 
         String _text = sms.getBody();
 
@@ -217,15 +212,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
 
             TextView dateView = messageReceivedViewHandler.date;
-            int dateViewVisibility =
-                    position > (mDiffer.getCurrentList().size() - 1) ?
-                            View.INVISIBLE :
-                            View.VISIBLE;
+            Log.d(getClass().getName(), "Pos: " + position);
+            int dateViewVisibility = position == 0 ? View.VISIBLE : View.INVISIBLE;
+
             dateView.setVisibility(dateViewVisibility);
 
             Helpers.highlightLinks(receivedMessage, text, context.getColor(R.color.primary_text_color));
 
-            dateView.setText(date);
+            dateView.setText(timeStamp);
 
             messageReceivedViewHandler.receivedMessage.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -255,7 +249,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                 messageSentViewHandler.date.setVisibility(View.INVISIBLE);
                 messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
             }
-            messageSentViewHandler.date.setText(date);
+            messageSentViewHandler.date.setText(timeStamp);
 
             if(holder instanceof TimestampMessageSentViewHandler || holder instanceof  TimestampKeySentViewHandler)
                 messageSentViewHandler.timestamp.setText(date);

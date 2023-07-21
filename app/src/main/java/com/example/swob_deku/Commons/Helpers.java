@@ -5,6 +5,7 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.icu.util.Calendar;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.nfc.Tag;
@@ -30,6 +31,11 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Random;
@@ -59,6 +65,63 @@ public class Helpers {
 
         // return the formed String[]
         return arrayOfString;
+    }
+
+    public static String formatDateExtended(Context context, long epochTime) {
+        long currentTime = System.currentTimeMillis();
+        long diff = currentTime - epochTime;
+
+        Date currentDate = new Date(currentTime);
+        Date targetDate = new Date(epochTime);
+
+        SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+        SimpleDateFormat fullDayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+        SimpleDateFormat shortDayFormat = new SimpleDateFormat("EEE", Locale.getDefault());
+        SimpleDateFormat shortMonthDayFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
+
+//        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
+//            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
+//        }
+        if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
+            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
+        } else if (isSameDay(currentDate, targetDate)) { // today
+            return timeFormat.format(targetDate);
+        } else if (isYesterday(currentDate, targetDate)) { // yesterday
+            return context.getString(R.string.single_message_thread_yesterday) + " • " + timeFormat.format(targetDate);
+        } else if (isSameWeek(currentDate, targetDate)) { // within the same week
+            return fullDayFormat.format(targetDate) + " • " + timeFormat.format(targetDate);
+        } else { // greater than 1 week
+            return shortDayFormat.format(targetDate) + ", " + shortMonthDayFormat.format(targetDate)
+                    + " • " + timeFormat.format(targetDate);
+        }
+    }
+
+    private static boolean isSameDay(Date date1, Date date2) {
+        SimpleDateFormat dayFormat = new SimpleDateFormat("yyyyDDD", Locale.getDefault());
+        String day1 = dayFormat.format(date1);
+        String day2 = dayFormat.format(date2);
+        return day1.equals(day2);
+    }
+
+    private static boolean isYesterday(Date date1, Date date2) {
+        SimpleDateFormat dayFormat = new SimpleDateFormat("yyyyDDD", Locale.getDefault());
+        String day1 = dayFormat.format(date1);
+        String day2 = dayFormat.format(date2);
+
+        int dayOfYear1 = Integer.parseInt(day1.substring(4));
+        int dayOfYear2 = Integer.parseInt(day2.substring(4));
+        int year1 = Integer.parseInt(day1.substring(0, 4));
+        int year2 = Integer.parseInt(day2.substring(0, 4));
+
+        return (year1 == year2 && dayOfYear1 - dayOfYear2 == 1)
+                || (year1 - year2 == 1 && dayOfYear1 == 1 && dayOfYear2 == 365);
+    }
+
+    private static boolean isSameWeek(Date date1, Date date2) {
+        SimpleDateFormat weekFormat = new SimpleDateFormat("yyyyww", Locale.getDefault());
+        String week1 = weekFormat.format(date1);
+        String week2 = weekFormat.format(date2);
+        return week1.equals(week2);
     }
 
     public static String formatDate(Context context, long epochTime) {
