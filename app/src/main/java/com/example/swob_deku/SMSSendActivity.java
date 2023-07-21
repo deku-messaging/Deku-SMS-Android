@@ -222,7 +222,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
         defaultSubscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
 
-        sharedPreferences = getSharedPreferences(smsMetaEntity.getAddress(), Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(SecurityECDH.UNIVERSAL_KEYSTORE_ALIAS, Context.MODE_PRIVATE);
         onSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {

@@ -388,19 +388,23 @@ public class SMS {
          */
         public ENCRYPTION_STATE getEncryptionState(Context context) throws GeneralSecurityException, IOException {
             SecurityECDH securityECDH = new SecurityECDH(context);
+            if (securityECDH.hasSecretKey(getAddress())) {
+                return ENCRYPTION_STATE.ENCRYPTED;
+            }
+
             if(securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress()) &&
                     securityECDH.hasPrivateKey(getAddress())) {
                 return ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT;
             }
-            else if (securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress())) {
+
+            if (securityECDH.peerAgreementPublicKeysAvailable(context, this.getAddress())) {
                 return ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST;
             }
-            else if(securityECDH.hasPrivateKey(getAddress())) {
+
+            if(securityECDH.hasPrivateKey(getAddress())) {
                 return ENCRYPTION_STATE.SENT_PENDING_AGREEMENT;
             }
-            else if (securityECDH.hasSecretKey(getAddress())) {
-                return ENCRYPTION_STATE.ENCRYPTED;
-            }
+
             return ENCRYPTION_STATE.NOT_ENCRYPTED;
         }
 
