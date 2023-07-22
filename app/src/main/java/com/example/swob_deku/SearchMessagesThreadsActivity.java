@@ -134,11 +134,14 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                     cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER));
 //            TextView textView = (TextView) view;
 
-            TextView textView2 = view.findViewById(R.id.messages_thread_text);
-            textView2.setVisibility(View.GONE);
 
             TextView textView = view.findViewById(R.id.messages_thread_address_text);
-            textView.setTextSize(12);
+            textView.setTextSize(14);
+            textView.setText(name);
+
+            TextView textView2 = view.findViewById(R.id.messages_thread_text);
+            textView2.setTextSize(12);
+            textView2.setText(address);
 
             final int color = Helpers.generateColor(address);
             Drawable drawable = context.getDrawable(R.drawable.baseline_account_circle_24);
@@ -156,7 +159,6 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             imageView.setLayoutParams(layoutParams);
             imageView.setImageDrawable(drawable);
 
-            textView.setText(name);
 
             view.findViewById(R.id.messages_threads_layout).setOnClickListener(new View.OnClickListener() {
                 @Override
