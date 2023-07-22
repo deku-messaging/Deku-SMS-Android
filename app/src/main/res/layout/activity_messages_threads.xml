@@ -88,6 +88,7 @@
                         app:layout_constraintTop_toTopOf="@+id/searchView" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
+
             </com.google.android.material.card.MaterialCardView>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -129,7 +129,7 @@ public class SMSHandler {
                         Telephony.TextBasedSmsColumns.DATE,
                         Telephony.TextBasedSmsColumns.BODY,
                         Telephony.TextBasedSmsColumns.TYPE},
-                "body like '%" + searchInput + "%'",
+                "body like '%" + searchInput + "%') GROUP BY (thread_id",
                 null,
                 "date DESC");
 

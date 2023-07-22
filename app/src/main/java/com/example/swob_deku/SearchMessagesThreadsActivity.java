@@ -4,6 +4,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.cursoradapter.widget.CursorAdapter;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -11,21 +12,19 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.provider.ContactsContract;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.Messages.MessagesSearchViewModel;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
-import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
-import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
 
@@ -57,32 +56,41 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 this, true, searchString.getValue());
 
         SearchView searchView = findViewById(R.id.search_view_input);
+        CustomContactsCursorAdapter customContactsCursorAdapter = new CustomContactsCursorAdapter(getApplicationContext(),
+                Contacts.getPhonebookContacts(getApplicationContext()), 0);
+        searchView.setSuggestionsAdapter(customContactsCursorAdapter);
+        searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionSelect(int position) {
+                return false;
+            }
+
+            @Override
+            public boolean onSuggestionClick(int position) {
+                Cursor cursor = (Cursor) customContactsCursorAdapter.getItem(position);
+                String address = cursor.getString(cursor.getColumnIndexOrThrow(
+                        ContactsContract.CommonDataKinds.Phone.NUMBER));
+                Intent intent = new Intent(getApplicationContext(), SMSSendActivity.class);
+                intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
+                startActivity(intent);
+                return true;
+            }
+        });
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                searchString.setValue(query);
+                searchView.clearFocus();
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                return false;
+                customContactsCursorAdapter.changeCursor(Contacts.filterContacts(getApplicationContext(), newText));
+                return true;
             }
         });
-//        TextInputEditText searchTextInput = findViewById(R.id.new_gateway_client_url_input);
-//        searchTextInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-//            @Override
-//            public boolean onEditorAction(TextView searchView, int actionId, KeyEvent event) {
-//                if (actionId == EditorInfo.IME_ACTION_GO) {
-//                    String searchInput = searchView.getText().toString();
-//                    searchString.setValue(searchInput);
-//                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-//
-//                    imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
-//                    return true;
-//                }
-//                return false;
-//            }
-//        });
 
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.search_results_recycler_view);
 
@@ -110,5 +118,24 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                         messagesThreadRecyclerAdapter.notifyDataSetChanged();
                     }
                 });
+    }
+
+    public static class CustomContactsCursorAdapter extends CursorAdapter {
+
+        public CustomContactsCursorAdapter(Context context, Cursor c, int flags) {
+            super(context, c, flags);
+        }
+
+        @Override
+        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+            return LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false);
+        }
+
+        @Override
+        public void bindView(View view, Context context, Cursor cursor) {
+            String name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME));
+            TextView textView = (TextView) view;
+            textView.setText(name);
+        }
     }
 }
