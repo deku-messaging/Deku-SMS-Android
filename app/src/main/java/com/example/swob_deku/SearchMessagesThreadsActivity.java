@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
@@ -21,8 +23,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.Messages.MessagesSearchViewModel;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
@@ -58,39 +64,25 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
         SearchView searchView = findViewById(R.id.search_view_input);
         CustomContactsCursorAdapter customContactsCursorAdapter = new CustomContactsCursorAdapter(getApplicationContext(),
-                Contacts.getPhonebookContacts(getApplicationContext()), 0);
+                Contacts.filterContacts(getApplicationContext(), ""), 0);
         onSearchRequested();
-        searchView.setSuggestionsAdapter(customContactsCursorAdapter);
-        searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
-            @Override
-            public boolean onSuggestionSelect(int position) {
-                return false;
-            }
-
-            @Override
-            public boolean onSuggestionClick(int position) {
-                Cursor cursor = (Cursor) customContactsCursorAdapter.getItem(position);
-                String address = cursor.getString(cursor.getColumnIndexOrThrow(
-                        ContactsContract.CommonDataKinds.Phone.NUMBER));
-                Intent intent = new Intent(getApplicationContext(), SMSSendActivity.class);
-                intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
-                startActivity(intent);
-                return true;
-            }
-        });
-
+        ListView suggestionsListView = findViewById(R.id.search_messages_suggestions_list);
+        suggestionsListView.setAdapter(customContactsCursorAdapter);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchString.setValue(query);
-//                searchView.clearFocus();
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                customContactsCursorAdapter.changeCursor(Contacts.filterContacts(getApplicationContext(), newText));
-                return true;
+                if(newText.length() != 1) {
+                    customContactsCursorAdapter.changeCursor(
+                            Contacts.filterContacts(getApplicationContext(), newText));
+                    return true;
+                }
+                return false;
             }
         });
 
@@ -122,14 +114,6 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 });
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        MenuInflater inflater = getMenuInflater();
-//        inflater.inflate(R.menu.search_menu, menu);
-//
-//        return true;
-//    }
-
 
     public static class CustomContactsCursorAdapter extends CursorAdapter {
 
@@ -140,16 +124,49 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
 //            return LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false);
-            return LayoutInflater.from(context).inflate(R.layout.custom_search_suggestions_layout, parent, false);
+            return LayoutInflater.from(context).inflate(R.layout.messages_threads_layout, parent, false);
         }
 
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
             String name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME));
+            String address = cursor.getString(
+                    cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER));
 //            TextView textView = (TextView) view;
 
-            TextView textView = view.findViewById(R.id.custom_search_layout_contact_name);
+            TextView textView2 = view.findViewById(R.id.messages_thread_text);
+            textView2.setVisibility(View.GONE);
+
+            TextView textView = view.findViewById(R.id.messages_thread_address_text);
+            textView.setTextSize(12);
+
+            final int color = Helpers.generateColor(address);
+            Drawable drawable = context.getDrawable(R.drawable.baseline_account_circle_24);
+            drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+
+            ImageView imageView = view.findViewById(R.id.messages_threads_contact_photo);
+            imageView.setAdjustViewBounds(true);
+            imageView.setMaxHeight(150);
+            imageView.setMaxWidth(150);
+
+            ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+            layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+
+            imageView.setLayoutParams(layoutParams);
+            imageView.setImageDrawable(drawable);
+
             textView.setText(name);
+
+            view.findViewById(R.id.messages_threads_layout).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, SMSSendActivity.class);
+                    intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                }
+            });
         }
     }
 }

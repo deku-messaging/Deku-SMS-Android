@@ -3,6 +3,7 @@ package com.example.swob_deku.Models.Contacts;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.ContactsContract;
 
@@ -38,6 +39,8 @@ public class Contacts {
     public Contacts(){ }
 
     public static Cursor filterContacts(Context context, String filter) {
+        if(filter.isEmpty())
+            return null;
         String[] projection = {
                 ContactsContract.CommonDataKinds.Phone._ID,
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
