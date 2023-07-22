@@ -17,6 +17,8 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -39,10 +41,9 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search_messages_threads);
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.search_messages_toolbar);
-        myToolbar.setTitle(R.string.search_messages_text);
+//        myToolbar.setTitle(R.string.search_messages_text);
 
         setSupportActionBar(myToolbar);
-
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
 
@@ -58,6 +59,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         SearchView searchView = findViewById(R.id.search_view_input);
         CustomContactsCursorAdapter customContactsCursorAdapter = new CustomContactsCursorAdapter(getApplicationContext(),
                 Contacts.getPhonebookContacts(getApplicationContext()), 0);
+        onSearchRequested();
         searchView.setSuggestionsAdapter(customContactsCursorAdapter);
         searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
             @Override
@@ -81,8 +83,8 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchString.setValue(query);
-                searchView.clearFocus();
-                return true;
+//                searchView.clearFocus();
+                return false;
             }
 
             @Override
@@ -120,6 +122,15 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 });
     }
 
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.search_menu, menu);
+//
+//        return true;
+//    }
+
+
     public static class CustomContactsCursorAdapter extends CursorAdapter {
 
         public CustomContactsCursorAdapter(Context context, Cursor c, int flags) {
@@ -128,13 +139,16 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            return LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false);
+//            return LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false);
+            return LayoutInflater.from(context).inflate(R.layout.custom_search_suggestions_layout, parent, false);
         }
 
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
             String name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME));
-            TextView textView = (TextView) view;
+//            TextView textView = (TextView) view;
+
+            TextView textView = view.findViewById(R.id.custom_search_layout_contact_name);
             textView.setText(name);
         }
     }

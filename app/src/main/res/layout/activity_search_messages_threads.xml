@@ -6,13 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".SearchMessagesThreadsActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/search_toolbar_constraint"
-        android:layout_width="0dp"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/search_messages_appbar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/compose_message_drawable"
+        android:background="@null"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -21,9 +19,6 @@
             android:id="@+id/search_messages_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:minHeight="?attr/actionBarSize"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -32,19 +27,17 @@
                 android:id="@+id/search_view_input"
                 style="@style/Widget.AppCompat.SearchView.ActionBar"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 app:defaultQueryHint="@string/search_messages_text"
                 app:iconifiedByDefault="false"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/search_messages_toolbar"
                 app:searchIcon="@null" />
-
 
         </androidx.appcompat.widget.Toolbar>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/search_results_recycler_view"
@@ -54,7 +47,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_toolbar_constraint" />
+        app:layout_constraintTop_toBottomOf="@+id/search_messages_appbar" />
 
     <TextView
         android:id="@+id/search_nothing_found"
@@ -68,5 +61,5 @@
         app:layout_constraintBottom_toBottomOf="@+id/search_results_recycler_view"
         app:layout_constraintEnd_toEndOf="@+id/search_results_recycler_view"
         app:layout_constraintStart_toStartOf="@+id/search_results_recycler_view"
-        app:layout_constraintTop_toBottomOf="@+id/search_toolbar_constraint" />
+        app:layout_constraintTop_toBottomOf="@+id/search_messages_appbar" />
 </androidx.constraintlayout.widget.ConstraintLayout>
