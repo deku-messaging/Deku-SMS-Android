@@ -6,60 +6,43 @@
     android:layout_height="match_parent"
     tools:context=".SearchMessagesThreadsActivity">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/search_messages_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/search_constraint"
-        android:layout_width="match_parent"
+        android:id="@+id/search_toolbar_constraint"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/compose_message_drawable"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_messages_toolbar">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/search_messages_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            android:background="@drawable/compose_message_drawable"
+            android:minHeight="?attr/actionBarSize"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/search_view_input"
+                style="@style/Widget.AppCompat.SearchView.ActionBar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:layout_marginEnd="24dp"
-                android:fontFamily="sans-serif-thin"
-                app:boxBackgroundColor="@color/received_message_color"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
+                android:layout_height="match_parent"
+                app:defaultQueryHint="@string/search_messages_text"
+                app:iconifiedByDefault="false"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/ic_outline_search_24">
+                app:searchIcon="@null" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/new_gateway_client_url_input"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:imeOptions="actionGo"
-                    android:inputType="text"
-                    android:textSize="14sp" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.appcompat.widget.Toolbar>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -71,7 +54,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_constraint" />
+        app:layout_constraintTop_toBottomOf="@+id/search_toolbar_constraint" />
 
     <TextView
         android:id="@+id/search_nothing_found"
@@ -85,5 +68,5 @@
         app:layout_constraintBottom_toBottomOf="@+id/search_results_recycler_view"
         app:layout_constraintEnd_toEndOf="@+id/search_results_recycler_view"
         app:layout_constraintStart_toStartOf="@+id/search_results_recycler_view"
-        app:layout_constraintTop_toBottomOf="@+id/search_constraint" />
+        app:layout_constraintTop_toBottomOf="@+id/search_toolbar_constraint" />
 </androidx.constraintlayout.widget.ConstraintLayout>

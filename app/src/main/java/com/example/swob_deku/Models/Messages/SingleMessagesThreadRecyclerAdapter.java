@@ -212,7 +212,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
 
             TextView dateView = messageReceivedViewHandler.date;
-            Log.d(getClass().getName(), "Pos: " + position);
             int dateViewVisibility = position == 0 ? View.VISIBLE : View.INVISIBLE;
 
             dateView.setVisibility(dateViewVisibility);

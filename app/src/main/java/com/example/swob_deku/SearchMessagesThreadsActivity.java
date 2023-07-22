@@ -2,6 +2,7 @@ package com.example.swob_deku;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -13,6 +14,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -53,21 +56,33 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
                 this, true, searchString.getValue());
 
-        TextInputEditText searchTextInput = findViewById(R.id.new_gateway_client_url_input);
-        searchTextInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        SearchView searchView = findViewById(R.id.search_view_input);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onEditorAction(TextView searchView, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_GO) {
-                    String searchInput = searchView.getText().toString();
-                    searchString.setValue(searchInput);
-                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            public boolean onQueryTextSubmit(String query) {
+                return true;
+            }
 
-                    imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
-                    return true;
-                }
+            @Override
+            public boolean onQueryTextChange(String newText) {
                 return false;
             }
         });
+//        TextInputEditText searchTextInput = findViewById(R.id.new_gateway_client_url_input);
+//        searchTextInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+//            @Override
+//            public boolean onEditorAction(TextView searchView, int actionId, KeyEvent event) {
+//                if (actionId == EditorInfo.IME_ACTION_GO) {
+//                    String searchInput = searchView.getText().toString();
+//                    searchString.setValue(searchInput);
+//                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+//
+//                    imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
+//                    return true;
+//                }
+//                return false;
+//            }
+//        });
 
         RecyclerView messagesThreadRecyclerView = findViewById(R.id.search_results_recycler_view);
 
