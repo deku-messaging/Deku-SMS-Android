@@ -13,7 +13,7 @@ ENV PATH "${PATH}:${ANDROID_HOME}tools/:${ANDROID_HOME}platform-tools/"
 RUN yes | sdkmanager --licenses
 
 # CMD ./gradlew assembleDebug
-CMD ./gradlew assembleRelease
+CMD ./gradlew --warning-mode all assembleRelease
 
 # CMD cp app/build/outputs/apk/debug/app-debug.apk /apkbuilds/
 # CMD sha256sum app/build/outputs/apk/debug/app-debug.apk
