@@ -132,8 +132,6 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             String name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME));
             String address = cursor.getString(
                     cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER));
-//            TextView textView = (TextView) view;
-
 
             TextView textView = view.findViewById(R.id.messages_thread_address_text);
             textView.setTextSize(14);
@@ -158,7 +156,6 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
             imageView.setLayoutParams(layoutParams);
             imageView.setImageDrawable(drawable);
-
 
             view.findViewById(R.id.messages_threads_layout).setOnClickListener(new View.OnClickListener() {
                 @Override
