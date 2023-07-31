@@ -1,0 +1,3 @@
+[submodule "reproducible-apk-tools"]
+	path = reproducible-apk-tools
+	url = https://github.com/obfusk/reproducible-apk-tools.git

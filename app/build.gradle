@@ -58,6 +58,21 @@ android {
     }
     namespace 'com.example.swob_deku'
 
+	project.afterEvaluate {
+	    tasks.compileReleaseArtProfile.doLast {
+		outputs.files.each { file ->
+		    if (file.name.endsWith(".profm")) {
+			exec {
+			    commandLine(
+				"../reproducible-apk-tools/inplace-fix.py",
+				"sort-baseline", file
+			    )
+			}
+		    }
+		}
+	    }
+	}
+
 }
 
 dependencies {
