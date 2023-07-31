@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId "com.afkanerd.deku"
-        minSdk 23
+        minSdk 24
         targetSdk 33
         versionCode 24
         versionName "24.0"
