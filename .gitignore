@@ -13,6 +13,8 @@
 /captures
 .externalNativeBuild
 .cxx
+*.aab
+*.apk
 local.properties
 keystore.properties
 *.jks
