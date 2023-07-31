@@ -326,6 +326,28 @@ public class SMS {
                 e.printStackTrace();
                 this._address = this.address;
             }
+            this.threadId = _findSMSThreadIdFromAddress(context, this._address);
+        }
+
+        public static String _findSMSThreadIdFromAddress(Context context, String address) {
+            String selection = "address = ?";
+            String[] selectionArgs = { address };
+
+            Cursor cursor = context.getContentResolver().query(
+                    SMS_CONTENT_URI,
+                    null,
+                    selection,
+                    selectionArgs,
+                    null);
+
+            String threadId = "";
+            if (cursor.moveToFirst()) {
+                SMS sms = new SMS(cursor);
+                threadId = sms.getThreadId();
+            }
+
+            cursor.close();
+            return threadId;
         }
 
         public String getThreadId() {
