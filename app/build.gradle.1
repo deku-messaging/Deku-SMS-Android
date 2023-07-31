@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId "com.afkanerd.deku"
-        minSdk 24
+        minSdk 23
         targetSdk 33
         versionCode 24
         versionName "24.0"
@@ -49,7 +49,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            // signingConfig signingConfigs.release
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {

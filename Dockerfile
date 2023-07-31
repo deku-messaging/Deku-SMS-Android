@@ -12,8 +12,18 @@ ENV PATH "${PATH}:${ANDROID_HOME}tools/:${ANDROID_HOME}platform-tools/"
 
 RUN yes | sdkmanager --licenses
 
+ENV PASS=""
+
 # CMD ./gradlew assembleDebug
-CMD ./gradlew --warning-mode all assembleRelease
+CMD ./gradlew \
+-Dorg.gradle.daemon=true \
+-Dorg.gradle.buildCache=false \
+assembleRelease && \
+apksigner sign --ks app/keys/app-release-key.jks \
+--ks-pass pass:$PASS \
+--in app/build/outputs/apk/release/app-release-unsigned.apk \
+--out app/build/outputs/apk/release/app-release.apk
+
 
 # CMD cp app/build/outputs/apk/debug/app-debug.apk /apkbuilds/
 # CMD sha256sum app/build/outputs/apk/debug/app-debug.apk
