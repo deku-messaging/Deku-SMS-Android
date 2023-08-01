@@ -101,7 +101,7 @@ public class RouterViewModel extends ViewModel {
             for(WorkInfo workInfo : workInfoList) {
                 String[] Alltags = Helpers.convertSetToStringArray(workInfo.getTags());
                 for(int i = 0; i< Alltags.length; ++i) {
-                    if (Alltags[i].contains(IncomingTextSMSBroadcastReceiver.TAG_WORKER_ID)) {
+                    if (Alltags[i].contains(RouterHandler.TAG_WORKER_ID)) {
                         String[] tags = Alltags[i].split("\\.");
                         messageId = tags[tags.length - 1];
                     }

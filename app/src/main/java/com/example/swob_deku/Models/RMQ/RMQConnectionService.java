@@ -24,7 +24,9 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.Models.GatewayClients.GatewayClient;
 import com.example.swob_deku.Models.GatewayClients.GatewayClientHandler;
+import com.example.swob_deku.Models.Router.RouterHandler;
 import com.example.swob_deku.Models.SIMHandler;
+import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
 import com.rabbitmq.client.Channel;
@@ -45,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
@@ -55,6 +58,11 @@ public class RMQConnectionService extends Service {
 
     public final static String RMQ_SUCCESS_BROADCAST_INTENT = "RMQ_SUCCESS_BROADCAST_INTENT";
     public final static String RMQ_STOP_BROADCAST_INTENT = "RMQ_STOP_BROADCAST_INTENT";
+
+    public final static String SMS_TYPE_STATUS = "STATUS";
+    public final static String SMS_STATUS_SENT = "SENT";
+    public final static String SMS_STATUS_DELIVERED = "DELIVERED";
+    public final static String SMS_STATUS_FAILED = "FAILED";
 
     private HashMap<Integer, RMQMonitor> connectionList = new HashMap<>();
 
@@ -146,17 +154,15 @@ public class RMQConnectionService extends Service {
                 // TODO: in case this intent comes back but the internet connection broke to send back acknowledgement
                 // TODO: should store pending confirmations in a place
                 if (intent.hasExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)) {
+                    long messageId = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
                     if (intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)
                             .equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT) &&
                             intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
 
-                        Log.d(getClass().getName(), "Service received a broadcast and should acknowledge to rmq from here");
                         String globalMessageId = intent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY);
-                        Log.d(getClass().getName(), "Global message ID: " + globalMessageId);
 
                         Map<Long, Channel> deliveryChannel = channelList.get(globalMessageId);
                         final Long deliveryTag = deliveryChannel.keySet().iterator().next();
-                        Log.d(getClass().getName(), "Delivery global tag: " + deliveryTag);
                         Channel channel = deliveryChannel.get(deliveryTag);
                         if (channel != null && channel.isOpen()) {
                             new Thread(new Runnable() {
@@ -168,6 +174,11 @@ public class RMQConnectionService extends Service {
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
+                                    String jsonStringBody = "{\"type\": \"" + SMS_TYPE_STATUS
+                                            + "\", \"id\": \"" + globalMessageId +
+                                            "\", \"status\": \"" + SMS_STATUS_SENT + "\"}";
+                                    RouterHandler.createWorkForMessage(getApplicationContext(),
+                                            jsonStringBody, messageId, false);
                                 }
                             }).start();
                         }
@@ -188,6 +199,11 @@ public class RMQConnectionService extends Service {
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
+                                    String jsonStringBody = "{\"type\": \"" + SMS_TYPE_STATUS
+                                            + "\", \"id\": \"" + globalMessageId +
+                                            "\", \"status\": \"" + SMS_STATUS_FAILED + "\"}";
+                                    RouterHandler.createWorkForMessage(getApplicationContext(),
+                                            jsonStringBody, messageId, false);
                                 }
                             }).start();
                         }

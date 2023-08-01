@@ -38,6 +38,7 @@ import com.example.swob_deku.Models.GatewayServers.GatewayServer;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.Router.Router;
+import com.example.swob_deku.Models.Router.RouterHandler;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -56,7 +57,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
     public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
     public static final String TAG_ROUTING_URL = "swob.work.route.url,";
-    public static final String TAG_WORKER_ID = "swob.work.id.";
 
     // Key for the string that's delivered in the action's intent.
     public static final String KEY_TEXT_REPLY = "key_text_reply";
@@ -104,7 +104,11 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     @Override
                     public void run() {
                         try {
-                            createWorkForMessage(finalAddress, messageFinal, finalMessageId);
+                            String jsonStringBody = "{\"type\":" + Router.SMS_TYPE_INCOMING + "\", " +
+                                    "\"text\": \"" + messageFinal +
+                                    "\", \"MSISDN\": \"" + finalAddress + "\"}";
+                            RouterHandler.createWorkForMessage(context, jsonStringBody, finalMessageId,
+                                    Helpers.isBase64Encoded(messageFinal));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -114,60 +118,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    private void createWorkForMessage(String address, String message, long messageId) {
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
-
-        Datastore databaseConnector = Room.databaseBuilder(this.context, Datastore.class,
-                Datastore.databaseName).build();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
-                List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
-
-                for (GatewayServer gatewayServer : gatewayServerList) {
-                    if(gatewayServer.getFormat().equals(GatewayServer.BASE64_FORMAT) &&
-                            !Helpers.isBase64Encoded(message)) {
-                        continue;
-                    }
-
-                    try {
-                        OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
-                                .setConstraints(constraints)
-                                .setBackoffCriteria(
-                                        BackoffPolicy.LINEAR,
-                                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                                        TimeUnit.MILLISECONDS
-                                )
-                                .addTag(TAG_NAME)
-                                .addTag(TAG_WORKER_ID + messageId)
-                                .addTag(TAG_ROUTING_URL + gatewayServer.getURL())
-                                .setInputData(
-                                        new Data.Builder()
-                                                .putString("address", address)
-                                                .putString("text", message)
-                                                .putString("gatewayServerUrl", gatewayServer.getURL())
-                                                .build()
-                                )
-                                .build();
-
-                        // String uniqueWorkName = address + message;
-                        String uniqueWorkName = messageId + ":" + gatewayServer.getURL();
-                        WorkManager workManager = WorkManager.getInstance(context);
-                        workManager.enqueueUniqueWork(
-                                uniqueWorkName,
-                                ExistingWorkPolicy.KEEP,
-                                routeMessageWorkRequest);
-                    } catch (Exception e) {
-                        throw e;
-                    }
-                }
-            }
-        }).start();
-    }
 
     public static void sendNotification(Context context, String text, final String address, long messageId) {
         Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
@@ -207,8 +157,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
         cursor.close();
     }
-
-
 
     public static NotificationCompat.Builder
     getNotificationHandler(Context context, Cursor cursor,

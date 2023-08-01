@@ -326,7 +326,8 @@ public class SMS {
                 e.printStackTrace();
                 this._address = this.address;
             }
-            this.threadId = _findSMSThreadIdFromAddress(context, this._address);
+            if(this.threadId != null)
+                this.threadId = _findSMSThreadIdFromAddress(context, this._address);
         }
 
         public static String _findSMSThreadIdFromAddress(Context context, String address) {

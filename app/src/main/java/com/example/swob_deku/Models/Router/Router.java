@@ -25,6 +25,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class Router extends Worker {
+    public static final String SMS_TYPE_INCOMING = "SMS_TYPE_INCOMING";
+    public static final String SMS_JSON_OBJECT = "SMS_JSON_OBJECT";
+    public static final String SMS_JSON_ROUTING_URL = "SMS_JSON_ROUTING_URL";
     // https://developer.android.com/topic/libraries/architecture/workmanager/basics
     public Router(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -34,10 +37,13 @@ public class Router extends Worker {
     @Override
     public Result doWork() {
         try {
-            String address = getInputData().getString("address");
-            String text = getInputData().getString("text");
-            String gatewayServerUrl = getInputData().getString("gatewayServerUrl");
-            routeMessagesToGatewayServers(address, text, gatewayServerUrl);
+//            String address = getInputData().getString("address");
+//            String text = getInputData().getString("text");
+            String gatewayServerUrl = getInputData().getString(SMS_JSON_ROUTING_URL);
+            String jsonBody = getInputData().getString(SMS_JSON_OBJECT);
+
+            if(jsonBody != null)
+                RouterHandler.routeJsonMessages(getApplicationContext(), jsonBody, gatewayServerUrl);
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
             e.printStackTrace();
             Throwable cause = e.getCause();
@@ -56,37 +62,5 @@ public class Router extends Worker {
             return Result.failure();
         }
         return Result.success();
-    }
-
-    private void routeMessagesToGatewayServers(String address, String text,
-                                               String gatewayServerUrl)
-            throws JSONException, ExecutionException, InterruptedException, TimeoutException {
-        Context context = getApplicationContext();
-
-        try{
-            JSONObject jsonBody = new JSONObject( "{\"text\": \"" + text + "\", \"MSISDN\": \"" + address + "\"}");
-
-            RequestFuture<JSONObject> future = RequestFuture.newFuture();
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
-                    gatewayServerUrl,
-                    jsonBody, future, future);
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
-
-            jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
-                    0,
-                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-            requestQueue.add(jsonObjectRequest);
-            future.get(30, TimeUnit.SECONDS);
-        }
-        catch (ExecutionException | TimeoutException | InterruptedException e){
-            // Hit the server and came back with error code
-            throw e;
-        } // Because the server could return a string...
-        catch(Exception e ) {
-            // Fuck
-            throw e;
-        }
     }
 }
