@@ -20,7 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.main"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".GatewayClientCustomizationActivity"
             android:exported="false"
