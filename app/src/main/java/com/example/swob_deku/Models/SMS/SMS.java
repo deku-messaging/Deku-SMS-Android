@@ -326,7 +326,7 @@ public class SMS {
                 e.printStackTrace();
                 this._address = this.address;
             }
-            if(this.threadId != null)
+            if(this.threadId == null || this.threadId.isEmpty())
                 this.threadId = _findSMSThreadIdFromAddress(context, this._address);
         }
 
