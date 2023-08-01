@@ -198,8 +198,13 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                     getIntent().getStringExtra(SMS.SMSMetaEntity.THREAD_ID));
 
         if(getIntent().hasExtra(SMS.SMSMetaEntity.ADDRESS)) {
-            smsMetaEntity.setAddress(getApplicationContext(),
+            String threadId = smsMetaEntity.setAddress(getApplicationContext(),
                     getIntent().getStringExtra(SMS.SMSMetaEntity.ADDRESS));
+
+            if(threadId != null && !threadId.isEmpty()) {
+                getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                smsMetaEntity.setThreadId(getApplicationContext(), threadId);
+            }
         }
     }
 
@@ -668,6 +673,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             }
 
             String threadId = _sendSMSMessage(defaultSubscriptionId, text);
+            Log.d(getLocalClassName(), "Sending sms with thread: " + threadId + ":" + smsMetaEntity.getThreadId());
             if(smsMetaEntity.getThreadId() == null && threadId != null) {
                 getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
                 _setupActivityDependencies();

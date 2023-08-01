@@ -318,7 +318,7 @@ public class SMS {
             cursor.close();
         }
 
-        public void setAddress(Context context, String address) {
+        public String setAddress(Context context, String address) {
             this.address = address;
             try {
                 this._address = formatPhoneNumbers(context, this.address);
@@ -326,8 +326,9 @@ public class SMS {
                 e.printStackTrace();
                 this._address = this.address;
             }
-            if(this.threadId == null || this.threadId.isEmpty())
-                this.threadId = _findSMSThreadIdFromAddress(context, this._address);
+
+
+            return _findSMSThreadIdFromAddress(context, this._address);
         }
 
         public static String _findSMSThreadIdFromAddress(Context context, String address) {
@@ -345,10 +346,11 @@ public class SMS {
             if (cursor.moveToFirst()) {
                 SMS sms = new SMS(cursor);
                 threadId = sms.getThreadId();
+                return threadId;
             }
 
             cursor.close();
-            return threadId;
+            return null;
         }
 
         public String getThreadId() {
