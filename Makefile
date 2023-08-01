@@ -26,4 +26,5 @@ release-local:
 	@apksigner sign --ks app/keys/app-release-key.jks \
 		--ks-pass pass:$(pass) \
 		--in app/build/outputs/apk/release/app-release-unsigned.apk \
-		--out app/build/outputs/apk/release/app-release.apk
+		--out apk-outputs/${APP_1}
+	@shasum apk-outputs/${APP_1}
