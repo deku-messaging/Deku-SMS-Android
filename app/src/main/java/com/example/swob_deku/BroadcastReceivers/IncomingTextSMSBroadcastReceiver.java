@@ -131,7 +131,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             Cursor cursor1 = smsMetaEntity.fetchUnreadMessages(context);
             receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, sms.getAddress());
             receivedSmsIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
-            Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), sms.getAddress() + " : " + sms.getThreadId());
 
             receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,

@@ -137,7 +137,7 @@ public class SMSHandler {
     }
 
     public static Cursor fetchSMSMessageForAllIds(Context context, ArrayList<Long> messageIds) {
-        Uri targetedURI = Telephony.Sms.Inbox.CONTENT_URI;
+        Uri targetedURI = Telephony.Sms.CONTENT_URI;
         String selection = "_id=?";
         String[] selectionArgs = new String[messageIds.size()];
         selectionArgs[0] = String.valueOf(messageIds.get(0));

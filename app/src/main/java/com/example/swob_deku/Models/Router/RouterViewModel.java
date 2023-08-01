@@ -48,7 +48,6 @@ public class RouterViewModel extends ViewModel {
             workerIds.add(Long.valueOf(workerList.get(0).toString()));
 
         Cursor cursor = SMSHandler.fetchSMSMessageForAllIds(context, workerIds);
-
         if(cursor.moveToFirst()) {
             List<SMS> smsList = new ArrayList<>();
             do {
