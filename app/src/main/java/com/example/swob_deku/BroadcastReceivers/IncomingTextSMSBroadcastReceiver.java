@@ -8,9 +8,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsMessage;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -70,11 +73,23 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             if (getResultCode() == Activity.RESULT_OK) {
                 StringBuilder messageBuffer = new StringBuilder();
                 String address = "";
-                String subscriptionId = "";
+
+                // Get the Intent extras.
+                Bundle bundle = intent.getExtras();
+
+                // Get the slot and subscription keys.
+//                int slot = bundle.getInt("slot", -1);
+
+                int subscriptionId = bundle.getInt("subscription", -1);
+
+                // Get the information about the SIM card that received the incoming message.
+//                SubscriptionManager manager = SubscriptionManager.from(context);
+//                SubscriptionInfo info = manager.getActiveSubscriptionInfo(subscriptionId);
+                // Do something with the information about the SIM card.
+//                 Log.d("TAG", "The incoming message was received on SIM " + slot + " (" + info.getDisplayName() + ")");
 
                 for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                     address = currentSMS.getDisplayOriginatingAddress();
-                    subscriptionId = currentSMS.getServiceCenterAddress();
                     String displayMessage = currentSMS.getDisplayMessageBody();
                     displayMessage = displayMessage == null ?
                             new String(currentSMS.getUserData(), StandardCharsets.UTF_8) :
@@ -87,7 +102,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
                 long messageId = -1;
                 try {
-                    messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message, subscriptionId);
+                    messageId = SMSHandler.registerIncomingMessage(context, finalAddress, message,
+                            String.valueOf(subscriptionId));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

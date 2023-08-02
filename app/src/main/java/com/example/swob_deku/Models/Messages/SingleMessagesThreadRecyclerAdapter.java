@@ -218,6 +218,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
 
             Helpers.highlightLinks(receivedMessage, text, context.getColor(R.color.primary_text_color));
 
+            if(sms.getSubscriptionId() > 0) {
+                String subscriptionName = SIMHandler.getSubscriptionName(context,
+                        String.valueOf(sms.getSubscriptionId()));
+                if(subscriptionName != null && !subscriptionName.isEmpty())
+                    timeStamp += " • " + subscriptionName;
+            }
+
             dateView.setText(timeStamp);
 
             messageReceivedViewHandler.receivedMessage.setOnClickListener(new View.OnClickListener() {
@@ -270,9 +277,15 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                 messageSentViewHandler.date.setTextColor(
                         context.getResources().getColor(R.color.failed_red, context.getTheme()));
             } else {
-                statusMessage = "• " + statusMessage;
+                statusMessage = " • " + statusMessage;
                 messageSentViewHandler.sentMessageStatus.invalidate();
                 messageSentViewHandler.date.invalidate();
+            }
+            if(sms.getSubscriptionId() > 0) {
+                String subscriptionName = SIMHandler.getSubscriptionName(context,
+                        String.valueOf(sms.getSubscriptionId()));
+                if(subscriptionName != null && !subscriptionName.isEmpty())
+                    statusMessage += " • " + subscriptionName;
             }
 
             messageSentViewHandler.sentMessageStatus.setText(statusMessage);
