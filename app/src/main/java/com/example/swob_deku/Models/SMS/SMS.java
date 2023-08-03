@@ -31,18 +31,26 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SMS {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
 
-    String body = new String();
-    public String displayName = "";
-
-    public int displayColor = -1;
-
-    public boolean isContact = false;
+    public String body;
+    public String address;
+    public String threadId;
+    public String date;
+    int type;
+    public String errorCode;
+    public int statusCode;
+    public String id;
+    public int read;
+    public String routerStatus;
+    public int subscriptionId;
+    public String displayName;
+    public ArrayList<String> routingUrls = new ArrayList<>();
 
     public String getBody() {
         return body;
@@ -84,10 +92,6 @@ public class SMS {
         this.type = type;
     }
 
-    String address = new String();
-    String threadId = "-1";
-    String date = new String();
-    int type;
 
     public String getErrorCode() {
         return errorCode;
@@ -101,14 +105,10 @@ public class SMS {
         return statusCode;
     }
 
-    public int messageCount = -1;
 
     public void setStatusCode(int statusCode) {
         this.statusCode = statusCode;
     }
-
-    String errorCode;
-    int statusCode;
 
     public String getId() {
         return id;
@@ -126,42 +126,12 @@ public class SMS {
         this.read = read;
     }
 
-    public String id = "";
-
-    public int read;
-
-    public String routerStatus = new String();
-
     public String getDisplayName() {
         return displayName;
     }
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
-    }
-
-    public int getDisplayColor() {
-        return displayColor;
-    }
-
-    public void setDisplayColor(int displayColor) {
-        this.displayColor = displayColor;
-    }
-
-    public boolean isContact() {
-        return isContact;
-    }
-
-    public void setContact(boolean contact) {
-        isContact = contact;
-    }
-
-    public int getMessageCount() {
-        return messageCount;
-    }
-
-    public void setMessageCount(int messageCount) {
-        this.messageCount = messageCount;
     }
 
     public int getRead() {
@@ -176,24 +146,8 @@ public class SMS {
         this.subscriptionId = subscriptionId;
     }
 
-    public Boolean getDatesOnly() {
-        return datesOnly;
-    }
-
-    public void setDatesOnly(Boolean datesOnly) {
-        this.datesOnly = datesOnly;
-    }
-
     public ArrayList<String> getRoutingUrls() {
         return routingUrls;
-    }
-
-    public int subscriptionId;
-
-    public Boolean datesOnly = false;
-
-    public Boolean isDatesOnly() {
-        return this.datesOnly;
     }
 
     public String getRouterStatus() {
@@ -204,7 +158,6 @@ public class SMS {
         this.routerStatus = routerStatus;
     }
 
-    public ArrayList<String> routingUrls = new ArrayList<>();
 
     public void setRoutingUrls(ArrayList<String> routingUrls) {
         this.routingUrls = routingUrls;
@@ -212,12 +165,6 @@ public class SMS {
 
     public void addRoutingUrl(String routingUrl) {
         this.routingUrls.add(routingUrl);
-    }
-
-    public SMS(String dates) {
-        this.date = dates;
-        this.datesOnly = true;
-        this.type = 100;
     }
 
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns
@@ -602,6 +549,20 @@ public class SMS {
                     null);
 
             return smsMessagesCursor;
+        }
+    }
+
+    public static class SMSJsonEntity {
+        public String type;
+        public List<SMS> smsList = new ArrayList<>();
+
+        public void setSmsList(Cursor cursor) {
+            if(cursor.moveToFirst()) {
+                do {
+                    SMS sms = new SMS(cursor);
+                    smsList.add(sms);
+                } while(cursor.moveToNext());
+            }
         }
     }
 }

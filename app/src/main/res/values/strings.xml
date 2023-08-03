@@ -178,4 +178,7 @@
     <string name="messages_thread_delete_confirmation_cancel">Cancel</string>
 
     <string name="single_message_thread_yesterday">Yesterday</string>
+
+    <string name="deku_websocket_running">Deku Web running</string>
+    <string name="deku_websocket_running_description">You are connected to Deku web on the browser</string>
 </resources>

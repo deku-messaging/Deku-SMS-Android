@@ -199,6 +199,11 @@
             android:name=".Models.RMQ.RMQConnectionService"
             android:enabled="true"
             android:exported="false" />
+
+        <service
+            android:name=".Models.Web.WebWebsocketsService"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>

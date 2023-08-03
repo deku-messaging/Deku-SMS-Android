@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -19,6 +20,7 @@ import androidx.work.WorkerParameters;
 import com.example.swob_deku.GatewayClientCustomizationActivity;
 import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.MessagesThreadsActivity;
+import com.example.swob_deku.Models.Web.WebWebsocketsService;
 import com.example.swob_deku.R;
 
 public class RMQWorkManager extends Worker {
@@ -37,6 +39,7 @@ public class RMQWorkManager extends Worker {
     @Override
     public Result doWork() {
         Intent intent = new Intent(getApplicationContext(), RMQConnectionService.class);
+        _startWebsocketsServices();
         if(!sharedPreferences.getAll().isEmpty()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 try {
@@ -56,6 +59,16 @@ public class RMQWorkManager extends Worker {
             return Result.success();
         }
         return null;
+    }
+
+    private void _startWebsocketsServices(){
+        Intent intent = new Intent(getApplicationContext(), WebWebsocketsService.class);
+        Log.d(getClass().getName(), "+ Starting websockets...");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
     }
 
     private void notifyUserToReconnectSMSServices(){

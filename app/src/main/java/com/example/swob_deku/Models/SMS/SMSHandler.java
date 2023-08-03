@@ -99,6 +99,20 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
+    public static Cursor fetchAllMessages(@NonNull Context context) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                SMS_CONTENT_URI,
+                new String[]{Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE, Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.TYPE},
+                null,
+                null,
+                null);
+
+        return smsMessagesCursor;
+    }
+
     public static Cursor fetchSMSForThreading(Context context) {
         String[] projection = new String[]{
                 Telephony.Sms._ID,
@@ -539,6 +553,5 @@ public class SMSHandler {
 
         return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
     }
-
 
 }
