@@ -553,7 +553,9 @@ public class SMS {
     }
 
     public static class SMSJsonEntity {
+        private final static String SMS_ACTION_READ = "read";
         public String type;
+        public String action = SMS_ACTION_READ;
         public List<SMS> smsList = new ArrayList<>();
 
         public void setSmsList(Cursor cursor) {

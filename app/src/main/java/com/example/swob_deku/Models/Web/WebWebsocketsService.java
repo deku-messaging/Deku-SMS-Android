@@ -6,6 +6,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.IBinder;
+import android.util.Base64;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -21,10 +22,21 @@ import com.google.gson.GsonBuilder;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class WebWebsocketsService extends Service {
     final int NOTIFICATION_ID = 1235;
@@ -45,13 +57,32 @@ public class WebWebsocketsService extends Service {
 
         try {
             _configureWebsockets();
-        } catch (URISyntaxException e) {
+            _configureSharedPreferenceListeners();
+        } catch (URISyntaxException | CertificateException | IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void _configureWebsockets() throws URISyntaxException {
+    private void _configureSharedPreferenceListeners() {
+
+    }
+
+    private void _configureWebsockets() throws URISyntaxException, CertificateException, IOException {
         URI uri = new URI("ws://staging.smswithoutborders.com:16000");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String publicKey = getPublicKeyFromWebSocketProtocol(uri.toString());
+                    Log.d(getClass().getName(), "Public key: " + publicKey);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
+
         webSocketClient = new WebSocketClient(uri) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
@@ -76,6 +107,31 @@ public class WebWebsocketsService extends Service {
                 ex.printStackTrace();
             }
         };
+    }
+
+    private String getPublicKeyFromWebSocketProtocol(String websocketProtocol) throws IOException, InterruptedException {
+        websocketProtocol = websocketProtocol.replace("ws://", "https://");
+        String[] parts = websocketProtocol.split(":");
+
+        // Transform the websocket protocol to its HTTP equivalent.
+        String httpProtocol = "https:" + parts[1];        /*
+        if(BuildConfig.DEBUG)
+            primaryKeySite = getString(R.string.official_staging_site);
+        else
+            primaryKeySite = getString(R.string.official_site);
+
+         */
+        URL url = new URL(httpProtocol);
+        HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
+        InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+        Certificate[] certificate = urlConnection.getServerCertificates();
+//                        for(Certificate certificate: certificates[0]) {
+//                            PublicKey publicKey = certificate.getPublicKey();
+//                            Log.d(getLocalClassName(), "Cert det: " +
+//                                    Base64.encodeToString(publicKey.getEncoded(), Base64.NO_PADDING) +
+//                                    certificate.getType() );
+//                        }
+        return Base64.encodeToString(certificate[0].getPublicKey().getEncoded(), Base64.DEFAULT);
     }
 
     @Override
