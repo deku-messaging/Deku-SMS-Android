@@ -66,13 +66,11 @@ public class SecurityECDH {
         Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
     }
 
-    public byte[] generateSecretKey(byte[] publicKeyEnc, String alias) throws GeneralSecurityException, IOException {
-        Log.d(getClass().getName(), "--> Generating secret key for: " + alias);
+    public byte[] generateSecretKey(byte[] peerPublicKey, PrivateKey privateKey) throws GeneralSecurityException, IOException {
         KeyFactory keyFactory = KeyFactory.getInstance(DEFAULT_ALGORITHM);
-        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(publicKeyEnc);
-        PublicKey publicKey = keyFactory.generatePublic(x509KeySpec);
+        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(peerPublicKey);
 
-        PrivateKey privateKey = securelyFetchPrivateKey(alias);
+        PublicKey publicKey = keyFactory.generatePublic(x509KeySpec);
 
         KeyAgreement keyAgree  = KeyAgreement.getInstance(DEFAULT_ALGORITHM);
 
@@ -82,13 +80,10 @@ public class SecurityECDH {
         return keyAgree.generateSecret();
     }
 
-    public PublicKey generateKeyPair(Context context, String keystoreAlias) throws GeneralSecurityException, IOException {
+    public KeyPair generateKeyPair() throws GeneralSecurityException, IOException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM, PROVIDER);
         keyPairGenerator.initialize(DEFAULT_KEY_SIZE);
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
-        securelyStorePrivateKeyKeyPair(context, keystoreAlias, keyPair);
-
-        return keyPair.getPublic();
+        return keyPairGenerator.generateKeyPair();
     }
 
     public PrivateKey securelyFetchPrivateKey(String keystoreAlias) throws GeneralSecurityException, IOException {
@@ -163,9 +158,10 @@ public class SecurityECDH {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
 
         SharedPreferences.Editor sharedPreferencesEditor = encryptedSharedPreferences.edit();
+        String privateKey = Base64.encodeToString(keyPair.getPrivate().getEncoded(), Base64.DEFAULT);
+        sharedPreferencesEditor.putString(keystoreAlias, privateKey).commit();
 
-        sharedPreferencesEditor.putString(keystoreAlias,
-                Base64.encodeToString(keyPair.getPrivate().getEncoded(), Base64.DEFAULT)).commit();
+        Log.d(getClass().getName(), "Securely stored private key!");
     }
 
     public String securelyStorePeerAgreementKey(Context context, String keystoreAlias, byte[] keyValue) throws GeneralSecurityException, IOException {
@@ -181,10 +177,42 @@ public class SecurityECDH {
         byte[] merged = SecurityHelpers.rxAgreementFormatter(keyValue);
         String returnString = Base64.encodeToString(merged, Base64.DEFAULT);
 
+        removeSecretKey(keystoreAlias);
         sharedPreferencesEditor.putString(keystoreAlias, returnString)
                 .commit();
+        Log.d(getClass().getName(), "Securely stored peer agreement key!");
 
         return returnString;
+    }
+
+    public void removeSecretKey(String keystoreAlias) throws GeneralSecurityException, IOException {
+        SharedPreferences encryptedSharedPreferencesAgreementKeys = EncryptedSharedPreferences.create(
+                context,
+                UNIVERSAL_AGREEMENT_KEY_KEYSTORE_ALIAS,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        SharedPreferences.Editor sharedPreferencesEditorAgreementKey =
+                encryptedSharedPreferencesAgreementKeys.edit();
+
+        sharedPreferencesEditorAgreementKey
+                .remove(keystoreAlias)
+                .commit();
+
+        SharedPreferences sharedPreferencesKeystore = EncryptedSharedPreferences.create(
+                context,
+                UNIVERSAL_KEYSTORE_ALIAS,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM );
+
+        SharedPreferences.Editor sharedPreferencesEditor = sharedPreferencesKeystore.edit();
+        sharedPreferencesEditor
+                .remove(keystoreAlias)
+                .commit();
+
+
     }
 
     public void removeAllKeys(String keystoreAlias) throws GeneralSecurityException, IOException {
@@ -199,7 +227,7 @@ public class SecurityECDH {
         SharedPreferences.Editor sharedPreferencesEditor = sharedPreferencesKeystore.edit();
         sharedPreferencesEditor
                 .remove(keystoreAlias)
-                .apply();
+                .commit();
 
         // remove private keys
         SharedPreferences sharedPreferencesPrivateKeystore = EncryptedSharedPreferences.create(
@@ -212,7 +240,7 @@ public class SecurityECDH {
         SharedPreferences.Editor sharedPreferencesEditorPrivateKey = sharedPreferencesPrivateKeystore.edit();
         sharedPreferencesEditorPrivateKey
                 .remove(keystoreAlias)
-                .apply();
+                .commit();
 
         // remove agreement keys
         SharedPreferences encryptedSharedPreferencesAgreementKeys = EncryptedSharedPreferences.create(
@@ -227,7 +255,7 @@ public class SecurityECDH {
 
         sharedPreferencesEditorAgreementKey
                 .remove(keystoreAlias)
-                .apply();
+                .commit();
     }
 
     public boolean peerAgreementPublicKeysAvailable(Context context, String keystoreAlias) throws GeneralSecurityException, IOException {
@@ -253,7 +281,6 @@ public class SecurityECDH {
     }
 
     public void securelyStoreSecretKey(String keystoreAlias, byte[] secret) throws GeneralSecurityException, IOException {
-        Log.d(getClass().getName(), "--> Securely storing secret key for: " + keystoreAlias);
         SharedPreferences universalSharedPreferences = EncryptedSharedPreferences.create(
                 context,
                 UNIVERSAL_KEYSTORE_ALIAS,
@@ -280,8 +307,7 @@ public class SecurityECDH {
 
     }
 
-    public KeyPair generateKeyPairFromPublicKey(byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException {
-        Log.d(getClass().getName(), "--> Generating keypair from public key");
+    public KeyPair generateKeyPairFromPublicKey(byte[] publicKeyEnc) throws GeneralSecurityException, IOException {
         KeyFactory bobKeyFac = KeyFactory.getInstance(DEFAULT_ALGORITHM);
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(publicKeyEnc);
 
@@ -293,8 +319,8 @@ public class SecurityECDH {
 
         keyPairGenerator.initialize(dhParameterSpec);
 
+        //        securelyStorePrivateKeyKeyPair(context, alias, keyPair);
         return keyPairGenerator.generateKeyPair();
-
     }
 
     public static byte[] encryptAES(byte[] input, byte[] secretKey) throws Throwable {

@@ -22,6 +22,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
 public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
@@ -62,12 +63,15 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                 try {
                     String strMessage = messageBuffer.toString();
                     if(SecurityHelpers.isKeyExchange(strMessage)) {
+//                        strMessage = SecurityHelpers.removeKeyWaterMark(strMessage);
                         strMessage = registerIncomingAgreement(context, smsMetaEntity.getAddress(),
                                 messageBuffer.toByteArray());
                     }
 
+                    String notificationNote = "New Key request";
+
                     if(smsMetaEntity.isPendingAgreement(context)) {
-                        String notificationNote = "New Key request";
+                        notificationNote = "Peer agreed to request";
 
                         strMessage = SecurityHelpers.FIRST_HEADER +
                                 strMessage + SecurityHelpers.END_HEADER;
@@ -75,10 +79,13 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                         messageId = SMSHandler.registerIncomingMessage(context,
                                 smsMetaEntity.getAddress(), strMessage, subscriptionId);
 
-                        IncomingTextSMSBroadcastReceiver.sendNotification(context, notificationNote,
-                                smsMetaEntity.getAddress(), messageId);
-                        broadcastIntent(context);
                     }
+
+                    // TODO: change notification note
+                    Log.d(getClass().getName(), "Should notify of incoming data sms...");
+                    IncomingTextSMSBroadcastReceiver.sendNotification(context, notificationNote,
+                            smsMetaEntity.getAddress(), messageId);
+                    broadcastIntent(context);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -89,6 +96,9 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
     private String registerIncomingAgreement(Context context, String msisdn, byte[] keyPart) throws GeneralSecurityException, IOException {
         SecurityECDH securityECDH = new SecurityECDH(context);
+
+//        if(securityECDH.hasSecretKey(msisdn))
+//            securityECDH.removeSecretKey(msisdn);
         return securityECDH.securelyStorePeerAgreementKey(context, msisdn, keyPart);
     }
 

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -381,6 +382,8 @@ public class SMS {
         }
 
         /**
+         * First time this is used is the peer generating the initiating agreement key.
+         * Second time this is used is the peer generating the follow up agreement key.
          *
          * @param context
          * @return byte[] : Returns the public key. Remember this is your
@@ -388,11 +391,10 @@ public class SMS {
          * @throws GeneralSecurityException
          * @throws IOException
          */
-        public byte[] generateAgreements(Context context) throws GeneralSecurityException, IOException {
+        public KeyPair generateAgreements(Context context) throws GeneralSecurityException, IOException {
             SecurityECDH securityECDH = new SecurityECDH(context);
-            PublicKey publicKey = securityECDH.generateKeyPair(context, getAddress());
-
-            return SecurityHelpers.txAgreementFormatter(publicKey.getEncoded());
+            securityECDH.removeAllKeys(getAddress());
+            return securityECDH.generateKeyPair();
         }
 
         /**
@@ -405,14 +407,18 @@ public class SMS {
          */
         public byte[] agreePeerRequest(Context context) throws GeneralSecurityException, IOException {
             SecurityECDH securityECDH = new SecurityECDH(context);
-            byte[] peerPublicKey = Base64.decode(securityECDH.getPeerAgreementPublicKey(getAddress()),
-                    Base64.DEFAULT);
+            String peerPublicKeyEncoded = securityECDH.getPeerAgreementPublicKey(getAddress());
+
+            byte[] peerPublicKey = Base64.decode(peerPublicKeyEncoded, Base64.DEFAULT);
 
             KeyPair keyPair = securityECDH.generateKeyPairFromPublicKey(peerPublicKey);
-            byte[] secret = securityECDH.generateSecretKey(peerPublicKey, getAddress());
+            PrivateKey privateKey = securityECDH.hasPrivateKey(getAddress()) ?
+                    securityECDH.securelyFetchPrivateKey(getAddress()) : keyPair.getPrivate();
+
+            byte[] secret = securityECDH.generateSecretKey(peerPublicKey, privateKey);
             securityECDH.securelyStoreSecretKey(getAddress(), secret);
 
-            return keyPair.getPublic().getEncoded();
+            return SecurityHelpers.txAgreementFormatter(keyPair.getPublic().getEncoded());
         }
 
         public byte[] getSecretKey(Context context) throws GeneralSecurityException, IOException {

@@ -3,6 +3,7 @@ package com.example.swob_deku;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -30,6 +31,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -57,6 +59,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -519,7 +522,35 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             e.printStackTrace();
         }
     }
+
+
+    private void showAlert(Runnable runnable) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.messages_thread_delete_confirmation_title));
+        builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
+
+        builder.setPositiveButton(getString(R.string.messages_thread_delete_confirmation_yes),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        runnable.run();
+                    }
+                });
+
+        builder.setNegativeButton(getString(R.string.messages_thread_delete_confirmation_cancel),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
+        SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+
         if(smsMetaEntity.isShortCode() ||
                 SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
             return;
@@ -538,24 +569,30 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
+                    showAlert(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                KeyPair keyPair  = smsMetaEntity.generateAgreements(getApplicationContext());
+                                byte[] agreementKey = SecurityHelpers.txAgreementFormatter(
+                                        keyPair.getPublic().getEncoded());
+                                securityECDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
+                                        smsMetaEntity.getAddress(), keyPair);
+                                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                                String threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
+                                        smsMetaEntity.getAddress(),
+                                        agreementKey,
+                                        subscriptionId);
 
-                        // TODO: refactor the entire send sms thing to inform when dual-sim
-                        // TODO: support for multi-sim
-                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        String threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
-                                smsMetaEntity.getAddress(),
-                                agreementKey,
-                                subscriptionId);
-
-                        if(smsMetaEntity.getThreadId() == null && threadId != null) {
-                            getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
-                            _setupActivityDependencies();
+                                if(smsMetaEntity.getThreadId() == null && threadId != null) {
+                                    getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                                    _setupActivityDependencies();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    });
                 }
             };
 
@@ -572,19 +609,26 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        byte[] agreementKey = smsMetaEntity.generateAgreements(getApplicationContext());
+                    showAlert(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                KeyPair keyPair  = smsMetaEntity.generateAgreements(getApplicationContext());
+                                byte[] agreementKey = SecurityHelpers.txAgreementFormatter(
+                                        keyPair.getPublic().getEncoded());
+                                securityECDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
+                                        smsMetaEntity.getAddress(), keyPair);
 
-                        // TODO: refactor the entire send sms thing to inform when dual-sim
-                        // TODO: support for multi-sim
-                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        SMSHandler.registerPendingKeyMessage(getApplicationContext(),
-                                smsMetaEntity.getAddress(),
-                                agreementKey,
-                                subscriptionId);
-                    } catch (GeneralSecurityException | IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                                SMSHandler.registerPendingKeyMessage(getApplicationContext(),
+                                        smsMetaEntity.getAddress(),
+                                        agreementKey,
+                                        subscriptionId);
+                            } catch (GeneralSecurityException | IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    });
                 }
             };
 

@@ -181,11 +181,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         if(animation) {
             AnimatorSet animatorSet = new AnimatorSet();
             // Translation animation: Move the item up from the bottom
-            ObjectAnimator translationAnim = ObjectAnimator.ofFloat(holder.itemView, "translationY", 200f, 0f);
+            ObjectAnimator translationAnim = ObjectAnimator.ofFloat(holder.itemView,
+                    "translationY", 200f, 0f);
             translationAnim.setDuration(200);
 
             // Fade-in animation: Make the item gradually appear
-            ObjectAnimator fadeAnim = ObjectAnimator.ofFloat(holder.itemView, "alpha", 0f, 1f);
+            ObjectAnimator fadeAnim = ObjectAnimator.ofFloat(holder.itemView,
+                    "alpha", 0f, 1f);
             fadeAnim.setDuration(200);
 
             // Play both animations together

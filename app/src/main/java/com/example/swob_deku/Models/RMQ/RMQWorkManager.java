@@ -39,7 +39,7 @@ public class RMQWorkManager extends Worker {
     @Override
     public Result doWork() {
         Intent intent = new Intent(getApplicationContext(), RMQConnectionService.class);
-        _startWebsocketsServices();
+//        _startWebsocketsServices();
         if(!sharedPreferences.getAll().isEmpty()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 try {

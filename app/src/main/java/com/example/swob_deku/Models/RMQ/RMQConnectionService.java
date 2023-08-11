@@ -29,6 +29,8 @@ import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -147,6 +149,13 @@ public class RMQConnectionService extends Service {
        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
    }
 
+   private class SMSStatusReport {
+        public final String type = SMS_TYPE_STATUS;
+        public String sid;
+        public String status;
+   }
+
+
     private void handleBroadcast() {
         messageStateChangedBroadcast = new BroadcastReceiver() {
             @Override
@@ -174,9 +183,21 @@ public class RMQConnectionService extends Service {
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
-                                    String jsonStringBody = "{\"type\": \"" + SMS_TYPE_STATUS
-                                            + "\", \"id\": \"" + globalMessageId +
-                                            "\", \"status\": \"" + SMS_STATUS_SENT + "\"}";
+
+                                    GsonBuilder gsonBuilder = new GsonBuilder();
+                                    gsonBuilder.setPrettyPrinting().serializeNulls();
+                                    Gson gson = gsonBuilder.create();
+
+                                    SMSStatusReport smsStatusReport = new SMSStatusReport();
+                                    smsStatusReport.sid = globalMessageId;
+                                    smsStatusReport.status = SMS_STATUS_SENT;
+
+//                                    String jsonStringBody = "{\"type\": \"" + SMS_TYPE_STATUS
+//                                            + "\", \"id\": \"" + globalMessageId +
+//                                            "\", \"status\": \"" + SMS_STATUS_SENT + "\"}";
+                                    String jsonStringBody = gson.toJson(smsStatusReport);
+                                    Log.d(getClass().getName(), "JSON string: " + jsonStringBody);
+
                                     RouterHandler.createWorkForMessage(getApplicationContext(),
                                             jsonStringBody, messageId, false);
                                 }
