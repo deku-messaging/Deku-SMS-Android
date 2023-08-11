@@ -28,6 +28,7 @@ import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityAES;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 
@@ -274,7 +275,7 @@ public class ImageViewActivity extends AppCompatActivity {
 
         if(securityECDH.hasSecretKey(address)){
             String secretKeyB64 = securityECDH.securelyFetchSecretKey(address);
-            c = SecurityECDH.encryptAES(c, Base64.decode(secretKeyB64, Base64.DEFAULT));
+            c = SecurityAES.encrypt_256_cbc(c, Base64.decode(secretKeyB64, Base64.DEFAULT), null);
             content = Base64.encodeToString(c, Base64.DEFAULT);
             c = SecurityHelpers.putEncryptedMessageWaterMark(content)
                     .getBytes(StandardCharsets.UTF_8);

@@ -49,6 +49,7 @@ import com.example.swob_deku.Models.Messages.SingleMessagesThreadRecyclerAdapter
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityAES;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.Settings.SettingsHandler;
@@ -450,8 +451,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 try {
                     if (!s.toString().isEmpty() && hasSecretKey) {
                         String encryptedString = Base64.encodeToString(
-                                SecurityECDH.encryptAES(s.toString().getBytes(StandardCharsets.UTF_8),
-                                        secretKey),
+                                SecurityAES.encrypt_256_cbc(s.toString().getBytes(StandardCharsets.UTF_8),
+                                        secretKey, null),
                                 Base64.DEFAULT);
 
                         encryptedString = SecurityHelpers.putEncryptedMessageWaterMark(encryptedString);
@@ -698,8 +699,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
      */
     private String _encryptContent(String data, byte[] secretKey) {
         try {
-            byte[] encryptedContent = SecurityECDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
-                    secretKey);
+            byte[] encryptedContent = SecurityAES.encrypt_256_cbc(data.getBytes(StandardCharsets.UTF_8),
+                    secretKey, null);
             data = Base64.encodeToString(encryptedContent, Base64.DEFAULT);
         } catch(Throwable e ) {
             e.printStackTrace();

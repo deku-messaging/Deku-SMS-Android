@@ -12,7 +12,6 @@ import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
-import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
 
@@ -180,7 +179,7 @@ public class ImageHandler {
     public byte[] encryptImage(byte[] imageBytes) throws Throwable {
         SecurityAES aes = new SecurityAES();
 
-        byte[] bytesJpegEncryption = aes.encrypt( imageBytes, secretKey.getBytes(StandardCharsets.UTF_8));
+        byte[] bytesJpegEncryption = aes.encrypt_256_cbc( imageBytes, secretKey.getBytes(StandardCharsets.UTF_8), null);
 
         return bytesJpegEncryption;
     }

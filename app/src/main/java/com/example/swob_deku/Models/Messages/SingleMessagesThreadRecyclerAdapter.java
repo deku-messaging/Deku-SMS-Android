@@ -41,6 +41,7 @@ import com.example.swob_deku.Models.Images.ImageHandler;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
+import com.example.swob_deku.Models.Security.SecurityAES;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
@@ -162,7 +163,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                         + SecurityHelpers.ENCRYPTED_WATERMARK_END.length()
                 && SecurityHelpers.containersWaterMark(input)) {
             try {
-                byte[] encryptedContent = SecurityECDH.decryptAES(Base64.decode(
+                byte[] encryptedContent = SecurityAES.decrypt_256_cbc(Base64.decode(
                         SecurityHelpers.removeEncryptedMessageWaterMark(input), Base64.DEFAULT),
                         secretKey);
                 input = new String(encryptedContent, StandardCharsets.UTF_8);

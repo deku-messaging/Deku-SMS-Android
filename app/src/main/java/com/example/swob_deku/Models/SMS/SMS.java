@@ -20,6 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 
 import com.example.swob_deku.Models.Contacts.Contacts;
+import com.example.swob_deku.Models.Security.SecurityAES;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -432,8 +433,8 @@ public class SMS {
         }
 
         public String encryptContent(Context context, String data) throws Throwable {
-            byte[] encryptedContent = SecurityECDH.encryptAES(data.getBytes(StandardCharsets.UTF_8),
-                    getSecretKey(context));
+            byte[] encryptedContent = SecurityAES.encrypt_256_cbc(data.getBytes(StandardCharsets.UTF_8),
+                    getSecretKey(context), null);
             return Base64.encodeToString(encryptedContent, Base64.DEFAULT);
         }
 

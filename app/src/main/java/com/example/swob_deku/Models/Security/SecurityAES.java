@@ -1,22 +1,9 @@
 package com.example.swob_deku.Models.Security;
 
-import android.content.Context;
-import android.security.keystore.KeyProperties;
-import android.util.Base64;
-
-import java.io.IOException;
-import java.security.AlgorithmConstraints;
-import java.security.AlgorithmParameterGenerator;
-import java.security.GeneralSecurityException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.security.spec.MGF1ParameterSpec;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.OAEPParameterSpec;
-import javax.crypto.spec.PSource;
 import javax.crypto.spec.SecretKeySpec;
 
 public class SecurityAES {
@@ -29,14 +16,17 @@ public class SecurityAES {
     public SecurityAES(){
     }
 
-    public byte[] encrypt(byte[] input, byte[] secretKey) throws Throwable {
+    public static byte[] encrypt_256_cbc(byte[] input, byte[] secretKey, byte[] iv) throws Throwable {
         try {
-//            SecretKeySpec secretKeySpec = new SecretKeySpec(sharedKey, "AES");
-//            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, 16, "AES");
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, secretKey.length, "AES");
 
             Cipher cipher = Cipher.getInstance(DEFAULT_AES_ALGORITHM);
-            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            if(iv != null) {
+                IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
+            } else {
+                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            }
             byte[] ciphertext = cipher.doFinal(input);
 
             byte[] cipherTextIv = new byte[16 + ciphertext.length];
@@ -51,7 +41,7 @@ public class SecurityAES {
         }
     }
 
-    public byte[] decrypt(byte[] input, byte[] sharedKey) throws Throwable {
+    public static byte[] decrypt_256_cbc(byte[] input, byte[] sharedKey) throws Throwable {
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(sharedKey, "AES");
 
