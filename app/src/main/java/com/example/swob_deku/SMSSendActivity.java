@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -20,11 +21,13 @@ import android.text.style.StyleSpan;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,7 +43,6 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.security.crypto.EncryptedSharedPreferences;
 
 import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.CustomAppCompactActivity;
@@ -525,32 +527,78 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
 
-    private void showAlert(Runnable runnable) {
+    private void showMultiSimcardAlert(Runnable runnable) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.messages_thread_delete_confirmation_title));
-        builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
 
-        builder.setPositiveButton(getString(R.string.messages_thread_delete_confirmation_yes),
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        runnable.run();
-                    }
-                });
+        builder.setTitle(getString(R.string.sim_chooser_layout_text));
+//        builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
 
-        builder.setNegativeButton(getString(R.string.messages_thread_delete_confirmation_cancel),
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                });
+        View simChooserView = View.inflate(getApplicationContext(), R.layout.sim_chooser_layout, null);
+        builder.setView(simChooserView);
 
+        List<SubscriptionInfo> subscriptionInfos = SIMHandler.getSimCardInformation(getApplicationContext());
+
+        Bitmap sim1Bitmap = subscriptionInfos.get(0).createIconBitmap(getApplicationContext());
+        Bitmap sim2Bitmap = subscriptionInfos.get(1).createIconBitmap(getApplicationContext());
+
+        ImageView sim1ImageView = simChooserView.findViewById(R.id.sim_layout_simcard_1_img);
+        TextView sim1TextView = simChooserView.findViewById(R.id.sim_layout_simcard_1_name);
+
+        ImageView sim2ImageView = simChooserView.findViewById(R.id.sim_layout_simcard_2_img);
+        TextView sim2TextView = simChooserView.findViewById(R.id.sim_layout_simcard_2_name);
+
+        sim1ImageView.setImageBitmap(sim1Bitmap);
         AlertDialog dialog = builder.create();
+
+        sim1ImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                defaultSubscriptionId = subscriptionInfos.get(0).getSubscriptionId();
+                runnable.run();
+                dialog.dismiss();
+            }
+        });
+        sim1TextView.setText(subscriptionInfos.get(0).getDisplayName());
+
+        sim2ImageView.setImageBitmap(sim2Bitmap);
+        sim2ImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                defaultSubscriptionId = subscriptionInfos.get(1).getSubscriptionId();
+                runnable.run();
+                dialog.dismiss();
+            }
+        });
+        sim2TextView.setText(subscriptionInfos.get(1).getDisplayName());
+
         dialog.show();
     }
 
-    private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
+    private void _txAgreementKey() throws GeneralSecurityException, IOException {
         SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+        try {
+            KeyPair keyPair  = smsMetaEntity.generateAgreements(getApplicationContext());
+            byte[] agreementKey = SecurityHelpers.txAgreementFormatter(
+                    keyPair.getPublic().getEncoded());
+            securityECDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
+                    smsMetaEntity.getAddress(), keyPair);
+            int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+            String threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
+                    smsMetaEntity.getAddress(),
+                    agreementKey,
+                    subscriptionId);
+
+            if(smsMetaEntity.getThreadId() == null && threadId != null) {
+                getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                _setupActivityDependencies();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
 
         if(smsMetaEntity.isShortCode() ||
                 SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
@@ -570,30 +618,25 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    showAlert(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                KeyPair keyPair  = smsMetaEntity.generateAgreements(getApplicationContext());
-                                byte[] agreementKey = SecurityHelpers.txAgreementFormatter(
-                                        keyPair.getPublic().getEncoded());
-                                securityECDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
-                                        smsMetaEntity.getAddress(), keyPair);
-                                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                                String threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
-                                        smsMetaEntity.getAddress(),
-                                        agreementKey,
-                                        subscriptionId);
-
-                                if(smsMetaEntity.getThreadId() == null && threadId != null) {
-                                    getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
-                                    _setupActivityDependencies();
+                    if(SIMHandler.getActiveSimcardCount(getApplicationContext()) > 1) {
+                        showMultiSimcardAlert(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    _txAgreementKey();
+                                } catch (GeneralSecurityException | IOException e) {
+                                    e.printStackTrace();
                                 }
-                            } catch (Exception e) {
-                                e.printStackTrace();
                             }
+                        });
+                    }
+                    else {
+                        try {
+                            _txAgreementKey();
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
                         }
-                    });
+                    }
                 }
             };
 
@@ -610,26 +653,25 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    showAlert(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                KeyPair keyPair  = smsMetaEntity.generateAgreements(getApplicationContext());
-                                byte[] agreementKey = SecurityHelpers.txAgreementFormatter(
-                                        keyPair.getPublic().getEncoded());
-                                securityECDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
-                                        smsMetaEntity.getAddress(), keyPair);
-
-                                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                                SMSHandler.registerPendingKeyMessage(getApplicationContext(),
-                                        smsMetaEntity.getAddress(),
-                                        agreementKey,
-                                        subscriptionId);
-                            } catch (GeneralSecurityException | IOException e) {
-                                throw new RuntimeException(e);
+                    if(SIMHandler.getActiveSimcardCount(getApplicationContext()) > 1) {
+                        showMultiSimcardAlert(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    _txAgreementKey();
+                                } catch (GeneralSecurityException | IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
+                        });
+                    }
+                    else {
+                        try {
+                            _txAgreementKey();
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
                         }
-                    });
+                    }
                 }
             };
 

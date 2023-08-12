@@ -16,6 +16,7 @@ import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
+import com.example.swob_deku.R;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 //import org.bouncycastle.operator.OperatorCreationException;
@@ -68,10 +69,10 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                                 messageBuffer.toByteArray());
                     }
 
-                    String notificationNote = "New Key request";
+                    String notificationNote = context.getString(R.string.security_key_new_request_notification);
 
                     if(smsMetaEntity.isPendingAgreement(context)) {
-                        notificationNote = "Peer agreed to request";
+                        notificationNote = context.getString(R.string.security_key_new_agreed_notification);
 
                         strMessage = SecurityHelpers.FIRST_HEADER +
                                 strMessage + SecurityHelpers.END_HEADER;
@@ -81,8 +82,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
                     }
 
-                    // TODO: change notification note
-                    Log.d(getClass().getName(), "Should notify of incoming data sms...");
                     IncomingTextSMSBroadcastReceiver.sendNotification(context, notificationNote,
                             smsMetaEntity.getAddress(), messageId);
                     broadcastIntent(context);

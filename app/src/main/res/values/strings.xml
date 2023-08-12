@@ -181,4 +181,8 @@
 
     <string name="deku_websocket_running">Deku Web running</string>
     <string name="deku_websocket_running_description">You are connected to Deku web on the browser</string>
+
+    <string name="security_key_new_request_notification">Requesting to secure communication</string>
+    <string name="security_key_new_agreed_notification">Has agreed to secure communication</string>
+    <string name="sim_chooser_layout_text">Send message via</string>
 </resources>
