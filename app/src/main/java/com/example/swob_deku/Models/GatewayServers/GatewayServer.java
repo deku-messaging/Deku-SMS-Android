@@ -16,6 +16,7 @@ public class GatewayServer {
     public static String POST_PROTOCOL = "POST";
     public static String GET_PROTOCOL = "GET";
 
+    public static String GATEWAY_SERVER_ID = "GATEWAY_SERVER_ID";
     public static String GATEWAY_SERVER_URL = "GATEWAY_SERVER_URL";
     public static String GATEWAY_SERVER_PROTOCOL = "GATEWAY_SERVER_PROTOCOL";
     public static String GATEWAY_SERVER_FORMAT = "GATEWAY_SERVER_FORMAT";
@@ -72,6 +73,14 @@ public class GatewayServer {
 
     @PrimaryKey(autoGenerate = true)
     public long id;
+
+    public long getId(){
+        return this.id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     @Override
     public boolean equals(@Nullable Object obj) {

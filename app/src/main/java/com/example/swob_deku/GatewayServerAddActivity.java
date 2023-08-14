@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.RadioGroup;
 
 import com.example.swob_deku.Models.GatewayServers.GatewayServer;
+import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerHandler;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -42,6 +43,23 @@ public class GatewayServerAddActivity extends AppCompatActivity {
                 onSaveGatewayServer(v);
             }
         });
+
+        populateForUpdates();
+    }
+
+    private void populateForUpdates() {
+        TextInputEditText textInputEditTextUrl = findViewById(R.id.new_gateway_client_url_input);
+        RadioGroup radioGroup = findViewById(R.id.add_gateway_server_protocol_group);
+
+        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_URL)) {
+            textInputEditTextUrl.setText(getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_URL));
+        }
+
+        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_FORMAT)) {
+            String format = getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_FORMAT);
+            if(format.equals(GatewayServer.BASE64_FORMAT))
+                base64.setChecked(true);
+        }
     }
 
     private void dataTypeFilter(){
@@ -86,8 +104,16 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         gatewayServer.setFormat(formats);
         gatewayServer.setProtocol(protocol);
 
+        GatewayServerHandler gatewayServerHandler = new GatewayServerHandler(getApplicationContext());
         try {
-            GatewayServerHandler.add(getApplicationContext(), gatewayServer);
+            if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_ID)) {
+                gatewayServer.setId(getIntent().getLongExtra(GatewayServer.GATEWAY_SERVER_ID, -1));
+                gatewayServerHandler.update(getApplicationContext(), gatewayServer);
+            }
+            else
+                gatewayServerHandler.add(getApplicationContext(), gatewayServer);
+
+            gatewayServerHandler.close();
 
             Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
             gatewayServerListIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

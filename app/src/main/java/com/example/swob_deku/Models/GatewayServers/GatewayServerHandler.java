@@ -8,23 +8,46 @@ import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.Migrations;
 
 public class GatewayServerHandler {
-    public static void add(Context context, GatewayServer gatewayServer) throws InterruptedException {
-        gatewayServer.setDate(System.currentTimeMillis());
+    Datastore databaseConnector;
 
+    public GatewayServerHandler(Context context){
+         databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                         Datastore.databaseName)
+                 .addMigrations(new Migrations.Migration4To5())
+                .addMigrations(new Migrations.Migration5To6())
+                 .addMigrations(new Migrations.Migration6To7())
+                .build();
+    }
+
+    public void add(Context context, GatewayServer gatewayServer) throws InterruptedException {
+        gatewayServer.setDate(System.currentTimeMillis());
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                        .addMigrations(new Migrations.Migration4To5())
-                        .addMigrations(new Migrations.Migration5To6())
-                        .build();
                 GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
                 gatewayServerDAO.insert(gatewayServer);
             }
         });
         thread.start();
         thread.join();
+    }
+
+    public void update(Context context, GatewayServer gatewayServer) throws InterruptedException {
+        gatewayServer.setDate(System.currentTimeMillis());
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
+                gatewayServerDAO.update(gatewayServer);
+            }
+        });
+        thread.start();
+        thread.join();
+    }
+
+    public void close() {
+        databaseConnector.close();
     }
 
 //    public static List<GatewayServer> fetchAll(Context context) throws InterruptedException {
