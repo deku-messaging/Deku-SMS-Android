@@ -30,4 +30,21 @@ public class Migrations {
         }
     }
 
+    public static class Migration6To7 extends Migration {
+        public Migration6To7() {
+            super(6, 7);
+        }
+
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE IF EXISTS GatewayServer");
+
+            database.execSQL("CREATE TABLE IF NOT EXISTS GatewayServer (" +
+                    "id INTEGER NOT NULL PRIMARY KEY, " +
+                    "format TEXT, date INTEGER, " +
+                    "protocol TEXT, URL TEXT)");
+
+        }
+    }
+
 }

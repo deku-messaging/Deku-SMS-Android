@@ -8,13 +8,17 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity(indices = {@Index(value={"URL"}, unique = true)})
+@Entity
 public class GatewayServer {
 
     public static String BASE64_FORMAT = "base_64";
     public static String ALL_FORMAT = "all";
     public static String POST_PROTOCOL = "POST";
     public static String GET_PROTOCOL = "GET";
+
+    public static String GATEWAY_SERVER_URL = "GATEWAY_SERVER_URL";
+    public static String GATEWAY_SERVER_PROTOCOL = "GATEWAY_SERVER_PROTOCOL";
+    public static String GATEWAY_SERVER_FORMAT = "GATEWAY_SERVER_FORMAT";
 
     @ColumnInfo(name="URL")
     public String URL;

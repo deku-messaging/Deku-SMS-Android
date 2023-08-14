@@ -599,7 +599,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     private void _checkEncryptionStatus() throws GeneralSecurityException, IOException {
-
         if(smsMetaEntity.isShortCode() ||
                 SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
             return;
