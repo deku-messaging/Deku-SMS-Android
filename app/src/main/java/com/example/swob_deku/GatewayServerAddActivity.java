@@ -7,6 +7,8 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioGroup;
 
@@ -19,6 +21,8 @@ import com.google.android.material.textfield.TextInputEditText;
 
 public class GatewayServerAddActivity extends AppCompatActivity {
     MaterialCheckBox all, base64;
+
+    GatewayServerHandler gatewayServerHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +37,8 @@ public class GatewayServerAddActivity extends AppCompatActivity {
 
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
+
+        gatewayServerHandler = new GatewayServerHandler(getApplicationContext());
 
         dataTypeFilter();
 
@@ -104,16 +110,13 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         gatewayServer.setFormat(formats);
         gatewayServer.setProtocol(protocol);
 
-        GatewayServerHandler gatewayServerHandler = new GatewayServerHandler(getApplicationContext());
         try {
             if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_ID)) {
                 gatewayServer.setId(getIntent().getLongExtra(GatewayServer.GATEWAY_SERVER_ID, -1));
-                gatewayServerHandler.update(getApplicationContext(), gatewayServer);
+                gatewayServerHandler.update(gatewayServer);
             }
             else
-                gatewayServerHandler.add(getApplicationContext(), gatewayServer);
-
-            gatewayServerHandler.close();
+                gatewayServerHandler.add(gatewayServer);
 
             Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
             gatewayServerListIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -121,5 +124,43 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_ID)) {
+            getMenuInflater().inflate(R.menu.gateway_server_add_menu, menu);
+            return super.onCreateOptionsMenu(menu);
+        }
+        return false;
+    }
+
+    private void deleteGatewayServer() throws InterruptedException {
+        gatewayServerHandler.delete(getIntent().getLongExtra(GatewayServer.GATEWAY_SERVER_ID, -1));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.gateway_client_delete) {
+            try {
+                deleteGatewayServer();
+
+                Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
+                gatewayServerListIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(gatewayServerListIntent);
+
+                return true;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected void onDestroy() {
+        gatewayServerHandler.close();
+
+        super.onDestroy();
     }
 }

@@ -19,7 +19,21 @@ public class GatewayServerHandler {
                 .build();
     }
 
-    public void add(Context context, GatewayServer gatewayServer) throws InterruptedException {
+    public void delete(long id) throws InterruptedException {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
+                GatewayServer gatewayServer = new GatewayServer();
+                gatewayServer.setId(id);
+                gatewayServerDAO.delete(gatewayServer);
+            }
+        });
+        thread.start();
+        thread.join();
+    }
+
+    public void add(GatewayServer gatewayServer) throws InterruptedException {
         gatewayServer.setDate(System.currentTimeMillis());
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -32,7 +46,7 @@ public class GatewayServerHandler {
         thread.join();
     }
 
-    public void update(Context context, GatewayServer gatewayServer) throws InterruptedException {
+    public void update(GatewayServer gatewayServer) throws InterruptedException {
         gatewayServer.setDate(System.currentTimeMillis());
 
         Thread thread = new Thread(new Runnable() {
