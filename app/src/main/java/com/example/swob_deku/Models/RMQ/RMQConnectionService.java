@@ -78,6 +78,12 @@ public class RMQConnectionService extends Service {
 
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
+    public interface SmsForwardInterface {
+        public String tag = new String();
+
+        public abstract void setTag(String tag);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -149,10 +155,17 @@ public class RMQConnectionService extends Service {
        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
    }
 
-   private class SMSStatusReport {
+   private class SMSStatusReport implements SmsForwardInterface {
         public final String type = SMS_TYPE_STATUS;
         public String sid;
         public String status;
+
+        public String tag;
+
+       @Override
+       public void setTag(String tag) {
+           this.tag = tag;
+       }
    }
 
 
@@ -162,6 +175,8 @@ public class RMQConnectionService extends Service {
             public void onReceive(Context context, @NonNull Intent intent) {
                 // TODO: in case this intent comes back but the internet connection broke to send back acknowledgement
                 // TODO: should store pending confirmations in a place
+                SMSStatusReport smsStatusReport = new SMSStatusReport();
+
                 if (intent.hasExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)) {
                     long messageId = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
                     if (intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)
@@ -184,22 +199,11 @@ public class RMQConnectionService extends Service {
                                         e.printStackTrace();
                                     }
 
-                                    GsonBuilder gsonBuilder = new GsonBuilder();
-                                    gsonBuilder.setPrettyPrinting().serializeNulls();
-                                    Gson gson = gsonBuilder.create();
-
-                                    SMSStatusReport smsStatusReport = new SMSStatusReport();
                                     smsStatusReport.sid = globalMessageId;
                                     smsStatusReport.status = SMS_STATUS_SENT;
 
-//                                    String jsonStringBody = "{\"type\": \"" + SMS_TYPE_STATUS
-//                                            + "\", \"id\": \"" + globalMessageId +
-//                                            "\", \"status\": \"" + SMS_STATUS_SENT + "\"}";
-                                    String jsonStringBody = gson.toJson(smsStatusReport);
-                                    Log.d(getClass().getName(), "JSON string: " + jsonStringBody);
-
                                     RouterHandler.createWorkForMessage(getApplicationContext(),
-                                            jsonStringBody, messageId, false);
+                                            smsStatusReport, messageId, false);
                                 }
                             }).start();
                         }
@@ -220,11 +224,11 @@ public class RMQConnectionService extends Service {
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
-                                    String jsonStringBody = "{\"type\": \"" + SMS_TYPE_STATUS
-                                            + "\", \"id\": \"" + globalMessageId +
-                                            "\", \"status\": \"" + SMS_STATUS_FAILED + "\"}";
+                                    smsStatusReport.sid = globalMessageId;
+                                    smsStatusReport.status = SMS_STATUS_FAILED;
+
                                     RouterHandler.createWorkForMessage(getApplicationContext(),
-                                            jsonStringBody, messageId, false);
+                                            smsStatusReport, messageId, false);
                                 }
                             }).start();
                         }

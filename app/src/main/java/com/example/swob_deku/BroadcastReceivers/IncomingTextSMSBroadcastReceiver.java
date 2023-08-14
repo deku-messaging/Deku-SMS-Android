@@ -40,6 +40,7 @@ import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServers.GatewayServer;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 import com.example.swob_deku.Models.Images.ImageHandler;
+import com.example.swob_deku.Models.RMQ.RMQConnectionService;
 import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.Router.RouterHandler;
 import com.example.swob_deku.Models.SIMHandler;
@@ -49,6 +50,8 @@ import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.SMSSendActivity;
 import com.example.swob_deku.Models.RMQ.RMQConnection;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -63,6 +66,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
     // Key for the string that's delivered in the action's intent.
     public static final String KEY_TEXT_REPLY = "key_text_reply";
+
+    public static final String SMS_TYPE_INCOMING = "SMS_TYPE_INCOMING";
 
 
     @Override
@@ -120,10 +125,15 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     @Override
                     public void run() {
                         try {
-                            String jsonStringBody = "{\"type\":" + Router.SMS_TYPE_INCOMING + "\", " +
-                                    "\"text\": \"" + messageFinal +
-                                    "\", \"MSISDN\": \"" + finalAddress + "\"}";
-                            RouterHandler.createWorkForMessage(context, jsonStringBody, finalMessageId,
+//                            String jsonStringBody = "{\"type\":" + Router.SMS_TYPE_INCOMING + "\", " +
+//                                    "\"text\": \"" + messageFinal +
+//                                    "\", \"MSISDN\": \"" + finalAddress + "\"}";
+
+                            SmsForward smsForward = new SmsForward();
+                            smsForward.MSISDN = finalAddress;
+                            smsForward.text = messageFinal;
+
+                            RouterHandler.createWorkForMessage(context, smsForward, finalMessageId,
                                     Helpers.isBase64Encoded(messageFinal));
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -131,6 +141,18 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     }
                 }).start();
             }
+        }
+    }
+
+    class SmsForward implements RMQConnectionService.SmsForwardInterface {
+        public String type = SMS_TYPE_INCOMING;
+        public String text;
+        public String MSISDN;
+        public String tag;
+
+        @Override
+        public void setTag(String tag) {
+            this.tag = tag;
         }
     }
 

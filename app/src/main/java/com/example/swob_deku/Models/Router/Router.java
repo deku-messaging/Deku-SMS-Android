@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class Router extends Worker {
-    public static final String SMS_TYPE_INCOMING = "SMS_TYPE_INCOMING";
     public static final String SMS_JSON_OBJECT = "SMS_JSON_OBJECT";
     public static final String SMS_JSON_ROUTING_URL = "SMS_JSON_ROUTING_URL";
     // https://developer.android.com/topic/libraries/architecture/workmanager/basics

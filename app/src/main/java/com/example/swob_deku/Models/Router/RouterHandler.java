@@ -25,6 +25,9 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServers.GatewayServer;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
+import com.example.swob_deku.Models.RMQ.RMQConnectionService;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -63,8 +66,13 @@ public class RouterHandler {
 
     }
 
-    public static void createWorkForMessage(Context context, String jsonStringBody, long messageId,
+    public static void createWorkForMessage(Context context,
+                                            RMQConnectionService.SmsForwardInterface jsonObject, long messageId,
                                             boolean isBase64) {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setPrettyPrinting().serializeNulls();
+        Gson gson = gsonBuilder.create();
+
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
@@ -81,6 +89,10 @@ public class RouterHandler {
                 for (GatewayServer gatewayServer : gatewayServerList) {
                     if(gatewayServer.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
                         continue;
+
+                    jsonObject.setTag(gatewayServer.getTag());
+                    final String jsonStringBody = gson.toJson(jsonObject);
+                    Log.d(getClass().getName(), "Routing: " + jsonStringBody);
 
                     try {
                         OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
