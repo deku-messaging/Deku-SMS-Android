@@ -60,6 +60,7 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
             public void onClick(View v) {
                 Intent intent = new Intent(context, GatewayServerAddActivity.class);
                 intent.putExtra(GatewayServer.GATEWAY_SERVER_ID, gatewayServer.getId());
+                intent.putExtra(GatewayServer.GATEWAY_SERVER_TAG, gatewayServer.getTag());
                 intent.putExtra(GatewayServer.GATEWAY_SERVER_URL, gatewayServer.getURL());
                 intent.putExtra(GatewayServer.GATEWAY_SERVER_PROTOCOL, gatewayServer.getProtocol());
                 intent.putExtra(GatewayServer.GATEWAY_SERVER_FORMAT, gatewayServer.getFormat());

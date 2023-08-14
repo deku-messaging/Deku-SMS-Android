@@ -43,6 +43,7 @@
         app:layout_constraintTop_toBottomOf="@id/new_gateway_descriptive_text">
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/new_gateway_client_url_input_layout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -57,7 +58,6 @@
             app:boxStrokeWidthFocused="0dp"
             app:helperTextEnabled="false"
             app:hintAnimationEnabled="false"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -71,8 +71,59 @@
                 android:inputType="text|textUri|textMultiLine"
                 android:maxLines="7" />
         </com.google.android.material.textfield.TextInputLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <TextView
+        android:id="@+id/new_gateway_tag_descriptive_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/new_gateway_server_tag"
+        android:textColor="@color/disabled_gray"
+        app:layout_constraintStart_toStartOf="@+id/new_gateway_client_tag_constraint"
+        app:layout_constraintTop_toBottomOf="@id/new_gateway_client_input_constraint" />
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/new_gateway_client_tag_constraint"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/compose_message_drawable"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/new_gateway_tag_descriptive_text">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/new_gateway_client_tag_constraint_layout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-thin"
+            android:gravity="center"
+            app:boxBackgroundColor="@color/received_message_color"
+            app:boxCornerRadiusBottomEnd="50dp"
+            app:boxCornerRadiusBottomStart="50dp"
+            app:boxCornerRadiusTopEnd="50dp"
+            app:boxCornerRadiusTopStart="50dp"
+            app:boxStrokeWidth="0dp"
+            app:boxStrokeWidthFocused="0dp"
+            app:helperTextEnabled="false"
+            app:hintAnimationEnabled="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:startIconDrawable="@drawable/round_tag_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/new_gateway_client_tag_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionGo"
+                android:inputType="text|textUri|textMultiLine"
+                android:maxLines="7" />
+        </com.google.android.material.textfield.TextInputLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -176,7 +227,7 @@
         android:layout_marginTop="24dp"
         android:text="@string/settings_add_gateway_server_protocol_description"
         android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-        app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_input_constraint" />
+        app:layout_constraintStart_toStartOf="@+id/new_gateway_client_tag_constraint"
+        app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_tag_constraint" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

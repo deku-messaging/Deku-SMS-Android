@@ -57,8 +57,14 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         TextInputEditText textInputEditTextUrl = findViewById(R.id.new_gateway_client_url_input);
         RadioGroup radioGroup = findViewById(R.id.add_gateway_server_protocol_group);
 
+        TextInputEditText textInputEditTextTag = findViewById(R.id.new_gateway_client_tag_input);
+
         if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_URL)) {
             textInputEditTextUrl.setText(getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_URL));
+        }
+
+        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_TAG)) {
+            textInputEditTextTag.setText(getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_TAG));
         }
 
         if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_FORMAT)) {
@@ -66,6 +72,7 @@ public class GatewayServerAddActivity extends AppCompatActivity {
             if(format.equals(GatewayServer.BASE64_FORMAT))
                 base64.setChecked(true);
         }
+
     }
 
     private void dataTypeFilter(){
@@ -94,6 +101,9 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         TextInputEditText textInputEditTextUrl = findViewById(R.id.new_gateway_client_url_input);
         String gatewayServerUrl = textInputEditTextUrl.getText().toString();
 
+        TextInputEditText textInputEditTextTag = findViewById(R.id.new_gateway_client_tag_input);
+        String gatewayServerTag = textInputEditTextTag.getText().toString();
+
         String formats = "";
         String protocol = GatewayServer.POST_PROTOCOL;
 
@@ -107,6 +117,7 @@ public class GatewayServerAddActivity extends AppCompatActivity {
 
         // Important: test if valid url
         GatewayServer gatewayServer = new GatewayServer(gatewayServerUrl);
+        gatewayServer.setTag(gatewayServerTag);
         gatewayServer.setFormat(formats);
         gatewayServer.setProtocol(protocol);
 

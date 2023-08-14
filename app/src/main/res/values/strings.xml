@@ -23,6 +23,7 @@
     <string name="save_new_gateway_client">Save</string>
     <string name="archived_messages_toolbar_title">Archive</string>
     <string name="new_gateway_server_url">Enter URL - e.g. https://example.com:8080/api/</string>
+    <string name="new_gateway_server_tag">Enter tag would be used for identifying this device <i>(optional)</i></string>
     <string name="new_gateway_client_url">Enter URL - e.g. example.com <i>(do not include protocol)</i></string>
     <string name="new_gateway_client_username">Enter username</string>
     <string name="new_gateway_client_password">Enter password</string>

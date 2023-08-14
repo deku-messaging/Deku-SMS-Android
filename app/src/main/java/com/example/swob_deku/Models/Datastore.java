@@ -14,7 +14,7 @@ import com.example.swob_deku.Models.GatewayClients.GatewayClientDAO;
 import com.example.swob_deku.Models.GatewayServers.GatewayServer;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 
-@Database(entities = {GatewayServer.class, Archive.class, GatewayClient.class}, version = 7)
+@Database(entities = {GatewayServer.class, Archive.class, GatewayClient.class}, version = 8)
 public abstract class Datastore extends RoomDatabase {
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
 

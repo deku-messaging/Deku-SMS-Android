@@ -17,6 +17,7 @@ public class GatewayServer {
     public static String GET_PROTOCOL = "GET";
 
     public static String GATEWAY_SERVER_ID = "GATEWAY_SERVER_ID";
+    public static String GATEWAY_SERVER_TAG = "GATEWAY_SERVER_TAG";
     public static String GATEWAY_SERVER_URL = "GATEWAY_SERVER_URL";
     public static String GATEWAY_SERVER_PROTOCOL = "GATEWAY_SERVER_PROTOCOL";
     public static String GATEWAY_SERVER_FORMAT = "GATEWAY_SERVER_FORMAT";
@@ -50,6 +51,17 @@ public class GatewayServer {
 
     @ColumnInfo(name="protocol")
     public String protocol = POST_PROTOCOL;
+
+    @ColumnInfo(name="tag")
+    public String tag = "";
+
+    public String getTag() {
+        return this.tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
 
     public String getFormat() {
         return format;

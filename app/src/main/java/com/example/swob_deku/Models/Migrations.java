@@ -47,4 +47,15 @@ public class Migrations {
         }
     }
 
+    public static class Migration7To8 extends Migration {
+        public Migration7To8() {
+            super(7, 8);
+        }
+
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE GatewayServer ADD COLUMN tag TEXT");
+        }
+    }
+
 }
