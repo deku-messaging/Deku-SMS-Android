@@ -19,7 +19,7 @@ versionProperties.load(new FileInputStream(versionsPropertiesFile))
 android {
     compileSdk 33
 
-    def releaseVersion = Integer.parseInt(versionProperties['releaseVersion']) + 1
+    def releaseVersion = Integer.parseInt(versionProperties['releaseVersion'])
     defaultConfig {
         applicationId "com.afkanerd.deku"
         minSdk 24

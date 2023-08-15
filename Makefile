@@ -5,6 +5,7 @@ APP_1=$(apk).apk
 APP_2=$(apk)_1.apk
 
 pass=$$(cat ks.passwd)
+branch_name=$$(git symbolic-ref HEAD)
 
 release-docker:
 	@echo "Building apk output: ${APP_1}"
@@ -20,7 +21,17 @@ release-docker:
 	@diffoscope apk-outputs/${APP_1} apk-outputs/${APP_2} && \
 		echo "Build is reproducible!" || echo "BUILD IS NOT REPRODUCIBLE!!"
 
-release-local:
+bump_version:
+	@if [ "$(branch_name)" == "refs/heads/master" ] || [ "$(branch_name)" == "refs/heads/staging" ]; then \
+		python3 bump_version.py; \
+		git add .; \
+		git commit -m "release: making release"; \
+	else \
+		echo "[Error] wrong branch - $(branch_name)"; \
+		exit 1; \
+	fi
+
+release-local: bump_version
 	@echo "Building apk output: ${APP_1}"
 	@./gradlew clean assembleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
