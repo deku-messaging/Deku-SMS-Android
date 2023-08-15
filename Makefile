@@ -6,6 +6,7 @@ APP_2=$(apk)_1.apk
 
 pass=$$(cat ks.passwd)
 branch_name=$$(git symbolic-ref HEAD)
+version=$$(cat version.properties | cut -d "=" -f 2)
 
 release-docker:
 	@echo "Building apk output: ${APP_1}"
@@ -32,10 +33,10 @@ bump_version:
 	fi
 
 release-local: bump_version
-	@echo "Building apk output: ${APP_1}"
+	@echo "Building apk output: ${version}"
 	@./gradlew clean assembleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
 		--ks-pass pass:$(pass) \
 		--in app/build/outputs/apk/release/app-release-unsigned.apk \
-		--out apk-outputs/${APP_1}
-	@shasum apk-outputs/${APP_1}
+		--out apk-outputs/${version}.apk
+	@shasum apk-outputs/${version}.apk
