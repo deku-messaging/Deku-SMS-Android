@@ -120,10 +120,17 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         String operator2Name = "";
 
         for(int i=0;i<simcards.size(); ++i) {
-            if (i == 0)
-                operator1Name = simcards.get(i).getCarrierName().toString();
-            else if (i == 1)
-                operator2Name = simcards.get(i).getCarrierName().toString();
+            String mcc = String.valueOf(simcards.get(i).getMcc());
+            int _mnc = simcards.get(i).getMnc();
+            String mnc = _mnc < 10 ? "0" + _mnc : String.valueOf(_mnc);
+            String carrierId = mcc + mnc;
+
+            if (i == 0) {
+                operator1Name = carrierId;
+            }
+            else if (i == 1) {
+                operator2Name = carrierId;
+            }
         }
 
         final String operator1NameFinal = operator1Name;
