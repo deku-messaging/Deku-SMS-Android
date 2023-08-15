@@ -8,25 +8,24 @@ import com.android.tools.profgen.ArtProfileKt
 import com.android.tools.profgen.ArtProfileSerializer
 import com.android.tools.profgen.DexFile
 
-// Create a variable called keystorePropertiesFile, and initialize it to your
-// keystore.properties file, in the rootProject folder.
 def keystorePropertiesFile = rootProject.file("keystore.properties")
-
-// Initialize a new Properties() object called keystoreProperties.
 def keystoreProperties = new Properties()
-
-// Load your keystore.properties file into the keystoreProperties object.
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+def versionsPropertiesFile = rootProject.file("version.properties")
+def versionProperties = new Properties()
+versionProperties.load(new FileInputStream(versionsPropertiesFile))
 
 android {
     compileSdk 33
 
+    def releaseVersion = Integer.parseInt(versionProperties['releaseVersion']) + 1
     defaultConfig {
         applicationId "com.afkanerd.deku"
         minSdk 24
         targetSdk 33
-        versionCode 24
-        versionName "24.0"
+        versionCode releaseVersion
+        versionName releaseVersion.toString()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
