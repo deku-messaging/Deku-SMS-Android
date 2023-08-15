@@ -23,8 +23,8 @@ release-docker:
 
 bump_version:
 	@if [ "$(branch_name)" == "refs/heads/master" ] || [ "$(branch_name)" == "refs/heads/staging" ]; then \
-		python3 bump_version.py; \
-		git add .; \
+		python3 bump_version.py && \
+		git add . && \
 		git commit -m "release: making release"; \
 	else \
 		echo "[Error] wrong branch - $(branch_name)"; \
