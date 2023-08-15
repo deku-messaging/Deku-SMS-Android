@@ -43,6 +43,6 @@ release-local: bump_version
 	@./gradlew clean bundleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
 		--ks-pass pass:$(pass) \
-		--in app/build/outputs/bundle/release/app-release-unsigned.aab \
+		--in app/build/outputs/bundle/release/app-release.aab \
 		--out apk-outputs/${version}.aab
 	@shasum apk-outputs/${version}.aab
