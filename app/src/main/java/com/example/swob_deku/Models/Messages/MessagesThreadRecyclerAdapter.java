@@ -146,6 +146,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
         return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
     }
+
     @Override
     public int getItemViewType(int position) {
         SMS sms = mDiffer.getCurrentList().get(position);

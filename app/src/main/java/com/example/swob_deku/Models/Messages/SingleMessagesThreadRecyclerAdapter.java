@@ -2,42 +2,33 @@ package com.example.swob_deku.Models.Messages;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
-import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.Telephony;
-import android.telephony.SmsManager;
-import android.text.format.DateUtils;
 import android.text.style.URLSpan;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
-import androidx.compose.animation.core.Animation;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.Commons.Helpers;
-import com.example.swob_deku.ImageViewActivity;
-import com.example.swob_deku.Models.Compression;
-import com.example.swob_deku.Models.Images.ImageHandler;
+import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
@@ -45,7 +36,6 @@ import com.example.swob_deku.Models.Security.SecurityAES;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
-import com.example.swob_deku.SMSSendActivity;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -57,6 +47,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
+import io.getstream.avatarview.AvatarView;
 
 //public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
 public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -174,6 +166,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         return input;
     }
 
+    public boolean isContact(SMS sms) {
+        String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
+        return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
+    }
+
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final SMS sms = mDiffer.getCurrentList().get(position);
@@ -211,6 +209,28 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                 messageReceivedViewHandler.timestamp.setText(date);
             else
                 messageReceivedViewHandler.timestamp.setVisibility(View.GONE);
+
+            if(isContact(sms)) {
+                String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
+                if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
+                    address = addressInPhone;
+
+                    final int color = Helpers.generateColor(address);
+                    messageReceivedViewHandler.contactInitials.setAvatarInitials(address.substring(0, 1));
+                    messageReceivedViewHandler.contactInitials.setAvatarInitialsBackgroundColor(color);
+
+                    messageReceivedViewHandler.contactInitials.setVisibility(View.VISIBLE);
+                    messageReceivedViewHandler.contactPhoto.setVisibility(View.GONE);
+                }
+            } else {
+                final int color = Helpers.generateColor(address);
+                Drawable drawable = messageReceivedViewHandler.contactPhoto.getDrawable();
+                drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                messageReceivedViewHandler.contactPhoto.setImageDrawable(drawable);
+
+                messageReceivedViewHandler.contactInitials.setVisibility(View.GONE);
+                messageReceivedViewHandler.contactPhoto.setVisibility(View.VISIBLE);
+            }
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
 
@@ -498,8 +518,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
          TextView date;
          TextView timestamp;
         ImageView imageView;
-
-         ConstraintLayout constraintLayout, imageConstraintLayout;
+        ConstraintLayout constraintLayout, imageConstraintLayout;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_sent_text);
@@ -568,7 +587,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         TextView receivedMessage;
         TextView date;
         TextView timestamp;
-        ImageView imageView;
+
+        AvatarView contactInitials;
+        public ImageView imageView, contactPhoto;
         ConstraintLayout constraintLayout, imageConstraintLayout;
 
         public MessageReceivedViewHandler(@NonNull View itemView) {
@@ -579,7 +600,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             constraintLayout = itemView.findViewById(R.id.message_received_constraint);
             imageConstraintLayout = itemView.findViewById(R.id.message_received_image_container);
             imageView = itemView.findViewById(R.id.message_received_image_view);
-
+            contactInitials = itemView.findViewById(R.id.messages_received_contact_initials);
+            contactPhoto = itemView.findViewById(R.id.messages_received_contact_photo);
+            contactPhoto.setImageDrawable(itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24));
         }
 
         public void highlight() {

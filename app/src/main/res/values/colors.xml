@@ -2,9 +2,10 @@
 <resources>
     <color name="purple_200">#FFBB86FC</color>
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+<!--    <color name="white">#FFFFFFFF</color>-->
+        <color name="white">#dee0e2</color>
     <color name="highlight_yellow">#fde293</color>
-    <color name="default_gray">#242f35</color>
+    <color name="default_gray">#2e3133</color>
     <color name="disabled_gray">#525D63</color>
     <color name="light_blue"> #FF219BCC </color>
     <color name="logo_primary">#061892</color>

@@ -59,6 +59,8 @@ import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
+import org.spongycastle.jce.exception.ExtCertPathBuilderException;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
@@ -231,7 +233,12 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
         linearLayoutManager = new LinearLayoutManager(this);
 
-        defaultSubscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+        try {
+            // TODO should work on this as the SMS does not open in real time
+            defaultSubscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+        } catch(Exception e ) {
+            e.printStackTrace();
+        }
 
         sharedPreferences = getSharedPreferences(SecurityECDH.UNIVERSAL_KEYSTORE_ALIAS, Context.MODE_PRIVATE);
         onSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
