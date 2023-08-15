@@ -8,6 +8,8 @@ pass=$$(cat ks.passwd)
 branch_name=$$(git symbolic-ref HEAD)
 version=$$(cat version.properties | cut -d "=" -f 2)
 
+minSdk=24
+
 release-docker:
 	@echo "Building apk output: ${APP_1}"
 	@docker build -t deku_sms_app .
@@ -44,5 +46,6 @@ release-local: bump_version
 	@apksigner sign --ks app/keys/app-release-key.jks \
 		--ks-pass pass:$(pass) \
 		--in app/build/outputs/bundle/release/app-release.aab \
-		--out apk-outputs/${version}.aab
+		--out apk-outputs/${version}.aab \
+		--min-sdk-version ${minSdk}
 	@shasum apk-outputs/${version}.aab
