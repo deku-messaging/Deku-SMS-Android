@@ -16,6 +16,8 @@ def versionsPropertiesFile = rootProject.file("version.properties")
 def versionProperties = new Properties()
 versionProperties.load(new FileInputStream(versionsPropertiesFile))
 
+def minSdkVersionFromManifest = project.properties['minSdkVersion']
+
 android {
     compileSdk 33
 
