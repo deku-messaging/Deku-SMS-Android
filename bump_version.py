@@ -18,6 +18,7 @@ def bump_version(filename, flavour):
     releaseVersion = None
     stagingVersion = None
     nightlyVersion = None
+    tagVersion = None
 
     for line in lines:
         if line.startswith("releaseVersion="): 
@@ -29,6 +30,9 @@ def bump_version(filename, flavour):
         if line.startswith("nightlyVersion="): 
             nightlyVersion = line.split("=")[1].strip() 
 
+        if line.startswith("tagVersion="): 
+            tagVersion = line.split("=")[1].strip() 
+
     if releaseVersion is None:
         raise ValueError("Could not find releaseVersion in file")
 
@@ -37,6 +41,9 @@ def bump_version(filename, flavour):
 
     if nightlyVersion is None:
         raise ValueError("Could not find nightlyVersion in file")
+
+    if tagVersion is None:
+        raise ValueError("Could not find tagVersion in file")
 
     if flavour == "refs/heads/master":
         releaseVersion = int(releaseVersion) + 1
@@ -50,26 +57,21 @@ def bump_version(filename, flavour):
     else:
         nightlyVersion = int(nightlyVersion) + 1
 
+    tagVersion = int(tagVersion) + 1
+
     with open(filename, "w") as f:
         f.write("releaseVersion=" + str(releaseVersion) + "\n")
         f.write("stagingVersion=" + str(stagingVersion) + "\n")
-        f.write("nightlyVersion=" + str(nightlyVersion))
+        f.write("nightlyVersion=" + str(nightlyVersion) + "\n")
+        f.write("tagVersion=" + str(tagVersion))
 
-    return releaseVersion, stagingVersion, nightlyVersion
+    return releaseVersion, stagingVersion, nightlyVersion, tagVersion
 
 
 if __name__ == "__main__":
   filename = "version.properties"
 
   flavour = sys.argv[1]
-  releaseVersion, stagingVersion, nightlyVersion = bump_version(filename, flavour)
-
-  if flavour == "refs/heads/master":
-      print(releaseVersion)
-
-  elif flavour == "refs/heads/staging":
-      print(stagingVersion)
-  
-  else:
-      print(releaseVersion)
-
+  releaseVersion, stagingVersion, nightlyVersion, tagVersion = bump_version(filename, flavour)
+  print("+ successful version bump: ",
+        releaseVersion, stagingVersion, nightlyVersion, tagVersion)
