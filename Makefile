@@ -17,6 +17,9 @@ apk_output=${releaseVersion}.${stagingVersion}.${nightlyVersion}.apk
 
 minSdk=24
 
+config:
+	cp pre-push.sample .git/hooks/pre-push
+
 release-docker:
 	@echo "Building apk output: ${APP_1}"
 	@docker build -t deku_sms_app .
