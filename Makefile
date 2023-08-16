@@ -37,14 +37,14 @@ bump_version:
 	@git commit -m "release: making release"
 
 release: bump_version
-	@echo "+ Building apk output: ${apk_output}"
+	@echo "+ Building apk output: ${apk_output} - ${branch_name}"
 	@./gradlew clean assembleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
 		--ks-pass pass:$(pass) \
 		--in app/build/outputs/apk/release/app-release-unsigned.apk \
 		--out apk-outputs/${apk_output}
 	@shasum apk-outputs/${apk_output}
-	@echo "+ Building aab output: ${aab_output}"
+	@echo "+ Building aab output: ${aab_output} - ${branch_name}"
 	@./gradlew clean bundleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
 		--ks-pass pass:$(pass) \

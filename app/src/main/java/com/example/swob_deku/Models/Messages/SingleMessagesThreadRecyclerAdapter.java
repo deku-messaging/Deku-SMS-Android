@@ -171,7 +171,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
     }
 
-
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final SMS sms = mDiffer.getCurrentList().get(position);
@@ -209,28 +208,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                 messageReceivedViewHandler.timestamp.setText(date);
             else
                 messageReceivedViewHandler.timestamp.setVisibility(View.GONE);
-
-            if(isContact(sms)) {
-                String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
-                if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
-                    address = addressInPhone;
-
-                    final int color = Helpers.generateColor(address);
-                    messageReceivedViewHandler.contactInitials.setAvatarInitials(address.substring(0, 1));
-                    messageReceivedViewHandler.contactInitials.setAvatarInitialsBackgroundColor(color);
-
-                    messageReceivedViewHandler.contactInitials.setVisibility(View.VISIBLE);
-                    messageReceivedViewHandler.contactPhoto.setVisibility(View.GONE);
-                }
-            } else {
-                final int color = Helpers.generateColor(address);
-                Drawable drawable = messageReceivedViewHandler.contactPhoto.getDrawable();
-                drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-                messageReceivedViewHandler.contactPhoto.setImageDrawable(drawable);
-
-                messageReceivedViewHandler.contactInitials.setVisibility(View.GONE);
-                messageReceivedViewHandler.contactPhoto.setVisibility(View.VISIBLE);
-            }
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
 
@@ -589,7 +566,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         TextView timestamp;
 
         AvatarView contactInitials;
-        public ImageView imageView, contactPhoto;
+        public ImageView imageView;
         ConstraintLayout constraintLayout, imageConstraintLayout;
 
         public MessageReceivedViewHandler(@NonNull View itemView) {
@@ -600,9 +577,9 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             constraintLayout = itemView.findViewById(R.id.message_received_constraint);
             imageConstraintLayout = itemView.findViewById(R.id.message_received_image_container);
             imageView = itemView.findViewById(R.id.message_received_image_view);
-            contactInitials = itemView.findViewById(R.id.messages_received_contact_initials);
-            contactPhoto = itemView.findViewById(R.id.messages_received_contact_photo);
-            contactPhoto.setImageDrawable(itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24));
+//            contactInitials = itemView.findViewById(R.id.messages_received_contact_initials);
+//            contactPhoto = itemView.findViewById(R.id.messages_received_contact_photo);
+//            contactPhoto.setImageDrawable(itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24));
         }
 
         public void highlight() {

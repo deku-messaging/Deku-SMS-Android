@@ -25,8 +25,9 @@ android {
     def nightlyVersion = Integer.parseInt(versionProperties['nightlyVersion'])
     def stagingVersion = Integer.parseInt(versionProperties['stagingVersion'])
     def releaseVersion = Integer.parseInt(versionProperties['releaseVersion'])
-    def tagVersion = Integer.parseInt(nightlyVersion.toString() +
-            stagingVersion.toString() + releaseVersion.toString())
+    def tagVersion = Integer.parseInt(versionProperties['tagVersion'])
+
+    println(tagVersion)
 
     defaultConfig {
         applicationId "com.afkanerd.deku"
