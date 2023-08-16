@@ -20,14 +20,18 @@ def minSdkVersionFromManifest = project.properties['minSdkVersion']
 
 android {
     compileSdk 33
+    namespace 'com.example.swob_deku'
 
+    def nightlyVersion = Integer.parseInt(versionProperties['nightlyVersion'])
+    def stagingVersion = Integer.parseInt(versionProperties['stagingVersion'])
     def releaseVersion = Integer.parseInt(versionProperties['releaseVersion'])
+
     defaultConfig {
         applicationId "com.afkanerd.deku"
         minSdk 24
         targetSdk 33
-        versionCode releaseVersion
-        versionName releaseVersion.toString()
+        versionCode nightlyVersion
+        versionName releaseVersion+"."+stagingVersion+"."+nightlyVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
@@ -52,6 +56,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             // signingConfig signingConfigs.release
         }
+
+        nightly {
+            versionNameSuffix "-nightly"
+            debuggable true
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -61,22 +70,23 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
-    namespace 'com.example.swob_deku'
 
 	project.afterEvaluate {
 	    tasks.compileReleaseArtProfile.doLast {
-		outputs.files.each { file ->
-		    if (file.name.endsWith(".profm")) {
-			exec {
-			    commandLine(
-				"../reproducible-apk-tools/inplace-fix.py",
-				"sort-baseline", file
-			    )
-			}
-		    }
-		}
+            outputs.files.each { file ->
+                if (file.name.endsWith(".profm")) {
+                    exec {
+                        commandLine(
+                        "../reproducible-apk-tools/inplace-fix.py",
+                        "sort-baseline", file
+                        )
+                    }
+                }
+            }
 	    }
 	}
+
+
 	project.afterEvaluate {
         tasks.each { task ->
             if (task.name.startsWith("compile") && task.name.endsWith("ReleaseArtProfile")) {

@@ -25,16 +25,11 @@ release-docker:
 		echo "Build is reproducible!" || echo "BUILD IS NOT REPRODUCIBLE!!"
 
 bump_version:
-	@if [ "$(branch_name)" == "refs/heads/master" ] || [ "$(branch_name)" == "refs/heads/staging" ]; then \
-		python3 bump_version.py && \
-		git add . && \
-		git commit -m "release: making release"; \
-	else \
-		echo "[Error] wrong branch - $(branch_name)"; \
-		exit 1; \
-	fi
+	@python3 bump_version.py $(branch_name)
+	@git add .
+	@git commit -m "release: making release"
 
-release-local: bump_version
+release: bump_version
 	@echo "Building apk output: ${version}"
 	@./gradlew clean assembleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
@@ -49,3 +44,10 @@ release-local: bump_version
 		--out apk-outputs/${version}.aab \
 		--min-sdk-version ${minSdk}
 	@shasum apk-outputs/${version}.aab
+
+staging: bump_version
+
+nightly: bump_version
+	# app-nightly-v0.0.25
+	# app-nightl-v{releaseVersion}.{stagingVersion}.{nightlyVersion}
+	# app-nightl-v{releaseVersion}.{stagingVersion}.{nightlyVersion}
