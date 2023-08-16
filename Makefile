@@ -37,17 +37,14 @@ bump_version:
 	@git commit -m "release: making release"
 
 release: bump_version
-	# app-nightly-v0.0.25
-	# app-nightl-v{releaseVersion}.{stagingVersion}.{nightlyVersion}
-	# app-nightl-v{releaseVersion}.{stagingVersion}.{nightlyVersion}
-	@echo "Building apk output: ${apk_output}"
+	@echo "+ Building apk output: ${apk_output}"
 	@./gradlew clean assembleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
 		--ks-pass pass:$(pass) \
 		--in app/build/outputs/apk/release/app-release-unsigned.apk \
 		--out apk-outputs/${apk_output}
 	@shasum apk-outputs/${apk_output}
-	@echo "Building aab output: ${aab_output}"
+	@echo "+ Building aab output: ${aab_output}"
 	@./gradlew clean bundleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
 		--ks-pass pass:$(pass) \
