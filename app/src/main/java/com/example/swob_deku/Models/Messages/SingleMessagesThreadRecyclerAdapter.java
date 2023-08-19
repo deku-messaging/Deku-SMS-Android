@@ -267,16 +267,16 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         else if(holder instanceof MessageSentViewHandler){
             final String text = decryptContent(_text);
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-            if(position != 0) {
-                messageSentViewHandler.date.setVisibility(View.INVISIBLE);
-                messageSentViewHandler.sentMessageStatus.setVisibility(View.INVISIBLE);
+
+            if(position == 0) {
+                messageSentViewHandler.date.setVisibility(View.VISIBLE);
+                messageSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
             }
+
             messageSentViewHandler.date.setText(timeStamp);
 
             if(holder instanceof TimestampMessageSentViewHandler || holder instanceof  TimestampKeySentViewHandler)
                 messageSentViewHandler.timestamp.setText(date);
-            else
-                messageSentViewHandler.timestamp.setVisibility(View.GONE);
 
             final int status = sms.getStatusCode();
             String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?
@@ -335,7 +335,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                     }
                     else {
                         int visibility = messageSentViewHandler.date.getVisibility() == View.VISIBLE ?
-                                View.INVISIBLE : View.VISIBLE;
+                                View.GONE : View.VISIBLE;
                         messageSentViewHandler.date.setVisibility(visibility);
                         messageSentViewHandler.sentMessageStatus.setVisibility(visibility);
                     }
@@ -542,7 +542,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
          TextView date;
          TextView timestamp;
         ImageView imageView;
-        ConstraintLayout constraintLayout, imageConstraintLayout;
+        ConstraintLayout constraintLayout, imageConstraintLayout, constraint4;
         public MessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
             sentMessage = itemView.findViewById(R.id.message_sent_text);
@@ -552,6 +552,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
             imageConstraintLayout = itemView.findViewById(R.id.message_sent_image_container);
             imageView = itemView.findViewById(R.id.message_sent_image_view);
+            constraint4 = itemView.findViewById(R.id.constraintLayout4);
         }
 
         static class ClickableURLSpan extends URLSpan {
@@ -663,11 +664,60 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
     public static class TimestampKeyReceivedViewHandler extends KeyReceivedViewHandler {
         public TimestampKeyReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
+            timestamp.setVisibility(View.VISIBLE);
         }
     }
 
 
     final static int BOTTOM_MARGIN = 4;
+
+    public static class TimestampKeySentStartGroupViewHandler extends MessageSentViewHandler {
+        public TimestampKeySentStartGroupViewHandler(@NonNull View itemView) {
+            super(itemView);
+
+            constraintLayout.setBackground(
+                    itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
+            ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
+                    constraint4.getLayoutParams();
+            params.bottomMargin= BOTTOM_MARGIN;
+            constraint4.setLayoutParams(params);
+        }
+    }
+
+    public static class MessageSentStartViewHandler extends MessageSentViewHandler {
+        public MessageSentStartViewHandler(@NonNull View itemView) {
+            super(itemView);
+
+            constraintLayout.setBackground(
+                    itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
+
+            ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
+                    constraint4.getLayoutParams();
+            params.bottomMargin= BOTTOM_MARGIN;
+            constraint4.setLayoutParams(params);
+        }
+    }
+    public static class MessageSentEndViewHandler extends MessageSentViewHandler {
+        public MessageSentEndViewHandler(@NonNull View itemView) {
+            super(itemView);
+
+            constraintLayout.setBackground(
+                    itemView.getContext().getDrawable(R.drawable.received_messages_end_view_drawable));
+        }
+    }
+
+    public static class MessageSentMiddleViewHandler extends MessageSentViewHandler {
+        public MessageSentMiddleViewHandler(@NonNull View itemView) {
+            super(itemView);
+
+            constraintLayout.setBackground(
+                    itemView.getContext().getDrawable(R.drawable.received_messages_middle_view_drawable));
+            ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
+                    constraint4.getLayoutParams();
+            params.bottomMargin= BOTTOM_MARGIN;
+            constraint4.setLayoutParams(params);
+        }
+    }
     public static class TimestampKeyReceivedStartGroupViewHandler extends TimestampMessageReceivedViewHandler {
         public TimestampKeyReceivedStartGroupViewHandler(@NonNull View itemView) {
             super(itemView);
