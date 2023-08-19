@@ -74,14 +74,19 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
     final int MESSAGE_START_TYPE_INBOX = 401;
     final int MESSAGE_MIDDLE_TYPE_INBOX = 402;
     final int MESSAGE_END_TYPE_INBOX = 403;
-    final int MESSAGE_KEY_OUTBOX = 500;
 
-    final int TIMESTAMP_MESSAGE_TYPE_INBOX = 600;
     final int TIMESTAMP_MESSAGE_START_TYPE_INBOX = 601;
-    final int TIMESTAMP_MESSAGE_TYPE_OUTBOX = 700;
-
+    final int TIMESTAMP_MESSAGE_TYPE_INBOX = 600;
     final int TIMESTAMP_KEY_TYPE_INBOX = 800;
+
+    final int MESSAGE_KEY_OUTBOX = 500;
+    final int TIMESTAMP_MESSAGE_TYPE_OUTBOX = 700;
     final int TIMESTAMP_KEY_TYPE_OUTBOX = 900;
+
+    final int TIMESTAMP_MESSAGE_START_TYPE_OUTBOX = 504;
+    final int MESSAGE_START_TYPE_OUTBOX = 501;
+    final int MESSAGE_MIDDLE_TYPE_OUTBOX = 502;
+    final int MESSAGE_END_TYPE_OUTBOX = 503;
 
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
     final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
@@ -156,6 +161,22 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         else if( viewType == MESSAGE_MIDDLE_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
             return new MessageReceivedMiddleViewHandler(view);
+        }
+        else if( viewType == TIMESTAMP_MESSAGE_START_TYPE_OUTBOX ) {
+            View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
+            return new TimestampKeySentStartGroupViewHandler(view);
+        }
+        else if( viewType == MESSAGE_START_TYPE_OUTBOX ) {
+            View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
+            return new MessageSentStartViewHandler(view);
+        }
+        else if( viewType == MESSAGE_END_TYPE_OUTBOX ) {
+            View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
+            return new MessageSentEndViewHandler(view);
+        }
+        else if( viewType == MESSAGE_MIDDLE_TYPE_OUTBOX ) {
+            View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
+            return new MessageSentMiddleViewHandler(view);
         }
 
         View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
@@ -267,11 +288,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         else if(holder instanceof MessageSentViewHandler){
             final String text = decryptContent(_text);
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-
-            if(position == 0) {
-                messageSentViewHandler.date.setVisibility(View.VISIBLE);
-                messageSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
-            }
 
             messageSentViewHandler.date.setText(timeStamp);
 
@@ -466,7 +482,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                     (snapshotList.get(position -1 ).getType() == sms.getType() &&
                     SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))) {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
+                        TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_START_TYPE_OUTBOX;
             }
             else {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
@@ -484,7 +500,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                             !SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))
                     )) {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_END_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
+                        MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
             }
             else if(
                     (snapshotList.get(position + 1).getType() == sms.getType() &&
@@ -493,14 +509,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                             SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))
                     )){
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_MIDDLE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
+                        MESSAGE_MIDDLE_TYPE_INBOX : MESSAGE_MIDDLE_TYPE_OUTBOX;
             }
             else if(
                     (position == 0 || snapshotList.get(position - 1).getType() == sms.getType() &&
                             SMSHandler.isSameMinute(sms, snapshotList.get(position -1))
                     )){
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_START_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
+                        MESSAGE_START_TYPE_INBOX : MESSAGE_START_TYPE_OUTBOX;
             }
             else {
                 viewType = sms.getType();
@@ -676,7 +692,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             super(itemView);
 
             constraintLayout.setBackground(
-                    itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
+                    itemView.getContext().getDrawable(R.drawable.sent_messages_start_view_drawable));
             ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
                     constraint4.getLayoutParams();
             params.bottomMargin= BOTTOM_MARGIN;
@@ -689,7 +705,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             super(itemView);
 
             constraintLayout.setBackground(
-                    itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
+                    itemView.getContext().getDrawable(R.drawable.sent_messages_start_view_drawable));
 
             ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
                     constraint4.getLayoutParams();
@@ -702,7 +718,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             super(itemView);
 
             constraintLayout.setBackground(
-                    itemView.getContext().getDrawable(R.drawable.received_messages_end_view_drawable));
+                    itemView.getContext().getDrawable(R.drawable.sent_messages_end_view_drawable));
         }
     }
 
@@ -711,7 +727,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             super(itemView);
 
             constraintLayout.setBackground(
-                    itemView.getContext().getDrawable(R.drawable.received_messages_middle_view_drawable));
+                    itemView.getContext().getDrawable(R.drawable.sent_messages_middle_view_drawable));
             ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
                     constraint4.getLayoutParams();
             params.bottomMargin= BOTTOM_MARGIN;
