@@ -475,16 +475,16 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         } else {
             if(isEncryptionKey) {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_KEY_INBOX : MESSAGE_KEY_OUTBOX;
+                        MESSAGE_KEY_INBOX : MESSAGE_TYPE_OUTBOX;
             }
             else if(
                     (snapshotList.get(position + 1).getType() == sms.getType() &&
                             SMSHandler.isSameMinute(sms, snapshotList.get(position + 1))
-                    ) && (position == 0 || (snapshotList.get(position - 1).getType() == sms.getType() &&
+                    ) && (position == 0 || (snapshotList.get(position - 1).getType() != sms.getType() ||
                             !SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))
                     )) {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_END_TYPE_INBOX : MESSAGE_TYPE_INBOX;
+                        MESSAGE_END_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
             }
             else if(
                     (snapshotList.get(position + 1).getType() == sms.getType() &&
@@ -493,14 +493,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                             SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))
                     )){
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_MIDDLE_TYPE_INBOX : MESSAGE_TYPE_INBOX;
+                        MESSAGE_MIDDLE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
             }
             else if(
-                    (snapshotList.get(position - 1).getType() == sms.getType() &&
+                    (position == 0 || snapshotList.get(position - 1).getType() == sms.getType() &&
                             SMSHandler.isSameMinute(sms, snapshotList.get(position -1))
                     )){
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_START_TYPE_INBOX : MESSAGE_TYPE_INBOX;
+                        MESSAGE_START_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
             }
             else {
                 viewType = sms.getType();
