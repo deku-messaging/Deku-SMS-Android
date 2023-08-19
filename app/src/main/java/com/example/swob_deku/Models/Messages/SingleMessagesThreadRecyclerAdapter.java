@@ -71,9 +71,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
     final int MESSAGE_TYPE_OUTBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
 
     final int MESSAGE_KEY_INBOX = 400;
+    final int MESSAGE_START_TYPE_INBOX = 401;
+    final int MESSAGE_MIDDLE_TYPE_INBOX = 402;
+    final int MESSAGE_END_TYPE_INBOX = 403;
     final int MESSAGE_KEY_OUTBOX = 500;
 
     final int TIMESTAMP_MESSAGE_TYPE_INBOX = 600;
+    final int TIMESTAMP_MESSAGE_START_TYPE_INBOX = 601;
     final int TIMESTAMP_MESSAGE_TYPE_OUTBOX = 700;
 
     final int TIMESTAMP_KEY_TYPE_INBOX = 800;
@@ -137,6 +141,22 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
             return new TimestampKeyReceivedViewHandler(view);
         }
+        else if( viewType == TIMESTAMP_MESSAGE_START_TYPE_INBOX ) {
+            View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
+            return new TimestampKeyReceivedStartGroupViewHandler(view);
+        }
+        else if( viewType == MESSAGE_START_TYPE_INBOX ) {
+            View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
+            return new MessageReceivedStartViewHandler(view);
+        }
+        else if( viewType == MESSAGE_END_TYPE_INBOX ) {
+            View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
+            return new MessageReceivedEndViewHandler(view);
+        }
+        else if( viewType == MESSAGE_MIDDLE_TYPE_INBOX ) {
+            View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
+            return new MessageReceivedMiddleViewHandler(view);
+        }
 
         View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
         return new MessageSentViewHandler(view);
@@ -144,7 +164,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
 
     public void submitList(List<SMS> smsList) {
         animation = true;
-        Log.d(getClass().getName(), "Submitting a new list received...");
         mDiffer.submitList(smsList);
     }
 
@@ -206,15 +225,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
             if(holder instanceof TimestampMessageReceivedViewHandler || holder instanceof TimestampKeyReceivedViewHandler)
                 messageReceivedViewHandler.timestamp.setText(date);
-            else
-                messageReceivedViewHandler.timestamp.setVisibility(View.GONE);
 
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
 
             TextView dateView = messageReceivedViewHandler.date;
-            int dateViewVisibility = position == 0 ? View.VISIBLE : View.INVISIBLE;
-
-            dateView.setVisibility(dateViewVisibility);
+//            int dateViewVisibility = position == 0 ? View.VISIBLE : View.GONE;
+//            dateView.setVisibility(dateViewVisibility);
 
             Helpers.highlightLinks(receivedMessage, text, context.getColor(R.color.primary_text_color));
 
@@ -235,7 +251,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                     else if(selectedItem.getValue() != null ){
                         longClickHighlight(messageReceivedViewHandler, smsId);
                     } else {
-                        dateView.setVisibility(dateView.getVisibility() == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
+//                        dateView.setVisibility(dateView.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
                     }
                 }
             });
@@ -390,7 +406,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
 
     public void checkForAbsPositioning(String smsId, RecyclerView.ViewHolder holder) {
         if(selectedItem.getValue() != null && selectedItem.getValue().containsKey(smsId)) {
-            Log.d(getClass().getName(), "Content should be highlighted now!");
 
             if (holder instanceof MessageReceivedViewHandler)
                 ((MessageReceivedViewHandler) holder).highlight();
@@ -442,22 +457,54 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
 
         int viewType = 0;
-        if (position == snapshotList.size() - 1 ||
-                !SMSHandler.isSameHour(sms, (SMS) snapshotList.get(position + 1))) {
+        if (position == snapshotList.size() - 1 || !SMSHandler.isSameHour(sms, (SMS) snapshotList.get(position + 1))) {
             if(isEncryptionKey) {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_KEY_TYPE_INBOX : TIMESTAMP_KEY_TYPE_OUTBOX;
             }
-            else
+            else if(position != 0 &&
+                    (snapshotList.get(position -1 ).getType() == sms.getType() &&
+                    SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))) {
+                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                        TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
+            }
+            else {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
+            }
         } else {
             if(isEncryptionKey) {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_KEY_INBOX : MESSAGE_KEY_OUTBOX;
             }
-            else
+            else if(
+                    (snapshotList.get(position + 1).getType() == sms.getType() &&
+                            SMSHandler.isSameMinute(sms, snapshotList.get(position + 1))
+                    ) && (position == 0 || (snapshotList.get(position - 1).getType() == sms.getType() &&
+                            !SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))
+                    )) {
+                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                        MESSAGE_END_TYPE_INBOX : MESSAGE_TYPE_INBOX;
+            }
+            else if(
+                    (snapshotList.get(position + 1).getType() == sms.getType() &&
+                            SMSHandler.isSameMinute(sms, snapshotList.get(position + 1))
+                    ) && ((snapshotList.get(position - 1).getType() == sms.getType() &&
+                            SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))
+                    )){
+                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                        MESSAGE_MIDDLE_TYPE_INBOX : MESSAGE_TYPE_INBOX;
+            }
+            else if(
+                    (snapshotList.get(position - 1).getType() == sms.getType() &&
+                            SMSHandler.isSameMinute(sms, snapshotList.get(position -1))
+                    )){
+                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                        MESSAGE_START_TYPE_INBOX : MESSAGE_TYPE_INBOX;
+            }
+            else {
                 viewType = sms.getType();
+            }
         }
         return viewType;
     }
@@ -514,7 +561,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
 
             @Override
             public void onClick(View widget) {
-                Log.d(getClass().getName(), "Link clicked!");
                 Uri uri = Uri.parse(getURL());
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
@@ -567,7 +613,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
 
         AvatarView contactInitials;
         public ImageView imageView;
-        ConstraintLayout constraintLayout, imageConstraintLayout;
+        ConstraintLayout constraintLayout, imageConstraintLayout, constraint3;
 
         public MessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
@@ -577,9 +623,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             constraintLayout = itemView.findViewById(R.id.message_received_constraint);
             imageConstraintLayout = itemView.findViewById(R.id.message_received_image_container);
             imageView = itemView.findViewById(R.id.message_received_image_view);
-//            contactInitials = itemView.findViewById(R.id.messages_received_contact_initials);
-//            contactPhoto = itemView.findViewById(R.id.messages_received_contact_photo);
-//            contactPhoto.setImageDrawable(itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24));
+            constraint3 = itemView.findViewById(R.id.constraintLayout3);
         }
 
         public void highlight() {
@@ -593,6 +637,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
     public static class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
         public TimestampMessageReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
+            timestamp.setVisibility(View.VISIBLE);
         }
     }
 
@@ -621,4 +666,53 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         }
     }
 
+
+    final static int BOTTOM_MARGIN = 4;
+    public static class TimestampKeyReceivedStartGroupViewHandler extends TimestampMessageReceivedViewHandler {
+        public TimestampKeyReceivedStartGroupViewHandler(@NonNull View itemView) {
+            super(itemView);
+
+            constraintLayout.setBackground(
+                    itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
+            ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
+                    constraint3.getLayoutParams();
+            params.bottomMargin= BOTTOM_MARGIN;
+            constraint3.setLayoutParams(params);
+        }
+    }
+
+    public static class MessageReceivedStartViewHandler extends MessageReceivedViewHandler {
+        public MessageReceivedStartViewHandler(@NonNull View itemView) {
+            super(itemView);
+
+            constraintLayout.setBackground(
+                    itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
+
+            ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
+                    constraint3.getLayoutParams();
+            params.bottomMargin= BOTTOM_MARGIN;
+            constraint3.setLayoutParams(params);
+        }
+    }
+    public static class MessageReceivedEndViewHandler extends MessageReceivedViewHandler {
+        public MessageReceivedEndViewHandler(@NonNull View itemView) {
+            super(itemView);
+
+            constraintLayout.setBackground(
+                    itemView.getContext().getDrawable(R.drawable.received_messages_end_view_drawable));
+        }
+    }
+
+    public static class MessageReceivedMiddleViewHandler extends MessageReceivedViewHandler {
+        public MessageReceivedMiddleViewHandler(@NonNull View itemView) {
+            super(itemView);
+
+            constraintLayout.setBackground(
+                    itemView.getContext().getDrawable(R.drawable.received_messages_middle_view_drawable));
+            ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
+                    constraint3.getLayoutParams();
+            params.bottomMargin= BOTTOM_MARGIN;
+            constraint3.setLayoutParams(params);
+        }
+    }
 }

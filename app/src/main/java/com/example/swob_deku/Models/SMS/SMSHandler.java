@@ -57,6 +57,21 @@ public class SMSHandler {
         }
     }
 
+    public static boolean isSameMinute(SMS sms1, SMS sms2) {
+        Date date = new Date(Long.parseLong(sms1.getDate()));
+        Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.setTime(date);
+
+        String previousDateString = sms2.getDate();
+        Date previousDate = new Date(Long.parseLong(previousDateString));
+        Calendar prevCalendar = Calendar.getInstance();
+        prevCalendar.setTime(previousDate);
+
+        return !((prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)
+                || (prevCalendar.get(Calendar.MINUTE) != currentCalendar.get(Calendar.MINUTE))
+                || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE))));
+    }
+
     public static boolean isSameHour(SMS sms1, SMS sms2) {
         Date date = new Date(Long.parseLong(sms1.getDate()));
         Calendar currentCalendar = Calendar.getInstance();
