@@ -435,6 +435,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
     public void resetSelectedItem(String key, boolean removeList) {
         HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
         if(items != null) {
+            Log.d(getClass().getName(), "- Removing items with key: " + key);
             RecyclerView.ViewHolder view = items.get(key);
 
             if(view != null) {
@@ -684,7 +685,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
         }
     }
 
-
     final static int BOTTOM_MARGIN = 4;
 
     public static class TimestampKeySentStartGroupViewHandler extends MessageSentViewHandler {
@@ -697,6 +697,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                     constraint4.getLayoutParams();
             params.bottomMargin= BOTTOM_MARGIN;
             constraint4.setLayoutParams(params);
+        }
+
+        public void highlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
+        }
+        public void unHighlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
         }
     }
 
@@ -712,6 +719,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             params.bottomMargin= BOTTOM_MARGIN;
             constraint4.setLayoutParams(params);
         }
+
+        public void highlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
+        }
+        public void unHighlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
+        }
     }
     public static class MessageSentEndViewHandler extends MessageSentViewHandler {
         public MessageSentEndViewHandler(@NonNull View itemView) {
@@ -719,6 +733,12 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
 
             constraintLayout.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_end_view_drawable));
+        }
+        public void highlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_end_highlight_drawable);
+        }
+        public void unHighlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_end_view_drawable);
         }
     }
 
@@ -733,6 +753,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             params.bottomMargin= BOTTOM_MARGIN;
             constraint4.setLayoutParams(params);
         }
+
+        public void highlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_middle_hightlight_drawable);
+        }
+        public void unHighlight() {
+            constraintLayout.setBackgroundResource(R.drawable.sent_messages_middle_view_drawable);
+        }
     }
     public static class TimestampKeyReceivedStartGroupViewHandler extends TimestampMessageReceivedViewHandler {
         public TimestampKeyReceivedStartGroupViewHandler(@NonNull View itemView) {
@@ -744,6 +771,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                     constraint3.getLayoutParams();
             params.bottomMargin= BOTTOM_MARGIN;
             constraint3.setLayoutParams(params);
+        }
+
+        public void highlight() {
+            constraintLayout.setBackgroundResource(R.drawable.received_messages_start_view_highlight_drawable);
+        }
+        public void unHighlight() {
+            constraintLayout.setBackgroundResource(R.drawable.received_mesages_start_view_drawable);
         }
     }
 
@@ -759,6 +793,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
             params.bottomMargin= BOTTOM_MARGIN;
             constraint3.setLayoutParams(params);
         }
+
+        public void highlight() {
+            constraintLayout.setBackgroundResource(R.drawable.received_messages_start_view_highlight_drawable);
+        }
+        public void unHighlight() {
+            constraintLayout.setBackgroundResource(R.drawable.received_mesages_start_view_drawable);
+        }
     }
     public static class MessageReceivedEndViewHandler extends MessageReceivedViewHandler {
         public MessageReceivedEndViewHandler(@NonNull View itemView) {
@@ -766,6 +807,13 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
 
             constraintLayout.setBackground(
                     itemView.getContext().getDrawable(R.drawable.received_messages_end_view_drawable));
+        }
+
+        public void highlight() {
+            constraintLayout.setBackgroundResource(R.drawable.received_messages_end_view_highlight_drawable);
+        }
+        public void unHighlight() {
+            constraintLayout.setBackgroundResource(R.drawable.received_messages_end_view_drawable);
         }
     }
 
@@ -779,6 +827,14 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                     constraint3.getLayoutParams();
             params.bottomMargin= BOTTOM_MARGIN;
             constraint3.setLayoutParams(params);
+        }
+
+        public void highlight() {
+            constraintLayout.setBackgroundResource(R.drawable.received_messages_middle_view_highlight_drawable);
+        }
+
+        public void unHighlight() {
+            constraintLayout.setBackgroundResource(R.drawable.received_messages_middle_view_drawable);
         }
     }
 }
