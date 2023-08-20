@@ -435,7 +435,6 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
     public void resetSelectedItem(String key, boolean removeList) {
         HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
         if(items != null) {
-            Log.d(getClass().getName(), "- Removing items with key: " + key);
             RecyclerView.ViewHolder view = items.get(key);
 
             if(view != null) {
@@ -456,8 +455,10 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
     public void resetAllSelectedItems() {
         HashMap<String, RecyclerView.ViewHolder> items = mutableSelectedItems.getValue();
 
-        for(String key: items.keySet())
+        for(String key: items.keySet()) {
+            items.get(key).setIsRecyclable(true);
             resetSelectedItem(key, false);
+        }
 
         mutableSelectedItems.setValue(new HashMap<>());
     }
