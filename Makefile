@@ -67,6 +67,7 @@ build-aab:
 	@shasum apk-outputs/${aab_output}
 
 release: bump_version build-apk 
+	@echo "+ Target branch for relase: ${branch}"
 	@python3 release.py \
 		${tagVersion} \
 		${label} \
