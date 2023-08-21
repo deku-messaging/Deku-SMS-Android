@@ -7,13 +7,17 @@ APP_2=$(apk)_1.apk
 pass=$$(cat ks.passwd)
 branch_name=$$(git symbolic-ref HEAD)
 
+branch=$$(git symbolic-ref HEAD | cut -d "/" -f 3)
+
 releaseVersion=$$(sed -n '1p' version.properties | cut -d "=" -f 2)
 stagingVersion=$$(sed -n '2p' version.properties | cut -d "=" -f 2)
 nightlyVersion=$$(sed -n '3p' version.properties | cut -d "=" -f 2)
 tagVersion=$$(sed -n '4p' version.properties | cut -d "=" -f 2)
 
-aab_output=${releaseVersion}.${stagingVersion}.${nightlyVersion}.aab
-apk_output=${releaseVersion}.${stagingVersion}.${nightlyVersion}.apk
+label=${releaseVersion}.${stagingVersion}.${nightlyVersion}
+
+aab_output=${label}.aab
+apk_output=${label}.apk
 
 minSdk=24
 
@@ -43,7 +47,7 @@ bump_version:
 	@git add .
 	@git commit -m "release: making release"
 
-release: bump_version
+build-apk:
 	@echo "+ Building apk output: ${apk_output} - ${branch_name}"
 	@./gradlew clean assembleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
@@ -51,6 +55,8 @@ release: bump_version
 		--in app/build/outputs/apk/release/app-release-unsigned.apk \
 		--out apk-outputs/${apk_output}
 	@shasum apk-outputs/${apk_output}
+
+build-aab:
 	@echo "+ Building aab output: ${aab_output} - ${branch_name}"
 	@./gradlew clean bundleRelease
 	@apksigner sign --ks app/keys/app-release-key.jks \
@@ -59,3 +65,12 @@ release: bump_version
 		--out apk-outputs/${aab_output} \
 		--min-sdk-version ${minSdk}
 	@shasum apk-outputs/${aab_output}
+
+release: bump_version build-apk 
+	@python3 release.py \
+		${tagVersion} \
+		${label} \
+		"New release: ${label} - build #${tagVersion}" \
+		${branch} \
+		${apk_output} \
+		apk-outputs/${apk_outputs}

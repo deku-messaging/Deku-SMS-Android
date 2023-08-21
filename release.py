@@ -69,22 +69,23 @@ def upload_assets(upload_url, name, data_path):
     return json.loads(response.text)
 
 if __name__ == "__main__":
-    version = sys.argv[1]
-    title = sys.argv[2]
-    description = sys.argv[3]
-    target_branch = sys.argv[4]
-    name = sys.argv[5]
-
     """
     version = '25'
     title = '0.0.1'
     description = 'new release'
     target_branch = 'dev'
     """
+
+    version = sys.argv[1]
+    title = sys.argv[2]
+    description = sys.argv[3]
+    target_branch = sys.argv[4]
+    name = sys.argv[5]
+    data_path = sys.argv[6]
+
+
     res = create_release(version, title, description, target_branch)
     upload_url = res['upload_url']
     print(upload_url)
 
-    data_path = "apk-outputs/0.0.1.apk"
-    name = "0.0.1.apk"
     print(upload_assets(upload_url, name, data_path))
