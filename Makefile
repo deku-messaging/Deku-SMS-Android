@@ -68,6 +68,7 @@ build-aab:
 
 release: bump_version build-apk 
 	@echo "+ Target branch for relase: ${branch}"
+	@git push origin ${branch_name}
 	@python3 release.py \
 		${tagVersion} \
 		${label} \
