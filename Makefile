@@ -24,9 +24,6 @@ minSdk=24
 config:
 	cp pre-push.sample .git/hooks/pre-push
 
-test: bump_version
-	@echo "${tagVersion}"
-
 release-docker:
 	@echo "Building apk output: ${APP_1}"
 	@docker build -t deku_sms_app .
@@ -42,7 +39,6 @@ release-docker:
 		echo "Build is reproducible!" || echo "BUILD IS NOT REPRODUCIBLE!!"
 
 bump_version:
-	@echo "${tagVersion}"
 	@python3 bump_version.py $(branch_name)
 	@git add .
 	@git commit -m "release: making release"
