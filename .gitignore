@@ -19,3 +19,4 @@ local.properties
 keystore.properties
 *.jks
 ks.passwd
+venv/*

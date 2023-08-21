@@ -1,5 +1,15 @@
+#!/usr/bin/python3
 import os
 import sys
+import requests
+
+def get_latest_tag():
+    """Get the latest tag from the repository."""
+    url = "https://api.github.com/repos/deku-messaging/Deku-SMS-Android/tags"
+    response = requests.get(url)
+    response.raise_for_status()
+
+    return response.json()[0]["name"]
 
 def bump_version(filename, flavour):
     """
@@ -18,7 +28,7 @@ def bump_version(filename, flavour):
     releaseVersion = None
     stagingVersion = None
     nightlyVersion = None
-    tagVersion = None
+    tagVersion = get_latest_tag()
 
     for line in lines:
         if line.startswith("releaseVersion="): 
@@ -30,8 +40,10 @@ def bump_version(filename, flavour):
         if line.startswith("nightlyVersion="): 
             nightlyVersion = line.split("=")[1].strip() 
 
+        """
         if line.startswith("tagVersion="): 
             tagVersion = line.split("=")[1].strip() 
+        """
 
     if releaseVersion is None:
         raise ValueError("Could not find releaseVersion in file")
