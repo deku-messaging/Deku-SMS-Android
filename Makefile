@@ -21,7 +21,7 @@ config:
 	cp pre-push.sample .git/hooks/pre-push
 
 test: bump_version
-	@echo "${tagversion}"
+	@echo "${tagVersion}"
 
 release-docker:
 	@echo "Building apk output: ${APP_1}"
@@ -38,7 +38,7 @@ release-docker:
 		echo "Build is reproducible!" || echo "BUILD IS NOT REPRODUCIBLE!!"
 
 bump_version:
-	@echo "${tagversion}"
+	@echo "${tagVersion}"
 	@python3 bump_version.py $(branch_name)
 	@git add .
 	@git commit -m "release: making release"
