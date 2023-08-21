@@ -20,3 +20,4 @@ keystore.properties
 *.jks
 ks.passwd
 venv/*
+/release.properties
