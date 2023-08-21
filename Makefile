@@ -70,7 +70,7 @@ release: bump_version build-apk
 	@python3 release.py \
 		${tagVersion} \
 		${label} \
-		"New release: ${label} - build #${tagVersion}" \
+		"New release: ${label} - build No:${tagVersion}" \
 		${branch} \
 		${apk_output} \
-		apk-outputs/${apk_outputs}
+		apk-outputs/${apk_output}
