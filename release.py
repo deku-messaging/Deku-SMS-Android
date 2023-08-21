@@ -2,6 +2,7 @@
 import re
 import requests
 import json
+import sys
 
 def create_release(version, title, description, target_branch):
     """Create a new release on GitHub."""
