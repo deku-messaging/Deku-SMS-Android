@@ -31,7 +31,7 @@ public class SingleMessageViewModel extends ViewModel {
     Pager<Integer, SMS> pager;
     SMSPaging smsPaging;
 
-    public Integer currentLimit = 12;
+    public Integer currentLimit = 20;
     Integer offset = 0;
 
     public boolean offsetStartedFromZero = true;
@@ -61,6 +61,7 @@ public class SingleMessageViewModel extends ViewModel {
     }
 
     public void refresh(Context context) {
+        Log.d(getClass().getName(), "Refreshing recyclerview");
         if(offset != null) {
             offset += currentLimit;
             offset = _updateLiveData(context, offset);

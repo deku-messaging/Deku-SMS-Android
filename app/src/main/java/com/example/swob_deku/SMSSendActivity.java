@@ -318,6 +318,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+                final int maximumScrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 3;
 
                 final int lastTopVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
                         .findLastVisibleItemPosition();
@@ -325,7 +326,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 final int firstVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
                         .findFirstVisibleItemPosition();
 
-                final int maximumScrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 1;
 
                 if (!singleMessageViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
                     int newSize = singleMessageViewModel.refreshDown(getApplicationContext());
@@ -334,7 +334,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                         recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
                 }
                 else if (singleMessageViewModel.offsetStartedFromZero &&
-                        lastTopVisiblePosition >= maximumScrollPosition) {
+                        lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
                     singleMessageViewModel.refresh(getApplicationContext());
                     int itemCount = recyclerView.getAdapter().getItemCount();
                     if (itemCount > maximumScrollPosition + 1)
