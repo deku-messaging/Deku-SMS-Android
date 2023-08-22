@@ -60,7 +60,6 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
 
                     SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
                     smsMetaEntity.setThreadId(context, threadId);
-                    Cursor cursor = smsMetaEntity.fetchUnreadMessages(context);
 
                     Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
                     receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
@@ -71,9 +70,9 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                             receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
 
                     NotificationCompat.Builder builder = IncomingTextSMSBroadcastReceiver
-                            .getNotificationHandler(context, cursor, messages, intent, threadId)
-                                    .setContentIntent(pendingReceivedSmsIntent);
-                    cursor.close();
+                            .getNotificationHandler(context, messages, intent, reply.toString(),
+                                    System.currentTimeMillis(), smsMetaEntity)
+                            .setContentIntent(pendingReceivedSmsIntent);
 
                     // Issue the new notification.
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
