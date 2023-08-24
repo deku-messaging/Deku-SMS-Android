@@ -12,6 +12,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.telephony.SmsManager;
@@ -21,9 +24,11 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
+import androidx.core.graphics.drawable.IconCompat;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.RMQ.RMQConnection;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -73,6 +78,15 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
 
                         Person.Builder person = new Person.Builder();
                         person.setName(context.getString(R.string.notification_title_reply_you));
+
+//                        Bitmap bitmap = Contacts.getContactBitmapPhoto(context, address);
+//                        if(bitmap != null) {
+//                            Icon icon = Icon.createWithBitmap(bitmap);
+//                            if (icon != null) {
+//                                IconCompat iconCompat = IconCompat.createFromIcon(icon);
+//                                person.setIcon(iconCompat);
+//                            }
+//                        }
 
                         NotificationCompat.MessagingStyle.Message message =
                                 new NotificationCompat.MessagingStyle.Message(

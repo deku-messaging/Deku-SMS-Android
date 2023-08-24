@@ -496,7 +496,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                         MESSAGE_KEY_INBOX : MESSAGE_TYPE_OUTBOX;
             }
             else if(position == 0 && snapshotList.size() > 1 &&
-                    snapshotList.get(position + 1).getType() == sms.getType()) {
+                    snapshotList.get(position + 1).getType() == sms.getType() &&
+                    SMSHandler.isSameMinute(sms, snapshotList.get(position + 1))) {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
             }

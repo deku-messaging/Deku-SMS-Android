@@ -2,16 +2,19 @@ package com.example.swob_deku.BroadcastReceivers;
 
 import android.app.Activity;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Person;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
+import android.graphics.drawable.Icon;
 import android.os.Bundle;
 import android.os.Message;
 import android.provider.Telephony;
+import android.service.notification.StatusBarNotification;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionInfo;
@@ -21,10 +24,15 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.StyleSpan;
 import android.util.Log;
+import android.widget.RemoteViews;
 
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationBuilderWithBuilderAccessor;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
+import androidx.core.graphics.drawable.IconCompat;
 import androidx.room.Room;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
@@ -126,10 +134,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     @Override
                     public void run() {
                         try {
-//                            String jsonStringBody = "{\"type\":" + Router.SMS_TYPE_INCOMING + "\", " +
-//                                    "\"text\": \"" + messageFinal +
-//                                    "\", \"MSISDN\": \"" + finalAddress + "\"}";
-
                             SmsForward smsForward = new SmsForward();
                             smsForward.MSISDN = finalAddress;
                             smsForward.text = messageFinal;
@@ -194,9 +198,9 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     replyBroadcastIntent, text, System.currentTimeMillis(), smsMetaEntity)
                     .setContentIntent(pendingReceivedSmsIntent);
 
-            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
 
-            notificationManager.notify(Integer.parseInt(sms.getThreadId()), builder.build());
+            notificationManagerCompat.notify(Integer.parseInt(sms.getThreadId()), builder.build());
         }
         cursor.close();
     }
@@ -213,6 +217,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.incoming_messages_channel_id))
+                .setWhen(date)
                 .setContentTitle(contactName)
                 .setContentText(text)
                 .setDefaults(Notification.DEFAULT_ALL)
