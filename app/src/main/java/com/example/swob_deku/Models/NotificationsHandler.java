@@ -11,9 +11,14 @@ import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
+import android.net.Uri;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.telephony.PhoneNumberUtils;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -191,15 +196,22 @@ public class NotificationsHandler {
             contactName = (contactName.equals("null") || contactName.isEmpty()) ?
                     smsMetaEntity.getAddress() : contactName;
 
-            android.app.Person person = new android.app.Person.Builder()
+            Bitmap bitmap = Contacts.getContactBitmapPhoto(context, smsMetaEntity.getAddress());
+            android.app.Person.Builder personBuilder = new android.app.Person.Builder()
                     .setName(contactName)
-                    .setKey(smsMetaEntity.getAddress())
-                    .build();
+                    .setKey(smsMetaEntity.getAddress());
+            if(bitmap != null) {
+                Log.d(NotificationsHandler.class.getName(), "Yep bitmap not null");
+                personBuilder.setIcon(Icon.createWithBitmap(bitmap));
+            }
 
-            Intent intent = new Intent(context, SMSSendActivity.class);
-            intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, smsMetaEntity.getAddress());
-            intent.putExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY, text);
-            intent.setAction(Intent.ACTION_SEND);
+            android.app.Person person = personBuilder.build();
+
+            Uri smsUrl = Uri.parse("smsto:" + smsMetaEntity.getAddress());
+            Intent intent = new Intent(Intent.ACTION_SENDTO, smsUrl);
+            intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, smsMetaEntity.getAddress())
+                    .putExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY, text);
+
             ShortcutInfo shortcutInfo = new ShortcutInfo.Builder(context, smsMetaEntity.getAddress())
                     .setLongLived(true)
                     .setIntent(intent)

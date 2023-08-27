@@ -187,11 +187,11 @@ public class SMSSendActivity extends CustomAppCompactActivity {
          */
 
         smsMetaEntity = new SMS.SMSMetaEntity();
-        if(getIntent().getAction() != null && getIntent().getAction().equals(Intent.ACTION_SENDTO)) {
+        if(getIntent().getAction() != null && (getIntent().getAction().equals(Intent.ACTION_SENDTO) ||
+                getIntent().getAction().equals(Intent.ACTION_SEND))) {
             String sendToString = getIntent().getDataString();
             if (sendToString.contains("smsto:") || sendToString.contains("sms:")) {
                 String _address = sendToString.substring(sendToString.indexOf(':') + 1);
-                Log.d(getLocalClassName(), "Send to data received: " + _address);
                 getIntent().putExtra(SMS.SMSMetaEntity.ADDRESS, _address);
             }
         }
