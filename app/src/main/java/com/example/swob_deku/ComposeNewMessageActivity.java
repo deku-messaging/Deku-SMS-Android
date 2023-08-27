@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -101,5 +102,16 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
                 }).start();
             }
         });
+
+        _checkSharedContent();
+    }
+
+    private void _checkSharedContent() {
+        if (Intent.ACTION_SEND.equals(getIntent().getAction()) && getIntent().getType() != null) {
+            if ("text/plain".equals(getIntent().getType())) {
+                String sharedSMS = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+                contactsRecyclerAdapter.setSharedSMS(sharedSMS);
+            }
+        }
     }
 }

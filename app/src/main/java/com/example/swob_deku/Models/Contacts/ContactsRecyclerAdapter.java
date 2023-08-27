@@ -22,6 +22,8 @@ import java.util.List;
 public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
     Context context;
+
+    String sharedSMS;
     private final AsyncListDiffer<Contacts> mDiffer = new AsyncListDiffer(this, Contacts.DIFF_CALLBACK);
 
     public ContactsRecyclerAdapter(Context context) {
@@ -52,9 +54,17 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
             public void onClick(View v) {
                 Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
                 singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, contacts.number);
+
+                if(sharedSMS != null && !sharedSMS.isEmpty())
+                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY, sharedSMS);
+
                 context.startActivity(singleMessageThreadIntent);
             }
         });
+    }
+
+    public void setSharedSMS(String sharedSMS) {
+        this.sharedSMS = sharedSMS;
     }
 
     @Override
