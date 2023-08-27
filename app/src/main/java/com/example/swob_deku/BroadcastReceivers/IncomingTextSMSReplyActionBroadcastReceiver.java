@@ -29,6 +29,7 @@ import androidx.core.graphics.drawable.IconCompat;
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Contacts.Contacts;
+import com.example.swob_deku.Models.NotificationsHandler;
 import com.example.swob_deku.Models.RMQ.RMQConnection;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -94,8 +95,9 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 person1.setName(contactName);
 
                 long timestamp = System.currentTimeMillis();
-                NotificationCompat.Builder builder = IncomingTextSMSBroadcastReceiver
-                        .getNotificationHandler(context, intent, timestamp, smsMetaEntity)
+                NotificationCompat.Builder builder = NotificationsHandler
+                        .getNotificationHandler(context, intent, timestamp, smsMetaEntity,
+                                smsMetaEntity.getAddress())
                         .setContentIntent(pendingReceivedSmsIntent);
 
                 for(StatusBarNotification notification : notifications) {
