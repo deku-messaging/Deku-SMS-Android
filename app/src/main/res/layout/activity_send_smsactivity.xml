@@ -132,7 +132,6 @@
                             android:layout_marginStart="4dp"
                             android:layout_marginEnd="8dp"
                             android:layout_marginBottom="5dp"
-                            android:fontFamily="sans-serif-thin"
                             android:hint="Text Message"
                             app:boxCornerRadiusBottomStart="12dp"
                             app:boxCornerRadiusTopStart="10dp"

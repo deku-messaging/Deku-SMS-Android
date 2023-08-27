@@ -69,7 +69,6 @@
         android:id="@+id/search_nothing_found"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-light"
         android:gravity="center"
         android:text="@string/search_nothing_found"
         android:textSize="16sp"
