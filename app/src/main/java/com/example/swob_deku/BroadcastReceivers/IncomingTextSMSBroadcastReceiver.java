@@ -77,6 +77,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static final String KEY_TEXT_REPLY = "key_text_reply";
 
     public static final String SMS_TYPE_INCOMING = "SMS_TYPE_INCOMING";
+    public static final String EXTRA_TIMESTAMP = "EXTRA_TIMESTAMP";
 
 
     @Override
@@ -194,32 +195,66 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 text = context.getString(R.string.notification_title_new_key);
             }
 
-            NotificationCompat.Builder builder = getNotificationHandler(context, null,
-                    replyBroadcastIntent, text, System.currentTimeMillis(), smsMetaEntity)
+            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+            StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
+
+            long timestamp = System.currentTimeMillis();
+
+            String contactName = Contacts.retrieveContactName(context, sms.getAddress());
+            contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                    smsMetaEntity.getAddress() : contactName;
+
+            NotificationCompat.MessagingStyle messagingStyle =
+                    new NotificationCompat.MessagingStyle(contactName);
+
+            Person.Builder person = new Person.Builder();
+            person.setName(contactName);
+            person.setKey(sms.getAddress());
+
+            for(StatusBarNotification notification : notifications) {
+                if (notification.getId() == Integer.parseInt(sms.getThreadId())) {
+                    Bundle extras = notification.getNotification().extras;
+                    String prevMessage = extras.getCharSequence(Notification.EXTRA_TEXT).toString();
+                    String prevTitle = extras.getCharSequence(Notification.EXTRA_TITLE).toString();
+
+                    if(!prevTitle.equals(context.getString(R.string.notification_title_reply_you))) {
+//                        text = prevMessage + "\n" + text;
+                        messagingStyle.addMessage(prevMessage, timestamp, person.build());
+                    } else {
+                        Person.Builder person1 = new Person.Builder();
+                        person1.setName(context.getString(R.string.notification_title_reply_you));
+
+                        messagingStyle.addMessage(new NotificationCompat.MessagingStyle.Message(
+                                prevMessage, timestamp, person1.build()));
+                    }
+                    break;
+                }
+            }
+
+
+            NotificationCompat.Builder builder = getNotificationHandler(context, replyBroadcastIntent,
+                    timestamp, smsMetaEntity)
                     .setContentIntent(pendingReceivedSmsIntent);
 
-            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+            builder.setContentTitle(contactName);
+            messagingStyle.addMessage(text, timestamp, person.build());
+            builder.setStyle(messagingStyle);
 
+            Bundle extras = builder.getExtras();
+            extras.putLong(EXTRA_TIMESTAMP, timestamp);
+
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
             notificationManagerCompat.notify(Integer.parseInt(sms.getThreadId()), builder.build());
         }
         cursor.close();
     }
 
     public static NotificationCompat.Builder
-    getNotificationHandler(Context context,
-                           NotificationCompat.MessagingStyle.Message customMessages,
-                           Intent replyBroadcastIntent, String text, long date, SMS.SMSMetaEntity sms){
-
-
-        String contactName = Contacts.retrieveContactName(context, sms.getAddress());
-        contactName = (contactName.equals("null") || contactName.isEmpty()) ?
-                sms.getAddress() : contactName;
+    getNotificationHandler(Context context, Intent replyBroadcastIntent, long date, SMS.SMSMetaEntity sms){
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.incoming_messages_channel_id))
                 .setWhen(date)
-                .setContentTitle(contactName)
-                .setContentText(text)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
@@ -265,12 +300,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             builder.addAction(replyAction);
         }
 
-        if(customMessages != null) {
-            builder.setStyle(
-                    new NotificationCompat.MessagingStyle(context.getString(R.string.notification_title_reply_you))
-                            .addMessage(new NotificationCompat.MessagingStyle.Message(text, date, contactName))
-                            .addMessage(customMessages));
-        }
         return builder;
     }
 }
