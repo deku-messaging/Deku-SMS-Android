@@ -24,6 +24,9 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
+import androidx.core.content.pm.ShortcutInfoCompat;
+import androidx.core.content.pm.ShortcutManagerCompat;
+import androidx.core.graphics.drawable.IconCompat;
 
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.example.swob_deku.Models.Contacts.Contacts;
@@ -80,9 +83,13 @@ public class NotificationsHandler {
             NotificationCompat.MessagingStyle messagingStyle =
                     new NotificationCompat.MessagingStyle(contactName);
 
+            Bitmap bitmap = Contacts.getContactBitmapPhoto(context, smsMetaEntity.getAddress());
             Person.Builder person = new Person.Builder();
-            person.setName(contactName);
-            person.setKey(smsMetaEntity.getAddress());
+
+            person.setName(contactName)
+                    .setKey(smsMetaEntity.getAddress());
+            if(bitmap != null)
+                person.setIcon(IconCompat.createWithBitmap(bitmap));
 
             for(StatusBarNotification notification : notifications) {
                 if (notification.getId() == Integer.parseInt(sms.getThreadId())) {
@@ -104,13 +111,14 @@ public class NotificationsHandler {
                 }
             }
 
-            String shortCutId = _buildShortcut(context, messageId, text);
+            String shortCutId = _buildShortcut(context, messageId, text, person.build());
             NotificationCompat.Builder builder = getNotificationHandler(context, replyBroadcastIntent,
                     timestamp, smsMetaEntity, shortCutId)
                     .setContentIntent(pendingReceivedSmsIntent);
 
-            builder.setContentTitle(contactName);
-            builder.setContentText(text);
+            builder.setContentTitle(contactName)
+                    .setContentText(text);
+
             messagingStyle.addMessage(text, timestamp, person.build());
             builder.setStyle(messagingStyle);
 
@@ -129,6 +137,7 @@ public class NotificationsHandler {
 
         NotificationCompat.BubbleMetadata bubbleMetadata = new NotificationCompat.BubbleMetadata
                 .Builder(sms.getAddress())
+                .setDesiredHeight(600)
                 .build();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
@@ -185,7 +194,7 @@ public class NotificationsHandler {
         return builder;
     }
 
-    private static String _buildShortcut(Context context, long messageId, String text) {
+    private static String _buildShortcut(Context context, long messageId, String text, Person person) {
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
@@ -196,32 +205,21 @@ public class NotificationsHandler {
             contactName = (contactName.equals("null") || contactName.isEmpty()) ?
                     smsMetaEntity.getAddress() : contactName;
 
-            Bitmap bitmap = Contacts.getContactBitmapPhoto(context, smsMetaEntity.getAddress());
-            android.app.Person.Builder personBuilder = new android.app.Person.Builder()
-                    .setName(contactName)
-                    .setKey(smsMetaEntity.getAddress());
-            if(bitmap != null) {
-                Log.d(NotificationsHandler.class.getName(), "Yep bitmap not null");
-                personBuilder.setIcon(Icon.createWithBitmap(bitmap));
-            }
-
-            android.app.Person person = personBuilder.build();
-
             Uri smsUrl = Uri.parse("smsto:" + smsMetaEntity.getAddress());
             Intent intent = new Intent(Intent.ACTION_SENDTO, smsUrl);
             intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, smsMetaEntity.getAddress())
                     .putExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY, text);
 
-            ShortcutInfo shortcutInfo = new ShortcutInfo.Builder(context, smsMetaEntity.getAddress())
+            ShortcutInfoCompat shortcutInfoCompat = new ShortcutInfoCompat.Builder(context,
+                    smsMetaEntity.getAddress())
                     .setLongLived(true)
                     .setIntent(intent)
                     .setShortLabel(contactName)
                     .setPerson(person)
                     .build();
 
-            ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
-            shortcutManager.pushDynamicShortcut(shortcutInfo);
-            return shortcutInfo.getId();
+            ShortcutManagerCompat.pushDynamicShortcut(context, shortcutInfoCompat);
+            return shortcutInfoCompat.getId();
         }
 
         return null;
