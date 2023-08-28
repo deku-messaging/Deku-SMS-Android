@@ -9,6 +9,7 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -186,7 +187,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
         final int absolutePosition = holder.getAbsoluteAdapterPosition();
-        SMS sms = mDiffer.getCurrentList().get(absolutePosition);
+        SMS sms = mDiffer.getCurrentList().get(position);
         holder.id = sms.getThreadId();
 
         String address = sms.getAddress();
@@ -353,7 +354,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         if(routerActivity != null) {
             workManagerFactories();
         }
-
         mDiffer.submitList(list);
     }
 
