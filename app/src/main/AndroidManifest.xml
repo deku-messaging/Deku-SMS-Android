@@ -99,6 +99,7 @@
             android:name=".SMSSendActivity"
             android:excludeFromRecents="true"
             android:exported="true"
+            android:documentLaunchMode="always"
             android:parentActivityName=".MessagesThreadsActivity"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

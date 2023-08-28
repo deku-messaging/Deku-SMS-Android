@@ -3,6 +3,7 @@ package com.example.swob_deku.Models;
 import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.EXTRA_TIMESTAMP;
 import static com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.KEY_TEXT_REPLY;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -39,6 +40,7 @@ import com.example.swob_deku.SMSSendActivity;
 
 public class NotificationsHandler {
 
+    @SuppressLint("MissingPermission")
     public static void sendIncomingTextMessageNotification(Context context, String text, final String address, long messageId) {
         Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
 
@@ -138,6 +140,7 @@ public class NotificationsHandler {
         NotificationCompat.BubbleMetadata bubbleMetadata = new NotificationCompat.BubbleMetadata
                 .Builder(sms.getAddress())
                 .setDesiredHeight(600)
+                .setSuppressNotification(true)
                 .build();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
