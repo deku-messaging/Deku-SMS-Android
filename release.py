@@ -12,7 +12,7 @@ def create_release(version, title, description, target_branch):
         "name": title,
         "body": description,
         "target_commitish": target_branch,
-        "draft": True,
+        "draft": False,
         "prerelease":False,
         "generate_release_notes":False
     }
