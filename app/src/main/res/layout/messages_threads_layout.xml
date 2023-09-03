@@ -12,6 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -24,7 +25,7 @@
             android:layout_width="45dp"
             android:layout_height="45dp"
             android:layout_marginStart="12dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -51,7 +52,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:text="TextView"
             android:textColor="@color/secondary_text_color"
             android:textSize="18sp"
@@ -65,10 +66,12 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
             android:ellipsize="end"
             android:maxLines="3"
             android:text="TextView"
             android:textColor="@color/secondary_text_color"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/messages_route_state"
             app:layout_constraintStart_toEndOf="@+id/message_you_label"
             app:layout_constraintTop_toBottomOf="@+id/messages_thread_address_text" />

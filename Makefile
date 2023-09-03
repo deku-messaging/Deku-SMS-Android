@@ -21,8 +21,41 @@ apk_output=${label}.apk
 
 minSdk=24
 
+VERSION_PROPERTIES_FILENAME = version.properties
+SIGNING_KEY_FILENAME = app/keys/app-release-key.jks
+RELEASE_PROPERTIES_FILENAME = release.properties
+BUMP_VERSION_PYTHON_FILENAME = bump_version.py
+RELEASE_VERSION_PYTHON_FILENAME = release.py
+
 config:
-	cp pre-push.sample .git/hooks/pre-push
+	@mkdir apk-outputs
+
+download:
+	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/bump_version.py
+	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/release.py
+	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/version.properties
+
+check:
+	@if [ ! -f ${VERSION_PROPERTIES_FILENAME} ]; then \
+		echo "+ [NOT FOUND] ${VERSION_PROPERTIES_FILENAME}"; \
+		echo ">> This file is required for tracking the versions for releases"; \
+	fi
+	@if [ ! -f ${SIGNING_KEY_FILENAME} ]; then \
+		echo "+ [NOT FOUND] ${SIGNING_KEY_FILENAME}"; \
+		echo ">> This file is required for signing the apks"; \
+	fi
+	@if [ ! -f ${RELEASE_PROPERTIES_FILENAME} ]; then \
+		echo "+ [NOT FOUND] ${RELEASE_PROPERTIES_FILENAME}"; \
+		echo ">> This file holds the tokens for the various releases"; \
+	fi
+	@if [ ! -f ${BUMP_VERSION_PYTHON_FILENAME} ]; then \
+		echo "+ [NOT FOUND] ${BUMP_VERSION_PYTHON_FILENAME}"; \
+		echo ">> This file increments the version of the build"; \
+	fi
+	@if [ ! -f ${RELEASE_VERSION_PYTHON_FILENAME} ]; then \
+		echo "+ [NOT FOUND] ${RELEASE_VERSION_PYTHON_FILENAME}"; \
+		echo ">> This file releases the build on the various distribution outlets"; \
+	fi
 
 release-docker:
 	@echo "Building apk output: ${APP_1}"
@@ -38,7 +71,7 @@ release-docker:
 	@diffoscope apk-outputs/${APP_1} apk-outputs/${APP_2} && \
 		echo "Build is reproducible!" || echo "BUILD IS NOT REPRODUCIBLE!!"
 
-bump_version:
+bump_version: 
 	@python3 bump_version.py $(branch_name)
 	@git add .
 	@git commit -m "release: making release"
@@ -62,7 +95,7 @@ build-aab:
 		--min-sdk-version ${minSdk}
 	@shasum apk-outputs/${aab_output}
 
-release: bump_version build-apk 
+release: bump_version build-apk release.properties
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag ${tagVersion}
 	@git push origin ${branch_name}
