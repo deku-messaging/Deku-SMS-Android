@@ -1,9 +1,3 @@
-CONTAINER_NAME=deku_sms_container_$(apk)
-CONTAINER_NAME_1=deku_sms_container_$(apk)_1
-
-APP_1=$(apk).apk
-APP_2=$(apk)_1.apk
-
 pass=$$(cat ks.passwd)
 branch_name=$$(git symbolic-ref HEAD)
 
@@ -18,6 +12,12 @@ label=${releaseVersion}.${stagingVersion}.${nightlyVersion}
 
 aab_output=${label}.aab
 apk_output=${label}.apk
+
+APP_1=${label}.apk
+APP_2=${label}_1.apk
+
+CONTAINER_NAME=deku_sms_container_${label}
+CONTAINER_NAME_1=deku_sms_container_${label}_1
 
 minSdk=24
 
@@ -62,7 +62,7 @@ check:
 		echo ">> This file releases the build on the various distribution outlets"; \
 	fi
 
-release-docker:
+check-diffoscope: ks.passwd
 	@echo "Building apk output: ${APP_1}"
 	@docker build -t deku_sms_app .
 	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) deku_sms_app && \
@@ -73,8 +73,9 @@ release-docker:
 	@docker run --name ${CONTAINER_NAME_1} -e PASS=$(pass) deku_sms_app && \
 		docker cp ${CONTAINER_NAME_1}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_2} && \
 		docker rm ${CONTAINER_NAME_1}
-	@diffoscope apk-outputs/${APP_1} apk-outputs/${APP_2} && \
-		echo "Build is reproducible!" || echo "BUILD IS NOT REPRODUCIBLE!!"
+	@diffoscope apk-outputs/${APP_1} apk-outputs/${APP_2}
+	@echo $? | exit
+
 
 bump_version: 
 	@python3 bump_version.py $(branch_name)
@@ -100,8 +101,24 @@ build-aab:
 		--min-sdk-version ${minSdk}
 	@shasum apk-outputs/${aab_output}
 
-release: bump_version build-apk build-aab release.properties
+release-draft: release.properties bump_version build-apk build-aab 
 	# If running this script directly, should always be dev branch
+	@echo "+ Target branch for relase: ${branch}"
+	@git tag -f ${tagVersion}
+	@git push origin ${branch_name}
+	@git push --tag
+	@python3 release.py \
+		--version_code ${tagVersion} \
+		--version_name ${label} \
+		--description "New release: ${label} - build No:${tagVersion}" \
+		--branch ${branch} \
+		--track "internal" \
+		--app_bundle_file apk-outputs/${aab_output} \
+		--app_apk_file apk-outputs/${apk_output} \
+		--status "draft" \
+		--github_url "${github_url}"
+
+release-cd: bump_version check-diffoscope
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}
