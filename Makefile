@@ -122,7 +122,7 @@ release-draft: release.properties bump_version build-apk build-aab
 		--status "draft" \
 		--github_url "${github_url}"
 
-release-cd: bump_version check-diffoscope
+release-cd: bump_version info check-diffoscope
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}
