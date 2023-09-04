@@ -4,6 +4,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.ContactsContract;
 
@@ -11,6 +13,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.Ignore;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class Contacts {
 
@@ -137,4 +142,16 @@ public class Contacts {
                     return oldItem.equals(newItem);
                 }
             };
+
+    public static Bitmap getContactBitmapPhoto(Context context, String phoneNumber) {
+        // Get the bitmap.
+        try {
+            Uri photoUri = Uri.parse(retrieveContactPhoto(context, phoneNumber));
+
+            return BitmapFactory.decodeStream(context.getContentResolver().openInputStream(photoUri));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

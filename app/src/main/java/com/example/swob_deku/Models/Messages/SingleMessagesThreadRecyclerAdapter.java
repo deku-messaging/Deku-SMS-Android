@@ -495,12 +495,17 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_KEY_INBOX : MESSAGE_TYPE_OUTBOX;
             }
-            else if(
-                    (snapshotList.get(position + 1).getType() == sms.getType() &&
-                            SMSHandler.isSameMinute(sms, snapshotList.get(position + 1))
-                    ) && (position == 0 || (snapshotList.get(position - 1).getType() != sms.getType() ||
-                            !SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))
-                    )) {
+            else if(position == 0 && snapshotList.size() > 1 &&
+                    snapshotList.get(position + 1).getType() == sms.getType() &&
+                    SMSHandler.isSameMinute(sms, snapshotList.get(position + 1))) {
+                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                        MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
+            }
+            else if(snapshotList.size() > 1 && position != 0 &&
+                    snapshotList.get(position + 1).getType() == sms.getType() &&
+                    SMSHandler.isSameMinute(sms, snapshotList.get(position + 1)) &&
+                    (snapshotList.get(position - 1).getType() != sms.getType()
+                            || !SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))) {
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
             }
@@ -513,10 +518,8 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_MIDDLE_TYPE_INBOX : MESSAGE_MIDDLE_TYPE_OUTBOX;
             }
-            else if(
-                    (position == 0 || snapshotList.get(position - 1).getType() == sms.getType() &&
-                            SMSHandler.isSameMinute(sms, snapshotList.get(position -1))
-                    )){
+            else if(position != 0 && snapshotList.get(position - 1).getType() == sms.getType() &&
+                            SMSHandler.isSameMinute(sms, snapshotList.get(position -1))){
                 viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_START_TYPE_INBOX : MESSAGE_START_TYPE_OUTBOX;
             }

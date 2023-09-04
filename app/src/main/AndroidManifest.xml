@@ -22,7 +22,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.main"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".GatewayClientCustomizationActivity"
             android:exported="false"
@@ -41,8 +41,14 @@
             android:parentActivityName=".MessagesThreadsActivity" />
         <activity
             android:name=".ComposeNewMessageActivity"
-            android:exported="false"
-            android:parentActivityName=".MessagesThreadsActivity" />
+            android:exported="true"
+            android:parentActivityName=".MessagesThreadsActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ArchivedMessagesActivity"
             android:exported="false"
@@ -93,6 +99,7 @@
             android:name=".SMSSendActivity"
             android:excludeFromRecents="true"
             android:exported="true"
+            android:documentLaunchMode="always"
             android:parentActivityName=".MessagesThreadsActivity"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

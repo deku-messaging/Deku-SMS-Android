@@ -5,21 +5,31 @@ import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_DELIVERED_BROADCAS
 import static com.example.swob_deku.Models.SMS.SMSHandler.SMS_SENT_BROADCAST_INTENT;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.os.Bundle;
+import android.service.notification.StatusBarNotification;
 import android.telephony.SmsManager;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
+import androidx.core.graphics.drawable.IconCompat;
 
 import com.example.swob_deku.BuildConfig;
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.Contacts.Contacts;
+import com.example.swob_deku.Models.NotificationsHandler;
 import com.example.swob_deku.Models.RMQ.RMQConnection;
 import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.Models.SMS.SMS;
@@ -42,46 +52,77 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
         if(intent.getAction().equals(REPLY_BROADCAST_INTENT)) {
             Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
             if (remoteInput != null) {
-                CharSequence reply = remoteInput.getCharSequence(KEY_TEXT_REPLY);
-                if(reply.toString().isEmpty())
-                    return;
-
                 String address = intent.getStringExtra(SMS.SMSMetaEntity.ADDRESS);
                 String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
+
+                NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+                StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
+
+                CharSequence reply = remoteInput.getCharSequence(KEY_TEXT_REPLY);
+
+                if(reply.toString().isEmpty())
+                    return;
 
                 try {
                     int subscriptionId = SIMHandler.getDefaultSimSubscription(context);
                     SMSHandler.registerPendingMessage(context, address, reply.toString(), subscriptionId);
 
-                    List<NotificationCompat.MessagingStyle.Message> messages = new ArrayList<>();
-                    messages.add(new NotificationCompat.MessagingStyle.Message(reply,
-                            System.currentTimeMillis(),
-                            context.getString(R.string.notification_title_reply_you)));
-
-                    SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-                    smsMetaEntity.setThreadId(context, threadId);
-                    Cursor cursor = smsMetaEntity.fetchUnreadMessages(context);
-
-                    Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
-                    receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
-                    receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                    PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
-                            Integer.parseInt(threadId),
-                            receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
-
-                    NotificationCompat.Builder builder = IncomingTextSMSBroadcastReceiver
-                            .getNotificationHandler(context, cursor, messages, intent, threadId)
-                                    .setContentIntent(pendingReceivedSmsIntent);
-                    cursor.close();
-
-                    // Issue the new notification.
-                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-                    notificationManager.notify(Integer.parseInt(threadId), builder.build());
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
+                receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
+                receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                Person.Builder person = new Person.Builder();
+                person.setName(context.getString(R.string.notification_title_reply_you));
+
+                PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
+                        Integer.parseInt(threadId),
+                        receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
+                SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                smsMetaEntity.setThreadId(context, threadId);
+
+                NotificationCompat.MessagingStyle messagingStyle =
+                        new NotificationCompat.MessagingStyle(context.getString(R.string.notification_title_reply_you));
+
+                String contactName = Contacts.retrieveContactName(context, smsMetaEntity.getAddress());
+                contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+                        smsMetaEntity.getAddress() : contactName;
+
+                Person.Builder person1 = new Person.Builder();
+                person1.setName(contactName);
+
+                long timestamp = System.currentTimeMillis();
+                NotificationCompat.Builder builder = NotificationsHandler
+                        .getNotificationHandler(context, intent, timestamp, smsMetaEntity,
+                                smsMetaEntity.getAddress())
+                        .setContentIntent(pendingReceivedSmsIntent);
+
+                for(StatusBarNotification notification : notifications) {
+                    if(notification.getId() == Integer.parseInt(threadId)) {
+                        Bundle extras = notification.getNotification().extras;
+
+                        CharSequence prevMessage = extras.getCharSequence(Notification.EXTRA_TEXT).toString();
+
+                        String prevTitle = extras.getCharSequence(Notification.EXTRA_TITLE).toString();
+
+                        if(prevTitle.equals(context.getString(R.string.notification_title_reply_you))) {
+                            messagingStyle.addMessage(prevMessage, timestamp, person.build());
+                        } else {
+                            messagingStyle.addMessage(
+                                    new NotificationCompat.MessagingStyle.Message(prevMessage,
+                                            timestamp, person1.build()));
+                        }
+                        break;
+                    }
+                }
+
+                builder.setStyle(messagingStyle.addMessage(reply, System.currentTimeMillis(), person.build()));
+                // Issue the new notification.
+                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+                notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
             }
         }
         else if(intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {

@@ -24,6 +24,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
@@ -107,7 +109,6 @@ public class MessagesThreadFragment extends Fragment {
         messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( getContext());
         mListener.setRecyclerViewAdapter(messageType, messagesThreadRecyclerAdapter);
         mListener.setViewModel(messageType, messagesThreadViewModel);
-        Log.d(getClass().getName(), "MessageTypes: " + messageType);
 
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
@@ -125,7 +126,6 @@ public class MessagesThreadFragment extends Fragment {
                             else {
                                 textView.setVisibility(View.GONE);
                             }
-    //                        smsList = smsList.subList(0, 10);
                             messagesThreadRecyclerAdapter.submitList(smsList);
                             view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
                         }
@@ -134,15 +134,13 @@ public class MessagesThreadFragment extends Fragment {
             e.printStackTrace();
         }
 
-
         messagesThreadRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<HashMap<String, TemplateViewHolder>>() {
-            @Override
-            public void onChanged(HashMap<String, TemplateViewHolder> stringViewHolderHashMap) {
-                highlightListener(stringViewHolderHashMap.size(), view);
-            }
-        });
-
+                    @Override
+                    public void onChanged(HashMap<String, TemplateViewHolder> stringViewHolderHashMap) {
+                        highlightListener(stringViewHolderHashMap.size(), view);
+                    }
+                });
         setRefreshTimer();
     }
 
