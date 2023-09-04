@@ -27,7 +27,7 @@ RELEASE_PROPERTIES_FILENAME = release.properties
 BUMP_VERSION_PYTHON_FILENAME = bump_version.py
 RELEASE_VERSION_PYTHON_FILENAME = release.py
 
-github_rul=https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases
+github_url=https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases
 
 config:
 	@mkdir apk-outputs
