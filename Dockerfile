@@ -22,8 +22,12 @@ assembleRelease && \
 apksigner sign --ks app/keys/app-release-key.jks \
 --ks-pass pass:$PASS \
 --in app/build/outputs/apk/release/app-release-unsigned.apk \
---out app/build/outputs/apk/release/app-release.apk
-
+--out app/build/outputs/apk/release/app-release.apk && \
+./gradlew assemble bundleRelease && \
+apksigner sign --ks app/keys/app-release-key.jks \
+--ks-pass pass:$PASS \
+--in app/build/outputs/bundle/release/app-release.aab \
+--out app/build/outputs/bundle/release/app-bundle.apk
 
 # CMD cp app/build/outputs/apk/debug/app-debug.apk /apkbuilds/
 # CMD sha256sum app/build/outputs/apk/debug/app-debug.apk

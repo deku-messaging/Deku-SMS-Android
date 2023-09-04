@@ -8,9 +8,9 @@ import com.android.tools.profgen.ArtProfileKt
 import com.android.tools.profgen.ArtProfileSerializer
 import com.android.tools.profgen.DexFile
 
-def keystorePropertiesFile = rootProject.file("keystore.properties")
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+// def keystorePropertiesFile = rootProject.file("keystore.properties")
+// def keystoreProperties = new Properties()
+// keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 def versionsPropertiesFile = rootProject.file("version.properties")
 def versionProperties = new Properties()
@@ -44,6 +44,7 @@ android {
         }
     }
 
+	/*
     signingConfigs {
         release {
             keyAlias keystoreProperties['keyAlias']
@@ -52,6 +53,7 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
+*/
 
     buildTypes {
         release {
