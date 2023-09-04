@@ -2,6 +2,8 @@ pass=$$(cat ks.passwd)
 branch_name=$$(git symbolic-ref HEAD)
 
 branch=$$(git symbolic-ref HEAD | cut -d "/" -f 3)
+# track = 'internal', 'alpha', 'beta', 'production'
+track=$$(python3 track.py $(branch))
 
 releaseVersion=$$(sed -n '1p' version.properties | cut -d "=" -f 2)
 stagingVersion=$$(sed -n '2p' version.properties | cut -d "=" -f 2)
@@ -36,9 +38,6 @@ download:
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/bump_version.py
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/release.py
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/version.properties
-info:
-	@echo "- Branch name: ${branch}"
-	@echo "- Release label: ${label}"
 
 check:
 	@if [ ! -f ${VERSION_PROPERTIES_FILENAME} ]; then \
@@ -61,6 +60,11 @@ check:
 		echo "+ [NOT FOUND] ${RELEASE_VERSION_PYTHON_FILENAME}"; \
 		echo ">> This file releases the build on the various distribution outlets"; \
 	fi
+
+info: check
+	@echo "- Branch name: ${branch}"
+	@echo "- Track name: ${track}"
+	@echo "- Release label: ${label}"
 
 check-diffoscope: ks.passwd
 	@echo "Building apk output: ${APP_1}"
@@ -128,7 +132,7 @@ release-cd: bump_version check-diffoscope
 		--version_name ${label} \
 		--description "New release: ${label} - build No:${tagVersion}" \
 		--branch ${branch} \
-		--track "internal" \
+		--track ${track} \
 		--app_bundle_file apk-outputs/${aab_output} \
 		--app_apk_file apk-outputs/${apk_output} \
 		--status "draft" \
