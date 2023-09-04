@@ -1,8 +1,6 @@
 name: Run SSH command
 on:
-  pull_request:
-    types:
-      - merged
+  push:
     branches:
       - staging
 jobs:
