@@ -32,7 +32,8 @@ RELEASE_VERSION_PYTHON_FILENAME = release.py
 github_url=https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases
 
 config:
-	@mkdir apk-outputs
+	@mkdir -p apk-outputs
+	@git submodule update --init --recursive
 
 download:
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/bump_version.py
