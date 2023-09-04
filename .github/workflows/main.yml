@@ -12,6 +12,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Extract branch name
+        id: extract-branch
+        run: echo "::set-output name=branch::$(echo $GITHUB_REF | awk -F/ '{print $3}')"
       - name: Run SSH command
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -20,4 +23,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /root/apk-reproduce/Deku-Android && make release-cd
+            cd /root/apk-reproduce/Deku-Android && \
+            git checkout ${{ steps.extract-branch.outputs.branch }} && \
+            git pull origin ${{ steps.extract-branch.outputs.branch }} && \
+            make release-cd
