@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /root/apk-reproduce/Deku-Android && \
+            cd /root/apk-reproduce/Deku-SMS-Android && \
             git checkout ${{ steps.extract-branch.outputs.branch }} && \
             git pull origin ${{ steps.extract-branch.outputs.branch }} && \
             make release-cd
