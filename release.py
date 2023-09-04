@@ -62,14 +62,6 @@ class RelGooglePlaystore:
         # Specify the version code for the draft release
         version_code = bundle_version_code  # Use the version code of the uploaded bundle
 
-        # Update the track to create a draft release
-        track_request = service.edits().tracks().update(
-            packageName=package_name,
-            editId=edit_id,
-            track=track,
-            body={'releases': [{'versionCodes': [version_code], 'status': 'draft'}]}
-        )
-
         # version_code = 26
         release_body = [{
                 'name':version_name,
@@ -90,8 +82,7 @@ class RelGooglePlaystore:
         # Commit the changes to finalize the edit
         commit_request = service.edits().commit(
             packageName=package_name,
-            editId=edit_id,
-            changesNotSentForReview=changesNotSentForReview
+            editId=edit_id
         )
         commit_request.execute()
 
