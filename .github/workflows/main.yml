@@ -1,0 +1,26 @@
+name: Run SSH command
+on:
+  pull_request:
+    types:
+      - merged
+    branches:
+      - staging
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract branch name
+        id: extract-branch
+        run: echo "::set-output name=branch::$(echo $GITHUB_REF | awk -F/ '{print $3}')"
+      - name: Run SSH command
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /root/apk-reproduce/Deku-SMS-Android && \
+            git checkout ${{ steps.extract-branch.outputs.branch }} && \
+            git pull origin ${{ steps.extract-branch.outputs.branch }} && \
+            make release-cd
