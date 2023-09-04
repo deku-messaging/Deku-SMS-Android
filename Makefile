@@ -27,6 +27,8 @@ RELEASE_PROPERTIES_FILENAME = release.properties
 BUMP_VERSION_PYTHON_FILENAME = bump_version.py
 RELEASE_VERSION_PYTHON_FILENAME = release.py
 
+github_rul=https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases
+
 config:
 	@mkdir apk-outputs
 
@@ -34,6 +36,9 @@ download:
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/bump_version.py
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/release.py
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/version.properties
+info:
+	@echo "- Branch name: ${branch}"
+	@echo "- Release label: ${label}"
 
 check:
 	@if [ ! -f ${VERSION_PROPERTIES_FILENAME} ]; then \
@@ -95,15 +100,20 @@ build-aab:
 		--min-sdk-version ${minSdk}
 	@shasum apk-outputs/${aab_output}
 
-release: bump_version build-apk release.properties
+release: bump_version build-apk build-aab release.properties
+	# If running this script directly, should always be dev branch
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag ${tagVersion}
 	@git push origin ${branch_name}
 	@git push --tag
 	@python3 release.py \
-		${tagVersion} \
-		${label} \
-		"New release: ${label} - build No:${tagVersion}" \
-		${branch} \
-		${apk_output} \
-		apk-outputs/${apk_output}
+		--version_code ${tagVersion} \
+		--version_name ${label} \
+		--description "New release: ${label} - build No:${tagVersion}" \
+		--branch ${branch} \
+		--track "internal" \
+		--package_name ${package_name} \
+		--app_bundle_file apk-outputs/${aab_output} \
+		--app_apk_file apk-outputs/${apk_output} \
+		--status "draft" \
+		--github_url "${github_url}"

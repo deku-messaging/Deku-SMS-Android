@@ -2,18 +2,37 @@
 import re
 import requests
 import json
-import sys
+import sys, os
+import logging
+import httplib2
 
-from googleapiclient.discovery import build
-# from google.oauth2.credentials import Credentials 
-from google.oauth2 import service_account 
+logging.basicConfig(level='DEBUG')
 
 class RelGooglePlaystore:
+    def create_edit_for_draft_release(self, 
+                                      version_code, 
+                                      version_name, 
+                                      description, 
+                                      package_name, 
+                                      bundle_file,
+                                      status='draft',
+                                      track='internal', 
+                                      timeout_seconds=20, 
+                                      changesNotSentForReview = True):
+        """
+        """
+        from googleapiclient.discovery import build
+        from google.oauth2 import service_account 
+        from googleapiclient.http import MediaFileUpload  # Import MediaFileUpload
 
-    def create_edit_for_draft_release(self, credentials_file_path, release_id, edit_body, bundle_file): 
-        package_name = "com.afkanerd.deku"
-        track = 'internal'
-        release_name = '0.0.1'
+        credentials_file_path = None
+        with open('release.properties', 'r') as fd:
+            lines = fd.readlines()
+
+        for line in lines:
+            if line.startswith('google_playstore_creds_filepath'):
+                credentials_file_path = line.split("=")[1].strip() 
+                break
 
         credentials = service_account.Credentials.from_service_account_file(credentials_file_path)
         service = build('androidpublisher', 'v3', credentials=credentials)
@@ -23,11 +42,18 @@ class RelGooglePlaystore:
         edit_response = edit_request.execute()
         edit_id = edit_response['id']
 
+        # Create an HTTP object with a timeout
+        # http = httplib2.Http(timeout=timeout_seconds)
+
+        # Create a media upload request
+        media_upload = MediaFileUpload(bundle_file, 
+                                       mimetype="application/octet-stream", resumable=True)
+
         bundle_response = service.edits().bundles().upload(
                 packageName=package_name, 
                 editId=edit_id, 
-                media_mime_type="application/octet-stream",
-                media_body=bundle_file,).execute()
+                media_body=media_upload
+            ).execute()
 
         bundle_version_code = bundle_response['versionCode']
 
@@ -44,8 +70,8 @@ class RelGooglePlaystore:
 
         # version_code = 26
         release_body = [{
-                'name':release_name,
-                'status':'draft',
+                'name':version_name,
+                'status':status,
                 'versionCodes':[version_code]
                 }]
 
@@ -57,36 +83,54 @@ class RelGooglePlaystore:
                 )
 
         response = track_request.execute()
-        print(f"Draft release '{release_name}' created with version code {version_code}")
+        logging.info("[Playstore] %s release %s created with version code %d", status, version_name, version_code)
 
         # Commit the changes to finalize the edit
         commit_request = service.edits().commit(
             packageName=package_name,
-            editId=edit_id
+            editId=edit_id,
+            changesNotSentForReview=changesNotSentForReview
         )
         commit_request.execute()
 
-        print("Changes committed and edit finalized.")
+        logging.info("[Playstore] Changes committed and edit finalized.")
 
 
 class RelGithub:
+    def create_edit_for_draft_release(self, 
+                                      version_code, 
+                                      version_name, 
+                                      description, 
+                                      target_branch, 
+                                      status, 
+                                      url,
+                                      apk_file):
+        # Create a new release on GitHub.
 
-    def create_release(self, version, title, description, target_branch):
-        """Create a new release on GitHub."""
-        url = "https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases"
+        if status == 'draft':
+            status = True
+
+        # url = "https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases"
         data = {
-            "tag_name": version,
-            "name": title,
+            "tag_name": str(version_code),
+            "name": version_name,
             "body": description,
             "target_commitish": target_branch,
-            "draft": False,
+            "draft": status,
             "prerelease":False,
             "generate_release_notes":False
         }
+        logging.info(data)
 
-        github_token = get_github_token()
+        github_token = None
 
-        print(github_token)
+        with open('release.properties', 'r') as fd:
+            lines = fd.readlines()
+
+        for line in lines:
+            if line.startswith('github_token'):
+                github_token = line.split("=")[1].strip() 
+                break
 
         headers = {"Authorization": "Bearer {}".format(github_token), 
                    "X-GitHub-Api-Version": "2022-11-28",
@@ -95,26 +139,11 @@ class RelGithub:
         response = requests.post(url, json=data, headers=headers)
         response.raise_for_status()
 
-        print(response.status_code)
-        return json.loads(response.text)
+        logging.info("[GitHub] Create new release: %d", response.status_code)
+        response = json.loads(response.text)
+        upload_url = response['upload_url']
 
-    def get_github_token(self):
-        github_token = None
-        with open('release.properties', 'r') as fd:
-            lines = fd.readlines()
-
-        for line in lines:
-            if line.startswith('github_token'):
-                github_token = line.split("=")[1].strip() 
-                return github_token
-
-
-    def upload_assets(self, upload_url, name, data_path):
-        """Upload assets to a new release on GitHub."""
-
-        github_token = get_github_token()
-        print(github_token)
-
+        # Upload assets to a new release on GitHub.
         headers = {'Content-Type': 'application/octet-stream', 
                    "Authorization": "Bearer {}".format(github_token), 
                    "X-GitHub-Api-Version": "2022-11-28",
@@ -123,47 +152,50 @@ class RelGithub:
         upload_url = re.sub(r"\{\?name,label}", "", upload_url)
 
         params = {
-            'name': name,
-            'label': name
+            'name': os.path.basename(apk_file),
+            'label': version_name
         }
 
-        with open(data_path, 'rb') as f:
+        with open(apk_file, 'rb') as f:
             data = f.read()
 
         response = requests.post(upload_url, headers=headers, data=data, params=params)
         response.raise_for_status()
 
-        print(response.status_code)
-        return json.loads(response.text)
+        logging.info("[GitHub] Create upload release: %d", response.status_code)
+        # return json.loads(response.text)
+
 
 if __name__ == "__main__":
-    """
-    version = '25'
-    title = '0.0.1'
-    description = 'new release'
-    target_branch = 'dev'
-    """
+    import argparse
+    import threading
 
-    """
-    version = sys.argv[1]
-    title = sys.argv[2]
-    description = sys.argv[3]
-    target_branch = sys.argv[4]
-    name = sys.argv[5]
-    data_path = sys.argv[6]
+    parser = argparse.ArgumentParser(description="An argument parser for Python")
 
+    parser.add_argument("--version_code", type=int, required=True, help="The version code of the app")
+    parser.add_argument("--version_name", type=str, required=True, help="The version name of the app")
+    parser.add_argument("--description", type=str, required=True, help="The description of the app")
+    parser.add_argument("--branch", type=str, required=True, help="The branch of the app")
+    parser.add_argument("--track", type=str, required=True, help="The track of the app")
+    parser.add_argument("--package_name", type=str, required=True, help="The package name of the app")
+    parser.add_argument("--app_bundle_file", type=str, required=True, help="The app bundle file")
+    parser.add_argument("--app_apk_file", type=str, required=True, help="The app APK file")
+    parser.add_argument("--status", type=str, required=True, help="The app release status")
+    parser.add_argument("--github_url", type=str, required=True, help="The github repo URL")
+
+    args = parser.parse_args()
+
+    rel_playstore = RelGooglePlaystore()
+    thread_playstore = threading.Thread(target=rel_playstore.create_edit_for_draft_release, args=(
+        args.version_code, args.version_name, args.description, 
+        args.package_name, args.app_bundle_file, args.status, args.track, True,))
+    thread_playstore.start()
 
     rel_github = RelGithub()
-    res = rel_github.create_release(version, title, description, target_branch)
-    upload_url = res['upload_url']
-    print(upload_url)
+    thread_github = threading.Thread(target=rel_github.create_edit_for_draft_release, args=(
+        args.version_code, args.version_name, args.description, args.branch, 
+        args.status, args.github_url, args.app_apk_file,))
+    thread_github.start()
 
-    print(rel_github.upload_assets(upload_url, name, data_path))
-    """
-
-    rel_google = RelGooglePlaystore()
-    creds_file = sys.argv[1] 
-    release_id = 1
-    edit_body = "Testing new release"
-    bundle_file = sys.argv[2]
-    rel_google.create_edit_for_draft_release(creds_file, release_id, edit_body, bundle_file)
+    thread_playstore.join()
+    thread_github.join()
