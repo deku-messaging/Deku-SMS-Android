@@ -103,7 +103,7 @@ build-aab:
 release: bump_version build-apk build-aab release.properties
 	# If running this script directly, should always be dev branch
 	@echo "+ Target branch for relase: ${branch}"
-	@git tag ${tagVersion}
+	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}
 	@git push --tag
 	@python3 release.py \
