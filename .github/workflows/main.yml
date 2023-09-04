@@ -1,0 +1,19 @@
+name: Run SSH command
+on:
+  push:
+  pull_request_target:
+    types:
+      - closed
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run SSH command
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            echo "The current branch is: $GITHUB_REF"
