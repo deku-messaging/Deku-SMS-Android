@@ -20,4 +20,4 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            echo "The current branch is: $GITHUB_REF"
+            cd /root/apk-reproduce/Deku-Android && make release-cd
