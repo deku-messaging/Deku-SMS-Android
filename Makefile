@@ -112,7 +112,6 @@ release: bump_version build-apk build-aab release.properties
 		--description "New release: ${label} - build No:${tagVersion}" \
 		--branch ${branch} \
 		--track "internal" \
-		--package_name ${package_name} \
 		--app_bundle_file apk-outputs/${aab_output} \
 		--app_apk_file apk-outputs/${apk_output} \
 		--status "draft" \

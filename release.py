@@ -13,7 +13,6 @@ class RelGooglePlaystore:
                                       version_code, 
                                       version_name, 
                                       description, 
-                                      package_name, 
                                       bundle_file,
                                       status='draft',
                                       track='internal', 
@@ -26,13 +25,16 @@ class RelGooglePlaystore:
         from googleapiclient.http import MediaFileUpload  # Import MediaFileUpload
 
         credentials_file_path = None
+        package_name = None
+
         with open('release.properties', 'r') as fd:
             lines = fd.readlines()
 
         for line in lines:
             if line.startswith('google_playstore_creds_filepath'):
                 credentials_file_path = line.split("=")[1].strip() 
-                break
+            elif line.startswith('app_package_name'):
+                package_name = line.split("=")[1].strip() 
 
         credentials = service_account.Credentials.from_service_account_file(credentials_file_path)
         service = build('androidpublisher', 'v3', credentials=credentials)
@@ -177,7 +179,6 @@ if __name__ == "__main__":
     parser.add_argument("--description", type=str, required=True, help="The description of the app")
     parser.add_argument("--branch", type=str, required=True, help="The branch of the app")
     parser.add_argument("--track", type=str, required=True, help="The track of the app")
-    parser.add_argument("--package_name", type=str, required=True, help="The package name of the app")
     parser.add_argument("--app_bundle_file", type=str, required=True, help="The app bundle file")
     parser.add_argument("--app_apk_file", type=str, required=True, help="The app APK file")
     parser.add_argument("--status", type=str, required=True, help="The app release status")
@@ -187,8 +188,7 @@ if __name__ == "__main__":
 
     rel_playstore = RelGooglePlaystore()
     thread_playstore = threading.Thread(target=rel_playstore.create_edit_for_draft_release, args=(
-        args.version_code, args.version_name, args.description, 
-        args.package_name, args.app_bundle_file, args.status, args.track, True,))
+        args.version_code, args.version_name, args.description, args.app_bundle_file, args.status, args.track, True,))
     thread_playstore.start()
 
     rel_github = RelGithub()
