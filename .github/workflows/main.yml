@@ -1,8 +1,5 @@
 name: Run SSH command
 on:
-  push:
-    branches:
-      - staging
   pull_request_target:
     types:
       - closed
