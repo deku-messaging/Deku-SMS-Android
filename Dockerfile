@@ -13,6 +13,7 @@ ENV PATH "${PATH}:${ANDROID_HOME}tools/:${ANDROID_HOME}platform-tools/"
 RUN yes | sdkmanager --licenses
 
 ENV PASS=""
+ENV MIN_SDK=""
 
 # CMD ./gradlew assembleDebug
 FROM base as apk-builder
@@ -27,7 +28,8 @@ CMD ./gradlew assemble bundleRelease && \
 apksigner sign --ks app/keys/app-release-key.jks \
 --ks-pass pass:$PASS \
 --in app/build/outputs/bundle/release/app-release.aab \
---out app/build/outputs/bundle/release/app-bundle.aab
+--out app/build/outputs/bundle/release/app-bundle.aab \
+--min-sdk-version $MIN_SDK
 
 # CMD cp app/build/outputs/apk/debug/app-debug.apk /apkbuilds/
 # CMD sha256sum app/build/outputs/apk/debug/app-debug.apk
