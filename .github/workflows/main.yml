@@ -14,7 +14,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.0
         timeout-minutes: 60
         with:
-          command_timeout: 60
+          command_timeout: "60m"
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
