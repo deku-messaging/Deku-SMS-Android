@@ -15,14 +15,12 @@ RUN yes | sdkmanager --licenses
 ENV PASS=""
 
 # CMD ./gradlew assembleDebug
-CMD ./gradlew \
--Dorg.gradle.daemon=true \
--Dorg.gradle.buildCache=false \
-assembleRelease && \
+CMD ./gradlew assembleRelease && \
 apksigner sign --ks app/keys/app-release-key.jks \
 --ks-pass pass:$PASS \
 --in app/build/outputs/apk/release/app-release-unsigned.apk \
 --out app/build/outputs/apk/release/app-release.apk && \
+sleep 3 && \
 ./gradlew assemble bundleRelease && \
 apksigner sign --ks app/keys/app-release-key.jks \
 --ks-pass pass:$PASS \
