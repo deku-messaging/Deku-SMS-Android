@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:22.04 AS base
 
 RUN apt update && apt install -y openjdk-17-jdk openjdk-17-jre android-sdk sdkmanager
 
@@ -15,17 +15,19 @@ RUN yes | sdkmanager --licenses
 ENV PASS=""
 
 # CMD ./gradlew assembleDebug
+FROM base as apk-builder
 CMD ./gradlew assembleRelease && \
 apksigner sign --ks app/keys/app-release-key.jks \
 --ks-pass pass:$PASS \
 --in app/build/outputs/apk/release/app-release-unsigned.apk \
---out app/build/outputs/apk/release/app-release.apk && \
-sleep 3 && \
-./gradlew assemble bundleRelease && \
+--out app/build/outputs/apk/release/app-release.apk
+
+FROM base as bundle-builder
+CMD ./gradlew assemble bundleRelease && \
 apksigner sign --ks app/keys/app-release-key.jks \
 --ks-pass pass:$PASS \
 --in app/build/outputs/bundle/release/app-release.aab \
---out app/build/outputs/bundle/release/app-bundle.apk
+--out app/build/outputs/bundle/release/app-bundle.aab
 
 # CMD cp app/build/outputs/apk/debug/app-debug.apk /apkbuilds/
 # CMD sha256sum app/build/outputs/apk/debug/app-debug.apk
