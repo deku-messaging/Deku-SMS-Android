@@ -20,6 +20,7 @@ APP_2=${label}_1.apk
 
 CONTAINER_NAME=deku_sms_container_${label}
 CONTAINER_NAME_1=deku_sms_container_${label}_1
+CONTAINER_NAME_BUNDLE=deku_sms_container_${label}_bundle
 
 minSdk=24
 
@@ -30,6 +31,9 @@ BUMP_VERSION_PYTHON_FILENAME = bump_version.py
 RELEASE_VERSION_PYTHON_FILENAME = release.py
 
 github_url=https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases
+
+docker_apk_image=deku_sms_apk_image
+docker_app_image=deku_sms_app_image
 
 config:
 	@mkdir -p apk-outputs
@@ -69,15 +73,17 @@ info: check
 
 check-diffoscope: ks.passwd
 	@echo "Building apk output: ${APP_1}"
-	@docker build -t deku_sms_app --target apk-builder .
+	@docker build -t ${docker_apk_image} --target apk-builder .
 	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) deku_sms_app && \
-		docker cp ${CONTAINER_NAME}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_1} && \
-		docker rm ${CONTAINER_NAME}
+		docker cp ${CONTAINER_NAME}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_1}
 	@sleep 3
 	@echo "Building apk output: ${APP_2}"
 	@docker run --name ${CONTAINER_NAME_1} -e PASS=$(pass) deku_sms_app && \
-		docker cp ${CONTAINER_NAME_1}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_2} && \
-		docker rm ${CONTAINER_NAME_1}
+		docker cp ${CONTAINER_NAME_1}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_2}
+	@sleep 5
+	@docker build -t ${docker_app_image} --target bundle-builder .
+	@docker run --name ${CONTAINER_NAME_BUNDLE} -e PASS=$(pass) deku_sms_bundle && \
+		docker cp ${CONTAINER_NAME_BUNDLE}:/android/app/build/outputs/bundle/release/app-bundle.aab apk-outputs/${aab_output}
 	@diffoscope apk-outputs/${APP_1} apk-outputs/${APP_2}
 	@echo $? | exit
 
@@ -95,12 +101,6 @@ build-apk:
 		--in app/build/outputs/apk/release/app-release-unsigned.apk \
 		--out apk-outputs/${apk_output}
 	@shasum apk-outputs/${apk_output}
-
-build-aab-docker:
-	@docker build -t deku_sms_app --target bundle-builder .
-	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) deku_sms_app && \
-		docker cp ${CONTAINER_NAME}:/android/app/build/outputs/bundle/release/app-bundle.aab apk-outputs/${aab_output} && \
-		docker rm ${CONTAINER_NAME}
 
 build-aab:
 	@echo "+ Building aab output: ${aab_output} - ${branch_name}"
@@ -128,8 +128,18 @@ release-draft: release.properties bump_version build-apk build-aab
 		--app_apk_file apk-outputs/${apk_output} \
 		--status "draft" \
 		--github_url "${github_url}"
-
-release-cd: requirements.txt bump_version info check-diffoscope build-aab-docker 
+clean:
+	@containers=$$(docker ps -a --filter "ancestor=$(docker_apk_image)" --format "{{.ID}}"); \
+		if [ -n "$$containers" ]; then \
+		    docker stop $$containers; \
+		    docker rm $$containers; \
+		fi
+	@containers=$$(docker ps -a --filter "ancestor=$(docker_app_image)" --format "{{.ID}}"); \
+		if [ -n "$$containers" ]; then \
+		    docker stop $$containers; \
+		    docker rm $$containers; \
+		fi
+release-cd: requirements.txt bump_version info check-diffoscope clean
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}
