@@ -9,11 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - name: Run SSH command
         uses: appleboy/ssh-action@v1.0.0
-        timeout-minutes: 30
+        timeout-minutes: 1
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
