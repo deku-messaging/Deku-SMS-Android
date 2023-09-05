@@ -80,12 +80,14 @@ check-diffoscope: ks.passwd
 	@echo "Building apk output: ${APP_2}"
 	@docker run --name ${CONTAINER_NAME_1} -e PASS=$(pass) ${docker_apk_image} && \
 		docker cp ${CONTAINER_NAME_1}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_2}
+	@diffoscope apk-outputs/${APP_1} apk-outputs/${APP_2}
+	@echo $? | exit
+
+docker-build-aab: check-diffoscope
 	@sleep 5
 	@docker build -t ${docker_app_image} --target bundle-builder .
 	@docker run --name ${CONTAINER_NAME_BUNDLE} -e PASS=$(pass) ${docker_app_image} && \
 		docker cp ${CONTAINER_NAME_BUNDLE}:/android/app/build/outputs/bundle/release/app-bundle.aab apk-outputs/${aab_output}
-	@diffoscope apk-outputs/${APP_1} apk-outputs/${APP_2}
-	@echo $? | exit
 
 
 bump_version: 
@@ -139,7 +141,7 @@ clean:
 		    docker stop $$containers; \
 		    docker rm $$containers; \
 		fi
-release-cd: requirements.txt bump_version info check-diffoscope clean
+release-cd: requirements.txt bump_version info docker-build-aab clean
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}
