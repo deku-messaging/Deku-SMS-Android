@@ -162,5 +162,5 @@ release-cd: requirements.txt bump_version info docker-build-aab clean
 			--app_bundle_file apk-outputs/${aab_output} \
 			--app_apk_file apk-outputs/${apk_output} \
 			--status "draft" \
-			--github_url "${github_url}"
+			--github_url "${github_url}" \
 	)
