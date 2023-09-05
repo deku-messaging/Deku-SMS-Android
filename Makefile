@@ -129,18 +129,23 @@ release-draft: release.properties bump_version build-apk build-aab
 		--status "draft" \
 		--github_url "${github_url}"
 
-release-cd: bump_version info check-diffoscope build-aab-docker
+release-cd: requirements.txt bump_version info check-diffoscope build-aab-docker 
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}
 	@git push --tag
-	@python3 release.py \
-		--version_code ${tagVersion} \
-		--version_name ${label} \
-		--description "New release: ${label} - build No:${tagVersion}" \
-		--branch ${branch} \
-		--track ${track} \
-		--app_bundle_file apk-outputs/${aab_output} \
-		--app_apk_file apk-outputs/${apk_output} \
-		--status "draft" \
-		--github_url "${github_url}"
+	@python3 -m venv venv
+	@( \
+		. venv/bin/activate; \
+		pip3 install -r requirements.txt \
+		python3 release.py \
+			--version_code ${tagVersion} \
+			--version_name ${label} \
+			--description "New release: ${label} - build No:${tagVersion}" \
+			--branch ${branch} \
+			--track ${track} \
+			--app_bundle_file apk-outputs/${aab_output} \
+			--app_apk_file apk-outputs/${apk_output} \
+			--status "draft" \
+			--github_url "${github_url}"
+	)
