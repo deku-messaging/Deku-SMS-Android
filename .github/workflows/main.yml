@@ -11,10 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Extract branch name
-        id: extract-branch
-        run: echo "::set-output name=branch::$(echo $GITHUB_REF | awk -F/ '{print $3}')"
-
       - name: Run SSH command
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -23,7 +19,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && "${{ steps.extract-branch.outputs.branch }}" == "staging" ]]; then
+            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
               cd /root/apk-reproduce/Deku-SMS-Android && \
               git checkout ${{ steps.extract-branch.outputs.branch }} && \
               git pull origin ${{ steps.extract-branch.outputs.branch }} && \
