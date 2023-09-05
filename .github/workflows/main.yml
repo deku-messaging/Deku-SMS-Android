@@ -21,10 +21,10 @@ jobs:
           script: |
             if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
               cd /root/apk-reproduce/Deku-SMS-Android && \
-              git checkout ${{ steps.extract-branch.outputs.branch }} && \
-              git pull origin ${{ steps.extract-branch.outputs.branch }} && \
+              git checkout ${{ github.event.pull_request.base.ref }} && \
+              git pull origin ${{ github.event.pull_request.base.ref }} && \
               make release-cd
             else
-              echo "PR is not merged into 'your_target_branch'. Workflow will not run."
+              echo "PR is not merged into '${{ github.event.pull_request.base.ref }}'. Workflow will not run."
               exit 1
             fi
