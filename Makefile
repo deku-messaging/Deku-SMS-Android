@@ -86,7 +86,7 @@ check-diffoscope: ks.passwd
 docker-build-aab: check-diffoscope
 	@sleep 5
 	@docker build -t ${docker_app_image} --target bundle-builder .
-	@docker run --name ${CONTAINER_NAME_BUNDLE} -e PASS=$(pass) ${docker_app_image} && \
+	@docker run --name ${CONTAINER_NAME_BUNDLE} -e PASS=$(pass) -e MIN_SDK=$(minSdk) ${docker_app_image} && \
 		docker cp ${CONTAINER_NAME_BUNDLE}:/android/app/build/outputs/bundle/release/app-bundle.aab apk-outputs/${aab_output}
 
 
