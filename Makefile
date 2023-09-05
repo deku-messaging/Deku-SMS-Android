@@ -156,7 +156,7 @@ release-cd: requirements.txt bump_version info docker-build-aab clean
 		python3 release.py \
 			--version_code ${tagVersion} \
 			--version_name ${label} \
-			--description "Release: ${label}\nBuild No: ${tagVersion}\nshasum: $$(shasum apk-outputs/$(apk_output))" \
+			--description "<b>Release</b>: ${label}<br><b>Build No</b>: ${tagVersion}<br><b>shasum</b>: $$(shasum apk-outputs/$(apk_output))" \
 			--branch ${branch} \
 			--track ${track} \
 			--app_bundle_file apk-outputs/${aab_output} \

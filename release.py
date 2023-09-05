@@ -100,8 +100,7 @@ class RelGithub:
                                       apk_file):
         # Create a new release on GitHub.
 
-        if status == 'draft':
-            status = True
+        status = True if status == 'draft' else False
 
         # url = "https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases"
         data = {
