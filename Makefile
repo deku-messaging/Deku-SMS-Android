@@ -69,7 +69,7 @@ info: check
 
 check-diffoscope: ks.passwd
 	@echo "Building apk output: ${APP_1}"
-	@docker build -t deku_sms_app .
+	@docker build -t deku_sms_app --target apk-builder .
 	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) deku_sms_app && \
 		docker cp ${CONTAINER_NAME}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_1} && \
 		docker rm ${CONTAINER_NAME}
@@ -77,7 +77,6 @@ check-diffoscope: ks.passwd
 	@echo "Building apk output: ${APP_2}"
 	@docker run --name ${CONTAINER_NAME_1} -e PASS=$(pass) deku_sms_app && \
 		docker cp ${CONTAINER_NAME_1}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_2} && \
-		docker cp ${CONTAINER_NAME_1}:/android/app/build/outputs/bundle/release/app-bundle.apk apk-outputs/${aab_output} && \
 		docker rm ${CONTAINER_NAME_1}
 	@diffoscope apk-outputs/${APP_1} apk-outputs/${APP_2}
 	@echo $? | exit
@@ -96,6 +95,12 @@ build-apk:
 		--in app/build/outputs/apk/release/app-release-unsigned.apk \
 		--out apk-outputs/${apk_output}
 	@shasum apk-outputs/${apk_output}
+
+build-aab-docker:
+	@docker build -t deku_sms_app --target bundle-builder .
+	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) deku_sms_app && \
+		docker cp ${CONTAINER_NAME}:/android/app/build/outputs/bundle/release/app-bundle.aab apk-outputs/${aab_output} && \
+		docker rm ${CONTAINER_NAME}
 
 build-aab:
 	@echo "+ Building aab output: ${aab_output} - ${branch_name}"
@@ -124,7 +129,7 @@ release-draft: release.properties bump_version build-apk build-aab
 		--status "draft" \
 		--github_url "${github_url}"
 
-release-cd: bump_version info check-diffoscope 
+release-cd: bump_version info check-diffoscope build-aab-docker
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}
