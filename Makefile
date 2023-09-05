@@ -74,15 +74,15 @@ info: check
 check-diffoscope: ks.passwd
 	@echo "Building apk output: ${APP_1}"
 	@docker build -t ${docker_apk_image} --target apk-builder .
-	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) deku_sms_app && \
+	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) ${docker_apk_image} && \
 		docker cp ${CONTAINER_NAME}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_1}
 	@sleep 3
 	@echo "Building apk output: ${APP_2}"
-	@docker run --name ${CONTAINER_NAME_1} -e PASS=$(pass) deku_sms_app && \
+	@docker run --name ${CONTAINER_NAME_1} -e PASS=$(pass) ${docker_apk_image} && \
 		docker cp ${CONTAINER_NAME_1}:/android/app/build/outputs/apk/release/app-release.apk apk-outputs/${APP_2}
 	@sleep 5
 	@docker build -t ${docker_app_image} --target bundle-builder .
-	@docker run --name ${CONTAINER_NAME_BUNDLE} -e PASS=$(pass) deku_sms_bundle && \
+	@docker run --name ${CONTAINER_NAME_BUNDLE} -e PASS=$(pass) ${docker_app_image} && \
 		docker cp ${CONTAINER_NAME_BUNDLE}:/android/app/build/outputs/bundle/release/app-bundle.aab apk-outputs/${aab_output}
 	@diffoscope apk-outputs/${APP_1} apk-outputs/${APP_2}
 	@echo $? | exit
