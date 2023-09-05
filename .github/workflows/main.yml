@@ -1,0 +1,28 @@
+name: Run SSH command
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Run SSH command
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
+              cd /root/apk-reproduce && \
+              ./ci_cd.sh ${{ github.event.pull_request.base.ref }}
+            else
+              echo "PR is not merged into '${{ github.event.pull_request.base.ref }}'. Workflow will not run."
+              exit 1
+            fi
