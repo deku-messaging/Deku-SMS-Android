@@ -152,7 +152,7 @@ release-cd: requirements.txt bump_version info docker-build-aab clean
 	@python3 -m venv venv
 	@( \
 		. venv/bin/activate; \
-		pip3 install -r requirements.txt \
+		pip3 install -r requirements.txt; \
 		python3 release.py \
 			--version_code ${tagVersion} \
 			--version_name ${label} \
