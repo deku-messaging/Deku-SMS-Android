@@ -1,15 +1,16 @@
 name: Run SSH command
+
 on:
-  push:
-    branches:
-      - staging
+  workflow_dispatch:
+  pull_request:
+    types:
+      - closed
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Extract branch name
-        id: extract-branch
-        run: echo "::set-output name=branch::$(echo $GITHUB_REF | awk -F/ '{print $3}')"
       - name: Run SSH command
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -18,7 +19,10 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /root/apk-reproduce/Deku-SMS-Android && \
-            git checkout ${{ steps.extract-branch.outputs.branch }} && \
-            git pull origin ${{ steps.extract-branch.outputs.branch }} && \
-            make release-cd
+            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
+              cd /root/apk-reproduce && \
+              ./ci_cd.sh ${{ github.event.pull_request.base.ref }}
+            else
+              echo "PR is not merged into '${{ github.event.pull_request.base.ref }}'. Workflow will not run."
+              exit 1
+            fi
