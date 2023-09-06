@@ -21,6 +21,7 @@ APP_2=${label}_1.apk
 CONTAINER_NAME=deku_sms_container_${label}
 CONTAINER_NAME_1=deku_sms_container_${label}_1
 CONTAINER_NAME_BUNDLE=deku_sms_container_${label}_bundle
+CONTAINER_NAME_COMMIT_CHECK=$(commit)_commit_check
 
 minSdk=24
 
@@ -29,10 +30,12 @@ SIGNING_KEY_FILENAME = app/keys/app-release-key.jks
 RELEASE_PROPERTIES_FILENAME = release.properties
 BUMP_VERSION_PYTHON_FILENAME = bump_version.py
 RELEASE_VERSION_PYTHON_FILENAME = release.py
+KEYSTORE_PASSWD = ks.passwd
 
 github_url=https://api.github.com/repos/deku-messaging/Deku-SMS-Android/releases
 
 docker_apk_image=deku_sms_apk_image
+docker_apk_image_commit_check=docker_apk_image_commit_check
 docker_app_image=deku_sms_app_image
 
 config:
@@ -65,11 +68,31 @@ check:
 		echo "+ [NOT FOUND] ${RELEASE_VERSION_PYTHON_FILENAME}"; \
 		echo ">> This file releases the build on the various distribution outlets"; \
 	fi
+	@if [ ! -f ${KEYSTORE_PASSWD} ]; then \
+		echo "+ [NOT FOUND] ${KEYSTORE_PASSWD}"; \
+		echo ">> This file contains the password for the keystore"; \
+	fi
 
 info: check
 	@echo "- Branch name: ${branch}"
 	@echo "- Track name: ${track}"
 	@echo "- Release label: ${label}"
+
+_commit-check:
+	@echo "commit url: $(commit_url)"
+	@echo "commit: $(commit)"
+	@echo "release url: $(release_url)"
+	@cd commit-checks && \
+		docker build -t ${docker_apk_image_commit_check} \
+		--build-arg COMMIT=$(commit) \
+		--build-arg COMMIT_URL=$(commit_url) \
+		--build-arg RELEASE_URL=$(release_url) . && \
+		docker run --name ${CONTAINER_NAME_COMMIT_CHECK} \
+		-e PASS=$(pass) ${docker_apk_image_commit_check}
+
+commit-check: _commit-check clean
+	@echo "Done"
+
 
 check-diffoscope: ks.passwd
 	@echo "Building apk output: ${APP_1}"
@@ -137,6 +160,11 @@ clean:
 		    docker rm $$containers; \
 		fi
 	@containers=$$(docker ps -a --filter "ancestor=$(docker_app_image)" --format "{{.ID}}"); \
+		if [ -n "$$containers" ]; then \
+		    docker stop $$containers; \
+		    docker rm $$containers; \
+		fi
+	@containers=$$(docker ps -a --filter "ancestor=$(docker_apk_image_commit_check)" --format "{{.ID}}"); \
 		if [ -n "$$containers" ]; then \
 		    docker stop $$containers; \
 		    docker rm $$containers; \

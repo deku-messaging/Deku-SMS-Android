@@ -1,0 +1,3 @@
+[MESSAGES CONTROL]
+confidence=HIGH,INFERENCE
+disable=invalid-name,missing-docstring,no-member,use-dict-literal,no-else-return,no-else-raise

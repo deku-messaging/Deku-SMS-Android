@@ -1,0 +1,9 @@
+filename='META-INF/' compresslevel=9|6|4|1
+filename='META-INF/MANIFEST.MF' compresslevel=9|6|4|1
+filename='AndroidManifest.xml' compresslevel=9|6
+filename='classes.dex' compresslevel=None
+filename='temp.txt' compresslevel=9|6|4|1
+filename='lib/armeabi/fake.so' compresslevel=None
+filename='resources.arsc' compresslevel=None
+filename='temp2.txt' compresslevel=9|6|4|1
+filename='LICENSE.GPLv3' compresslevel=9
