@@ -1,4 +1,4 @@
-pass=$$(cat ks.passwd)
+pass=$$(cat $(jks_pass))
 branch_name=$$(git symbolic-ref HEAD)
 
 branch=$$(git symbolic-ref HEAD | cut -d "/" -f 3)
@@ -82,6 +82,12 @@ _commit-check:
 	@echo "commit url: $(commit_url)"
 	@echo "commit: $(commit)"
 	@echo "release url: $(release_url)"
+	@echo "pass: $(jks_pass)"
+	@echo "jks: $(jks)"
+	@cp $(jks) commit-checks/
+	@if [ -f $(ks_properties) ]; then \
+		cp $(ks_properties) commit-checks/ ; \
+	fi
 	@cd commit-checks && \
 		docker build -t ${docker_apk_image_commit_check} \
 		--build-arg COMMIT=$(commit) \

@@ -11,6 +11,7 @@ make \
 git
 
 WORKDIR /android
+COPY . .
 
 ENV ANDROID_HOME "/usr/lib/android-sdk/"
 ENV PATH "${PATH}:${ANDROID_HOME}tools/:${ANDROID_HOME}platform-tools/"
@@ -24,7 +25,12 @@ ARG RELEASE_URL=""
 
 RUN wget -O app.apk $RELEASE_URL
 RUN git clone $COMMIT_URL app
-RUN cd app && git checkout $COMMIT && make
+RUN cd app && \
+	git checkout $COMMIT && \
+	make && \
+	git submodule update --init --recursive
+RUN cp *.jks app/app/keys/
+RUN cp *.properties app/
 
 CMD cd app && \
 ./gradlew assembleRelease && \
