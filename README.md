@@ -68,13 +68,20 @@ The app sends a callback to your SMS Gateways once the requested message [status
 Getting the project into Android-studio would allow for an easy build.
 
 ## <a name="reproducible_builds"></a> Reproducible builds notes
-- Create a file called `ks.passwd` at the root of the project.\
-This file contains the keystore password for signing the .jks (keystore) file used for signing the apks.
-- Copy your keystore file to `apps/keys/app-release-key.jks`.
+Check a build against any previous commits. Requires docker
+- `commit` = hash of commit being compared
+- `commit_url` = url of the repo from git (should have been called repo_url)
+- `release_url` = url of the github release to build against (or any place where the apk can be downloaded)
+- `jks` = path to signing key file
+- `jks_pass` = password for jks
 
-<b>Pending to do</b>
-- For reproducible builds, run `make release-docker`.\
-This handles building 2 instances of the project in Docker containers for isolation. The output apks are signed and compared using `diffoscope`.
-
+```bash
+make check-commits \
+commit= \
+commit_url= \
+release_url= \
+jks= \
+jks_pass=
+```
 
 - https://f-droid.org/docs/Reproducible_Builds/
