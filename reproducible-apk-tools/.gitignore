@@ -1,0 +1,10 @@
+__pycache__
+
+/build
+/dist
+/repro_apk.egg-info
+
+.coverage
+/htmlcov
+
+/.tmp

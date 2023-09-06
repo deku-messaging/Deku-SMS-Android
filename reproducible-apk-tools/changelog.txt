@@ -1,0 +1,29 @@
+v0.2.3
+
+• add zipinfo.py.
+• repro-apk cli: catch zipfile.BadZipFile.
+• update README & description.
+
+v0.2.2
+
+• add dump-axml.py.
+• inplace-fix: find zipalign via $ANDROID_HOME when not on $PATH.
+• inplace-fix: blocklist build-tools w/ broken zipalign.
+
+v0.2.1
+
+• add inplace-fix.py/repro-apk-inplace-fix (w/ --zipalign).
+• README: add gradle integration examples.
+
+v0.2.0
+
+• use basic argparse for non-click clis.
+• use proper typechecking.
+• _realign_zip_entry(): use extra field from LH, not CD.
+• sort-apk: add --reset-lh-extra.
+• add dump-arsc.py.
+• add fix-compresslevel.py & list-compresslevel.py.
+• add dump-baseline.py & sort-baseline.py.
+• add diff-zip-meta.py.
+• check actual compressed data [closes #8].
+• add proper tests [closes #1].

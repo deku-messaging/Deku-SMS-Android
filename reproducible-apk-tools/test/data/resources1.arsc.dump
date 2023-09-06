@@ -1,0 +1,15 @@
+Binary APK
+Package name=dev.obfusk.sokobang id=7f
+  type drawable id=01 entryCount=2
+    resource 0x7f010000 drawable/icon
+      () (file) res/drawable/icon.png type=PNG
+    resource 0x7f010001 drawable/presplash
+      () (file) res/drawable/presplash.jpg
+  type layout id=02 entryCount=1
+    resource 0x7f020000 layout/main
+      () (file) res/layout/main.xml type=XML
+  type string id=03 entryCount=2
+    resource 0x7f030000 string/app_name
+      () "Sokoban(g)"
+    resource 0x7f030001 string/private_version
+      () "a519b310bcfab08227888424a412e4b2e781e1da"
