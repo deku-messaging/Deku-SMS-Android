@@ -61,7 +61,7 @@ public class RMQConnectionService extends Service {
     public final static String RMQ_SUCCESS_BROADCAST_INTENT = "RMQ_SUCCESS_BROADCAST_INTENT";
     public final static String RMQ_STOP_BROADCAST_INTENT = "RMQ_STOP_BROADCAST_INTENT";
 
-    public final static String SMS_TYPE_STATUS = "STATUS";
+    public final static String SMS_TYPE_STATUS = "SMS_TYPE_STATUS";
     public final static String SMS_STATUS_SENT = "SENT";
     public final static String SMS_STATUS_DELIVERED = "DELIVERED";
     public final static String SMS_STATUS_FAILED = "FAILED";
@@ -179,58 +179,60 @@ public class RMQConnectionService extends Service {
 
                 if (intent.hasExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)) {
                     long messageId = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
-                    if (intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)
-                            .equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT) &&
-                            intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
 
-                        String globalMessageId = intent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY);
+                    if(intent.hasExtra(RMQConnection.MESSAGE_SID)) {
+                        String broadcastState = intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE);
 
-                        Map<Long, Channel> deliveryChannel = channelList.get(globalMessageId);
-                        final Long deliveryTag = deliveryChannel.keySet().iterator().next();
-                        Channel channel = deliveryChannel.get(deliveryTag);
-                        if (channel != null && channel.isOpen()) {
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        Log.d(getClass().getName(), "Sending back Delivery global tag: " + deliveryTag);
-                                        channel.basicAck(deliveryTag, false);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
+                        if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
+                                || broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.DELIVERED_BROADCAST_INTENT) ) {
+                            String messageSid = intent.getStringExtra(RMQConnection.MESSAGE_SID);
+                            Map<Long, Channel> deliveryChannel = channelList.get(messageSid);
+                            final Long deliveryTag = deliveryChannel.keySet().iterator().next();
+                            Channel channel = deliveryChannel.get(deliveryTag);
+
+                            if (channel != null && channel.isOpen()) {
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            channel.basicAck(deliveryTag, false);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                        smsStatusReport.sid = messageSid;
+                                        String status = broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
+                                                ?  SMS_STATUS_SENT : SMS_STATUS_DELIVERED;
+                                        smsStatusReport.status = status;
+
+                                        RouterHandler.createWorkForMessage(getApplicationContext(),
+                                                smsStatusReport, messageId, false);
                                     }
-
-                                    smsStatusReport.sid = globalMessageId;
-                                    smsStatusReport.status = SMS_STATUS_SENT;
-
-                                    RouterHandler.createWorkForMessage(getApplicationContext(),
-                                            smsStatusReport, messageId, false);
-                                }
-                            }).start();
+                                }).start();
+                            }
                         }
-                    } else if (intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)
-                            .equals(IncomingTextSMSReplyActionBroadcastReceiver.FAILED_BROADCAST_INTENT) &&
-                            intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) {
+                        else if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.FAILED_BROADCAST_INTENT)) {
+                            String messageSid = intent.getStringExtra(RMQConnection.MESSAGE_SID);
+                            Map<Long, Channel> deliveryChannel = channelList.get(messageSid);
+                            Long deliveryTag = deliveryChannel.keySet().iterator().next();
+                            Channel channel = deliveryChannel.get(deliveryTag);
+                            if (channel != null && channel.isOpen()) {
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            channel.basicReject(deliveryTag, true);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                        smsStatusReport.sid = messageSid;
+                                        smsStatusReport.status = SMS_STATUS_FAILED;
 
-                        String globalMessageId = intent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY);
-                        Map<Long, Channel> deliveryChannel = channelList.get(globalMessageId);
-                        Long deliveryTag = deliveryChannel.keySet().iterator().next();
-                        Channel channel = deliveryChannel.get(deliveryTag);
-                        if (channel != null && channel.isOpen()) {
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        channel.basicReject(deliveryTag, true);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
+                                        RouterHandler.createWorkForMessage(getApplicationContext(),
+                                                smsStatusReport, messageId, false);
                                     }
-                                    smsStatusReport.sid = globalMessageId;
-                                    smsStatusReport.status = SMS_STATUS_FAILED;
-
-                                    RouterHandler.createWorkForMessage(getApplicationContext(),
-                                            smsStatusReport, messageId, false);
-                                }
-                            }).start();
+                                }).start();
+                            }
                         }
                     }
                 }
@@ -253,6 +255,7 @@ public class RMQConnectionService extends Service {
 
                     String msisdn = jsonObject.getString(RMQConnection.MESSAGE_MSISDN_KEY);
                     String globalMessageKey = jsonObject.getString(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY);
+                    String sid = jsonObject.getString(RMQConnection.MESSAGE_SID);
 
                     Log.d(getClass().getName(), "New deliver callback for global id: " + globalMessageKey);
 
@@ -261,10 +264,13 @@ public class RMQConnectionService extends Service {
 
                     Map<Long, Channel> deliveryChannelMap = new HashMap<>();
                     deliveryChannelMap.put(delivery.getEnvelope().getDeliveryTag(), channel);
-                    channelList.put(globalMessageKey, deliveryChannelMap);
+//                    channelList.put(globalMessageKey, deliveryChannelMap);
+                    channelList.put(sid, deliveryChannelMap);
 
+//                    SMSHandler.registerPendingServerMessage(getApplicationContext(), msisdn, body,
+//                            subscriptionId, globalMessageKey);
                     SMSHandler.registerPendingServerMessage(getApplicationContext(), msisdn, body,
-                            subscriptionId, globalMessageKey);
+                            subscriptionId, sid);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     channel.basicReject(delivery.getEnvelope().getDeliveryTag(), false);

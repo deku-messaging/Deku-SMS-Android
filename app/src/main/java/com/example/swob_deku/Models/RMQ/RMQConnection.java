@@ -20,6 +20,7 @@ public class RMQConnection {
     public static final String MESSAGE_BODY_KEY = "text";
     public static final String MESSAGE_MSISDN_KEY = "to";
     public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "id";
+    public static final String MESSAGE_SID = "sid";
 
     private String queueName, queueName2;
 
