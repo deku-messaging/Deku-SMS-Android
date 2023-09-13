@@ -67,8 +67,8 @@ public class RouterHandler {
     }
 
     public static void createWorkForMessage(Context context,
-                                            RMQConnectionService.SmsForwardInterface jsonObject, long messageId,
-                                            boolean isBase64) {
+                                            RMQConnectionService.SmsForwardInterface jsonObject,
+                                            long messageId, boolean isBase64) {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setPrettyPrinting().serializeNulls();
         Gson gson = gsonBuilder.create();

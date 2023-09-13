@@ -20,6 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 
 import com.example.swob_deku.Models.Contacts.Contacts;
+import com.example.swob_deku.Models.RMQ.RMQConnectionService;
 import com.example.swob_deku.Models.Security.SecurityAES;
 import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
@@ -37,14 +38,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SMS {
+public class SMS implements RMQConnectionService.SmsForwardInterface {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1
 
     public String body;
     public String address;
     public String threadId;
     public String date;
-    int type;
+    public int type;
     public String errorCode;
     public int statusCode;
     public String id;
@@ -93,7 +94,6 @@ public class SMS {
     public void setType(int type) {
         this.type = type;
     }
-
 
     public String getErrorCode() {
         return errorCode;
@@ -236,6 +236,24 @@ public class SMS {
             return oldItem.equals(newItem);
         }
     };
+
+    public String tag;
+    @Override
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public String text;
+    @Override
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public String MSISDN;
+    @Override
+    public void setMsisdn(String MSISDN) {
+        this.MSISDN = MSISDN;
+    }
 
     public static class SMSMetaEntity {
         public static final String THREAD_ID = "THREAD_ID";

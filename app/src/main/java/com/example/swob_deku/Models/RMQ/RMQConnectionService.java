@@ -79,9 +79,9 @@ public class RMQConnectionService extends Service {
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
     public interface SmsForwardInterface {
-        public String tag = new String();
-
-        public abstract void setTag(String tag);
+        void setTag(String tag);
+        void setText(String text);
+        void setMsisdn(String msisdn);
     }
 
     @Override
@@ -165,6 +165,14 @@ public class RMQConnectionService extends Service {
        @Override
        public void setTag(String tag) {
            this.tag = tag;
+       }
+
+       @Override
+       public void setText(String text) {
+       }
+
+       @Override
+       public void setMsisdn(String msisdn) {
        }
    }
 
