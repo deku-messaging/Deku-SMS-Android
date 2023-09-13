@@ -19,7 +19,7 @@ versionProperties.load(new FileInputStream(versionsPropertiesFile))
 def minSdkVersionFromManifest = project.properties['minSdkVersion']
 
 android {
-    compileSdk 33
+    compileSdk 34
     namespace 'com.example.swob_deku'
 
     def nightlyVersion = Integer.parseInt(versionProperties['nightlyVersion'])
@@ -53,7 +53,7 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
-*/
+    */
 
     buildTypes {
         release {
@@ -120,7 +120,7 @@ android {
 }
 
 dependencies {
-    def paging_version = "3.2.0-beta01"
+    def paging_version = "3.2.1"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
@@ -133,8 +133,8 @@ dependencies {
     implementation "androidx.work:work-runtime:2.8.1"
     implementation "androidx.work:work-rxjava2:2.8.1"
     // optional - GCMNetworkManager support
-    implementation 'androidx.core:core-ktx:1.10.1'
-    implementation 'androidx.paging:paging-guava:3.2.0'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.paging:paging-guava:3.2.1'
     // optional - Multiprocess support
     implementation "androidx.work:work-multiprocess:2.8.1"
 
@@ -143,14 +143,14 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.android.volley:volley:1.2.1'
-    implementation "androidx.core:core:1.10.1"
+    implementation "androidx.core:core:1.12.0"
 
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'commons-codec:commons-codec:1.15'
     implementation "io.getstream:avatarview-coil:1.0.7"
 
-    implementation "androidx.room:room-runtime:2.6.0-alpha01"
-    annotationProcessor "androidx.room:room-compiler:2.6.0-alpha01"
+    implementation "androidx.room:room-runtime:2.6.0-beta01"
+    annotationProcessor "androidx.room:room-compiler:2.6.0-beta01"
 
 
     implementation "androidx.paging:paging-runtime:$paging_version"
@@ -165,7 +165,7 @@ dependencies {
     implementation "androidx.paging:paging-guava:$paging_version"
 
     // optional - Jetpack Compose integration
-    implementation "androidx.paging:paging-compose:3.2.0-beta01"
+    implementation "androidx.paging:paging-compose:3.2.1"
 
 //    implementation "org.bouncycastle:bcpkix-jdk15on:1.68"
     implementation "androidx.security:security-crypto:1.1.0-alpha06"
@@ -184,4 +184,7 @@ dependencies {
     implementation 'org.java-websocket:Java-WebSocket:1.5.1'
 
     implementation 'com.google.code.gson:gson:2.10.1'
+
+    implementation 'com.budiyev.android:code-scanner:2.1.0'
 }
+

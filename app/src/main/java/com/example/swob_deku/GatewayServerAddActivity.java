@@ -69,7 +69,7 @@ public class GatewayServerAddActivity extends AppCompatActivity {
 
         if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_FORMAT)) {
             String format = getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_FORMAT);
-            if(format.equals(GatewayServer.BASE64_FORMAT))
+            if(format != null && format.equals(GatewayServer.BASE64_FORMAT))
                 base64.setChecked(true);
         }
 

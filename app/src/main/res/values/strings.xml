@@ -32,6 +32,7 @@
     <string name="new_gateway_client_port">Port: <i>default 5672</i></string>
     <string name="homepage_menu_archived">Archived</string>
     <string name="homepage_menu_routed">Routing history</string>
+    <string name="homepage_menu_web">Linked devices</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">SMS routing Gateways</string>

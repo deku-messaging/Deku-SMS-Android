@@ -72,7 +72,7 @@ public class GatewayServer {
     }
 
     @ColumnInfo(name="format")
-    public String format;
+    public String format = ALL_FORMAT;
 
     @ColumnInfo(name="date")
     public Long date;

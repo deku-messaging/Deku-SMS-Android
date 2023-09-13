@@ -87,7 +87,8 @@ public class RouterHandler {
                 List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
 
                 for (GatewayServer gatewayServer : gatewayServerList) {
-                    if(gatewayServer.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
+                    if(gatewayServer.getFormat() != null &&
+                            gatewayServer.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
                         continue;
 
                     jsonObject.setTag(gatewayServer.getTag());

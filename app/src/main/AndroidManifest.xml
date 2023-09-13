@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-sdk android:minSdkVersion="@{minSdk}" />
+
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_SMS" />
@@ -12,9 +14,16 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
-    <uses-sdk android:minSdkVersion="@{minSdk}" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:icon="@mipmap/ic_launcher_round"
@@ -22,85 +31,95 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.main"
-        android:usesCleartextTraffic="false">
+        android:networkSecurityConfig="@xml/network_security_config">
+
         <activity
-            android:name=".GatewayClientCustomizationActivity"
+            android:name="com.example.swob_deku.WebActivity"
+            android:exported="false">
+            <meta-data
+                android:name="com.google.android.gms.vision.DEPENDENCIES"
+                android:value="barcode" />
+        </activity>
+        <activity
+            android:name="com.example.swob_deku.GatewayClientCustomizationActivity"
             android:exported="false"
-            android:parentActivityName=".GatewayClientListingActivity" />
+            android:parentActivityName="com.example.swob_deku.GatewayClientListingActivity" />
         <activity
-            android:name=".GatewayClientAddActivity"
+            android:name="com.example.swob_deku.GatewayClientAddActivity"
             android:exported="false"
-            android:parentActivityName=".GatewayClientListingActivity" />
+            android:parentActivityName="com.example.swob_deku.GatewayClientListingActivity" />
         <activity
-            android:name=".GatewayClientListingActivity"
+            android:name="com.example.swob_deku.GatewayClientListingActivity"
             android:exported="false"
-            android:parentActivityName=".SettingsActivity" />
+            android:parentActivityName="com.example.swob_deku.SettingsActivity" />
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.example.swob_deku.SettingsActivity"
             android:exported="false"
-            android:parentActivityName=".MessagesThreadsActivity" />
+            android:parentActivityName="com.example.swob_deku.MessagesThreadsActivity" />
         <activity
-            android:name=".ComposeNewMessageActivity"
+            android:name="com.example.swob_deku.ComposeNewMessageActivity"
             android:exported="true"
-            android:parentActivityName=".MessagesThreadsActivity">
+            android:parentActivityName="com.example.swob_deku.MessagesThreadsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".ArchivedMessagesActivity"
+            android:name="com.example.swob_deku.ArchivedMessagesActivity"
             android:exported="false"
-            android:parentActivityName=".MessagesThreadsActivity" />
+            android:parentActivityName="com.example.swob_deku.MessagesThreadsActivity" />
         <activity
-            android:name=".ImageViewActivity"
+            android:name="com.example.swob_deku.ImageViewActivity"
             android:exported="false"
-            android:parentActivityName=".SMSSendActivity" />
+            android:parentActivityName="com.example.swob_deku.SMSSendActivity" />
         <activity
-            android:name=".RespondViaMessageActivity"
+            android:name="com.example.swob_deku.RespondViaMessageActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".GatewayServerListingActivity"
+            android:name="com.example.swob_deku.GatewayServerListingActivity"
             android:exported="false"
-            android:parentActivityName=".SettingsActivity">
+            android:parentActivityName="com.example.swob_deku.SettingsActivity">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".GatewayServerAddActivity"
+            android:name="com.example.swob_deku.GatewayServerAddActivity"
             android:exported="false"
-            android:parentActivityName=".GatewayServerListingActivity" />
+            android:parentActivityName="com.example.swob_deku.GatewayServerListingActivity" />
         <activity
-            android:name=".RouterActivity"
+            android:name="com.example.swob_deku.RouterActivity"
             android:exported="false"
-            android:parentActivityName=".DefaultCheckActivity" />
+            android:parentActivityName="com.example.swob_deku.DefaultCheckActivity" />
         <activity
-            android:name=".SearchMessagesThreadsActivity"
+            android:name="com.example.swob_deku.SearchMessagesThreadsActivity"
             android:exported="false"
-            android:parentActivityName=".DefaultCheckActivity" >
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.SEARCH"/>-->
-<!--            </intent-filter>-->
-<!--            <meta-data android:name="android.app.searchable"-->
-<!--                android:resource="@xml/searchable"/>-->
-<!--            <meta-data android:name="android.app.default_searchable"-->
-<!--                android:value=".SearchMessagesThreadsActivity"/>-->
+            android:parentActivityName="com.example.swob_deku.DefaultCheckActivity">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.SEARCH"/> -->
+            <!-- </intent-filter> -->
+            <!-- <meta-data android:name="android.app.searchable" -->
+            <!-- android:resource="@xml/searchable"/> -->
+            <!-- <meta-data android:name="android.app.default_searchable" -->
+            <!-- android:value=".SearchMessagesThreadsActivity"/> -->
         </activity>
         <activity
-            android:name=".MessagesThreadsActivity"
+            android:name="com.example.swob_deku.MessagesThreadsActivity"
             android:exported="false" />
         <activity
-            android:name=".SMSSendActivity"
+            android:name="com.example.swob_deku.SMSSendActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:documentLaunchMode="always"
-            android:parentActivityName=".MessagesThreadsActivity"
+            android:parentActivityName="com.example.swob_deku.MessagesThreadsActivity"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
@@ -117,7 +136,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".DefaultCheckActivity"
+            android:name="com.example.swob_deku.DefaultCheckActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -127,7 +146,7 @@
         </activity>
 
         <receiver
-            android:name=".BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
+            android:name="com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -139,7 +158,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSBroadcastReceiver"
+            android:name="com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -150,7 +169,7 @@
             </intent-filter>
         </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
         <receiver
-            android:name=".BroadcastReceivers.MMSReceiverBroadcastReceiver"
+            android:name="com.example.swob_deku.BroadcastReceivers.MMSReceiverBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter>
@@ -160,7 +179,7 @@
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
         <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
+            android:name="com.example.swob_deku.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -171,25 +190,25 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
+            android:name="com.example.swob_deku.BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST"/>
+                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
+            android:name="com.example.swob_deku.BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST"/>
-                <action android:name="com.afkanerd.deku.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST"/>
+                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST" />
+                <action android:name="com.afkanerd.deku.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST" />
             </intent-filter>
         </receiver>
 
         <service
-            android:name=".RespondViaMessageActivity"
+            android:name="com.example.swob_deku.RespondViaMessageActivity"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
             <intent-filter>
@@ -203,14 +222,12 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-
         <service
-            android:name=".Models.RMQ.RMQConnectionService"
+            android:name="com.example.swob_deku.Models.RMQ.RMQConnectionService"
             android:enabled="true"
             android:exported="false" />
-
         <service
-            android:name=".Models.Web.WebWebsocketsService"
+            android:name="com.example.swob_deku.Models.Web.WebWebsocketsService"
             android:enabled="true"
             android:exported="false" />
     </application>
