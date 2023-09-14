@@ -66,7 +66,7 @@ public class RMQConnectionService extends Service {
     public final static String SMS_STATUS_DELIVERED = "DELIVERED";
     public final static String SMS_STATUS_FAILED = "FAILED";
 
-    private HashMap<Integer, RMQMonitor> connectionList = new HashMap<>();
+    private HashMap<Long, RMQMonitor> connectionList = new HashMap<>();
 
     private ExecutorService consumerExecutorService;
 
@@ -117,20 +117,20 @@ public class RMQConnectionService extends Service {
            @Override
            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                Log.d(getClass().getName(), "Shared preferences changed: " + key);
-               if(connectionList.containsKey(Integer.parseInt(key))) {
-                   if(connectionList.get(Integer.parseInt(key)) != null &&
+               if(connectionList.containsKey(Long.parseLong(key))) {
+                   if(connectionList.get(Long.parseLong(key)) != null &&
                            !sharedPreferences.contains(key) ) {
                        new Thread(new Runnable() {
                            @Override
                            public void run() {
                                try {
-                                   stop(Integer.parseInt(key));
+                                   stop(Long.parseLong(key));
                                } catch (Exception e) {
                                    e.printStackTrace();
                                }
                            }
                        }).start();
-                   } else if(connectionList.get(Integer.parseInt(key)) != null &&
+                   } else if(connectionList.get(Long.parseLong(key)) != null &&
                            sharedPreferences.contains(key) ){
                        int[] states = getGatewayClientNumbers();
                        createForegroundNotification(states[0], states[1]);
@@ -296,9 +296,9 @@ public class RMQConnectionService extends Service {
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
 
         for (String gatewayClientIds : storedGatewayClients.keySet()) {
-            if(!connectionList.containsKey(Integer.parseInt(gatewayClientIds))) {
+            if(!connectionList.containsKey(Long.parseLong(gatewayClientIds))) {
                 try {
-                    GatewayClient gatewayClient = gatewayClientHandler.fetch(Integer.parseInt(gatewayClientIds));
+                    GatewayClient gatewayClient = gatewayClientHandler.fetch(Long.parseLong(gatewayClientIds));
                     connectGatewayClient(gatewayClient);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -393,7 +393,7 @@ public class RMQConnectionService extends Service {
         thread.start();
     }
 
-    private void stop(int gatewayClientId) {
+    private void stop(long gatewayClientId) {
         try {
             if(connectionList.containsKey(gatewayClientId)) {
                 connectionList.remove(gatewayClientId)

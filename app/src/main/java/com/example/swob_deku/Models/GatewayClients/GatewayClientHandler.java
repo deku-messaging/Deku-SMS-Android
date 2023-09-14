@@ -3,6 +3,7 @@ package com.example.swob_deku.Models.GatewayClients;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_FRIENDLY_NAME;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_HOST;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
+import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PASSWORD;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_PORT;
 import static com.example.swob_deku.GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME;
@@ -12,6 +13,7 @@ import static com.example.swob_deku.MessagesThreadsActivity.UNIQUE_WORK_MANAGER_
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.telephony.SubscriptionInfo;
 
 import androidx.room.Room;
 import androidx.work.BackoffPolicy;
@@ -21,11 +23,13 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.GatewayClientListingActivity;
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.Migrations;
 import com.example.swob_deku.Models.RMQ.RMQConnectionService;
 import com.example.swob_deku.Models.RMQ.RMQWorkManager;
+import com.example.swob_deku.Models.SIMHandler;
 import com.example.swob_deku.R;
 
 import java.util.ArrayList;
@@ -46,17 +50,20 @@ public class GatewayClientHandler {
                 .build();
     }
 
-    public void add(GatewayClient gatewayClient) throws InterruptedException {
+    public long add(GatewayClient gatewayClient) throws InterruptedException {
         gatewayClient.setDate(System.currentTimeMillis());
+        final long[] id = {-1};
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 GatewayClientDAO gatewayClientDAO = databaseConnector.gatewayClientDAO();
-                gatewayClientDAO.insert(gatewayClient);
+                id[0] = gatewayClientDAO.insert(gatewayClient);
             }
         });
         thread.start();
         thread.join();
+
+        return id[0];
     }
 
     public void delete(GatewayClient gatewayClient) throws InterruptedException {
@@ -88,7 +95,7 @@ public class GatewayClientHandler {
         thread.join();
     }
 
-    public GatewayClient fetch(int id) throws InterruptedException {
+    public GatewayClient fetch(long id) throws InterruptedException {
         final GatewayClient[] gatewayClient = {new GatewayClient()};
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -169,7 +176,7 @@ public class GatewayClientHandler {
     }
 
     public static String getConnectionStatus(Context context, String gatewayClientId) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS,
+        SharedPreferences sharedPreferences = context.getSharedPreferences(GATEWAY_CLIENT_LISTENERS,
                 Context.MODE_PRIVATE);
 
         if(sharedPreferences.contains(gatewayClientId)) {
@@ -181,4 +188,37 @@ public class GatewayClientHandler {
         }
         return context.getString(R.string.gateway_client_customization_deactivated);
     }
+
+    public static List<String> getPublisherDetails(Context context, String projectName) {
+        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(context);
+
+        final String operatorCountry = Helpers.getUserCountry(context);
+
+        List<String> operatorDetails = new ArrayList<>();
+        for(int i=0;i<simcards.size(); ++i) {
+            String mcc = String.valueOf(simcards.get(i).getMcc());
+            int _mnc = simcards.get(i).getMnc();
+            String mnc = _mnc < 10 ? "0" + _mnc : String.valueOf(_mnc);
+            String carrierId = mcc + mnc;
+
+            String publisherName = projectName + "." + operatorCountry + "." + carrierId;
+            operatorDetails.add(publisherName);
+        }
+
+        return operatorDetails;
+    }
+
+    public static void setListening(Context context, GatewayClient gatewayClient) throws InterruptedException {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(GATEWAY_CLIENT_LISTENERS,
+                Context.MODE_PRIVATE);
+        sharedPreferences.edit()
+                .putBoolean(String.valueOf(gatewayClient.getId()), false)
+                .apply();
+    }
+
+    public static void startListening(Context context, GatewayClient gatewayClient) throws InterruptedException {
+        GatewayClientHandler.setListening(context, gatewayClient);
+        new GatewayClientHandler(context).startServices();
+    }
+
 }
