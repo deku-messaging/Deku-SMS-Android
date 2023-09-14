@@ -126,7 +126,10 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                long finalMessageId = messageId;
+
+                final long finalMessageId = messageId;
+                final String messageFinal = message;
+
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -134,18 +137,23 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                                 finalAddress, finalMessageId);
                     }
                 }).start();
-                final String messageFinal = message;
 
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            SmsForward smsForward = new SmsForward();
-                            smsForward.MSISDN = finalAddress;
-                            smsForward.text = messageFinal;
+                            Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(finalMessageId));
+                            if(cursor != null && cursor.moveToFirst()) {
+//                                SmsForward smsForward = new SmsForward(cursor);
+//                                smsForward.MSISDN = finalAddress;
+//                                smsForward.text = messageFinal;
+                                SMS sms = new SMS(cursor);
+                                sms.setMsisdn(finalAddress);
+                                sms.setText(messageFinal);
 
-                            RouterHandler.createWorkForMessage(context, smsForward, finalMessageId,
-                                    Helpers.isBase64Encoded(messageFinal));
+                                RouterHandler.createWorkForMessage(context, sms, finalMessageId,
+                                        Helpers.isBase64Encoded(messageFinal));
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -154,18 +162,4 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             }
         }
     }
-
-    class SmsForward implements RMQConnectionService.SmsForwardInterface {
-        public String type = SMS_TYPE_INCOMING;
-        public String text;
-        public String MSISDN;
-        public String tag;
-
-        @Override
-        public void setTag(String tag) {
-            this.tag = tag;
-        }
-    }
-
-
 }

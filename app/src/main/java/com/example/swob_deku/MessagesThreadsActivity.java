@@ -2,17 +2,14 @@ package com.example.swob_deku;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.ViewModel;
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -121,6 +118,11 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
                             routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                             startActivity(routingIntent);
                         }
+                        else if (item.getItemId() == R.id.messages_threads_menu_item_web) {
+                            Intent webIntent = new Intent(getApplicationContext(), LinkedDevicesActivity.class);
+                            webIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(webIntent);
+                        }
                         else if (item.getItemId() == R.id.messages_threads_settings) {
                             Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
                             settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -135,7 +137,6 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
             }
         });
     }
-
 
     private void showAlert(Runnable runnable) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

@@ -276,7 +276,7 @@ public class SMSHandler {
             BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
 
     public static String registerPendingServerMessage(Context context, String destinationAddress,
-                                                String text, int subscriptionId, String globalMessageKey) {
+                                                String text, int subscriptionId, String messageSid) {
         long messageId = Helpers.generateRandomNumber();
 
         ContentValues contentValues = new ContentValues();
@@ -310,7 +310,8 @@ public class SMSHandler {
 
                 broadcastIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
                 broadcastIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
-                broadcastIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageKey);
+//                broadcastIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageKey);
+                broadcastIntent.putExtra(RMQConnection.MESSAGE_SID, messageSid);
                 broadcastIntent.setAction(SMS_NEW_TEXT_REGISTERED_PENDING_BROADCAST);
 
                 context.sendBroadcast(broadcastIntent);

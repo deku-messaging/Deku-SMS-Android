@@ -30,7 +30,6 @@ RUN cd app && \
 	make && \
 	git submodule update --init --recursive
 RUN cp *.jks app/app/keys/
-RUN cp *.properties app/
 
 CMD cd app && \
 ./gradlew assembleRelease && \

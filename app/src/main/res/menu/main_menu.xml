@@ -12,6 +12,11 @@
 
     <item
         android:theme="@style/Theme.main"
+        android:id="@+id/messages_threads_menu_item_web"
+        android:title="@string/homepage_menu_web" />
+
+    <item
+        android:theme="@style/Theme.main"
         android:id="@+id/messages_threads_settings"
         android:title="@string/settings_title" />
 </menu>

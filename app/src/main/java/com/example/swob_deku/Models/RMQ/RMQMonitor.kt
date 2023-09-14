@@ -6,7 +6,7 @@ import android.util.Log
 import com.example.swob_deku.GatewayClientListingActivity
 import kotlin.concurrent.thread
 
-class RMQMonitor(val context: Context, private val gatewayClientId: Int,
+class RMQMonitor(val context: Context, private val gatewayClientId: Long,
                  private val rmqConnection: RMQConnection) {
 
     private val sharedPreferences : SharedPreferences = context.getSharedPreferences(

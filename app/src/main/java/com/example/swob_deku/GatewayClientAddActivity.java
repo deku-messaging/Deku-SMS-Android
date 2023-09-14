@@ -52,7 +52,7 @@ public class GatewayClientAddActivity extends AppCompatActivity {
     }
 
     public void editGatewayClient() throws InterruptedException {
-        int gatewayClientId = getIntent().getIntExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+        long gatewayClientId = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
 
         if(gatewayClientId != -1 ) {
             TextInputEditText url = findViewById(R.id.new_gateway_client_url_input);
@@ -64,6 +64,7 @@ public class GatewayClientAddActivity extends AppCompatActivity {
 
             GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
             GatewayClient gatewayClient = gatewayClientHandler.fetch(gatewayClientId);
+
             url.setText(gatewayClient.getHostUrl());
             username.setText(gatewayClient.getUsername());
             password.setText(gatewayClient.getPassword());

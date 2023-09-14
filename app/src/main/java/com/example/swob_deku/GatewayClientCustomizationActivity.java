@@ -98,7 +98,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
         gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
 
-        int gatewayId = getIntent().getIntExtra(GATEWAY_CLIENT_ID, -1);
+        long gatewayId = getIntent().getLongExtra(GATEWAY_CLIENT_ID, -1);
         gatewayClient = gatewayClientHandler.fetch(gatewayId);
 
         if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty())
@@ -114,28 +114,6 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
                 projectBinding2.setText(gatewayClient.getProjectBinding2());
         }
 
-        final String operatorCountry = Helpers.getUserCountry(getApplicationContext());
-
-        String operator1Name = "";
-        String operator2Name = "";
-
-        for(int i=0;i<simcards.size(); ++i) {
-            String mcc = String.valueOf(simcards.get(i).getMcc());
-            int _mnc = simcards.get(i).getMnc();
-            String mnc = _mnc < 10 ? "0" + _mnc : String.valueOf(_mnc);
-            String carrierId = mcc + mnc;
-
-            if (i == 0) {
-                operator1Name = carrierId;
-            }
-            else if (i == 1) {
-                operator2Name = carrierId;
-            }
-        }
-
-        final String operator1NameFinal = operator1Name;
-        final String operator2NameFinal = operator2Name;
-
         projectName.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -149,12 +127,13 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String bindingKey = s + "." + operatorCountry + "." + operator1NameFinal;
-                projectBinding.setText(bindingKey);
+                List<String> projectBindings = GatewayClientHandler.getPublisherDetails(getApplicationContext(),
+                        s.toString());
 
-                if(!operator2NameFinal.isEmpty()) {
-                    bindingKey = s + "." + operatorCountry + "." + operator2NameFinal;
-                    projectBinding2.setText(bindingKey);
+                projectBinding.setText(projectBindings.get(0));
+
+                if(projectBindings.size() > 1) {
+                    projectBinding2.setText(projectBindings.get(1));
                 }
             }
         });
@@ -221,7 +200,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
             case R.id.gateway_client_connect:
                 try {
-                    startListening();
+                    GatewayClientHandler.startListening(getApplicationContext(), gatewayClient);
                     return true;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -244,13 +223,6 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
 
         startActivity(intent);
-    }
-
-    public void startListening() throws InterruptedException {
-        sharedPreferences.edit()
-                .putBoolean(String.valueOf(gatewayClient.getId()), false)
-                .apply();
-        gatewayClientHandler.startServices();
     }
 
     public void stopListening() {

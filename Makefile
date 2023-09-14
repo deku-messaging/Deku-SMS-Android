@@ -46,6 +46,7 @@ download:
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/bump_version.py
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/release.py
 	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/version.properties
+	curl -OJL https://raw.githubusercontent.com/deku-messaging/Deku-SMS-Android/staging/track.py
 
 check:
 	@if [ ! -f ${VERSION_PROPERTIES_FILENAME} ]; then \
@@ -85,9 +86,6 @@ _commit-check:
 	@echo "pass: $(jks_pass)"
 	@echo "jks: $(jks)"
 	@cp $(jks) commit-checks/
-	@if [ -f $(ks_properties) ]; then \
-		cp $(ks_properties) commit-checks/ ; \
-	fi
 	@cd commit-checks && \
 		docker build -t ${docker_apk_image_commit_check} \
 		--build-arg COMMIT=$(commit) \

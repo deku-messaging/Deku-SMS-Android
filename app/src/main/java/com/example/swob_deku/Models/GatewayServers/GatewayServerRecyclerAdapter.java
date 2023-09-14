@@ -49,7 +49,8 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
         holder.url.setText(gatewayServer.getURL());
         holder.protocol.setText(gatewayServer.getProtocol());
 
-        String dataFormat = gatewayServer.getFormat().isEmpty() ? "All" : gatewayServer.getFormat();
+        String dataFormat = (gatewayServer.getFormat() == null || gatewayServer.getFormat().isEmpty())
+                ? "All" : gatewayServer.getFormat();
         holder.format.setText(dataFormat);
 
         String date = Helpers.formatDate(context, gatewayServer.getDate());
