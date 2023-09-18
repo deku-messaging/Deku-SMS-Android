@@ -61,7 +61,6 @@ class RelGooglePlaystore:
                 media_body=media_upload
             ).execute()
 
-        """
         bundle_version_code = bundle_response['versionCode']
 
         # Specify the version code for the draft release
@@ -92,7 +91,6 @@ class RelGooglePlaystore:
         commit_request.execute()
 
         logging.info("[Playstore] Changes committed and edit finalized.")
-        """
 
 
 class RelGithub:
