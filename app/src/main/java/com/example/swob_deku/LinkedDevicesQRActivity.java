@@ -21,7 +21,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-public class LinkedDevicesActivity extends AppCompatActivity {
+public class LinkedDevicesQRActivity extends AppCompatActivity {
 
     private CodeScanner codeScanner;
 

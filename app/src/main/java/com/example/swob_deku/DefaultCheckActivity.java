@@ -56,7 +56,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
 //    }
 
     public void clickPrivacyPolicy(View view) {
-        String url = "https://smswithoutborders.com/privacy-policy";
+        String url = getString(R.string.privacy_policy_url);
         Intent shareIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(shareIntent);
     }

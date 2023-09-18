@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Deku SMS</string>
+    <string name="privacy_policy_url">https://smswithoutborders.com/privacy-policy</string>
     <string name="incoming_messages_channel_name">Incoming Messages</string>
     <string name="running_gateway_clients_channel_name">Running Gateway Clients</string>
     <string name="foreground_service_failed_channel_name">Gateway clients auto-reconnect</string>
@@ -111,6 +112,7 @@
     <string name="sms_status_failed">failed, click to retry.</string>
     <string name="sms_sent_date_today">Today </string>
 
+    <string name="settings_about">About</string>
     <string name="settings_title">Settings</string>
     <string name="settings_security_category_title">Security</string>
     <string name="settings_security_category_end_to_end_encryption">Communication Encryption</string>
@@ -193,4 +195,21 @@
     <string name="message_threads_menu_delete">delete</string>
     <string name="message_threads_menu_cancel">cancel</string>
     <string name="messages_threads_menu_archive">archive</string>
+    <string name="title_activity_about">AboutActivity</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+
+    <string name="about_deku">About</string>
+    <string name="about_deku_motto">Open source SMS done right</string>
+
+    <string name="about_deku_github_titile">GitHub</string>
+    <string name="about_deku_github_description">Deku SMS remains free and open sourced. We believe in giving back to the community that has given us so much. A lot on this app is experimental, but with great experiments comes great findings. Please support us by starring the project on Github and sharing it with your friends.</string>
+    <string name="about_deku_github_btn">View on GitHub</string>
+    <string name="about_deku_github_url">https://github.com/deku-messaging/Deku-SMS-Android</string>
 </resources>
