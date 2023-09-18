@@ -18,6 +18,9 @@ public interface GatewayServerDAO {
     @Query("SELECT * FROM GatewayServer")
     List<GatewayServer> getAllList();
 
+    @Query("SELECT * FROM GatewayServer WHERE id=:id")
+    GatewayServer get(long id);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(GatewayServer gatewayServer);
 

@@ -345,7 +345,7 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
                 return formattedString;
 
             // Remove any non-digit characters except the plus sign at the beginning of the string
-            String strippedNumber = formattedString.replaceAll("[^0-9+]", "");
+            String strippedNumber = formattedString.replaceAll("[^0-9+;]", "");
             if(strippedNumber.length() > 6) {
                 // If the stripped number starts with a plus sign followed by one or more digits, return it as is
                 if (!strippedNumber.matches("^\\+\\d+")) {

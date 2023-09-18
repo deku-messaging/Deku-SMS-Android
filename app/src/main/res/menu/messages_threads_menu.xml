@@ -7,12 +7,12 @@
         <item
             android:id="@+id/threads_delete"
             android:icon="@drawable/round_delete_24"
-            android:title="delete"
+            android:title="@string/message_threads_menu_delete"
             app:showAsAction="always" />
         <item
             android:id="@+id/threads_archive"
             android:icon="@drawable/round_archive_24"
-            android:title="archive"
+            android:title="@string/messages_threads_menu_archive"
             app:showAsAction="always" />
     </group>
 

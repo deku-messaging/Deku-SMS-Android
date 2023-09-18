@@ -189,6 +189,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         final int absolutePosition = holder.getAbsoluteAdapterPosition();
         SMS sms = mDiffer.getCurrentList().get(position);
         holder.id = sms.getThreadId();
+        holder.messageId = Long.parseLong(sms.getId());
 
         String address = sms.getAddress();
 

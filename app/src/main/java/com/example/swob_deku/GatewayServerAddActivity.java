@@ -15,6 +15,7 @@ import android.widget.RadioGroup;
 import com.example.swob_deku.Models.GatewayServers.GatewayServer;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerHandler;
+import com.example.swob_deku.Models.Router.RouterHandler;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
@@ -154,7 +155,11 @@ public class GatewayServerAddActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.gateway_client_delete) {
             try {
+                long gatewayServerId = getIntent().getLongExtra(GatewayServer.GATEWAY_SERVER_ID, -1);
+                GatewayServer gatewayServer = gatewayServerHandler.get(gatewayServerId);
+
                 deleteGatewayServer();
+                RouterHandler.removeWorkForGatewayServers(getApplicationContext(), gatewayServer.getURL());
 
                 Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
                 gatewayServerListIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

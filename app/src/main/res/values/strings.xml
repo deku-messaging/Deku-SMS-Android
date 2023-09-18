@@ -190,4 +190,7 @@
 
     <string name="linked_devices_new_gateway_client_added">New Gateway Client Added!</string>
     <string name="linked_devices_new_gateway_server_added">New Gateway Server Added!</string>
+    <string name="message_threads_menu_delete">delete</string>
+    <string name="message_threads_menu_cancel">cancel</string>
+    <string name="messages_threads_menu_archive">archive</string>
 </resources>

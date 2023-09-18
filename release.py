@@ -6,7 +6,6 @@ import sys, os
 import logging
 import httplib2
 
-logging.basicConfig(level='DEBUG')
 
 class RelGooglePlaystore:
     def create_edit_for_draft_release(self, 
@@ -16,7 +15,7 @@ class RelGooglePlaystore:
                                       bundle_file,
                                       status='draft',
                                       track='internal', 
-                                      timeout_seconds=20, 
+                                      timeout_seconds=600, 
                                       changesNotSentForReview = True):
         """
         """
@@ -35,17 +34,22 @@ class RelGooglePlaystore:
                 credentials_file_path = line.split("=")[1].strip() 
             elif line.startswith('app_package_name'):
                 package_name = line.split("=")[1].strip() 
+        # Create an HTTP object with a timeout
+
+        http = httplib2.Http(timeout=timeout_seconds)
 
         credentials = service_account.Credentials.from_service_account_file(credentials_file_path)
-        service = build('androidpublisher', 'v3', credentials=credentials)
+        credentials.http = http
+
+        service = build(serviceName='androidpublisher', version='v3', 
+                        credentials=credentials,
+                        num_retries=5)
 
         # return service.edits().insert(editId=release_id, body=edit_body).execute()
         edit_request = service.edits().insert(packageName=package_name)
         edit_response = edit_request.execute()
         edit_id = edit_response['id']
 
-        # Create an HTTP object with a timeout
-        # http = httplib2.Http(timeout=timeout_seconds)
 
         # Create a media upload request
         media_upload = MediaFileUpload(bundle_file, 
@@ -57,6 +61,7 @@ class RelGooglePlaystore:
                 media_body=media_upload
             ).execute()
 
+        """
         bundle_version_code = bundle_response['versionCode']
 
         # Specify the version code for the draft release
@@ -87,6 +92,7 @@ class RelGooglePlaystore:
         commit_request.execute()
 
         logging.info("[Playstore] Changes committed and edit finalized.")
+        """
 
 
 class RelGithub:
@@ -173,19 +179,35 @@ if __name__ == "__main__":
     parser.add_argument("--app_apk_file", type=str, required=True, help="The app APK file")
     parser.add_argument("--status", type=str, required=True, help="The app release status")
     parser.add_argument("--github_url", type=str, required=True, help="The github repo URL")
+    parser.add_argument("--log_level", type=str, default='INFO', required=False, help="The level of the log")
+    parser.add_argument("--platform", type=str, default="all", required=False, help="Platform to be released on: \
+            playstore, github")
 
     args = parser.parse_args()
 
     rel_playstore = RelGooglePlaystore()
     thread_playstore = threading.Thread(target=rel_playstore.create_edit_for_draft_release, args=(
         args.version_code, args.version_name, args.description, args.app_bundle_file, args.status, args.track, True,))
-    thread_playstore.start()
 
     rel_github = RelGithub()
     thread_github = threading.Thread(target=rel_github.create_edit_for_draft_release, args=(
         args.version_code, args.version_name, args.description, args.branch, 
         args.status, args.github_url, args.app_apk_file,))
-    thread_github.start()
 
-    thread_playstore.join()
-    thread_github.join()
+    logging.basicConfig(level=args.log_level)
+
+    if args.platform == "all":
+        thread_playstore.start()
+        thread_github.start()
+
+        thread_playstore.join()
+        thread_github.join()
+
+    elif args.platform == "playstore":
+        thread_playstore.start()
+        thread_playstore.join()
+
+    elif args.platform == "github":
+        thread_github.start()
+        thread_github.join()
+

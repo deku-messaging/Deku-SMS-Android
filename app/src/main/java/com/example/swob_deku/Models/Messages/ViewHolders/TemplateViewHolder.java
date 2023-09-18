@@ -17,6 +17,7 @@ import io.getstream.avatarview.AvatarView;
 public class TemplateViewHolder extends RecyclerView.ViewHolder {
 
     public String id;
+    public long messageId;
     public TextView snippet;
     public TextView address;
     public TextView date;

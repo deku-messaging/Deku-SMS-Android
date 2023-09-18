@@ -121,9 +121,7 @@ public class RouterViewModel extends ViewModel {
                 if(!routeJobState.isEmpty())
                     workerIds.add(routeJobState);
             }
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
         return workerIds;
