@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && "${{ github.event.pull_request.base.ref }}" == "staging" ]]; then
+            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && ("${{ github.event.pull_request.base.ref }}" == "staging" || "${{ github.event.pull_request.base.ref }}" == "master") ]]; then
               cd /root/apk-reproduce && \
               ./ci_cd.sh ${{ github.event.pull_request.base.ref }}
             else
