@@ -189,6 +189,7 @@ public class RMQConnectionService extends Service {
                     long messageId = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
 
                     if(intent.hasExtra(RMQConnection.MESSAGE_SID)) {
+                        Log.d(getClass().getName(), "RMQ Sid found!");
                         String broadcastState = intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE);
 
                         if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
@@ -243,6 +244,7 @@ public class RMQConnectionService extends Service {
                             }
                         }
                     }
+                    else Log.d(getClass().getName(), "Sid not found!");
                 }
             }
         };
@@ -266,6 +268,7 @@ public class RMQConnectionService extends Service {
                     String sid = jsonObject.getString(RMQConnection.MESSAGE_SID);
 
                     Log.d(getClass().getName(), "New deliver callback for global id: " + globalMessageKey);
+                    Log.d(getClass().getName(), "Incoming sid found: " + sid);
 
                     // int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
 //                    int subscriptionId = rmqConnection.getSubscriptionId();

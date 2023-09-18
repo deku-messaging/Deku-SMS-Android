@@ -451,6 +451,8 @@ public class SMSHandler {
             newIntent.putExtras(intent.getExtras());
             Log.d(SMSHandler.class.getName(), "NewIntent broadcast with global key: "
                     + newIntent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY));
+            Log.d(SMSHandler.class.getName(), "New Intent sid found: "
+                    + newIntent.getStringExtra(RMQConnection.MESSAGE_SID));
         }
 
         context.sendBroadcast(newIntent);
@@ -547,15 +549,18 @@ public class SMSHandler {
     }
 
     public static PendingIntent[] getPendingIntentsForServerRequest(Context context, long messageId,
-                                                                    String globalMessageId) {
+                                                                    String globalMessageId, String sid) {
         Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
         sentIntent.setPackage(context.getPackageName());
         sentIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
         sentIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
+        sentIntent.putExtra(RMQConnection.MESSAGE_SID, sid);
 
         Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
         deliveredIntent.setPackage(context.getPackageName());
         deliveredIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+        deliveredIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
+        deliveredIntent.putExtra(RMQConnection.MESSAGE_SID, sid);
 
         PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)),

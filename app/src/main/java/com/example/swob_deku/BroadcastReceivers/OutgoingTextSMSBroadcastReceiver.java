@@ -34,14 +34,16 @@ public class OutgoingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 smsMetaEntity.setAddress(context, sms.getAddress());
 
                 PendingIntent[] pendingIntents =
-                        intent.hasExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY) ?
+                        intent.hasExtra(RMQConnection.MESSAGE_SID) ?
                                 SMSHandler.getPendingIntentsForServerRequest(context,
                                         messageId,
-                                        intent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY)) :
+                                        intent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY),
+                                        intent.getStringExtra(RMQConnection.MESSAGE_SID)) :
                                 SMSHandler.getPendingIntents(context, messageId);
 
                 Log.d(getClass().getName(), "Global ID for outgoing sms: "
                         + intent.getStringExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY));
+                Log.d(getClass().getName(), "Sending message with sid found: " + intent.getStringExtra(RMQConnection.MESSAGE_SID));
                 Log.d(getClass().getName(), "Sending with subscription Id: " + sms.getSubscriptionId());
 
                 sendTextSMS(context,

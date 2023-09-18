@@ -196,9 +196,9 @@ if __name__ == "__main__":
 
     if args.platform == "all":
         thread_playstore.start()
-        thread_github.start()
-
         thread_playstore.join()
+
+        thread_github.start()
         thread_github.join()
 
     elif args.platform == "playstore":
