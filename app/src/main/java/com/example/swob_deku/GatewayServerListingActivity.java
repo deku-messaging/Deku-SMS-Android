@@ -29,9 +29,6 @@ import com.example.swob_deku.Models.GatewayServers.GatewayServerViewModel;
 import java.util.List;
 
 public class GatewayServerListingActivity extends AppCompatActivity {
-    Datastore databaseConnector;
-    GatewayServerDAO gatewayServerDAO;
-
     Handler mHandler = new Handler();
 
     SharedPreferences sharedPreferences;
@@ -66,21 +63,20 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         GatewayServerViewModel gatewayServerViewModel = new ViewModelProvider(this).get(
                 GatewayServerViewModel.class);
 
-        databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                Datastore.databaseName).build();
-
-        gatewayServerDAO = databaseConnector.gatewayServerDAO();
-
-        gatewayServerViewModel.getGatewayServers(gatewayServerDAO).observe(this,
-                new Observer<List<GatewayServer>>() {
-                    @Override
-                    public void onChanged(List<GatewayServer> gatewayServerList) {
-                        Log.d(getLocalClassName(), "Changed happening....");
-                        if(gatewayServerList.size() < 1 )
-                            findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
-                        gatewayServerRecyclerAdapter.submitList(gatewayServerList);
-                    }
-                });
+        try {
+            gatewayServerViewModel.get(getApplicationContext()).observe(this,
+                    new Observer<List<GatewayServer>>() {
+                        @Override
+                        public void onChanged(List<GatewayServer> gatewayServerList) {
+                            Log.d(getLocalClassName(), "Changed happening....");
+                            if(gatewayServerList.size() < 1 )
+                                findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
+                            gatewayServerRecyclerAdapter.submitList(gatewayServerList);
+                        }
+                    });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         setRefreshTimer(gatewayServerRecyclerAdapter);
     }

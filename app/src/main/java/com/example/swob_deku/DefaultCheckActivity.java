@@ -43,6 +43,18 @@ public class DefaultCheckActivity extends AppCompatActivity {
         });
     }
 
+//    public void quicktest() {
+//        Intent intent = new Intent(Intent.ACTION_SENDTO);
+//        intent.setData(Uri.parse("smsto:"));
+//
+//        // Set the recipient phone number
+//        intent.putExtra("address", "123456789; 1234567890; 12345678901");
+//        // here i can send message to emulator 5556,5558,5560
+//        // you can change in real device
+//        intent.putExtra("sms_body", "Hello friends!");
+//        startActivity(intent);
+//    }
+
     public void clickPrivacyPolicy(View view) {
         String url = "https://smswithoutborders.com/privacy-policy";
         Intent shareIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));

@@ -1,5 +1,7 @@
 package com.example.swob_deku.Models.GatewayServers;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;

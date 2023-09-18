@@ -104,8 +104,8 @@ public class RouterHandler {
                                         TimeUnit.MILLISECONDS
                                 )
                                 .addTag(TAG_NAME)
-                                .addTag(TAG_WORKER_ID + messageId)
-                                .addTag(TAG_ROUTING_URL + gatewayServer.getURL())
+                                .addTag(getTagForMessages(String.valueOf(messageId)))
+                                .addTag(getTagForGatewayServers(gatewayServer.getURL()))
                                 .setInputData(
                                         new Data.Builder()
                                                 .putString(Router.SMS_JSON_OBJECT, jsonStringBody)
@@ -128,5 +128,25 @@ public class RouterHandler {
                 databaseConnector.close();
             }
         }).start();
+    }
+
+    private static String getTagForMessages(String messageId) {
+        return TAG_WORKER_ID + messageId;
+    }
+
+    private static String getTagForGatewayServers(String gatewayClientUrl) {
+        return TAG_ROUTING_URL + gatewayClientUrl;
+    }
+
+    public static void removeWorkForMessage(Context context, String messageId) {
+        String tag = getTagForMessages(messageId);
+        WorkManager workManager = WorkManager.getInstance(context);
+        workManager.cancelAllWorkByTag(tag);
+    }
+
+    public static void removeWorkForGatewayServers(Context context, String gatewayClientUrl) {
+        String tag = getTagForGatewayServers(gatewayClientUrl);
+        WorkManager workManager = WorkManager.getInstance(context);
+        workManager.cancelAllWorkByTag(tag);
     }
 }
