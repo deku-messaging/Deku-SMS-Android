@@ -1,54 +1,29 @@
 package com.example.swob_deku;
 
-import static android.view.View.GONE;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.work.WorkInfo;
-import androidx.work.WorkManager;
-import androidx.work.WorkQuery;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.Telephony;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 
-import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.CustomAppCompactActivity;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
-import com.example.swob_deku.Models.Messages.SingleMessageViewModel;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
-import com.example.swob_deku.Models.Router.Router;
 import com.example.swob_deku.Models.Router.RouterHandler;
 import com.example.swob_deku.Models.Router.RouterViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
-import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.google.common.util.concurrent.ListenableFuture;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import okhttp3.Route;
 
 public class RouterActivity extends CustomAppCompactActivity {
 
@@ -125,12 +100,18 @@ public class RouterActivity extends CustomAppCompactActivity {
             @Override
             public void onChanged(HashMap<String, TemplateViewHolder> stringTemplateViewHolderHashMap) {
                 if(stringTemplateViewHolderHashMap != null) {
-                    myToolbar.getMenu().findItem(R.id.messages_thread_routing_delete)
+                    if(!stringTemplateViewHolderHashMap.isEmpty()) {
+                        ab.setTitle(String.valueOf(stringTemplateViewHolderHashMap.size()));
+                    }
+                    else
+                        ab.setTitle(R.string.homepage_menu_routed);
+                    myToolbar.getMenu().findItem(R.id.messages_thread_routing_cancel)
                             .setVisible(!stringTemplateViewHolderHashMap.isEmpty());
                 }
-                else
-                    myToolbar.getMenu().findItem(R.id.messages_thread_routing_delete)
+                else {
+                    myToolbar.getMenu().findItem(R.id.messages_thread_routing_cancel)
                             .setVisible(false);
+                }
             }
         });
     }
@@ -143,7 +124,7 @@ public class RouterActivity extends CustomAppCompactActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.messages_thread_routing_delete) {
+        if(item.getItemId() == R.id.messages_thread_routing_cancel) {
             if(messagesThreadRecyclerAdapter.selectedItems.getValue() != null) {
                 for (Map.Entry<String, TemplateViewHolder> entry :
                         messagesThreadRecyclerAdapter.selectedItems.getValue().entrySet()) {
