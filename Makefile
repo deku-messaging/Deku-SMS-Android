@@ -156,6 +156,7 @@ release-draft: release.properties bump_version build-apk build-aab
 		--app_bundle_file apk-outputs/${aab_output} \
 		--app_apk_file apk-outputs/${apk_output} \
 		--status "draft" \
+		--platform "all" \
 		--github_url "${github_url}"
 clean:
 	@containers=$$(docker ps -a --filter "ancestor=$(docker_apk_image)" --format "{{.ID}}"); \
@@ -194,5 +195,6 @@ release-cd: requirements.txt bump_version info docker-build-aab clean
 			--app_bundle_file apk-outputs/${aab_output} \
 			--app_apk_file apk-outputs/${apk_output} \
 			--status "completed" \
+			--platform "all" \
 			--github_url "${github_url}" \
 	)
