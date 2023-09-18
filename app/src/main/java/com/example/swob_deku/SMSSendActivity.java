@@ -127,7 +127,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                                 smsMetaEntity.getThreadId());
                     else
                         singleMessageViewModel.informNewItemChanges(getApplicationContext());
-                    cancelNotifications(smsMetaEntity.getThreadId());
+//                    cancelNotifications(smsMetaEntity.getThreadId());
                     try {
                         _checkEncryptionStatus();
                     } catch (GeneralSecurityException | IOException e) {
