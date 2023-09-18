@@ -13,7 +13,9 @@ import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
+import androidx.work.WorkQuery;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -21,17 +23,22 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
+import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServers.GatewayServer;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
 import com.example.swob_deku.Models.RMQ.RMQConnectionService;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -148,5 +155,56 @@ public class RouterHandler {
         String tag = getTagForGatewayServers(gatewayClientUrl);
         WorkManager workManager = WorkManager.getInstance(context);
         workManager.cancelAllWorkByTag(tag);
+    }
+
+
+    public static ArrayList<ArrayList<String>> getMessageIdsFromWorkManagers(Context context) {
+
+        WorkQuery workQuery = WorkQuery.Builder
+                .fromTags(Collections.singletonList(
+                        TAG_NAME))
+                .addStates(Arrays.asList(
+                        WorkInfo.State.SUCCEEDED,
+                        WorkInfo.State.ENQUEUED,
+                        WorkInfo.State.FAILED,
+                        WorkInfo.State.RUNNING,
+                        WorkInfo.State.CANCELLED))
+                .build();
+
+        WorkManager workManager = WorkManager.getInstance(context);
+        ListenableFuture<List<WorkInfo>> worksInfo = workManager.getWorkInfos(workQuery);
+
+        ArrayList<ArrayList<String>> workerIds = new ArrayList<>();
+        try {
+            List<WorkInfo> workInfoList = worksInfo.get();
+
+            for(WorkInfo workInfo : workInfoList) {
+                String messageId = "";
+                String gatewayServerUrl = "";
+                for(String tag : workInfo.getTags()) {
+                    if (tag.contains(RouterHandler.TAG_WORKER_ID)) {
+                        String[] tags = tag.split("\\.");
+                        messageId = tags[tags.length - 1];
+                    }
+                    if (tag.contains(IncomingTextSMSBroadcastReceiver.TAG_ROUTING_URL)) {
+                        String[] tags = tag.split(",");
+                        gatewayServerUrl = tags[tags.length - 1];
+                    }
+                }
+
+                ArrayList<String> routeJobState = new ArrayList<>();
+                if(!messageId.isEmpty() && !gatewayServerUrl.isEmpty()) {
+                    routeJobState.add(messageId);
+                    routeJobState.add(workInfo.getState().name());
+                    routeJobState.add(gatewayServerUrl);
+                }
+
+                if(!routeJobState.isEmpty())
+                    workerIds.add(routeJobState);
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return workerIds;
     }
 }
