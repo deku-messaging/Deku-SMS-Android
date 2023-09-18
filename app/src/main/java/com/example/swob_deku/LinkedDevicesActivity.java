@@ -99,7 +99,7 @@ public class LinkedDevicesActivity extends AppCompatActivity {
 
                             gatewayClient.setProjectBinding(bindings.get(0));
                             if(bindings.size() > 1)
-                                gatewayClient.setProjectBinding(bindings.get(1));
+                                gatewayClient.setProjectBinding2(bindings.get(1));
 
                             GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
                             long id = gatewayClientHandler.add(gatewayClient);
