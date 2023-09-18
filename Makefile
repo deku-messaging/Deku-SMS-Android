@@ -177,7 +177,7 @@ clean:
 	@echo "y" | docker builder prune -a
 	@echo "y" | docker image prune -a
 
-release-cd: requirements.txt bump_version info docker-build-aab clean
+release-cd: clean requirements.txt bump_version info docker-build-aab clean
 	@echo "+ Target branch for relase: ${branch}"
 	@git tag -f ${tagVersion}
 	@git push origin ${branch_name}
