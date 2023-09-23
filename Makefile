@@ -8,9 +8,10 @@ track=$$(python3 track.py $(branch))
 releaseVersion=$$(sed -n '1p' version.properties | cut -d "=" -f 2)
 stagingVersion=$$(sed -n '2p' version.properties | cut -d "=" -f 2)
 nightlyVersion=$$(sed -n '3p' version.properties | cut -d "=" -f 2)
-tagVersion=$$(sed -n '4p' version.properties | cut -d "=" -f 2)
+label=$$(sed -n '4p' version.properties | cut -d "=" -f 2)
+tagVersion=$$(sed -n '5p' version.properties | cut -d "=" -f 2)
 
-label=${releaseVersion}.${stagingVersion}.${nightlyVersion}
+# label=${releaseVersion}.${stagingVersion}.${nightlyVersion}
 
 aab_output=${label}.aab
 apk_output=${label}.apk
