@@ -75,6 +75,7 @@ def bump_version(filename, flavour):
         f.write("releaseVersion=" + str(releaseVersion) + "\n")
         f.write("stagingVersion=" + str(stagingVersion) + "\n")
         f.write("nightlyVersion=" + str(nightlyVersion) + "\n")
+        f.write(f"versionName={str(releaseVersion)}.{str(stagingVersion)}.{str(nightlyVersion)}\n")
         f.write("tagVersion=" + str(tagVersion))
 
     return releaseVersion, stagingVersion, nightlyVersion, tagVersion

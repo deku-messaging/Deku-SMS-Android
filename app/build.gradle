@@ -25,16 +25,18 @@ android {
     def nightlyVersion = Integer.parseInt(versionProperties['nightlyVersion'])
     def stagingVersion = Integer.parseInt(versionProperties['stagingVersion'])
     def releaseVersion = Integer.parseInt(versionProperties['releaseVersion'])
+    def _versionName = versionProperties['versionName']
     def tagVersion = Integer.parseInt(versionProperties['tagVersion'])
 
     println(tagVersion)
+    println(_versionName)
 
     defaultConfig {
         applicationId "com.afkanerd.deku"
         minSdk 24
-        targetSdk 33
+        targetSdk 34
         versionCode tagVersion
-        versionName releaseVersion+"."+stagingVersion+"."+nightlyVersion
+        versionName _versionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {

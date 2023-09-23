@@ -119,7 +119,7 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
                             startActivity(routingIntent);
                         }
                         else if (item.getItemId() == R.id.messages_threads_menu_item_web) {
-                            Intent webIntent = new Intent(getApplicationContext(), LinkedDevicesActivity.class);
+                            Intent webIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);
                             webIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                             startActivity(webIntent);
                         }
@@ -127,6 +127,11 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
                             Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
                             settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                             startActivity(settingsIntent);
+                        }
+                        else if (item.getItemId() == R.id.messages_threads_about) {
+                            Intent aboutIntent = new Intent(getApplicationContext(), AboutActivity.class);
+                            aboutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(aboutIntent);
                         }
                         return false;
                     }

@@ -19,4 +19,8 @@
         android:theme="@style/Theme.main"
         android:id="@+id/messages_threads_settings"
         android:title="@string/settings_title" />
+    <item
+        android:theme="@style/Theme.main"
+        android:id="@+id/messages_threads_about"
+        android:title="@string/settings_about" />
 </menu>
