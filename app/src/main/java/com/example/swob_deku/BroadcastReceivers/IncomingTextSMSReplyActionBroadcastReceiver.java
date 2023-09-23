@@ -164,10 +164,11 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
             }
         }
         else if(intent.getAction().equals(SMS_DELIVERED_BROADCAST_INTENT)) {
-            intent.putExtra(BROADCAST_STATE, DELIVERED_BROADCAST_INTENT);
             long id = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
             if (getResultCode() == Activity.RESULT_OK) {
                 SMSHandler.registerDeliveredMessage(context, id);
+                intent.putExtra(BROADCAST_STATE, DELIVERED_BROADCAST_INTENT);
+                Log.d(getClass().getName(), "Sending Delivered broadcast to all out there who listen");
             } else {
                 if (BuildConfig.DEBUG)
                     Log.d(getClass().getName(), "Broadcast received Failed to deliver: "

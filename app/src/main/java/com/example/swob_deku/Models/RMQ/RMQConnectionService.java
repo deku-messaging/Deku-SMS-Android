@@ -194,6 +194,7 @@ public class RMQConnectionService extends Service {
 
                         if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
                                 || broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.DELIVERED_BROADCAST_INTENT) ) {
+                            Log.d(getClass().getName(), "Got broadcast state of: " + broadcastState);
                             String messageSid = intent.getStringExtra(RMQConnection.MESSAGE_SID);
                             Map<Long, Channel> deliveryChannel = channelList.get(messageSid);
                             final Long deliveryTag = deliveryChannel.keySet().iterator().next();
@@ -208,17 +209,17 @@ public class RMQConnectionService extends Service {
                                         } catch (IOException e) {
                                             e.printStackTrace();
                                         }
-
-                                        smsStatusReport.sid = messageSid;
-                                        String status = broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
-                                                ?  SMS_STATUS_SENT : SMS_STATUS_DELIVERED;
-                                        smsStatusReport.status = status;
-
-                                        RouterHandler.createWorkForMessage(getApplicationContext(),
-                                                smsStatusReport, messageId, false);
                                     }
                                 }).start();
                             }
+
+                            smsStatusReport.sid = messageSid;
+                            smsStatusReport.status =
+                                    broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
+                                            ?  SMS_STATUS_SENT : SMS_STATUS_DELIVERED;
+
+//                            RouterHandler.createWorkForMessage(getApplicationContext(),
+//                                    smsStatusReport, messageId, false);
                         }
                         else if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.FAILED_BROADCAST_INTENT)) {
                             String messageSid = intent.getStringExtra(RMQConnection.MESSAGE_SID);
@@ -234,15 +235,15 @@ public class RMQConnectionService extends Service {
                                         } catch (IOException e) {
                                             e.printStackTrace();
                                         }
-                                        smsStatusReport.sid = messageSid;
-                                        smsStatusReport.status = SMS_STATUS_FAILED;
-
-                                        RouterHandler.createWorkForMessage(getApplicationContext(),
-                                                smsStatusReport, messageId, false);
                                     }
                                 }).start();
                             }
+                            smsStatusReport.sid = messageSid;
+                            smsStatusReport.status = SMS_STATUS_FAILED;
                         }
+
+                        RouterHandler.createWorkForMessage(getApplicationContext(),
+                                smsStatusReport, messageId, false);
                     }
                     else Log.d(getClass().getName(), "Sid not found!");
                 }
