@@ -192,10 +192,11 @@ public class RMQConnectionService extends Service {
                         Log.d(getClass().getName(), "RMQ Sid found!");
                         String broadcastState = intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE);
 
-                        if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
-                                || broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.DELIVERED_BROADCAST_INTENT) ) {
+//                        if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
+//                                || broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.DELIVERED_BROADCAST_INTENT) ) {
+                        String messageSid = intent.getStringExtra(RMQConnection.MESSAGE_SID);
+                        if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)) {
                             Log.d(getClass().getName(), "Got broadcast state of: " + broadcastState);
-                            String messageSid = intent.getStringExtra(RMQConnection.MESSAGE_SID);
                             Map<Long, Channel> deliveryChannel = channelList.get(messageSid);
                             final Long deliveryTag = deliveryChannel.keySet().iterator().next();
                             Channel channel = deliveryChannel.get(deliveryTag);
@@ -214,15 +215,13 @@ public class RMQConnectionService extends Service {
                             }
 
                             smsStatusReport.sid = messageSid;
-                            smsStatusReport.status =
-                                    broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
-                                            ?  SMS_STATUS_SENT : SMS_STATUS_DELIVERED;
-
-//                            RouterHandler.createWorkForMessage(getApplicationContext(),
-//                                    smsStatusReport, messageId, false);
+                            smsStatusReport.status = SMS_STATUS_SENT;
+                        }
+                        else if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.DELIVERED_BROADCAST_INTENT)) {
+                            smsStatusReport.sid = messageSid;
+                            smsStatusReport.status = SMS_STATUS_DELIVERED;
                         }
                         else if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.FAILED_BROADCAST_INTENT)) {
-                            String messageSid = intent.getStringExtra(RMQConnection.MESSAGE_SID);
                             Map<Long, Channel> deliveryChannel = channelList.get(messageSid);
                             Long deliveryTag = deliveryChannel.keySet().iterator().next();
                             Channel channel = deliveryChannel.get(deliveryTag);
@@ -371,21 +370,23 @@ public class RMQConnectionService extends Service {
 
                     if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
                         SubscriptionInfo subscriptionInfo = subscriptionInfoList.get(0);
-                        rmqConnection.createQueue1(gatewayClient.getProjectName(),
-                                gatewayClient.getProjectBinding(), getDeliverCallback(rmqConnection.getChannel1(),
-                                        subscriptionInfo.getSubscriptionId()));
-                        rmqConnection.consume1();
-                    }
+                        DeliverCallback deliverCallback1 = getDeliverCallback(rmqConnection.getChannel1(),
+                                subscriptionInfo.getSubscriptionId());
+                        DeliverCallback deliverCallback2 = null;
 
-                    if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()
-                            && gatewayClient.getProjectBinding2() != null && !gatewayClient.getProjectBinding2().isEmpty()) {
-                        SubscriptionInfo subscriptionInfo = subscriptionInfoList.get(1);
-                        rmqConnection.createQueue2(gatewayClient.getProjectName(),
-                                gatewayClient.getProjectBinding2(), getDeliverCallback(rmqConnection.getChannel2(),
-                                        subscriptionInfo.getSubscriptionId()));
-                        rmqConnection.consume2();
-                    }
+                        boolean dualQueue = subscriptionInfoList.size() > 1 &&  gatewayClient.getProjectBinding2() != null
+                                && !gatewayClient.getProjectBinding2().isEmpty();
+                        if(dualQueue) {
+                            subscriptionInfo = subscriptionInfoList.get(1);
+                            deliverCallback2 = getDeliverCallback(rmqConnection.getChannel2(),
+                                    subscriptionInfo.getSubscriptionId());
+                        }
 
+                        rmqConnection.createQueue(gatewayClient.getProjectName(),
+                                gatewayClient.getProjectBinding(), gatewayClient.getProjectBinding2(),
+                                deliverCallback1, deliverCallback2);
+                        rmqConnection.consume();
+                    }
                 } catch (IOException | TimeoutException e) {
                     e.printStackTrace();
                     // TODO: send a notification indicating this, with options to retry the connection
