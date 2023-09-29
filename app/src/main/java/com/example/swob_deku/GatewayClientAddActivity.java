@@ -121,7 +121,7 @@ public class GatewayClientAddActivity extends AppCompatActivity {
 
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
         if(getIntent().hasExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID)) {
-            int gatewayClientId = getIntent().getIntExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+            long gatewayClientId = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
 
             GatewayClient gatewayClient1 = gatewayClientHandler.fetch(gatewayClientId);
 
