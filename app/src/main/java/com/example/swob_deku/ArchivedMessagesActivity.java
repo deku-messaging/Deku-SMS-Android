@@ -20,6 +20,7 @@ import com.example.swob_deku.Models.Archive.ArchivedViewModel;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.example.swob_deku.Models.Router.RouterViewModel;
+import com.example.swob_deku.Models.SMS.Conversations;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
@@ -67,9 +68,9 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
 
         try {
             archivedViewModel.getMessages(getApplicationContext()).observe(this,
-                    new Observer<List<SMS>>() {
+                    new Observer<List<Conversations>>() {
                         @Override
-                        public void onChanged(List<SMS> smsList) {
+                        public void onChanged(List<Conversations> smsList) {
                             archivedThreadRecyclerAdapter.submitList(smsList);
                             if(!smsList.isEmpty())
                                 findViewById(R.id.messages_archived_no_messages).setVisibility(View.GONE);
@@ -82,7 +83,6 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
 
         archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, TemplateViewHolder>>() {
             @Override

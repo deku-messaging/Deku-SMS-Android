@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.swob_deku.Models.SMS.Conversations;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 
@@ -15,11 +16,12 @@ import java.util.List;
 
 public class ArchivedViewModel extends ViewModel {
 
-    MutableLiveData<List<SMS>> liveData;
+//    MutableLiveData<List<SMS>> liveData;
+    MutableLiveData<List<Conversations>> liveData;
     Context context;
 
     ArchiveHandler archiveHandler;
-    public LiveData<List<SMS>> getMessages(Context context) throws InterruptedException {
+    public LiveData<List<Conversations>> getMessages(Context context) throws InterruptedException {
         this.context = context;
         if(liveData == null) {
             liveData = new MutableLiveData<>();
@@ -37,13 +39,13 @@ public class ArchivedViewModel extends ViewModel {
         List<Archive> archiveList = archiveHandler.loadAllMessages(context);
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
 
-        List<SMS> smsList = new ArrayList<>();
+        List<Conversations> smsList = new ArrayList<>();
         if(cursor.moveToFirst()) {
             do {
-                SMS sms = new SMS(cursor);
+                Conversations conversations = new Conversations(cursor);
                 for(Archive archive : archiveList)
-                    if(Long.parseLong(sms.getThreadId()) == archive.getThreadId()) {
-                        smsList.add(sms);
+                    if(Long.parseLong(conversations.THREAD_ID) == archive.getThreadId()) {
+                        smsList.add(conversations);
                         break;
                     }
             } while(cursor.moveToNext());

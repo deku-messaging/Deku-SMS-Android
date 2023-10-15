@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModel;
 
 import com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
@@ -74,6 +75,7 @@ public class CustomAppCompactActivity extends AppCompatActivity {
                 }
             }
         };
+
 
         registerReceiver(messageStateChangedBroadcast,
                 new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));

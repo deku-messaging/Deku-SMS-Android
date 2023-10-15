@@ -1,7 +1,6 @@
 package com.example.swob_deku.Models.Messages;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.provider.Telephony;
@@ -17,12 +16,10 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
-import androidx.work.WorkQuery;
 
 import com.example.swob_deku.ArchivedMessagesActivity;
 import com.example.swob_deku.Models.Contacts.Contacts;
@@ -30,28 +27,23 @@ import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.ViewHolders.ReceivedMessagesViewHolder;
 import com.example.swob_deku.Models.Messages.ViewHolders.SentMessagesViewHolder;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
+import com.example.swob_deku.Models.SMS.Conversations;
 import com.example.swob_deku.Models.SMS.SMS;
-import com.example.swob_deku.Models.SMS.SMSHandler;
-import com.example.swob_deku.Models.Security.SecurityECDH;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.RouterActivity;
-import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
-import com.example.swob_deku.SMSSendActivity;
 
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
 
-    private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
+    private final AsyncListDiffer<Conversations> mDiffer = new AsyncListDiffer<>(this, Conversations.DIFF_CALLBACK);
 
     Context context;
     Boolean isSearch = false;
@@ -71,8 +63,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    private final int CONTACT_VIEW_TYPE = 100;
-    private final int NOT_CONTACT_VIEW_TYPE = 200;
     private final int RECEIVED_VIEW_TYPE = 1;
     private final int RECEIVED_UNREAD_VIEW_TYPE = 2;
     private final int RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE = 3;
@@ -82,6 +72,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     private final int SENT_UNREAD_VIEW_TYPE = 6;
     private final int SENT_ENCRYPTED_UNREAD_VIEW_TYPE = 7;
     private final int SENT_ENCRYPTED_VIEW_TYPE = 8;
+
+    private final int IS_CONTACT=500;
 
     public MessagesThreadRecyclerAdapter(Context context) {
        this.context = context;
@@ -116,224 +108,208 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
 
     @NonNull
     @Override
-    public TemplateViewHolder onCreateViewHolder(@NonNull ViewGroup parent,
-                                                                       int viewType) {
+    public TemplateViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
         View view = inflater.inflate(R.layout.messages_threads_layout, parent, false);
 
         if(viewType == (RECEIVED_UNREAD_VIEW_TYPE))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderUnread(view);
+            return new ReceivedMessagesViewHolder.ReceivedViewHolderUnread(view, false);
+        else if(viewType == (RECEIVED_UNREAD_VIEW_TYPE + IS_CONTACT))
+            return new ReceivedMessagesViewHolder.ReceivedViewHolderUnread(view, true);
         else if(viewType == (SENT_UNREAD_VIEW_TYPE))
-            return new SentMessagesViewHolder.SentViewHolderUnread(view);
+            return new SentMessagesViewHolder.SentViewHolderUnread(view, false);
+        else if(viewType == (SENT_UNREAD_VIEW_TYPE + IS_CONTACT))
+            return new SentMessagesViewHolder.SentViewHolderUnread(view, true);
 
         else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE ))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedUnread(view);
+            return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedUnread(view, false);
+        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + IS_CONTACT))
+            return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedUnread(view, true);
          else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE ))
-            return new SentMessagesViewHolder.SentViewHolderEncryptedUnread(view);
+            return new SentMessagesViewHolder.SentViewHolderEncryptedUnread(view, false);
+        else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE + IS_CONTACT))
+            return new SentMessagesViewHolder.SentViewHolderEncryptedUnread(view, true);
 
         else if(viewType == (RECEIVED_VIEW_TYPE))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderRead(view);
+            return new ReceivedMessagesViewHolder.ReceivedViewHolderRead(view, false);
+        else if(viewType == (RECEIVED_VIEW_TYPE + IS_CONTACT))
+            return new ReceivedMessagesViewHolder.ReceivedViewHolderRead(view, true);
         else if(viewType == (SENT_VIEW_TYPE))
-            return new SentMessagesViewHolder.SentViewHolderRead(view);
+            return new SentMessagesViewHolder.SentViewHolderRead(view, false);
+        else if(viewType == (SENT_VIEW_TYPE + IS_CONTACT))
+            return new SentMessagesViewHolder.SentViewHolderRead(view, true);
 
         else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE))
-            return new SentMessagesViewHolder.SentViewHolderEncryptedRead(view);
+            return new SentMessagesViewHolder.SentViewHolderEncryptedRead(view, true);
+        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE + IS_CONTACT))
+            return new SentMessagesViewHolder.SentViewHolderEncryptedRead(view, false);
 
-        return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedRead(view);
+        return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedRead(view, false);
     }
 
-    public boolean isContact(SMS sms) {
-        String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
+    public boolean isContact(String address) {
+        String addressInPhone = Contacts.retrieveContactName(context, address);
         return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
     }
 
     @Override
     public int getItemViewType(int position) {
-        SMS sms = mDiffer.getCurrentList().get(position);
-        SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-        smsMetaEntity.setThreadId(context, sms.getThreadId());
+        Conversations conversations = mDiffer.getCurrentList().get(position);
+        SMS.SMSMetaEntity smsMetaEntity = conversations.getNewestMessage(context);
+        Log.d(getClass().getName(), "Running for getting item type: " + position);
 
-        if(SecurityHelpers.containersWaterMark(sms.getBody()) || SecurityHelpers.isKeyExchange(sms.getBody())) {
+        String snippet = conversations.SNIPPET;
+//        int type = MESSAGE_TYPE_INBOX;
+        int type = smsMetaEntity.getNewestType();
+        boolean isContact = isContact(smsMetaEntity.getAddress());
+
+        int contactStatus = isContact ? IS_CONTACT : 0;
+
+        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
             if(smsMetaEntity.hasUnreadMessages(context)) {
-                if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
+                if(type != MESSAGE_TYPE_INBOX)
+                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE + contactStatus;
                 else
-                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
+                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + contactStatus;
             }
             else {
-                if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_VIEW_TYPE;
+                if(type != MESSAGE_TYPE_INBOX)
+                    return SENT_ENCRYPTED_VIEW_TYPE + contactStatus;
                 else
-                    return RECEIVED_ENCRYPTED_VIEW_TYPE;
+                    return RECEIVED_ENCRYPTED_VIEW_TYPE + contactStatus;
             }
         }
         else {
             if(smsMetaEntity.hasUnreadMessages(context)) {
-                if(sms.getType() != MESSAGE_TYPE_INBOX)
-                    return SENT_UNREAD_VIEW_TYPE;
+                if(type != MESSAGE_TYPE_INBOX)
+                    return SENT_UNREAD_VIEW_TYPE + contactStatus;
                 else
-                    return RECEIVED_UNREAD_VIEW_TYPE;
+                    return RECEIVED_UNREAD_VIEW_TYPE + contactStatus;
             }else {
-                if(sms.getType() != MESSAGE_TYPE_INBOX) {
-                    return SENT_VIEW_TYPE;
+                if(type != MESSAGE_TYPE_INBOX) {
+                    return SENT_VIEW_TYPE + contactStatus;
                 }
             }
         }
 
-        return RECEIVED_VIEW_TYPE;
+        return RECEIVED_VIEW_TYPE + contactStatus;
     }
 
     @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
-        final int absolutePosition = holder.getAbsoluteAdapterPosition();
-        SMS sms = mDiffer.getCurrentList().get(position);
-        holder.id = sms.getThreadId();
-        holder.messageId = Long.parseLong(sms.getId());
+        Log.d(getClass().getName(), "Running for: " + position);
+        Conversations conversation = mDiffer.getCurrentList().get(position);
+        holder.id = conversation.THREAD_ID;
 
-        String address = sms.getAddress();
+        SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage(context);
+        String address = smsMetaEntity.getAddress();
+        long smsDate = smsMetaEntity.getNewestDateTime();
 
-        if(isContact(sms)) {
-            String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
-            if (!addressInPhone.isEmpty() && !addressInPhone.equals("null")) {
-                address = addressInPhone;
-
-                final int color = Helpers.generateColor(address);
+        if(isContact(address)) {
+            address = Contacts.retrieveContactName(context, address);
+            if(!address.isEmpty()) {
                 holder.contactInitials.setAvatarInitials(address.substring(0, 1));
-                holder.contactInitials.setAvatarInitialsBackgroundColor(color);
-
-                holder.contactInitials.setVisibility(View.VISIBLE);
-                holder.contactPhoto.setVisibility(View.GONE);
+                holder.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
             }
-        } else {
-            final int color = Helpers.generateColor(address);
-            Drawable drawable = holder.contactPhoto.getDrawable();
-            drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-            holder.contactPhoto.setImageDrawable(drawable);
-
-            holder.contactInitials.setVisibility(View.GONE);
-            holder.contactPhoto.setVisibility(View.VISIBLE);
-        }
-
-        holder.address.setText(address);
-
-        String date = Helpers.formatDate(context, Long.parseLong(sms.getDate()));
-        holder.date.setText(date);
-
-        if(!(holder instanceof TemplateViewHolder.ReadEncryptedViewHolder) &&
-                !(holder instanceof TemplateViewHolder.UnreadEncryptedViewHolder)){
-            String message = sms.getBody();
-            if(!this.searchString.isEmpty()) {
-                Spannable spannable = Spannable.Factory.getInstance().newSpannable(message);
-                String lowercaseMessage = message.toLowerCase();
-                String lowercaseSearchString = searchString.toLowerCase();
-
-                for(int index = lowercaseMessage.indexOf(lowercaseSearchString);
-                    index >=0; index = lowercaseMessage.indexOf(lowercaseSearchString, index + 1)) {
-
-                    spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(
-                                    R.color.highlight_yellow, context.getTheme())),
-                            index, index + (this.searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//                index, index + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                    spannable.setSpan(new ForegroundColorSpan(context.getResources().getColor(
-                                    R.color.black, context.getTheme())),
-                            index, index + (this.searchString.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
-                holder.snippet.setText(spannable);
-            } else holder.snippet.setText(message);
-        } else {
-            try {
-                SecurityECDH securityECDH = new SecurityECDH(context);
-                if(securityECDH.hasSecretKey(sms.getAddress()) ) {
-                    holder.encryptedLock.setVisibility(View.VISIBLE);
-                }
-            } catch (GeneralSecurityException | IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        if(routerActivity != null && !sms.routingUrls.isEmpty()) {
-            holder.state.setText(sms.getRouterStatus());
-            holder.routingURLText.setVisibility(View.VISIBLE);
-            holder.routingUrl.setVisibility(View.VISIBLE);
-
-            StringBuilder routingUrl = new StringBuilder();
-            for(int i=0;i<sms.routingUrls.size(); ++i) {
-                if (routingUrl.length() > 0)
-                    routingUrl.append(", ");
-                routingUrl.append(sms.routingUrls.get(i));
-            }
-            holder.routingUrl.setText(routingUrl);
         }
         else {
-            holder.routingURLText.setVisibility(View.GONE);
-            holder.routingUrl.setVisibility(View.GONE);
+            Drawable drawable = holder.contactPhoto.getDrawable();
+            drawable.setColorFilter(Helpers.generateColor(address), PorterDuff.Mode.SRC_IN);
+            holder.contactPhoto.setImageDrawable(drawable);
         }
+        holder.address.setText(address);
 
-        View.OnClickListener onClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
-                    HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
-                    if(items.containsKey(holder.id)) {
-                        holder.unHighlight();
-                        items.remove(holder.id);
-                    }
-                    else {
-                        items = selectedItems.getValue();
-                        holder.highlight();
-                        items.put(holder.id, holder);
-                    }
-                    selectedItems.postValue(items);
-                }
-                else {
-                    Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
-                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, sms.getAddress());
-                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
+        String date = Helpers.formatDate(context, smsDate);
+        holder.date.setText(date);
+        holder.snippet.setText(conversation.SNIPPET);
 
-                    if (searchString != null && !searchString.isEmpty()) {
-                        int calculatedOffset = SMSHandler.calculateOffset(context, sms.getThreadId(), sms.getId());
-                        singleMessageThreadIntent
-                                .putExtra(SMS.SMSMetaEntity.ID, sms.getId())
-                                .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
-                                .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
-                                .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
-                    }
+//                SecurityECDH securityECDH = new SecurityECDH(context);
+//                if(securityECDH.hasSecretKey(conversation.SNIPPET) ) {
+//                    holder.encryptedLock.setVisibility(View.VISIBLE);
+//                }
 
-                    context.startActivity(singleMessageThreadIntent);
-                }
-            }
-        };
+//
+//        if(routerActivity != null && !conversation.routingUrls.isEmpty()) {
+//            holder.state.setText(conversation.getRouterStatus());
+//            holder.routingURLText.setVisibility(View.VISIBLE);
+//            holder.routingUrl.setVisibility(View.VISIBLE);
+//
+//            StringBuilder routingUrl = new StringBuilder();
+//            for(int i=0;i<conversation.routingUrls.size(); ++i) {
+//                if (routingUrl.length() > 0)
+//                    routingUrl.append(", ");
+//                routingUrl.append(conversation.routingUrls.get(i));
+//            }
+//            holder.routingUrl.setText(routingUrl);
+//        }
+//        else {
+//            holder.routingURLText.setVisibility(View.GONE);
+//            holder.routingUrl.setVisibility(View.GONE);
+//        }
 
-        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
-                if(items != null && !items.isEmpty()) {
-                    if(items.containsKey(holder.id)) {
-                        holder.unHighlight();
-                        items.remove(holder.id);
-                    }
-                    else {
-                        items = selectedItems.getValue();
-                        holder.highlight();
-                        items.put(holder.id, holder);
-                    }
-                    selectedItems.postValue(items);
-                } else {
-                    items = new HashMap<>();
-                    holder.highlight();
-                    items.put(holder.id, holder);
-                }
-                selectedItems.setValue(items);
-                return true;
-            }
-        };
-
-        holder.layout.setOnClickListener(onClickListener);
-        holder.layout.setOnLongClickListener(onLongClickListener);
+//        View.OnClickListener onClickListener = new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
+//                    HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
+//                    if(items.containsKey(holder.id)) {
+//                        holder.unHighlight();
+//                        items.remove(holder.id);
+//                    }
+//                    else {
+//                        items = selectedItems.getValue();
+//                        holder.highlight();
+//                        items.put(holder.id, holder);
+//                    }
+//                    selectedItems.postValue(items);
+//                }
+//                else {
+//                    Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+//                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, conversation.getAddress());
+//                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, conversation.getThreadId());
+//
+//                    if (searchString != null && !searchString.isEmpty()) {
+//                        int calculatedOffset = SMSHandler.calculateOffset(context, conversation.getThreadId(), conversation.getId());
+//                        singleMessageThreadIntent
+//                                .putExtra(SMS.SMSMetaEntity.ID, conversation.getId())
+//                                .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
+//                                .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
+//                                .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
+//                    }
+//
+//                    context.startActivity(singleMessageThreadIntent);
+//                }
+//            }
+//        };
+//
+//        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
+//                if(items != null && !items.isEmpty()) {
+//                    if(items.containsKey(holder.id)) {
+//                        holder.unHighlight();
+//                        items.remove(holder.id);
+//                    }
+//                    else {
+//                        items = selectedItems.getValue();
+//                        holder.highlight();
+//                        items.put(holder.id, holder);
+//                    }
+//                    selectedItems.postValue(items);
+//                } else {
+//                    items = new HashMap<>();
+//                    holder.highlight();
+//                    items.put(holder.id, holder);
+//                }
+//                selectedItems.setValue(items);
+//                return true;
+//            }
+//        };
+//
+//        holder.layout.setOnClickListener(onClickListener);
+//        holder.layout.setOnLongClickListener(onLongClickListener);
     }
 
     public void resetAllSelectedItems() {
@@ -348,19 +324,43 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
 
     @Override
     public int getItemCount() {
-        return mDiffer.getCurrentList().size();
+        int itemCount = mDiffer.getCurrentList().size();
+        return itemCount;
     }
 
-    public void submitList(List<SMS> list) {
+    public void submitList(List<Conversations> list) {
         if(routerActivity != null) {
             workManagerFactories();
         }
-        mDiffer.submitList(list);
+
+        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
+        for(Conversations conversation : list){
+            conversationsTreeMap.put(conversation.getNewestMessage(context).getNewestDateTime(), conversation);
+        }
+        List<Conversations> newList = new ArrayList<>();
+        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
+            newList.add(conversationsEntry.getValue());
+        }
+
+        Log.d(getClass().getName(), "Running for direct submitlist request");
+        mDiffer.addListListener(new AsyncListDiffer.ListListener<Conversations>() {
+            @Override
+            public void onCurrentListChanged(@NonNull List<Conversations> previousList, @NonNull List<Conversations> currentList) {
+                Log.d(getClass().getName(), "Running for new list listener!");
+            }
+        });
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                Log.d(getClass().getName(), "Running for mDiffer has a new list, the rest is up to you!");
+            }
+        };
+        mDiffer.submitList(newList, runnable);
     }
 
     public void submitList(List<SMS> list, String searchString) {
         this.searchString = searchString;
-        mDiffer.submitList(list);
+//        mDiffer.submitList(list);
     }
 
     private String getSMSFromWorkInfo(WorkInfo workInfo) {
@@ -377,40 +377,40 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     }
 
     private void workManagerFactories() {
-
-        WorkQuery workQuery = WorkQuery.Builder
-                .fromTags(Collections.singletonList(IncomingTextSMSBroadcastReceiver.TAG_NAME))
-                .addStates(Arrays.asList(
-                        WorkInfo.State.ENQUEUED,
-                        WorkInfo.State.FAILED,
-                        WorkInfo.State.CANCELLED,
-                        WorkInfo.State.SUCCEEDED,
-                        WorkInfo.State.RUNNING))
-                .build();
-
-        workers = workManager.getWorkInfosLiveData(workQuery);
-        workers.observe(routerActivity, new Observer<List<WorkInfo>>() {
-            @Override
-            public void onChanged(List<WorkInfo> workInfos) {
-                if(workInfos.isEmpty())
-                    return;
-
-                List<SMS> smsList = new ArrayList<>(mDiffer.getCurrentList());
-
-                for(WorkInfo workInfo: workInfos) {
-                    String messageId = getSMSFromWorkInfo(workInfo);
-                    for(int i=0;i<mDiffer.getCurrentList().size();++i)
-                        if(mDiffer.getCurrentList().get(i).id.equals(messageId)) {
-                            SMS sms = smsList.get(i);
-                            sms.routerStatus = workInfo.getState().name();
-                            smsList.set(i, sms);
-                            break;
-                        }
-                }
-                mDiffer.submitList(smsList);
-                notifyDataSetChanged();
-            }
-        });
+//
+//        WorkQuery workQuery = WorkQuery.Builder
+//                .fromTags(Collections.singletonList(IncomingTextSMSBroadcastReceiver.TAG_NAME))
+//                .addStates(Arrays.asList(
+//                        WorkInfo.State.ENQUEUED,
+//                        WorkInfo.State.FAILED,
+//                        WorkInfo.State.CANCELLED,
+//                        WorkInfo.State.SUCCEEDED,
+//                        WorkInfo.State.RUNNING))
+//                .build();
+//
+//        workers = workManager.getWorkInfosLiveData(workQuery);
+//        workers.observe(routerActivity, new Observer<List<WorkInfo>>() {
+//            @Override
+//            public void onChanged(List<WorkInfo> workInfos) {
+//                if(workInfos.isEmpty())
+//                    return;
+//
+//                List<SMS> smsList = new ArrayList<>(mDiffer.getCurrentList());
+//
+//                for(WorkInfo workInfo: workInfos) {
+//                    String messageId = getSMSFromWorkInfo(workInfo);
+//                    for(int i=0;i<mDiffer.getCurrentList().size();++i)
+//                        if(mDiffer.getCurrentList().get(i).id.equals(messageId)) {
+//                            SMS sms = smsList.get(i);
+//                            conversation.routerStatus = workInfo.getState().name();
+//                            smsList.set(i, sms);
+//                            break;
+//                        }
+//                }
+//                mDiffer.submitList(smsList);
+//                notifyDataSetChanged();
+//            }
+//        });
     }
 
 }

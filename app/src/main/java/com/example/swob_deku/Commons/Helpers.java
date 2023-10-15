@@ -51,6 +51,15 @@ public class Helpers {
         return random.nextInt(Integer.MAX_VALUE);
     }
 
+    public static int getRandomColor() {
+        Random random = new Random();
+        int r = random.nextInt(256);
+        int g = random.nextInt(256);
+        int b = random.nextInt(256);
+        int color = r << 16 | g << 8 | b;
+
+        return generateColor(color);
+    }
 
     public static String[] convertSetToStringArray(Set<String> setOfString)
     {
@@ -154,6 +163,18 @@ public class Helpers {
         }
         return String.valueOf(
                 PhoneNumberUtil.createInstance(context).getCountryCodeForRegion(countryCode));
+    }
+
+    public static int generateColor(int input) {
+        int hue;
+        int saturation = 100;
+        int value = 60; // Reduced value component for darker colors
+
+        hue = Math.abs(input * 31 % 360);
+        // Convert the HSV color to RGB and return the color as an int
+        float[] hsv = {hue, saturation, value};
+        int color = Color.HSVToColor(hsv);
+        return color;
     }
 
     public static int generateColor(String input) {

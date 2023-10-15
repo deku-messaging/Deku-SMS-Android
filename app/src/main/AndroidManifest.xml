@@ -33,6 +33,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
+
         <activity
             android:name="com.example.swob_deku.AboutActivity"
             android:exported="false"

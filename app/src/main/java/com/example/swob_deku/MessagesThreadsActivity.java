@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -271,6 +272,7 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
         configureBroadcastListeners(new Runnable() {
             @Override
             public void run() {
+                Log.d(getLocalClassName(), "Broadcast listener has now been called");
                 try {
                     messagesThreadViewModel.informChanges(getApplicationContext());
                 } catch (GeneralSecurityException | IOException e) {

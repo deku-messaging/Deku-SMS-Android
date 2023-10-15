@@ -39,6 +39,7 @@ import com.example.swob_deku.Models.Archive.ArchiveHandler;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.MessagesThreadViewModel;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
+import com.example.swob_deku.Models.SMS.Conversations;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.R;
@@ -92,12 +93,7 @@ public class MessagesThreadFragment extends Fragment {
         Bundle args = getArguments();
         String messageType = args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                archiveHandler = new ArchiveHandler(getContext());
-            }
-        }).start();
+        archiveHandler = new ArchiveHandler(getContext());
 
         toolbar = mListener.getToolbar();
 
@@ -116,9 +112,9 @@ public class MessagesThreadFragment extends Fragment {
 
         try {
             messagesThreadViewModel.getMessages(getContext(), messageType).observe(getViewLifecycleOwner(),
-                    new Observer<List<SMS>>() {
+                    new Observer<List<Conversations>>() {
                         @Override
-                        public void onChanged(List<SMS> smsList) {
+                        public void onChanged(List<Conversations> smsList) {
                             TextView textView = view.findViewById(R.id.homepage_no_message);
                             if(smsList.isEmpty()) {
                                 textView.setVisibility(View.VISIBLE);
@@ -126,6 +122,7 @@ public class MessagesThreadFragment extends Fragment {
                             else {
                                 textView.setVisibility(View.GONE);
                             }
+                            Log.d(getClass().getName(), "Running for we submit now!");
                             messagesThreadRecyclerAdapter.submitList(smsList);
                             view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
                         }
@@ -141,7 +138,7 @@ public class MessagesThreadFragment extends Fragment {
                         highlightListener(stringViewHolderHashMap.size(), view);
                     }
                 });
-        setRefreshTimer();
+//        setRefreshTimer();
     }
 
 
@@ -172,11 +169,12 @@ public class MessagesThreadFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        try {
-            messagesThreadViewModel.informChanges(getContext());
-        } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
-        }
+//        Log.d(getClass().getName(), "Running for resuming now");
+//        try {
+//            messagesThreadViewModel.informChanges(getContext());
+//        } catch (GeneralSecurityException | IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override

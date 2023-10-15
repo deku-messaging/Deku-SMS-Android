@@ -65,19 +65,19 @@ public class RouterActivity extends CustomAppCompactActivity {
         routerViewModel = new ViewModelProvider(this).get(
                 RouterViewModel.class);
 
-        routerViewModel.getMessages(getApplicationContext()).observe(this,
-                new Observer<List<SMS>>() {
-                    @Override
-                    public void onChanged(List<SMS> smsList) {
-                        messagesThreadRecyclerAdapter.submitList(smsList);
-                        if(!smsList.isEmpty())
-                            findViewById(R.id.router_no_showable_messages_text).setVisibility(View.GONE);
-                        else {
-                            findViewById(R.id.router_no_showable_messages_text).setVisibility(View.VISIBLE);
-                            routedMessageRecyclerView.smoothScrollToPosition(0);
-                        }
-                    }
-                });
+//        routerViewModel.getMessages(getApplicationContext()).observe(this,
+//                new Observer<List<SMS>>() {
+//                    @Override
+//                    public void onChanged(List<SMS> smsList) {
+//                        messagesThreadRecyclerAdapter.submitList(smsList);
+//                        if(!smsList.isEmpty())
+//                            findViewById(R.id.router_no_showable_messages_text).setVisibility(View.GONE);
+//                        else {
+//                            findViewById(R.id.router_no_showable_messages_text).setVisibility(View.VISIBLE);
+//                            routedMessageRecyclerView.smoothScrollToPosition(0);
+//                        }
+//                    }
+//                });
 
         listeners();
     }

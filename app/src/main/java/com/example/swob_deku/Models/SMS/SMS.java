@@ -13,7 +13,6 @@ import android.provider.Telephony;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -275,14 +273,35 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
         private String address, threadId;
         private String _address;
 
+        private long newestDateTime;
+        private int newestType;
+
+        public long getNewestDateTime() {
+            return this.newestDateTime;
+        }
+
         public void setThreadId(Context context, String threadId) {
             this.threadId = threadId;
             Cursor cursor = fetchMessages(context, 1, 0);
             if(cursor.moveToFirst()) {
-                SMS sms = new SMS(cursor);
-                setAddress(context, sms.getAddress());
+                int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+                int dateTimeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
+                int typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE);
+                address = cursor.getString(addressIndex);
+                newestDateTime = Long.parseLong(cursor.getString(dateTimeIndex));
+                newestType = cursor.getInt(typeIndex);
             }
             cursor.close();
+
+            try {
+                this._address = formatPhoneNumbers(context, address);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public int getNewestType() {
+            return this.newestType;
         }
 
         public String setAddress(Context context, String address) {
@@ -294,7 +313,6 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
                 this._address = this.address;
             }
 
-
             return _findSMSThreadIdFromAddress(context, this._address);
         }
 
@@ -304,19 +322,19 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
 
             Cursor cursor = context.getContentResolver().query(
                     SMS_CONTENT_URI,
-                    null,
+                    new String[]{"thread_id"},
                     selection,
                     selectionArgs,
-                    null);
+                    "date DESC LIMIT 1");
 
             String threadId = "";
             if (cursor.moveToFirst()) {
-                SMS sms = new SMS(cursor);
-                threadId = sms.getThreadId();
+                int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+                threadId = cursor.getString(threadIdIndex);
+
+                cursor.close();
                 return threadId;
             }
-
-            cursor.close();
             return null;
         }
 

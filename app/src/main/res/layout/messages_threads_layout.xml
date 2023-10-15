@@ -22,22 +22,23 @@
 
         <FrameLayout
             android:id="@+id/messages_threads_contact_photo_id"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:layout_marginStart="12dp"
             android:layout_marginTop="8dp"
+            android:visibility="visible"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <io.getstream.avatarview.AvatarView
                 android:id="@+id/messages_threads_contact_initials"
-                android:layout_width="37dp"
-                android:layout_height="37dp"
-                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="visible"
                 app:avatarViewBorderRadius="0dp"
                 app:avatarViewBorderWidth="0dp"
                 app:avatarViewInitialsTextColor="@color/primary_background_color"
-                app:avatarViewInitialsTextSize="20sp"
+                app:avatarViewInitialsTextSize="16sp"
                 app:avatarViewInitialsTextStyle="normal" />
 
             <ImageView
@@ -96,6 +97,7 @@
             android:layout_marginEnd="16dp"
             android:textColor="@color/colorSecondary"
             android:textSize="11dp"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
 

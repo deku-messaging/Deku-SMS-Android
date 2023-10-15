@@ -78,7 +78,7 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
     public static class ContactsViewHolder extends TemplateViewHolder {
         public ContactsViewHolder(@NonNull View itemView, boolean isContact) {
-            super(itemView);
+            super(itemView, true);
 
             snippet.setMaxLines(1);
             address.setMaxLines(1);

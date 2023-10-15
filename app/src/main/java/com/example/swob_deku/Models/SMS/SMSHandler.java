@@ -129,22 +129,26 @@ public class SMSHandler {
     }
 
     public static Cursor fetchSMSForThreading(Context context) {
-        String[] projection = new String[]{
-                Telephony.Sms._ID,
-                Telephony.TextBasedSmsColumns.READ,
-                Telephony.TextBasedSmsColumns.THREAD_ID,
-                Telephony.TextBasedSmsColumns.ADDRESS,
-                Telephony.TextBasedSmsColumns.BODY,
-//                Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
-                Telephony.TextBasedSmsColumns.TYPE,
-                "MAX(date) as date"};
+//        String[] projection = new String[]{
+//                Telephony.Sms._ID,
+//                Telephony.TextBasedSmsColumns.READ,
+//                Telephony.TextBasedSmsColumns.THREAD_ID,
+//                Telephony.TextBasedSmsColumns.ADDRESS,
+//                Telephony.TextBasedSmsColumns.BODY,
+////                Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
+//                Telephony.TextBasedSmsColumns.TYPE,
+//                "MAX(date) as date"};
+//
+//        return context.getContentResolver().query(
+//                SMS_CONTENT_URI,
+//                projection,
+//                "thread_id IS NOT NULL) GROUP BY (thread_id",
+//                null,
+//                "date DESC");
 
         return context.getContentResolver().query(
-                SMS_CONTENT_URI,
-                projection,
-                "thread_id IS NOT NULL) GROUP BY (thread_id",
-                null,
-                "date DESC");
+                Telephony.Sms.Conversations.CONTENT_URI,
+                null, null, null, null);
     }
 
     public static Cursor fetchSMSMessagesForSearch(Context context, String searchInput) {

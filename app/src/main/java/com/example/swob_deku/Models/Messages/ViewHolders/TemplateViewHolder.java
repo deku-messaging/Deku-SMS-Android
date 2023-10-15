@@ -1,7 +1,10 @@
 package com.example.swob_deku.Models.Messages.ViewHolders;
 
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -9,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.R;
 
@@ -32,8 +36,9 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
 
     public ConstraintLayout layout;
 
-    final int recyclerViewTimeUpdateLimit = 60 * 1000;
-    public TemplateViewHolder(@NonNull View itemView) {
+    public FrameLayout contactsInitialsPhotoFrame;
+
+    public TemplateViewHolder(@NonNull View itemView, boolean isContact) {
         super(itemView);
 
         snippet = itemView.findViewById(R.id.messages_thread_text);
@@ -44,21 +49,29 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         routingUrl = itemView.findViewById(R.id.message_route_url);
         routingURLText = itemView.findViewById(R.id.message_route_status);
         youLabel = itemView.findViewById(R.id.message_you_label);
+        contactsInitialsPhotoFrame = itemView.findViewById(R.id.messages_threads_contact_photo_id);
         contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
         contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
         encryptedLock = itemView.findViewById(R.id.messages_thread_secured_lock);
+
+        if(isContact) {
+            contactPhoto.setVisibility(View.GONE);
+        }
+        else {
+            contactInitials.setVisibility(View.GONE);
+        }
     }
 
     public static class ReadViewHolder extends TemplateViewHolder{
-        public ReadViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public ReadViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             snippet.setMaxLines(1);
         }
     }
 
     public static class UnreadViewHolder extends TemplateViewHolder{
-        public UnreadViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public UnreadViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             address.setTypeface(Typeface.DEFAULT_BOLD);
             address.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
 
@@ -71,16 +84,16 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
     }
 
     public static class UnreadEncryptedViewHolder extends TemplateViewHolder.UnreadViewHolder {
-        public UnreadEncryptedViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public UnreadEncryptedViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             snippet.setText(R.string.messages_thread_encrypted_content);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
         }
     }
 
     public static class ReadEncryptedViewHolder extends TemplateViewHolder.ReadViewHolder {
-        public ReadEncryptedViewHolder(@NonNull View itemView) {
-            super(itemView);
+        public ReadEncryptedViewHolder(@NonNull View itemView, boolean isContact) {
+            super(itemView, isContact);
             snippet.setText(R.string.messages_thread_encrypted_content);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
         }

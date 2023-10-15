@@ -64,18 +64,10 @@ public class DefaultCheckActivity extends AppCompatActivity {
     public void makeDefault(View view) {
         Log.d(getLocalClassName(), "Got into make default function..");
         final String myPackageName = getApplicationContext().getPackageName();
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
-            Intent roleManagerIntent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS);
-            roleManagerIntent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
-            startActivityForResult(roleManagerIntent, 0);
-        }
-        else {
-            Intent intent =
-                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
-            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
-            startActivity(intent);
-        }
+        RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
+        Intent roleManagerIntent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS);
+        roleManagerIntent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
+        startActivityForResult(roleManagerIntent, 0);
     }
 
     private void checkIsDefaultApp() {
@@ -93,14 +85,12 @@ public class DefaultCheckActivity extends AppCompatActivity {
     public void onActivityResult(int reqCode, int resultCode, Intent data) {
         super.onActivityResult(reqCode, resultCode, data);
 
-        switch (reqCode) {
-            case 0:
-                if(resultCode == Activity.RESULT_OK) {
-                    startActivity(new Intent(this, MessagesThreadsActivity.class));
-                }
-            default:
-                finish();
+        if (reqCode == 0) {
+            if (resultCode == Activity.RESULT_OK) {
+                startActivity(new Intent(this, MessagesThreadsActivity.class));
+            }
         }
+        finish();
     }
 
     ArrayList<String> notificationsChannelIds = new ArrayList<>();
@@ -134,52 +124,50 @@ public class DefaultCheckActivity extends AppCompatActivity {
         // Read more: https://developer.android.com/training/notify-user/channels
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            List<String> activeNotifications = clearOutOldNotificationChannels();
+        List<String> activeNotifications = clearOutOldNotificationChannels();
 
-            if(!activeNotifications.contains(notificationsChannelIds.get(0))) {
-                int importance = NotificationManager.IMPORTANCE_HIGH;
+        if(!activeNotifications.contains(notificationsChannelIds.get(0))) {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
 
-                NotificationChannel channel = new NotificationChannel(
-                        notificationsChannelIds.get(0), notificationsChannelNames.get(0), importance);
-                channel.setDescription(getString(R.string.incoming_messages_channel_description));
-                channel.enableLights(true);
-                channel.setLightColor(R.color.logo_primary);
-                channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationChannel channel = new NotificationChannel(
+                    notificationsChannelIds.get(0), notificationsChannelNames.get(0), importance);
+            channel.setDescription(getString(R.string.incoming_messages_channel_description));
+            channel.enableLights(true);
+            channel.setLightColor(R.color.logo_primary);
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
 
-                // Register the channel with the system; you can't change the importance
-                // or other notification behaviors after this
-                NotificationManager notificationManager = getSystemService(NotificationManager.class);
-                notificationManager.createNotificationChannel(channel);
-            }
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
 
-            if(!activeNotifications.contains(notificationsChannelIds.get(1))) {
-                int importance = NotificationManager.IMPORTANCE_DEFAULT;
-                NotificationChannel channel = new NotificationChannel(
-                        notificationsChannelIds.get(1), notificationsChannelNames.get(1), importance);
-                channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
-                channel.setLightColor(R.color.logo_primary);
-                channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
+        if(!activeNotifications.contains(notificationsChannelIds.get(1))) {
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(
+                    notificationsChannelIds.get(1), notificationsChannelNames.get(1), importance);
+            channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
+            channel.setLightColor(R.color.logo_primary);
+            channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
 
-                // Register the channel with the system; you can't change the importance
-                // or other notification behaviors after this
-                NotificationManager notificationManager = getSystemService(NotificationManager.class);
-                notificationManager.createNotificationChannel(channel);
-            }
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
 
-            if(!activeNotifications.contains(notificationsChannelIds.get(2))) {
-                int importance = NotificationManager.IMPORTANCE_DEFAULT;
-                NotificationChannel channel = new NotificationChannel(
-                        notificationsChannelIds.get(2), notificationsChannelNames.get(2), importance);
-                channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
-                channel.setLightColor(R.color.logo_primary);
-                channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
+        if(!activeNotifications.contains(notificationsChannelIds.get(2))) {
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(
+                    notificationsChannelIds.get(2), notificationsChannelNames.get(2), importance);
+            channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
+            channel.setLightColor(R.color.logo_primary);
+            channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
 
-                // Register the channel with the system; you can't change the importance
-                // or other notification behaviors after this
-                NotificationManager notificationManager = getSystemService(NotificationManager.class);
-                notificationManager.createNotificationChannel(channel);
-            }
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 
