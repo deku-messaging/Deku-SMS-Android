@@ -18,6 +18,8 @@ import com.example.swob_deku.Models.CustomAppCompactActivity;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.example.swob_deku.Models.Router.RouterHandler;
+import com.example.swob_deku.Models.Router.RouterMessages;
+import com.example.swob_deku.Models.Router.RouterRecyclerAdapter;
 import com.example.swob_deku.Models.Router.RouterViewModel;
 import com.example.swob_deku.Models.SMS.SMS;
 
@@ -28,12 +30,13 @@ import java.util.Map;
 public class RouterActivity extends CustomAppCompactActivity {
 
     RouterViewModel routerViewModel;
-    public MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter;
     RecyclerView routedMessageRecyclerView;
 
     ActionBar ab;
 
     Toolbar myToolbar;
+
+    RouterRecyclerAdapter routerRecyclerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,29 +60,27 @@ public class RouterActivity extends CustomAppCompactActivity {
                 LinearLayoutManager.VERTICAL, false);
         routedMessageRecyclerView.setLayoutManager(linearLayoutManager);
 
-        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( this,
-                true, "", this);
+        routerRecyclerAdapter = new RouterRecyclerAdapter(getApplicationContext());
 
-        routedMessageRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
+        routedMessageRecyclerView.setAdapter(routerRecyclerAdapter);
 
-        routerViewModel = new ViewModelProvider(this).get(
-                RouterViewModel.class);
+        routerViewModel = new ViewModelProvider(this).get( RouterViewModel.class);
 
-//        routerViewModel.getMessages(getApplicationContext()).observe(this,
-//                new Observer<List<SMS>>() {
-//                    @Override
-//                    public void onChanged(List<SMS> smsList) {
-//                        messagesThreadRecyclerAdapter.submitList(smsList);
-//                        if(!smsList.isEmpty())
-//                            findViewById(R.id.router_no_showable_messages_text).setVisibility(View.GONE);
-//                        else {
-//                            findViewById(R.id.router_no_showable_messages_text).setVisibility(View.VISIBLE);
-//                            routedMessageRecyclerView.smoothScrollToPosition(0);
-//                        }
-//                    }
-//                });
+        routerViewModel.getMessages(getApplicationContext()).observe(this,
+                new Observer<List<RouterMessages>>() {
+                    @Override
+                    public void onChanged(List<RouterMessages> smsList) {
+                        routerRecyclerAdapter.submitList(smsList);
+                        if(!smsList.isEmpty())
+                            findViewById(R.id.router_no_showable_messages_text).setVisibility(View.GONE);
+                        else {
+                            findViewById(R.id.router_no_showable_messages_text).setVisibility(View.VISIBLE);
+                            routedMessageRecyclerView.smoothScrollToPosition(0);
+                        }
+                    }
+                });
 
-        listeners();
+//        listeners();
     }
 
     @Override
@@ -95,48 +96,48 @@ public class RouterActivity extends CustomAppCompactActivity {
 
     }
 
-    private void listeners() {
-        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, TemplateViewHolder>>() {
-            @Override
-            public void onChanged(HashMap<String, TemplateViewHolder> stringTemplateViewHolderHashMap) {
-                if(stringTemplateViewHolderHashMap != null) {
-                    if(!stringTemplateViewHolderHashMap.isEmpty()) {
-                        ab.setTitle(String.valueOf(stringTemplateViewHolderHashMap.size()));
-                    }
-                    else
-                        ab.setTitle(R.string.homepage_menu_routed);
-                    myToolbar.getMenu().findItem(R.id.messages_thread_routing_cancel)
-                            .setVisible(!stringTemplateViewHolderHashMap.isEmpty());
-                }
-                else {
-                    myToolbar.getMenu().findItem(R.id.messages_thread_routing_cancel)
-                            .setVisible(false);
-                }
-            }
-        });
-    }
-
+//    private void listeners() {
+//        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, TemplateViewHolder>>() {
+//            @Override
+//            public void onChanged(HashMap<String, TemplateViewHolder> stringTemplateViewHolderHashMap) {
+//                if(stringTemplateViewHolderHashMap != null) {
+//                    if(!stringTemplateViewHolderHashMap.isEmpty()) {
+//                        ab.setTitle(String.valueOf(stringTemplateViewHolderHashMap.size()));
+//                    }
+//                    else
+//                        ab.setTitle(R.string.homepage_menu_routed);
+//                    myToolbar.getMenu().findItem(R.id.messages_thread_routing_cancel)
+//                            .setVisible(!stringTemplateViewHolderHashMap.isEmpty());
+//                }
+//                else {
+//                    myToolbar.getMenu().findItem(R.id.messages_thread_routing_cancel)
+//                            .setVisible(false);
+//                }
+//            }
+//        });
+//    }
+//
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.routing_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.messages_thread_routing_cancel) {
-            if(messagesThreadRecyclerAdapter.selectedItems.getValue() != null) {
-                for (Map.Entry<String, TemplateViewHolder> entry :
-                        messagesThreadRecyclerAdapter.selectedItems.getValue().entrySet()) {
-                    String messageId = String.valueOf(entry.getValue().messageId);
-                    Log.d(getLocalClassName(), "Removing routing message: " + messageId);
-                    RouterHandler.removeWorkForMessage(getApplicationContext(), messageId);
-                }
-                messagesThreadRecyclerAdapter.resetAllSelectedItems();
-                routerViewModel.informChanges(getApplicationContext());
-                return true;
-            }
-        }
-        return false;
-    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        if(item.getItemId() == R.id.messages_thread_routing_cancel) {
+//            if(messagesThreadRecyclerAdapter.selectedItems.getValue() != null) {
+//                for (Map.Entry<String, TemplateViewHolder> entry :
+//                        messagesThreadRecyclerAdapter.selectedItems.getValue().entrySet()) {
+//                    String messageId = String.valueOf(entry.getValue().messageId);
+//                    Log.d(getLocalClassName(), "Removing routing message: " + messageId);
+//                    RouterHandler.removeWorkForMessage(getApplicationContext(), messageId);
+//                }
+//                messagesThreadRecyclerAdapter.resetAllSelectedItems();
+//                routerViewModel.informChanges(getApplicationContext());
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 }

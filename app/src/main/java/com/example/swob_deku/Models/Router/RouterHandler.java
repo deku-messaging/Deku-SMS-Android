@@ -24,7 +24,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
-import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Datastore;
 import com.example.swob_deku.Models.GatewayServers.GatewayServer;
 import com.example.swob_deku.Models.GatewayServers.GatewayServerDAO;
@@ -100,10 +99,9 @@ public class RouterHandler {
 
                     jsonObject.setTag(gatewayServer.getTag());
                     final String jsonStringBody = gson.toJson(jsonObject);
-                    Log.d(getClass().getName(), "Routing: " + jsonStringBody);
 
                     try {
-                        OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(Router.class)
+                        OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(RouterWorkManager.class)
                                 .setConstraints(constraints)
                                 .setBackoffCriteria(
                                         BackoffPolicy.LINEAR,
@@ -115,8 +113,8 @@ public class RouterHandler {
                                 .addTag(getTagForGatewayServers(gatewayServer.getURL()))
                                 .setInputData(
                                         new Data.Builder()
-                                                .putString(Router.SMS_JSON_OBJECT, jsonStringBody)
-                                                .putString(Router.SMS_JSON_ROUTING_URL, gatewayServer.getURL())
+                                                .putString(RouterWorkManager.SMS_JSON_OBJECT, jsonStringBody)
+                                                .putString(RouterWorkManager.SMS_JSON_ROUTING_URL, gatewayServer.getURL())
                                                 .build()
                                 )
                                 .build();
@@ -158,7 +156,7 @@ public class RouterHandler {
     }
 
 
-    public static ArrayList<ArrayList<String>> getMessageIdsFromWorkManagers(Context context) {
+    public static ArrayList<String[]> getMessageIdsFromWorkManagers(Context context) {
 
         WorkQuery workQuery = WorkQuery.Builder
                 .fromTags(Collections.singletonList(
@@ -174,7 +172,7 @@ public class RouterHandler {
         WorkManager workManager = WorkManager.getInstance(context);
         ListenableFuture<List<WorkInfo>> worksInfo = workManager.getWorkInfos(workQuery);
 
-        ArrayList<ArrayList<String>> workerIds = new ArrayList<>();
+        ArrayList<String[]> workerIds = new ArrayList<>();
         try {
             List<WorkInfo> workInfoList = worksInfo.get();
 
@@ -192,15 +190,16 @@ public class RouterHandler {
                     }
                 }
 
-                ArrayList<String> routeJobState = new ArrayList<>();
+//                ArrayList<String> routeJobState = new ArrayList<>();
+                String[] routeJobState = new String[4];
                 if(!messageId.isEmpty() && !gatewayServerUrl.isEmpty()) {
-                    routeJobState.add(messageId);
-                    routeJobState.add(workInfo.getState().name());
-                    routeJobState.add(gatewayServerUrl);
+                    routeJobState[0] = messageId;
+                    routeJobState[1] = workInfo.getState().name();
+                    routeJobState[2] = gatewayServerUrl;
+                    routeJobState[3] = workInfo.getId().toString();
                 }
 
-                if(!routeJobState.isEmpty())
-                    workerIds.add(routeJobState);
+                workerIds.add(routeJobState);
             }
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();

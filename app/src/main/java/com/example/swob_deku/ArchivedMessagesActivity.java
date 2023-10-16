@@ -58,8 +58,7 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                 LinearLayoutManager.VERTICAL, false);
         archivedMessagesRecyclerView.setLayoutManager(linearLayoutManager);
 
-        archivedThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( this,
-                true, "", this);
+        archivedThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(this);
 
         archivedMessagesRecyclerView.setAdapter(archivedThreadRecyclerAdapter);
 

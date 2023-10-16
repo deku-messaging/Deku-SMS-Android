@@ -78,33 +78,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
        this.context = context;
     }
 
-    public MessagesThreadRecyclerAdapter(Context context, Boolean isSearch,
-                                         String searchString) {
-        this.context = context;
-        this.isSearch = isSearch;
-        this.searchString = searchString;
-    }
-
-    public MessagesThreadRecyclerAdapter(Context context, Boolean isSearch,
-                                         String searchString, RouterActivity routerActivity) {
-        this.context = context;
-        this.isSearch = isSearch;
-        this.searchString = searchString;
-        this.routerActivity = routerActivity;
-
-        workManager = WorkManager.getInstance(context);
-    }
-
-    public MessagesThreadRecyclerAdapter(Context context, Boolean isSearch,
-                                         String searchString, ArchivedMessagesActivity archivedMessagesActivity) {
-        this.context = context;
-        this.isSearch = isSearch;
-        this.searchString = searchString;
-        this.archivedMessagesActivity = archivedMessagesActivity;
-
-        workManager = WorkManager.getInstance(context);
-    }
-
     @NonNull
     @Override
     public TemplateViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -133,10 +106,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedRead(view);
     }
 
-    public boolean isContact(String address) {
-        String addressInPhone = Contacts.retrieveContactName(context, address);
-        return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
-    }
 
     @Override
     public int getItemViewType(int position) {
@@ -180,29 +149,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
         Conversations conversation = mDiffer.getCurrentList().get(position);
-        holder.id = conversation.THREAD_ID;
-//
-        SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
-        String address = smsMetaEntity.getAddress();
-        long smsDate = smsMetaEntity.getNewestDateTime();
-
-        if(isContact(address)) {
-            address = Contacts.retrieveContactName(context, address);
-//            if(!address.isEmpty()) {
-//                holder.contactInitials.setAvatarInitials(address.substring(0, 1));
-//                holder.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
-//            }
-        }
-        else {
-//            Drawable drawable = holder.contactPhoto.getDrawable();
-//            drawable.setColorFilter(Helpers.generateColor(address), PorterDuff.Mode.SRC_IN);
-//            holder.contactPhoto.setImageDrawable(drawable);
-        }
-        holder.address.setText(address);
-
-        String date = Helpers.formatDate(context, smsDate);
-        holder.date.setText(date);
-        holder.snippet.setText(conversation.SNIPPET);
+        holder.init(conversation);
 
 //                SecurityECDH securityECDH = new SecurityECDH(context);
 //                if(securityECDH.hasSecretKey(conversation.SNIPPET) ) {
@@ -304,8 +251,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
 
     @Override
     public int getItemCount() {
-        int itemCount = mDiffer.getCurrentList().size();
-        return itemCount;
+        return mDiffer.getCurrentList().size();
     }
 
     public void submitList(List<Conversations> list) {

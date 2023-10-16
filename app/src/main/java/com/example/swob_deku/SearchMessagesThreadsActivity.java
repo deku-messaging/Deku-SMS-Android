@@ -59,8 +59,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         messagesSearchViewModel = new ViewModelProvider(this).get(
                 MessagesSearchViewModel.class);
 
-        MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(
-                this, true, searchString.getValue());
+        MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(this);
 
         SearchView searchView = findViewById(R.id.search_view_input);
         CustomContactsCursorAdapter customContactsCursorAdapter = new CustomContactsCursorAdapter(getApplicationContext(),

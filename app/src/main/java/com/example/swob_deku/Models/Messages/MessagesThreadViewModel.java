@@ -25,21 +25,14 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class MessagesThreadViewModel extends ViewModel {
-    private MutableLiveData<List<Conversations>> messagesList;
-    private LiveData<List<SMS>> messagesListLiveData;
-
     private MutableLiveData<List<Conversations>> conversationsMutableLiveData;
-    private LiveData<List<Conversations>> conversationsLiveData;
 
     String messagesType;
 
-    public MutableLiveData<List<Conversations>> getMessages(Context context, String messagesType) throws GeneralSecurityException, IOException {
-        Log.d(getClass().getName(), "Running for getting messages!");
-        if(messagesListLiveData == null) {
+    public LiveData<List<Conversations>> getMessages(Context context, String messagesType) throws GeneralSecurityException, IOException {
+        if(conversationsMutableLiveData == null) {
             this.messagesType = messagesType;
-
             conversationsMutableLiveData = new MutableLiveData<>();
-
             loadSMSThreads(context);
         }
         return conversationsMutableLiveData;
@@ -48,20 +41,6 @@ public class MessagesThreadViewModel extends ViewModel {
     public void informChanges(Context context) throws GeneralSecurityException, IOException {
         Log.d(getClass().getName(), "Running for informing changes");
         loadSMSThreads(context);
-    }
-
-    private List<Conversations> sortConversations(final List<Conversations> list) {
-        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
-        List<Conversations> sortedList = new ArrayList<>();
-
-        for(Conversations conversation : list) {
-            conversationsTreeMap.put(conversation.getNewestMessage().getNewestDateTime(), conversation);
-        }
-        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
-            sortedList.add(conversationsEntry.getValue());
-        }
-
-        return sortedList;
     }
 
     private void loadSMSThreads(Context context) throws GeneralSecurityException, IOException {
@@ -74,6 +53,7 @@ public class MessagesThreadViewModel extends ViewModel {
                     @Override
                     public void run() {
                         List<Conversations> conversations = new ArrayList<>();
+                        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
                         try {
                             SecurityECDH securityECDH = new SecurityECDH(context);
                             Map<String, ?> encryptedContacts = securityECDH.securelyFetchAllSecretKey();
@@ -86,7 +66,8 @@ public class MessagesThreadViewModel extends ViewModel {
                                             continue;
                                         }
                                         conversation.setNewestMessage(context);
-                                        conversations.add(conversation);
+                                        long date = conversation.getNewestMessage().getNewestDateTime();
+                                        conversationsTreeMap.put(date, conversation);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
@@ -96,7 +77,11 @@ public class MessagesThreadViewModel extends ViewModel {
                         } catch (GeneralSecurityException | IOException e) {
                             e.printStackTrace();
                         }
-                        conversationsMutableLiveData.postValue(sortConversations(conversations));
+                        List<Conversations> sortedList = new ArrayList<>();
+                        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
+                            sortedList.add(conversationsEntry.getValue());
+                        }
+                        conversationsMutableLiveData.postValue(sortedList);
                         archiveHandler.close();
                     }
                 }).start();
@@ -108,6 +93,7 @@ public class MessagesThreadViewModel extends ViewModel {
                     @Override
                     public void run() {
                         List<Conversations> conversations = new ArrayList<>();
+                        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
                         if (cursor.moveToFirst()) {
                             do {
                                 Conversations conversation = new Conversations(cursor);
@@ -116,14 +102,19 @@ public class MessagesThreadViewModel extends ViewModel {
                                         continue;
                                     }
                                     conversation.setNewestMessage(context);
-                                    conversations.add(conversation);
+                                    long date = conversation.getNewestMessage().getNewestDateTime();
+                                    conversationsTreeMap.put(date, conversation);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
                             } while (cursor.moveToNext());
                             cursor.close();
                         }
-                        conversationsMutableLiveData.postValue(sortConversations(conversations));
+                        List<Conversations> sortedList = new ArrayList<>();
+                        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
+                            sortedList.add(conversationsEntry.getValue());
+                        }
+                        conversationsMutableLiveData.postValue(sortedList);
                         archiveHandler.close();
                     }
 
@@ -137,6 +128,7 @@ public class MessagesThreadViewModel extends ViewModel {
                     @Override
                     public void run() {
                         List<Conversations> conversations = new ArrayList<>();
+                        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
                         try {
                             SecurityECDH securityECDH = new SecurityECDH(context);
                             Map<String, ?> encryptedContacts = securityECDH.securelyFetchAllSecretKey();
@@ -149,7 +141,8 @@ public class MessagesThreadViewModel extends ViewModel {
                                             continue;
                                         }
                                         conversation.setNewestMessage(context);
-                                        conversations.add(conversation);
+                                        long date = conversation.getNewestMessage().getNewestDateTime();
+                                        conversationsTreeMap.put(date, conversation);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
@@ -159,7 +152,11 @@ public class MessagesThreadViewModel extends ViewModel {
                         } catch (GeneralSecurityException | IOException e) {
                             e.printStackTrace();
                         }
-                        conversationsMutableLiveData.postValue(sortConversations(conversations));
+                        List<Conversations> sortedList = new ArrayList<>();
+                        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
+                            sortedList.add(conversationsEntry.getValue());
+                        }
+                        conversationsMutableLiveData.postValue(sortedList);
                         archiveHandler.close();
                     }
                 }).start();

@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
+import com.example.swob_deku.Models.SMS.Conversations;
+import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.R;
 
 import io.getstream.avatarview.AvatarView;
@@ -50,6 +52,23 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         youLabel = itemView.findViewById(R.id.message_you_label);
         contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
         encryptedLock = itemView.findViewById(R.id.messages_thread_secured_lock);
+    }
+
+    public void init(Conversations conversation) {
+        this.id = conversation.THREAD_ID;
+//
+        final SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
+        String address = smsMetaEntity.getAddress();
+        if(smsMetaEntity.isContact()) {
+            address = smsMetaEntity.getContactName();
+//            if(!address.isEmpty()) {
+//                holder.contactInitials.setAvatarInitials(address.substring(0, 1));
+//                holder.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
+//            }
+        }
+        this.address.setText(address);
+        this.date.setText(smsMetaEntity.getFormattedDate());
+        this.snippet.setText(conversation.SNIPPET);
     }
 
     public static class ReadViewHolder extends TemplateViewHolder{

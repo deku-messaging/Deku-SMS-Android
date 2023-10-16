@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 
+import com.example.swob_deku.Commons.Helpers;
 import com.example.swob_deku.Models.Contacts.Contacts;
 import com.example.swob_deku.Models.RMQ.RMQConnectionService;
 import com.example.swob_deku.Models.Security.SecurityAES;
@@ -277,6 +278,12 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
         private int newestType;
         private boolean newestIsRead = false;
 
+        private boolean isContact = false;
+
+        private String contactName;
+
+        private String formattedDate;
+
         public long getNewestDateTime() {
             return this.newestDateTime;
         }
@@ -294,6 +301,11 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
                 newestType = cursor.getInt(typeIndex);
                 newestIsRead = cursor.getInt(readIndex) != 0;
                 cursor.close();
+                this.isContact = getIsContact(context);
+                if(this.isContact) {
+                    this.contactName = Contacts.retrieveContactName(context, address);
+                }
+                this.formattedDate = Helpers.formatDate(context, this.newestDateTime);
             }
 
             try {
@@ -301,6 +313,23 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        public String getFormattedDate() {
+            return this.formattedDate;
+        }
+
+        public String getContactName() {
+            return this.contactName;
+        }
+
+        public boolean isContact() {
+            return this.isContact;
+        }
+
+        private boolean getIsContact(Context context) {
+            String addressInPhone = Contacts.retrieveContactName(context, this._address);
+            return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
         }
 
         public boolean getNewestIsRead() {

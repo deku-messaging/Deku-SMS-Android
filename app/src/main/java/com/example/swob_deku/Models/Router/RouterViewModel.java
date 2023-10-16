@@ -2,6 +2,7 @@ package com.example.swob_deku.Models.Router;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.provider.Telephony;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -11,6 +12,7 @@ import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
 import com.example.swob_deku.Commons.Helpers;
+import com.example.swob_deku.Models.SMS.Conversations;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
@@ -18,13 +20,16 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
 public class RouterViewModel extends ViewModel {
-    private MutableLiveData<List<SMS>> messagesList;
+    private MutableLiveData<List<RouterMessages>> messagesList;
 
-    public LiveData<List<SMS>> getMessages(Context context){
+    public LiveData<List<RouterMessages>> getMessages(Context context){
         if(messagesList == null) {
             messagesList = new MutableLiveData<>();
             loadSMSThreads(context);
@@ -37,25 +42,54 @@ public class RouterViewModel extends ViewModel {
     }
 
     private void loadSMSThreads(Context context) {
-        ArrayList<ArrayList<String>> routerJobs = RouterHandler.getMessageIdsFromWorkManagers(context);
+        ArrayList<String[]> routerJobs = RouterHandler.getMessageIdsFromWorkManagers(context);
 
         if(routerJobs.isEmpty())
             return;
 
-        List<SMS> smsList = new ArrayList<>();
-        for(ArrayList<String> workerList : routerJobs) {
-//            long messageId = Long.parseLong(workerList.get(0));
-//            Cursor cursor = SMSHandler.fetchSMSMessageForAllIds(context, workerIds);
-            String messageId = workerList.get(0);
-            Cursor cursor = SMSHandler.fetchSMSInboxById(context, messageId);
-            if(cursor.moveToFirst()) {
-                SMS sms = new SMS(cursor);
-                sms.setRouterStatus(workerList.get(1));
-                sms.addRoutingUrl(workerList.get(2));
-                smsList.add(sms);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<RouterMessages> routerMessages = new ArrayList<>();
+                TreeMap<Long, RouterMessages> routerMessagesTreeMap = new TreeMap<>(Comparator.reverseOrder());
+
+                for(String[] workerList : routerJobs) {
+                    String messageId = workerList[0];
+                    Cursor cursor = SMSHandler.fetchSMSInboxById(context, messageId);
+                    if(cursor.moveToFirst()) {
+                        int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+                        int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+                        int dateTimeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
+                        int bodyIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.BODY);
+
+                        String threadId = cursor.getString(threadIdIndex);
+                        String address = cursor.getString(addressIndex);
+                        String body = cursor.getString(bodyIndex);
+                        String date = cursor.getString(dateTimeIndex);
+                        cursor.close();
+
+                        String routerStatus = workerList[1];
+                        String url = workerList[2];
+                        RouterMessages routerMessage = new RouterMessages();
+
+                        routerMessage.setId(workerList[3]);
+                        routerMessage.setThreadId(threadId);
+                        routerMessage.setStatus(routerStatus);
+                        routerMessage.setUrl(url);
+                        routerMessage.setDate(Long.parseLong(date));
+                        routerMessage.setMessageId(Long.parseLong(messageId));
+                        routerMessage.setBody(body);
+                        routerMessage.setAddress(address);
+
+                        routerMessagesTreeMap.put(Long.parseLong(date), routerMessage);
+                    }
+                }
+                for(Map.Entry<Long, RouterMessages> routerMessage: routerMessagesTreeMap.entrySet())
+                    routerMessages.add(routerMessage.getValue());
+
+                messagesList.postValue(routerMessages);
             }
-            cursor.close();
-        }
-        messagesList.setValue(smsList);
+        });
+        thread.start();
     }
 }
