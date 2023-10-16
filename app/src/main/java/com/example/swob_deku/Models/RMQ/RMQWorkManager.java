@@ -39,36 +39,20 @@ public class RMQWorkManager extends Worker {
     @Override
     public Result doWork() {
         Intent intent = new Intent(getApplicationContext(), RMQConnectionService.class);
-//        _startWebsocketsServices();
         if(!sharedPreferences.getAll().isEmpty()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                try {
-                    context.startForegroundService(intent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        if (e instanceof ForegroundServiceStartNotAllowedException) {
-                            notifyUserToReconnectSMSServices();
-                        }
-                    }
-                    return Result.failure();
+            try {
+                context.startForegroundService(intent);
+                new RMQConnectionService().createForegroundNotification(0,
+                        sharedPreferences.getAll().size());
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (e instanceof ForegroundServiceStartNotAllowedException) {
+                    notifyUserToReconnectSMSServices();
                 }
-            } else {
-                context.startService(intent);
+                return Result.failure();
             }
-            return Result.success();
         }
-        return null;
-    }
-
-    private void _startWebsocketsServices(){
-        Intent intent = new Intent(getApplicationContext(), WebWebsocketsService.class);
-        Log.d(getClass().getName(), "+ Starting websockets...");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent);
-        } else {
-            context.startService(intent);
-        }
+        return Result.success();
     }
 
     private void notifyUserToReconnectSMSServices(){

@@ -36,9 +36,8 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
 
     public ConstraintLayout layout;
 
-    public FrameLayout contactsInitialsPhotoFrame;
 
-    public TemplateViewHolder(@NonNull View itemView, boolean isContact) {
+    public TemplateViewHolder(@NonNull View itemView) {
         super(itemView);
 
         snippet = itemView.findViewById(R.id.messages_thread_text);
@@ -49,29 +48,20 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         routingUrl = itemView.findViewById(R.id.message_route_url);
         routingURLText = itemView.findViewById(R.id.message_route_status);
         youLabel = itemView.findViewById(R.id.message_you_label);
-        contactsInitialsPhotoFrame = itemView.findViewById(R.id.messages_threads_contact_photo_id);
         contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
-        contactPhoto = itemView.findViewById(R.id.messages_threads_contact_photo);
         encryptedLock = itemView.findViewById(R.id.messages_thread_secured_lock);
-
-        if(isContact) {
-            contactPhoto.setVisibility(View.GONE);
-        }
-        else {
-            contactInitials.setVisibility(View.GONE);
-        }
     }
 
     public static class ReadViewHolder extends TemplateViewHolder{
-        public ReadViewHolder(@NonNull View itemView, boolean isContact) {
-            super(itemView, isContact);
+        public ReadViewHolder(@NonNull View itemView) {
+            super(itemView);
             snippet.setMaxLines(1);
         }
     }
 
     public static class UnreadViewHolder extends TemplateViewHolder{
-        public UnreadViewHolder(@NonNull View itemView, boolean isContact) {
-            super(itemView, isContact);
+        public UnreadViewHolder(@NonNull View itemView) {
+            super(itemView);
             address.setTypeface(Typeface.DEFAULT_BOLD);
             address.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
 
@@ -84,16 +74,16 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
     }
 
     public static class UnreadEncryptedViewHolder extends TemplateViewHolder.UnreadViewHolder {
-        public UnreadEncryptedViewHolder(@NonNull View itemView, boolean isContact) {
-            super(itemView, isContact);
+        public UnreadEncryptedViewHolder(@NonNull View itemView) {
+            super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
         }
     }
 
     public static class ReadEncryptedViewHolder extends TemplateViewHolder.ReadViewHolder {
-        public ReadEncryptedViewHolder(@NonNull View itemView, boolean isContact) {
-            super(itemView, isContact);
+        public ReadEncryptedViewHolder(@NonNull View itemView) {
+            super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
         }

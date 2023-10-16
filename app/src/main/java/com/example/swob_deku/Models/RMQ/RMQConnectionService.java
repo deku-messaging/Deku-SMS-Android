@@ -270,16 +270,10 @@ public class RMQConnectionService extends Service {
                     Log.d(getClass().getName(), "New deliver callback for global id: " + globalMessageKey);
                     Log.d(getClass().getName(), "Incoming sid found: " + sid);
 
-                    // int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-//                    int subscriptionId = rmqConnection.getSubscriptionId();
-
                     Map<Long, Channel> deliveryChannelMap = new HashMap<>();
                     deliveryChannelMap.put(delivery.getEnvelope().getDeliveryTag(), channel);
-//                    channelList.put(globalMessageKey, deliveryChannelMap);
                     channelList.put(sid, deliveryChannelMap);
 
-//                    SMSHandler.registerPendingServerMessage(getApplicationContext(), msisdn, body,
-//                            subscriptionId, globalMessageKey);
                     SMSHandler.registerPendingServerMessage(getApplicationContext(), msisdn, body,
                             subscriptionId, sid);
                 } catch (JSONException e) {
@@ -314,6 +308,8 @@ public class RMQConnectionService extends Service {
 
     public void connectGatewayClient(GatewayClient gatewayClient) throws InterruptedException {
         Log.d(getClass().getName(), "Starting new service connection...");
+        int[] states = getGatewayClientNumbers();
+
         ConnectionFactory factory = new ConnectionFactory();
 
         factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
@@ -395,6 +391,7 @@ public class RMQConnectionService extends Service {
                 }
             }
         });
+        thread.setName(getClass().getName() + ":connectGatewayClient_Thread");
         thread.start();
     }
 
@@ -432,7 +429,7 @@ public class RMQConnectionService extends Service {
         return null;
     }
 
-    private void createForegroundNotification(int runningGatewayClientCount, int reconnecting) {
+    public void createForegroundNotification(int runningGatewayClientCount, int reconnecting) {
         Intent notificationIntent = new Intent(getApplicationContext(), GatewayClientListingActivity.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent,

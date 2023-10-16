@@ -275,6 +275,7 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
 
         private long newestDateTime;
         private int newestType;
+        private boolean newestIsRead = false;
 
         public long getNewestDateTime() {
             return this.newestDateTime;
@@ -287,17 +288,23 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
                 int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
                 int dateTimeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
                 int typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE);
+                int readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ);
                 address = cursor.getString(addressIndex);
                 newestDateTime = Long.parseLong(cursor.getString(dateTimeIndex));
                 newestType = cursor.getInt(typeIndex);
+                newestIsRead = cursor.getInt(readIndex) != 0;
+                cursor.close();
             }
-            cursor.close();
 
             try {
                 this._address = formatPhoneNumbers(context, address);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        public boolean getNewestIsRead() {
+            return this.newestIsRead;
         }
 
         public int getNewestType() {
@@ -548,17 +555,16 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
                     Telephony.TextBasedSmsColumns.PERSON,
                     Telephony.TextBasedSmsColumns.DATE,
                     Telephony.TextBasedSmsColumns.BODY,
+                    Telephony.TextBasedSmsColumns.READ,
                     Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
                     Telephony.TextBasedSmsColumns.TYPE};
 
-            Cursor smsMessagesCursor = context.getContentResolver().query(
+            return context.getContentResolver().query(
                     SMS_CONTENT_URI,
                     selection,
                     Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
                     new String[]{threadId},
                     constrains);
-
-            return smsMessagesCursor;
         }
 
         public Cursor fetchUnreadMessages(Context context) {

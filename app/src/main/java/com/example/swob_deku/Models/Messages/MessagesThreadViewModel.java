@@ -50,17 +50,29 @@ public class MessagesThreadViewModel extends ViewModel {
         loadSMSThreads(context);
     }
 
+    private List<Conversations> sortConversations(final List<Conversations> list) {
+        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
+        List<Conversations> sortedList = new ArrayList<>();
+
+        for(Conversations conversation : list) {
+            conversationsTreeMap.put(conversation.getNewestMessage().getNewestDateTime(), conversation);
+        }
+        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
+            sortedList.add(conversationsEntry.getValue());
+        }
+
+        return sortedList;
+    }
+
     private void loadSMSThreads(Context context) throws GeneralSecurityException, IOException {
-        Log.d(getClass().getName(), "Running for loading all the threads");
         ArchiveHandler archiveHandler = new ArchiveHandler(context);
+        Cursor cursor = SMSHandler.fetchSMSForThreading(context);
 
         switch (messagesType) {
             case MessagesThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT: {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TreeMap<Long, Conversations> conversationsHashMap = new TreeMap<>(Collections.reverseOrder());
-                        Cursor cursor = SMSHandler.fetchSMSForThreading(context);
                         List<Conversations> conversations = new ArrayList<>();
                         try {
                             SecurityECDH securityECDH = new SecurityECDH(context);
@@ -68,28 +80,23 @@ public class MessagesThreadViewModel extends ViewModel {
                             if (cursor.moveToFirst()) {
                                 do {
                                     Conversations conversation = new Conversations(cursor);
-                                    conversation.setNewestMessage(context);
-                                    SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage(context);
                                     try {
-                                        if (encryptedContacts.containsKey(smsMetaEntity.getAddress()) &&
-                                                !archiveHandler.isArchived(Long.parseLong(conversation.THREAD_ID)) )
-                                            conversationsHashMap.put(smsMetaEntity.getNewestDateTime(), conversation);
-                                    } catch ( InterruptedException e) {
+                                        if(!encryptedContacts.containsKey(conversation.THREAD_ID) ||
+                                                archiveHandler.isArchived(Long.parseLong(conversation.THREAD_ID))) {
+                                            continue;
+                                        }
+                                        conversation.setNewestMessage(context);
+                                        conversations.add(conversation);
+                                    } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
                                 } while (cursor.moveToNext());
-                                if(conversationsHashMap.isEmpty())
-                                    conversationsMutableLiveData.postValue(conversations);
-                                else
-                                    for(Map.Entry<Long, Conversations> entry : conversationsHashMap.entrySet()) {
-                                        conversations.add(entry.getValue());
-                                        conversationsMutableLiveData.postValue(conversations);
-                                    }
+                                cursor.close();
                             }
                         } catch (GeneralSecurityException | IOException e) {
                             e.printStackTrace();
                         }
-                        cursor.close();
+                        conversationsMutableLiveData.postValue(sortConversations(conversations));
                         archiveHandler.close();
                     }
                 }).start();
@@ -100,7 +107,6 @@ public class MessagesThreadViewModel extends ViewModel {
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        Cursor cursor = SMSHandler.fetchSMSForThreading(context);
                         List<Conversations> conversations = new ArrayList<>();
                         if (cursor.moveToFirst()) {
                             do {
@@ -109,6 +115,7 @@ public class MessagesThreadViewModel extends ViewModel {
                                     if(archiveHandler.isArchived(Long.parseLong(conversation.THREAD_ID))) {
                                         continue;
                                     }
+                                    conversation.setNewestMessage(context);
                                     conversations.add(conversation);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
@@ -116,26 +123,19 @@ public class MessagesThreadViewModel extends ViewModel {
                             } while (cursor.moveToNext());
                             cursor.close();
                         }
-                        conversationsMutableLiveData.postValue(conversations);
+                        conversationsMutableLiveData.postValue(sortConversations(conversations));
                         archiveHandler.close();
                     }
 
                 });
                 thread.start();
-
-                try {
-                    thread.join();
-                }catch (Exception e) {
-                    e.printStackTrace();
-                }
+                break;
             }
 
             case MessagesThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT: {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        TreeMap<Long, Conversations> conversationsHashMap = new TreeMap<>(Collections.reverseOrder());
-                        Cursor cursor = SMSHandler.fetchSMSForThreading(context);
                         List<Conversations> conversations = new ArrayList<>();
                         try {
                             SecurityECDH securityECDH = new SecurityECDH(context);
@@ -143,28 +143,23 @@ public class MessagesThreadViewModel extends ViewModel {
                             if (cursor.moveToFirst()) {
                                 do {
                                     Conversations conversation = new Conversations(cursor);
-                                    conversation.setNewestMessage(context);
-                                    SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage(context);
                                     try {
-                                        if (!encryptedContacts.containsKey(smsMetaEntity.getAddress()) &&
-                                                !archiveHandler.isArchived(Long.parseLong(conversation.THREAD_ID)) )
-                                            conversationsHashMap.put(smsMetaEntity.getNewestDateTime(), conversation);
-                                    } catch ( InterruptedException e) {
+                                        if(encryptedContacts.containsKey(conversation.THREAD_ID) ||
+                                                archiveHandler.isArchived(Long.parseLong(conversation.THREAD_ID))) {
+                                            continue;
+                                        }
+                                        conversation.setNewestMessage(context);
+                                        conversations.add(conversation);
+                                    } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
                                 } while (cursor.moveToNext());
-                                if(conversationsHashMap.isEmpty())
-                                    conversationsMutableLiveData.postValue(conversations);
-                                else
-                                    for(Map.Entry<Long, Conversations> entry : conversationsHashMap.entrySet()) {
-                                        conversations.add(entry.getValue());
-                                        conversationsMutableLiveData.postValue(conversations);
-                                    }
+                                cursor.close();
                             }
                         } catch (GeneralSecurityException | IOException e) {
                             e.printStackTrace();
                         }
-                        cursor.close();
+                        conversationsMutableLiveData.postValue(sortConversations(conversations));
                         archiveHandler.close();
                     }
                 }).start();

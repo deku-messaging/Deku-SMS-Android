@@ -15,6 +15,8 @@ public class Conversations {
     public String THREAD_ID;
     public String ADDRESS;
 
+    private SMS.SMSMetaEntity smsMetaEntity;
+
     public Conversations(Cursor cursor) {
         int snippetIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.SNIPPET);
         int threadIdIndex = cursor.getColumnIndex(Telephony.Sms.Conversations.THREAD_ID);
@@ -26,14 +28,12 @@ public class Conversations {
     }
 
     public void setNewestMessage(Context context) {
-        SMS.SMSMetaEntity smsMetaEntity = getNewestMessage(context);
-        this.ADDRESS = smsMetaEntity.getAddress();
+        this.smsMetaEntity = new SMS.SMSMetaEntity();
+        this.smsMetaEntity.setThreadId(context, this.THREAD_ID);
     }
 
-    public SMS.SMSMetaEntity getNewestMessage(Context context) {
-        SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-        smsMetaEntity.setThreadId(context, this.THREAD_ID);
-        return smsMetaEntity;
+    public SMS.SMSMetaEntity getNewestMessage() {
+        return this.smsMetaEntity;
     }
 
     public static final DiffUtil.ItemCallback<Conversations> DIFF_CALLBACK = new DiffUtil.ItemCallback<Conversations>() {

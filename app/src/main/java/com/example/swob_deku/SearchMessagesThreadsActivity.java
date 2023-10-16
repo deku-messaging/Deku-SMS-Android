@@ -145,17 +145,17 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             Drawable drawable = context.getDrawable(R.drawable.baseline_account_circle_24);
             drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
-            ImageView imageView = view.findViewById(R.id.messages_threads_contact_photo);
-            imageView.setAdjustViewBounds(true);
-            imageView.setMaxHeight(150);
-            imageView.setMaxWidth(150);
+//            ImageView imageView = view.findViewById(R.id.messages_threads_contact_photo);
+//            imageView.setAdjustViewBounds(true);
+//            imageView.setMaxHeight(150);
+//            imageView.setMaxWidth(150);
 
-            ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
-            layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-
-            imageView.setLayoutParams(layoutParams);
-            imageView.setImageDrawable(drawable);
+//            ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+//            layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+//            layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+//
+//            imageView.setLayoutParams(layoutParams);
+//            imageView.setImageDrawable(drawable);
 
             view.findViewById(R.id.messages_threads_layout).setOnClickListener(new View.OnClickListener() {
                 @Override

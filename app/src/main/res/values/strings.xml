@@ -2,7 +2,7 @@
     <string name="app_name">Deku SMS</string>
     <string name="privacy_policy_url">https://smswithoutborders.com/privacy-policy</string>
     <string name="incoming_messages_channel_name">Incoming Messages</string>
-    <string name="running_gateway_clients_channel_name">Running Gateway Clients</string>
+    <string name="running_gateway_clients_channel_name">Running Gateway Listeners</string>
     <string name="foreground_service_failed_channel_name">Gateway clients auto-reconnect</string>
 
     <string name="incoming_messages_channel_description">Gets called when a new message is received.</string>

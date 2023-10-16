@@ -73,7 +73,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     private final int SENT_ENCRYPTED_UNREAD_VIEW_TYPE = 7;
     private final int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
-    private final int IS_CONTACT=500;
 
     public MessagesThreadRecyclerAdapter(Context context) {
        this.context = context;
@@ -112,40 +111,26 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
         View view = inflater.inflate(R.layout.messages_threads_layout, parent, false);
-
+        Log.d(getClass().getName(), "Running for creating view holder");
         if(viewType == (RECEIVED_UNREAD_VIEW_TYPE))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderUnread(view, false);
-        else if(viewType == (RECEIVED_UNREAD_VIEW_TYPE + IS_CONTACT))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderUnread(view, true);
+            return new ReceivedMessagesViewHolder.ReceivedViewHolderUnread(view);
         else if(viewType == (SENT_UNREAD_VIEW_TYPE))
-            return new SentMessagesViewHolder.SentViewHolderUnread(view, false);
-        else if(viewType == (SENT_UNREAD_VIEW_TYPE + IS_CONTACT))
-            return new SentMessagesViewHolder.SentViewHolderUnread(view, true);
+            return new SentMessagesViewHolder.SentViewHolderUnread(view);
 
         else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE ))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedUnread(view, false);
-        else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + IS_CONTACT))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedUnread(view, true);
+            return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedUnread(view);
          else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE ))
-            return new SentMessagesViewHolder.SentViewHolderEncryptedUnread(view, false);
-        else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE + IS_CONTACT))
-            return new SentMessagesViewHolder.SentViewHolderEncryptedUnread(view, true);
+            return new SentMessagesViewHolder.SentViewHolderEncryptedUnread(view);
 
         else if(viewType == (RECEIVED_VIEW_TYPE))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderRead(view, false);
-        else if(viewType == (RECEIVED_VIEW_TYPE + IS_CONTACT))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderRead(view, true);
+            return new ReceivedMessagesViewHolder.ReceivedViewHolderRead(view);
         else if(viewType == (SENT_VIEW_TYPE))
-            return new SentMessagesViewHolder.SentViewHolderRead(view, false);
-        else if(viewType == (SENT_VIEW_TYPE + IS_CONTACT))
-            return new SentMessagesViewHolder.SentViewHolderRead(view, true);
+            return new SentMessagesViewHolder.SentViewHolderRead(view);
 
         else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE))
-            return new SentMessagesViewHolder.SentViewHolderEncryptedRead(view, true);
-        else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE + IS_CONTACT))
-            return new SentMessagesViewHolder.SentViewHolderEncryptedRead(view, false);
+            return new SentMessagesViewHolder.SentViewHolderEncryptedRead(view);
 
-        return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedRead(view, false);
+        return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedRead(view);
     }
 
     public boolean isContact(String address) {
@@ -156,67 +141,62 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     @Override
     public int getItemViewType(int position) {
         Conversations conversations = mDiffer.getCurrentList().get(position);
-        SMS.SMSMetaEntity smsMetaEntity = conversations.getNewestMessage(context);
+        SMS.SMSMetaEntity smsMetaEntity = conversations.getNewestMessage();
         Log.d(getClass().getName(), "Running for getting item type: " + position);
 
         String snippet = conversations.SNIPPET;
-//        int type = MESSAGE_TYPE_INBOX;
         int type = smsMetaEntity.getNewestType();
-        boolean isContact = isContact(smsMetaEntity.getAddress());
-
-        int contactStatus = isContact ? IS_CONTACT : 0;
 
         if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
-            if(smsMetaEntity.hasUnreadMessages(context)) {
+            if(!smsMetaEntity.getNewestIsRead()) {
                 if(type != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE + contactStatus;
+                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
                 else
-                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE + contactStatus;
+                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
             }
             else {
                 if(type != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_VIEW_TYPE + contactStatus;
+                    return SENT_ENCRYPTED_VIEW_TYPE;
                 else
-                    return RECEIVED_ENCRYPTED_VIEW_TYPE + contactStatus;
+                    return RECEIVED_ENCRYPTED_VIEW_TYPE;
             }
         }
         else {
-            if(smsMetaEntity.hasUnreadMessages(context)) {
+            if(!smsMetaEntity.getNewestIsRead()) {
                 if(type != MESSAGE_TYPE_INBOX)
-                    return SENT_UNREAD_VIEW_TYPE + contactStatus;
+                    return SENT_UNREAD_VIEW_TYPE;
                 else
-                    return RECEIVED_UNREAD_VIEW_TYPE + contactStatus;
+                    return RECEIVED_UNREAD_VIEW_TYPE;
             }else {
                 if(type != MESSAGE_TYPE_INBOX) {
-                    return SENT_VIEW_TYPE + contactStatus;
+                    return SENT_VIEW_TYPE;
                 }
             }
         }
 
-        return RECEIVED_VIEW_TYPE + contactStatus;
+        return RECEIVED_UNREAD_VIEW_TYPE;
     }
 
     @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
-        Log.d(getClass().getName(), "Running for: " + position);
         Conversations conversation = mDiffer.getCurrentList().get(position);
         holder.id = conversation.THREAD_ID;
-
-        SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage(context);
+//
+        SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
         String address = smsMetaEntity.getAddress();
         long smsDate = smsMetaEntity.getNewestDateTime();
 
         if(isContact(address)) {
             address = Contacts.retrieveContactName(context, address);
-            if(!address.isEmpty()) {
-                holder.contactInitials.setAvatarInitials(address.substring(0, 1));
-                holder.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
-            }
+//            if(!address.isEmpty()) {
+//                holder.contactInitials.setAvatarInitials(address.substring(0, 1));
+//                holder.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
+//            }
         }
         else {
-            Drawable drawable = holder.contactPhoto.getDrawable();
-            drawable.setColorFilter(Helpers.generateColor(address), PorterDuff.Mode.SRC_IN);
-            holder.contactPhoto.setImageDrawable(drawable);
+//            Drawable drawable = holder.contactPhoto.getDrawable();
+//            drawable.setColorFilter(Helpers.generateColor(address), PorterDuff.Mode.SRC_IN);
+//            holder.contactPhoto.setImageDrawable(drawable);
         }
         holder.address.setText(address);
 
@@ -332,30 +312,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         if(routerActivity != null) {
             workManagerFactories();
         }
-
-        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
-        for(Conversations conversation : list){
-            conversationsTreeMap.put(conversation.getNewestMessage(context).getNewestDateTime(), conversation);
-        }
-        List<Conversations> newList = new ArrayList<>();
-        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
-            newList.add(conversationsEntry.getValue());
-        }
-
-        Log.d(getClass().getName(), "Running for direct submitlist request");
-        mDiffer.addListListener(new AsyncListDiffer.ListListener<Conversations>() {
-            @Override
-            public void onCurrentListChanged(@NonNull List<Conversations> previousList, @NonNull List<Conversations> currentList) {
-                Log.d(getClass().getName(), "Running for new list listener!");
-            }
-        });
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                Log.d(getClass().getName(), "Running for mDiffer has a new list, the rest is up to you!");
-            }
-        };
-        mDiffer.submitList(newList, runnable);
+        mDiffer.submitList(list);
     }
 
     public void submitList(List<SMS> list, String searchString) {
