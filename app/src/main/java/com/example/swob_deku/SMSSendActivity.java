@@ -223,7 +223,7 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         ab = getSupportActionBar();
 
         smsTextView = findViewById(R.id.sms_text);
-        multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
+//        multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
         singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext(),
@@ -896,41 +896,41 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     public void _onLongClickSendButton(View view) {
-        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
-
-        TextView simcard1 = findViewById(R.id.simcard_select_operator_1_name);
-        TextView simcard2 = findViewById(R.id.simcard_select_operator_2_name);
-
-        ImageButton simcard1Img = findViewById(R.id.simcard_select_operator_1);
-        ImageButton simcard2Img = findViewById(R.id.simcard_select_operator_2);
-
-        ArrayList<TextView> views = new ArrayList();
-        views.add(simcard1);
-        views.add(simcard2);
-
-        ArrayList<ImageButton> buttons = new ArrayList();
-        buttons.add(simcard1Img);
-        buttons.add(simcard2Img);
-
-        for (int i = 0; i < simcards.size(); ++i) {
-            CharSequence carrierName = simcards.get(i).getCarrierName();
-            views.get(i).setText(carrierName);
-            buttons.get(i).setImageBitmap(simcards.get(i).createIconBitmap(getApplicationContext()));
-
-            final int subscriptionId = simcards.get(i).getSubscriptionId();
-            buttons.get(i).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    defaultSubscriptionId = subscriptionId;
-                    findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
-                    String subscriptionText = getString(R.string.default_subscription_id_changed) +
-                            carrierName;
-                    Toast.makeText(getApplicationContext(), subscriptionText, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        multiSimcardConstraint.setVisibility(View.VISIBLE);
+//        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
+//
+//        TextView simcard1 = findViewById(R.id.simcard_select_operator_1_name);
+//        TextView simcard2 = findViewById(R.id.simcard_select_operator_2_name);
+//
+//        ImageButton simcard1Img = findViewById(R.id.simcard_select_operator_1);
+//        ImageButton simcard2Img = findViewById(R.id.simcard_select_operator_2);
+//
+//        ArrayList<TextView> views = new ArrayList();
+//        views.add(simcard1);
+//        views.add(simcard2);
+//
+//        ArrayList<ImageButton> buttons = new ArrayList();
+//        buttons.add(simcard1Img);
+//        buttons.add(simcard2Img);
+//
+//        for (int i = 0; i < simcards.size(); ++i) {
+//            CharSequence carrierName = simcards.get(i).getCarrierName();
+//            views.get(i).setText(carrierName);
+//            buttons.get(i).setImageBitmap(simcards.get(i).createIconBitmap(getApplicationContext()));
+//
+//            final int subscriptionId = simcards.get(i).getSubscriptionId();
+//            buttons.get(i).setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    defaultSubscriptionId = subscriptionId;
+//                    findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
+//                    String subscriptionText = getString(R.string.default_subscription_id_changed) +
+//                            carrierName;
+//                    Toast.makeText(getApplicationContext(), subscriptionText, Toast.LENGTH_SHORT).show();
+//                }
+//            });
+//        }
+//
+//        multiSimcardConstraint.setVisibility(View.VISIBLE);
     }
 
     private void hideDefaultToolbar(Menu menu, int size) {
@@ -1004,8 +1004,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
     @Override
     public void onBackPressed() {
-        if (findViewById(R.id.simcard_select_constraint).getVisibility() == View.VISIBLE)
-            findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
+//        if (findViewById(R.id.simcard_select_constraint).getVisibility() == View.VISIBLE)
+//            findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
         if (singleMessagesThreadRecyclerAdapter.hasSelectedItems()) {
             singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
         } else {

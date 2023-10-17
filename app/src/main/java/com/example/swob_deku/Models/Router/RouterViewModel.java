@@ -16,10 +16,13 @@ import com.example.swob_deku.Models.SMS.Conversations;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +53,7 @@ public class RouterViewModel extends ViewModel {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                List<RouterMessages> routerMessages = new ArrayList<>();
-                TreeMap<Long, RouterMessages> routerMessagesTreeMap = new TreeMap<>(Comparator.reverseOrder());
+                ListMultimap<Long, RouterMessages> routerMessagesListMultimap = ArrayListMultimap.create();
 
                 for(String[] workerList : routerJobs) {
                     String messageId = workerList[0];
@@ -81,13 +83,17 @@ public class RouterViewModel extends ViewModel {
                         routerMessage.setBody(body);
                         routerMessage.setAddress(address);
 
-                        routerMessagesTreeMap.put(Long.parseLong(date), routerMessage);
+                        routerMessagesListMultimap.put(Long.parseLong(date), routerMessage);
                     }
                 }
-                for(Map.Entry<Long, RouterMessages> routerMessage: routerMessagesTreeMap.entrySet())
-                    routerMessages.add(routerMessage.getValue());
+                List<RouterMessages> sortedList = new ArrayList<>();
+                List<Long> keys = new ArrayList<>(routerMessagesListMultimap.keySet());
+                keys.sort(Collections.reverseOrder());
+                for(Long date : keys) {
+                    sortedList.addAll(routerMessagesListMultimap.get(date));
+                }
 
-                messagesList.postValue(routerMessages);
+                messagesList.postValue(sortedList);
             }
         });
         thread.start();

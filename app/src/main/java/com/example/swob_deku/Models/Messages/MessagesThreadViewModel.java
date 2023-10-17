@@ -15,6 +15,13 @@ import com.example.swob_deku.Models.SMS.Conversations;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityECDH;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.TreeMultimap;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -52,8 +59,7 @@ public class MessagesThreadViewModel extends ViewModel {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        List<Conversations> conversations = new ArrayList<>();
-                        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
+                        ListMultimap<Long, Conversations> conversationsListMultimap = ArrayListMultimap.create();
                         try {
                             SecurityECDH securityECDH = new SecurityECDH(context);
                             Map<String, ?> encryptedContacts = securityECDH.securelyFetchAllSecretKey();
@@ -67,7 +73,7 @@ public class MessagesThreadViewModel extends ViewModel {
                                         }
                                         conversation.setNewestMessage(context);
                                         long date = conversation.getNewestMessage().getNewestDateTime();
-                                        conversationsTreeMap.put(date, conversation);
+                                        conversationsListMultimap.put(date, conversation);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
@@ -78,8 +84,10 @@ public class MessagesThreadViewModel extends ViewModel {
                             e.printStackTrace();
                         }
                         List<Conversations> sortedList = new ArrayList<>();
-                        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
-                            sortedList.add(conversationsEntry.getValue());
+                        List<Long> keys = new ArrayList<>(conversationsListMultimap.keySet());
+                        keys.sort(Collections.reverseOrder());
+                        for(Long date : keys) {
+                            sortedList.addAll(conversationsListMultimap.get(date));
                         }
                         conversationsMutableLiveData.postValue(sortedList);
                         archiveHandler.close();
@@ -92,8 +100,7 @@ public class MessagesThreadViewModel extends ViewModel {
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        List<Conversations> conversations = new ArrayList<>();
-                        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
+                        ListMultimap<Long, Conversations> conversationsListMultimap = ArrayListMultimap.create();
                         if (cursor.moveToFirst()) {
                             do {
                                 Conversations conversation = new Conversations(cursor);
@@ -103,7 +110,7 @@ public class MessagesThreadViewModel extends ViewModel {
                                     }
                                     conversation.setNewestMessage(context);
                                     long date = conversation.getNewestMessage().getNewestDateTime();
-                                    conversationsTreeMap.put(date, conversation);
+                                    conversationsListMultimap.put(date, conversation);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
@@ -111,9 +118,12 @@ public class MessagesThreadViewModel extends ViewModel {
                             cursor.close();
                         }
                         List<Conversations> sortedList = new ArrayList<>();
-                        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
-                            sortedList.add(conversationsEntry.getValue());
+                        List<Long> keys = new ArrayList<>(conversationsListMultimap.keySet());
+                        keys.sort(Collections.reverseOrder());
+                        for(Long date : keys) {
+                            sortedList.addAll(conversationsListMultimap.get(date));
                         }
+
                         conversationsMutableLiveData.postValue(sortedList);
                         archiveHandler.close();
                     }
@@ -127,8 +137,7 @@ public class MessagesThreadViewModel extends ViewModel {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        List<Conversations> conversations = new ArrayList<>();
-                        TreeMap<Long, Conversations> conversationsTreeMap = new TreeMap<>(Collections.reverseOrder());
+                        ListMultimap<Long, Conversations> conversationsListMultimap = ArrayListMultimap.create();
                         try {
                             SecurityECDH securityECDH = new SecurityECDH(context);
                             Map<String, ?> encryptedContacts = securityECDH.securelyFetchAllSecretKey();
@@ -142,7 +151,7 @@ public class MessagesThreadViewModel extends ViewModel {
                                         }
                                         conversation.setNewestMessage(context);
                                         long date = conversation.getNewestMessage().getNewestDateTime();
-                                        conversationsTreeMap.put(date, conversation);
+                                        conversationsListMultimap.put(date, conversation);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
@@ -153,8 +162,10 @@ public class MessagesThreadViewModel extends ViewModel {
                             e.printStackTrace();
                         }
                         List<Conversations> sortedList = new ArrayList<>();
-                        for(Map.Entry<Long, Conversations> conversationsEntry : conversationsTreeMap.entrySet()) {
-                            sortedList.add(conversationsEntry.getValue());
+                        List<Long> keys = new ArrayList<>(conversationsListMultimap.keySet());
+                        keys.sort(Collections.reverseOrder());
+                        for(Long date : keys) {
+                            sortedList.addAll(conversationsListMultimap.get(date));
                         }
                         conversationsMutableLiveData.postValue(sortedList);
                         archiveHandler.close();
