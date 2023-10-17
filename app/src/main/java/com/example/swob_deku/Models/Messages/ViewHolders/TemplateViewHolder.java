@@ -1,5 +1,6 @@
 package com.example.swob_deku.Models.Messages.ViewHolders;
 
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -17,6 +18,7 @@ import com.example.swob_deku.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.example.swob_deku.Models.SMS.Conversations;
 import com.example.swob_deku.Models.SMS.SMS;
 import com.example.swob_deku.R;
+import com.google.android.material.card.MaterialCardView;
 
 import io.getstream.avatarview.AvatarView;
 
@@ -27,17 +29,12 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
     public TextView snippet;
     public TextView address;
     public TextView date;
-    public TextView state;
-    public TextView routingUrl;
-    public TextView routingURLText;
     public AvatarView contactInitials;
     public TextView youLabel;
 
-    public ImageView contactPhoto;
-    public ImageView encryptedLock;
-
     public ConstraintLayout layout;
 
+    public MaterialCardView materialCardView;
 
     public TemplateViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -46,29 +43,27 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         address = itemView.findViewById(R.id.messages_thread_address_text);
         date = itemView.findViewById(R.id.messages_thread_date);
         layout = itemView.findViewById(R.id.messages_threads_layout);
-        state = itemView.findViewById(R.id.messages_route_state);
-        routingUrl = itemView.findViewById(R.id.message_route_url);
-        routingURLText = itemView.findViewById(R.id.message_route_status);
         youLabel = itemView.findViewById(R.id.message_you_label);
         contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
-        encryptedLock = itemView.findViewById(R.id.messages_thread_secured_lock);
+        materialCardView = itemView.findViewById(R.id.messages_threads_cardview);
     }
 
-    public void init(Conversations conversation) {
+    public void init(Conversations conversation, View.OnClickListener onClickListener) {
         this.id = conversation.THREAD_ID;
 //
         final SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
         String address = smsMetaEntity.getAddress();
         if(smsMetaEntity.isContact()) {
             address = smsMetaEntity.getContactName();
-//            if(!address.isEmpty()) {
-//                holder.contactInitials.setAvatarInitials(address.substring(0, 1));
-//                holder.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
-//            }
+            if(!address.isEmpty()) {
+                this.contactInitials.setAvatarInitials(address.substring(0, 1));
+                this.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
+            }
         }
         this.address.setText(address);
         this.date.setText(smsMetaEntity.getFormattedDate());
         this.snippet.setText(conversation.SNIPPET);
+        this.materialCardView.setOnClickListener(onClickListener);
     }
 
     public static class ReadViewHolder extends TemplateViewHolder{

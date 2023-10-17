@@ -328,7 +328,7 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
         }
 
         private boolean getIsContact(Context context) {
-            String addressInPhone = Contacts.retrieveContactName(context, this._address);
+            String addressInPhone = Contacts.retrieveContactName(context, this.address);
             return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
         }
 

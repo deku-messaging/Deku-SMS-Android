@@ -1,6 +1,7 @@
 package com.example.swob_deku.Models.Messages;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.provider.Telephony;
@@ -29,9 +30,11 @@ import com.example.swob_deku.Models.Messages.ViewHolders.SentMessagesViewHolder;
 import com.example.swob_deku.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.example.swob_deku.Models.SMS.Conversations;
 import com.example.swob_deku.Models.SMS.SMS;
+import com.example.swob_deku.Models.SMS.SMSHandler;
 import com.example.swob_deku.Models.Security.SecurityHelpers;
 import com.example.swob_deku.R;
 import com.example.swob_deku.RouterActivity;
+import com.example.swob_deku.SMSSendActivity;
 
 
 import java.util.ArrayList;
@@ -84,7 +87,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
         View view = inflater.inflate(R.layout.messages_threads_layout, parent, false);
-        Log.d(getClass().getName(), "Running for creating view holder");
         if(viewType == (RECEIVED_UNREAD_VIEW_TYPE))
             return new ReceivedMessagesViewHolder.ReceivedViewHolderUnread(view);
         else if(viewType == (SENT_UNREAD_VIEW_TYPE))
@@ -111,7 +113,6 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     public int getItemViewType(int position) {
         Conversations conversations = mDiffer.getCurrentList().get(position);
         SMS.SMSMetaEntity smsMetaEntity = conversations.getNewestMessage();
-        Log.d(getClass().getName(), "Running for getting item type: " + position);
 
         String snippet = conversations.SNIPPET;
         int type = smsMetaEntity.getNewestType();
@@ -149,66 +150,31 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
         Conversations conversation = mDiffer.getCurrentList().get(position);
-        holder.init(conversation);
 
-//                SecurityECDH securityECDH = new SecurityECDH(context);
-//                if(securityECDH.hasSecretKey(conversation.SNIPPET) ) {
-//                    holder.encryptedLock.setVisibility(View.VISIBLE);
-//                }
-
-//
-//        if(routerActivity != null && !conversation.routingUrls.isEmpty()) {
-//            holder.state.setText(conversation.getRouterStatus());
-//            holder.routingURLText.setVisibility(View.VISIBLE);
-//            holder.routingUrl.setVisibility(View.VISIBLE);
-//
-//            StringBuilder routingUrl = new StringBuilder();
-//            for(int i=0;i<conversation.routingUrls.size(); ++i) {
-//                if (routingUrl.length() > 0)
-//                    routingUrl.append(", ");
-//                routingUrl.append(conversation.routingUrls.get(i));
-//            }
-//            holder.routingUrl.setText(routingUrl);
-//        }
-//        else {
-//            holder.routingURLText.setVisibility(View.GONE);
-//            holder.routingUrl.setVisibility(View.GONE);
-//        }
-
-//        View.OnClickListener onClickListener = new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
-//                    HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
-//                    if(items.containsKey(holder.id)) {
-//                        holder.unHighlight();
-//                        items.remove(holder.id);
-//                    }
-//                    else {
-//                        items = selectedItems.getValue();
-//                        holder.highlight();
-//                        items.put(holder.id, holder);
-//                    }
-//                    selectedItems.postValue(items);
-//                }
-//                else {
-//                    Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
-//                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, conversation.getAddress());
-//                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, conversation.getThreadId());
-//
-//                    if (searchString != null && !searchString.isEmpty()) {
-//                        int calculatedOffset = SMSHandler.calculateOffset(context, conversation.getThreadId(), conversation.getId());
-//                        singleMessageThreadIntent
-//                                .putExtra(SMS.SMSMetaEntity.ID, conversation.getId())
-//                                .putExtra(SMSSendActivity.SEARCH_STRING, searchString)
-//                                .putExtra(SMSSendActivity.SEARCH_OFFSET, calculatedOffset)
-//                                .putExtra(SMSSendActivity.SEARCH_POSITION, absolutePosition);
-//                    }
-//
-//                    context.startActivity(singleMessageThreadIntent);
-//                }
-//            }
-//        };
+        View.OnClickListener onClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
+                    HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
+                    if(items.containsKey(holder.id)) {
+                        holder.unHighlight();
+                        items.remove(holder.id);
+                    }
+                    else {
+                        items = selectedItems.getValue();
+                        holder.highlight();
+                        items.put(holder.id, holder);
+                    }
+                    selectedItems.postValue(items);
+                }
+                else {
+                    Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, conversation.THREAD_ID);
+                    context.startActivity(singleMessageThreadIntent);
+                }
+            }
+        };
+        holder.init(conversation, onClickListener);
 //
 //        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
 //            @Override

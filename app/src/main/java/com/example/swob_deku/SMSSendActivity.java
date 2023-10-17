@@ -38,6 +38,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -231,7 +232,9 @@ public class SMSSendActivity extends CustomAppCompactActivity {
         singleMessageViewModel = new ViewModelProvider(this)
                 .get(SingleMessageViewModel.class);
 
-        linearLayoutManager = new LinearLayoutManager(this);
+//        linearLayoutManager = new LinearLayoutManager(getApplicationContext(),
+//                LinearLayoutManager.VERTICAL, true);
+
 
         try {
             // TODO should work on this as the SMS does not open in real time
@@ -257,23 +260,26 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     }
 
     private void _configureRecyclerView() {
-        linearLayoutManager.setStackFromEnd(false);
-        linearLayoutManager.setReverseLayout(true);
-
-        singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
 
         int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
 
+        NestedScrollView nestedScrollView = findViewById(R.id.nestedScrollView);
         singleMessageViewModel.getMessages(
                 getApplicationContext(), smsMetaEntity.getThreadId(), offset).observe(this, new Observer<List<SMS>>() {
             @Override
             public void onChanged(List<SMS> smsList) {
                 Log.d(getLocalClassName(), "Paging data changed!");
                 singleMessagesThreadRecyclerAdapter.submitList(smsList);
-                if (getIntent().hasExtra(SEARCH_POSITION))
-                    singleMessagesThreadRecyclerView.scrollToPosition(
-                            getIntent().getIntExtra(SEARCH_POSITION, -1));
+//                if (getIntent().hasExtra(SEARCH_POSITION))
+//                    singleMessagesThreadRecyclerView.scrollToPosition(
+//                            getIntent().getIntExtra(SEARCH_POSITION, -1));
+            }
+        });
+        nestedScrollView.post(new Runnable() {
+            @Override
+            public void run() {
+                nestedScrollView.fullScroll(View.FOCUS_DOWN);
             }
         });
 
@@ -314,34 +320,34 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             }
         });
 
-        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                final int maximumScrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 3;
-
-                final int lastTopVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
-                        .findLastVisibleItemPosition();
-
-                final int firstVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
-                        .findFirstVisibleItemPosition();
-
-
-                if (!singleMessageViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
-                    int newSize = singleMessageViewModel.refreshDown(getApplicationContext());
-
-                    if (newSize > 0)
-                        recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
-                }
-                else if (singleMessageViewModel.offsetStartedFromZero &&
-                        lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
-                    singleMessageViewModel.refresh(getApplicationContext());
-                    int itemCount = recyclerView.getAdapter().getItemCount();
-                    if (itemCount > maximumScrollPosition + 1)
-                        recyclerView.scrollToPosition(lastTopVisiblePosition);
-                }
-            }
-        });
+//        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+//                super.onScrolled(recyclerView, dx, dy);
+//                final int maximumScrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 3;
+//
+//                final int lastTopVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
+//                        .findLastVisibleItemPosition();
+//
+//                final int firstVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
+//                        .findFirstVisibleItemPosition();
+//
+//
+//                if (!singleMessageViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
+//                    int newSize = singleMessageViewModel.refreshDown(getApplicationContext());
+//
+//                    if (newSize > 0)
+//                        recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
+//                }
+//                else if (singleMessageViewModel.offsetStartedFromZero &&
+//                        lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
+//                    singleMessageViewModel.refresh(getApplicationContext());
+//                    int itemCount = recyclerView.getAdapter().getItemCount();
+//                    if (itemCount > maximumScrollPosition + 1)
+//                        recyclerView.scrollToPosition(lastTopVisiblePosition);
+//                }
+//            }
+//        });
 
         try {
             singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {

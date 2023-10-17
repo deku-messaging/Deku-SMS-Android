@@ -82,13 +82,7 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
             snippet.setMaxLines(1);
             address.setMaxLines(1);
-
-            routingUrl.setVisibility(View.GONE);
-            routingURLText.setVisibility(View.GONE);
             date.setVisibility(View.GONE);
-            state.setVisibility(View.GONE);
-            contactPhoto.setVisibility(View.GONE);
-            contactInitials.setVisibility(View.VISIBLE);
         }
     }
 }
