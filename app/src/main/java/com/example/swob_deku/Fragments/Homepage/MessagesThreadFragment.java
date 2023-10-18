@@ -169,7 +169,6 @@ public class MessagesThreadFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-//        Log.d(getClass().getName(), "Running for resuming now");
 //        try {
 //            messagesThreadViewModel.informChanges(getContext());
 //        } catch (GeneralSecurityException | IOException e) {

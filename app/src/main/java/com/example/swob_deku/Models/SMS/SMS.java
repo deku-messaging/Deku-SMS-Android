@@ -296,10 +296,11 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
                 int dateTimeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
                 int typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE);
                 int readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ);
-                address = cursor.getString(addressIndex);
-                newestDateTime = Long.parseLong(cursor.getString(dateTimeIndex));
-                newestType = cursor.getInt(typeIndex);
-                newestIsRead = cursor.getInt(readIndex) != 0;
+
+                this.address = cursor.getString(addressIndex);
+                this.newestDateTime = Long.parseLong(cursor.getString(dateTimeIndex));
+                this.newestType = cursor.getInt(typeIndex);
+                this.newestIsRead = cursor.getInt(readIndex) != 0;
                 cursor.close();
                 this.isContact = getIsContact(context);
                 if(this.isContact) {

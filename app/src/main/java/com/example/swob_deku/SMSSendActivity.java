@@ -26,6 +26,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -107,10 +108,6 @@ public class SMSSendActivity extends CustomAppCompactActivity {
 
         try {
             _setupActivityDependencies();
-            _instantiateGlobals();
-            _configureToolbars();
-            _configureRecyclerView();
-            _configureMessagesTextBox();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -119,6 +116,14 @@ public class SMSSendActivity extends CustomAppCompactActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+        try {
+            _instantiateGlobals();
+            _configureToolbars();
+            _configureRecyclerView();
+            _configureMessagesTextBox();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         configureBroadcastListeners(new Runnable() {
             @Override
             public void run() {
@@ -410,13 +415,13 @@ public class SMSSendActivity extends CustomAppCompactActivity {
             }
         });
 
-        multiSimcardConstraint.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (v.getVisibility() == View.VISIBLE)
-                    v.setVisibility(View.INVISIBLE);
-            }
-        });
+//        multiSimcardConstraint.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (v.getVisibility() == View.VISIBLE)
+//                    v.setVisibility(View.INVISIBLE);
+//            }
+//        });
 
         smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -430,6 +435,8 @@ public class SMSSendActivity extends CustomAppCompactActivity {
                 return false;
             }
         });
+
+
 
         TextView encryptedMessageTextView = findViewById(R.id.send_sms_encrypted_version);
         encryptedMessageTextView.setMovementMethod(new ScrollingMovementMethod());

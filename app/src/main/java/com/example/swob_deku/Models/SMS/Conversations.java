@@ -52,9 +52,10 @@ public class Conversations {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof Conversations) {
             Conversations conversations = (Conversations) obj;
-            if(this.smsMetaEntity != null)
+            if(this.smsMetaEntity != null && conversations.smsMetaEntity != null)
                 return conversations.THREAD_ID.equals(this.THREAD_ID) &&
                         conversations.SNIPPET.equals(this.SNIPPET) &&
+                        conversations.getNewestMessage().getNewestIsRead() == this.smsMetaEntity.getNewestIsRead() &&
                         conversations.getNewestMessage().getNewestDateTime() == this.smsMetaEntity.getNewestDateTime();
 
             return conversations.THREAD_ID.equals(this.THREAD_ID) &&

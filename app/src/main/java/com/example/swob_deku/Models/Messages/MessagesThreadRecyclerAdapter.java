@@ -144,7 +144,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
             }
         }
 
-        return RECEIVED_UNREAD_VIEW_TYPE;
+        return RECEIVED_VIEW_TYPE;
     }
 
     @Override

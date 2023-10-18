@@ -18,16 +18,25 @@
         app:menu="@menu/single_messages_menu"
         app:titleTextAppearance="@style/TextAppearance.AppCompat.Medium" />
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/nestedScrollView"
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinator"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fillViewport="true"
-        android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/send_smsactivity_toolbar">
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/nestedScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:scrollbars="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/send_smsactivity_toolbar">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:orientation="vertical"
@@ -49,7 +58,9 @@
                     android:id="@+id/send_message_content_layouts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/compose_message_drawable"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="4dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent">
@@ -58,7 +69,6 @@
                         android:id="@+id/send_sms_encrypted_version"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
                         android:maxLines="7"
                         android:scrollbars="vertical"
                         android:textColor="@color/secondary_text_color"
@@ -70,40 +80,26 @@
                         app:layout_constraintTop_toTopOf="parent" />
 
 
-                    <ImageButton
-                        android:id="@+id/image_upload_btn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@android:color/transparent"
-                        android:onClick="uploadImage"
-                        android:visibility="visible"
-                        app:layout_constraintBottom_toBottomOf="@+id/sms_send_button"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="@+id/sms_send_button"
-                        app:srcCompat="@drawable/imagegallery_120168" />
-
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/send_text"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
+                        android:layout_marginStart="16dp"
+                        android:background="@drawable/compose_message_drawable"
+                        android:layout_marginTop="8dp"
                         android:layout_marginEnd="8dp"
                         android:layout_marginBottom="5dp"
-                        android:hint="Text Message"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusTopStart="10dp"
+                        android:hint="@string/send_message_text_box_hint"
                         app:boxStrokeWidth="0dp"
                         app:boxStrokeWidthFocused="0dp"
                         app:counterEnabled="false"
                         app:endIconMode="custom"
-                        app:hintAnimationEnabled="true"
                         app:hintEnabled="true"
                         app:hintTextColor="@color/received_message_color"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/sms_send_button"
-                        app:layout_constraintStart_toEndOf="@+id/image_upload_btn"
+                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/send_sms_encrypted_version">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -120,8 +116,8 @@
                         android:id="@+id/sms_send_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="4dp"
-                        android:layout_marginBottom="4dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="8dp"
                         android:backgroundTint="@android:color/transparent"
                         app:layout_constraintBottom_toBottomOf="@+id/send_text"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -130,163 +126,13 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-        <!--        <androidx.appcompat.widget.LinearLayoutCompat-->
-<!--            android:gravity="bottom"-->
-<!--            android:orientation="vertical"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content">-->
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-<!--            <androidx.recyclerview.widget.RecyclerView-->
-<!--                android:id="@+id/single_messages_thread_recycler_view"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
-<!--                app:reverseLayout="true" />-->
-
-<!--            <androidx.constraintlayout.widget.ConstraintLayout-->
-<!--                android:id="@+id/send_message_content_layouts"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:background="@drawable/compose_message_drawable">-->
-
-<!--                <TextView-->
-<!--                    android:id="@+id/send_sms_encrypted_version"-->
-<!--                    android:layout_width="0dp"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginTop="8dp"-->
-<!--                    android:maxLines="7"-->
-<!--                    android:scrollbars="vertical"-->
-<!--                    android:textColor="@color/secondary_text_color"-->
-<!--                    android:textSize="16sp"-->
-<!--                    android:verticalScrollbarPosition="defaultPosition"-->
-<!--                    android:visibility="gone"-->
-<!--                    app:layout_constraintEnd_toEndOf="@+id/send_text"-->
-<!--                    app:layout_constraintStart_toStartOf="@+id/send_text"-->
-<!--                    app:layout_constraintTop_toTopOf="parent" />-->
+        </androidx.core.widget.NestedScrollView>
 
 
-<!--                <ImageButton-->
-<!--                    android:id="@+id/image_upload_btn"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginStart="8dp"-->
-<!--                    android:background="@android:color/transparent"-->
-<!--                    android:onClick="uploadImage"-->
-<!--                    android:visibility="visible"-->
-<!--                    app:layout_constraintBottom_toBottomOf="@+id/sms_send_button"-->
-<!--                    app:layout_constraintStart_toStartOf="parent"-->
-<!--                    app:layout_constraintTop_toTopOf="@+id/sms_send_button"-->
-<!--                    app:srcCompat="@drawable/imagegallery_120168" />-->
-
-<!--                <com.google.android.material.textfield.TextInputLayout-->
-<!--                    android:id="@+id/send_text"-->
-<!--                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"-->
-<!--                    android:layout_width="0dp"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginStart="4dp"-->
-<!--                    android:layout_marginEnd="8dp"-->
-<!--                    android:layout_marginBottom="5dp"-->
-<!--                    android:hint="Text Message"-->
-<!--                    app:boxCornerRadiusBottomStart="12dp"-->
-<!--                    app:boxCornerRadiusTopStart="10dp"-->
-<!--                    app:boxStrokeWidth="0dp"-->
-<!--                    app:boxStrokeWidthFocused="0dp"-->
-<!--                    app:counterEnabled="false"-->
-<!--                    app:endIconMode="custom"-->
-<!--                    app:hintAnimationEnabled="true"-->
-<!--                    app:hintEnabled="true"-->
-<!--                    app:hintTextColor="@color/received_message_color"-->
-<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
-<!--                    app:layout_constraintEnd_toStartOf="@+id/sms_send_button"-->
-<!--                    app:layout_constraintStart_toEndOf="@+id/image_upload_btn"-->
-<!--                    app:layout_constraintTop_toBottomOf="@id/send_sms_encrypted_version">-->
-
-<!--                    <com.google.android.material.textfield.TextInputEditText-->
-<!--                        android:id="@+id/sms_text"-->
-<!--                        android:layout_width="match_parent"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:inputType="textLongMessage|textAutoCorrect|textMultiLine|textCapSentences"-->
-<!--                        android:maxLines="7"-->
-<!--                        android:textSize="16sp" />-->
-
-<!--                </com.google.android.material.textfield.TextInputLayout>-->
-
-<!--                <ImageButton-->
-<!--                    android:id="@+id/sms_send_button"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginEnd="4dp"-->
-<!--                    android:layout_marginBottom="4dp"-->
-<!--                    android:backgroundTint="@android:color/transparent"-->
-<!--                    app:layout_constraintBottom_toBottomOf="@+id/send_text"-->
-<!--                    app:layout_constraintEnd_toEndOf="parent"-->
-<!--                    app:srcCompat="@drawable/ic_round_send_24" />-->
-
-<!--            </androidx.constraintlayout.widget.ConstraintLayout>-->
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 
-    </androidx.core.widget.NestedScrollView>
-
-<!--    <androidx.constraintlayout.widget.ConstraintLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="0dp"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@+id/send_smsactivity_toolbar">-->
-
-
-<!--&lt;!&ndash;        <androidx.constraintlayout.widget.ConstraintLayout&ndash;&gt;-->
-<!--&lt;!&ndash;            android:id="@+id/simcard_select_constraint"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_width="match_parent"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_height="0dp"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:background="@drawable/multi_simcard_gradient"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:visibility="invisible"&ndash;&gt;-->
-<!--&lt;!&ndash;            app:layout_constraintBottom_toTopOf="@+id/send_message_content_layouts"&ndash;&gt;-->
-<!--&lt;!&ndash;            app:layout_constraintEnd_toEndOf="parent"&ndash;&gt;-->
-<!--&lt;!&ndash;            app:layout_constraintStart_toStartOf="parent"&ndash;&gt;-->
-<!--&lt;!&ndash;            app:layout_constraintTop_toTopOf="parent">&ndash;&gt;-->
-
-<!--&lt;!&ndash;            <ImageButton&ndash;&gt;-->
-<!--&lt;!&ndash;                android:id="@+id/simcard_select_operator_1"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_marginEnd="18dp"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_marginBottom="32dp"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:background="@android:color/transparent"&ndash;&gt;-->
-<!--&lt;!&ndash;                app:layout_constraintBottom_toTopOf="@+id/simcard_select_operator_2"&ndash;&gt;-->
-<!--&lt;!&ndash;                app:layout_constraintEnd_toEndOf="parent" />&ndash;&gt;-->
-
-<!--&lt;!&ndash;            <ImageButton&ndash;&gt;-->
-<!--&lt;!&ndash;                android:id="@+id/simcard_select_operator_2"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_marginEnd="19dp"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_marginBottom="32dp"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:background="@android:color/transparent"&ndash;&gt;-->
-<!--&lt;!&ndash;                app:layout_constraintBottom_toBottomOf="parent"&ndash;&gt;-->
-<!--&lt;!&ndash;                app:layout_constraintEnd_toEndOf="parent" />&ndash;&gt;-->
-
-<!--&lt;!&ndash;            <TextView&ndash;&gt;-->
-<!--&lt;!&ndash;                android:id="@+id/simcard_select_operator_1_name"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_marginEnd="14dp"&ndash;&gt;-->
-<!--&lt;!&ndash;                app:layout_constraintBottom_toBottomOf="@+id/simcard_select_operator_1"&ndash;&gt;-->
-<!--&lt;!&ndash;                app:layout_constraintEnd_toStartOf="@+id/simcard_select_operator_1" />&ndash;&gt;-->
-
-<!--&lt;!&ndash;            <TextView&ndash;&gt;-->
-<!--&lt;!&ndash;                android:id="@+id/simcard_select_operator_2_name"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_marginTop="37dp"&ndash;&gt;-->
-<!--&lt;!&ndash;                android:layout_marginEnd="13dp"&ndash;&gt;-->
-<!--&lt;!&ndash;                app:layout_constraintBottom_toBottomOf="@+id/simcard_select_operator_2"&ndash;&gt;-->
-<!--&lt;!&ndash;                app:layout_constraintEnd_toStartOf="@+id/simcard_select_operator_2"&ndash;&gt;-->
-<!--&lt;!&ndash;                app:layout_constraintTop_toBottomOf="@+id/simcard_select_operator_1_name" />&ndash;&gt;-->
-<!--&lt;!&ndash;        </androidx.constraintlayout.widget.ConstraintLayout>&ndash;&gt;-->
-
-<!--    </androidx.constraintlayout.widget.ConstraintLayout>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout >

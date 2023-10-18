@@ -212,4 +212,6 @@
     <string name="about_deku_github_description">Deku SMS remains free and open sourced. We believe in giving back to the community that has given us so much. A lot on this app is experimental, but with great experiments comes great findings. Please support us by starring the project on Github and sharing it with your friends.</string>
     <string name="about_deku_github_btn">View on GitHub</string>
     <string name="about_deku_github_url">https://github.com/deku-messaging/Deku-SMS-Android</string>
+
+    <string name="send_message_text_box_hint">Text Message</string>
 </resources>
