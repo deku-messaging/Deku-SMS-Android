@@ -1,6 +1,6 @@
-package com.example.swob_deku;
+package com.afkanerd.deku.DefaultSMS;
 
-import com.example.swob_deku.Models.Security.SecurityAES;
+import com.afkanerd.deku.E2EE.Security.SecurityAES;
 
 
 import org.junit.Test;

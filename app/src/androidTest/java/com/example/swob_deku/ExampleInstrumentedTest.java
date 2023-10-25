@@ -1,4 +1,4 @@
-package com.example.swob_deku;
+package com.afkanerd.deku.DefaultSMS;
 
 import android.content.Context;
 

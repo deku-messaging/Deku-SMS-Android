@@ -20,7 +20,7 @@ def minSdkVersionFromManifest = project.properties['minSdkVersion']
 
 android {
     compileSdk 34
-    namespace 'com.example.swob_deku'
+    namespace 'com.afkanerd.deku.DefaultSMS'
 
     def nightlyVersion = Integer.parseInt(versionProperties['nightlyVersion'])
     def stagingVersion = Integer.parseInt(versionProperties['stagingVersion'])

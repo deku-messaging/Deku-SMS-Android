@@ -18,7 +18,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/settings_fragment"
-        android:name="com.example.swob_deku.Fragments.SettingsFragment"
+        android:name="com.afkanerd.deku.DefaultSMS.Fragments.SettingsFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
