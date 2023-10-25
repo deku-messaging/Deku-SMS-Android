@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models;
+package com.afkanerd.deku.DefaultSMS;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

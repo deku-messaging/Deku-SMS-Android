@@ -1,6 +1,6 @@
 package com.afkanerd.deku.QueueListener.RMQ;
 
-import static com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -22,7 +22,7 @@ import com.afkanerd.deku.Router.Router.RouterHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;

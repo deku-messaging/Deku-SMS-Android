@@ -1,7 +1,7 @@
-package com.afkanerd.deku.DefaultSMS;
+package com.afkanerd.deku.QueueListener.GatewayClients;
 
-import static com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
-import static com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
+import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,8 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
+import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 

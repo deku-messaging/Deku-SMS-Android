@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS;
+package com.afkanerd.deku.QueueListener.GatewayClients;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,8 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.RadioGroup;
 
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
+import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 

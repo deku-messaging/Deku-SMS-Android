@@ -1,6 +1,6 @@
 package com.afkanerd.deku.QueueListener.RMQ;
 
-import static com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import android.app.ForegroundServiceStartNotAllowedException;
 import android.app.Notification;

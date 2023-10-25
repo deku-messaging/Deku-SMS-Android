@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS;
+package com.afkanerd.deku.Router.Router;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -13,10 +13,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 
-import com.afkanerd.deku.DefaultSMS.Models.CustomAppCompactActivity;
-import com.afkanerd.deku.Router.Router.RouterMessages;
-import com.afkanerd.deku.Router.Router.RouterRecyclerAdapter;
-import com.afkanerd.deku.Router.Router.RouterViewModel;
+import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
+import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
 

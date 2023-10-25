@@ -23,14 +23,18 @@ import com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders.TemplateViewHold
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
-import com.afkanerd.deku.DefaultSMS.RouterActivity;
+import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.afkanerd.deku.DefaultSMS.SMSSendActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import kotlin.collections.builders.SetBuilder;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
 
@@ -42,10 +46,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     RouterActivity routerActivity;
     ArchivedMessagesActivity archivedMessagesActivity;
 
-    WorkManager workManager;
-    LiveData<List<WorkInfo>> workers;
-
-    public MutableLiveData<HashMap<String, TemplateViewHolder>> selectedItems = new MutableLiveData<>();
+    public MutableLiveData<Set<Integer>> selectedItems = new MutableLiveData<>();
+    Set<TemplateViewHolder> selectedViewHolders = new HashSet<>();
 
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
@@ -142,33 +144,8 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
-                    HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
-                    if(items.containsKey(holder.id)) {
-                        holder.unHighlight();
-                        items.remove(holder.id);
-                    }
-                    else {
-                        items = selectedItems.getValue();
-                        holder.highlight();
-                        items.put(holder.id, holder);
-                    }
-                    selectedItems.postValue(items);
-                }
-                else {
-                    Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
-                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, conversation.THREAD_ID);
-                    context.startActivity(singleMessageThreadIntent);
-                }
-            }
-        };
-        holder.init(conversation, onClickListener);
-//
-//        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View v) {
-//                HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
-//                if(items != null && !items.isEmpty()) {
+//                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
+//                    HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
 //                    if(items.containsKey(holder.id)) {
 //                        holder.unHighlight();
 //                        items.remove(holder.id);
@@ -179,28 +156,62 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
 //                        items.put(holder.id, holder);
 //                    }
 //                    selectedItems.postValue(items);
-//                } else {
-//                    items = new HashMap<>();
-//                    holder.highlight();
-//                    items.put(holder.id, holder);
 //                }
-//                selectedItems.setValue(items);
-//                return true;
-//            }
-//        };
+//                else {
+//                    Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+//                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, conversation.THREAD_ID);
+//                    context.startActivity(singleMessageThreadIntent);
+//                }
+
+                Set<Integer> _selectedItems = selectedItems.getValue();
+                if(_selectedItems != null) {
+                    if(_selectedItems.contains(holder.getAbsoluteAdapterPosition())) {
+                        selectedViewHolders.remove(holder);
+                        _selectedItems.remove(holder.getAbsoluteAdapterPosition());
+                        selectedItems.postValue(_selectedItems);
+                        holder.unHighlight();
+                        return;
+                    }
+                    else if(!_selectedItems.isEmpty()){
+                        _selectedItems.add(holder.getAbsoluteAdapterPosition());
+                        selectedItems.postValue(_selectedItems);
+                        selectedViewHolders.add(holder);
+                        holder.highlight();
+                        return;
+                    }
+                }
+
+                Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+                singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, conversation.THREAD_ID);
+                context.startActivity(singleMessageThreadIntent);
+            }
+        };
 //
-//        holder.layout.setOnClickListener(onClickListener);
-//        holder.layout.setOnLongClickListener(onLongClickListener);
-    }
+        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Set<Integer> _selectedItems = selectedItems.getValue() == null ?
+                        new HashSet<>() : selectedItems.getValue();
+                _selectedItems.add(holder.getAbsoluteAdapterPosition());
+                selectedItems.postValue(_selectedItems);
+                selectedViewHolders.add(holder);
+                holder.highlight();
+                return true;
+            }
+        };
+
+        holder.init(conversation, onClickListener, onLongClickListener);
+   }
 
     public void resetAllSelectedItems() {
-        HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
+        Set<Integer> items = selectedItems.getValue();
         if(items != null) {
-            for (Map.Entry<String, TemplateViewHolder> entry : items.entrySet()) {
-                entry.getValue().unHighlight();
+            for(TemplateViewHolder viewHolder : selectedViewHolders) {
+                viewHolder.unHighlight();
             }
         }
-        selectedItems.setValue(new HashMap<>());
+        selectedItems.setValue(new HashSet<>());
+        selectedViewHolders = new HashSet<>();
     }
 
     @Override

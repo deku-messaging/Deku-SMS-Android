@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS;
+package com.afkanerd.deku.Images.Images;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +22,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Compression;
+import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.DefaultSMS.SMSSendActivity;
 import com.afkanerd.deku.Images.Images.ImageHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;

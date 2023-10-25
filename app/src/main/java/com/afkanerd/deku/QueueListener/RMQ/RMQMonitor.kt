@@ -3,7 +3,7 @@ package com.afkanerd.deku.QueueListener.RMQ
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity
 
 class RMQMonitor(val context: Context, private val gatewayClientId: Long,
                  private val rmqConnection: RMQConnection) {

@@ -17,8 +17,6 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.GatewayClientCustomizationActivity;
-import com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity;
 import com.afkanerd.deku.DefaultSMS.Models.ServiceHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 

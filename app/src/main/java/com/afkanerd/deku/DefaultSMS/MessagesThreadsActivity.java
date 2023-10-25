@@ -19,16 +19,15 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
-import com.afkanerd.deku.DefaultSMS.Models.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
-import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Fragments.Homepage.HomepageFragment;
 import com.afkanerd.deku.DefaultSMS.Fragments.Homepage.MessagesThreadFragment;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Messages.MessagesThreadRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Messages.MessagesThreadViewModel;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
+import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.android.material.card.MaterialCardView;
 
 import java.io.IOException;
@@ -174,7 +173,7 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 String[] ids = messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()
-                        .keySet().toArray(new String[0]);
+                        .toArray(new String[0]);
                 if(item.getItemId() == R.id.threads_delete) {
                     Runnable runnable = new Runnable() {
                         @Override
@@ -285,8 +284,10 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home
-                && this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue() != null) {
+        this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+        if (item.getItemId() == android.R.id.home &&
+                this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null &&
+                this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue() != null) {
             this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
             return true;
         }
@@ -302,7 +303,9 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
     public void tabUnselected(int position) {
         String itemType = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
         if(this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
+                this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(itemType).selectedItems.getValue() != null) {
+
             this.messagesThreadRecyclerAdapterHashMap.get(itemType).resetAllSelectedItems();
         }
     }

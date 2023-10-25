@@ -14,7 +14,6 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity;
 import com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Migrations;

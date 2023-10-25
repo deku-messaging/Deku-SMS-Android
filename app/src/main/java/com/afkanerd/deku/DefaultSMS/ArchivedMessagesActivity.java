@@ -80,12 +80,12 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-        archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, TemplateViewHolder>>() {
-            @Override
-            public void onChanged(HashMap<String, TemplateViewHolder> stringViewHolderHashMap) {
-                highlightListener(stringViewHolderHashMap.size());
-            }
-        });
+//        archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, TemplateViewHolder>>() {
+//            @Override
+//            public void onChanged(HashMap<String, TemplateViewHolder> stringViewHolderHashMap) {
+//                highlightListener(stringViewHolderHashMap.size());
+//            }
+//        });
 
         myToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -93,7 +93,7 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                 if(item.getItemId() == R.id.archive_unarchive) {
                     try {
                         String[] ids = archivedThreadRecyclerAdapter.selectedItems.getValue()
-                                .keySet().toArray(new String[0]);
+                                .toArray(new String[0]);
 
                         long[] longArr = new long[ids.length];
                         for (int i = 0; i < ids.length; i++)
@@ -111,7 +111,7 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                 else if(item.getItemId() == R.id.archive_delete) {
                     try {
                         String[] ids = archivedThreadRecyclerAdapter.selectedItems.getValue()
-                                .keySet().toArray(new String[0]);
+                                .toArray(new String[0]);
 
                         SMSHandler.deleteThreads(getApplicationContext(), ids);
                         archivedThreadRecyclerAdapter.resetAllSelectedItems();

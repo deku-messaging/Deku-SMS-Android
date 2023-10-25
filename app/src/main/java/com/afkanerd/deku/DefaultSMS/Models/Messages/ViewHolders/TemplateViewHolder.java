@@ -42,7 +42,8 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         materialCardView = itemView.findViewById(R.id.messages_threads_cardview);
     }
 
-    public void init(Conversations conversation, View.OnClickListener onClickListener) {
+    public void init(Conversations conversation, View.OnClickListener onClickListener,
+                     View.OnLongClickListener onLongClickListener) {
         this.id = conversation.THREAD_ID;
 //
         final SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
@@ -58,6 +59,7 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         this.date.setText(smsMetaEntity.getFormattedDate());
         this.snippet.setText(conversation.SNIPPET);
         this.materialCardView.setOnClickListener(onClickListener);
+        this.materialCardView.setOnLongClickListener(onLongClickListener);
     }
 
     public static class ReadViewHolder extends TemplateViewHolder{
@@ -98,13 +100,13 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void highlight(){
-        layout.setBackgroundResource(R.drawable.received_messages_drawable);
-        this.setIsRecyclable(false);
+        materialCardView.setBackgroundResource(R.drawable.received_messages_drawable);
+//        this.setIsRecyclable(false);
     }
 
     public void unHighlight(){
-        layout.setBackgroundResource(0);
-        this.setIsRecyclable(true);
+        materialCardView.setBackgroundResource(0);
+//        this.setIsRecyclable(true);
     }
 
 }

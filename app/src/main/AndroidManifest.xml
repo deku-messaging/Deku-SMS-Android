@@ -46,15 +46,15 @@
                 android:value="barcode" />
         </activity>
         <activity
-            android:name="com.afkanerd.deku.DefaultSMS.GatewayClientCustomizationActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientCustomizationActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity
-            android:name="com.afkanerd.deku.DefaultSMS.GatewayClientAddActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity
-            android:name="com.afkanerd.deku.DefaultSMS.GatewayClientListingActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.SettingsActivity" />
         <activity
@@ -78,7 +78,7 @@
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity" />
         <activity
-            android:name="com.afkanerd.deku.DefaultSMS.ImageViewActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.SMSSendActivity" />
         <activity
@@ -89,7 +89,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:name="com.afkanerd.deku.DefaultSMS.GatewayServerListingActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.SettingsActivity">
             <meta-data
@@ -97,11 +97,11 @@
                 android:value="" />
         </activity>
         <activity
-            android:name="com.afkanerd.deku.DefaultSMS.GatewayServerAddActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.GatewayServerListingActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity" />
         <activity
-            android:name="com.afkanerd.deku.DefaultSMS.RouterActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.com.afkanerd.deku.Router.Router.RouterActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity" />
         <activity

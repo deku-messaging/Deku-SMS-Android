@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS;
+package com.afkanerd.deku.Router.GatewayServers;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -19,9 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerRecyclerAdapter;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerViewModel;
+import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
 

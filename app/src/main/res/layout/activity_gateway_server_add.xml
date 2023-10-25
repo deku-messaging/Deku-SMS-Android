@@ -5,7 +5,7 @@
     android:theme="@style/Theme.main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GatewayServerAddActivity">
+    tools:context="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/new_gateway_server_toolbar"

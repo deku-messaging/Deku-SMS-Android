@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Fragments;
+package com.afkanerd.deku.E2EE;
 
 import android.os.Bundle;
 

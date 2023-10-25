@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS;
+package com.afkanerd.deku.QueueListener.GatewayClients;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,10 +21,7 @@ import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.Models.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Migrations;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientDAO;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientRecyclerAdapter;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientViewModel;
+import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
 

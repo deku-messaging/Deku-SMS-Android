@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS;
+package com.afkanerd.deku.Router.GatewayServers;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -12,9 +12,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioGroup;
 
+import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.Router.Router.RouterHandler;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;

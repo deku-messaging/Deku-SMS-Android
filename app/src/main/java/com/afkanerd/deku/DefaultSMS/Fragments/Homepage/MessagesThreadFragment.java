@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 public class MessagesThreadFragment extends Fragment {
     BroadcastReceiver incomingBroadcastReceiver;
@@ -115,9 +116,9 @@ public class MessagesThreadFragment extends Fragment {
         }
 
         messagesThreadRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
-                new Observer<HashMap<String, TemplateViewHolder>>() {
+                new Observer<Set<Integer>>() {
                     @Override
-                    public void onChanged(HashMap<String, TemplateViewHolder> stringViewHolderHashMap) {
+                    public void onChanged(Set<Integer> stringViewHolderHashMap) {
                         highlightListener(stringViewHolderHashMap.size(), view);
                     }
                 });

@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.GatewayServerAddActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import org.jetbrains.annotations.NotNull;
