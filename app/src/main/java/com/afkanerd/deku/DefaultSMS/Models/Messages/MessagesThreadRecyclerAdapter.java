@@ -46,9 +46,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     RouterActivity routerActivity;
     ArchivedMessagesActivity archivedMessagesActivity;
 
-    public MutableLiveData<Set<Integer>> selectedItems = new MutableLiveData<>();
-    Set<TemplateViewHolder> selectedViewHolders = new HashSet<>();
-
+    public MutableLiveData<Set<TemplateViewHolder>> selectedItems = new MutableLiveData<>();
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
     final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
@@ -144,38 +142,17 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                if(selectedItems.getValue() != null && !selectedItems.getValue().isEmpty()) {
-//                    HashMap<String, TemplateViewHolder> items = selectedItems.getValue();
-//                    if(items.containsKey(holder.id)) {
-//                        holder.unHighlight();
-//                        items.remove(holder.id);
-//                    }
-//                    else {
-//                        items = selectedItems.getValue();
-//                        holder.highlight();
-//                        items.put(holder.id, holder);
-//                    }
-//                    selectedItems.postValue(items);
-//                }
-//                else {
-//                    Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
-//                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, conversation.THREAD_ID);
-//                    context.startActivity(singleMessageThreadIntent);
-//                }
-
-                Set<Integer> _selectedItems = selectedItems.getValue();
+                Set<TemplateViewHolder> _selectedItems = selectedItems.getValue();
                 if(_selectedItems != null) {
-                    if(_selectedItems.contains(holder.getAbsoluteAdapterPosition())) {
-                        selectedViewHolders.remove(holder);
+                    if(_selectedItems.contains(holder)) {
                         _selectedItems.remove(holder.getAbsoluteAdapterPosition());
                         selectedItems.postValue(_selectedItems);
                         holder.unHighlight();
                         return;
                     }
                     else if(!_selectedItems.isEmpty()){
-                        _selectedItems.add(holder.getAbsoluteAdapterPosition());
+                        _selectedItems.add(holder);
                         selectedItems.postValue(_selectedItems);
-                        selectedViewHolders.add(holder);
                         holder.highlight();
                         return;
                     }
@@ -190,11 +167,10 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Set<Integer> _selectedItems = selectedItems.getValue() == null ?
+                Set<TemplateViewHolder> _selectedItems = selectedItems.getValue() == null ?
                         new HashSet<>() : selectedItems.getValue();
-                _selectedItems.add(holder.getAbsoluteAdapterPosition());
+                _selectedItems.add(holder);
                 selectedItems.postValue(_selectedItems);
-                selectedViewHolders.add(holder);
                 holder.highlight();
                 return true;
             }
@@ -204,14 +180,13 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
    }
 
     public void resetAllSelectedItems() {
-        Set<Integer> items = selectedItems.getValue();
+        Set<TemplateViewHolder> items = selectedItems.getValue();
         if(items != null) {
-            for(TemplateViewHolder viewHolder : selectedViewHolders) {
+            for(TemplateViewHolder viewHolder : items) {
                 viewHolder.unHighlight();
             }
         }
         selectedItems.setValue(new HashSet<>());
-        selectedViewHolders = new HashSet<>();
     }
 
     @Override

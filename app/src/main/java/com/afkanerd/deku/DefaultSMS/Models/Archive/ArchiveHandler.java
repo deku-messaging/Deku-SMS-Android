@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models.Archive;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.room.Room;
 
@@ -38,11 +39,12 @@ public class ArchiveHandler {
         thread.join();
     }
 
-    public void archiveMultipleSMS(Context context, long[] threadId) throws InterruptedException {
+    public void archiveMultipleSMS(String[] threadId) throws InterruptedException {
+        Log.d(getClass().getName(), "Running to archive: " + threadId.length);
         Archive[] archives = new Archive[threadId.length];
 
         for(int i=0;i<threadId.length;++i)
-            archives[i] = new Archive(threadId[i]);
+            archives[i] = new Archive(Long.parseLong(threadId[i]));
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {

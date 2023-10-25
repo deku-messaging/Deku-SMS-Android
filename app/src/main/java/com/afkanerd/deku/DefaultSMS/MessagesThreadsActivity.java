@@ -19,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Fragments.Homepage.HomepageFragment;
@@ -33,6 +34,7 @@ import com.google.android.material.card.MaterialCardView;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
+import java.util.Set;
 
 public class MessagesThreadsActivity extends CustomAppCompactActivity implements MessagesThreadFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
@@ -172,44 +174,50 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                String[] ids = messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()
-                        .toArray(new String[0]);
-                if(item.getItemId() == R.id.threads_delete) {
-                    Runnable runnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-                                for(String id : ids) {
-                                    SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
-                                    smsMetaEntity.setThreadId(getApplicationContext(), id);
-                                    securityECDH.removeAllKeys(smsMetaEntity.getAddress());
-                                }
-                                SMSHandler.deleteThreads(getApplicationContext(), ids);
-                                messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-                                stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
-                            } catch(Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    };
-                    showAlert(runnable);
-                }
-                else if(item.getItemId() == R.id.threads_archive) {
-                    long[] longArr = new long[ids.length];
-                    for (int i = 0; i < ids.length; i++)
-                        longArr[i] = Long.parseLong(ids[i]);
-
-                    try {
-                        ArchiveHandler archiveHandler = new ArchiveHandler(getApplicationContext());
-                        archiveHandler.archiveMultipleSMS(getApplicationContext(), longArr);
-                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-                        stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
-                        archiveHandler.close();
-                        return true;
-                    } catch (InterruptedException | GeneralSecurityException | IOException e) {
-                        e.printStackTrace();
+                MessagesThreadRecyclerAdapter recyclerAdapter =
+                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+                if(messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null) {
+                    TemplateViewHolder[] viewHolders = recyclerAdapter.selectedItems.getValue()
+                            .toArray(new TemplateViewHolder[0]);
+                    String[] ids =  new String[viewHolders.length];
+                    for(int i=0;i<viewHolders.length; ++i) {
+                        ids[i] = viewHolders[i].id;
                     }
+                    if(item.getItemId() == R.id.threads_delete) {
+                        Runnable runnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+                                    for(String id : ids) {
+                                        SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                                        smsMetaEntity.setThreadId(getApplicationContext(), id);
+                                        securityECDH.removeAllKeys(smsMetaEntity.getAddress());
+                                    }
+                                    SMSHandler.deleteThreads(getApplicationContext(), ids);
+                                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+                                    stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+                                } catch(Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        };
+                        showAlert(runnable);
+                    }
+                    else if(item.getItemId() == R.id.threads_archive) {
+                        try {
+                            ArchiveHandler archiveHandler = new ArchiveHandler(getApplicationContext());
+                            archiveHandler.archiveMultipleSMS(ids);
+                            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+                            stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+                            archiveHandler.close();
+                            return true;
+                        } catch (InterruptedException | GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    return true;
                 }
                 return false;
             }

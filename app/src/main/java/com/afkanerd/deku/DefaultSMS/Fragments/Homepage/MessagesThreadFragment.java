@@ -116,9 +116,9 @@ public class MessagesThreadFragment extends Fragment {
         }
 
         messagesThreadRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
-                new Observer<Set<Integer>>() {
+                new Observer<Set<TemplateViewHolder>>() {
                     @Override
-                    public void onChanged(Set<Integer> stringViewHolderHashMap) {
+                    public void onChanged(Set<TemplateViewHolder> stringViewHolderHashMap) {
                         highlightListener(stringViewHolderHashMap.size(), view);
                     }
                 });
