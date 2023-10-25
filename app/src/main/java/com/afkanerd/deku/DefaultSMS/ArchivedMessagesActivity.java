@@ -23,6 +23,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders.TemplateViewHold
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 public class ArchivedMessagesActivity extends AppCompatActivity {
 
@@ -67,6 +68,7 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                     new Observer<List<Conversations>>() {
                         @Override
                         public void onChanged(List<Conversations> smsList) {
+                            Log.d(getLocalClassName(), "Running for archived with size: " + smsList.size());
                             archivedThreadRecyclerAdapter.submitList(smsList);
                             if(!smsList.isEmpty())
                                 findViewById(R.id.messages_archived_no_messages).setVisibility(View.GONE);
@@ -80,21 +82,24 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-//        archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, TemplateViewHolder>>() {
-//            @Override
-//            public void onChanged(HashMap<String, TemplateViewHolder> stringViewHolderHashMap) {
-//                highlightListener(stringViewHolderHashMap.size());
-//            }
-//        });
+        archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<Set<TemplateViewHolder>>() {
+            @Override
+            public void onChanged(Set<TemplateViewHolder> stringViewHolderHashMap) {
+                highlightListener(stringViewHolderHashMap.size());
+            }
+        });
 
         myToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+                TemplateViewHolder[] viewHolders = archivedThreadRecyclerAdapter.selectedItems.getValue()
+                        .toArray(new TemplateViewHolder[0]);
+                String[] ids =  new String[viewHolders.length];
+                for(int i=0;i<viewHolders.length; ++i) {
+                    ids[i] = viewHolders[i].id;
+                }
                 if(item.getItemId() == R.id.archive_unarchive) {
                     try {
-                        String[] ids = archivedThreadRecyclerAdapter.selectedItems.getValue()
-                                .toArray(new String[0]);
-
                         long[] longArr = new long[ids.length];
                         for (int i = 0; i < ids.length; i++)
                             longArr[i] = Long.parseLong(ids[i]);
@@ -110,9 +115,6 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                 }
                 else if(item.getItemId() == R.id.archive_delete) {
                     try {
-                        String[] ids = archivedThreadRecyclerAdapter.selectedItems.getValue()
-                                .toArray(new String[0]);
-
                         SMSHandler.deleteThreads(getApplicationContext(), ids);
                         archivedThreadRecyclerAdapter.resetAllSelectedItems();
                         archivedViewModel.informChanges();
@@ -145,7 +147,6 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
 
     private void highlightListener(int size){
         Menu menu = myToolbar.getMenu();
-        Log.d(getLocalClassName(), "Size: " + size);
         if(size < 1) {
             menu.setGroupVisible(R.id.archive_menu, false);
             ab.setTitle(R.string.archived_messages_toolbar_title);

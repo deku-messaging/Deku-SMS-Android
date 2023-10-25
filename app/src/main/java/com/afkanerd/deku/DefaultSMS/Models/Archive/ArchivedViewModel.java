@@ -44,6 +44,7 @@ public class ArchivedViewModel extends ViewModel {
                 Conversations conversations = new Conversations(cursor);
                 for(Archive archive : archiveList)
                     if(Long.parseLong(conversations.THREAD_ID) == archive.getThreadId()) {
+                        conversations.setNewestMessage(context);
                         smsList.add(conversations);
                         break;
                     }
