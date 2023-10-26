@@ -292,7 +292,6 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
         if (item.getItemId() == android.R.id.home &&
                 this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue() != null) {
@@ -310,6 +309,7 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
     @Override
     public void tabUnselected(int position) {
         String itemType = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
+        MessagesThreadRecyclerAdapter recyclerAdapter = this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
         if(this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(itemType).selectedItems.getValue() != null) {
@@ -321,5 +321,10 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
     @Override
     public void tabSelected(int position) {
         this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
+        try {
+            stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 }

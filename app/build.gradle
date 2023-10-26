@@ -141,18 +141,17 @@ dependencies {
     implementation "androidx.work:work-multiprocess:2.8.1"
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.android.volley:volley:1.2.1'
     implementation "androidx.core:core:1.12.0"
 
-    implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'commons-codec:commons-codec:1.15'
     implementation "io.getstream:avatarview-coil:1.0.7"
 
-    implementation "androidx.room:room-runtime:2.6.0-beta01"
-    annotationProcessor "androidx.room:room-compiler:2.6.0-beta01"
+    implementation "androidx.room:room-runtime:2.6.0"
+    annotationProcessor "androidx.room:room-compiler:2.6.0"
 
 
     implementation "androidx.paging:paging-runtime:$paging_version"

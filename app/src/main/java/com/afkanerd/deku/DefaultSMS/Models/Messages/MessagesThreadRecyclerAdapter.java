@@ -145,7 +145,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
                 Set<TemplateViewHolder> _selectedItems = selectedItems.getValue();
                 if(_selectedItems != null) {
                     if(_selectedItems.contains(holder)) {
-                        _selectedItems.remove(holder.getAbsoluteAdapterPosition());
+                        _selectedItems.remove(holder);
                         selectedItems.postValue(_selectedItems);
                         holder.unHighlight();
                         return;

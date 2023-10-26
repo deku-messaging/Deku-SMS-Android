@@ -27,18 +27,16 @@
 
             <io.getstream.avatarview.AvatarView
                 android:id="@+id/messages_threads_contact_initials"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:layout_marginBottom="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:visibility="visible"
                 app:avatarViewBorderRadius="0dp"
                 app:avatarViewBorderWidth="0dp"
                 app:avatarViewInitialsTextColor="@color/primary_background_color"
-                app:avatarViewInitialsTextSize="16sp"
+                app:avatarViewInitialsTextSize="20sp"
                 app:avatarViewInitialsTextStyle="normal"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="@+id/messages_thread_address_text" />
 
             <TextView
                 android:id="@+id/messages_thread_address_text"

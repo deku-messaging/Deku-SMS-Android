@@ -14,7 +14,12 @@ import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.card.MaterialCardView;
 
+import java.util.ArrayList;
+
+import io.getstream.avatarview.AvatarShape;
 import io.getstream.avatarview.AvatarView;
+import io.getstream.avatarview.coil.Avatar;
+import io.getstream.avatarview.coil.AvatarViewExtension;
 
 public class TemplateViewHolder extends RecyclerView.ViewHolder {
 
@@ -30,8 +35,11 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
 
     public MaterialCardView materialCardView;
 
+    View itemView;
+
     public TemplateViewHolder(@NonNull View itemView) {
         super(itemView);
+        this.itemView = itemView;
 
         snippet = itemView.findViewById(R.id.messages_thread_text);
         address = itemView.findViewById(R.id.messages_thread_address_text);
@@ -49,17 +57,18 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         final SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
         String address = smsMetaEntity.getAddress();
         if(smsMetaEntity.isContact()) {
-            address = smsMetaEntity.getContactName();
-            if(!address.isEmpty()) {
-                this.contactInitials.setAvatarInitials(address.substring(0, 1));
-                this.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
-            }
+            String _address = smsMetaEntity.getContactName();
+            address = !_address.isEmpty() ? _address : address;
+            this.contactInitials.setAvatarInitials(address.substring(0, 1));
+            this.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
         }
         this.address.setText(address);
         this.date.setText(smsMetaEntity.getFormattedDate());
         this.snippet.setText(conversation.SNIPPET);
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);
+        // TODO: investigate new Avatar first before anything else
+        this.contactInitials.setPlaceholder(itemView.getContext().getDrawable(R.drawable.round_person_24));
     }
 
     public static class ReadViewHolder extends TemplateViewHolder{

@@ -13,6 +13,7 @@ import android.app.role.RoleManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Log;
@@ -63,10 +64,18 @@ public class DefaultCheckActivity extends AppCompatActivity {
     public void makeDefault(View view) {
         Log.d(getLocalClassName(), "Got into make default function..");
         final String myPackageName = getApplicationContext().getPackageName();
-        RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
-        Intent roleManagerIntent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS);
-        roleManagerIntent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
-        startActivityForResult(roleManagerIntent, 0);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            RoleManager roleManager = (RoleManager) getSystemService(ROLE_SERVICE);
+            Intent roleManagerIntent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS);
+            roleManagerIntent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
+            startActivityForResult(roleManagerIntent, 0);
+        }
+        else {
+            Intent intent =
+                    new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
+            startActivity(intent);
+        }
     }
 
     private void checkIsDefaultApp() {
@@ -74,7 +83,9 @@ public class DefaultCheckActivity extends AppCompatActivity {
         final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
 
         if (myPackageName.equals(defaultPackage)) {
-            createNotificationChannel();
+            if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                createNotificationChannel();
+            }
             startActivity(new Intent(this, MessagesThreadsActivity.class));
             finish();
         }
