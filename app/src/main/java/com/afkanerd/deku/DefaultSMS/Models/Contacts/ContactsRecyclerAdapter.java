@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
-import com.afkanerd.deku.DefaultSMS.SMSSendActivity;
+import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -51,7 +51,7 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+                Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, contacts.number);
 
                 if(sharedSMS != null && !sharedSMS.isEmpty())

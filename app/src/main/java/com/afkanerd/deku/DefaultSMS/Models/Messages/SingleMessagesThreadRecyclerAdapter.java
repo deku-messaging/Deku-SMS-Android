@@ -60,7 +60,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
     public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
     public MutableLiveData<String[]> retryFailedDataMessage = new MutableLiveData<>();
 
-    private final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
+    public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
 
 
     final int MESSAGE_TYPE_ALL = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL;

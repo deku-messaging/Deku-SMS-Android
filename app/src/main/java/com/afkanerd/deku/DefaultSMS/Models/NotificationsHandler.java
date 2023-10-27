@@ -23,19 +23,19 @@ import androidx.core.graphics.drawable.IconCompat;
 
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.Images.Images.ImageHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.DefaultSMS.SMSSendActivity;
 
 public class NotificationsHandler {
 
     @SuppressLint("MissingPermission")
     public static void sendIncomingTextMessageNotification(Context context, String text, final String address, long messageId) {
-        Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
+        Intent receivedSmsIntent = new Intent(context, ConversationActivity.class);
 
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
         if(cursor.moveToFirst()) {

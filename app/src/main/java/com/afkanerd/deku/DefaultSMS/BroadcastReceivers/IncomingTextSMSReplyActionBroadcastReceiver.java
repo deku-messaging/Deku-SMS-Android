@@ -19,6 +19,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 
+import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
@@ -26,7 +27,6 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.DefaultSMS.SMSSendActivity;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
     public static String BROADCAST_STATE = BuildConfig.APPLICATION_ID + ".BROADCAST_STATE";
@@ -59,7 +59,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                     e.printStackTrace();
                 }
 
-                Intent receivedSmsIntent = new Intent(context, SMSSendActivity.class);
+                Intent receivedSmsIntent = new Intent(context, ConversationActivity.class);
                 receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
                 receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 

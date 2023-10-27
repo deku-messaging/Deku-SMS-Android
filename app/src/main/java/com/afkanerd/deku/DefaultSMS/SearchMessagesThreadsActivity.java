@@ -25,6 +25,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Messages.MessagesSearchViewModel;
@@ -96,15 +97,15 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         });
 
         messagesSearchViewModel.getMessages(getApplicationContext(), searchString.getValue()).observe(this,
-                new Observer<List<SMS>>() {
+                new Observer<List<Conversations>>() {
                     @Override
-                    public void onChanged(List<SMS> smsList) {
+                    public void onChanged(List<Conversations> smsList) {
                         if(!searchString.getValue().isEmpty() && smsList.isEmpty())
                             findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
                         else
                             findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
                         messagesThreadRecyclerAdapter.submitList(smsList, searchString.getValue());
-                        messagesThreadRecyclerAdapter.notifyDataSetChanged();
+//                        messagesThreadRecyclerAdapter.notifyDataSetChanged();
                     }
                 });
     }
@@ -155,7 +156,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             view.findViewById(R.id.messages_threads_layout).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(context, SMSSendActivity.class);
+                    Intent intent = new Intent(context, ConversationActivity.class);
                     intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(intent);

@@ -21,10 +21,9 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Compression;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.DefaultSMS.SMSSendActivity;
-import com.afkanerd.deku.Images.Images.ImageHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
@@ -104,7 +103,7 @@ public class ImageViewActivity extends AppCompatActivity {
             cursor.close();
         }
         else {
-            imageUri = Uri.parse(getIntent().getStringExtra(SMSSendActivity.IMAGE_URI));
+            imageUri = Uri.parse(getIntent().getStringExtra(ConversationActivity.IMAGE_URI));
 
             try {
                 imageHandler = new ImageHandler(getApplicationContext(), imageUri);
@@ -133,7 +132,7 @@ public class ImageViewActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home ) {
-            Intent intent = new Intent(this, SMSSendActivity.class);
+            Intent intent = new Intent(this, ConversationActivity.class);
             intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
 
             if(!threadId.isEmpty())
@@ -301,7 +300,7 @@ public class ImageViewActivity extends AppCompatActivity {
     }
 
     public void sendImage(View view) throws InterruptedException {
-//        Intent intent = new Intent(this, SMSSendActivity.class);
+//        Intent intent = new Intent(this, ConversationActivity.class);
 //        intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
 //
 //        long messageId = Helpers.generateRandomNumber();
@@ -330,7 +329,7 @@ public class ImageViewActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Intent intent = new Intent(this, SMSSendActivity.class);
+        Intent intent = new Intent(this, ConversationActivity.class);
         intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
 
         if(!threadId.isEmpty())

@@ -322,7 +322,9 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
     public void tabSelected(int position) {
         this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
         try {
-            stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+            MessagesThreadViewModel threadViewModel = stringMessagesThreadViewModelHashMap.get(ITEM_TYPE);
+            if(threadViewModel != null)
+                stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
         } catch(Exception e) {
             e.printStackTrace();
         }

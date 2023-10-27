@@ -26,9 +26,19 @@ public class Conversations {
         this.MESSAGE_COUNT = cursor.getInt(msgCountIndex);
     }
 
+    public Conversations(){}
+
     public void setNewestMessage(Context context) {
         this.smsMetaEntity = new SMS.SMSMetaEntity();
         this.smsMetaEntity.setThreadId(context, this.THREAD_ID);
+    }
+
+    public void setSNIPPET(String snippet) {
+        this.SNIPPET = snippet;
+    }
+
+    public void setTHREAD_ID(String threadId) {
+        this.THREAD_ID = threadId;
     }
 
     public SMS.SMSMetaEntity getNewestMessage() {

@@ -8,12 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.WorkInfo;
-import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
@@ -24,17 +22,13 @@ import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.Router.Router.RouterActivity;
-import com.afkanerd.deku.DefaultSMS.SMSSendActivity;
+import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
-import kotlin.collections.builders.SetBuilder;
 
 public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
 
@@ -158,7 +152,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
                     }
                 }
 
-                Intent singleMessageThreadIntent = new Intent(context, SMSSendActivity.class);
+                Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, conversation.THREAD_ID);
                 context.startActivity(singleMessageThreadIntent);
             }
@@ -201,9 +195,9 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
         mDiffer.submitList(list);
     }
 
-    public void submitList(List<SMS> list, String searchString) {
+    public void submitList(List<Conversations> list, String searchString) {
         this.searchString = searchString;
-//        mDiffer.submitList(list);
+        mDiffer.submitList(list);
     }
 
     private String getSMSFromWorkInfo(WorkInfo workInfo) {

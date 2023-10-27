@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:theme="@style/Theme.main"
     android:layout_width="match_parent"
-    tools:context=".SMSSendActivity"
+    tools:context=".ConversationActivity"
     android:layout_height="match_parent" >
 
     <androidx.appcompat.widget.Toolbar
@@ -28,7 +28,6 @@
         app:layout_constraintTop_toBottomOf="@+id/send_smsactivity_toolbar">
 
         <androidx.core.widget.NestedScrollView
-            android:id="@+id/nestedScrollView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fillViewport="true"
@@ -39,15 +38,37 @@
             app:layout_constraintTop_toBottomOf="@+id/send_smsactivity_toolbar">
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent">
+
+<!--                <androidx.core.widget.NestedScrollView-->
+<!--                    android:id="@+id/nestedScrollView"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="0dp"-->
+<!--                    android:fillViewport="true"-->
+<!--                    android:scrollbars="vertical"-->
+<!--                    app:layout_constraintBottom_toTopOf="@+id/send_message_content_layouts"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="parent"-->
+<!--                    app:layout_behavior="@string/appbar_scrolling_view_behavior">-->
+
+<!--                    <androidx.recyclerview.widget.RecyclerView-->
+<!--                        android:id="@+id/single_messages_thread_recycler_view"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="match_parent"-->
+<!--                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
+<!--                        app:reverseLayout="true" />-->
+
+<!--                </androidx.core.widget.NestedScrollView>-->
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/single_messages_thread_recycler_view"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
+                    android:scrollbars="vertical"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior"
                     app:layout_constraintBottom_toTopOf="@+id/send_message_content_layouts"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"

@@ -72,7 +72,7 @@ public class CustomAppCompactActivity extends AppCompatActivity {
 
 
         registerReceiver(messageStateChangedBroadcast,
-                new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
+                new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT), Context.RECEIVER_NOT_EXPORTED);
 
         // SMS_RECEIVED = global broadcast informing all apps listening a message has arrived
         registerReceiver(incomingBroadcastReceiver,
@@ -82,7 +82,7 @@ public class CustomAppCompactActivity extends AppCompatActivity {
                 new IntentFilter(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION));
 
         registerReceiver(incomingDataBroadcastReceiver,
-                new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT));
+                new IntentFilter(IncomingDataSMSBroadcastReceiver.DATA_BROADCAST_INTENT), Context.RECEIVER_NOT_EXPORTED);
     }
 
     @Override
