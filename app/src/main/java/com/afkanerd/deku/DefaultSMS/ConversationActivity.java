@@ -98,7 +98,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
     SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
     int defaultSubscriptionId;
 
-    List<Integer> searchPositions = new ArrayList<>();
+    MutableLiveData<List<Integer>> searchPositions = new MutableLiveData<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -266,6 +266,19 @@ public class ConversationActivity extends CustomAppCompactActivity {
 //        linearLayoutManager = new LinearLayoutManager(getApplicationContext(),
 //                LinearLayoutManager.VERTICAL, true);
 
+        TextView searchFoundTextView = findViewById(R.id.conversations_search_results_found_counter_text);
+        searchPositions.observe(this, new Observer<List<Integer>>() {
+            @Override
+            public void onChanged(List<Integer> integers) {
+                Log.d(getLocalClassName(), "Search found: " + integers.size());
+                if(!integers.isEmpty()) {
+                    singleMessagesThreadRecyclerView.scrollToPosition(integers.get(0));
+                    Log.d(getLocalClassName(), "Search scrolling to: " + integers.size());
+                }
+                String text = integers.size() + " " + getString(R.string.conversations_search_results_found);
+                searchFoundTextView.setText(text);
+            }
+        });
 
         try {
             // TODO should work on this as the SMS does not open in real time
@@ -414,7 +427,10 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                searchForInput(editable.toString());
+                if(editable != null && editable.length() > 1)
+                    searchForInput(editable.toString());
+                else
+                    searchPositions.setValue(new ArrayList<>());
             }
         });
     }
@@ -1086,26 +1102,29 @@ public class ConversationActivity extends CustomAppCompactActivity {
             cursorSearch.close();
         }
 
+        List<Integer> foundPositions = new ArrayList<>();
         if(cursorAll.moveToFirst()) {
             int position = 0;
             do {
-                int threadIndex = cursorSearch.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
-                int messageIdIndex = cursorSearch.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+                int threadIndex = cursorAll.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
+                int messageIdIndex = cursorAll.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
 
-                String threadId = String.valueOf(cursorSearch.getString(threadIndex));
-                String messageId = String.valueOf(cursorSearch.getString(messageIdIndex));
+                String threadId = String.valueOf(cursorAll.getString(threadIndex));
+                String messageId = String.valueOf(cursorAll.getString(messageIdIndex));
 
                 Conversations conversations = new Conversations();
                 conversations.setTHREAD_ID(threadId);
                 conversations.setMESSAGE_ID(messageId);
 
-                if(searchMessages.contains(conversations))
-                    searchPositions.add(position);
+                if(searchMessages.contains(conversations)) {
+                    foundPositions.add(position);
+                }
 
                 ++position;
             } while(cursorAll.moveToNext());
             cursorAll.close();
         }
+        searchPositions.setValue(foundPositions);
     }
 
     @Override

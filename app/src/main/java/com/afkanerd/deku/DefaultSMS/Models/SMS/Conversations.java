@@ -82,8 +82,15 @@ public class Conversations {
                         conversations.getNewestMessage().getNewestIsRead() == this.smsMetaEntity.getNewestIsRead() &&
                         conversations.getNewestMessage().getNewestDateTime() == this.smsMetaEntity.getNewestDateTime();
 
-            return conversations.THREAD_ID.equals(this.THREAD_ID) &&
-                            conversations.SNIPPET.equals(this.SNIPPET);
+            if(conversations.SNIPPET != null) {
+                return conversations.THREAD_ID.equals(this.THREAD_ID) &&
+                        conversations.SNIPPET.equals(this.SNIPPET);
+            }
+
+            if(conversations.MESSAGE_ID != null)  {
+                return conversations.THREAD_ID.equals(this.THREAD_ID) &&
+                        conversations.MESSAGE_ID.equals(this.MESSAGE_ID);
+            }
 
         }
         return false;
