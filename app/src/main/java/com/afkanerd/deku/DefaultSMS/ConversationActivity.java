@@ -1091,51 +1091,56 @@ public class ConversationActivity extends CustomAppCompactActivity {
     }
 
     private void searchForInput(String search){
-        List<Conversations> searchMessages = new ArrayList<>();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<Conversations> searchMessages = new ArrayList<>();
 
-        Cursor cursorSearch = SMSHandler.fetchSMSMessagesForSearch(getApplicationContext(), search);
-        Cursor cursorAll = smsMetaEntity.fetchMessages(getApplicationContext(), 0, 0);
+                Cursor cursorSearch = SMSHandler.fetchSMSMessagesForSearch(getApplicationContext(), search);
+                Cursor cursorAll = smsMetaEntity.fetchMessages(getApplicationContext(), 0, 0);
 
-        if(cursorSearch.moveToFirst()) {
-            do {
-                int threadIndex = cursorSearch.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
-                int messageIdIndex = cursorSearch.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+                if(cursorSearch.moveToFirst()) {
+                    do {
+                        int threadIndex = cursorSearch.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
+                        int messageIdIndex = cursorSearch.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
 
-                String threadId = String.valueOf(cursorSearch.getString(threadIndex));
-                String messageId = String.valueOf(cursorSearch.getString(messageIdIndex));
+                        String threadId = String.valueOf(cursorSearch.getString(threadIndex));
+                        String messageId = String.valueOf(cursorSearch.getString(messageIdIndex));
 
-                Conversations conversations = new Conversations();
-                conversations.setTHREAD_ID(threadId);
-                conversations.setMESSAGE_ID(messageId);
+                        Conversations conversations = new Conversations();
+                        conversations.setTHREAD_ID(threadId);
+                        conversations.setMESSAGE_ID(messageId);
 
-                searchMessages.add(conversations);
-            } while(cursorSearch.moveToNext());
-            cursorSearch.close();
-        }
-
-        List<Integer> foundPositions = new ArrayList<>();
-        if(cursorAll.moveToFirst()) {
-            int position = 0;
-            do {
-                int threadIndex = cursorAll.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
-                int messageIdIndex = cursorAll.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
-
-                String threadId = cursorAll.getString(threadIndex);
-                String messageId = cursorAll.getString(messageIdIndex);
-
-                Conversations conversations = new Conversations();
-                conversations.setTHREAD_ID(threadId);
-                conversations.setMESSAGE_ID(messageId);
-
-                if(searchMessages.contains(conversations)) {
-                    foundPositions.add(position);
+                        searchMessages.add(conversations);
+                    } while(cursorSearch.moveToNext());
+                    cursorSearch.close();
                 }
 
-                ++position;
-            } while(cursorAll.moveToNext());
-            cursorAll.close();
-        }
-        searchPositions.setValue(foundPositions);
+                List<Integer> foundPositions = new ArrayList<>();
+                if(cursorAll.moveToFirst()) {
+                    int position = 0;
+                    do {
+                        int threadIndex = cursorAll.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
+                        int messageIdIndex = cursorAll.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+
+                        String threadId = cursorAll.getString(threadIndex);
+                        String messageId = cursorAll.getString(messageIdIndex);
+
+                        Conversations conversations = new Conversations();
+                        conversations.setTHREAD_ID(threadId);
+                        conversations.setMESSAGE_ID(messageId);
+
+                        if(searchMessages.contains(conversations)) {
+                            foundPositions.add(position);
+                        }
+
+                        ++position;
+                    } while(cursorAll.moveToNext());
+                    cursorAll.close();
+                }
+                searchPositions.postValue(foundPositions);
+            }
+        }).start();
     }
 
     @Override
