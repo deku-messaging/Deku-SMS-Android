@@ -106,6 +106,21 @@ public class ConversationsViewModel extends ViewModel {
         return newSMS.size();
     }
 
+    public void loadAll(Context context) {
+        ArrayList<SMS> newSMS = loadSMSThreads(context, this.offset, 0);
+
+        if (!newSMS.isEmpty()) {
+            ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
+
+            ArrayList<SMS> mergedList = new ArrayList<>();
+            mergedList.addAll(newSMS);
+            mergedList.addAll(sms);
+
+            Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
+            mutableLiveData.setValue(mergedList);
+        }
+    }
+
     private ArrayList<SMS> loadSMSThreads(Context context, Integer _offset, int limit) {
         if(_offset == null)
             _offset = 0;

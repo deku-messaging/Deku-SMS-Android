@@ -235,6 +235,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
             }
         }
 
+
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -244,6 +245,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 else if(isSearchActive()) {
                     resetSearch();
                 }
+                finish();
             }
         });
     }
@@ -271,9 +273,10 @@ public class ConversationActivity extends CustomAppCompactActivity {
             @Override
             public void onChanged(List<Integer> integers) {
                 Log.d(getLocalClassName(), "Search found: " + integers.size());
+                conversationsViewModel.loadAll(getApplicationContext());
                 if(!integers.isEmpty()) {
-                    singleMessagesThreadRecyclerView.scrollToPosition(integers.get(0));
-                    Log.d(getLocalClassName(), "Search scrolling to: " + integers.size());
+                    int requiredScrollPos = integers.get(integers.size() - 1);
+                    singleMessagesThreadRecyclerView.scrollToPosition(requiredScrollPos);
                 }
                 String text = integers.size() + " " + getString(R.string.conversations_search_results_found);
                 searchFoundTextView.setText(text);
@@ -314,18 +317,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
             public void onChanged(List<SMS> smsList) {
                 Log.d(getLocalClassName(), "Paging data changed!");
                 conversationsRecyclerAdapter.submitList(smsList);
-//                if (getIntent().hasExtra(SEARCH_POSITION))
-//                    singleMessagesThreadRecyclerView.scrollToPosition(
-//                            getIntent().getIntExtra(SEARCH_POSITION, -1));
             }
         });
-//        NestedScrollView nestedScrollView = findViewById(R.id.nestedScrollView);
-//        nestedScrollView.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                nestedScrollView.fullScroll(View.FOCUS_DOWN);
-//            }
-//        });
 
         conversationsRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
             @Override
@@ -1109,8 +1102,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 int threadIndex = cursorAll.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
                 int messageIdIndex = cursorAll.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
 
-                String threadId = String.valueOf(cursorAll.getString(threadIndex));
-                String messageId = String.valueOf(cursorAll.getString(messageIdIndex));
+                String threadId = cursorAll.getString(threadIndex);
+                String messageId = cursorAll.getString(messageIdIndex);
 
                 Conversations conversations = new Conversations();
                 conversations.setTHREAD_ID(threadId);

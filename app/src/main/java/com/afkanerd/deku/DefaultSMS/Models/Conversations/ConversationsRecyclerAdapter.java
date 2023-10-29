@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.provider.Telephony;
 import android.text.style.URLSpan;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -372,31 +373,24 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
         if(holder instanceof MessageReceivedViewHandler) {
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
             if (selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
-                List<String> newItems = new ArrayList<>();
-                newItems.add(smsId);
                 mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>() {{
                     put(smsId, messageReceivedViewHandler);
                 }});
                 messageReceivedViewHandler.highlight();
-                messageReceivedViewHandler.setIsRecyclable(false);
                 return true;
             } else if (!selectedItem.getValue().containsKey(smsId)) {
                 HashMap<String, RecyclerView.ViewHolder> previousItems = selectedItem.getValue();
                 previousItems.put(smsId, messageReceivedViewHandler);
                 mutableSelectedItems.setValue(previousItems);
                 messageReceivedViewHandler.highlight();
-                messageReceivedViewHandler.setIsRecyclable(false);
                 return true;
             }
         }
         else {
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
             if(selectedItem.getValue() == null || selectedItem.getValue().isEmpty()) {
-                List<String> newItems = new ArrayList<>();
-                newItems.add(smsId);
                 mutableSelectedItems.setValue(new HashMap<String, RecyclerView.ViewHolder>(){{put(smsId, messageSentViewHandler);}});
                 messageSentViewHandler.highlight();
-                messageSentViewHandler.setIsRecyclable(false);
                 return true;
             }
             else if(!selectedItem.getValue().containsKey(smsId)) {
@@ -404,7 +398,6 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                 previousItems.put(smsId, messageSentViewHandler);
                 mutableSelectedItems.setValue(previousItems);
                 messageSentViewHandler.highlight();
-                messageSentViewHandler.setIsRecyclable(false);
                 return true;
             }
         }
@@ -466,65 +459,87 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
     @Override
     public int getItemViewType(int position) {
+        Log.d(getClass().getName(), "Pos: " + position);
         List<SMS> snapshotList = mDiffer.getCurrentList();
         SMS sms = snapshotList.get(position);
 
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
 
         int viewType = 0;
-        if (position == snapshotList.size() - 1 || !SMSHandler.isSameHour(sms, (SMS) snapshotList.get(position + 1))) {
-            if(isEncryptionKey) {
-                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
+        int oldestItemPos = snapshotList.size() - 1;
+        int newestItemPos = 0;
+
+        if(snapshotList.size() < 2) {
+            return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                    MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
+        }
+
+        if(isEncryptionKey) {
+            SMS secondMessage = (SMS) snapshotList.get(position - 1);
+            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) {
+                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_KEY_TYPE_INBOX : TIMESTAMP_KEY_TYPE_OUTBOX;
             }
-            else if(position != 0 &&
-                    (snapshotList.get(position -1 ).getType() == sms.getType() &&
-                    SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))) {
-                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
+            else {
+                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                        MESSAGE_KEY_INBOX : MESSAGE_KEY_OUTBOX;
+            }
+        }
+
+        if(position == oldestItemPos) { // - minus
+            SMS secondMessage = (SMS) snapshotList.get(position - 1);
+            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) {
+                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_START_TYPE_OUTBOX;
             }
             else {
-                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
             }
-        } else {
-            if(isEncryptionKey) {
-                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_KEY_INBOX : MESSAGE_TYPE_OUTBOX;
-            }
-            else if(position == 0 && snapshotList.size() > 1 &&
-                    snapshotList.get(position + 1).getType() == sms.getType() &&
-                    SMSHandler.isSameMinute(sms, snapshotList.get(position + 1))) {
-                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
+        }
+
+        if(position == newestItemPos) {
+            SMS secondMessage = (SMS) snapshotList.get(position + 1);
+            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameHour(sms, secondMessage)) {
+                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
-            }
-            else if(snapshotList.size() > 1 && position != 0 &&
-                    snapshotList.get(position + 1).getType() == sms.getType() &&
-                    SMSHandler.isSameMinute(sms, snapshotList.get(position + 1)) &&
-                    (snapshotList.get(position - 1).getType() != sms.getType()
-                            || !SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))) {
-                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
-            }
-            else if(
-                    (snapshotList.get(position + 1).getType() == sms.getType() &&
-                            SMSHandler.isSameMinute(sms, snapshotList.get(position + 1))
-                    ) && ((snapshotList.get(position - 1).getType() == sms.getType() &&
-                            SMSHandler.isSameMinute(sms, snapshotList.get(position - 1)))
-                    )){
-                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_MIDDLE_TYPE_INBOX : MESSAGE_MIDDLE_TYPE_OUTBOX;
-            }
-            else if(position != 0 && snapshotList.get(position - 1).getType() == sms.getType() &&
-                            SMSHandler.isSameMinute(sms, snapshotList.get(position -1))){
-                viewType = (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_START_TYPE_INBOX : MESSAGE_START_TYPE_OUTBOX;
-            }
-            else {
-                viewType = sms.getType();
+            } else {
+                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                        MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
             }
         }
-        return viewType;
+
+        if(snapshotList.size() > 2) {
+            SMS secondMessage = (SMS) snapshotList.get(position + 1); //above
+            SMS thirdMessage = (SMS) snapshotList.get(position - 1); //below
+            if(sms.getType() == secondMessage.getType() && sms.getType() == thirdMessage.getType()) {
+                if(SMSHandler.isSameMinute(sms, secondMessage) && SMSHandler.isSameMinute(sms, thirdMessage)) {
+                    return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                            MESSAGE_MIDDLE_TYPE_INBOX : MESSAGE_MIDDLE_TYPE_OUTBOX;
+                }
+            }
+            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) {
+                if(sms.getType() != thirdMessage.getType() || !SMSHandler.isSameMinute(sms, thirdMessage)) {
+                    return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                            MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
+                }
+            }
+        }
+
+        SMS secondMessage = (SMS) snapshotList.get(position - 1);
+        if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) { // - minus
+            return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                    MESSAGE_START_TYPE_INBOX : MESSAGE_START_TYPE_OUTBOX;
+        }
+
+        SMS thirdMessage = (SMS) snapshotList.get(position - 1); //below
+        if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, thirdMessage)) { // - minus
+            return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                    MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
+        }
+
+        return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
     }
 
     @Override
@@ -599,6 +614,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
     public static class TimestampMessageSentViewHandler extends MessageSentViewHandler {
         public TimestampMessageSentViewHandler(@NonNull View itemView) {
             super(itemView);
+            timestamp.setVisibility(View.VISIBLE);
         }
     }
 
