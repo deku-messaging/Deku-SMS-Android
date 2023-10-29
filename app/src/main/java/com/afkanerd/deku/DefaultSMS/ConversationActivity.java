@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.provider.Telephony;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.Spannable;
@@ -27,7 +28,9 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.window.OnBackInvokedDispatcher;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -35,7 +38,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -43,23 +45,26 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Settings.SettingsHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.SingleMessageViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.SingleMessagesThreadRecyclerAdapter;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -75,8 +80,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
     private final int RESULT_GALLERY = 100;
-    SingleMessagesThreadRecyclerAdapter singleMessagesThreadRecyclerAdapter;
-    SingleMessageViewModel singleMessageViewModel;
+    ConversationsRecyclerAdapter conversationsRecyclerAdapter;
+    ConversationsViewModel conversationsViewModel;
     TextInputEditText smsTextView;
     ConstraintLayout multiSimcardConstraint;
     MutableLiveData<String> mutableLiveDataComposeMessage = new MutableLiveData<>();
@@ -93,10 +98,12 @@ public class ConversationActivity extends CustomAppCompactActivity {
     SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
     int defaultSubscriptionId;
 
+    List<Integer> searchPositions = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_send_smsactivity);
+        setContentView(R.layout.activity_conversations);
 
         try {
             _setupActivityDependencies();
@@ -120,11 +127,11 @@ public class ConversationActivity extends CustomAppCompactActivity {
             @Override
             public void run() {
                 if(getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID)) {
-                    if(singleMessageViewModel.threadId == null)
-                        singleMessageViewModel.informNewItemChanges(getApplicationContext(),
+                    if(conversationsViewModel.threadId == null)
+                        conversationsViewModel.informNewItemChanges(getApplicationContext(),
                                 smsMetaEntity.getThreadId());
                     else
-                        singleMessageViewModel.informNewItemChanges(getApplicationContext());
+                        conversationsViewModel.informNewItemChanges(getApplicationContext());
 //                    cancelNotifications(smsMetaEntity.getThreadId());
                     try {
                         _checkEncryptionStatus();
@@ -159,17 +166,32 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.single_messages_menu, menu);
+        getMenuInflater().inflate(R.menu.conversations_menu, menu);
         if (smsMetaEntity.isShortCode())
             menu.setGroupVisible(R.id.default_menu_items, false);
         return super.onCreateOptionsMenu(menu);
     }
 
+    private boolean isSearchActive() {
+        int visibility = findViewById(R.id.conversations_search_results_found).getVisibility();
+        return visibility == View.VISIBLE;
+    }
+
+    private void resetSearch() {
+        findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
+        findViewById(R.id.conversations_search_box_layout).setVisibility(View.GONE);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home
-                && singleMessagesThreadRecyclerAdapter.hasSelectedItems()) {
-            singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
+                && conversationsRecyclerAdapter.hasSelectedItems()) {
+            conversationsRecyclerAdapter.resetAllSelectedItems();
+            return true;
+        }
+
+        if(isSearchActive()) {
+            resetSearch();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -212,6 +234,18 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 smsMetaEntity.setThreadId(getApplicationContext(), threadId);
             }
         }
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (conversationsRecyclerAdapter.hasSelectedItems()) {
+                    conversationsRecyclerAdapter.resetAllSelectedItems();
+                }
+                else if(isSearchActive()) {
+                    resetSearch();
+                }
+            }
+        });
     }
 
     private void _instantiateGlobals() throws GeneralSecurityException, IOException {
@@ -223,11 +257,11 @@ public class ConversationActivity extends CustomAppCompactActivity {
 //        multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
-        singleMessagesThreadRecyclerAdapter = new SingleMessagesThreadRecyclerAdapter(getApplicationContext(),
+        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
                 smsMetaEntity.getAddress());
 
-        singleMessageViewModel = new ViewModelProvider(this)
-                .get(SingleMessageViewModel.class);
+        conversationsViewModel = new ViewModelProvider(this)
+                .get(ConversationsViewModel.class);
 
 //        linearLayoutManager = new LinearLayoutManager(getApplicationContext(),
 //                LinearLayoutManager.VERTICAL, true);
@@ -257,16 +291,16 @@ public class ConversationActivity extends CustomAppCompactActivity {
     }
 
     private void _configureRecyclerView() {
-        singleMessagesThreadRecyclerView.setAdapter(singleMessagesThreadRecyclerAdapter);
+        singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
 
         int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
 
-        singleMessageViewModel.getMessages(
+        conversationsViewModel.getMessages(
                 getApplicationContext(), smsMetaEntity.getThreadId(), offset).observe(this, new Observer<List<SMS>>() {
             @Override
             public void onChanged(List<SMS> smsList) {
                 Log.d(getLocalClassName(), "Paging data changed!");
-                singleMessagesThreadRecyclerAdapter.submitList(smsList);
+                conversationsRecyclerAdapter.submitList(smsList);
 //                if (getIntent().hasExtra(SEARCH_POSITION))
 //                    singleMessagesThreadRecyclerView.scrollToPosition(
 //                            getIntent().getIntExtra(SEARCH_POSITION, -1));
@@ -280,7 +314,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
 //            }
 //        });
 
-        singleMessagesThreadRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
+        conversationsRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
             @Override
             public void onChanged(String[] strings) {
                 try {
@@ -291,14 +325,14 @@ public class ConversationActivity extends CustomAppCompactActivity {
                     // TODO: make this use the previously used subscription id
                     int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
                     _sendSMSMessage(subscriptionId, strings[1]);
-                    singleMessagesThreadRecyclerAdapter.retryFailedMessage.setValue(new String[]{});
+                    conversationsRecyclerAdapter.retryFailedMessage.setValue(new String[]{});
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
 
-        singleMessagesThreadRecyclerAdapter.retryFailedDataMessage.observe(this, new Observer<String[]>() {
+        conversationsRecyclerAdapter.retryFailedDataMessage.observe(this, new Observer<String[]>() {
             @Override
             public void onChanged(String[] strings) {
                 try {
@@ -310,7 +344,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                     // TODO: make this use the previously used subscription id
                     int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
                     _sendKeyDataMessage(subscriptionId, Base64.decode(strings[1], Base64.DEFAULT));
-                    singleMessagesThreadRecyclerAdapter.retryFailedDataMessage.setValue(new String[]{});
+                    conversationsRecyclerAdapter.retryFailedDataMessage.setValue(new String[]{});
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -322,7 +356,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 Log.d(getLocalClassName(), "Running scrolling");
-                final int maximumScrollPosition = singleMessagesThreadRecyclerAdapter.getItemCount() - 3;
+                final int maximumScrollPosition = conversationsRecyclerAdapter.getItemCount() - 3;
 
                 final int lastTopVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
                         .findLastVisibleItemPosition();
@@ -331,43 +365,24 @@ public class ConversationActivity extends CustomAppCompactActivity {
                         .findFirstVisibleItemPosition();
 
 
-                if (!singleMessageViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
-                    int newSize = singleMessageViewModel.refreshDown(getApplicationContext());
+                if (!conversationsViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
+                    int newSize = conversationsViewModel.refreshDown(getApplicationContext());
 
                     if (newSize > 0)
                         recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
                 }
-                else if (singleMessageViewModel.offsetStartedFromZero &&
+                else if (conversationsViewModel.offsetStartedFromZero &&
                         lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
-                    singleMessageViewModel.refresh(getApplicationContext());
+                    conversationsViewModel.refresh(getApplicationContext());
                     int itemCount = recyclerView.getAdapter().getItemCount();
                     if (itemCount > maximumScrollPosition + 1)
                         recyclerView.scrollToPosition(lastTopVisiblePosition);
                 }
             }
         });
-//
-
-//        nestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
-//            @Override
-//            public void onScrollChange(@NonNull NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-//                Log.d(getLocalClassName(), "Running scrolled: " + scrollY + " = " +
-//                        singleMessagesThreadRecyclerAdapter.mDiffer.getCurrentList().size());
-//
-//                int oldSize = singleMessagesThreadRecyclerAdapter.mDiffer.getCurrentList().size();
-//                if(scrollY == 0) {
-//                    singleMessageViewModel.refresh(getApplicationContext());
-//                    Log.d(getLocalClassName(), "Running after scrolled: " + scrollY + " = " +
-//                            singleMessagesThreadRecyclerAdapter.mDiffer.getCurrentList().size());
-//                    int newSize = singleMessagesThreadRecyclerAdapter.mDiffer.getCurrentList().size();
-//                    singleMessagesThreadRecyclerView.smoothScrollToPosition(oldSize);
-////                    singleMessagesThreadRecyclerView.getScrollY();
-//                }
-//            }
-//        });
 
         try {
-            singleMessagesThreadRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
+            conversationsRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
                 @Override
                 public void onChanged(HashMap<String, RecyclerView.ViewHolder> selectedItems) {
                     _changeToolbarsItemSelected(selectedItems);
@@ -377,6 +392,31 @@ public class ConversationActivity extends CustomAppCompactActivity {
             e.printStackTrace();
         }
 
+    }
+
+    private void _configureSearchBox() {
+        TextInputLayout textInputLayout = findViewById(R.id.conversations_search_box_layout);
+        textInputLayout.setVisibility(View.VISIBLE);
+
+        findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
+
+        TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
+        textInputEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                searchForInput(editable.toString());
+            }
+        });
     }
 
     private void _configureToolbars() {
@@ -399,6 +439,9 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 else if (R.id.make_call == id) {
                     smsMetaEntity.call(getApplicationContext());
                     return true;
+                }
+                else if(R.id.search_conversations == id) {
+                    _configureSearchBox();
                 }
                 return false;
             }
@@ -984,8 +1027,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
     }
 
     private void _copyItems() {
-        if(singleMessagesThreadRecyclerAdapter.selectedItem.getValue() != null) {
-            String[] keys = singleMessagesThreadRecyclerAdapter.selectedItem.getValue()
+        if(conversationsRecyclerAdapter.selectedItem.getValue() != null) {
+            String[] keys = conversationsRecyclerAdapter.selectedItem.getValue()
                     .keySet().toArray(new String[0]);
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
@@ -1000,34 +1043,68 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 } while (cursor.moveToNext());
             }
             cursor.close();
-            singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
+            conversationsRecyclerAdapter.resetSelectedItem(keys[0], true);
         }
     }
 
     private void _deleteItems() throws Exception {
-        if(singleMessagesThreadRecyclerAdapter.selectedItem.getValue() != null) {
-            final String[] keys = singleMessagesThreadRecyclerAdapter.selectedItem.getValue()
+        if(conversationsRecyclerAdapter.selectedItem.getValue() != null) {
+            final String[] keys = conversationsRecyclerAdapter.selectedItem.getValue()
                     .keySet().toArray(new String[0]);
             if (keys.length > 1) {
                 smsMetaEntity.deleteMultipleMessages(getApplicationContext(), keys);
-                singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
-                singleMessagesThreadRecyclerAdapter.removeAllItems(keys);
+                conversationsRecyclerAdapter.resetAllSelectedItems();
+                conversationsRecyclerAdapter.removeAllItems(keys);
             } else {
                 smsMetaEntity.deleteMessage(getApplicationContext(), keys[0]);
-                singleMessagesThreadRecyclerAdapter.resetSelectedItem(keys[0], true);
-                singleMessagesThreadRecyclerAdapter.removeItem(keys[0]);
+                conversationsRecyclerAdapter.resetSelectedItem(keys[0], true);
+                conversationsRecyclerAdapter.removeItem(keys[0]);
             }
         }
     }
 
-    @Override
-    public void onBackPressed() {
-//        if (findViewById(R.id.simcard_select_constraint).getVisibility() == View.VISIBLE)
-//            findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
-        if (singleMessagesThreadRecyclerAdapter.hasSelectedItems()) {
-            singleMessagesThreadRecyclerAdapter.resetAllSelectedItems();
-        } else {
-            super.onBackPressed();
+    private void searchForInput(String search){
+        List<Conversations> searchMessages = new ArrayList<>();
+
+        Cursor cursorSearch = SMSHandler.fetchSMSMessagesForSearch(getApplicationContext(), search);
+        Cursor cursorAll = smsMetaEntity.fetchMessages(getApplicationContext(), 0, 0);
+
+        if(cursorSearch.moveToFirst()) {
+            do {
+                int threadIndex = cursorSearch.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
+                int messageIdIndex = cursorSearch.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+
+                String threadId = String.valueOf(cursorSearch.getString(threadIndex));
+                String messageId = String.valueOf(cursorSearch.getString(messageIdIndex));
+
+                Conversations conversations = new Conversations();
+                conversations.setTHREAD_ID(threadId);
+                conversations.setMESSAGE_ID(messageId);
+
+                searchMessages.add(conversations);
+            } while(cursorSearch.moveToNext());
+            cursorSearch.close();
+        }
+
+        if(cursorAll.moveToFirst()) {
+            int position = 0;
+            do {
+                int threadIndex = cursorSearch.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
+                int messageIdIndex = cursorSearch.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+
+                String threadId = String.valueOf(cursorSearch.getString(threadIndex));
+                String messageId = String.valueOf(cursorSearch.getString(messageIdIndex));
+
+                Conversations conversations = new Conversations();
+                conversations.setTHREAD_ID(threadId);
+                conversations.setMESSAGE_ID(messageId);
+
+                if(searchMessages.contains(conversations))
+                    searchPositions.add(position);
+
+                ++position;
+            } while(cursorAll.moveToNext());
+            cursorAll.close();
         }
     }
 

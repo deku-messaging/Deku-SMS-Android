@@ -86,7 +86,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
             if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 createNotificationChannel();
             }
-            startActivity(new Intent(this, MessagesThreadsActivity.class));
+            startActivity(new Intent(this, ConversationThreadsActivity.class));
             finish();
         }
     }
@@ -97,7 +97,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
 
         if (reqCode == 0) {
             if (resultCode == Activity.RESULT_OK) {
-                startActivity(new Intent(this, MessagesThreadsActivity.class));
+                startActivity(new Intent(this, ConversationThreadsActivity.class));
             }
         }
         finish();
@@ -193,7 +193,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
         if (requestCode == READ_SMS_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0) {
                 if (checkPermissionToReadContacts())
-                    startActivity(new Intent(this, MessagesThreadsActivity.class));
+                    startActivity(new Intent(this, ConversationThreadsActivity.class));
                 else {
                     ActivityCompat.requestPermissions(
                             this,

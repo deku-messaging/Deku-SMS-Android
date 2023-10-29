@@ -15,7 +15,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity;
+import com.afkanerd.deku.DefaultSMS.ConversationThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 public class RMQWorkManager extends Worker {
@@ -51,7 +51,7 @@ public class RMQWorkManager extends Worker {
     }
 
     private void notifyUserToReconnectSMSServices(){
-        Intent notificationIntent = new Intent(getApplicationContext(), MessagesThreadsActivity.class);
+        Intent notificationIntent = new Intent(getApplicationContext(), ConversationThreadsActivity.class);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE);

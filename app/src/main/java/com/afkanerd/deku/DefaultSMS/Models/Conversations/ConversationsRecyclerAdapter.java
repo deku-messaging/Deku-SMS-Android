@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Messages;
+package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
@@ -47,8 +47,8 @@ import java.util.List;
 
 import io.getstream.avatarview.AvatarView;
 
-//public class SingleMessagesThreadRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
-public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+//public class ConversationsRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
+public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     Context context;
     Toolbar toolbar;
     String highlightedText;
@@ -96,7 +96,7 @@ public class SingleMessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Re
     String address;
 
     private boolean animation = false;
-    public SingleMessagesThreadRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
+    public ConversationsRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
 //        super(SMS.DIFF_CALLBACK);
         this.context = context;
         this.selectedItem = mutableSelectedItems;

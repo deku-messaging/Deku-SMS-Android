@@ -25,17 +25,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.MessagesSearchViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.MessagesThreadRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsSearchViewModel;
 
 import java.util.List;
 
 public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
-    MessagesSearchViewModel messagesSearchViewModel;
+    ConversationsSearchViewModel conversationsSearchViewModel;
     MutableLiveData<String> searchString = new MutableLiveData<>();
 
     @Override
@@ -53,10 +53,10 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-        messagesSearchViewModel = new ViewModelProvider(this).get(
-                MessagesSearchViewModel.class);
+        conversationsSearchViewModel = new ViewModelProvider(this).get(
+                ConversationsSearchViewModel.class);
 
-        MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter(this);
+        ConversationsThreadRecyclerAdapter conversationsThreadRecyclerAdapter = new ConversationsThreadRecyclerAdapter(this);
 
         SearchView searchView = findViewById(R.id.search_view_input);
         CustomContactsCursorAdapter customContactsCursorAdapter = new CustomContactsCursorAdapter(getApplicationContext(),
@@ -87,16 +87,16 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 
-        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
+        messagesThreadRecyclerView.setAdapter(conversationsThreadRecyclerAdapter);
 
         searchString.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                messagesSearchViewModel.informChanges(getApplicationContext(), s);
+                conversationsSearchViewModel.informChanges(getApplicationContext(), s);
             }
         });
 
-        messagesSearchViewModel.getMessages(getApplicationContext(), searchString.getValue()).observe(this,
+        conversationsSearchViewModel.getMessages(getApplicationContext(), searchString.getValue()).observe(this,
                 new Observer<List<Conversations>>() {
                     @Override
                     public void onChanged(List<Conversations> smsList) {
@@ -104,8 +104,8 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                             findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
                         else
                             findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
-                        messagesThreadRecyclerAdapter.submitList(smsList, searchString.getValue());
-//                        messagesThreadRecyclerAdapter.notifyDataSetChanged();
+                        conversationsThreadRecyclerAdapter.submitList(smsList, searchString.getValue());
+//                        conversationsThreadRecyclerAdapter.notifyDataSetChanged();
                     }
                 });
     }

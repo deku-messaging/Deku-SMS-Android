@@ -12,6 +12,16 @@ public class Conversations {
     public int MESSAGE_COUNT;
     public String SNIPPET;
     public String THREAD_ID;
+
+    public String getMESSAGE_ID() {
+        return MESSAGE_ID;
+    }
+
+    public void setMESSAGE_ID(String MESSAGE_ID) {
+        this.MESSAGE_ID = MESSAGE_ID;
+    }
+
+    public String MESSAGE_ID;
     public String ADDRESS;
 
     private SMS.SMSMetaEntity smsMetaEntity;
@@ -56,6 +66,11 @@ public class Conversations {
             return oldItem.equals(newItem);
         }
     };
+
+    public boolean equals(Conversations conv1, Conversations conv2) {
+        return conv1.getMESSAGE_ID().equals(conv2.getMESSAGE_ID()) &&
+                conv1.THREAD_ID.equals(conv2.THREAD_ID);
+    }
 
     @Override
     public boolean equals(@Nullable Object obj) {

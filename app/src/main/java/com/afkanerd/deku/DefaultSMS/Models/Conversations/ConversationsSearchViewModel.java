@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Messages;
+package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -9,17 +9,14 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
-
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MessagesSearchViewModel extends ViewModel {
+public class ConversationsSearchViewModel extends ViewModel {
     private MutableLiveData<List<Conversations>> messagesList;
 
     public LiveData<List<Conversations>> getMessages(Context context, String searchInput){

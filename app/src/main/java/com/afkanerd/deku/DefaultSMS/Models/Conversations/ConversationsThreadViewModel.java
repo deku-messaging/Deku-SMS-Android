@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Messages;
+package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class MessagesThreadViewModel extends ViewModel {
+public class ConversationsThreadViewModel extends ViewModel {
     private MutableLiveData<List<Conversations>> conversationsMutableLiveData;
 
     String messagesType;

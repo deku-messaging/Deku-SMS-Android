@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Messages;
+package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 
 import android.content.Context;
@@ -14,7 +14,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSPaging;
 
 import java.util.ArrayList;
 
-public class SingleMessageViewModel extends ViewModel {
+public class ConversationsViewModel extends ViewModel {
     public String threadId;
 
     MutableLiveData<ArrayList<SMS>> mutableLiveData;

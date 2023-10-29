@@ -284,6 +284,8 @@ public class SMS implements RMQConnectionService.SmsForwardInterface {
 
         private String formattedDate;
 
+        private String messageId;
+
         public long getNewestDateTime() {
             return this.newestDateTime;
         }

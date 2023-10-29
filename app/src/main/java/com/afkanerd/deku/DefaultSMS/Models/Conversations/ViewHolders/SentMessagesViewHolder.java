@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders;
+package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import android.graphics.Typeface;
 import android.view.View;

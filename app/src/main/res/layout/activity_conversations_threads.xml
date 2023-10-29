@@ -5,7 +5,7 @@
     android:theme="@style/Theme.main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MessagesThreadsActivity">
+    tools:context=".ConversationThreadsActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/messages_threads_toolbar"
@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/messages_threads_menu">
+        app:menu="@menu/conversations_threads_menu">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/messages_thread_search_input_constrain"

@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Messages;
+package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,9 +15,9 @@ import androidx.work.WorkInfo;
 
 import com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders.ReceivedMessagesViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders.SentMessagesViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders.TemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ReceivedMessagesViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.SentMessagesViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
@@ -30,7 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
+public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
 
     private final AsyncListDiffer<Conversations> mDiffer = new AsyncListDiffer<>(this, Conversations.DIFF_CALLBACK);
 
@@ -59,7 +59,7 @@ public class MessagesThreadRecyclerAdapter extends RecyclerView.Adapter<Template
     private final int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
 
-    public MessagesThreadRecyclerAdapter(Context context) {
+    public ConversationsThreadRecyclerAdapter(Context context) {
        this.context = context;
     }
 

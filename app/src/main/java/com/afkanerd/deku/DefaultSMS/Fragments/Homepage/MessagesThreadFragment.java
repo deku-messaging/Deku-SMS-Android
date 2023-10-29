@@ -21,15 +21,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders.TemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.MessagesThreadRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.MessagesThreadViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -37,8 +36,8 @@ public class MessagesThreadFragment extends Fragment {
     BroadcastReceiver incomingBroadcastReceiver;
     BroadcastReceiver incomingDataBroadcastReceiver;
 
-    MessagesThreadViewModel messagesThreadViewModel;
-    MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter;
+    ConversationsThreadViewModel conversationsThreadViewModel;
+    ConversationsThreadRecyclerAdapter conversationsThreadRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
     ArchiveHandler archiveHandler;
@@ -60,8 +59,8 @@ public class MessagesThreadFragment extends Fragment {
         void activateDefaultToolbar();
         void deactivateDefaultToolbar(int size);
 
-        void setRecyclerViewAdapter(String name, MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter);
-        void setViewModel(String name, MessagesThreadViewModel messagesThreadViewModel);
+        void setRecyclerViewAdapter(String name, ConversationsThreadRecyclerAdapter conversationsThreadRecyclerAdapter);
+        void setViewModel(String name, ConversationsThreadViewModel conversationsThreadViewModel);
         Toolbar getToolbar();
     }
 
@@ -81,21 +80,21 @@ public class MessagesThreadFragment extends Fragment {
 
         toolbar = mListener.getToolbar();
 
-        messagesThreadViewModel = new ViewModelProvider(this).get(
-                MessagesThreadViewModel.class);
+        conversationsThreadViewModel = new ViewModelProvider(this).get(
+                ConversationsThreadViewModel.class);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
-        messagesThreadRecyclerAdapter = new MessagesThreadRecyclerAdapter( getContext());
-        mListener.setRecyclerViewAdapter(messageType, messagesThreadRecyclerAdapter);
-        mListener.setViewModel(messageType, messagesThreadViewModel);
+        conversationsThreadRecyclerAdapter = new ConversationsThreadRecyclerAdapter( getContext());
+        mListener.setRecyclerViewAdapter(messageType, conversationsThreadRecyclerAdapter);
+        mListener.setViewModel(messageType, conversationsThreadViewModel);
 
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
-        messagesThreadRecyclerView.setAdapter(messagesThreadRecyclerAdapter);
+        messagesThreadRecyclerView.setAdapter(conversationsThreadRecyclerAdapter);
 
         try {
-            messagesThreadViewModel.getMessages(getContext(), messageType).observe(getViewLifecycleOwner(),
+            conversationsThreadViewModel.getMessages(getContext(), messageType).observe(getViewLifecycleOwner(),
                     new Observer<List<Conversations>>() {
                         @Override
                         public void onChanged(List<Conversations> smsList) {
@@ -107,7 +106,7 @@ public class MessagesThreadFragment extends Fragment {
                                 textView.setVisibility(View.GONE);
                             }
                             Log.d(getClass().getName(), "Running for we submit now!");
-                            messagesThreadRecyclerAdapter.submitList(smsList);
+                            conversationsThreadRecyclerAdapter.submitList(smsList);
                             view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
                         }
                     });
@@ -115,7 +114,7 @@ public class MessagesThreadFragment extends Fragment {
             e.printStackTrace();
         }
 
-        messagesThreadRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
+        conversationsThreadRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<Set<TemplateViewHolder>>() {
                     @Override
                     public void onChanged(Set<TemplateViewHolder> stringViewHolderHashMap) {
@@ -142,9 +141,9 @@ public class MessagesThreadFragment extends Fragment {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(messagesThreadRecyclerAdapter.selectedItems.getValue()==null ||
-                        messagesThreadRecyclerAdapter.selectedItems.getValue().isEmpty())
-                    messagesThreadRecyclerAdapter.notifyDataSetChanged();
+                if(conversationsThreadRecyclerAdapter.selectedItems.getValue()==null ||
+                        conversationsThreadRecyclerAdapter.selectedItems.getValue().isEmpty())
+                    conversationsThreadRecyclerAdapter.notifyDataSetChanged();
                 mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
             }
         }, recyclerViewTimeUpdateLimit);
@@ -154,7 +153,7 @@ public class MessagesThreadFragment extends Fragment {
     public void onResume() {
         super.onResume();
 //        try {
-//            messagesThreadViewModel.informChanges(getContext());
+//            conversationsThreadViewModel.informChanges(getContext());
 //        } catch (GeneralSecurityException | IOException e) {
 //            e.printStackTrace();
 //        }

@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders;
+package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import android.graphics.Typeface;
 import android.view.View;
@@ -14,12 +14,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.card.MaterialCardView;
 
-import java.util.ArrayList;
-
-import io.getstream.avatarview.AvatarShape;
 import io.getstream.avatarview.AvatarView;
-import io.getstream.avatarview.coil.Avatar;
-import io.getstream.avatarview.coil.AvatarViewExtension;
 
 public class TemplateViewHolder extends RecyclerView.ViewHolder {
 

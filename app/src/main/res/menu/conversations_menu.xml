@@ -7,12 +7,12 @@
         <item
             android:icon="@drawable/round_call_24"
             android:id="@+id/make_call"
-            app:showAsAction="always"
-            android:title="Call"/>
-<!--        <item-->
-<!--            android:icon="@drawable/ic_outline_search_24"-->
-<!--            app:showAsAction="always"-->
-<!--            android:title="Search"/>-->
+            app:showAsAction="ifRoom"
+            android:title="@string/conversations_menu_call_title"/>
+        <item
+            android:icon="@drawable/ic_outline_search_24"
+            android:id="@+id/search_conversations"
+            android:title="@string/conversations_menu_search_title"/>
     </group>
 
     <group

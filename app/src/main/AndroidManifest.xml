@@ -37,7 +37,7 @@
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.AboutActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity"/>
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ConversationThreadsActivity"/>
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity"
             android:exported="false">
@@ -60,11 +60,11 @@
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.SettingsActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ConversationThreadsActivity" />
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.ComposeNewMessageActivity"
             android:exported="true"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity">
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ConversationThreadsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -76,7 +76,7 @@
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ConversationThreadsActivity" />
         <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"
@@ -118,13 +118,13 @@
             <!-- android:value=".SearchMessagesThreadsActivity"/> -->
         </activity>
         <activity
-            android:name="com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.ConversationThreadsActivity"
             android:exported="false" />
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.ConversationActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ConversationThreadsActivity"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.DATA_SMS_RECEIVED" />

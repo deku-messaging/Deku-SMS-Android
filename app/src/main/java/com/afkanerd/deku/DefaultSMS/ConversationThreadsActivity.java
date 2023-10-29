@@ -19,14 +19,14 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.ViewHolders.TemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Fragments.Homepage.HomepageFragment;
 import com.afkanerd.deku.DefaultSMS.Fragments.Homepage.MessagesThreadFragment;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.MessagesThreadRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.Models.Messages.MessagesThreadViewModel;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.android.material.card.MaterialCardView;
@@ -34,24 +34,23 @@ import com.google.android.material.card.MaterialCardView;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
-import java.util.Set;
 
-public class MessagesThreadsActivity extends CustomAppCompactActivity implements MessagesThreadFragment.OnViewManipulationListener {
+public class ConversationThreadsActivity extends CustomAppCompactActivity implements MessagesThreadFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
     FragmentManager fragmentManager = getSupportFragmentManager();
 
     Toolbar toolbar;
     ActionBar ab;
 
-    HashMap<String, MessagesThreadRecyclerAdapter> messagesThreadRecyclerAdapterHashMap = new HashMap<>();
-    HashMap<String, MessagesThreadViewModel> stringMessagesThreadViewModelHashMap = new HashMap<>();
+    HashMap<String, ConversationsThreadRecyclerAdapter> messagesThreadRecyclerAdapterHashMap = new HashMap<>();
+    HashMap<String, ConversationsThreadViewModel> stringMessagesThreadViewModelHashMap = new HashMap<>();
 
     String ITEM_TYPE = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_messages_threads);
+        setContentView(R.layout.activity_conversations_threads);
 
         toolbar = findViewById(R.id.messages_threads_toolbar);
         setSupportActionBar(toolbar);
@@ -140,7 +139,7 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
                     }
                 });
                 MenuInflater inflater = popup.getMenuInflater();
-                inflater.inflate(R.menu.main_menu, popup.getMenu());
+                inflater.inflate(R.menu.conversations_threads_main_menu, popup.getMenu());
                 popup.show();
             }
         });
@@ -174,7 +173,7 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                MessagesThreadRecyclerAdapter recyclerAdapter =
+                ConversationsThreadRecyclerAdapter recyclerAdapter =
                         messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
                 if(messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null) {
                     TemplateViewHolder[] viewHolders = recyclerAdapter.selectedItems.getValue()
@@ -247,7 +246,7 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.messages_threads_menu, menu);
+        getMenuInflater().inflate(R.menu.conversations_threads_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -267,22 +266,22 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
     }
 
     @Override
-    public void setRecyclerViewAdapter(String itemType, MessagesThreadRecyclerAdapter messagesThreadRecyclerAdapter) {
+    public void setRecyclerViewAdapter(String itemType, ConversationsThreadRecyclerAdapter conversationsThreadRecyclerAdapter) {
         this.ITEM_TYPE = itemType;
-        this.messagesThreadRecyclerAdapterHashMap.put(itemType, messagesThreadRecyclerAdapter);
-//        this.messagesThreadRecyclerAdapter = messagesThreadRecyclerAdapter;
+        this.messagesThreadRecyclerAdapterHashMap.put(itemType, conversationsThreadRecyclerAdapter);
+//        this.conversationsThreadRecyclerAdapter = conversationsThreadRecyclerAdapter;
     }
 
     @Override
-    public void setViewModel(String itemType, MessagesThreadViewModel messagesThreadViewModel) {
+    public void setViewModel(String itemType, ConversationsThreadViewModel conversationsThreadViewModel) {
         this.ITEM_TYPE = itemType;
-        this.stringMessagesThreadViewModelHashMap.put(itemType, messagesThreadViewModel);
+        this.stringMessagesThreadViewModelHashMap.put(itemType, conversationsThreadViewModel);
         configureBroadcastListeners(new Runnable() {
             @Override
             public void run() {
                 Log.d(getLocalClassName(), "Broadcast listener has now been called");
                 try {
-                    messagesThreadViewModel.informChanges(getApplicationContext());
+                    conversationsThreadViewModel.informChanges(getApplicationContext());
                 } catch (GeneralSecurityException | IOException e) {
                     e.printStackTrace();
                 }
@@ -309,7 +308,7 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
     @Override
     public void tabUnselected(int position) {
         String itemType = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
-        MessagesThreadRecyclerAdapter recyclerAdapter = this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+        ConversationsThreadRecyclerAdapter recyclerAdapter = this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
         if(this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(itemType).selectedItems.getValue() != null) {
@@ -322,7 +321,7 @@ public class MessagesThreadsActivity extends CustomAppCompactActivity implements
     public void tabSelected(int position) {
         this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
         try {
-            MessagesThreadViewModel threadViewModel = stringMessagesThreadViewModelHashMap.get(ITEM_TYPE);
+            ConversationsThreadViewModel threadViewModel = stringMessagesThreadViewModelHashMap.get(ITEM_TYPE);
             if(threadViewModel != null)
                 stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
         } catch(Exception e) {

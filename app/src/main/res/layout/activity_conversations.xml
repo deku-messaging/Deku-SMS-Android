@@ -15,8 +15,36 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/single_messages_menu"
-        app:titleTextAppearance="@style/TextAppearance.AppCompat.Medium" />
+        app:menu="@menu/conversations_menu"
+        app:titleTextAppearance="@style/TextAppearance.AppCompat.Medium" >
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/conversations_search_box_layout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            app:endIconDrawable="@drawable/baseline_cancel_24"
+            app:endIconMode="clear_text"
+            tools:layout_editor_absoluteX="16dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/conversations_search_box"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <include
+        android:id="@+id/conversations_search_results_found"
+        layout="@layout/conversations_search_navigation_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/send_smsactivity_toolbar" />
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/coordinator"
@@ -25,7 +53,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/send_smsactivity_toolbar">
+        app:layout_constraintTop_toBottomOf="@+id/conversations_search_results_found">
+
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
@@ -40,27 +69,6 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-
-<!--                <androidx.core.widget.NestedScrollView-->
-<!--                    android:id="@+id/nestedScrollView"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="0dp"-->
-<!--                    android:fillViewport="true"-->
-<!--                    android:scrollbars="vertical"-->
-<!--                    app:layout_constraintBottom_toTopOf="@+id/send_message_content_layouts"-->
-<!--                    app:layout_constraintEnd_toEndOf="parent"-->
-<!--                    app:layout_constraintStart_toStartOf="parent"-->
-<!--                    app:layout_constraintTop_toTopOf="parent"-->
-<!--                    app:layout_behavior="@string/appbar_scrolling_view_behavior">-->
-
-<!--                    <androidx.recyclerview.widget.RecyclerView-->
-<!--                        android:id="@+id/single_messages_thread_recycler_view"-->
-<!--                        android:layout_width="match_parent"-->
-<!--                        android:layout_height="match_parent"-->
-<!--                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
-<!--                        app:reverseLayout="true" />-->
-
-<!--                </androidx.core.widget.NestedScrollView>-->
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/single_messages_thread_recycler_view"

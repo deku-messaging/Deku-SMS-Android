@@ -14,7 +14,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.MessagesThreadsActivity;
+import com.afkanerd.deku.DefaultSMS.ConversationThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Migrations;
 import com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService;
@@ -157,7 +157,7 @@ public class GatewayClientHandler {
                     .build();
 
             WorkManager workManager = WorkManager.getInstance(context);
-            workManager.enqueueUniqueWork(MessagesThreadsActivity.UNIQUE_WORK_MANAGER_NAME,
+            workManager.enqueueUniqueWork(ConversationThreadsActivity.UNIQUE_WORK_MANAGER_NAME,
                     ExistingWorkPolicy.KEEP,
                     gatewayClientListenerWorker);
         } catch(Exception e) {
