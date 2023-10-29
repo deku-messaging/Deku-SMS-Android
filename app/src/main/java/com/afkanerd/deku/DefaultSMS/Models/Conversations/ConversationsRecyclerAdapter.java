@@ -459,13 +459,11 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
     @Override
     public int getItemViewType(int position) {
-        Log.d(getClass().getName(), "Pos: " + position);
         List<SMS> snapshotList = mDiffer.getCurrentList();
         SMS sms = snapshotList.get(position);
 
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
 
-        int viewType = 0;
         int oldestItemPos = snapshotList.size() - 1;
         int newestItemPos = 0;
 
@@ -527,9 +525,16 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
         }
 
         SMS secondMessage = (SMS) snapshotList.get(position - 1);
-        if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) { // - minus
-            return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                    MESSAGE_START_TYPE_INBOX : MESSAGE_START_TYPE_OUTBOX;
+        if(sms.getType() == secondMessage.getType() ) {
+            if(SMSHandler.isSameHour(sms, secondMessage) &&
+                    SMSHandler.isSameMinute(sms, secondMessage)) { // - minus
+                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                         TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_START_TYPE_OUTBOX;
+            }
+            else {
+                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                        TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
+            }
         }
 
         SMS thirdMessage = (SMS) snapshotList.get(position - 1); //below

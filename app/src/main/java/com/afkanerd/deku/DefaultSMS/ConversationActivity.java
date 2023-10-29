@@ -67,6 +67,7 @@ import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -273,7 +274,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
             @Override
             public void onChanged(List<Integer> integers) {
                 Log.d(getLocalClassName(), "Search found: " + integers.size());
-                conversationsViewModel.loadAll(getApplicationContext());
                 if(!integers.isEmpty()) {
                     int requiredScrollPos = integers.get(integers.size() - 1);
                     singleMessagesThreadRecyclerView.scrollToPosition(requiredScrollPos);
@@ -315,7 +315,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 getApplicationContext(), smsMetaEntity.getThreadId(), offset).observe(this, new Observer<List<SMS>>() {
             @Override
             public void onChanged(List<SMS> smsList) {
-                Log.d(getLocalClassName(), "Paging data changed!");
                 conversationsRecyclerAdapter.submitList(smsList);
             }
         });
@@ -361,29 +360,53 @@ public class ConversationActivity extends CustomAppCompactActivity {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                Log.d(getLocalClassName(), "Running scrolling");
-                final int maximumScrollPosition = conversationsRecyclerAdapter.getItemCount() - 3;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Cursor cursor = smsMetaEntity.fetchMessages(getApplicationContext(), 0, 0);
+                        int msgLen = cursor.getCount();
+                        cursor.close();
 
-                final int lastTopVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
-                        .findLastVisibleItemPosition();
+                        if(conversationsRecyclerAdapter.mDiffer.getCurrentList().size() >= msgLen)
+                            return;
 
-                final int firstVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
-                        .findFirstVisibleItemPosition();
+                        final int maximumScrollPosition = conversationsRecyclerAdapter.getItemCount() - 3;
 
+                        try {
+                            LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                            if (layoutManager != null) {
+                                final int lastTopVisiblePosition = layoutManager.findLastVisibleItemPosition();
+                                final int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
-                if (!conversationsViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
-                    int newSize = conversationsViewModel.refreshDown(getApplicationContext());
+                                if (!conversationsViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
+                                    int newSize = conversationsViewModel.refreshDown(getApplicationContext());
 
-                    if (newSize > 0)
-                        recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
-                }
-                else if (conversationsViewModel.offsetStartedFromZero &&
-                        lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
-                    conversationsViewModel.refresh(getApplicationContext());
-                    int itemCount = recyclerView.getAdapter().getItemCount();
-                    if (itemCount > maximumScrollPosition + 1)
-                        recyclerView.scrollToPosition(lastTopVisiblePosition);
-                }
+                                    if (newSize > 0)
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
+                                            }
+                                        });
+                                } else if (conversationsViewModel.offsetStartedFromZero &&
+                                        lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
+                                    conversationsViewModel.refresh(getApplicationContext());
+                                    int itemCount = recyclerView.getAdapter().getItemCount();
+                                    if (itemCount > maximumScrollPosition + 1)
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                recyclerView.scrollToPosition(lastTopVisiblePosition);
+                                            }
+                                        });
+                                }
+
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
             }
         });
 
@@ -401,6 +424,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
     }
 
     private void _configureSearchBox() {
+        conversationsViewModel.loadAll(getApplicationContext());
+
         TextInputLayout textInputLayout = findViewById(R.id.conversations_search_box_layout);
         textInputLayout.setVisibility(View.VISIBLE);
 
@@ -479,13 +504,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
             }
         });
 
-//        multiSimcardConstraint.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (v.getVisibility() == View.VISIBLE)
-//                    v.setVisibility(View.INVISIBLE);
-//            }
-//        });
 
         smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override

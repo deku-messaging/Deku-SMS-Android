@@ -76,17 +76,19 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     private Integer _updateLiveData(Context context, int offset) {
-        ArrayList<SMS> newSMS = loadSMSThreads(context, offset, currentLimit);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<SMS> newSMS = loadSMSThreads(context, offset, currentLimit);
+                if (!newSMS.isEmpty()) {
+                    ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
+                    sms.addAll(newSMS);
+                    mutableLiveData.postValue(sms);
+                }
 
-        if (!newSMS.isEmpty()) {
-            ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
-            sms.addAll(newSMS);
-            mutableLiveData.setValue(sms);
-
-            return offset;
-        }
-
-        return null;
+            }
+        }).start();
+        return offset;
     }
 
     private Integer _updateLiveDataDown(Context context, int offset, int limit) {
@@ -109,16 +111,21 @@ public class ConversationsViewModel extends ViewModel {
     public void loadAll(Context context) {
         ArrayList<SMS> newSMS = loadSMSThreads(context, this.offset, 0);
 
-        if (!newSMS.isEmpty()) {
-            ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (!newSMS.isEmpty()) {
+                    ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
 
-            ArrayList<SMS> mergedList = new ArrayList<>();
-            mergedList.addAll(newSMS);
-            mergedList.addAll(sms);
+                    ArrayList<SMS> mergedList = new ArrayList<>();
+                    mergedList.addAll(newSMS);
+                    mergedList.addAll(sms);
 
-            Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
-            mutableLiveData.setValue(mergedList);
-        }
+                    Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
+                    mutableLiveData.postValue(mergedList);
+                }
+            }
+        }).start();
     }
 
     private ArrayList<SMS> loadSMSThreads(Context context, Integer _offset, int limit) {
