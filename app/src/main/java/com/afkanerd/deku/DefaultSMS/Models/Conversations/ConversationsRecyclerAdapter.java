@@ -471,7 +471,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
         if(isEncryptionKey) {
             if(position == oldestItemPos || snapshotList.size() < 2 ||
-                    SMSHandler.isSameMinute(sms, (SMS) snapshotList.get(position -1)) ) {
+                    (position > (oldestItemPos -1) && SMSHandler.isSameMinute(sms, (SMS) snapshotList.get(position -1)) )) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_KEY_TYPE_INBOX : TIMESTAMP_KEY_TYPE_OUTBOX;
             }
