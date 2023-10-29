@@ -469,14 +469,9 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
         int oldestItemPos = snapshotList.size() - 1;
         int newestItemPos = 0;
 
-        if(snapshotList.size() < 2) {
-            return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                    MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
-        }
-
         if(isEncryptionKey) {
-            SMS secondMessage = (SMS) snapshotList.get(position - 1);
-            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) {
+            if(position == oldestItemPos || snapshotList.size() < 2 ||
+                    SMSHandler.isSameMinute(sms, (SMS) snapshotList.get(position -1)) ) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_KEY_TYPE_INBOX : TIMESTAMP_KEY_TYPE_OUTBOX;
             }
@@ -484,6 +479,11 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_KEY_INBOX : MESSAGE_KEY_OUTBOX;
             }
+        }
+
+        if(snapshotList.size() < 2) {
+            return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                    MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
         }
 
         if(position == oldestItemPos) { // - minus
