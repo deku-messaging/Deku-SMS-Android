@@ -515,6 +515,11 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                     TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
         }
 
+        /**
+         * start message - with timestamp
+         * start message - without timestamp
+         */
+
         if(position == oldestItemPos) { // - minus
             SMS secondMessage = (SMS) snapshotList.get(position - 1);
             if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) {
@@ -527,20 +532,23 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
             }
         }
 
-        if(position == newestItemPos) {
+        if(position > 0) {
             SMS secondMessage = (SMS) snapshotList.get(position + 1);
-            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) {
-                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
-            } else {
-                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
+            SMS thirdMessage = (SMS) snapshotList.get(position - 1);
+            if(!SMSHandler.isSameHour(sms, secondMessage)) {
+                if(sms.getType() == thirdMessage.getType() && SMSHandler.isSameMinute(sms, thirdMessage))
+                    return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                            TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_START_TYPE_OUTBOX;
+                else
+                    return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                            TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
             }
-        }
-
-        if(snapshotList.size() > 2) {
-            SMS secondMessage = (SMS) snapshotList.get(position + 1); //above
-            SMS thirdMessage = (SMS) snapshotList.get(position - 1); //below
+            if(sms.getType() == thirdMessage.getType() && SMSHandler.isSameMinute(sms, thirdMessage)) {
+                if(sms.getType() != secondMessage.getType() || !SMSHandler.isSameMinute(sms, secondMessage)) {
+                    return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                            MESSAGE_START_TYPE_INBOX : MESSAGE_START_TYPE_OUTBOX;
+                }
+            }
             if(sms.getType() == secondMessage.getType() && sms.getType() == thirdMessage.getType()) {
                 if(SMSHandler.isSameMinute(sms, secondMessage) && SMSHandler.isSameMinute(sms, thirdMessage)) {
                     return (sms.getType() == MESSAGE_TYPE_INBOX) ?
@@ -554,24 +562,12 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                 }
             }
         }
-
-        SMS secondMessage = (SMS) snapshotList.get(position - 1);
-        if(sms.getType() == secondMessage.getType() ) {
-            if(SMSHandler.isSameHour(sms, secondMessage) &&
-                    SMSHandler.isSameMinute(sms, secondMessage)) { // - minus
-                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                         TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_START_TYPE_OUTBOX;
-            }
-            else {
+        if(position == newestItemPos) { // - minus
+            SMS secondMessage = (SMS) snapshotList.get(position + 1);
+            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
+                        MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
             }
-        }
-
-        SMS thirdMessage = (SMS) snapshotList.get(position - 1); //below
-        if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, thirdMessage)) { // - minus
-            return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                    MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
         }
 
         return (sms.getType() == MESSAGE_TYPE_INBOX) ?

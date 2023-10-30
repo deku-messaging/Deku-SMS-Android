@@ -14,7 +14,9 @@ import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSPaging;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.NavigableSet;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class ConversationsViewModel extends ViewModel {
     public String threadId;
@@ -64,32 +66,22 @@ public class ConversationsViewModel extends ViewModel {
         }
     }
 
-    public int refreshDown(Context context) {
-        int newSize = 0;
-        if(!offsetStartedFromZero && offset != null) {
-            int calculatedOffset = offset - currentLimit;
-            int newLimit = currentLimit;
-            if(calculatedOffset < 0) {
-                newLimit = offset;
-                offset = 0;
-            }
-            else offset = calculatedOffset;
-            newSize = _updateLiveDataDown(context, offset, newLimit);
-        }
-        return newSize;
-    }
-
     private Integer _updateLiveData(Context context, int offset) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ArrayList<SMS> newSMS = loadSMSThreads(context, offset, currentLimit);
+                final ArrayList<SMS> newSMS = loadSMSThreads(context, offset, currentLimit);
                 if (!newSMS.isEmpty()) {
-                    ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
-                    sms.addAll(newSMS);
+                    ArrayList<SMS> sms =  mutableLiveData.getValue();
+                    if(sms != null)
+                        sms.addAll(newSMS);
+                    else
+                        sms = newSMS;
+                    final ArrayList<SMS> f_sms = new ArrayList<>();
+                    f_sms.addAll(sms);
 
-                    TreeSet<SMS> smsTreeSet = new TreeSet<>(sms);
-                    smsTreeSet = (TreeSet<SMS>) smsTreeSet.descendingSet();
+                    NavigableSet<SMS> smsTreeSet = new ConcurrentSkipListSet<>(f_sms);
+                    smsTreeSet = smsTreeSet.descendingSet();
                     mutableLiveData.postValue(new ArrayList<>(Arrays.asList(smsTreeSet.toArray(new SMS[0]))));
                 }
 
@@ -98,31 +90,21 @@ public class ConversationsViewModel extends ViewModel {
         return offset;
     }
 
-    private Integer _updateLiveDataDown(Context context, int offset, int limit) {
-        ArrayList<SMS> newSMS = loadSMSThreads(context, offset, limit);
-
-        if (!newSMS.isEmpty()) {
-            ArrayList<SMS> sms = mutableLiveData.getValue();
-            sms.addAll(newSMS);
-
-            TreeSet<SMS> smsTreeSet = new TreeSet<>(sms);
-            smsTreeSet = (TreeSet<SMS>) smsTreeSet.descendingSet();
-            mutableLiveData.postValue(new ArrayList<>(Arrays.asList(smsTreeSet.toArray(new SMS[0]))));
-        }
-        this.offset = offset == 0 ? null : offset;
-        return newSMS.size();
-    }
-
     public void _updateLiveData(ArrayList<SMS> newSMS) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 if (!newSMS.isEmpty()) {
-                    ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
-                    sms.addAll(newSMS);
+                    ArrayList<SMS> sms =  mutableLiveData.getValue();
+                    if(sms != null)
+                        sms.addAll(newSMS);
+                    else
+                        sms = newSMS;
+                    final ArrayList<SMS> f_sms = new ArrayList<>();
+                    f_sms.addAll(sms);
 
-                    TreeSet<SMS> smsTreeSet = new TreeSet<>(sms);
-                    smsTreeSet = (TreeSet<SMS>) smsTreeSet.descendingSet();
+                    NavigableSet<SMS> smsTreeSet = new ConcurrentSkipListSet<>(f_sms);
+                    smsTreeSet = smsTreeSet.descendingSet();
                     mutableLiveData.postValue(new ArrayList<>(Arrays.asList(smsTreeSet.toArray(new SMS[0]))));
                 }
             }

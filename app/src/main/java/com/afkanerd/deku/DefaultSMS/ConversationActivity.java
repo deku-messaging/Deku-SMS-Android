@@ -424,17 +424,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                                 final int lastTopVisiblePosition = layoutManager.findLastVisibleItemPosition();
                                 final int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
-                                if (!conversationsViewModel.offsetStartedFromZero && firstVisibleItemPosition == 0) {
-                                    int newSize = conversationsViewModel.refreshDown(getApplicationContext());
-
-                                    if (newSize > 0)
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                recyclerView.scrollToPosition(lastTopVisiblePosition + 1 + newSize);
-                                            }
-                                        });
-                                } else if (conversationsViewModel.offsetStartedFromZero &&
+                                if (conversationsViewModel.offsetStartedFromZero &&
                                         lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
                                     conversationsViewModel.refresh(getApplicationContext());
                                     int itemCount = recyclerView.getAdapter().getItemCount();
