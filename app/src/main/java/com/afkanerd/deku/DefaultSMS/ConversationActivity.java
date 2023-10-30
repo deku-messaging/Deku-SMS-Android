@@ -185,6 +185,9 @@ public class ConversationActivity extends CustomAppCompactActivity {
     private void resetSearch() {
         findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
         findViewById(R.id.conversations_search_box_layout).setVisibility(View.GONE);
+        conversationsRecyclerAdapter.searchString = null;
+        conversationsViewModel.informNewItemChanges(getApplicationContext());
+//        conversationsRecyclerAdapter.notifyDataSetChanged();
     }
 
     @Override
