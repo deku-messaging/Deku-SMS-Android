@@ -207,7 +207,7 @@ public class Helpers {
         }
     }
 
-    public static void highlightLinks(TextView textView, String text, int color) {
+    public static Spannable highlightLinks(TextView textView, String text, int color) {
         // Regular expression to find URLs in the text
 //        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|(\\+\\d{1,3})\\d+";
 //        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|\\b\\+?\\d+\\b|\\b\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
@@ -269,7 +269,10 @@ public class Helpers {
             spannableString.setSpan(new ForegroundColorSpan(color),
                     matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+
         textView.setMovementMethod(LinkMovementMethod.getInstance());
         textView.setText(spannableString);
+
+        return spannableString;
     }
 }

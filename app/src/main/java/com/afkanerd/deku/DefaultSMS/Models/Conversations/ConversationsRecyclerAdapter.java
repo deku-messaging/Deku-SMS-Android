@@ -6,8 +6,14 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.provider.Telephony;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.URLSpan;
 import android.util.Base64;
 import android.util.Log;
@@ -35,6 +41,8 @@ import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.DefaultSMS.R;
 
+import org.checkerframework.checker.units.qual.A;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
@@ -56,6 +64,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
     View highlightedView;
 
     private int selectedItemAbsPosition = RecyclerView.NO_POSITION;
+    final static int BOTTOM_MARGIN = 4;
     public LiveData<HashMap<String, RecyclerView.ViewHolder>> selectedItem = new MutableLiveData<>();
     MutableLiveData<HashMap<String, RecyclerView.ViewHolder>> mutableSelectedItems = new MutableLiveData<>();
     public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
@@ -95,6 +104,8 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
     byte[] secretKey = null;
 
     String address;
+
+    public String searchString;
 
     private boolean animation = false;
     public ConversationsRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
@@ -204,11 +215,27 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
         return input;
     }
 
-    public boolean isContact(SMS sms) {
-        String addressInPhone = Contacts.retrieveContactName(context, sms.getAddress());
-        return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
-    }
+    public Spannable highlightSubstringYellow(String text) {
+        // Find all occurrences of the substring in the text.
+        List<Integer> startIndices = new ArrayList<>();
+        int index = text.indexOf(searchString);
+        while (index >= 0) {
+            startIndices.add(index);
+            index = text.indexOf(searchString, index + searchString.length());
+        }
 
+        // Create a SpannableString object.
+        SpannableString spannableString = new SpannableString(text);
+
+        // Set the foreground color of the substring to yellow.
+        BackgroundColorSpan backgroundColorSpan = new BackgroundColorSpan(Color.YELLOW);
+        for (int startIndex : startIndices) {
+            spannableString.setSpan(backgroundColorSpan, startIndex, startIndex + searchString.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+
+        return spannableString;
+    }
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final SMS sms = mDiffer.getCurrentList().get(position);
@@ -248,10 +275,12 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
             TextView receivedMessage = messageReceivedViewHandler.receivedMessage;
 
             TextView dateView = messageReceivedViewHandler.date;
-//            int dateViewVisibility = position == 0 ? View.VISIBLE : View.GONE;
-//            dateView.setVisibility(dateViewVisibility);
 
             Helpers.highlightLinks(receivedMessage, text, context.getColor(R.color.primary_text_color));
+            if(searchString != null) {
+                String sText = receivedMessage.getText().toString();
+                receivedMessage.setText(highlightSubstringYellow(sText));
+            }
 
             if(sms.getSubscriptionId() > 0) {
                 String subscriptionName = SIMHandler.getSubscriptionName(context,
@@ -707,7 +736,6 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
         }
     }
 
-    final static int BOTTOM_MARGIN = 4;
 
     public static class TimestampKeySentStartGroupViewHandler extends MessageSentViewHandler {
         public TimestampKeySentStartGroupViewHandler(@NonNull View itemView) {

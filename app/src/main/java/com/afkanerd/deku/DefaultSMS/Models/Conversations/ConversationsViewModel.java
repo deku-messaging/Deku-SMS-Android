@@ -107,7 +107,7 @@ public class ConversationsViewModel extends ViewModel {
 
             TreeSet<SMS> smsTreeSet = new TreeSet<>(sms);
             smsTreeSet = (TreeSet<SMS>) smsTreeSet.descendingSet();
-            mutableLiveData.setValue(new ArrayList<>(Arrays.asList(smsTreeSet.toArray(new SMS[0]))));
+            mutableLiveData.postValue(new ArrayList<>(Arrays.asList(smsTreeSet.toArray(new SMS[0]))));
         }
         this.offset = offset == 0 ? null : offset;
         return newSMS.size();
@@ -129,11 +129,12 @@ public class ConversationsViewModel extends ViewModel {
         }).start();
     }
 
-    public void loadFromPosition(Context context, int position) {
+    public int loadFromPosition(Context context, int position) {
         // if top = load down
         // if down = load up
         // if middle = load up and down
         int mid_count = currentLimit / 2;
+        int size = mutableLiveData.getValue().size();
         if((position - mid_count) < 0) {
             // BOTTOM
             this.offset = 0;
@@ -144,6 +145,7 @@ public class ConversationsViewModel extends ViewModel {
             _updateLiveData(loadSMSThreads(context, this.offset, currentLimit));
         }
         offsetStartedFromZero = false;
+        return size + this.offset;
     }
 
     private ArrayList<SMS> loadSMSThreads(Context context, Integer _offset, int limit) {

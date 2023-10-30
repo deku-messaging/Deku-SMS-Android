@@ -100,6 +100,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
     SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
     int defaultSubscriptionId;
 
+    String searchString;
+
     MutableLiveData<List<Integer>> searchPositions = new MutableLiveData<>();
 
     @Override
@@ -275,10 +277,14 @@ public class ConversationActivity extends CustomAppCompactActivity {
             @Override
             public void onChanged(List<Integer> integers) {
                 Log.d(getLocalClassName(), "Search found: " + integers.size());
+                conversationsRecyclerAdapter.searchString = searchString;
                 if(!integers.isEmpty()) {
                     int requiredScrollPos = integers.get(integers.size() - 1);
-                    conversationsViewModel.loadFromPosition(getApplicationContext(), requiredScrollPos);
-                    singleMessagesThreadRecyclerView.scrollToPosition(requiredScrollPos);
+                    int scrollPos = conversationsViewModel.loadFromPosition(getApplicationContext(), requiredScrollPos);
+                    singleMessagesThreadRecyclerView.scrollToPosition(scrollPos);
+                } else {
+                    conversationsRecyclerAdapter.searchString = null;
+                    conversationsViewModel.informNewItemChanges(getApplicationContext());
                 }
                 String text = integers.size() + " " + getString(R.string.conversations_search_results_found);
                 searchFoundTextView.setText(text);
@@ -447,8 +453,9 @@ public class ConversationActivity extends CustomAppCompactActivity {
             public void afterTextChanged(Editable editable) {
                 if(editable != null && editable.length() > 1)
                     searchForInput(editable.toString());
-                else if(editable != null)
+                else {
                     searchPositions.setValue(new ArrayList<>());
+                }
             }
         });
     }
@@ -1091,6 +1098,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
     }
 
     private void searchForInput(String search){
+        this.searchString = search;
+
         new Thread(new Runnable() {
             @Override
             public void run() {
