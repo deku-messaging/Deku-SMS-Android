@@ -71,7 +71,7 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
 
         int smsLimit = loadParams.getKey() == null ? loadParams.getLoadSize() : (loadParams.getLoadSize() * (key + 1));
 
-        ArrayList<SMS> smsArrayList = fetchSMSFromHandlers(context, threadId, smsLimit, 0);
+        ArrayList<SMS> smsArrayList = fetchMessages_advanced(context, threadId, smsLimit, 0);
 
         nextKey = (smsArrayList == null || smsArrayList.size() < loadParams.getLoadSize() || smsArrayList.size() < smsLimit) ?
                 null : key + 1;
@@ -97,9 +97,9 @@ public class SMSPaging extends PagingSource<Integer, SMS> {
         }
     }
 
-    public static ArrayList<SMS> fetchSMSFromHandlers(Context context, String threadId, int limit, int offset) {
+    public static ArrayList<SMS> fetchMessages_advanced(Context context, String threadId, int limit, int offset) {
 //        Cursor cursors = SMSHandler.fetchSMSForThread(this.context, this.threadId);
-        SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+        SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
         smsMetaEntity.setThreadId(context, threadId);
         Cursor cursors = smsMetaEntity.fetchMessages(context, limit, offset);
 

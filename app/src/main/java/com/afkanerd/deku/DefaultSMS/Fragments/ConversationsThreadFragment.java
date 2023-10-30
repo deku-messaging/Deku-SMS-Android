@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Fragments.Homepage;
+package com.afkanerd.deku.DefaultSMS.Fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -32,7 +32,7 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Set;
 
-public class MessagesThreadFragment extends Fragment {
+public class ConversationsThreadFragment extends Fragment {
     BroadcastReceiver incomingBroadcastReceiver;
     BroadcastReceiver incomingDataBroadcastReceiver;
 
@@ -55,7 +55,7 @@ public class MessagesThreadFragment extends Fragment {
 
     private OnViewManipulationListener mListener;
 
-    public interface OnViewManipulationListener extends HomepageFragment.TabListenerInterface{
+    public interface OnViewManipulationListener extends HomepageFragment.TabListenerInterface {
         void activateDefaultToolbar();
         void deactivateDefaultToolbar(int size);
 
@@ -152,11 +152,11 @@ public class MessagesThreadFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-//        try {
-//            conversationsThreadViewModel.informChanges(getContext());
-//        } catch (GeneralSecurityException | IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            conversationsThreadViewModel.informChanges(getContext());
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

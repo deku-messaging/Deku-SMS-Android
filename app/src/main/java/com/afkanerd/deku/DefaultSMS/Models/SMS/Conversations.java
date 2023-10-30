@@ -24,7 +24,7 @@ public class Conversations {
     public String MESSAGE_ID;
     public String ADDRESS;
 
-    private SMS.SMSMetaEntity smsMetaEntity;
+    private SMSMetaEntity smsMetaEntity;
 
     public Conversations(Cursor cursor) {
         int snippetIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.SNIPPET);
@@ -39,7 +39,7 @@ public class Conversations {
     public Conversations(){}
 
     public void setNewestMessage(Context context) {
-        this.smsMetaEntity = new SMS.SMSMetaEntity();
+        this.smsMetaEntity = new SMSMetaEntity();
         this.smsMetaEntity.setThreadId(context, this.THREAD_ID);
     }
 
@@ -51,7 +51,7 @@ public class Conversations {
         this.THREAD_ID = threadId;
     }
 
-    public SMS.SMSMetaEntity getNewestMessage() {
+    public SMSMetaEntity getNewestMessage() {
         return this.smsMetaEntity;
     }
 

@@ -9,6 +9,7 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.QueueListener.RMQ.RMQConnection;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
@@ -21,10 +22,10 @@ public class OutgoingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Cursor cursor = null;
         try {
-            long messageId = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
-            String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
+            long messageId = intent.getLongExtra(SMSMetaEntity.ID, -1);
+            String threadId = intent.getStringExtra(SMSMetaEntity.THREAD_ID);
 
-            SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+            SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
             smsMetaEntity.setThreadId(context, threadId);
 
             cursor = smsMetaEntity.fetchOutboxMessage(context, messageId);

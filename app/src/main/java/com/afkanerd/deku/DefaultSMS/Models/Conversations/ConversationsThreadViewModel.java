@@ -8,7 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.afkanerd.deku.DefaultSMS.Fragments.Homepage.MessagesThreadFragment;
+import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsThreadFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
@@ -47,7 +47,7 @@ public class ConversationsThreadViewModel extends ViewModel {
         Cursor cursor = SMSHandler.fetchSMSForThreading(context);
 
         switch (messagesType) {
-            case MessagesThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT: {
+            case ConversationsThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT: {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -88,7 +88,7 @@ public class ConversationsThreadViewModel extends ViewModel {
                 break;
             }
 
-            case MessagesThreadFragment.ALL_MESSAGES_THREAD_FRAGMENT: {
+            case ConversationsThreadFragment.ALL_MESSAGES_THREAD_FRAGMENT: {
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -125,7 +125,7 @@ public class ConversationsThreadViewModel extends ViewModel {
                 break;
             }
 
-            case MessagesThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT: {
+            case ConversationsThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT: {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {

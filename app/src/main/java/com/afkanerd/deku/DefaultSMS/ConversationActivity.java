@@ -51,6 +51,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.Settings.SettingsHandler;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
@@ -93,7 +94,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
     LinearLayoutManager linearLayoutManager;
     RecyclerView singleMessagesThreadRecyclerView;
 
-    SMS.SMSMetaEntity smsMetaEntity;
+    SMSMetaEntity smsMetaEntity;
 
     SharedPreferences sharedPreferences;
     SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
@@ -127,7 +128,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
         configureBroadcastListeners(new Runnable() {
             @Override
             public void run() {
-                if(getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID)) {
+                if(getIntent().hasExtra(SMSMetaEntity.THREAD_ID)) {
                     if(conversationsViewModel.threadId == null)
                         conversationsViewModel.informNewItemChanges(getApplicationContext(),
                                 smsMetaEntity.getThreadId());
@@ -153,7 +154,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if(getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID))
+                if(getIntent().hasExtra(SMSMetaEntity.THREAD_ID))
                     _updateThreadToRead();
             }
         }).start();
@@ -207,31 +208,31 @@ public class ConversationActivity extends CustomAppCompactActivity {
          * and sending a threadID to this intent
          */
 
-        smsMetaEntity = new SMS.SMSMetaEntity();
+        smsMetaEntity = new SMSMetaEntity();
         if(getIntent().getAction() != null && (getIntent().getAction().equals(Intent.ACTION_SENDTO) ||
                 getIntent().getAction().equals(Intent.ACTION_SEND))) {
             String sendToString = getIntent().getDataString();
-            if (sendToString.contains("smsto:") || sendToString.contains("sms:")) {
+            if (sendToString != null && (sendToString.contains("smsto:") || sendToString.contains("sms:"))) {
                 String _address = sendToString.substring(sendToString.indexOf(':') + 1);
-                getIntent().putExtra(SMS.SMSMetaEntity.ADDRESS, _address);
+                getIntent().putExtra(SMSMetaEntity.ADDRESS, _address);
             }
         }
 
-        if(!getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID) &&
-                !getIntent().hasExtra(SMS.SMSMetaEntity.ADDRESS)) {
+        if(!getIntent().hasExtra(SMSMetaEntity.THREAD_ID) &&
+                !getIntent().hasExtra(SMSMetaEntity.ADDRESS)) {
             throw new Exception("No threadId nor Address supplied for activity");
         }
 
-        if(getIntent().hasExtra(SMS.SMSMetaEntity.THREAD_ID))
+        if(getIntent().hasExtra(SMSMetaEntity.THREAD_ID))
             smsMetaEntity.setThreadId(getApplicationContext(),
-                    getIntent().getStringExtra(SMS.SMSMetaEntity.THREAD_ID));
+                    getIntent().getStringExtra(SMSMetaEntity.THREAD_ID));
 
-        if(getIntent().hasExtra(SMS.SMSMetaEntity.ADDRESS)) {
+        if(getIntent().hasExtra(SMSMetaEntity.ADDRESS)) {
             String threadId = smsMetaEntity.setAddress(getApplicationContext(),
-                    getIntent().getStringExtra(SMS.SMSMetaEntity.ADDRESS));
+                    getIntent().getStringExtra(SMSMetaEntity.ADDRESS));
 
             if(threadId != null && !threadId.isEmpty()) {
-                getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                getIntent().putExtra(SMSMetaEntity.THREAD_ID, threadId);
                 smsMetaEntity.setThreadId(getApplicationContext(), threadId);
             }
         }
@@ -276,6 +277,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 Log.d(getLocalClassName(), "Search found: " + integers.size());
                 if(!integers.isEmpty()) {
                     int requiredScrollPos = integers.get(integers.size() - 1);
+                    conversationsViewModel.loadFromPosition(getApplicationContext(), requiredScrollPos);
                     singleMessagesThreadRecyclerView.scrollToPosition(requiredScrollPos);
                 }
                 String text = integers.size() + " " + getString(R.string.conversations_search_results_found);
@@ -424,8 +426,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
     }
 
     private void _configureSearchBox() {
-        conversationsViewModel.loadAll(getApplicationContext());
-
         TextInputLayout textInputLayout = findViewById(R.id.conversations_search_box_layout);
         textInputLayout.setVisibility(View.VISIBLE);
 
@@ -447,7 +447,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
             public void afterTextChanged(Editable editable) {
                 if(editable != null && editable.length() > 1)
                     searchForInput(editable.toString());
-                else
+                else if(editable != null)
                     searchPositions.setValue(new ArrayList<>());
             }
         });
@@ -523,7 +523,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
         encryptedMessageTextView.setMovementMethod(new ScrollingMovementMethod());
 
         final boolean hasSecretKey = smsMetaEntity.getEncryptionState(getApplicationContext())
-                == SMS.SMSMetaEntity.ENCRYPTION_STATE.ENCRYPTED;
+                == SMSMetaEntity.ENCRYPTION_STATE.ENCRYPTED;
         final byte[] secretKey = smsMetaEntity.getSecretKey(getApplicationContext());
 
         findViewById(R.id.sms_send_button).setOnClickListener(new View.OnClickListener() {
@@ -578,14 +578,14 @@ public class ConversationActivity extends CustomAppCompactActivity {
         });
 
         // Message has been shared from another app to send by SMS
-        if (getIntent().hasExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY)) {
-            smsTextView.setText(getIntent().getStringExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY));
+        if (getIntent().hasExtra(SMSMetaEntity.SHARED_SMS_BODY)) {
+            smsTextView.setText(getIntent().getStringExtra(SMSMetaEntity.SHARED_SMS_BODY));
 
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     mutableLiveDataComposeMessage
-                            .setValue(getIntent().getStringExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY));
+                            .setValue(getIntent().getStringExtra(SMSMetaEntity.SHARED_SMS_BODY));
                 }
             });
         }
@@ -690,7 +690,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                     subscriptionId);
 
             if(smsMetaEntity.getThreadId() == null && threadId != null) {
-                getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                getIntent().putExtra(SMSMetaEntity.THREAD_ID, threadId);
                 _setupActivityDependencies();
             }
         } catch (Exception e) {
@@ -707,7 +707,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
         Log.d(getLocalClassName(), "Encryption status: " + smsMetaEntity.getEncryptionState(getApplicationContext()));
         if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.NOT_ENCRYPTED) {
+                SMSMetaEntity.ENCRYPTION_STATE.NOT_ENCRYPTED) {
             ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
 
             int textColor = Color.WHITE;
@@ -743,7 +743,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
             lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, textColor);
         }
         else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.SENT_PENDING_AGREEMENT) {
+                SMSMetaEntity.ENCRYPTION_STATE.SENT_PENDING_AGREEMENT) {
             ab.setSubtitle(R.string.send_sms_activity_user_not_encrypted);
 
             int bgColor = getResources().getColor(R.color.purple_200, getTheme());
@@ -778,7 +778,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
             lunchSnackBar(conversationNotSecuredText, actionText, onClickListener, bgColor, Color.BLACK);
         }
         else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT) {
+                SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_PENDING_AGREEMENT) {
             String text = getString(R.string.send_sms_activity_user_not_secure_agree);
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
             Integer bgColor = getResources().getColor(R.color.highlight_yellow, getTheme());
@@ -796,7 +796,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
             lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
         }
         else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST) {
+                SMSMetaEntity.ENCRYPTION_STATE.RECEIVED_AGREEMENT_REQUEST) {
             String text = getString(R.string.send_sms_activity_user_not_secure_no_agreed);
             String actionText = getString(R.string.send_sms_activity_user_not_secure_yes_agree);
             int bgColor = getResources().getColor(R.color.purple_200, getTheme());
@@ -816,7 +816,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                                 subscriptionId);
 
                         if(smsMetaEntity.getThreadId() == null && threadId != null) {
-                            getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                            getIntent().putExtra(SMSMetaEntity.THREAD_ID, threadId);
                             _setupActivityDependencies();
                         }
                     } catch (Exception e) {
@@ -827,7 +827,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
             lunchSnackBar(text, actionText, onClickListener, bgColor, Color.BLACK);
         }
         else if(smsMetaEntity.getEncryptionState(getApplicationContext()) ==
-                SMS.SMSMetaEntity.ENCRYPTION_STATE.ENCRYPTED) {
+                SMSMetaEntity.ENCRYPTION_STATE.ENCRYPTED) {
             ab.setSubtitle(getString(R.string.send_sms_activity_user_encrypted));
         }
     }
@@ -862,7 +862,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
             String threadId = _sendSMSMessage(defaultSubscriptionId, text);
             Log.d(getLocalClassName(), "Sending sms with thread: " + threadId + ":" + smsMetaEntity.getThreadId());
             if(smsMetaEntity.getThreadId() == null && threadId != null) {
-                getIntent().putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
+                getIntent().putExtra(SMSMetaEntity.THREAD_ID, threadId);
                 _setupActivityDependencies();
             }
 

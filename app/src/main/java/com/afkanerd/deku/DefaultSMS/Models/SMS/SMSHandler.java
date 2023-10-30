@@ -312,8 +312,8 @@ public class SMSHandler {
 
                 Intent broadcastIntent = new Intent(context, OutgoingTextSMSBroadcastReceiver.class);
 
-                broadcastIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
-                broadcastIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+                broadcastIntent.putExtra(SMSMetaEntity.THREAD_ID, threadId);
+                broadcastIntent.putExtra(SMSMetaEntity.ID, messageId);
 //                broadcastIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageKey);
                 broadcastIntent.putExtra(RMQConnection.MESSAGE_SID, messageSid);
                 broadcastIntent.setAction(SMS_NEW_TEXT_REGISTERED_PENDING_BROADCAST);
@@ -371,8 +371,8 @@ public class SMSHandler {
 
                 Intent broadcastIntent = new Intent(context, OutgoingTextSMSBroadcastReceiver.class);
 
-                broadcastIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
-                broadcastIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+                broadcastIntent.putExtra(SMSMetaEntity.THREAD_ID, threadId);
+                broadcastIntent.putExtra(SMSMetaEntity.ID, messageId);
                 broadcastIntent.setAction(SMS_NEW_TEXT_REGISTERED_PENDING_BROADCAST);
 
                 context.sendBroadcast(broadcastIntent);
@@ -433,8 +433,8 @@ public class SMSHandler {
                         cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID));
 
                 Intent broadcastIntent = new Intent(context, OutgoingDataSMSBroadcastReceiver.class);
-                broadcastIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, threadId);
-                broadcastIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+                broadcastIntent.putExtra(SMSMetaEntity.THREAD_ID, threadId);
+                broadcastIntent.putExtra(SMSMetaEntity.ID, messageId);
                 broadcastIntent.setAction(SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST);
 
                 context.sendBroadcast(broadcastIntent);
@@ -533,11 +533,11 @@ public class SMSHandler {
     public static PendingIntent[] getPendingIntents(Context context, long messageId) {
         Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
         sentIntent.setPackage(context.getPackageName());
-        sentIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+        sentIntent.putExtra(SMSMetaEntity.ID, messageId);
 
         Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
         deliveredIntent.setPackage(context.getPackageName());
-        deliveredIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+        deliveredIntent.putExtra(SMSMetaEntity.ID, messageId);
 
         PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
                 Integer.parseInt(String.valueOf(messageId)),
@@ -556,13 +556,13 @@ public class SMSHandler {
                                                                     String globalMessageId, String sid) {
         Intent sentIntent = new Intent(SMS_SENT_BROADCAST_INTENT);
         sentIntent.setPackage(context.getPackageName());
-        sentIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+        sentIntent.putExtra(SMSMetaEntity.ID, messageId);
         sentIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
         sentIntent.putExtra(RMQConnection.MESSAGE_SID, sid);
 
         Intent deliveredIntent = new Intent(SMS_DELIVERED_BROADCAST_INTENT);
         deliveredIntent.setPackage(context.getPackageName());
-        deliveredIntent.putExtra(SMS.SMSMetaEntity.ID, messageId);
+        deliveredIntent.putExtra(SMSMetaEntity.ID, messageId);
         deliveredIntent.putExtra(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY, globalMessageId);
         deliveredIntent.putExtra(RMQConnection.MESSAGE_SID, sid);
 

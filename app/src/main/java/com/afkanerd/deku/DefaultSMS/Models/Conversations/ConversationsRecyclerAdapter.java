@@ -266,7 +266,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                 @Override
                 public void onClick(View v) {
                     if(isHighlighted(sms.getId()))
-                        resetSelectedItem(sms.id, true);
+                        resetSelectedItem(sms.getId(), true);
                     else if(selectedItem.getValue() != null ){
                         longClickHighlight(messageReceivedViewHandler, smsId);
                     } else {
@@ -328,13 +328,13 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                 @Override
                 public void onClick(View v) {
                     if(isHighlighted(sms.getId()))
-                        resetSelectedItem(sms.id, true);
+                        resetSelectedItem(sms.getId(), true);
                     else if(selectedItem.getValue() != null) {
                         longClickHighlight(messageSentViewHandler, smsId);
                     }
                     else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
                         String[] messageValues = new String[2];
-                        messageValues[0] = sms.id;
+                        messageValues[0] = sms.getId();
 
                         String _text = text;
                         if(holder instanceof KeySentViewHandler) {
@@ -481,7 +481,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
         if(snapshotList.size() < 2) {
             return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                    MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
+                    TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
         }
 
         if(position == oldestItemPos) { // - minus
@@ -498,7 +498,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
         if(position == newestItemPos) {
             SMS secondMessage = (SMS) snapshotList.get(position + 1);
-            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameHour(sms, secondMessage)) {
+            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
             } else {

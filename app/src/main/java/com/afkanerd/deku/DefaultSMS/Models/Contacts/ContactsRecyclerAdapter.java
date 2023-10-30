@@ -14,6 +14,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -52,10 +53,10 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
             @Override
             public void onClick(View v) {
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
-                singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, contacts.number);
+                singleMessageThreadIntent.putExtra(SMSMetaEntity.ADDRESS, contacts.number);
 
                 if(sharedSMS != null && !sharedSMS.isEmpty())
-                    singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY, sharedSMS);
+                    singleMessageThreadIntent.putExtra(SMSMetaEntity.SHARED_SMS_BODY, sharedSMS);
 
                 context.startActivity(singleMessageThreadIntent);
             }

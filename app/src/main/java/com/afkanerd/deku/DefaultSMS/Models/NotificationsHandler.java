@@ -24,6 +24,7 @@ import androidx.core.graphics.drawable.IconCompat;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.Images.Images.ImageHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
@@ -40,12 +41,12 @@ public class NotificationsHandler {
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
-            SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+            SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
             smsMetaEntity.setThreadId(context, sms.getThreadId());
 
 //            Cursor cursor1 = smsMetaEntity.fetchUnreadMessages(context);
-            receivedSmsIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, sms.getAddress());
-            receivedSmsIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
+            receivedSmsIntent.putExtra(SMSMetaEntity.ADDRESS, sms.getAddress());
+            receivedSmsIntent.putExtra(SMSMetaEntity.THREAD_ID, sms.getThreadId());
 
             receivedSmsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
@@ -55,8 +56,8 @@ public class NotificationsHandler {
             Intent replyBroadcastIntent = null;
             if(PhoneNumberUtils.isWellFormedSmsAddress(sms.getAddress())) {
                 replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
-                replyBroadcastIntent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
-                replyBroadcastIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
+                replyBroadcastIntent.putExtra(SMSMetaEntity.ADDRESS, address);
+                replyBroadcastIntent.putExtra(SMSMetaEntity.THREAD_ID, sms.getThreadId());
                 replyBroadcastIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_BROADCAST_INTENT);
             }
 
@@ -127,7 +128,7 @@ public class NotificationsHandler {
     }
 
     public static NotificationCompat.Builder
-    getNotificationHandler(Context context, Intent replyBroadcastIntent, long date, SMS.SMSMetaEntity sms,
+    getNotificationHandler(Context context, Intent replyBroadcastIntent, long date, SMSMetaEntity sms,
                            String shortcutId){
 
         NotificationCompat.BubbleMetadata bubbleMetadata = new NotificationCompat.BubbleMetadata
@@ -154,7 +155,7 @@ public class NotificationsHandler {
         String markAsReadLabel = context.getResources().getString(R.string.notifications_mark_as_read_label);
 
         Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
-        markAsReadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, sms.getThreadId());
+        markAsReadIntent.putExtra(SMSMetaEntity.THREAD_ID, sms.getThreadId());
         markAsReadIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.MARK_AS_READ_BROADCAST_INTENT);
 
         PendingIntent markAsReadPendingIntent =
@@ -194,7 +195,7 @@ public class NotificationsHandler {
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
-            SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+            SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
             smsMetaEntity.setThreadId(context, sms.getThreadId());
 
             String contactName = Contacts.retrieveContactName(context, smsMetaEntity.getAddress());
@@ -203,8 +204,8 @@ public class NotificationsHandler {
 
             Uri smsUrl = Uri.parse("smsto:" + smsMetaEntity.getAddress());
             Intent intent = new Intent(Intent.ACTION_SENDTO, smsUrl);
-            intent.putExtra(SMS.SMSMetaEntity.THREAD_ID, smsMetaEntity.getAddress())
-                    .putExtra(SMS.SMSMetaEntity.SHARED_SMS_BODY, text);
+            intent.putExtra(SMSMetaEntity.THREAD_ID, smsMetaEntity.getAddress())
+                    .putExtra(SMSMetaEntity.SHARED_SMS_BODY, text);
 
             ShortcutInfoCompat shortcutInfoCompat = new ShortcutInfoCompat.Builder(context,
                     smsMetaEntity.getAddress())

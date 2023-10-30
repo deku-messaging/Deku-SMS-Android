@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.DefaultSMS.R;
 
@@ -24,10 +25,10 @@ public class OutgoingDataSMSBroadcastReceiver extends BroadcastReceiver {
                 intent.getAction().equals(SMSHandler.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST)) {
             Cursor cursor = null;
             try {
-                long messageId = intent.getLongExtra(SMS.SMSMetaEntity.ID, -1);
-                String threadId = intent.getStringExtra(SMS.SMSMetaEntity.THREAD_ID);
+                long messageId = intent.getLongExtra(SMSMetaEntity.ID, -1);
+                String threadId = intent.getStringExtra(SMSMetaEntity.THREAD_ID);
 
-                SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
                 smsMetaEntity.setThreadId(context, threadId);
 
                 cursor = smsMetaEntity.fetchOutboxMessage(context, messageId);

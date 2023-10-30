@@ -13,6 +13,8 @@ import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSPaging;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.TreeSet;
 
 public class ConversationsViewModel extends ViewModel {
     public String threadId;
@@ -23,22 +25,24 @@ public class ConversationsViewModel extends ViewModel {
     Pager<Integer, SMS> pager;
     SMSPaging smsPaging;
 
-    public Integer currentLimit = 20;
+    public Integer currentLimit = 15;
     Integer offset = 0;
 
     public boolean offsetStartedFromZero = true;
 
     public LiveData<ArrayList<SMS>> getMessages(Context context, String threadId, int offset){
         this.threadId = threadId;
-
         if((offset - 1) > 0) {
             offsetStartedFromZero = false;
             this.offset = offset;
         }
-        ArrayList<SMS> loadedSMS = this.threadId != null ?
-                loadSMSThreads(context, offset, currentLimit) :
-                new ArrayList<>();
-        this.mutableLiveData = new MutableLiveData<>(loadedSMS);
+
+        if(this.mutableLiveData == null) {
+            ArrayList<SMS> loadedSMS = this.threadId != null ?
+                    loadSMSThreads(context, offset, currentLimit) :
+                    new ArrayList<>();
+            this.mutableLiveData = new MutableLiveData<>(loadedSMS);
+        }
         return mutableLiveData;
     }
 
@@ -83,7 +87,10 @@ public class ConversationsViewModel extends ViewModel {
                 if (!newSMS.isEmpty()) {
                     ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
                     sms.addAll(newSMS);
-                    mutableLiveData.postValue(sms);
+
+                    TreeSet<SMS> smsTreeSet = new TreeSet<>(sms);
+                    smsTreeSet = (TreeSet<SMS>) smsTreeSet.descendingSet();
+                    mutableLiveData.postValue(new ArrayList<>(Arrays.asList(smsTreeSet.toArray(new SMS[0]))));
                 }
 
             }
@@ -95,42 +102,57 @@ public class ConversationsViewModel extends ViewModel {
         ArrayList<SMS> newSMS = loadSMSThreads(context, offset, limit);
 
         if (!newSMS.isEmpty()) {
-            ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
+            ArrayList<SMS> sms = mutableLiveData.getValue();
+            sms.addAll(newSMS);
 
-            ArrayList<SMS> mergedList = new ArrayList<>();
-            mergedList.addAll(newSMS);
-            mergedList.addAll(sms);
-
-            Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
-            mutableLiveData.setValue(mergedList);
+            TreeSet<SMS> smsTreeSet = new TreeSet<>(sms);
+            smsTreeSet = (TreeSet<SMS>) smsTreeSet.descendingSet();
+            mutableLiveData.setValue(new ArrayList<>(Arrays.asList(smsTreeSet.toArray(new SMS[0]))));
         }
         this.offset = offset == 0 ? null : offset;
         return newSMS.size();
     }
 
-    public void loadAll(Context context) {
-        ArrayList<SMS> newSMS = loadSMSThreads(context, this.offset, 0);
-
+    public void _updateLiveData(ArrayList<SMS> newSMS) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 if (!newSMS.isEmpty()) {
                     ArrayList<SMS> sms = (ArrayList<SMS>) mutableLiveData.getValue();
+                    sms.addAll(newSMS);
 
-                    ArrayList<SMS> mergedList = new ArrayList<>();
-                    mergedList.addAll(newSMS);
-                    mergedList.addAll(sms);
-
-                    Log.d(getClass().getName(), "Updating live data...: " + newSMS.size());
-                    mutableLiveData.postValue(mergedList);
+                    TreeSet<SMS> smsTreeSet = new TreeSet<>(sms);
+                    smsTreeSet = (TreeSet<SMS>) smsTreeSet.descendingSet();
+                    mutableLiveData.postValue(new ArrayList<>(Arrays.asList(smsTreeSet.toArray(new SMS[0]))));
                 }
             }
         }).start();
     }
 
+    public void loadFromPosition(Context context, int position) {
+        // if top = load down
+        // if down = load up
+        // if middle = load up and down
+        int mid_count = currentLimit / 2;
+        if((position - mid_count) < 0) {
+            // BOTTOM
+            this.offset = 0;
+            _updateLiveData(loadSMSThreads(context, this.offset, currentLimit));
+        }
+        else {
+            this.offset = position - mid_count;
+            _updateLiveData(loadSMSThreads(context, this.offset, currentLimit));
+        }
+        offsetStartedFromZero = false;
+    }
+
     private ArrayList<SMS> loadSMSThreads(Context context, Integer _offset, int limit) {
         if(_offset == null)
             _offset = 0;
-        return SMSPaging.fetchSMSFromHandlers(context, threadId, limit, _offset);
+        ArrayList<SMS> smsArray =  SMSPaging.fetchMessages_advanced(context, threadId, limit, _offset);
+        TreeSet<SMS> smsTreeSet = new TreeSet<>(smsArray);
+        smsTreeSet = (TreeSet<SMS>) smsTreeSet.descendingSet();
+
+        return new ArrayList<>(Arrays.asList(smsTreeSet.toArray(new SMS[0])));
     }
 }

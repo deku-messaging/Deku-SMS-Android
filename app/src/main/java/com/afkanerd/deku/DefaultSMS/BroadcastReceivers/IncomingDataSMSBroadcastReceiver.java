@@ -13,6 +13,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -55,7 +56,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                 }
 
                 long messageId = -1;
-                SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
                 smsMetaEntity.setAddress(context, _address);
 
                 try {

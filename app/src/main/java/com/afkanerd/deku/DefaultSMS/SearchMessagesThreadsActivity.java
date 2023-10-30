@@ -30,6 +30,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsSearchViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 
 import java.util.List;
 
@@ -157,7 +158,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(context, ConversationActivity.class);
-                    intent.putExtra(SMS.SMSMetaEntity.ADDRESS, address);
+                    intent.putExtra(SMSMetaEntity.ADDRESS, address);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(intent);
                 }

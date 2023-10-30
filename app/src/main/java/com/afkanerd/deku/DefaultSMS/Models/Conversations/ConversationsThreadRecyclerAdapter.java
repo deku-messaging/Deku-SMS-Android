@@ -20,6 +20,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.SentMessage
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
@@ -94,7 +95,7 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
     @Override
     public int getItemViewType(int position) {
         Conversations conversations = mDiffer.getCurrentList().get(position);
-        SMS.SMSMetaEntity smsMetaEntity = conversations.getNewestMessage();
+        SMSMetaEntity smsMetaEntity = conversations.getNewestMessage();
 
         String snippet = conversations.SNIPPET;
         int type = smsMetaEntity.getNewestType();
@@ -153,7 +154,7 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
                 }
 
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
-                singleMessageThreadIntent.putExtra(SMS.SMSMetaEntity.THREAD_ID, conversation.THREAD_ID);
+                singleMessageThreadIntent.putExtra(SMSMetaEntity.THREAD_ID, conversation.THREAD_ID);
                 context.startActivity(singleMessageThreadIntent);
             }
         };

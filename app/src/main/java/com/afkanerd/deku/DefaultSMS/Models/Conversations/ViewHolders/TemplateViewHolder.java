@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.card.MaterialCardView;
 
@@ -49,7 +50,7 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
                      View.OnLongClickListener onLongClickListener) {
         this.id = conversation.THREAD_ID;
 //
-        final SMS.SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
+        final SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
         String address = smsMetaEntity.getAddress();
         if(smsMetaEntity.isContact()) {
             String _address = smsMetaEntity.getContactName();

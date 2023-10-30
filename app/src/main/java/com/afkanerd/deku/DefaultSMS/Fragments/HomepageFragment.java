@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Fragments.Homepage;
+package com.afkanerd.deku.DefaultSMS.Fragments;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsThreadFragment;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -97,20 +98,20 @@ public class HomepageFragment extends Fragment {
 
     public static class HomepageFragmentAdapter extends FragmentStateAdapter {
         public static String[] fragmentList = new String[]{
-                MessagesThreadFragment.ALL_MESSAGES_THREAD_FRAGMENT,
-                MessagesThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT,
-                MessagesThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT };
+                ConversationsThreadFragment.ALL_MESSAGES_THREAD_FRAGMENT,
+                ConversationsThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT,
+                ConversationsThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT };
         public HomepageFragmentAdapter(Fragment fragment) {
             super(fragment);
-//            fragmentList.add(MessagesThreadFragment.AUTOMATED_MESSAGES_THREAD_FRAGMENT);
+//            fragmentList.add(ConversationsThreadFragment.AUTOMATED_MESSAGES_THREAD_FRAGMENT);
         }
 
         @NonNull
         @Override
         public Fragment createFragment(int position) {
-            Fragment fragment = new MessagesThreadFragment();
+            Fragment fragment = new ConversationsThreadFragment();
             Bundle args = new Bundle();
-            args.putString(MessagesThreadFragment.MESSAGES_THREAD_FRAGMENT_TYPE, fragmentList[position]);
+            args.putString(ConversationsThreadFragment.MESSAGES_THREAD_FRAGMENT_TYPE, fragmentList[position]);
             fragment.setArguments(args);
             return fragment;
         }

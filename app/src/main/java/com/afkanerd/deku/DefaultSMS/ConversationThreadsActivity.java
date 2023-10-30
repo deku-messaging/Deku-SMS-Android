@@ -18,14 +18,15 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
+import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsThreadFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
-import com.afkanerd.deku.DefaultSMS.Fragments.Homepage.HomepageFragment;
-import com.afkanerd.deku.DefaultSMS.Fragments.Homepage.MessagesThreadFragment;
+import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.afkanerd.deku.Router.Router.RouterActivity;
@@ -35,7 +36,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 
-public class ConversationThreadsActivity extends CustomAppCompactActivity implements MessagesThreadFragment.OnViewManipulationListener {
+public class ConversationThreadsActivity extends CustomAppCompactActivity implements ConversationsThreadFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
     FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -189,7 +190,7 @@ public class ConversationThreadsActivity extends CustomAppCompactActivity implem
                                 try {
                                     SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
                                     for(String id : ids) {
-                                        SMS.SMSMetaEntity smsMetaEntity = new SMS.SMSMetaEntity();
+                                        SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
                                         smsMetaEntity.setThreadId(getApplicationContext(), id);
                                         securityECDH.removeAllKeys(smsMetaEntity.getAddress());
                                     }
