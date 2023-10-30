@@ -25,6 +25,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -254,13 +255,35 @@ public class ConversationActivity extends CustomAppCompactActivity {
         });
     }
 
+    int searchPointerPosition;
+    TextView searchFoundTextView;
+    private void scrollRecyclerViewSearch(boolean forward) {
+        if(searchPositions.getValue().size() > 0) {
+            try {
+                if (forward && searchPointerPosition >= searchPositions.getValue().size())
+                    searchPointerPosition = -1;
+                if (!forward && searchPointerPosition <= 0)
+                    searchPointerPosition = searchPositions.getValue().size();
+                int requiredScrollPos = forward ? searchPositions.getValue().get(++searchPointerPosition) :
+                        searchPositions.getValue().get(--searchPointerPosition);
+                int scrollPos = conversationsViewModel.loadFromPosition(getApplicationContext(), requiredScrollPos);
+                singleMessagesThreadRecyclerView.scrollToPosition(scrollPos);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        String text = (searchPointerPosition == -1 ? 0 : searchPointerPosition) + "/" + searchPositions.getValue().size() +
+                " " + getString(R.string.conversations_search_results_found);
+        searchFoundTextView.setText(text);
+    }
+
     private void _instantiateGlobals() throws GeneralSecurityException, IOException {
         toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
         setSupportActionBar(toolbar);
         ab = getSupportActionBar();
+        searchFoundTextView = findViewById(R.id.conversations_search_results_found_counter_text);
 
         smsTextView = findViewById(R.id.sms_text);
-//        multiSimcardConstraint = findViewById(R.id.simcard_select_constraint);
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
 
         conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
@@ -269,25 +292,37 @@ public class ConversationActivity extends CustomAppCompactActivity {
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
 
-//        linearLayoutManager = new LinearLayoutManager(getApplicationContext(),
-//                LinearLayoutManager.VERTICAL, true);
-
-        TextView searchFoundTextView = findViewById(R.id.conversations_search_results_found_counter_text);
         searchPositions.observe(this, new Observer<List<Integer>>() {
             @Override
             public void onChanged(List<Integer> integers) {
                 Log.d(getLocalClassName(), "Search found: " + integers.size());
                 conversationsRecyclerAdapter.searchString = searchString;
+
+                ImageButton backSearchBtn = findViewById(R.id.conversation_search_found_back_btn);
+                ImageButton forwardSearchBtn = findViewById(R.id.conversation_search_found_forward_btn);
+
+                backSearchBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        scrollRecyclerViewSearch(false);
+                    }
+                });
+
+                forwardSearchBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        scrollRecyclerViewSearch(true);
+                    }
+                });
+
+                searchPointerPosition = -1;
                 if(!integers.isEmpty()) {
-                    int requiredScrollPos = integers.get(integers.size() - 1);
-                    int scrollPos = conversationsViewModel.loadFromPosition(getApplicationContext(), requiredScrollPos);
-                    singleMessagesThreadRecyclerView.scrollToPosition(scrollPos);
+                    scrollRecyclerViewSearch(false);
                 } else {
                     conversationsRecyclerAdapter.searchString = null;
                     conversationsViewModel.informNewItemChanges(getApplicationContext());
+                    scrollRecyclerViewSearch(true);
                 }
-                String text = integers.size() + " " + getString(R.string.conversations_search_results_found);
-                searchFoundTextView.setText(text);
             }
         });
 

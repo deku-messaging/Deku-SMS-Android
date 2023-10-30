@@ -145,7 +145,8 @@ public class ConversationsViewModel extends ViewModel {
             _updateLiveData(loadSMSThreads(context, this.offset, currentLimit));
         }
         offsetStartedFromZero = false;
-        return size + this.offset;
+//        return size + this.offset;
+        return currentLimit + offset;
     }
 
     private ArrayList<SMS> loadSMSThreads(Context context, Integer _offset, int limit) {

@@ -266,8 +266,8 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
         String _text = sms.getBody();
 
+        final String text = decryptContent(_text);
         if(holder instanceof MessageReceivedViewHandler) {
-            final String text = decryptContent(_text);
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
             if(holder instanceof TimestampMessageReceivedViewHandler || holder instanceof TimestampKeyReceivedViewHandler)
                 messageReceivedViewHandler.timestamp.setText(date);
@@ -313,7 +313,6 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
         }
         else if(holder instanceof MessageSentViewHandler){
-            final String text = decryptContent(_text);
             MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
 
             messageSentViewHandler.date.setText(timeStamp);
@@ -351,7 +350,10 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
             Helpers.highlightLinks(messageSentViewHandler.sentMessage, text,
                     context.getColor(R.color.primary_background_color));
-
+            if(searchString != null) {
+                String sText = messageSentViewHandler.sentMessage.getText().toString();
+                messageSentViewHandler.sentMessage.setText(highlightSubstringYellow(sText));
+            }
 
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
