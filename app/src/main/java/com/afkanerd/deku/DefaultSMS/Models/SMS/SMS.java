@@ -67,16 +67,16 @@ public class SMS implements RMQConnectionService.SmsForwardInterface, Comparable
         int subscriptionIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID);
 
         this.type =  cursor.getInt(typeIndex);
-        this.body = String.valueOf(cursor.getString(bodyIndex));
-        this.address = String.valueOf(cursor.getString(addressIndex));
+        this.body = cursor.getString(bodyIndex);
+        this.address = cursor.getString(addressIndex);
         this.threadId = cursor.getString(threadIdIndex);
-        this.date = String.valueOf(cursor.getString(dateIndex));
+        this.date = cursor.getString(dateIndex);
 
         if(subscriptionIdIndex > -1)
             this.subscriptionId = cursor.getInt(subscriptionIdIndex);
 
         if(idIndex > -1 ) {
-            this.id = String.valueOf(cursor.getString(idIndex));
+            this.id = cursor.getString(idIndex);
         }
 
         if(readIndex > -1 ) {
@@ -84,10 +84,10 @@ public class SMS implements RMQConnectionService.SmsForwardInterface, Comparable
         }
 
         if(threadIdIndex > -1 )
-            this.threadId = String.valueOf(cursor.getString(threadIdIndex));
+            this.threadId = cursor.getString(threadIdIndex);
 
         if(errorCodeIndex > -1 )
-            this.errorCode = String.valueOf(cursor.getString(errorCodeIndex));
+            this.errorCode = cursor.getString(errorCodeIndex);
         if(statusCodeIndex > -1 )
             this.statusCode = cursor.getInt(statusCodeIndex);
 
