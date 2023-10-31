@@ -8,11 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.card.MaterialCardView;
 
@@ -47,7 +43,7 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         materialCardView = itemView.findViewById(R.id.messages_threads_cardview);
     }
 
-    public void init(ThreadedConversations conversation, View.OnClickListener onClickListener,
+    public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener,
                      View.OnLongClickListener onLongClickListener) {
         this.id = String.valueOf(conversation.getThread_id());
 //

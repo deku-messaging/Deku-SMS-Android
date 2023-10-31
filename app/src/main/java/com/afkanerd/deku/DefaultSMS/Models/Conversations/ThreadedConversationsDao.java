@@ -24,10 +24,10 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")
     LiveData<ThreadedConversations> get(long thread_id);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insert(ThreadedConversations threadedConversations);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     List<Long> insert(List<ThreadedConversations> threadedConversationsList);
 
     @Update

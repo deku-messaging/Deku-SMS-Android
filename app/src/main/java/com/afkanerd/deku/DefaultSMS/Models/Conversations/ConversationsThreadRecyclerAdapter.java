@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,19 +18,13 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ReceivedMessagesViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.SentMessagesViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
-import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
@@ -189,7 +182,7 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
             }
         };
 
-        holder.init(threadedConversations, onClickListener, onLongClickListener);
+        holder.bind(threadedConversations, onClickListener, onLongClickListener);
    }
 
     public void resetAllSelectedItems() {
