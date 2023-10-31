@@ -11,7 +11,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,7 +21,7 @@ import android.widget.PopupMenu;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
@@ -32,8 +31,6 @@ import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.android.material.card.MaterialCardView;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.HashMap;
 
 public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.OnViewManipulationListener {
@@ -44,7 +41,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     ActionBar ab;
 
     HashMap<String, ConversationsThreadRecyclerAdapter> messagesThreadRecyclerAdapterHashMap = new HashMap<>();
-    HashMap<String, ConversationsThreadViewModel> stringMessagesThreadViewModelHashMap = new HashMap<>();
+    HashMap<String, ThreadedConversationsViewModel> stringMessagesThreadViewModelHashMap = new HashMap<>();
 
     String ITEM_TYPE = "";
 
@@ -279,20 +276,10 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     @Override
-    public void setViewModel(String itemType, ConversationsThreadViewModel conversationsThreadViewModel) {
+    public void setViewModel(String itemType, ThreadedConversationsViewModel threadedConversationsViewModel) {
         this.ITEM_TYPE = itemType;
-        this.stringMessagesThreadViewModelHashMap.put(itemType, conversationsThreadViewModel);
-        configureBroadcastListeners(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(getLocalClassName(), "Broadcast listener has now been called");
-//                try {
-//                    conversationsThreadViewModel.informChanges(getApplicationContext());
-//                } catch (GeneralSecurityException | IOException e) {
-//                    e.printStackTrace();
-//                }
-            }
-        });
+        this.stringMessagesThreadViewModelHashMap.put(itemType, threadedConversationsViewModel);
+        configureBroadcastListeners(threadedConversationsViewModel);
     }
 
     @Override
@@ -327,7 +314,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     public void tabSelected(int position) {
         this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
         try {
-            ConversationsThreadViewModel threadViewModel = stringMessagesThreadViewModelHashMap.get(ITEM_TYPE);
+            ThreadedConversationsViewModel threadViewModel = stringMessagesThreadViewModelHashMap.get(ITEM_TYPE);
 //            if(threadViewModel != null)
 //                stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
         } catch(Exception e) {

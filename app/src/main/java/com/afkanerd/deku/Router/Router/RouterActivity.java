@@ -77,14 +77,14 @@ public class RouterActivity extends CustomAppCompactActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        configureBroadcastListeners(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(getLocalClassName(), "Updating the routing information");
-                routerViewModel.informChanges(getApplicationContext());
-            }
-        });
-
+//        configureBroadcastListeners(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d(getLocalClassName(), "Updating the routing information");
+//                routerViewModel.informChanges(getApplicationContext());
+//            }
+//        });
+//
     }
 
 //    private void listeners() {

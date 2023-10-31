@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -21,16 +20,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.R;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Set;
 
@@ -38,7 +34,7 @@ public class ThreadedConversationsFragment extends Fragment {
     BroadcastReceiver incomingBroadcastReceiver;
     BroadcastReceiver incomingDataBroadcastReceiver;
 
-    ConversationsThreadViewModel conversationsThreadViewModel;
+    ThreadedConversationsViewModel threadedConversationsViewModel;
     ConversationsThreadRecyclerAdapter conversationsThreadRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
@@ -56,13 +52,14 @@ public class ThreadedConversationsFragment extends Fragment {
     public static final String AUTOMATED_MESSAGES_THREAD_FRAGMENT = "AUTOMATED_MESSAGES_THREAD_FRAGMENT";
 
     private OnViewManipulationListener mListener;
+    ThreadedConversationsDao threadedConversationsDao;
 
     public interface OnViewManipulationListener extends HomepageFragment.TabListenerInterface {
         void activateDefaultToolbar();
         void deactivateDefaultToolbar(int size);
 
         void setRecyclerViewAdapter(String name, ConversationsThreadRecyclerAdapter conversationsThreadRecyclerAdapter);
-        void setViewModel(String name, ConversationsThreadViewModel conversationsThreadViewModel);
+        void setViewModel(String name, ThreadedConversationsViewModel threadedConversationsViewModel);
         Toolbar getToolbar();
     }
 
@@ -82,15 +79,15 @@ public class ThreadedConversationsFragment extends Fragment {
 
         toolbar = mListener.getToolbar();
 
-        conversationsThreadViewModel = new ViewModelProvider(this).get(
-                ConversationsThreadViewModel.class);
+        threadedConversationsViewModel = new ViewModelProvider(this).get(
+                ThreadedConversationsViewModel.class);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
         conversationsThreadRecyclerAdapter = new ConversationsThreadRecyclerAdapter( getContext());
         conversationsThreadRecyclerAdapter.setHasStableIds(true);
         mListener.setRecyclerViewAdapter(messageType, conversationsThreadRecyclerAdapter);
-        mListener.setViewModel(messageType, conversationsThreadViewModel);
+        mListener.setViewModel(messageType, threadedConversationsViewModel);
 
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
@@ -99,22 +96,26 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView.setDrawingCacheEnabled(true);
         messagesThreadRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
-        ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(getContext());
-        conversationsThreadViewModel.get(threadedConversationsDao, getContext()).observe(getViewLifecycleOwner(),
-                new Observer<List<ThreadedConversations>>() {
-                    @Override
-                    public void onChanged(List<ThreadedConversations> smsList) {
-                        TextView textView = view.findViewById(R.id.homepage_no_message);
-                        if(smsList.isEmpty()) {
-                            textView.setVisibility(View.VISIBLE);
+        threadedConversationsDao = ThreadedConversations.getDao(getContext());
+        try {
+            threadedConversationsViewModel.get(threadedConversationsDao, getContext()).observe(getViewLifecycleOwner(),
+                    new Observer<List<ThreadedConversations>>() {
+                        @Override
+                        public void onChanged(List<ThreadedConversations> smsList) {
+                            TextView textView = view.findViewById(R.id.homepage_no_message);
+                            if(smsList.isEmpty()) {
+                                textView.setVisibility(View.VISIBLE);
+                            }
+                            else {
+                                textView.setVisibility(View.GONE);
+                            }
+                            view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            conversationsThreadRecyclerAdapter.mDiffer.submitList(smsList);
                         }
-                        else {
-                            textView.setVisibility(View.GONE);
-                        }
-                        Log.d(getClass().getName(), "LiveData loaded #: " + smsList.size());
-                        view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                    }
-                });
+                    });
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         conversationsThreadRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<Set<TemplateViewHolder>>() {

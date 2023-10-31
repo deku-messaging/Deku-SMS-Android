@@ -231,10 +231,6 @@
             android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService"
             android:enabled="true"
             android:exported="false" />
-        <service
-            android:name="com.afkanerd.deku.DefaultSMS.Models.Web.WebWebsocketsService"
-            android:enabled="true"
-            android:exported="false" />
     </application>
 
 </manifest>

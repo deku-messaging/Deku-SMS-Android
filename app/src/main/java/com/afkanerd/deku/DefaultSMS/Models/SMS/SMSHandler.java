@@ -21,6 +21,9 @@ import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.OutgoingDataSMSBroadcastR
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.OutgoingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsDao;
 import com.afkanerd.deku.QueueListener.RMQ.RMQConnection;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 
@@ -40,8 +43,8 @@ public class SMSHandler {
 
     public static final String DATA_SMS_WORK_MANAGER_TAG_NAME = "DATA_SMS_ROUTING";
 
-    public static final String MESSAGE_STATE_CHANGED_BROADCAST_INTENT =
-            "MESSAGE_STATE_CHANGED_BROADCAST_INTENT";
+    public static final String NATIVE_STATE_CHANGED_BROADCAST_INTENT =
+            "NATIVE_STATE_CHANGED_BROADCAST_INTENT";
 
     public static void deleteThreads(Context context, String[] ids) {
         try {
@@ -102,9 +105,12 @@ public class SMSHandler {
     public static Cursor fetchSMSInboxById(@NonNull Context context, String id) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
                 SMS_CONTENT_URI,
-                new String[]{Telephony.Sms._ID, Telephony.TextBasedSmsColumns.THREAD_ID,
-                        Telephony.TextBasedSmsColumns.ADDRESS, Telephony.TextBasedSmsColumns.PERSON,
-                        Telephony.TextBasedSmsColumns.DATE, Telephony.TextBasedSmsColumns.BODY,
+                new String[]{Telephony.Sms._ID,
+                        Telephony.TextBasedSmsColumns.THREAD_ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS,
+                        Telephony.TextBasedSmsColumns.PERSON,
+                        Telephony.TextBasedSmsColumns.DATE,
+                        Telephony.TextBasedSmsColumns.BODY,
                         Telephony.TextBasedSmsColumns.TYPE},
                 Telephony.Sms._ID + "=?",
                 new String[]{id},
@@ -198,7 +204,8 @@ public class SMSHandler {
     }
 
     public static long registerIncomingMessage(Context context, String address, String body, String subscriptionId) {
-        long messageId = Helpers.generateRandomNumber();
+//        long messageId = Helpers.generateRandomNumber();
+        long messageId = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(Telephony.Sms._ID, messageId);
@@ -212,6 +219,17 @@ public class SMSHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        Cursor cursor = fetchSMSInboxById(context, String.valueOf(messageId));
+
+        int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+        String threadId = cursor.getString(threadIdIndex);
+        cursor.close();
+
+        Intent broadcastIntent = new Intent(SMSHandler.NATIVE_STATE_CHANGED_BROADCAST_INTENT);
+        broadcastIntent.putExtra(Conversation.BROADCAST_THREAD_ID_INTENT, threadId);
+        context.sendBroadcast(broadcastIntent);
+
         return messageId;
     }
 
@@ -449,7 +467,7 @@ public class SMSHandler {
     }
 
     public static void broadcastMessageStateChanged(Context context, Intent intent){
-        Intent newIntent = new Intent(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT);
+        Intent newIntent = new Intent(SMSHandler.NATIVE_STATE_CHANGED_BROADCAST_INTENT);
 
         if(intent != null) {
             newIntent.putExtras(intent.getExtras());

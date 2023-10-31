@@ -65,6 +65,12 @@ public class Migrations {
 
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS ThreadedConversations" +
+                    "(thread_id INTEGER NOT NULL, msg_count INTEGER NOT NULL, " +
+                    "avatar_color INTEGER NOT NULL, is_archived INTEGER NOT NULL, " +
+                    "is_blocked INTEGER NOT NULL, is_read INTEGER NOT NULL, snippet TEXT, " +
+                    "contact_name TEXT, avatar_initials TEXT, avatar_image TEXT, " +
+                    "formatted_datetime TEXT, PRIMARY KEY(thread_id))");
         }
     }
 

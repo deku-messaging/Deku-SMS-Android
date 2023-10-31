@@ -74,25 +74,32 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     }
                 }).start();
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(finalMessageId));
-                            if(cursor != null && cursor.moveToFirst()) {
-                                SMS sms = new SMS(cursor);
-                                sms.setMsisdn(finalAddress);
-                                sms.setText(messageFinal);
+                router_activities(finalAddress, message, finalMessageId);
 
-                                RouterHandler.createWorkForMessage(context, sms, finalMessageId,
-                                        Helpers.isBase64Encoded(messageFinal));
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }).start();
             }
         }
+    }
+
+    public void router_activities(String finalAddress, String messageFinal, long finalMessageId) {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(finalMessageId));
+                    if(cursor != null && cursor.moveToFirst()) {
+                        SMS sms = new SMS(cursor);
+                        sms.setMsisdn(finalAddress);
+                        sms.setText(messageFinal);
+
+                        RouterHandler.createWorkForMessage(context, sms, finalMessageId,
+                                Helpers.isBase64Encoded(messageFinal));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
     }
 }

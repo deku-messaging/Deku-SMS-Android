@@ -68,7 +68,7 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                         @Override
                         public void onChanged(List<Conversations> smsList) {
                             Log.d(getLocalClassName(), "Running for archived with size: " + smsList.size());
-                            archivedThreadRecyclerAdapter.submitList(smsList);
+//                            archivedThreadRecyclerAdapter.submitList(smsList);
                             if(!smsList.isEmpty())
                                 findViewById(R.id.messages_archived_no_messages).setVisibility(View.GONE);
                             else {

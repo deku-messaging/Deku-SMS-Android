@@ -1,44 +1,55 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.provider.Telephony;
+import android.telephony.SmsMessage;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.Models.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Migrations;
+import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
+
+import java.nio.charset.StandardCharsets;
 
 
 @Entity
 public class ThreadedConversations {
     @PrimaryKey
-    public long thread_id;
-    public int msg_count;
-    public int avatar_color;
+     long thread_id;
+     int msg_count;
+     int avatar_color;
 
-    public boolean is_archived;
-    public boolean is_blocked;
+     boolean is_archived;
+     boolean is_blocked;
 
-    public boolean is_read;
+     boolean is_read;
 
-    public String snippet;
+     String snippet;
 
-    public String contact_name;
+     String contact_name;
 
-    public String avatar_initials;
+     String avatar_initials;
 
-    public String avatar_image;
-    public String formatted_datetime;
+     String avatar_image;
+     String formatted_datetime;
 
     public static ThreadedConversationsDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration8To9())
                 .build();
-        return databaseConnector.threadedConversationsDao();
+        ThreadedConversationsDao threadedConversationsDao =  databaseConnector.threadedConversationsDao();
+        databaseConnector.close();
+        return threadedConversationsDao;
     }
 
     public static ThreadedConversations build(Cursor cursor) {
@@ -140,5 +151,35 @@ public class ThreadedConversations {
 
     public void setFormatted_datetime(String formatted_datetime) {
         this.formatted_datetime = formatted_datetime;
+    }
+
+    public static final DiffUtil.ItemCallback<ThreadedConversations> DIFF_CALLBACK = new DiffUtil.ItemCallback<ThreadedConversations>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull ThreadedConversations oldItem, @NonNull ThreadedConversations newItem) {
+            return oldItem.thread_id == newItem.thread_id;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull ThreadedConversations oldItem, @NonNull ThreadedConversations newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if(obj instanceof ThreadedConversations) {
+            ThreadedConversations threadedConversations = (ThreadedConversations) obj;
+            return threadedConversations.thread_id == this.thread_id &&
+                    threadedConversations.is_archived == this.is_archived &&
+                    threadedConversations.is_blocked == this.is_blocked &&
+                    threadedConversations.snippet.equals(this.snippet) &&
+                    threadedConversations.formatted_datetime.equals(this.formatted_datetime) &&
+                    threadedConversations.contact_name.equals(this.contact_name) &&
+                    threadedConversations.avatar_color == this.avatar_color &&
+                    threadedConversations.avatar_image.equals(this.avatar_image) &&
+                    threadedConversations.avatar_initials.equals(this.avatar_initials) &&
+                    threadedConversations.msg_count == this.msg_count;
+        }
+        return super.equals(obj);
     }
 }

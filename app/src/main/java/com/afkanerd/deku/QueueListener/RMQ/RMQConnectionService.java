@@ -20,7 +20,6 @@ import androidx.core.app.NotificationCompat;
 
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
 import com.afkanerd.deku.Router.Router.RouterHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
@@ -246,7 +245,7 @@ public class RMQConnectionService extends Service {
         };
 
         registerReceiver(messageStateChangedBroadcast,
-                new IntentFilter(SMSHandler.MESSAGE_STATE_CHANGED_BROADCAST_INTENT));
+                new IntentFilter(SMSHandler.NATIVE_STATE_CHANGED_BROADCAST_INTENT));
     }
 
     private DeliverCallback getDeliverCallback(Channel channel, final int subscriptionId) {

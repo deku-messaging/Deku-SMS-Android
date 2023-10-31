@@ -9,6 +9,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
@@ -46,21 +47,21 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         materialCardView = itemView.findViewById(R.id.messages_threads_cardview);
     }
 
-    public void init(Conversations conversation, View.OnClickListener onClickListener,
+    public void init(ThreadedConversations conversation, View.OnClickListener onClickListener,
                      View.OnLongClickListener onLongClickListener) {
-        this.id = conversation.THREAD_ID;
+        this.id = String.valueOf(conversation.getThread_id());
 //
-        final SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
-        String address = smsMetaEntity.getAddress();
-        if(smsMetaEntity.isContact()) {
-            String _address = smsMetaEntity.getContactName();
-            address = !_address.isEmpty() ? _address : address;
-            this.contactInitials.setAvatarInitials(address.substring(0, 1));
-            this.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
-        }
-        this.address.setText(address);
-        this.date.setText(smsMetaEntity.getFormattedDate());
-        this.snippet.setText(conversation.SNIPPET);
+//        final SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
+//        String address = smsMetaEntity.getAddress();
+//        if(smsMetaEntity.isContact()) {
+//            String _address = smsMetaEntity.getContactName();
+//            address = !_address.isEmpty() ? _address : address;
+//            this.contactInitials.setAvatarInitials(address.substring(0, 1));
+//            this.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
+//        }
+        this.address.setText(conversation.getContact_name());
+        this.date.setText(conversation.getFormatted_datetime());
+        this.snippet.setText(conversation.getSnippet());
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);
         // TODO: investigate new Avatar first before anything else

@@ -36,7 +36,7 @@ import java.util.Set;
 
 public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
 
-    private final AsyncListDiffer<Conversations> mDiffer = new AsyncListDiffer<>(this, Conversations.DIFF_CALLBACK);
+    public final AsyncListDiffer<ThreadedConversations> mDiffer = new AsyncListDiffer<>(this, ThreadedConversations.DIFF_CALLBACK);
 
     Context context;
     Boolean isSearch = false;
@@ -103,52 +103,54 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
 
     @Override
     public long getItemId(int position) {
-        return Long.parseLong(mDiffer.getCurrentList().get(position).THREAD_ID);
+        return mDiffer.getCurrentList().get(position).getThread_id();
         // return super.getItemId(position);
     }
 
     @Override
     public int getItemViewType(int position) {
-        Conversations conversations = mDiffer.getCurrentList().get(position);
-        SMSMetaEntity smsMetaEntity = conversations.getNewestMessage();
+//        Conversations conversations = mDiffer.getCurrentList().get(position);
+//        SMSMetaEntity smsMetaEntity = conversations.getNewestMessage();
+        ThreadedConversations threadedConversations = mDiffer.getCurrentList().get(position);
 
-        String snippet = conversations.SNIPPET;
-        int type = smsMetaEntity.getNewestType();
-
-        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
-            if(!smsMetaEntity.getNewestIsRead()) {
-                if(type != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
-                else
-                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
-            }
-            else {
-                if(type != MESSAGE_TYPE_INBOX)
-                    return SENT_ENCRYPTED_VIEW_TYPE;
-                else
-                    return RECEIVED_ENCRYPTED_VIEW_TYPE;
-            }
-        }
-        else {
-            if(!smsMetaEntity.getNewestIsRead()) {
-                if(type != MESSAGE_TYPE_INBOX)
-                    return SENT_UNREAD_VIEW_TYPE;
-                else
-                    return RECEIVED_UNREAD_VIEW_TYPE;
-            }else {
-                if(type != MESSAGE_TYPE_INBOX) {
-                    return SENT_VIEW_TYPE;
-                }
-            }
-        }
+        String snippet = threadedConversations.getSnippet();
+//        int type = threadedConversations.get_type();
+//
+//        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
+//            if(!smsMetaEntity.getNewestIsRead()) {
+//                if(type != MESSAGE_TYPE_INBOX)
+//                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
+//                else
+//                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
+//            }
+//            else {
+//                if(type != MESSAGE_TYPE_INBOX)
+//                    return SENT_ENCRYPTED_VIEW_TYPE;
+//                else
+//                    return RECEIVED_ENCRYPTED_VIEW_TYPE;
+//            }
+//        }
+//        else {
+//            if(!smsMetaEntity.getNewestIsRead()) {
+//                if(type != MESSAGE_TYPE_INBOX)
+//                    return SENT_UNREAD_VIEW_TYPE;
+//                else
+//                    return RECEIVED_UNREAD_VIEW_TYPE;
+//            }else {
+//                if(type != MESSAGE_TYPE_INBOX) {
+//                    return SENT_VIEW_TYPE;
+//                }
+//            }
+//        }
 
         return RECEIVED_VIEW_TYPE;
     }
 
     @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
-        Conversations conversation = mDiffer.getCurrentList().get(position);
-        holder.id = conversation.THREAD_ID;
+        ThreadedConversations threadedConversations = mDiffer.getCurrentList().get(position);
+        String threadId = String.valueOf(threadedConversations.getThread_id());
+        holder.id = threadId;
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
@@ -170,7 +172,7 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
                 }
 
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
-                singleMessageThreadIntent.putExtra(SMSMetaEntity.THREAD_ID, conversation.THREAD_ID);
+                singleMessageThreadIntent.putExtra(SMSMetaEntity.THREAD_ID, threadId);
                 context.startActivity(singleMessageThreadIntent);
             }
         };
@@ -187,7 +189,7 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
             }
         };
 
-        holder.init(conversation, onClickListener, onLongClickListener);
+        holder.init(threadedConversations, onClickListener, onLongClickListener);
    }
 
     public void resetAllSelectedItems() {
@@ -203,18 +205,6 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
     @Override
     public int getItemCount() {
         return mDiffer.getCurrentList().size();
-    }
-
-    public void submitList(List<Conversations> list) {
-        if(routerActivity != null) {
-            workManagerFactories();
-        }
-        mDiffer.submitList(list);
-    }
-
-    public void submitList(List<Conversations> list, String searchString) {
-        this.searchString = searchString;
-        mDiffer.submitList(list);
     }
 
     private String getSMSFromWorkInfo(WorkInfo workInfo) {

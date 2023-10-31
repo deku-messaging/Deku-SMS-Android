@@ -9,6 +9,8 @@ import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveDAO;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsDao;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
@@ -16,7 +18,8 @@ import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientDAO;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 
-@Database(entities = {GatewayServer.class, Archive.class, GatewayClient.class, ThreadedConversations.class}, version = 9)
+@Database(entities = {GatewayServer.class, Archive.class, GatewayClient.class,
+        ThreadedConversations.class, Conversation.class}, version = 9)
 public abstract class Datastore extends RoomDatabase {
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
 
@@ -26,6 +29,8 @@ public abstract class Datastore extends RoomDatabase {
     public abstract GatewayClientDAO gatewayClientDAO();
 
     public abstract ThreadedConversationsDao threadedConversationsDao();
+
+    public abstract ConversationDao conversationDao();
 
     @Override
     public void clearAllTables() {

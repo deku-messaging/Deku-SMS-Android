@@ -128,24 +128,24 @@ public class ConversationActivity extends CustomAppCompactActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        configureBroadcastListeners(new Runnable() {
-            @Override
-            public void run() {
-                if(getIntent().hasExtra(SMSMetaEntity.THREAD_ID)) {
-                    if(conversationsViewModel.threadId == null)
-                        conversationsViewModel.informNewItemChanges(getApplicationContext(),
-                                smsMetaEntity.getThreadId());
-                    else
-                        conversationsViewModel.informNewItemChanges(getApplicationContext());
-//                    cancelNotifications(smsMetaEntity.getThreadId());
-                    try {
-                        _checkEncryptionStatus();
-                    } catch (GeneralSecurityException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
+//        configureBroadcastListeners(new Runnable() {
+//            @Override
+//            public void run() {
+//                if(getIntent().hasExtra(SMSMetaEntity.THREAD_ID)) {
+//                    if(conversationsViewModel.threadId == null)
+//                        conversationsViewModel.informNewItemChanges(getApplicationContext(),
+//                                smsMetaEntity.getThreadId());
+//                    else
+//                        conversationsViewModel.informNewItemChanges(getApplicationContext());
+////                    cancelNotifications(smsMetaEntity.getThreadId());
+//                    try {
+//                        _checkEncryptionStatus();
+//                    } catch (GeneralSecurityException | IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        });
 
         _configureLayoutForMessageType();
         _configureEncryptionListeners();

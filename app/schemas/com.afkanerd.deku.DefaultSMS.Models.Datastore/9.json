@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "1cf2e8f97f05e662161d8a10a7d8aa42",
+    "identityHash": "594fa61d99585e1412a74aa2dbbde76a",
     "entities": [
       {
         "tableName": "GatewayServer",
@@ -267,12 +267,110 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "Conversation",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`message_id` INTEGER NOT NULL, `thread_id` INTEGER NOT NULL, `date` INTEGER NOT NULL, `type` INTEGER NOT NULL, `num_segments` INTEGER NOT NULL, `subscription_id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `read` INTEGER NOT NULL, `is_encrypted` INTEGER NOT NULL, `is_key` INTEGER NOT NULL, `is_image` INTEGER NOT NULL, `formatted_date` TEXT, `address` TEXT, `body` TEXT, PRIMARY KEY(`message_id`))",
+        "fields": [
+          {
+            "fieldPath": "message_id",
+            "columnName": "message_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "thread_id",
+            "columnName": "thread_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "num_segments",
+            "columnName": "num_segments",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subscription_id",
+            "columnName": "subscription_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "read",
+            "columnName": "read",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "is_encrypted",
+            "columnName": "is_encrypted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "is_key",
+            "columnName": "is_key",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "is_image",
+            "columnName": "is_image",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "formatted_date",
+            "columnName": "formatted_date",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "body",
+            "columnName": "body",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "message_id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1cf2e8f97f05e662161d8a10a7d8aa42')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '594fa61d99585e1412a74aa2dbbde76a')"
     ]
   }
 }

@@ -2,34 +2,24 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
-import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
+import com.afkanerd.deku.DefaultSMS.Models.RoomViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-public class ConversationsThreadViewModel extends ViewModel {
+public class ThreadedConversationsViewModel extends ViewModel implements RoomViewModel {
     private MutableLiveData<List<ThreadedConversations>> conversationsMutableLiveData = new MutableLiveData<>();
     public LiveData<List<ThreadedConversations>> conversationsLiveData;
     String messagesType;
 
     ThreadedConversationsDao threadedConversationsDao;
-    public LiveData<List<ThreadedConversations>> get(ThreadedConversationsDao threadedConversationsDao, Context context) {
+    public LiveData<List<ThreadedConversations>> get(ThreadedConversationsDao threadedConversationsDao, Context context) throws InterruptedException {
         this.threadedConversationsDao = threadedConversationsDao;
         this.conversationsLiveData = conversationsMutableLiveData;
 
@@ -37,20 +27,33 @@ public class ConversationsThreadViewModel extends ViewModel {
         return this.conversationsLiveData;
     }
 
-    private void loadNative(Context context){
+    private void loadNative(Context context) throws InterruptedException {
+        Cursor cursor = SMSHandler.fetchSMSForThreading(context);
+        List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
+        if(cursor.moveToNext()) {
+            do {
+                threadedConversationsList.add(ThreadedConversations.build(cursor));
+            } while(cursor.moveToNext());
+        }
+        cursor.close();
+        Thread loadNativeThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversationsDao.insert(threadedConversationsList);
+                conversationsLiveData = threadedConversationsDao.getAllWithoutArchived();
+            }
+        });
+        loadNativeThread.start();
+        loadNativeThread.join();
+    }
+
+    @Override
+    public void insert(Object entity) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Cursor cursor = SMSHandler.fetchSMSForThreading(context);
-                List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
-                if(cursor.moveToNext()) {
-                    do {
-                        threadedConversationsList.add(ThreadedConversations.build(cursor));
-                    } while(cursor.moveToNext());
-                }
-                cursor.close();
-                threadedConversationsDao.insert(threadedConversationsList);
-                conversationsLiveData = threadedConversationsDao.getAllWithoutArchived();
+                if(entity instanceof ThreadedConversations)
+                    threadedConversationsDao.insert((ThreadedConversations) entity);
             }
         }).start();
     }
