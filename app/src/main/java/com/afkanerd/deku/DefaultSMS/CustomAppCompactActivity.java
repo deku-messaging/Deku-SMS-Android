@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Log;
@@ -13,6 +14,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.RoomViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 
@@ -27,8 +31,6 @@ public class CustomAppCompactActivity extends AppCompatActivity {
             startActivity(new Intent(this, DefaultCheckActivity.class));
             finish();
         }
-
-        configureBroadcastListeners(null);
     }
 
     private boolean _checkIsDefaultApp() {
@@ -42,7 +44,15 @@ public class CustomAppCompactActivity extends AppCompatActivity {
         nativeStateChangedBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
-                Log.d(getClass().getName(), "Native state changed broadcast intent");
+                if(viewModel instanceof ThreadedConversationsViewModel) {
+                    String threadId = intent.getStringExtra(Conversation.BROADCAST_THREAD_ID_INTENT);
+                    Cursor cursor = SMSHandler.fetchSMSForThreading(context, threadId);
+                    if(cursor.moveToFirst()) {
+                        ThreadedConversations threadedConversations = ThreadedConversations.build(cursor);
+                        viewModel.insert(threadedConversations);
+                    }
+                    cursor.close();
+                }
             }
         };
 

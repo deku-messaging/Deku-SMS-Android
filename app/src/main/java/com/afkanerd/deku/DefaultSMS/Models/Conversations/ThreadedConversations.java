@@ -169,15 +169,22 @@ public class ThreadedConversations {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof ThreadedConversations) {
             ThreadedConversations threadedConversations = (ThreadedConversations) obj;
+//            return threadedConversations.thread_id == this.thread_id &&
+//                    threadedConversations.is_archived == this.is_archived &&
+//                    threadedConversations.is_blocked == this.is_blocked &&
+//                    threadedConversations.snippet.equals(this.snippet) &&
+//                    threadedConversations.formatted_datetime.equals(this.formatted_datetime) &&
+//                    threadedConversations.contact_name.equals(this.contact_name) &&
+//                    threadedConversations.avatar_color == this.avatar_color &&
+//                    threadedConversations.avatar_image.equals(this.avatar_image) &&
+//                    threadedConversations.avatar_initials.equals(this.avatar_initials) &&
+//                    threadedConversations.msg_count == this.msg_count;
+
             return threadedConversations.thread_id == this.thread_id &&
                     threadedConversations.is_archived == this.is_archived &&
                     threadedConversations.is_blocked == this.is_blocked &&
                     threadedConversations.snippet.equals(this.snippet) &&
-                    threadedConversations.formatted_datetime.equals(this.formatted_datetime) &&
-                    threadedConversations.contact_name.equals(this.contact_name) &&
                     threadedConversations.avatar_color == this.avatar_color &&
-                    threadedConversations.avatar_image.equals(this.avatar_image) &&
-                    threadedConversations.avatar_initials.equals(this.avatar_initials) &&
                     threadedConversations.msg_count == this.msg_count;
         }
         return super.equals(obj);

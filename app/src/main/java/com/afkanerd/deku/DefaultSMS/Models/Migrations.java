@@ -71,6 +71,14 @@ public class Migrations {
                     "is_blocked INTEGER NOT NULL, is_read INTEGER NOT NULL, snippet TEXT, " +
                     "contact_name TEXT, avatar_initials TEXT, avatar_image TEXT, " +
                     "formatted_datetime TEXT, PRIMARY KEY(thread_id))");
+
+            database.execSQL("CREATE TABLE IF NOT EXISTS Conversation " +
+                    "(message_id INTEGER NOT NULL, thread_id INTEGER NOT NULL, date INTEGER NOT NULL, " +
+                    "type INTEGER NOT NULL, num_segments INTEGER NOT NULL, " +
+                    "subscription_id INTEGER NOT NULL, status INTEGER NOT NULL, " +
+                    "read INTEGER NOT NULL, is_encrypted INTEGER NOT NULL, is_key INTEGER NOT NULL, " +
+                    "is_image INTEGER NOT NULL, formatted_date TEXT, address TEXT, body TEXT, " +
+                    "PRIMARY KEY(message_id))");
         }
     }
 

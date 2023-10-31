@@ -134,26 +134,19 @@ public class SMSHandler {
     }
 
     public static Cursor fetchSMSForThreading(Context context) {
-//        String[] projection = new String[]{
-//                Telephony.Sms._ID,
-//                Telephony.TextBasedSmsColumns.READ,
-//                Telephony.TextBasedSmsColumns.THREAD_ID,
-//                Telephony.TextBasedSmsColumns.ADDRESS,
-//                Telephony.TextBasedSmsColumns.BODY,
-////                Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
-//                Telephony.TextBasedSmsColumns.TYPE,
-//                "MAX(date) as date"};
-//
-//        return context.getContentResolver().query(
-//                SMS_CONTENT_URI,
-//                projection,
-//                "thread_id IS NOT NULL) GROUP BY (thread_id",
-//                null,
-//                "date DESC");
-
         return context.getContentResolver().query(
                 Telephony.Sms.Conversations.CONTENT_URI,
-                null, null, null, null);
+                null, null, null,
+                "date DESC");
+    }
+
+    public static Cursor fetchSMSForThreading(Context context, String threadId) {
+        return context.getContentResolver().query(
+                Telephony.Sms.Conversations.CONTENT_URI,
+                null,
+                Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+                new String[]{threadId},
+                null);
     }
 
     public static Cursor fetchSMSMessagesForSearch(Context context, String searchInput) {
@@ -221,15 +214,15 @@ public class SMSHandler {
         }
 
         Cursor cursor = fetchSMSInboxById(context, String.valueOf(messageId));
+        if(cursor.moveToFirst()) {
+            int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+            String threadId = cursor.getString(threadIdIndex);
 
-        int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
-        String threadId = cursor.getString(threadIdIndex);
+            Intent broadcastIntent = new Intent(SMSHandler.NATIVE_STATE_CHANGED_BROADCAST_INTENT);
+            broadcastIntent.putExtra(Conversation.BROADCAST_THREAD_ID_INTENT, threadId);
+            context.sendBroadcast(broadcastIntent);
+        }
         cursor.close();
-
-        Intent broadcastIntent = new Intent(SMSHandler.NATIVE_STATE_CHANGED_BROADCAST_INTENT);
-        broadcastIntent.putExtra(Conversation.BROADCAST_THREAD_ID_INTENT, threadId);
-        context.sendBroadcast(broadcastIntent);
-
         return messageId;
     }
 
