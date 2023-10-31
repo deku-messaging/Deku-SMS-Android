@@ -70,7 +70,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
     public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
     public MutableLiveData<String[]> retryFailedDataMessage = new MutableLiveData<>();
 
-    public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer(this, SMS.DIFF_CALLBACK);
+    public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer<SMS>(this, SMS.DIFF_CALLBACK);
 
 
     final int MESSAGE_TYPE_ALL = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL;
@@ -564,6 +564,11 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
         }
         if(position == newestItemPos) { // - minus
             SMS secondMessage = (SMS) snapshotList.get(position + 1);
+            if(!SMSHandler.isSameHour(sms, secondMessage)) {
+                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+                        TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
+            }
+
             if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(sms, secondMessage)) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;

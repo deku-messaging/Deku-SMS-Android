@@ -86,12 +86,16 @@ public class ConversationsThreadFragment extends Fragment {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
         conversationsThreadRecyclerAdapter = new ConversationsThreadRecyclerAdapter( getContext());
+        conversationsThreadRecyclerAdapter.setHasStableIds(true);
         mListener.setRecyclerViewAdapter(messageType, conversationsThreadRecyclerAdapter);
         mListener.setViewModel(messageType, conversationsThreadViewModel);
 
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(conversationsThreadRecyclerAdapter);
+        messagesThreadRecyclerView.setItemViewCacheSize(20);
+        messagesThreadRecyclerView.setDrawingCacheEnabled(true);
+        messagesThreadRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
         try {
             conversationsThreadViewModel.getMessages(getContext(), messageType).observe(getViewLifecycleOwner(),

@@ -58,7 +58,6 @@ public class ConversationsSearchViewModel extends ViewModel {
                 conversations.setTHREAD_ID(entry.getKey());
                 conversations.setSNIPPET(entry.getValue());
                 conversations.setNewestMessage(context);
-                conversations.setNewestMessage(context);
                 smsList.add(conversations);
             }
         }

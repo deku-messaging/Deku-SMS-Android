@@ -1183,16 +1183,14 @@ public class ConversationActivity extends CustomAppCompactActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case SEND_SMS_PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0) {
-                    Toast.makeText(this, "Let's do this!!", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, "Permission denied!", Toast.LENGTH_LONG).show();
-                }
-                break;
+        if (requestCode == SEND_SMS_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+                Toast.makeText(this, "Let's do this!!", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Permission denied!", Toast.LENGTH_LONG).show();
+            }
         }
     }
 

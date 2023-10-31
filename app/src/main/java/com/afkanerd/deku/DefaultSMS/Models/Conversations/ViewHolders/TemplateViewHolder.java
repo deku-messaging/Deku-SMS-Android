@@ -64,7 +64,7 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);
         // TODO: investigate new Avatar first before anything else
-        this.contactInitials.setPlaceholder(itemView.getContext().getDrawable(R.drawable.round_person_24));
+//        this.contactInitials.setPlaceholder(itemView.getContext().getDrawable(R.drawable.round_person_24));
     }
 
     public static class ReadViewHolder extends TemplateViewHolder{

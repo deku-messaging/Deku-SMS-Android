@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,6 +26,8 @@ import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 
 import java.util.HashSet;
@@ -60,8 +63,14 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
     private final int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
 
+    RecyclerView.ViewCacheExtension viewCacheExtension;
     public ConversationsThreadRecyclerAdapter(Context context) {
        this.context = context;
+    }
+
+    public ConversationsThreadRecyclerAdapter(Context context, RecyclerView.ViewCacheExtension viewCacheExtension) {
+        this.context = context;
+        this.viewCacheExtension = viewCacheExtension;
     }
 
     @NonNull
@@ -70,6 +79,7 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
         View view = inflater.inflate(R.layout.messages_threads_layout, parent, false);
+//        View view = viewCacheExtension.getViewForPositionAndType(parent, 0, viewType);
         if(viewType == (RECEIVED_UNREAD_VIEW_TYPE))
             return new ReceivedMessagesViewHolder.ReceivedViewHolderUnread(view);
         else if(viewType == (SENT_UNREAD_VIEW_TYPE))
@@ -91,6 +101,11 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
         return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedRead(view);
     }
 
+    @Override
+    public long getItemId(int position) {
+        return Long.parseLong(mDiffer.getCurrentList().get(position).THREAD_ID);
+        // return super.getItemId(position);
+    }
 
     @Override
     public int getItemViewType(int position) {
@@ -133,6 +148,7 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
     @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
         Conversations conversation = mDiffer.getCurrentList().get(position);
+        holder.id = conversation.THREAD_ID;
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
@@ -250,5 +266,4 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
 //            }
 //        });
     }
-
 }

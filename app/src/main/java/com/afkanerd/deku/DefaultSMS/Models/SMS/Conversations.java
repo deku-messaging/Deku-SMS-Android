@@ -79,8 +79,7 @@ public class Conversations {
             if(this.smsMetaEntity != null && conversations.smsMetaEntity != null)
                 return conversations.THREAD_ID.equals(this.THREAD_ID) &&
                         conversations.SNIPPET.equals(this.SNIPPET) &&
-                        conversations.getNewestMessage().getNewestIsRead() == this.smsMetaEntity.getNewestIsRead() &&
-                        conversations.getNewestMessage().getNewestDateTime() == this.smsMetaEntity.getNewestDateTime();
+                        conversations.getNewestMessage().getNewestIsRead() == this.smsMetaEntity.getNewestIsRead();
 
             if(conversations.SNIPPET != null) {
                 return conversations.THREAD_ID.equals(this.THREAD_ID) &&
