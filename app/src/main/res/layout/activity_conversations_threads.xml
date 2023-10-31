@@ -5,7 +5,7 @@
     android:theme="@style/Theme.main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ConversationThreadsActivity">
+    tools:context=".ThreadedConversationsActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/messages_threads_toolbar"

@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
@@ -18,12 +19,11 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
-import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsThreadFragment;
+import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 
-public class ConversationThreadsActivity extends CustomAppCompactActivity implements ConversationsThreadFragment.OnViewManipulationListener {
+public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
     FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -63,6 +63,11 @@ public class ConversationThreadsActivity extends CustomAppCompactActivity implem
             return;
         }
 
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
         configureToolbarEvents();
         loadSubroutines();
         fragmentManagement();
@@ -196,7 +201,7 @@ public class ConversationThreadsActivity extends CustomAppCompactActivity implem
                                     }
                                     SMSHandler.deleteThreads(getApplicationContext(), ids);
                                     messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-                                    stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+//                                    stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
                                 } catch(Exception e) {
                                     e.printStackTrace();
                                 }
@@ -209,10 +214,10 @@ public class ConversationThreadsActivity extends CustomAppCompactActivity implem
                             ArchiveHandler archiveHandler = new ArchiveHandler(getApplicationContext());
                             archiveHandler.archiveMultipleSMS(ids);
                             messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-                            stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+//                            stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
                             archiveHandler.close();
                             return true;
-                        } catch (InterruptedException | GeneralSecurityException | IOException e) {
+                        } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
@@ -281,11 +286,11 @@ public class ConversationThreadsActivity extends CustomAppCompactActivity implem
             @Override
             public void run() {
                 Log.d(getLocalClassName(), "Broadcast listener has now been called");
-                try {
-                    conversationsThreadViewModel.informChanges(getApplicationContext());
-                } catch (GeneralSecurityException | IOException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    conversationsThreadViewModel.informChanges(getApplicationContext());
+//                } catch (GeneralSecurityException | IOException e) {
+//                    e.printStackTrace();
+//                }
             }
         });
     }
@@ -323,8 +328,8 @@ public class ConversationThreadsActivity extends CustomAppCompactActivity implem
         this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
         try {
             ConversationsThreadViewModel threadViewModel = stringMessagesThreadViewModelHashMap.get(ITEM_TYPE);
-            if(threadViewModel != null)
-                stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+//            if(threadViewModel != null)
+//                stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
         } catch(Exception e) {
             e.printStackTrace();
         }

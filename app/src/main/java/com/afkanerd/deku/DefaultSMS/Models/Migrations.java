@@ -58,4 +58,14 @@ public class Migrations {
         }
     }
 
+    public static class Migration8To9 extends Migration {
+        public Migration8To9() {
+            super(8, 9);
+        }
+
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+        }
+    }
+
 }

@@ -115,7 +115,7 @@ public class LinkedDevicesQRActivity extends AppCompatActivity {
                                             getString(R.string.linked_devices_new_gateway_client_added),
                                             Toast.LENGTH_SHORT)
                                     .show();
-                            Intent intent = new Intent(getApplicationContext(), ConversationThreadsActivity.class);
+                            Intent intent = new Intent(getApplicationContext(), ThreadedConversationsActivity.class);
                             startActivity(intent);
                             finish();
                         } catch(Exception e) {

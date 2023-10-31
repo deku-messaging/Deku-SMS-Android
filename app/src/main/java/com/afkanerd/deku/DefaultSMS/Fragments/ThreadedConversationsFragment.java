@@ -22,6 +22,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
@@ -32,7 +34,7 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Set;
 
-public class ConversationsThreadFragment extends Fragment {
+public class ThreadedConversationsFragment extends Fragment {
     BroadcastReceiver incomingBroadcastReceiver;
     BroadcastReceiver incomingDataBroadcastReceiver;
 
@@ -97,26 +99,22 @@ public class ConversationsThreadFragment extends Fragment {
         messagesThreadRecyclerView.setDrawingCacheEnabled(true);
         messagesThreadRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
-        try {
-            conversationsThreadViewModel.getMessages(getContext(), messageType).observe(getViewLifecycleOwner(),
-                    new Observer<List<Conversations>>() {
-                        @Override
-                        public void onChanged(List<Conversations> smsList) {
-                            TextView textView = view.findViewById(R.id.homepage_no_message);
-                            if(smsList.isEmpty()) {
-                                textView.setVisibility(View.VISIBLE);
-                            }
-                            else {
-                                textView.setVisibility(View.GONE);
-                            }
-                            Log.d(getClass().getName(), "Running for we submit now!");
-                            conversationsThreadRecyclerAdapter.submitList(smsList);
-                            view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+        ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(getContext());
+        conversationsThreadViewModel.get(threadedConversationsDao, getContext()).observe(getViewLifecycleOwner(),
+                new Observer<List<ThreadedConversations>>() {
+                    @Override
+                    public void onChanged(List<ThreadedConversations> smsList) {
+                        TextView textView = view.findViewById(R.id.homepage_no_message);
+                        if(smsList.isEmpty()) {
+                            textView.setVisibility(View.VISIBLE);
                         }
-                    });
-        } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
-        }
+                        else {
+                            textView.setVisibility(View.GONE);
+                        }
+                        Log.d(getClass().getName(), "LiveData loaded #: " + smsList.size());
+                        view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                    }
+                });
 
         conversationsThreadRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<Set<TemplateViewHolder>>() {
@@ -156,11 +154,6 @@ public class ConversationsThreadFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        try {
-            conversationsThreadViewModel.informChanges(getContext());
-        } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

@@ -13,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsThreadFragment;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -98,20 +97,20 @@ public class HomepageFragment extends Fragment {
 
     public static class HomepageFragmentAdapter extends FragmentStateAdapter {
         public static String[] fragmentList = new String[]{
-                ConversationsThreadFragment.ALL_MESSAGES_THREAD_FRAGMENT,
-                ConversationsThreadFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT,
-                ConversationsThreadFragment.PLAIN_MESSAGES_THREAD_FRAGMENT };
+                ThreadedConversationsFragment.ALL_MESSAGES_THREAD_FRAGMENT,
+                ThreadedConversationsFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT,
+                ThreadedConversationsFragment.PLAIN_MESSAGES_THREAD_FRAGMENT };
         public HomepageFragmentAdapter(Fragment fragment) {
             super(fragment);
-//            fragmentList.add(ConversationsThreadFragment.AUTOMATED_MESSAGES_THREAD_FRAGMENT);
+//            fragmentList.add(ThreadedConversationsFragment.AUTOMATED_MESSAGES_THREAD_FRAGMENT);
         }
 
         @NonNull
         @Override
         public Fragment createFragment(int position) {
-            Fragment fragment = new ConversationsThreadFragment();
+            Fragment fragment = new ThreadedConversationsFragment();
             Bundle args = new Bundle();
-            args.putString(ConversationsThreadFragment.MESSAGES_THREAD_FRAGMENT_TYPE, fragmentList[position]);
+            args.putString(ThreadedConversationsFragment.MESSAGES_THREAD_FRAGMENT_TYPE, fragmentList[position]);
             fragment.setArguments(args);
             return fragment;
         }
