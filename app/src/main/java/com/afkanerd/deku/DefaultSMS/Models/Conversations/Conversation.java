@@ -26,11 +26,15 @@ public class Conversation {
 
     @Ignore
     public static String BROADCAST_THREAD_ID_INTENT = "BROADCAST_THREAD_ID_INTENT";
-    @PrimaryKey
-    long message_id;
-    long thread_id;
 
-    long date;
+    @PrimaryKey(autoGenerate = true)
+    long id;
+
+    String message_id;
+    String thread_id;
+
+    String date;
+    String date_sent;
 
     int type;
     int num_segments;
@@ -62,27 +66,35 @@ public class Conversation {
         return conversationDao;
     }
 
-    public long getMessage_id() {
+    public String getDate_sent() {
+        return date_sent;
+    }
+
+    public void setDate_sent(String date_sent) {
+        this.date_sent = date_sent;
+    }
+
+    public String getMessage_id() {
         return message_id;
     }
 
-    public void setMessage_id(long message_id) {
+    public void setMessage_id(String message_id) {
         this.message_id = message_id;
     }
 
-    public long getThread_id() {
+    public String getThread_id() {
         return thread_id;
     }
 
-    public void setThread_id(long thread_id) {
+    public void setThread_id(String thread_id) {
         this.thread_id = thread_id;
     }
 
-    public long getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(long date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
@@ -179,12 +191,22 @@ public class Conversation {
         int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
         int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
         int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+        int dateIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
+        int dateSentIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE_SENT);
+        int typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE);
+        int statusIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.STATUS);
+        int subscriptionIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID);
 
         Conversation conversation = new Conversation();
-        conversation.setMessage_id(Long.parseLong(cursor.getString(idIndex)));
+        conversation.setMessage_id(cursor.getString(idIndex));
         conversation.setBody(cursor.getString(bodyIndex));
-        conversation.setThread_id(Long.parseLong(cursor.getString(threadIdIndex)));
+        conversation.setThread_id(cursor.getString(threadIdIndex));
         conversation.setAddress(cursor.getString(addressIndex));
+        conversation.setDate(cursor.getString(dateIndex));
+        conversation.setDate_sent(cursor.getString(dateSentIndex));
+        conversation.setType(cursor.getInt(typeIndex));
+        conversation.setStatus(cursor.getInt(statusIndex));
+        conversation.setSubscription_id(cursor.getInt(subscriptionIdIndex));
 
         return conversation;
     }
@@ -206,6 +228,7 @@ public class Conversation {
         if(obj instanceof Conversation) {
             Conversation conversation = (Conversation) obj;
             return conversation.thread_id == this.thread_id &&
+                    conversation.message_id == this.message_id &&
                     conversation.body.equals(this.body) &&
                     conversation.status == this.status &&
                     conversation.date == this.date &&

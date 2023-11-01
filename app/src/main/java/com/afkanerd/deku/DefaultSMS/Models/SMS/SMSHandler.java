@@ -57,12 +57,12 @@ public class SMSHandler {
         }
     }
 
-    public static boolean isSameMinute(SMS sms1, SMS sms2) {
-        Date date = new Date(Long.parseLong(sms1.getDate()));
+    public static boolean isSameMinute(Long date1, Long date2) {
+        Date date = new Date(date1);
         Calendar currentCalendar = Calendar.getInstance();
         currentCalendar.setTime(date);
 
-        String previousDateString = sms2.getDate();
+        String previousDateString = String.valueOf(date2);
         Date previousDate = new Date(Long.parseLong(previousDateString));
         Calendar prevCalendar = Calendar.getInstance();
         prevCalendar.setTime(previousDate);
@@ -72,12 +72,12 @@ public class SMSHandler {
                 || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE))));
     }
 
-    public static boolean isSameHour(SMS sms1, SMS sms2) {
-        Date date = new Date(Long.parseLong(sms1.getDate()));
+    public static boolean isSameHour(Long date1, Long date2) {
+        Date date = new Date(date1);
         Calendar currentCalendar = Calendar.getInstance();
         currentCalendar.setTime(date);
 
-        String previousDateString = sms2.getDate();
+        String previousDateString = String.valueOf(date2);
         Date previousDate = new Date(Long.parseLong(previousDateString));
         Calendar prevCalendar = Calendar.getInstance();
         prevCalendar.setTime(previousDate);
@@ -159,6 +159,11 @@ public class SMSHandler {
                         Telephony.Sms._ID,
                         Telephony.TextBasedSmsColumns.ADDRESS,
                         Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.DATE,
+                        Telephony.TextBasedSmsColumns.TYPE,
+                        Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID,
+                        Telephony.TextBasedSmsColumns.STATUS,
+                        Telephony.TextBasedSmsColumns.DATE_SENT,
                         Telephony.TextBasedSmsColumns.THREAD_ID},
                 "thread_id =?",
                 new String[]{threadId},

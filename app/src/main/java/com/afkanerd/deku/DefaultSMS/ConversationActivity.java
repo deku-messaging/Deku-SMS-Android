@@ -156,6 +156,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        conversationsViewModel.loadNative(getApplicationContext());
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -360,8 +362,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
         int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
 
         ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
-        conversationsViewModel.get(conversationDao, smsMetaEntity.getThreadId(),
-                getApplicationContext()).observe(this, new Observer<List<Conversation>>() {
+        conversationsViewModel.get(conversationDao, smsMetaEntity.getThreadId())
+                .observe(this, new Observer<List<Conversation>>() {
             @Override
             public void onChanged(List<Conversation> smsList) {
                 conversationsRecyclerAdapter.mDiffer.submitList(smsList);
@@ -405,49 +407,49 @@ public class ConversationActivity extends CustomAppCompactActivity {
             }
         });
 
-        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Cursor cursor = smsMetaEntity.fetchMessages(getApplicationContext(), 0, 0);
-                        int msgLen = cursor.getCount();
-                        cursor.close();
-
-                        if(conversationsRecyclerAdapter.mDiffer.getCurrentList().size() >= msgLen)
-                            return;
-
-                        final int maximumScrollPosition = conversationsRecyclerAdapter.getItemCount() - 3;
-
-                        try {
-                            LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                            if (layoutManager != null) {
-                                final int lastTopVisiblePosition = layoutManager.findLastVisibleItemPosition();
-                                final int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
-
-                                if (conversationsViewModel.offsetStartedFromZero &&
-                                        lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
-//                                    conversationsViewModel.refresh(getApplicationContext());
-                                    int itemCount = recyclerView.getAdapter().getItemCount();
-                                    if (itemCount > maximumScrollPosition + 1)
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                recyclerView.scrollToPosition(lastTopVisiblePosition);
-                                            }
-                                        });
-                                }
-
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }).start();
-            }
-        });
+//        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+//                super.onScrolled(recyclerView, dx, dy);
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Cursor cursor = smsMetaEntity.fetchMessages(getApplicationContext(), 0, 0);
+//                        int msgLen = cursor.getCount();
+//                        cursor.close();
+//
+//                        if(conversationsRecyclerAdapter.mDiffer.getCurrentList().size() >= msgLen)
+//                            return;
+//
+//                        final int maximumScrollPosition = conversationsRecyclerAdapter.getItemCount() - 3;
+//
+//                        try {
+//                            LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+//                            if (layoutManager != null) {
+//                                final int lastTopVisiblePosition = layoutManager.findLastVisibleItemPosition();
+//                                final int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+//
+//                                if (conversationsViewModel.offsetStartedFromZero &&
+//                                        lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
+////                                    conversationsViewModel.refresh(getApplicationContext());
+//                                    int itemCount = recyclerView.getAdapter().getItemCount();
+//                                    if (itemCount > maximumScrollPosition + 1)
+//                                        runOnUiThread(new Runnable() {
+//                                            @Override
+//                                            public void run() {
+//                                                recyclerView.scrollToPosition(lastTopVisiblePosition);
+//                                            }
+//                                        });
+//                                }
+//
+//                            }
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }).start();
+//            }
+//        });
 
         try {
             conversationsRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {

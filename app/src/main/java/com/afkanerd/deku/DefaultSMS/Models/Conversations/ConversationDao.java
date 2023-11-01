@@ -13,8 +13,8 @@ import java.util.List;
 @Dao
 public interface ConversationDao {
 
-    @Query("SELECT * FROM Conversation")
-    LiveData<List<Conversation>> getAll();
+    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
+    LiveData<List<Conversation>> get(String thread_id);
 
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
     LiveData<Conversation> get(long message_id);
