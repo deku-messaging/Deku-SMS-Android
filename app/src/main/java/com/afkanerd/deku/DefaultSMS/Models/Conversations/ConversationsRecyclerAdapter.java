@@ -70,7 +70,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
     public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
     public MutableLiveData<String[]> retryFailedDataMessage = new MutableLiveData<>();
 
-    public final AsyncListDiffer<SMS> mDiffer = new AsyncListDiffer<SMS>(this, SMS.DIFF_CALLBACK);
+    public final AsyncListDiffer<Conversation> mDiffer = new AsyncListDiffer(this, Conversation.DIFF_CALLBACK);
 
 
     final int MESSAGE_TYPE_ALL = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL;
@@ -192,11 +192,6 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
         return new MessageSentViewHandler(view);
     }
 
-    public void submitList(List<SMS> smsList) {
-        animation = true;
-        mDiffer.submitList(smsList);
-    }
-
     private String decryptContent(String input) {
         if(this.secretKey != null &&
                 input.getBytes(StandardCharsets.UTF_8).length > 16
@@ -238,8 +233,8 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
     }
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        final SMS sms = mDiffer.getCurrentList().get(position);
-        final String smsId = sms.getId();
+        final Conversation sms = mDiffer.getCurrentList().get(position);
+        final String smsId = String.valueOf(sms.getMessage_id());
 
         if(animation) {
             AnimatorSet animatorSet = new AnimatorSet();
@@ -259,10 +254,10 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
             animation = false;
         }
 
-        String date = Helpers.formatDateExtended(context, Long.parseLong(sms.getDate()));
+        String date = Helpers.formatDateExtended(context, sms.date);
 
         DateFormat dateFormat = new SimpleDateFormat("h:mm a");
-        String timeStamp = dateFormat.format(new Date(Long.parseLong(sms.getDate())));
+        String timeStamp = dateFormat.format(new Date(sms.date));
 
         String _text = sms.getBody();
 
@@ -282,9 +277,9 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                 receivedMessage.setText(highlightSubstringYellow(sText));
             }
 
-            if(sms.getSubscriptionId() > 0) {
+            if(sms.getSubscription_id() > 0) {
                 String subscriptionName = SIMHandler.getSubscriptionName(context,
-                        String.valueOf(sms.getSubscriptionId()));
+                        String.valueOf(sms.getSubscription_id()));
                 if(subscriptionName != null && !subscriptionName.isEmpty())
                     timeStamp += " • " + subscriptionName;
             }
@@ -294,8 +289,8 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
             messageReceivedViewHandler.receivedMessage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(isHighlighted(sms.getId()))
-                        resetSelectedItem(sms.getId(), true);
+                    if(isHighlighted(String.valueOf(sms.getMessage_id())))
+                        resetSelectedItem(String.valueOf(sms.getMessage_id()), true);
                     else if(selectedItem.getValue() != null ){
                         longClickHighlight(messageReceivedViewHandler, smsId);
                     } else {
@@ -307,7 +302,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
             messageReceivedViewHandler.receivedMessage.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    return longClickHighlight(messageReceivedViewHandler, sms.getId());
+                    return longClickHighlight(messageReceivedViewHandler, String.valueOf(sms.getMessage_id()));
                 }
             });
 
@@ -320,7 +315,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
             if(holder instanceof TimestampMessageSentViewHandler || holder instanceof  TimestampKeySentViewHandler)
                 messageSentViewHandler.timestamp.setText(date);
 
-            final int status = sms.getStatusCode();
+            final int status = sms.getStatus();
             String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?
                     context.getString(R.string.sms_status_delivered) : context.getString(R.string.sms_status_sent);
 
@@ -339,9 +334,9 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                 messageSentViewHandler.sentMessageStatus.invalidate();
                 messageSentViewHandler.date.invalidate();
             }
-            if(sms.getSubscriptionId() > 0) {
+            if(sms.getSubscription_id() > 0) {
                 String subscriptionName = SIMHandler.getSubscriptionName(context,
-                        String.valueOf(sms.getSubscriptionId()));
+                        String.valueOf(sms.getSubscription_id()));
                 if(subscriptionName != null && !subscriptionName.isEmpty())
                     statusMessage += " • " + subscriptionName;
             }
@@ -358,14 +353,14 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(isHighlighted(sms.getId()))
-                        resetSelectedItem(sms.getId(), true);
+                    if(isHighlighted(String.valueOf(sms.getMessage_id())))
+                        resetSelectedItem(String.valueOf(sms.getMessage_id()), true);
                     else if(selectedItem.getValue() != null) {
                         longClickHighlight(messageSentViewHandler, smsId);
                     }
                     else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
                         String[] messageValues = new String[2];
-                        messageValues[0] = sms.getId();
+                        messageValues[0] = String.valueOf(sms.getMessage_id());
 
                         String _text = text;
                         if(holder instanceof KeySentViewHandler) {
@@ -490,17 +485,18 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
     @Override
     public int getItemViewType(int position) {
-        List<SMS> snapshotList = mDiffer.getCurrentList();
-        SMS sms = snapshotList.get(position);
+        List<Conversation> snapshotList = mDiffer.getCurrentList();
+        Conversation sms = snapshotList.get(position);
 
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
 
         int oldestItemPos = snapshotList.size() - 1;
         int newestItemPos = 0;
 
+/*
         if(isEncryptionKey) {
             if(position == oldestItemPos || snapshotList.size() < 2 ||
-                    (position > (oldestItemPos -1) && SMSHandler.isSameMinute(sms, (SMS) snapshotList.get(position -1)) )) {
+                    (position > (oldestItemPos -1) && SMSHandler.isSameMinute(sms, (Conversation) snapshotList.get(position -1)) )) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_KEY_TYPE_INBOX : TIMESTAMP_KEY_TYPE_OUTBOX;
             }
@@ -515,10 +511,12 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                     TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
         }
 
-        /**
+        */
+/**
          * start message - with timestamp
          * start message - without timestamp
-         */
+         *//*
+
 
         if(position == oldestItemPos) { // - minus
             SMS secondMessage = (SMS) snapshotList.get(position - 1);
@@ -574,6 +572,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                         MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
             }
         }
+*/
 
         return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                 MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
@@ -586,19 +585,19 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
     public void removeAllItems(String[] _keys) {
         List<String> keys = new ArrayList<>(Arrays.asList(_keys));
-        List<SMS> sms = new ArrayList<>(mDiffer.getCurrentList());
-        List<SMS> smsNew = new ArrayList<>();
-        for(SMS sms1 : sms)
-            if(!keys.contains(sms1.getId()))
+        List<Conversation> sms = new ArrayList<>(mDiffer.getCurrentList());
+        List<Conversation> smsNew = new ArrayList<>();
+        for(Conversation sms1 : sms)
+            if(!keys.contains(String.valueOf(sms1.getMessage_id())))
                 smsNew.add(sms1);
 
         mDiffer.submitList(smsNew);
     }
 
     public void removeItem(String keys) {
-        List<SMS> sms = new ArrayList<>(mDiffer.getCurrentList());
+        List<Conversation> sms = new ArrayList<>(mDiffer.getCurrentList());
         for(int i=0; i< sms.size(); ++i) {
-            if(sms.get(i).getId().equals(keys)) {
+            if(String.valueOf(sms.get(i).getMessage_id()).equals(keys)) {
                 sms.remove(i);
                 break;
             }

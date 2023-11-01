@@ -2,10 +2,14 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.Dao;
 import androidx.room.Entity;
 import androidx.room.Ignore;
@@ -168,5 +172,46 @@ public class Conversation {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public static Conversation build(Cursor cursor) {
+        int idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID);
+        int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
+        int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+        int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+
+        Conversation conversation = new Conversation();
+        conversation.setMessage_id(Long.parseLong(cursor.getString(idIndex)));
+        conversation.setBody(cursor.getString(bodyIndex));
+        conversation.setThread_id(Long.parseLong(cursor.getString(threadIdIndex)));
+        conversation.setAddress(cursor.getString(addressIndex));
+
+        return conversation;
+    }
+
+
+    public static final DiffUtil.ItemCallback<Conversation> DIFF_CALLBACK = new DiffUtil.ItemCallback<Conversation>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Conversation oldItem, @NonNull Conversation newItem) {
+            return oldItem.message_id == newItem.message_id;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Conversation oldItem, @NonNull Conversation newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
+
+    public boolean equals(@Nullable Object obj) {
+        if(obj instanceof Conversation) {
+            Conversation conversation = (Conversation) obj;
+            return conversation.thread_id == this.thread_id &&
+                    conversation.body.equals(this.body) &&
+                    conversation.status == this.status &&
+                    conversation.date == this.date &&
+                    conversation.address.equals(this.address) &&
+                    conversation.type == this.type;
+        }
+        return super.equals(obj);
     }
 }

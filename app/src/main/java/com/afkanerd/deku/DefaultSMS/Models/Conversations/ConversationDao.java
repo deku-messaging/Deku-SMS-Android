@@ -22,6 +22,9 @@ public interface ConversationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(Conversation conversation);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    List<Long> insertAll(List<Conversation> conversationList);
+
     @Update
     void update(Conversation conversation);
 

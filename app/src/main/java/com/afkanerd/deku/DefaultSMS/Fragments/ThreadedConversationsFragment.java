@@ -103,7 +103,7 @@ public class ThreadedConversationsFragment extends Fragment {
                         @Override
                         public void onChanged(List<ThreadedConversations> smsList) {
                             TextView textView = view.findViewById(R.id.homepage_no_message);
-                            if(smsList.isEmpty()) {
+                            if(smsList == null || smsList.isEmpty()) {
                                 textView.setVisibility(View.VISIBLE);
                             }
                             else {

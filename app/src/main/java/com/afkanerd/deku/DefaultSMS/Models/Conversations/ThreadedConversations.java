@@ -53,14 +53,14 @@ public class ThreadedConversations {
     }
 
     public static ThreadedConversations build(Cursor cursor) {
-        int snippetIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.SNIPPET);
-        int threadIdIndex = cursor.getColumnIndex(Telephony.Sms.Conversations.THREAD_ID);
-        int msgCountIndex = cursor.getColumnIndex(Telephony.Sms.Conversations.MESSAGE_COUNT);
+        int snippetIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
+        int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
+        int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
 
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setSnippet(cursor.getString(snippetIndex));
         threadedConversations.setThread_id(Long.parseLong(cursor.getString(threadIdIndex)));
-        threadedConversations.setMsg_count(cursor.getInt(msgCountIndex));
+        threadedConversations.setContact_name(cursor.getString(addressIndex));
 
         return threadedConversations;
     }

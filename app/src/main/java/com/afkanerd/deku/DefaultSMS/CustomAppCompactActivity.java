@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -46,7 +45,7 @@ public class CustomAppCompactActivity extends AppCompatActivity {
             public void onReceive(Context context, @NonNull Intent intent) {
                 if(viewModel instanceof ThreadedConversationsViewModel) {
                     String threadId = intent.getStringExtra(Conversation.BROADCAST_THREAD_ID_INTENT);
-                    Cursor cursor = SMSHandler.fetchSMSForThreading(context, threadId);
+                    Cursor cursor = SMSHandler.fetchByThreadId(context, threadId);
                     if(cursor.moveToFirst()) {
                         ThreadedConversations threadedConversations = ThreadedConversations.build(cursor);
                         viewModel.insert(threadedConversations);

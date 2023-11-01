@@ -46,6 +46,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
@@ -186,7 +188,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
         findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
         findViewById(R.id.conversations_search_box_layout).setVisibility(View.GONE);
         conversationsRecyclerAdapter.searchString = null;
-        conversationsViewModel.informNewItemChanges(getApplicationContext());
+//        conversationsViewModel.informNewItemChanges(getApplicationContext());
 //        conversationsRecyclerAdapter.notifyDataSetChanged();
     }
 
@@ -269,8 +271,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
                     searchPointerPosition = searchPositions.getValue().size();
                 int requiredScrollPos = forward ? searchPositions.getValue().get(++searchPointerPosition) :
                         searchPositions.getValue().get(--searchPointerPosition);
-                int scrollPos = conversationsViewModel.loadFromPosition(getApplicationContext(), requiredScrollPos);
-                singleMessagesThreadRecyclerView.scrollToPosition(scrollPos);
+//                int scrollPos = conversationsViewModel.loadFromPosition(getApplicationContext(), requiredScrollPos);
+//                singleMessagesThreadRecyclerView.scrollToPosition(scrollPos);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -323,7 +325,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                     scrollRecyclerViewSearch(false);
                 } else {
                     conversationsRecyclerAdapter.searchString = null;
-                    conversationsViewModel.informNewItemChanges(getApplicationContext());
+//                    conversationsViewModel.informNewItemChanges(getApplicationContext());
                     scrollRecyclerViewSearch(true);
                 }
             }
@@ -352,16 +354,17 @@ public class ConversationActivity extends CustomAppCompactActivity {
         };
     }
 
-    private void _configureRecyclerView() {
+    private void _configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
 
         int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
 
-        conversationsViewModel.getMessages(
-                getApplicationContext(), smsMetaEntity.getThreadId(), offset).observe(this, new Observer<List<SMS>>() {
+        ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
+        conversationsViewModel.get(conversationDao, smsMetaEntity.getThreadId(),
+                getApplicationContext()).observe(this, new Observer<List<Conversation>>() {
             @Override
-            public void onChanged(List<SMS> smsList) {
-                conversationsRecyclerAdapter.submitList(smsList);
+            public void onChanged(List<Conversation> smsList) {
+                conversationsRecyclerAdapter.mDiffer.submitList(smsList);
             }
         });
 
@@ -426,7 +429,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
                                 if (conversationsViewModel.offsetStartedFromZero &&
                                         lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
-                                    conversationsViewModel.refresh(getApplicationContext());
+//                                    conversationsViewModel.refresh(getApplicationContext());
                                     int itemCount = recyclerView.getAdapter().getItemCount();
                                     if (itemCount > maximumScrollPosition + 1)
                                         runOnUiThread(new Runnable() {

@@ -88,7 +88,7 @@
                 android:text="@string/messages_thread_you"
                 android:textColor="@color/secondary_text_color"
                 android:textStyle="normal"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
                 app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
 

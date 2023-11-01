@@ -36,7 +36,7 @@ public class ArchivedViewModel extends ViewModel {
 
     private void loadMessages() throws InterruptedException {
         List<Archive> archiveList = archiveHandler.loadAllMessages(context);
-        Cursor cursor = SMSHandler.fetchSMSForThreading(context);
+        Cursor cursor = SMSHandler.fetchThreads(context);
 
         List<Conversations> smsList = new ArrayList<>();
         if(cursor.moveToFirst()) {

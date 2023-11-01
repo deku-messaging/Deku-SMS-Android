@@ -22,8 +22,6 @@ import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.OutgoingTextSMSBroadcastR
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsDao;
 import com.afkanerd.deku.QueueListener.RMQ.RMQConnection;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 
@@ -133,18 +131,36 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSForThreading(Context context) {
-        return context.getContentResolver().query(
-                Telephony.Sms.Conversations.CONTENT_URI,
-                null, null, null,
-                "date DESC");
+    public static Cursor fetchThreads(Context context) {
+//        return context.getContentResolver().query(
+//                Telephony.Sms.Conversations.CONTENT_URI,
+//                null, null, null,
+//                "date DESC");
+
+        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
+                new String[]{Telephony.TextBasedSmsColumns.ADDRESS,
+                        Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.THREAD_ID},
+                "thread_id IN (SELECT thread_id FROM sms GROUP BY thread_id ORDER BY date DESC)",
+                null,
+                "thread_id ASC");
     }
 
-    public static Cursor fetchSMSForThreading(Context context, String threadId) {
-        return context.getContentResolver().query(
-                Telephony.Sms.Conversations.CONTENT_URI,
-                null,
-                Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+    public static Cursor fetchByThreadId(Context context, String threadId) {
+//        return context.getContentResolver().query(
+//                Telephony.Sms.Conversations.CONTENT_URI,
+//                null,
+//                Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
+//                new String[]{threadId},
+//                null);
+
+        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
+                new String[]{
+                        Telephony.Sms._ID,
+                        Telephony.TextBasedSmsColumns.ADDRESS,
+                        Telephony.TextBasedSmsColumns.BODY,
+                        Telephony.TextBasedSmsColumns.THREAD_ID},
+                "thread_id =?",
                 new String[]{threadId},
                 null);
     }

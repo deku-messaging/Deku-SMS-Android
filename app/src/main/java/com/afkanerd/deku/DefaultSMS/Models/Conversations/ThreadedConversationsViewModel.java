@@ -17,34 +17,43 @@ public class ThreadedConversationsViewModel extends ViewModel implements RoomVie
     private MutableLiveData<List<ThreadedConversations>> conversationsMutableLiveData = new MutableLiveData<>();
     public LiveData<List<ThreadedConversations>> conversationsLiveData;
     String messagesType;
-
     ThreadedConversationsDao threadedConversationsDao;
+
     public LiveData<List<ThreadedConversations>> get(ThreadedConversationsDao threadedConversationsDao, Context context) throws InterruptedException {
         this.threadedConversationsDao = threadedConversationsDao;
-        this.conversationsLiveData = conversationsMutableLiveData;
-
         loadNative(context);
         return this.conversationsLiveData;
     }
 
     private void loadNative(Context context) throws InterruptedException {
-        Cursor cursor = SMSHandler.fetchSMSForThreading(context);
-        List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
-        if(cursor.moveToNext()) {
-            do {
-                threadedConversationsList.add(ThreadedConversations.build(cursor));
-            } while(cursor.moveToNext());
+        if(conversationsLiveData == null) {
+            Thread loadRoom = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    conversationsLiveData = threadedConversationsDao.getAllWithoutArchived();
+                }
+            });
+            loadRoom.setName("load ROOM thread");
+            loadRoom.start();
+            loadRoom.join();
         }
-        cursor.close();
+
         Thread loadNativeThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                Cursor cursor = SMSHandler.fetchThreads(context);
+                List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
+                if(cursor.moveToNext()) {
+                    do {
+                        threadedConversationsList.add(ThreadedConversations.build(cursor));
+                    } while(cursor.moveToNext());
+                }
+                cursor.close();
                 threadedConversationsDao.insert(threadedConversationsList);
-                conversationsLiveData = threadedConversationsDao.getAllWithoutArchived();
             }
         });
+        loadNativeThread.setName("load_native_thread");
         loadNativeThread.start();
-        loadNativeThread.join();
     }
 
     @Override
