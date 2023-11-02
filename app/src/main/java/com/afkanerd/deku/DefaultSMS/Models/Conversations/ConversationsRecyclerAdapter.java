@@ -485,14 +485,14 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
 
-        int oldestItemPos = snapshot().size() - 1;
+        int oldestItemPos = snapshot().getSize() - 1;
         int newestItemPos = 0;
 
         if(isEncryptionKey) {
             if(position == oldestItemPos || snapshot().size() < 2 ||
                     (position > (oldestItemPos -1) &&
                             Helpers.isSameMinute(Long.parseLong(sms.getDate()),
-                                    Long.parseLong(((Conversation) snapshot().get(position -1)).getDate())))) {
+                                    Long.parseLong(((Conversation) peek(position -1)).getDate())))) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_KEY_TYPE_INBOX : TIMESTAMP_KEY_TYPE_OUTBOX;
             }
@@ -514,7 +514,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
 
         if(position == oldestItemPos) { // - minus
-            Conversation secondMessage = (Conversation) snapshot().get(position - 1);
+            Conversation secondMessage = (Conversation) peek(position - 1);
             if(sms.getType() == secondMessage.getType() && Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                     Long.parseLong(secondMessage.getDate()))) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
@@ -527,8 +527,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         }
 
         if(position > 0) {
-            Conversation secondMessage = (Conversation) snapshot().get(position + 1);
-            Conversation thirdMessage = (Conversation) snapshot().get(position - 1);
+            Conversation secondMessage = (Conversation) peek(position + 1);
+            Conversation thirdMessage = (Conversation) peek(position - 1);
             if(!Helpers.isSameHour(Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
                 if(sms.getType() == thirdMessage.getType() && Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                         Long.parseLong(thirdMessage.getDate())))
@@ -565,7 +565,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
             }
         }
         if(position == newestItemPos) { // - minus
-            Conversation secondMessage = (Conversation) snapshot().get(position + 1);
+            Conversation secondMessage = (Conversation) peek(position + 1);
             if(!Helpers.isSameHour(Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;

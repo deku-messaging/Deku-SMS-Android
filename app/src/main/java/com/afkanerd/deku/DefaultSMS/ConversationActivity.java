@@ -398,50 +398,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
             }
         });
 
-//        singleMessagesThreadRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-//                super.onScrolled(recyclerView, dx, dy);
-//                new Thread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        Cursor cursor = smsMetaEntity.fetchMessages(getApplicationContext(), 0, 0);
-//                        int msgLen = cursor.getCount();
-//                        cursor.close();
-//
-//                        if(conversationsRecyclerAdapter.mDiffer.getCurrentList().size() >= msgLen)
-//                            return;
-//
-//                        final int maximumScrollPosition = conversationsRecyclerAdapter.getItemCount() - 3;
-//
-//                        try {
-//                            LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-//                            if (layoutManager != null) {
-//                                final int lastTopVisiblePosition = layoutManager.findLastVisibleItemPosition();
-//                                final int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
-//
-//                                if (conversationsViewModel.offsetStartedFromZero &&
-//                                        lastTopVisiblePosition >= maximumScrollPosition && firstVisibleItemPosition > 0) {
-////                                    conversationsViewModel.refresh(getApplicationContext());
-//                                    int itemCount = recyclerView.getAdapter().getItemCount();
-//                                    if (itemCount > maximumScrollPosition + 1)
-//                                        runOnUiThread(new Runnable() {
-//                                            @Override
-//                                            public void run() {
-//                                                recyclerView.scrollToPosition(lastTopVisiblePosition);
-//                                            }
-//                                        });
-//                                }
-//
-//                            }
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }).start();
-//            }
-//        });
-
         try {
             conversationsRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
                 @Override
@@ -889,12 +845,15 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 text = SecurityHelpers.putEncryptedMessageWaterMark(text);
             }
 
-            String threadId = _sendSMSMessage(defaultSubscriptionId, text);
-            Log.d(getLocalClassName(), "Sending sms with thread: " + threadId + ":" + smsMetaEntity.getThreadId());
-            if(smsMetaEntity.getThreadId() == null && threadId != null) {
-                getIntent().putExtra(SMSMetaEntity.THREAD_ID, threadId);
-                _setupActivityDependencies();
-            }
+            String[] transmissionOutput = _sendSMSMessage(defaultSubscriptionId, text);
+
+            String messageId = transmissionOutput[NativeSMSDB.MESSAGE_ID];
+            String threadId = transmissionOutput[NativeSMSDB.THREAD_ID];
+
+            conversationsViewModel.insertFromNative(getApplicationContext(), messageId);
+            getIntent().putExtra(SMSMetaEntity.THREAD_ID, threadId);
+
+            _setupActivityDependencies();
 
             // Remove messages from archive if pending send
             new Thread(new Runnable() {
@@ -917,17 +876,15 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 Long.parseLong(smsMetaEntity.getThreadId()));
     }
 
-    private String _sendSMSMessage(int subscriptionId, String text) {
+    private String[] _sendSMSMessage(int subscriptionId, String text) {
         String threadId = new String();
         try {
-            String[] transmissionOutput = NativeSMSDB.Outgoing.send_text(getApplicationContext(), smsMetaEntity.getAddress(),
+            return NativeSMSDB.Outgoing.send_text(getApplicationContext(), smsMetaEntity.getAddress(),
                     text, subscriptionId, null);
-            return transmissionOutput[NativeSMSDB.THREAD_ID];
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return threadId;
+        return null;
     }
 
 //    private String _sendKeyDataMessage(int subscriptionId, byte[] data) {
@@ -1089,7 +1046,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
             String[] keys = conversationsRecyclerAdapter.selectedItem.getValue()
                     .keySet().toArray(new String[0]);
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), keys[0]);
+            Cursor cursor = NativeSMSDB.fetchByMessageId(getApplicationContext(), keys[0]);
             if (cursor.moveToFirst()) {
                 do {
                     SMS sms = new SMS(cursor);

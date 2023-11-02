@@ -24,6 +24,7 @@ import androidx.core.graphics.drawable.IconCompat;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.Images.Images.ImageHandler;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMS;
@@ -40,7 +41,7 @@ public class NotificationsHandler {
                                                            int subscriptionId) {
         Intent receivedSmsIntent = new Intent(context, ConversationActivity.class);
 
-        Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
+        Cursor cursor = NativeSMSDB.fetchByMessageId(context, String.valueOf(messageId));
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
             SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
@@ -203,7 +204,7 @@ public class NotificationsHandler {
     }
 
     private static String _buildShortcut(Context context, long messageId, String text, Person person) {
-        Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
+        Cursor cursor = NativeSMSDB.fetchByMessageId(context, String.valueOf(messageId));
         if(cursor.moveToFirst()) {
             SMS sms = new SMS(cursor);
             SMSMetaEntity smsMetaEntity = new SMSMetaEntity();

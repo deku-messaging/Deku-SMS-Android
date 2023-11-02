@@ -14,10 +14,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 
 public class CustomAppCompactActivity extends AppCompatActivity {
@@ -40,38 +42,42 @@ public class CustomAppCompactActivity extends AppCompatActivity {
         return myPackageName.equals(defaultPackage);
     }
 
-    ThreadedConversationsViewModel threadedConversationsViewModel;
-    ConversationsViewModel conversationsViewModel;
-
     public void configureBroadcastListeners(Object obj) {
         nativeStateChangedBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
-                String threadId = intent.getStringExtra(Conversation.BROADCAST_THREAD_ID_INTENT);
-                if(threadId != null && obj instanceof ThreadedConversationsViewModel) {
-                    ThreadedConversationsViewModel viewModel =
-                            (ThreadedConversationsViewModel) obj;
-                    Cursor cursor = SMSHandler.fetchByThreadId(context, threadId);
-                    if(cursor.moveToFirst()) {
-                        ThreadedConversations threadedConversations = ThreadedConversations.build(cursor);
-                        viewModel.insert(threadedConversations);
+                if(intent.getAction().equals(NativeSMSDB.BROADCAST_STATUS_CHANGED_ACTION)) {
+                    String threadId = intent.getStringExtra(NativeSMSDB.BROADCAST_THREAD_ID_INTENT);
+                    String messageId = intent.getStringExtra(NativeSMSDB.BROADCAST_CONVERSATION_ID_INTENT);
+                    if(threadId != null && obj instanceof ConversationsViewModel) {
+                        ConversationsViewModel viewModel = (ConversationsViewModel) obj;
+                        viewModel.updateFromNative(getApplicationContext(), messageId);
                     }
-                    cursor.close();
                 }
-                else if(threadId != null && obj instanceof ConversationsViewModel) {
-                    ConversationsViewModel viewModel = (ConversationsViewModel) obj;
-                    Cursor cursor = SMSHandler.fetchByThreadId(context, threadId);
-                    if(cursor.moveToFirst()) {
-                        Conversation conversation = Conversation.build(cursor);
-                        viewModel.insert(conversation);
+                else if(intent.getAction().equals(NativeSMSDB.BROADCAST_NEW_MESSAGE_ACTION)) {
+                    String threadId = intent.getStringExtra(NativeSMSDB.BROADCAST_THREAD_ID_INTENT);
+                    String messageId = intent.getStringExtra(NativeSMSDB.BROADCAST_CONVERSATION_ID_INTENT);
+                    if(threadId != null && obj instanceof ThreadedConversationsViewModel) {
+                        ThreadedConversationsViewModel viewModel =
+                                (ThreadedConversationsViewModel) obj;
+                        Cursor cursor = NativeSMSDB.fetchByThreadId(context, threadId);
+                        if(cursor.moveToFirst()) {
+                            ThreadedConversations threadedConversations = ThreadedConversations.build(cursor);
+                            viewModel.insert(threadedConversations);
+                        }
+                        cursor.close();
                     }
-                    cursor.close();
+
                 }
             }
         };
 
         registerReceiver(nativeStateChangedBroadcastReceiver,
-                new IntentFilter(SMSHandler.NATIVE_STATE_CHANGED_BROADCAST_INTENT),
+                new IntentFilter(NativeSMSDB.BROADCAST_STATUS_CHANGED_ACTION),
+                Context.RECEIVER_EXPORTED);
+
+        registerReceiver(nativeStateChangedBroadcastReceiver,
+                new IntentFilter(NativeSMSDB.BROADCAST_NEW_MESSAGE_ACTION),
                 Context.RECEIVER_EXPORTED);
     }
 

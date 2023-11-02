@@ -23,6 +23,7 @@ import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Compression;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMS;
@@ -89,7 +90,7 @@ public class ImageViewActivity extends AppCompatActivity {
         if(getIntent().hasExtra(IMAGE_INTENT_EXTRA)) {
             String smsId = getIntent().getStringExtra(IMAGE_INTENT_EXTRA);
 
-            Cursor cursor = SMSHandler.fetchSMSInboxById(getApplicationContext(), smsId);
+            Cursor cursor = NativeSMSDB.fetchByMessageId(getApplicationContext(), smsId);
             if(cursor.moveToFirst()) {
                 SMS sms = new SMS(cursor);
 

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Transmissions {
 
     private static final short DATA_TRANSMISSION_PORT = 8200;
-    public static void sendTextSMS(Context context, String destinationAddress, String text,
+    public static void sendTextSMS(String destinationAddress, String text,
                              PendingIntent sentIntent, PendingIntent deliveryIntent,
                              Integer subscriptionId) throws Exception {
 
@@ -48,7 +48,7 @@ public class Transmissions {
 
     }
 
-    public static void sendDataSMS(Context context, String destinationAddress, byte[] data,
+    public static void sendDataSMS(String destinationAddress, byte[] data,
                                      PendingIntent sentIntent, PendingIntent deliveryIntent,
                                      Integer subscriptionId) throws Exception {
         if (data == null)

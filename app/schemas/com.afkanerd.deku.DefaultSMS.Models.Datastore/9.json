@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "f7576398c3e82e95ca426ea630c57a36",
+    "identityHash": "c4ebace76f6a8243e33cf7c5ac237135",
     "entities": [
       {
         "tableName": "GatewayServer",
@@ -270,19 +270,13 @@
       },
       {
         "tableName": "Conversation",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` TEXT, `thread_id` TEXT, `date` TEXT, `date_sent` TEXT, `type` INTEGER NOT NULL, `num_segments` INTEGER NOT NULL, `subscription_id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `read` INTEGER NOT NULL, `is_encrypted` INTEGER NOT NULL, `is_key` INTEGER NOT NULL, `is_image` INTEGER NOT NULL, `formatted_date` TEXT, `address` TEXT, `body` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`message_id` TEXT NOT NULL, `thread_id` TEXT, `date` TEXT, `date_sent` TEXT, `type` INTEGER NOT NULL, `num_segments` INTEGER NOT NULL, `subscription_id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `read` INTEGER NOT NULL, `is_encrypted` INTEGER NOT NULL, `is_key` INTEGER NOT NULL, `is_image` INTEGER NOT NULL, `formatted_date` TEXT, `address` TEXT, `body` TEXT, PRIMARY KEY(`message_id`))",
         "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
           {
             "fieldPath": "message_id",
             "columnName": "message_id",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "thread_id",
@@ -370,9 +364,9 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": true,
+          "autoGenerate": false,
           "columnNames": [
-            "id"
+            "message_id"
           ]
         },
         "indices": [],
@@ -382,7 +376,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f7576398c3e82e95ca426ea630c57a36')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c4ebace76f6a8243e33cf7c5ac237135')"
     ]
   }
 }

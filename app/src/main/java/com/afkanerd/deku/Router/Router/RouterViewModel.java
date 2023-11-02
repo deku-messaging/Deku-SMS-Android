@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -44,7 +45,7 @@ public class RouterViewModel extends ViewModel {
 
                 for(String[] workerList : routerJobs) {
                     String messageId = workerList[0];
-                    Cursor cursor = SMSHandler.fetchSMSInboxById(context, messageId);
+                    Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
                     if(cursor.moveToFirst()) {
                         int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
                         int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);

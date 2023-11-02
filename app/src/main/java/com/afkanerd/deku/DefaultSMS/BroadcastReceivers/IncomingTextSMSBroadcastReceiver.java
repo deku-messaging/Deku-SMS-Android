@@ -98,7 +98,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             @Override
             public void run() {
                 try {
-                    Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(finalMessageId));
+                    Cursor cursor = NativeSMSDB.fetchByMessageId(context, String.valueOf(finalMessageId));
                     if(cursor != null && cursor.moveToFirst()) {
                         SMS sms = new SMS(cursor);
                         sms.setMsisdn(finalAddress);

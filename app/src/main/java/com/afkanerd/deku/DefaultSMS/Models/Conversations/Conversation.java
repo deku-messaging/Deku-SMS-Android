@@ -30,9 +30,8 @@ public class Conversation {
     @Ignore
     public static String BROADCAST_CONVERSATION_ID_INTENT = "BROADCAST_CONVERSATION_ID_INTENT";
 
-    @PrimaryKey(autoGenerate = true)
-    long id;
-
+    @NonNull
+    @PrimaryKey
     String message_id;
     String thread_id;
 

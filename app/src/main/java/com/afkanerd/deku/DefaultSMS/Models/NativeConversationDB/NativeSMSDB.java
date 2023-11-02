@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -20,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class NativeSMSDB {
+    public static String BROADCAST_NATIVE_SMS_DB = "BROADCAST_NATIVE_SMS_DB";
     public static String BROADCAST_THREAD_ID_INTENT = "BROADCAST_THREAD_ID_INTENT";
     public static String BROADCAST_CONVERSATION_ID_INTENT = "BROADCAST_CONVERSATION_ID_INTENT";
 
@@ -35,6 +37,25 @@ public class NativeSMSDB {
 
     public static int ADDRESS = 3;
     public static int SUBSCRIPTION_ID = 4;
+
+    public static Cursor fetchByThreadId(Context context, String threadId) {
+        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
+                null,
+                Telephony.Sms.THREAD_ID + "=?",
+                new String[]{threadId},
+                null);
+    }
+
+    public static Cursor fetchByMessageId(@NonNull Context context, String id) {
+        Cursor smsMessagesCursor = context.getContentResolver().query(
+                Telephony.Sms.CONTENT_URI,
+                null,
+                Telephony.Sms._ID + "=?",
+                new String[]{id},
+                null);
+
+        return smsMessagesCursor;
+    }
 
     /*
      * Places which require playing with Native SMS DB
@@ -79,10 +100,9 @@ public class NativeSMSDB {
                     cursor.getColumnIndexOrThrow(Telephony.Sms._ID));
             cursor.close();
 
-            Intent broadcastIntent = new Intent();
+            Intent broadcastIntent = new Intent(BROADCAST_NEW_MESSAGE_ACTION);
             broadcastIntent.putExtra(BROADCAST_THREAD_ID_INTENT, threadId);
             broadcastIntent.putExtra(BROADCAST_CONVERSATION_ID_INTENT, messageId);
-            broadcastIntent.setAction(BROADCAST_NEW_MESSAGE_ACTION);
             context.sendBroadcast(broadcastIntent);
 
             return new String[]{threadId, messageId};
@@ -101,8 +121,8 @@ public class NativeSMSDB {
                 new String[]{
                         Telephony.TextBasedSmsColumns.THREAD_ID,
                         Telephony.Sms._ID},
-                null,
-                null,
+                Telephony.Sms._ID + "=?",
+                new String[]{messageId},
                 null);
 
         if (cursor.moveToFirst()) {
@@ -110,10 +130,9 @@ public class NativeSMSDB {
                     cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID));
             cursor.close();
 
-            Intent broadcastIntent = new Intent();
+            Intent broadcastIntent = new Intent(BROADCAST_STATUS_CHANGED_ACTION);
             broadcastIntent.putExtra(BROADCAST_THREAD_ID_INTENT, threadId);
             broadcastIntent.putExtra(BROADCAST_CONVERSATION_ID_INTENT, messageId);
-            broadcastIntent.setAction(BROADCAST_STATUS_CHANGED_ACTION);
             context.sendBroadcast(broadcastIntent);
 
             return new String[]{threadId, messageId};
@@ -153,7 +172,7 @@ public class NativeSMSDB {
             String[] pendingOutputs = register_pending(context, destinationAddress, text, subscriptionId);
             long messageId = Long.parseLong(pendingOutputs[MESSAGE_ID]);
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
-            Transmissions.sendTextSMS(context, destinationAddress, text,
+            Transmissions.sendTextSMS(destinationAddress, text,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
             return pendingOutputs;
         }
@@ -165,7 +184,7 @@ public class NativeSMSDB {
                     Base64.encodeToString(data, Base64.DEFAULT), subscriptionId);
             long messageId = Long.parseLong(pendingOutputs[MESSAGE_ID]);
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
-            Transmissions.sendDataSMS(context, destinationAddress, data,
+            Transmissions.sendDataSMS(destinationAddress, data,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
             return pendingOutputs;
         }
@@ -239,12 +258,12 @@ public class NativeSMSDB {
             }
 
             PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
-                    Integer.parseInt(String.valueOf(messageId)),
+                    (int) messageId,
                     sentIntent,
                     PendingIntent.FLAG_IMMUTABLE);
 
             PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
-                    Integer.parseInt(String.valueOf(messageId)),
+                    (int) messageId,
                     deliveredIntent,
                     PendingIntent.FLAG_IMMUTABLE);
 

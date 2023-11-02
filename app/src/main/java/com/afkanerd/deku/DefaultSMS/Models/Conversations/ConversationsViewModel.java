@@ -11,6 +11,7 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 
 import java.util.ArrayList;
@@ -54,25 +55,11 @@ public class ConversationsViewModel extends ViewModel{
         return this.liveData;
     }
 
-//    private void loadRoom() throws InterruptedException {
-//        if(this.liveData == null) {
-//            Thread loadRoom = new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    liveData = conversationDao.get(threadId);
-//                }
-//            });
-//            loadRoom.setName("load ROOM thread");
-//            loadRoom.start();
-//            loadRoom.join();
-//        }
-//    }
-
     public void loadNative(Context context) {
         Thread loadNativeThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Cursor cursor = SMSHandler.fetchByThreadId(context, threadId);
+                Cursor cursor = NativeSMSDB.fetchByThreadId(context, threadId);
                 List<Conversation> conversationList = new ArrayList<>();
                 if(cursor.moveToNext()) {
                     do {
@@ -94,5 +81,32 @@ public class ConversationsViewModel extends ViewModel{
                 conversationDao.insert(conversation);
             }
         }).start();
+    }
+
+    public void update(Conversation conversation) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                conversationDao.update(conversation);
+            }
+        }).start();
+    }
+
+    public void insertFromNative(Context context, String messageId) {
+        Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
+        if(cursor.moveToFirst()) {
+            Conversation conversation = Conversation.build(cursor);
+            insert(conversation);
+        }
+        cursor.close();
+    }
+
+    public void updateFromNative(Context context, String messageId ) {
+        Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
+        if(cursor.moveToFirst()) {
+            Conversation conversation = Conversation.build(cursor);
+            update(conversation);
+        }
+        cursor.close();
     }
 }

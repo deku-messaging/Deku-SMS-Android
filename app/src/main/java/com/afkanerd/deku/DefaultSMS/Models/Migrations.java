@@ -73,8 +73,7 @@ public class Migrations {
                     "formatted_datetime TEXT, PRIMARY KEY(thread_id))");
 
             database.execSQL("CREATE TABLE IF NOT EXISTS Conversation " +
-                    "(id INTEGER NOT NULL PRIMARY KEY, " +
-                    "message_id INTEGER NOT NULL, " +
+                    "(message_id INTEGER NOT NULL PRIMARY KEY, " +
                     "thread_id INTEGER NOT NULL, " +
                     "date INTEGER NOT NULL, " +
                     "date_sent INTEGER NOT NULL, " +

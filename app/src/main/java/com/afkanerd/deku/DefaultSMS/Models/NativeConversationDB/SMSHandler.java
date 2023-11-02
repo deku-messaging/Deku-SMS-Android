@@ -60,22 +60,6 @@ public class SMSHandler {
         return smsMessagesCursor;
     }
 
-    public static Cursor fetchSMSInboxById(@NonNull Context context, String id) {
-        Cursor smsMessagesCursor = context.getContentResolver().query(
-                SMS_CONTENT_URI,
-                new String[]{Telephony.Sms._ID,
-                        Telephony.TextBasedSmsColumns.THREAD_ID,
-                        Telephony.TextBasedSmsColumns.ADDRESS,
-                        Telephony.TextBasedSmsColumns.PERSON,
-                        Telephony.TextBasedSmsColumns.DATE,
-                        Telephony.TextBasedSmsColumns.BODY,
-                        Telephony.TextBasedSmsColumns.TYPE},
-                Telephony.Sms._ID + "=?",
-                new String[]{id},
-                null);
-
-        return smsMessagesCursor;
-    }
 
     public static Cursor fetchAllMessages(@NonNull Context context) {
         Cursor smsMessagesCursor = context.getContentResolver().query(
@@ -106,20 +90,6 @@ public class SMSHandler {
                 "thread_id ASC");
     }
 
-    public static Cursor fetchByThreadId(Context context, String threadId) {
-//        return context.getContentResolver().query(
-//                Telephony.Sms.Conversations.CONTENT_URI,
-//                null,
-//                Telephony.TextBasedSmsColumns.THREAD_ID + "=?",
-//                new String[]{threadId},
-//                null);
-
-        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
-                null,
-                "thread_id =?",
-                new String[]{threadId},
-                null);
-    }
 
     public static Cursor fetchSMSMessagesForSearch(Context context, String searchInput) {
         Uri targetedURI = Telephony.Sms.CONTENT_URI;
