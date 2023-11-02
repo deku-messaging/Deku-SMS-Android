@@ -169,8 +169,8 @@
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
-                <!-- <category android:name="android.intent.category.DEFAULT" /> -->
-                <!-- <category android:name="android.intent.category.BROWSABLE" /> -->
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
             </intent-filter>
         </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
         <receiver
@@ -190,8 +190,6 @@
             <intent-filter>
                 <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
                 <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
-                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
             </intent-filter>
         </receiver>
         <receiver

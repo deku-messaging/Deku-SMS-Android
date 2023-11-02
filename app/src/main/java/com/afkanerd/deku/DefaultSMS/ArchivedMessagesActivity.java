@@ -15,8 +15,8 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.Conversations;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchivedViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;

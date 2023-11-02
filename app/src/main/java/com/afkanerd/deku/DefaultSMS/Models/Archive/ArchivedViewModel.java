@@ -7,8 +7,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.Conversations;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 
 import java.util.ArrayList;
 import java.util.List;

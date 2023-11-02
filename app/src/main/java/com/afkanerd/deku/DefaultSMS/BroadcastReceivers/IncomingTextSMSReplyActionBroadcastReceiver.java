@@ -1,32 +1,31 @@
 package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.KEY_TEXT_REPLY;
 
-import android.app.Activity;
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
-import android.telephony.SmsManager;
-import android.util.Log;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
-import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Notifications.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
@@ -36,26 +35,36 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
     public static String DELIVERED_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".DELIVERED_BROADCAST_INTENT";
     public static String REPLY_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".REPLY_BROADCAST_ACTION";
     public static String MARK_AS_READ_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".MARK_AS_READ_BROADCAST_ACTION";
+
+    public static String REPLY_ADDRESS = "REPLY_ADDRESS";
+    public static String REPLY_THREAD_ID = "REPLY_THREAD_ID";
+    public static String REPLY_SUBSCRIPTION_ID = "REPLY_SUBSCRIPTION_ID";
+
+    // Key for the string that's delivered in the action's intent.
+    public static final String KEY_TEXT_REPLY = "KEY_TEXT_REPLY";
+
     @Override
     public void onReceive(Context context, Intent intent) {
-        if(intent.getAction().equals(REPLY_BROADCAST_INTENT)) {
+        if (intent.getAction().equals(REPLY_BROADCAST_INTENT)) {
             Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
             if (remoteInput != null) {
-                String address = intent.getStringExtra(SMSMetaEntity.ADDRESS);
-                String threadId = intent.getStringExtra(SMSMetaEntity.THREAD_ID);
+                String address = intent.getStringExtra(REPLY_ADDRESS);
+                String threadId = intent.getStringExtra(REPLY_THREAD_ID);
+
+                int def_subscriptionId = SIMHandler.getDefaultSimSubscription(context);
+                int subscriptionId = intent.getIntExtra(REPLY_SUBSCRIPTION_ID, def_subscriptionId);
 
                 NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
                 StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
 
                 CharSequence reply = remoteInput.getCharSequence(KEY_TEXT_REPLY);
 
-                if(reply.toString().isEmpty())
+                if (reply == null || reply.toString().isEmpty())
                     return;
 
                 try {
-                    int subscriptionId = SIMHandler.getDefaultSimSubscription(context);
-                    SMSHandler.registerPendingMessage(context, address, reply.toString(), subscriptionId);
-
+                    NativeSMSDB.Outgoing.send_text(context, address, reply.toString(),
+                            subscriptionId, null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -67,7 +76,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 Person.Builder person = new Person.Builder();
                 person.setName(context.getString(R.string.notification_title_reply_you));
 
-                PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity( context,
+                PendingIntent pendingReceivedSmsIntent = PendingIntent.getActivity(context,
                         Integer.parseInt(threadId),
                         receivedSmsIntent, PendingIntent.FLAG_IMMUTABLE);
                 SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
@@ -89,15 +98,15 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                                 smsMetaEntity.getAddress())
                         .setContentIntent(pendingReceivedSmsIntent);
 
-                for(StatusBarNotification notification : notifications) {
-                    if(notification.getId() == Integer.parseInt(threadId)) {
+                for (StatusBarNotification notification : notifications) {
+                    if (notification.getId() == Integer.parseInt(threadId)) {
                         Bundle extras = notification.getNotification().extras;
 
                         CharSequence prevMessage = extras.getCharSequence(Notification.EXTRA_TEXT).toString();
 
                         String prevTitle = extras.getCharSequence(Notification.EXTRA_TITLE).toString();
 
-                        if(prevTitle.equals(context.getString(R.string.notification_title_reply_you))) {
+                        if (prevTitle.equals(context.getString(R.string.notification_title_reply_you))) {
                             messagingStyle.addMessage(prevMessage, timestamp, person.build());
                         } else {
                             messagingStyle.addMessage(
@@ -124,47 +133,5 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 e.printStackTrace();
             }
         }
-        else if(intent.getAction().equals(SMSHandler.SMS_SENT_BROADCAST_INTENT)) {
-            long id = intent.getLongExtra(SMSMetaEntity.ID, -1);
-            switch(getResultCode()) {
-                case Activity.RESULT_OK:
-                    try {
-                        SMSHandler.registerSentMessage(context, id);
-                        intent.putExtra(BROADCAST_STATE, SENT_BROADCAST_INTENT);
-                    }
-                    catch(Exception e) {
-                        e.printStackTrace();
-                    }
-                    break;
-
-                case SmsManager.RESULT_RIL_SMS_SEND_FAIL_RETRY:
-                case SmsManager.RESULT_RIL_NETWORK_ERR:
-                case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                case SmsManager.RESULT_ERROR_NO_SERVICE:
-                case SmsManager.RESULT_ERROR_NULL_PDU:
-                case SmsManager.RESULT_ERROR_RADIO_OFF:
-                default:
-                    try {
-                        SMSHandler.registerFailedMessage(context, id, getResultCode());
-                        intent.putExtra(BROADCAST_STATE, FAILED_BROADCAST_INTENT);
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                    }
-            }
-        }
-        else if(intent.getAction().equals(SMSHandler.SMS_DELIVERED_BROADCAST_INTENT)) {
-            long id = intent.getLongExtra(SMSMetaEntity.ID, -1);
-            if (getResultCode() == Activity.RESULT_OK) {
-                SMSHandler.registerDeliveredMessage(context, id);
-                intent.putExtra(BROADCAST_STATE, DELIVERED_BROADCAST_INTENT);
-                Log.d(getClass().getName(), "Sending Delivered broadcast to all out there who listen");
-            } else {
-                if (BuildConfig.DEBUG)
-                    Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
-                            + getResultCode());
-            }
-        }
-
-        SMSHandler.broadcastMessageStateChanged(context, intent);
     }
 }

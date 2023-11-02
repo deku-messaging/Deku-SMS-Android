@@ -24,6 +24,7 @@ import com.afkanerd.deku.DefaultSMS.R;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
@@ -275,4 +276,35 @@ public class Helpers {
 
         return spannableString;
     }
+
+
+    public static boolean isSameMinute(Long date1, Long date2) {
+        java.util.Date date = new java.util.Date(date1);
+        Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.setTime(date);
+
+        String previousDateString = String.valueOf(date2);
+        java.util.Date previousDate = new java.util.Date(Long.parseLong(previousDateString));
+        Calendar prevCalendar = Calendar.getInstance();
+        prevCalendar.setTime(previousDate);
+
+        return !((prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)
+                || (prevCalendar.get(Calendar.MINUTE) != currentCalendar.get(Calendar.MINUTE))
+                || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE))));
+    }
+
+    public static boolean isSameHour(Long date1, Long date2) {
+        java.util.Date date = new java.util.Date(date1);
+        Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.setTime(date);
+
+        String previousDateString = String.valueOf(date2);
+        java.util.Date previousDate = new java.util.Date(Long.parseLong(previousDateString));
+        Calendar prevCalendar = Calendar.getInstance();
+        prevCalendar.setTime(previousDate);
+
+        return !((prevCalendar.get(Calendar.HOUR_OF_DAY) != currentCalendar.get(Calendar.HOUR_OF_DAY)
+                || (prevCalendar.get(Calendar.DATE) != currentCalendar.get(Calendar.DATE))));
+    }
+
 }

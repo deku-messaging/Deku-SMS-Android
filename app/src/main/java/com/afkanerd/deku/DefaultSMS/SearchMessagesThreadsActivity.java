@@ -26,11 +26,10 @@ import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsSearchViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 
 import java.util.List;
 

@@ -13,10 +13,8 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
-import android.text.style.ForegroundColorSpan;
 import android.text.style.URLSpan;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,20 +26,17 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.paging.PagingDataAdapter;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.DefaultSMS.R;
-
-import org.checkerframework.checker.units.qual.A;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -56,9 +51,8 @@ import java.util.List;
 
 import io.getstream.avatarview.AvatarView;
 
-//public class ConversationsRecyclerAdapter extends PagingDataAdapter<SMS, RecyclerView.ViewHolder> {
-public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    Context context;
+public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation, RecyclerView.ViewHolder> {
+//public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     Toolbar toolbar;
     String highlightedText;
     View highlightedView;
@@ -108,8 +102,9 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
     public String searchString;
 
     private boolean animation = false;
+    Context context;
     public ConversationsRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
-//        super(SMS.DIFF_CALLBACK);
+        super(Conversation.DIFF_CALLBACK);
         this.context = context;
         this.selectedItem = mutableSelectedItems;
 
@@ -231,9 +226,10 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
         return spannableString;
     }
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        final Conversation sms = mDiffer.getCurrentList().get(position);
+        final Conversation sms = peek(position);
         final String smsId = String.valueOf(sms.getMessage_id());
 
         if(animation) {
@@ -485,19 +481,18 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
     @Override
     public int getItemViewType(int position) {
-        List<Conversation> snapshotList = mDiffer.getCurrentList();
-        Conversation sms = snapshotList.get(position);
+        Conversation sms = peek(position);
 
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
 
-        int oldestItemPos = snapshotList.size() - 1;
+        int oldestItemPos = snapshot().size() - 1;
         int newestItemPos = 0;
 
         if(isEncryptionKey) {
-            if(position == oldestItemPos || snapshotList.size() < 2 ||
+            if(position == oldestItemPos || snapshot().size() < 2 ||
                     (position > (oldestItemPos -1) &&
-                            SMSHandler.isSameMinute(Long.parseLong(sms.getDate()),
-                                    Long.parseLong(((Conversation) snapshotList.get(position -1)).getDate())))) {
+                            Helpers.isSameMinute(Long.parseLong(sms.getDate()),
+                                    Long.parseLong(((Conversation) snapshot().get(position -1)).getDate())))) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_KEY_TYPE_INBOX : TIMESTAMP_KEY_TYPE_OUTBOX;
             }
@@ -507,7 +502,7 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
             }
         }
 
-        if(snapshotList.size() < 2) {
+        if(snapshot().size() < 2) {
             return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                     TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
         }
@@ -519,8 +514,8 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
 
         if(position == oldestItemPos) { // - minus
-            Conversation secondMessage = (Conversation) snapshotList.get(position - 1);
-            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(Long.parseLong(sms.getDate()),
+            Conversation secondMessage = (Conversation) snapshot().get(position - 1);
+            if(sms.getType() == secondMessage.getType() && Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                     Long.parseLong(secondMessage.getDate()))) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_START_TYPE_OUTBOX;
@@ -532,10 +527,10 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
         }
 
         if(position > 0) {
-            Conversation secondMessage = (Conversation) snapshotList.get(position + 1);
-            Conversation thirdMessage = (Conversation) snapshotList.get(position - 1);
-            if(!SMSHandler.isSameHour(Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
-                if(sms.getType() == thirdMessage.getType() && SMSHandler.isSameMinute(Long.parseLong(sms.getDate()),
+            Conversation secondMessage = (Conversation) snapshot().get(position + 1);
+            Conversation thirdMessage = (Conversation) snapshot().get(position - 1);
+            if(!Helpers.isSameHour(Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
+                if(sms.getType() == thirdMessage.getType() && Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                         Long.parseLong(thirdMessage.getDate())))
                     return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                             TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_START_TYPE_OUTBOX;
@@ -543,26 +538,26 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
                     return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                             TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
             }
-            if(sms.getType() == thirdMessage.getType() && SMSHandler.isSameMinute(Long.parseLong(sms.getDate()),
+            if(sms.getType() == thirdMessage.getType() && Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                     Long.parseLong(thirdMessage.getDate()))) {
-                if(sms.getType() != secondMessage.getType() || !SMSHandler.isSameMinute(
+                if(sms.getType() != secondMessage.getType() || !Helpers.isSameMinute(
                         Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
                     return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                             MESSAGE_START_TYPE_INBOX : MESSAGE_START_TYPE_OUTBOX;
                 }
             }
             if(sms.getType() == secondMessage.getType() && sms.getType() == thirdMessage.getType()) {
-                if(SMSHandler.isSameMinute(Long.parseLong(sms.getDate()),
+                if(Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                         Long.parseLong(secondMessage.getDate())) &&
-                        SMSHandler.isSameMinute(Long.parseLong(sms.getDate()),
+                        Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                                 Long.parseLong(thirdMessage.getDate()))) {
                     return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                             MESSAGE_MIDDLE_TYPE_INBOX : MESSAGE_MIDDLE_TYPE_OUTBOX;
                 }
             }
-            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(Long.parseLong(sms.getDate()),
+            if(sms.getType() == secondMessage.getType() && Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                     Long.parseLong(secondMessage.getDate()))) {
-                if(sms.getType() != thirdMessage.getType() || !SMSHandler.isSameMinute(
+                if(sms.getType() != thirdMessage.getType() || !Helpers.isSameMinute(
                         Long.parseLong(sms.getDate()), Long.parseLong(thirdMessage.getDate()))) {
                     return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                             MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
@@ -570,13 +565,13 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
             }
         }
         if(position == newestItemPos) { // - minus
-            Conversation secondMessage = (Conversation) snapshotList.get(position + 1);
-            if(!SMSHandler.isSameHour(Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
+            Conversation secondMessage = (Conversation) snapshot().get(position + 1);
+            if(!Helpers.isSameHour(Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
             }
 
-            if(sms.getType() == secondMessage.getType() && SMSHandler.isSameMinute(
+            if(sms.getType() == secondMessage.getType() && Helpers.isSameMinute(
                     Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         MESSAGE_END_TYPE_INBOX : MESSAGE_END_TYPE_OUTBOX;
@@ -585,11 +580,6 @@ public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerV
 
         return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                 MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
-    }
-
-    @Override
-    public int getItemCount() {
-        return mDiffer.getCurrentList().size();
     }
 
     public void removeAllItems(String[] _keys) {

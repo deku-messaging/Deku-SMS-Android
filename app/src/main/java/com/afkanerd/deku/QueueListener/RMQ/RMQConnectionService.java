@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.telephony.SubscriptionInfo;
 import android.util.Log;
@@ -18,9 +19,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.Router.Router.RouterHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
@@ -269,8 +271,9 @@ public class RMQConnectionService extends Service {
                     deliveryChannelMap.put(delivery.getEnvelope().getDeliveryTag(), channel);
                     channelList.put(sid, deliveryChannelMap);
 
-                    SMSHandler.registerPendingServerMessage(getApplicationContext(), msisdn, body,
-                            subscriptionId, sid);
+                    Bundle bundle = new Bundle();
+                    bundle.putString(RMQConnection.MESSAGE_SID, sid);
+                    NativeSMSDB.Outgoing.send_text(getApplicationContext(), msisdn, body, subscriptionId, bundle);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     channel.basicReject(delivery.getEnvelope().getDeliveryTag(), false);

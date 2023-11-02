@@ -1,41 +1,13 @@
-package com.afkanerd.deku.DefaultSMS.Models.SMS;
+package com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB;
 
-import static com.afkanerd.deku.DefaultSMS.Commons.Helpers.getUserCountry;
-import static com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler.SMS_CONTENT_URI;
-import static com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler.SMS_INBOX_CONTENT_URI;
-import static com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler.SMS_OUTBOX_CONTENT_URI;
-
-import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.provider.Telephony;
-import android.telephony.PhoneNumberUtils;
-import android.text.TextUtils;
-import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService;
-import com.afkanerd.deku.E2EE.Security.SecurityAES;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
-import com.google.i18n.phonenumbers.NumberParseException;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class SMS implements RMQConnectionService.SmsForwardInterface, Comparable<SMS> {
     // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#constants_1

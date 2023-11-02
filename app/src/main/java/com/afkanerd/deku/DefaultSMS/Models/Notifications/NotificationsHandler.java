@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models;
+package com.afkanerd.deku.DefaultSMS.Models.Notifications;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -24,10 +24,10 @@ import androidx.core.graphics.drawable.IconCompat;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.Images.Images.ImageHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMS;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -35,7 +35,9 @@ import com.afkanerd.deku.DefaultSMS.R;
 public class NotificationsHandler {
 
     @SuppressLint("MissingPermission")
-    public static void sendIncomingTextMessageNotification(Context context, String text, final String address, long messageId) {
+    public static void sendIncomingTextMessageNotification(Context context, String text,
+                                                           final String address, long messageId,
+                                                           int subscriptionId) {
         Intent receivedSmsIntent = new Intent(context, ConversationActivity.class);
 
         Cursor cursor = SMSHandler.fetchSMSInboxById(context, String.valueOf(messageId));
@@ -56,8 +58,16 @@ public class NotificationsHandler {
             Intent replyBroadcastIntent = null;
             if(PhoneNumberUtils.isWellFormedSmsAddress(sms.getAddress())) {
                 replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
-                replyBroadcastIntent.putExtra(SMSMetaEntity.ADDRESS, address);
-                replyBroadcastIntent.putExtra(SMSMetaEntity.THREAD_ID, sms.getThreadId());
+
+                replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_ADDRESS,
+                        address);
+
+                replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_THREAD_ID,
+                        sms.getThreadId());
+
+                replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_SUBSCRIPTION_ID,
+                        subscriptionId);
+
                 replyBroadcastIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_BROADCAST_INTENT);
             }
 
@@ -176,7 +186,8 @@ public class NotificationsHandler {
                             PendingIntent.FLAG_MUTABLE);
 
             String replyLabel = context.getResources().getString(R.string.notifications_reply_label);
-            RemoteInput remoteInput = new RemoteInput.Builder(IncomingTextSMSBroadcastReceiver.KEY_TEXT_REPLY)
+            RemoteInput remoteInput = new RemoteInput.Builder(
+                    IncomingTextSMSReplyActionBroadcastReceiver.KEY_TEXT_REPLY)
                     .setLabel(replyLabel)
                     .build();
 

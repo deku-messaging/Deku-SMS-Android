@@ -7,13 +7,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.afkanerd.deku.DefaultSMS.Models.RoomViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ThreadedConversationsViewModel extends ViewModel implements RoomViewModel {
+public class ThreadedConversationsViewModel extends ViewModel {
     private MutableLiveData<List<ThreadedConversations>> conversationsMutableLiveData = new MutableLiveData<>();
     public LiveData<List<ThreadedConversations>> conversationsLiveData;
     String messagesType;
@@ -56,13 +55,11 @@ public class ThreadedConversationsViewModel extends ViewModel implements RoomVie
         loadNativeThread.start();
     }
 
-    @Override
-    public void insert(Object entity) {
+    public void insert(ThreadedConversations threadedConversations) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if(entity instanceof ThreadedConversations)
-                    threadedConversationsDao.insert((ThreadedConversations) entity);
+                threadedConversationsDao.insert(threadedConversations);
             }
         }).start();
     }

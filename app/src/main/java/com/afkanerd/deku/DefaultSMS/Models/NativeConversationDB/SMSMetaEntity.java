@@ -1,9 +1,9 @@
-package com.afkanerd.deku.DefaultSMS.Models.SMS;
+package com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB;
 
 import static com.afkanerd.deku.DefaultSMS.Commons.Helpers.getUserCountry;
-import static com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler.SMS_CONTENT_URI;
-import static com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler.SMS_INBOX_CONTENT_URI;
-import static com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler.SMS_OUTBOX_CONTENT_URI;
+import static com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler.SMS_CONTENT_URI;
+import static com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler.SMS_INBOX_CONTENT_URI;
+import static com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler.SMS_OUTBOX_CONTENT_URI;
 
 import android.content.Context;
 import android.content.Intent;

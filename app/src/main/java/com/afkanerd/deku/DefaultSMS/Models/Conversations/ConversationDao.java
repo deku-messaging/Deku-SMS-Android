@@ -1,6 +1,9 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import androidx.lifecycle.LiveData;
+import androidx.paging.DataSource;
+import androidx.paging.PagingLiveData;
+import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -13,8 +16,14 @@ import java.util.List;
 @Dao
 public interface ConversationDao {
 
+//    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC LIMIT 5")
+//    LiveData<List<Conversation>> get(String thread_id);
+
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
-    LiveData<List<Conversation>> get(String thread_id);
+    PagingSource<Integer, Conversation> get(String thread_id);
+
+//    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
+//    DataSource.Factory<Integer, Conversation> get(String thread_id);
 
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
     LiveData<Conversation> get(long message_id);

@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.SMS;
+package com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB;
 
 import android.util.Log;
 

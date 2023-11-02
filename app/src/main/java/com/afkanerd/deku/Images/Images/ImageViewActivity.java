@@ -23,10 +23,10 @@ import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Compression;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMS;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;

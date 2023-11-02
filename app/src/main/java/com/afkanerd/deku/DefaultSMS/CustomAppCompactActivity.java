@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,10 +15,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.RoomViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 
 public class CustomAppCompactActivity extends AppCompatActivity {
     BroadcastReceiver nativeStateChangedBroadcastReceiver;
@@ -39,16 +40,30 @@ public class CustomAppCompactActivity extends AppCompatActivity {
         return myPackageName.equals(defaultPackage);
     }
 
-    public void configureBroadcastListeners(RoomViewModel viewModel) {
+    ThreadedConversationsViewModel threadedConversationsViewModel;
+    ConversationsViewModel conversationsViewModel;
+
+    public void configureBroadcastListeners(Object obj) {
         nativeStateChangedBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
-                if(viewModel instanceof ThreadedConversationsViewModel) {
-                    String threadId = intent.getStringExtra(Conversation.BROADCAST_THREAD_ID_INTENT);
+                String threadId = intent.getStringExtra(Conversation.BROADCAST_THREAD_ID_INTENT);
+                if(threadId != null && obj instanceof ThreadedConversationsViewModel) {
+                    ThreadedConversationsViewModel viewModel =
+                            (ThreadedConversationsViewModel) obj;
                     Cursor cursor = SMSHandler.fetchByThreadId(context, threadId);
                     if(cursor.moveToFirst()) {
                         ThreadedConversations threadedConversations = ThreadedConversations.build(cursor);
                         viewModel.insert(threadedConversations);
+                    }
+                    cursor.close();
+                }
+                else if(threadId != null && obj instanceof ConversationsViewModel) {
+                    ConversationsViewModel viewModel = (ConversationsViewModel) obj;
+                    Cursor cursor = SMSHandler.fetchByThreadId(context, threadId);
+                    if(cursor.moveToFirst()) {
+                        Conversation conversation = Conversation.build(cursor);
+                        viewModel.insert(conversation);
                     }
                     cursor.close();
                 }

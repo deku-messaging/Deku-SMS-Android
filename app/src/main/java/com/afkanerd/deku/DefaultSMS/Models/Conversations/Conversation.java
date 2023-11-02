@@ -27,6 +27,9 @@ public class Conversation {
     @Ignore
     public static String BROADCAST_THREAD_ID_INTENT = "BROADCAST_THREAD_ID_INTENT";
 
+    @Ignore
+    public static String BROADCAST_CONVERSATION_ID_INTENT = "BROADCAST_CONVERSATION_ID_INTENT";
+
     @PrimaryKey(autoGenerate = true)
     long id;
 
@@ -195,6 +198,7 @@ public class Conversation {
         int dateSentIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE_SENT);
         int typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE);
         int statusIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.STATUS);
+        int readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ);
         int subscriptionIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID);
 
         Conversation conversation = new Conversation();
@@ -206,6 +210,7 @@ public class Conversation {
         conversation.setDate_sent(cursor.getString(dateSentIndex));
         conversation.setType(cursor.getInt(typeIndex));
         conversation.setStatus(cursor.getInt(statusIndex));
+        conversation.setRead(cursor.getInt(readIndex) == 1);
         conversation.setSubscription_id(cursor.getInt(subscriptionIdIndex));
 
         return conversation;

@@ -6,14 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.util.Base64;
 import android.util.Log;
 
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
-import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Notifications.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -39,52 +39,43 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
-                ByteArrayOutputStream messageBuffer = new ByteArrayOutputStream();
-                String _address = "";
-                String subscriptionId = "";
-
-                for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                    _address = currentSMS.getDisplayOriginatingAddress();
-
-                    // The closest thing to subscription id is the serviceCenterAddress
-                    subscriptionId = SIMHandler.getOperatorName(context, currentSMS.getServiceCenterAddress());
-                    try {
-                        messageBuffer.write(currentSMS.getUserData());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-                long messageId = -1;
-                SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
-                smsMetaEntity.setAddress(context, _address);
-
+                String[] regIncomingOutput = new String[0];
                 try {
-                    String strMessage = messageBuffer.toString();
-                    if(SecurityHelpers.isKeyExchange(strMessage)) {
-//                        strMessage = SecurityHelpers.removeKeyWaterMark(strMessage);
-                        strMessage = registerIncomingAgreement(context, smsMetaEntity.getAddress(),
-                                messageBuffer.toByteArray());
+                    regIncomingOutput = NativeSMSDB.Incoming.register_incoming_data(context, intent);
+
+                    final String threadId = regIncomingOutput[NativeSMSDB.THREAD_ID];
+                    final String messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
+                    final String body = regIncomingOutput[NativeSMSDB.BODY];
+                    final String address = regIncomingOutput[NativeSMSDB.ADDRESS];
+                    final String strSubscriptionId = regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID];
+                    int subscriptionId = Integer.parseInt(strSubscriptionId);
+
+                    try {
+                        String strMessage = body;
+                        if(SecurityHelpers.isKeyExchange(body)) {
+                            strMessage = registerIncomingAgreement(context, address,
+                                    Base64.decode(strMessage, Base64.DEFAULT));
+                        }
+
+                        String notificationNote = context.getString(R.string.security_key_new_request_notification);
+
+//                        if(smsMetaEntity.isPendingAgreement(context)) {
+//                            notificationNote = context.getString(R.string.security_key_new_agreed_notification);
+//
+//                            strMessage = SecurityHelpers.FIRST_HEADER +
+//                                    strMessage + SecurityHelpers.END_HEADER;
+//
+//                            NativeSMSDB.Incoming.register_incoming_text(context, intent);
+//                        }
+
+                        NotificationsHandler.sendIncomingTextMessageNotification(context, notificationNote,
+                                address, Long.parseLong(messageId), subscriptionId);
+                        broadcastIntent(context);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-
-                    String notificationNote = context.getString(R.string.security_key_new_request_notification);
-
-                    if(smsMetaEntity.isPendingAgreement(context)) {
-                        notificationNote = context.getString(R.string.security_key_new_agreed_notification);
-
-                        strMessage = SecurityHelpers.FIRST_HEADER +
-                                strMessage + SecurityHelpers.END_HEADER;
-
-                        messageId = SMSHandler.registerIncomingMessage(context,
-                                smsMetaEntity.getAddress(), strMessage, subscriptionId);
-
-                    }
-
-                    NotificationsHandler.sendIncomingTextMessageNotification(context, notificationNote,
-                            smsMetaEntity.getAddress(), messageId);
-                    broadcastIntent(context);
-
-                } catch (Exception e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }

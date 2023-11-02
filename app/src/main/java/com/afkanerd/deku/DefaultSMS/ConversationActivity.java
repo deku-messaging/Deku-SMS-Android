@@ -29,7 +29,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.window.OnBackInvokedDispatcher;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -42,19 +41,22 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationPagingRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.Conversations;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMS;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.Settings.SettingsHandler;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
@@ -71,7 +73,6 @@ import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,6 +87,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
     private final int RESULT_GALLERY = 100;
     ConversationsRecyclerAdapter conversationsRecyclerAdapter;
+
+    ConversationPagingRecyclerAdapter conversationPagingRecyclerAdapter;
     ConversationsViewModel conversationsViewModel;
     TextInputEditText smsTextView;
     ConstraintLayout multiSimcardConstraint;
@@ -130,24 +133,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        configureBroadcastListeners(new Runnable() {
-//            @Override
-//            public void run() {
-//                if(getIntent().hasExtra(SMSMetaEntity.THREAD_ID)) {
-//                    if(conversationsViewModel.threadId == null)
-//                        conversationsViewModel.informNewItemChanges(getApplicationContext(),
-//                                smsMetaEntity.getThreadId());
-//                    else
-//                        conversationsViewModel.informNewItemChanges(getApplicationContext());
-////                    cancelNotifications(smsMetaEntity.getThreadId());
-//                    try {
-//                        _checkEncryptionStatus();
-//                    } catch (GeneralSecurityException | IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
+
+        configureBroadcastListeners(conversationsViewModel);
 
         _configureLayoutForMessageType();
         _configureEncryptionListeners();
@@ -296,6 +283,8 @@ public class ConversationActivity extends CustomAppCompactActivity {
         conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
                 smsMetaEntity.getAddress());
 
+        conversationPagingRecyclerAdapter = new ConversationPagingRecyclerAdapter();
+
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
 
@@ -358,15 +347,17 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
     private void _configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
+//        singleMessagesThreadRecyclerView.setAdapter(conversationPagingRecyclerAdapter);
 
         int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
 
         ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
         conversationsViewModel.get(conversationDao, smsMetaEntity.getThreadId())
-                .observe(this, new Observer<List<Conversation>>() {
+                .observe(this, new Observer<PagingData<Conversation>>() {
             @Override
-            public void onChanged(List<Conversation> smsList) {
-                conversationsRecyclerAdapter.mDiffer.submitList(smsList);
+            public void onChanged(PagingData<Conversation> smsList) {
+                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
+//                conversationPagingRecyclerAdapter.submitData(getLifecycle(), smsList);
             }
         });
 
@@ -399,7 +390,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                     smsMetaEntity.deleteMessage(getApplicationContext(), strings[0]);
                     // TODO: make this use the previously used subscription id
                     int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                    _sendKeyDataMessage(subscriptionId, Base64.decode(strings[1], Base64.DEFAULT));
+//                    _sendKeyDataMessage(subscriptionId, Base64.decode(strings[1], Base64.DEFAULT));
                     conversationsRecyclerAdapter.retryFailedDataMessage.setValue(new String[]{});
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -724,10 +715,9 @@ public class ConversationActivity extends CustomAppCompactActivity {
             securityECDH.securelyStorePrivateKeyKeyPair(getApplicationContext(),
                     smsMetaEntity.getAddress(), keyPair);
             int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-            String threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
-                    smsMetaEntity.getAddress(),
-                    agreementKey,
-                    subscriptionId);
+            String[] transmissionOutput = NativeSMSDB.Outgoing.send_data(getApplicationContext(),
+                    smsMetaEntity.getAddress(), agreementKey, subscriptionId, null);
+            String threadId = transmissionOutput[NativeSMSDB.THREAD_ID];
 
             if(smsMetaEntity.getThreadId() == null && threadId != null) {
                 getIntent().putExtra(SMSMetaEntity.THREAD_ID, threadId);
@@ -849,16 +839,16 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
                         // TODO: refactor the entire send sms thing to inform when dual-sim
                         // TODO: support for multi-sim
-                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                        String threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
-                                smsMetaEntity.getAddress(),
-                                agreementKey,
-                                subscriptionId);
-
-                        if(smsMetaEntity.getThreadId() == null && threadId != null) {
-                            getIntent().putExtra(SMSMetaEntity.THREAD_ID, threadId);
-                            _setupActivityDependencies();
-                        }
+//                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+//                        String threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
+//                                smsMetaEntity.getAddress(),
+//                                agreementKey,
+//                                subscriptionId);
+//
+//                        if(smsMetaEntity.getThreadId() == null && threadId != null) {
+//                            getIntent().putExtra(SMSMetaEntity.THREAD_ID, threadId);
+//                            _setupActivityDependencies();
+//                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -930,8 +920,9 @@ public class ConversationActivity extends CustomAppCompactActivity {
     private String _sendSMSMessage(int subscriptionId, String text) {
         String threadId = new String();
         try {
-            threadId = SMSHandler.registerPendingMessage(getApplicationContext(),
-                    smsMetaEntity.getAddress(), text, subscriptionId);
+            String[] transmissionOutput = NativeSMSDB.Outgoing.send_text(getApplicationContext(), smsMetaEntity.getAddress(),
+                    text, subscriptionId, null);
+            return transmissionOutput[NativeSMSDB.THREAD_ID];
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -939,17 +930,17 @@ public class ConversationActivity extends CustomAppCompactActivity {
         return threadId;
     }
 
-    private String _sendKeyDataMessage(int subscriptionId, byte[] data) {
-        String threadId = new String();
-        try {
-            threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
-                    smsMetaEntity.getAddress(), data, subscriptionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return threadId;
-    }
+//    private String _sendKeyDataMessage(int subscriptionId, byte[] data) {
+//        String threadId = new String();
+//        try {
+//            threadId = SMSHandler.registerPendingKeyMessage(getApplicationContext(),
+//                    smsMetaEntity.getAddress(), data, subscriptionId);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return threadId;
+//    }
 
     private void lunchSnackBar(String text, String actionText, View.OnClickListener onClickListener,
                                Integer bgColor, Integer textColor) {

@@ -151,8 +151,8 @@ dependencies {
     implementation "io.getstream:avatarview-coil:1.0.7"
 
     implementation "androidx.room:room-runtime:2.6.0"
+    implementation "androidx.room:room-paging:2.6.0"
     annotationProcessor "androidx.room:room-compiler:2.6.0"
-
 
     implementation "androidx.paging:paging-runtime:$paging_version"
 
@@ -168,11 +168,9 @@ dependencies {
     // optional - Jetpack Compose integration
     implementation "androidx.paging:paging-compose:3.2.1"
 
-//    implementation "org.bouncycastle:bcpkix-jdk15on:1.68"
     implementation "androidx.security:security-crypto:1.1.0-alpha06"
 
-//    implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.13'
-    implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.34'
+    implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.54'
     implementation 'io.michaelrocks:libphonenumber-android:8.13.10'
 
     implementation 'com.madgag.spongycastle:prov:1.58.0.0'

@@ -1,11 +1,8 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
-import android.os.Bundle;
 import android.provider.Telephony;
-import android.telephony.SmsMessage;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,9 +13,6 @@ import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.Models.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Migrations;
-import com.afkanerd.deku.DefaultSMS.Models.SMS.Conversations;
-
-import java.nio.charset.StandardCharsets;
 
 
 @Entity
