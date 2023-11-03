@@ -72,7 +72,7 @@ public class Migrations {
                     "contact_name TEXT, avatar_initials TEXT, avatar_image TEXT, " +
                     "formatted_datetime TEXT, PRIMARY KEY(thread_id))");
 
-            database.execSQL("CREATE TABLE IF NOT EXISTS Conversation " +
+            database.execSQL("CREATE TABLE IF NOT EXISTS Conversation" +
                     "(message_id INTEGER NOT NULL PRIMARY KEY, " +
                     "thread_id INTEGER NOT NULL, " +
                     "date INTEGER NOT NULL, " +
@@ -88,6 +88,7 @@ public class Migrations {
                     "formatted_date TEXT, " +
                     "address TEXT, " +
                     "body TEXT)");
+
         }
     }
 

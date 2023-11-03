@@ -15,6 +15,7 @@ import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.URLSpan;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -502,21 +503,17 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
             }
         }
 
-        if(snapshot().size() < 2) {
+        if(snapshot().getSize() < 2) {
             return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                     TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
         }
-
-/**
-         * start message - with timestamp
-         * start message - without timestamp
-         */
 
 
         if(position == oldestItemPos) { // - minus
             Conversation secondMessage = (Conversation) peek(position - 1);
             if(sms.getType() == secondMessage.getType() && Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                     Long.parseLong(secondMessage.getDate()))) {
+                Log.d(getClass().getName(), "Yes oldest timestamp");
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_MESSAGE_START_TYPE_INBOX : TIMESTAMP_MESSAGE_START_TYPE_OUTBOX;
             }
@@ -738,7 +735,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     }
 
 
-    public static class TimestampKeySentStartGroupViewHandler extends MessageSentViewHandler {
+    public static class TimestampKeySentStartGroupViewHandler extends TimestampMessageSentViewHandler {
         public TimestampKeySentStartGroupViewHandler(@NonNull View itemView) {
             super(itemView);
 

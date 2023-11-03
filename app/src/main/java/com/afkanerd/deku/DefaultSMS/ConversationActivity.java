@@ -110,6 +110,9 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
     MutableLiveData<List<Integer>> searchPositions = new MutableLiveData<>();
 
+    ImageButton backSearchBtn;
+    ImageButton forwardSearchBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -251,22 +254,10 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
     int searchPointerPosition;
     TextView searchFoundTextView;
-    private void scrollRecyclerViewSearch(boolean forward) {
-        if(searchPositions.getValue().size() > 0) {
-            try {
-                if (forward && searchPointerPosition >= searchPositions.getValue().size())
-                    searchPointerPosition = -1;
-                if (!forward && searchPointerPosition <= 0)
-                    searchPointerPosition = searchPositions.getValue().size();
-                int requiredScrollPos = forward ? searchPositions.getValue().get(++searchPointerPosition) :
-                        searchPositions.getValue().get(--searchPointerPosition);
-//                int scrollPos = conversationsViewModel.loadFromPosition(getApplicationContext(), requiredScrollPos);
-//                singleMessagesThreadRecyclerView.scrollToPosition(scrollPos);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        String text = (searchPointerPosition == -1 ? 0 : searchPointerPosition) + "/" + searchPositions.getValue().size() +
+
+    private void scrollRecyclerViewSearch(int position) {
+        singleMessagesThreadRecyclerView.scrollToPosition(position);
+        String text = (searchPointerPosition == -1 ? 0 : searchPointerPosition + 1) + "/" + searchPositions.getValue().size() +
                 " " + getString(R.string.conversations_search_results_found);
         searchFoundTextView.setText(text);
     }
@@ -276,6 +267,9 @@ public class ConversationActivity extends CustomAppCompactActivity {
         setSupportActionBar(toolbar);
         ab = getSupportActionBar();
         searchFoundTextView = findViewById(R.id.conversations_search_results_found_counter_text);
+
+        backSearchBtn = findViewById(R.id.conversation_search_found_back_btn);
+        forwardSearchBtn = findViewById(R.id.conversation_search_found_forward_btn);
 
         smsTextView = findViewById(R.id.sms_text);
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
@@ -288,36 +282,34 @@ public class ConversationActivity extends CustomAppCompactActivity {
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
 
+        backSearchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (searchPointerPosition <= 0)
+                    searchPointerPosition = searchPositions.getValue().size();
+                scrollRecyclerViewSearch(searchPositions.getValue().get(--searchPointerPosition));
+            }
+        });
+
+        forwardSearchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (searchPointerPosition >= searchPositions.getValue().size() -1)
+                    searchPointerPosition = -1;
+                scrollRecyclerViewSearch(searchPositions.getValue().get(++searchPointerPosition));
+            }
+        });
+
         searchPositions.observe(this, new Observer<List<Integer>>() {
             @Override
             public void onChanged(List<Integer> integers) {
                 Log.d(getLocalClassName(), "Search found: " + integers.size());
                 conversationsRecyclerAdapter.searchString = searchString;
-
-                ImageButton backSearchBtn = findViewById(R.id.conversation_search_found_back_btn);
-                ImageButton forwardSearchBtn = findViewById(R.id.conversation_search_found_forward_btn);
-
-                backSearchBtn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        scrollRecyclerViewSearch(false);
-                    }
-                });
-
-                forwardSearchBtn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        scrollRecyclerViewSearch(true);
-                    }
-                });
-
-                searchPointerPosition = -1;
+                searchPointerPosition = 0;
                 if(!integers.isEmpty()) {
-                    scrollRecyclerViewSearch(false);
+                    scrollRecyclerViewSearch(0);
                 } else {
                     conversationsRecyclerAdapter.searchString = null;
-//                    conversationsViewModel.informNewItemChanges(getApplicationContext());
-                    scrollRecyclerViewSearch(true);
                 }
             }
         });
@@ -347,9 +339,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
     private void _configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
-//        singleMessagesThreadRecyclerView.setAdapter(conversationPagingRecyclerAdapter);
 
-        int offset = getIntent().getIntExtra(SEARCH_OFFSET, 0);
 
         ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
         conversationsViewModel.get(conversationDao, smsMetaEntity.getThreadId())
@@ -1080,59 +1070,11 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
     private void searchForInput(String search){
         this.searchString = search;
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<Conversations> searchMessages = new ArrayList<>();
-
-                Cursor cursorSearch = SMSHandler.fetchSMSMessagesForSearch(getApplicationContext(), search);
-
-                if(cursorSearch.moveToFirst()) {
-                    do {
-                        int threadIndex = cursorSearch.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
-                        int messageIdIndex = cursorSearch.getColumnIndex(Telephony.Sms._ID);
-
-                        String threadId = String.valueOf(cursorSearch.getString(threadIndex));
-                        String messageId = String.valueOf(cursorSearch.getString(messageIdIndex));
-
-                        Conversations conversations = new Conversations();
-                        conversations.setTHREAD_ID(threadId);
-                        conversations.setMESSAGE_ID(messageId);
-
-                        searchMessages.add(conversations);
-                    } while(cursorSearch.moveToNext());
-                    cursorSearch.close();
-                }
-
-                List<Integer> foundPositions = new ArrayList<>();
-                if(searchMessages.size() > 0) {
-                    Cursor cursorAll = smsMetaEntity.fetchMessages(getApplicationContext(), 0, 0);
-                    if (cursorAll.moveToFirst()) {
-                        int position = 0;
-                        do {
-                            int threadIndex = cursorAll.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID);
-                            int messageIdIndex = cursorAll.getColumnIndex(Telephony.Sms._ID);
-
-                            String threadId = cursorAll.getString(threadIndex);
-                            String messageId = cursorAll.getString(messageIdIndex);
-
-                            Conversations conversations = new Conversations();
-                            conversations.setTHREAD_ID(threadId);
-                            conversations.setMESSAGE_ID(messageId);
-
-                            if (searchMessages.contains(conversations)) {
-                                foundPositions.add(position);
-                            }
-
-                            ++position;
-                        } while (cursorAll.moveToNext());
-                        cursorAll.close();
-                    }
-                }
-                searchPositions.postValue(foundPositions);
-            }
-        }).start();
+        try {
+            searchPositions.setValue(conversationsViewModel.search(search));
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

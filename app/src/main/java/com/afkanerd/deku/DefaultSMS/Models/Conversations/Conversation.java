@@ -1,25 +1,20 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
-import android.os.Bundle;
 import android.provider.Telephony;
-import android.telephony.SmsMessage;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
-import androidx.room.Dao;
 import androidx.room.Entity;
+import androidx.room.Fts3;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.Models.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Migrations;
-
-import java.nio.charset.StandardCharsets;
 
 @Entity
 public class Conversation {
@@ -30,9 +25,8 @@ public class Conversation {
     @Ignore
     public static String BROADCAST_CONVERSATION_ID_INTENT = "BROADCAST_CONVERSATION_ID_INTENT";
 
-    @NonNull
     @PrimaryKey
-    String message_id;
+    long message_id;
     String thread_id;
 
     String date;
@@ -77,11 +71,11 @@ public class Conversation {
     }
 
     public String getMessage_id() {
-        return message_id;
+        return String.valueOf(message_id);
     }
 
     public void setMessage_id(String message_id) {
-        this.message_id = message_id;
+        this.message_id = Long.parseLong(message_id);
     }
 
     public String getThread_id() {
