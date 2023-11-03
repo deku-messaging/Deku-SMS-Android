@@ -104,6 +104,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
     private boolean animation = false;
     Context context;
+
+    public List<Integer> searchPositions;
     public ConversationsRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
         super(Conversation.DIFF_CALLBACK);
         this.context = context;

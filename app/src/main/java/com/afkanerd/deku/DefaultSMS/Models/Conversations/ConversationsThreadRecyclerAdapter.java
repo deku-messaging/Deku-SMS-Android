@@ -55,15 +55,8 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
     private final int SENT_ENCRYPTED_UNREAD_VIEW_TYPE = 7;
     private final int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
-
-    RecyclerView.ViewCacheExtension viewCacheExtension;
     public ConversationsThreadRecyclerAdapter(Context context) {
        this.context = context;
-    }
-
-    public ConversationsThreadRecyclerAdapter(Context context, RecyclerView.ViewCacheExtension viewCacheExtension) {
-        this.context = context;
-        this.viewCacheExtension = viewCacheExtension;
     }
 
     @NonNull

@@ -309,8 +309,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
         searchPositions.observe(this, new Observer<List<Integer>>() {
             @Override
             public void onChanged(List<Integer> integers) {
-                Log.d(getLocalClassName(), "Search found: " + integers.size());
-                conversationsRecyclerAdapter.searchString = searchString;
                 searchPointerPosition = 0;
                 if(!integers.isEmpty()) {
                     scrollRecyclerViewSearch(0);
@@ -429,13 +427,26 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                if(editable != null && editable.length() > 1)
+                if(editable != null && editable.length() > 1) {
+                    conversationsRecyclerAdapter.searchString = editable.toString();
+                    resetPreviousSelections();
                     searchForInput(editable.toString());
+                }
                 else {
+                    conversationsRecyclerAdapter.searchString = null;
+                    resetPreviousSelections();
                     searchPositions.setValue(new ArrayList<>());
                 }
             }
         });
+    }
+
+    private void resetPreviousSelections() {
+        final List<Integer> prevPositions = searchPositions.getValue();
+        if(prevPositions != null)
+            for(Integer position : prevPositions) {
+                conversationsRecyclerAdapter.notifyItemChanged(position);
+            }
     }
 
     private void _configureToolbars() {
@@ -501,8 +512,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 return false;
             }
         });
-
-
 
         TextView encryptedMessageTextView = findViewById(R.id.send_sms_encrypted_version);
         encryptedMessageTextView.setMovementMethod(new ScrollingMovementMethod());
@@ -1077,7 +1086,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
     }
 
     private void searchForInput(String search){
-        this.searchString = search;
         try {
             searchPositions.setValue(conversationsViewModel.search(search));
         } catch(Exception e) {
