@@ -256,6 +256,12 @@ public class ConversationActivity extends CustomAppCompactActivity {
     TextView searchFoundTextView;
 
     private void scrollRecyclerViewSearch(int position) {
+        if(position == -2){
+            String text = "0/0 " + getString(R.string.conversations_search_results_found);
+            searchFoundTextView.setText(text);
+            return;
+        }
+
         singleMessagesThreadRecyclerView.scrollToPosition(position);
         String text = (searchPointerPosition == -1 ? 0 : searchPointerPosition + 1) + "/" + searchPositions.getValue().size() +
                 " " + getString(R.string.conversations_search_results_found);
@@ -310,6 +316,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                     scrollRecyclerViewSearch(0);
                 } else {
                     conversationsRecyclerAdapter.searchString = null;
+                    scrollRecyclerViewSearch(-2);
                 }
             }
         });
@@ -408,6 +415,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
         findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
 
         TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
+        scrollRecyclerViewSearch(-2);
         textInputEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
