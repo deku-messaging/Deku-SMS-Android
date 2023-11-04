@@ -76,21 +76,17 @@ public class SMSHandler {
     }
 
     public static Cursor fetchThreads(Context context) {
-//        return context.getContentResolver().query(
-//                Telephony.Sms.Conversations.CONTENT_URI,
-//                null, null, null,
-//                "date DESC");
-
         return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
                 new String[]{Telephony.TextBasedSmsColumns.ADDRESS,
                         Telephony.TextBasedSmsColumns.BODY,
                         Telephony.TextBasedSmsColumns.TYPE,
                         Telephony.TextBasedSmsColumns.DATE,
+                        Telephony.TextBasedSmsColumns.READ,
                         Telephony.TextBasedSmsColumns.THREAD_ID},
                 "thread_id IN " +
-                        "(SELECT thread_id, type, date FROM sms GROUP BY thread_id ORDER BY date DESC)",
+                        "(SELECT thread_id FROM sms GROUP BY thread_id ORDER BY date DESC)",
                 null,
-                "thread_id ASC");
+                "date DESC");
     }
 
 

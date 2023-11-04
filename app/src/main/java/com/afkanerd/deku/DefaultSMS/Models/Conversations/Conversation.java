@@ -28,7 +28,7 @@ public class Conversation {
 
     @PrimaryKey(autoGenerate = true)
     long id;
-    long message_id;
+    String message_id;
     String thread_id;
 
     String date;
@@ -77,7 +77,7 @@ public class Conversation {
     }
 
     public void setMessage_id(String message_id) {
-        this.message_id = Long.parseLong(message_id);
+        this.message_id = message_id;
     }
 
     public String getThread_id() {

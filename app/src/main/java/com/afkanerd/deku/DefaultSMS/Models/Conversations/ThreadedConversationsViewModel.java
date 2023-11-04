@@ -11,6 +11,7 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
+import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 
 import java.util.ArrayList;
@@ -37,11 +38,11 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    private void loadNative(Context context) throws InterruptedException {
+    public void loadNative(Context context) throws InterruptedException {
         Thread loadNativeThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Cursor cursor = SMSHandler.fetchThreads(context);
+                Cursor cursor = NativeSMSDB.fetchAndBuildConversation(context);
                 List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
                 if(cursor.moveToNext()) {
                     do {

@@ -18,14 +18,15 @@ import com.afkanerd.deku.DefaultSMS.Models.Migrations;
 
 @Entity
 public class ThreadedConversations {
+    @NonNull
     @PrimaryKey
-     long thread_id;
+     String thread_id;
      int msg_count;
      int avatar_color;
 
      int type;
 
-     long date;
+     String date;
 
      @Ignore
      public int offset = -1;
@@ -57,7 +58,7 @@ public class ThreadedConversations {
     public static ThreadedConversations build(Conversation conversation) {
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setSnippet(conversation.getBody());
-        threadedConversations.setThread_id(Long.parseLong(conversation.getThread_id()));
+        threadedConversations.setThread_id(conversation.getThread_id());
         threadedConversations.setContact_name(conversation.getAddress());
 
         return threadedConversations;
@@ -73,11 +74,11 @@ public class ThreadedConversations {
 
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setSnippet(cursor.getString(snippetIndex));
-        threadedConversations.setThread_id(Long.parseLong(cursor.getString(threadIdIndex)));
+        threadedConversations.setThread_id(cursor.getString(threadIdIndex));
         threadedConversations.setContact_name(cursor.getString(addressIndex));
         threadedConversations.setType(cursor.getInt(typeIndex));
         threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
-        threadedConversations.setDate(cursor.getInt(dateIndex));
+        threadedConversations.setDate(cursor.getString(dateIndex));
 
         return threadedConversations;
     }
@@ -90,19 +91,19 @@ public class ThreadedConversations {
         this.type = type;
     }
 
-    public long getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(long date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
-    public long getThread_id() {
+    public String getThread_id() {
         return thread_id;
     }
 
-    public void setThread_id(long thread_id) {
+    public void setThread_id(String thread_id) {
         this.thread_id = thread_id;
     }
 
@@ -186,10 +187,11 @@ public class ThreadedConversations {
         this.formatted_datetime = formatted_datetime;
     }
 
-    public static final DiffUtil.ItemCallback<ThreadedConversations> DIFF_CALLBACK = new DiffUtil.ItemCallback<ThreadedConversations>() {
+    public static final DiffUtil.ItemCallback<ThreadedConversations> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<ThreadedConversations>() {
         @Override
         public boolean areItemsTheSame(@NonNull ThreadedConversations oldItem, @NonNull ThreadedConversations newItem) {
-            return oldItem.thread_id == newItem.thread_id;
+            return oldItem.thread_id.equals(newItem.thread_id);
         }
 
         @Override

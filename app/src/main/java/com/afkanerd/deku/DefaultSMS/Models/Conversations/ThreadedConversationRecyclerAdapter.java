@@ -132,7 +132,6 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
         ThreadedConversations threadedConversations = getItem(position);
         String threadId = String.valueOf(threadedConversations.getThread_id());
-        holder.id = threadId;
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override

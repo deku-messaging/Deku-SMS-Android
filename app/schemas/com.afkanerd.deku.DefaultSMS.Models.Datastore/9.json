@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "db5ef7b625f53434884bb12438e85cb2",
+    "identityHash": "b4b9f5b9b1946a5124d50a7ad5edc6a5",
     "entities": [
       {
         "tableName": "GatewayServer",
@@ -190,12 +190,12 @@
       },
       {
         "tableName": "ThreadedConversations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`thread_id` INTEGER NOT NULL, `msg_count` INTEGER NOT NULL, `avatar_color` INTEGER NOT NULL, `type` INTEGER NOT NULL, `date` INTEGER NOT NULL, `is_archived` INTEGER NOT NULL, `is_blocked` INTEGER NOT NULL, `is_read` INTEGER NOT NULL, `snippet` TEXT, `contact_name` TEXT, `avatar_initials` TEXT, `avatar_image` TEXT, `formatted_datetime` TEXT, PRIMARY KEY(`thread_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`thread_id` TEXT NOT NULL, `msg_count` INTEGER NOT NULL, `avatar_color` INTEGER NOT NULL, `type` INTEGER NOT NULL, `date` TEXT, `is_archived` INTEGER NOT NULL, `is_blocked` INTEGER NOT NULL, `is_read` INTEGER NOT NULL, `snippet` TEXT, `contact_name` TEXT, `avatar_initials` TEXT, `avatar_image` TEXT, `formatted_datetime` TEXT, PRIMARY KEY(`thread_id`))",
         "fields": [
           {
             "fieldPath": "thread_id",
             "columnName": "thread_id",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -219,8 +219,8 @@
           {
             "fieldPath": "date",
             "columnName": "date",
-            "affinity": "INTEGER",
-            "notNull": true
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "is_archived",
@@ -282,7 +282,7 @@
       },
       {
         "tableName": "Conversation",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` INTEGER NOT NULL, `thread_id` TEXT, `date` TEXT, `date_sent` TEXT, `type` INTEGER NOT NULL, `num_segments` INTEGER NOT NULL, `subscription_id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `read` INTEGER NOT NULL, `is_encrypted` INTEGER NOT NULL, `is_key` INTEGER NOT NULL, `is_image` INTEGER NOT NULL, `formatted_date` TEXT, `address` TEXT, `body` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` TEXT, `thread_id` TEXT, `date` TEXT, `date_sent` TEXT, `type` INTEGER NOT NULL, `num_segments` INTEGER NOT NULL, `subscription_id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `read` INTEGER NOT NULL, `is_encrypted` INTEGER NOT NULL, `is_key` INTEGER NOT NULL, `is_image` INTEGER NOT NULL, `formatted_date` TEXT, `address` TEXT, `body` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -293,8 +293,8 @@
           {
             "fieldPath": "message_id",
             "columnName": "message_id",
-            "affinity": "INTEGER",
-            "notNull": true
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "thread_id",
@@ -404,7 +404,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'db5ef7b625f53434884bb12438e85cb2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b4b9f5b9b1946a5124d50a7ad5edc6a5')"
     ]
   }
 }
