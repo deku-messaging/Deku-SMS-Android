@@ -80,12 +80,12 @@ public class Migrations {
                     "avatar_image TEXT, " +
                     "formatted_datetime TEXT)");
 
-            database.execSQL("CREATE TABLE IF NOT EXISTS Conversation" +
-                    "(id INTEGER NOT NULL PRIMARY KEY, " +
+            database.execSQL("CREATE TABLE IF NOT EXISTS Conversation " +
+                    "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
                     "message_id INTEGER NOT NULL, " +
-                    "thread_id INTEGER NOT NULL, " +
-                    "date INTEGER NOT NULL, " +
-                    "date_sent INTEGER NOT NULL, " +
+                    "thread_id TEXT, " +
+                    "date TEXT, " +
+                    "date_sent TEXT, " +
                     "type INTEGER NOT NULL, " +
                     "num_segments INTEGER NOT NULL, " +
                     "subscription_id INTEGER NOT NULL, " +
@@ -97,7 +97,7 @@ public class Migrations {
                     "formatted_date TEXT, " +
                     "address TEXT, " +
                     "body TEXT)");
-
+            database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_Conversation_message_id ON Conversation (message_id)");
         }
     }
 
