@@ -20,7 +20,7 @@ import android.widget.PopupMenu;
 
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
@@ -40,7 +40,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     Toolbar toolbar;
     ActionBar ab;
 
-    HashMap<String, ConversationsThreadRecyclerAdapter> messagesThreadRecyclerAdapterHashMap = new HashMap<>();
+    HashMap<String, ThreadedConversationRecyclerAdapter> messagesThreadRecyclerAdapterHashMap = new HashMap<>();
     HashMap<String, ThreadedConversationsViewModel> stringMessagesThreadViewModelHashMap = new HashMap<>();
 
     String ITEM_TYPE = "";
@@ -176,7 +176,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                ConversationsThreadRecyclerAdapter recyclerAdapter =
+                ThreadedConversationRecyclerAdapter recyclerAdapter =
                         messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
                 if(messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null) {
                     TemplateViewHolder[] viewHolders = recyclerAdapter.selectedItems.getValue()
@@ -269,10 +269,10 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     @Override
-    public void setRecyclerViewAdapter(String itemType, ConversationsThreadRecyclerAdapter conversationsThreadRecyclerAdapter) {
+    public void setRecyclerViewAdapter(String itemType, ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter) {
         this.ITEM_TYPE = itemType;
-        this.messagesThreadRecyclerAdapterHashMap.put(itemType, conversationsThreadRecyclerAdapter);
-//        this.conversationsThreadRecyclerAdapter = conversationsThreadRecyclerAdapter;
+        this.messagesThreadRecyclerAdapterHashMap.put(itemType, threadedConversationRecyclerAdapter);
+//        this.threadedConversationRecyclerAdapter = threadedConversationRecyclerAdapter;
     }
 
     @Override
@@ -301,7 +301,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     public void tabUnselected(int position) {
         String itemType = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
-        ConversationsThreadRecyclerAdapter recyclerAdapter = this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+        ThreadedConversationRecyclerAdapter recyclerAdapter = this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
         if(this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(itemType).selectedItems.getValue() != null) {

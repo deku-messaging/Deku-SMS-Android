@@ -38,6 +38,14 @@ public class NativeSMSDB {
     public static int ADDRESS = 3;
     public static int SUBSCRIPTION_ID = 4;
 
+    public static Cursor fetchAll(Context context) {
+        return context.getContentResolver().query(
+                Telephony.Sms.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+    }
     public static Cursor fetchByThreadId(Context context, String threadId) {
         return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
                 null,

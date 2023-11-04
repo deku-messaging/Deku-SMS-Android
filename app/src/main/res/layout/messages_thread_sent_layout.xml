@@ -68,6 +68,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
+<!--            android:text="@string/lengthy_sms_sample"-->
             <TextView
                 android:id="@+id/message_sent_text"
                 android:layout_width="match_parent"
@@ -76,7 +77,6 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="12dp"
                 android:layout_marginBottom="8dp"
-                android:text="@string/lengthy_sms_sample"
                 android:textAlignment="textStart"
                 android:textColor="@color/black"
                 android:textSize="16sp"

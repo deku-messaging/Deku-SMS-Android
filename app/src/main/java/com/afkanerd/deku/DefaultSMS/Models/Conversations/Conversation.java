@@ -10,13 +10,14 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.Entity;
 import androidx.room.Fts3;
 import androidx.room.Ignore;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.Models.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Migrations;
 
-@Entity
+@Entity(indices = {@Index(value={"message_id"}, unique=true)})
 public class Conversation {
 
     @Ignore
@@ -25,7 +26,8 @@ public class Conversation {
     @Ignore
     public static String BROADCAST_CONVERSATION_ID_INTENT = "BROADCAST_CONVERSATION_ID_INTENT";
 
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    long id;
     long message_id;
     String thread_id;
 

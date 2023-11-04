@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
@@ -21,6 +22,9 @@ public class ThreadedConversations {
      long thread_id;
      int msg_count;
      int avatar_color;
+
+     @Ignore
+     public int offset = -1;
 
      boolean is_archived;
      boolean is_blocked;
@@ -44,6 +48,15 @@ public class ThreadedConversations {
         ThreadedConversationsDao threadedConversationsDao =  databaseConnector.threadedConversationsDao();
         databaseConnector.close();
         return threadedConversationsDao;
+    }
+
+    public static ThreadedConversations build(Conversation conversation) {
+        ThreadedConversations threadedConversations = new ThreadedConversations();
+        threadedConversations.setSnippet(conversation.getBody());
+        threadedConversations.setThread_id(Long.parseLong(conversation.getThread_id()));
+        threadedConversations.setContact_name(conversation.getAddress());
+
+        return threadedConversations;
     }
 
     public static ThreadedConversations build(Cursor cursor) {

@@ -64,6 +64,10 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
 //        this.contactInitials.setPlaceholder(itemView.getContext().getDrawable(R.drawable.round_person_24));
     }
 
+    public void setCardOnClickListener(View.OnClickListener onClickListener) {
+        this.materialCardView.setOnClickListener(onClickListener);
+    }
+
     public static class ReadViewHolder extends TemplateViewHolder{
         public ReadViewHolder(@NonNull View itemView) {
             super(itemView);

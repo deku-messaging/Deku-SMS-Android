@@ -65,9 +65,6 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
     public MutableLiveData<String[]> retryFailedDataMessage = new MutableLiveData<>();
 
-    public final AsyncListDiffer<Conversation> mDiffer = new AsyncListDiffer(this, Conversation.DIFF_CALLBACK);
-
-
     final int MESSAGE_TYPE_ALL = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_ALL;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
     final int MESSAGE_TYPE_OUTBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
@@ -105,7 +102,6 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     private boolean animation = false;
     Context context;
 
-    public List<Integer> searchPositions;
     public ConversationsRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
         super(Conversation.DIFF_CALLBACK);
         this.context = context;
@@ -232,7 +228,11 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        final Conversation sms = peek(position);
+        final Conversation sms = getItem(position);
+        if(sms == null) {
+            Log.d(getClass().getName(), "Yep it's null");
+            return;
+        }
         final String smsId = String.valueOf(sms.getMessage_id());
 
         if(animation) {
@@ -485,6 +485,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     @Override
     public int getItemViewType(int position) {
         Conversation sms = peek(position);
+        if(sms == null)
+            return super.getItemViewType(position);
 
         boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
 
@@ -527,6 +529,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         if(position > 0) {
             Conversation secondMessage = (Conversation) peek(position + 1);
+            if(secondMessage == null)
+                return super.getItemViewType(position);
             Conversation thirdMessage = (Conversation) peek(position - 1);
             if(!Helpers.isSameHour(Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
                 if(sms.getType() == thirdMessage.getType() && Helpers.isSameMinute(Long.parseLong(sms.getDate()),
@@ -565,6 +569,9 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         }
         if(position == newestItemPos) { // - minus
             Conversation secondMessage = (Conversation) peek(position + 1);
+
+            if(secondMessage == null)
+                return super.getItemViewType(position);
             if(!Helpers.isSameHour(Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
                 return (sms.getType() == MESSAGE_TYPE_INBOX) ?
                         TIMESTAMP_MESSAGE_TYPE_INBOX : TIMESTAMP_MESSAGE_TYPE_OUTBOX;
@@ -581,27 +588,27 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
     }
 
-    public void removeAllItems(String[] _keys) {
-        List<String> keys = new ArrayList<>(Arrays.asList(_keys));
-        List<Conversation> sms = new ArrayList<>(mDiffer.getCurrentList());
-        List<Conversation> smsNew = new ArrayList<>();
-        for(Conversation sms1 : sms)
-            if(!keys.contains(String.valueOf(sms1.getMessage_id())))
-                smsNew.add(sms1);
-
-        mDiffer.submitList(smsNew);
-    }
-
-    public void removeItem(String keys) {
-        List<Conversation> sms = new ArrayList<>(mDiffer.getCurrentList());
-        for(int i=0; i< sms.size(); ++i) {
-            if(String.valueOf(sms.get(i).getMessage_id()).equals(keys)) {
-                sms.remove(i);
-                break;
-            }
-        }
-        mDiffer.submitList(sms);
-    }
+//    public void removeAllItems(String[] _keys) {
+//        List<String> keys = new ArrayList<>(Arrays.asList(_keys));
+//        List<Conversation> sms = new ArrayList<>(mDiffer.getCurrentList());
+//        List<Conversation> smsNew = new ArrayList<>();
+//        for(Conversation sms1 : sms)
+//            if(!keys.contains(String.valueOf(sms1.getMessage_id())))
+//                smsNew.add(sms1);
+//
+//        mDiffer.submitList(smsNew);
+//    }
+//
+//    public void removeItem(String keys) {
+//        List<Conversation> sms = new ArrayList<>(mDiffer.getCurrentList());
+//        for(int i=0; i< sms.size(); ++i) {
+//            if(String.valueOf(sms.get(i).getMessage_id()).equals(keys)) {
+//                sms.remove(i);
+//                break;
+//            }
+//        }
+//        mDiffer.submitList(sms);
+//    }
 
     public static class MessageSentViewHandler extends RecyclerView.ViewHolder {
          TextView sentMessage;

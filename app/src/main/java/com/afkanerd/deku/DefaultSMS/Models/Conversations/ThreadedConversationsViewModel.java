@@ -37,22 +37,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
             loadRoom.join();
         }
 
-        Thread loadNativeThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Cursor cursor = SMSHandler.fetchThreads(context);
-                List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
-                if(cursor.moveToNext()) {
-                    do {
-                        threadedConversationsList.add(ThreadedConversations.build(cursor));
-                    } while(cursor.moveToNext());
-                }
-                cursor.close();
-                threadedConversationsDao.insert(threadedConversationsList);
-            }
-        });
-        loadNativeThread.setName("load_native_thread");
-        loadNativeThread.start();
     }
 
     public void insert(ThreadedConversations threadedConversations) {

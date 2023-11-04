@@ -22,17 +22,20 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     List<Conversation> getAll(String thread_id);
 
-//    @Query("SELECT message_id FROM Conversation WHERE thread_id =:threadId " +
-//            "AND body LIKE '%' || :text || '%' ORDER BY date DESC")
-//    int[] find(String threadId, String text);
+    @Query("SELECT * FROM Conversation ORDER BY date DESC")
+    List<Conversation> getComplete();
+
+//    @Query("SELECT * FROM Conversation WHERE body " +
+//            "LIKE '%' || :text || '%' ORDER BY date DESC")
+//    PagingSource<Integer, Conversation> find(String text);
 
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
     LiveData<Conversation> get(long message_id);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insert(Conversation conversation);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     List<Long> insertAll(List<Conversation> conversationList);
 
     @Update

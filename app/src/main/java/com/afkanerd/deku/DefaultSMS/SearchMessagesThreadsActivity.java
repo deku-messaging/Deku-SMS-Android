@@ -25,17 +25,21 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.Conversations;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.SearchConversationRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsSearchViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.SearchViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 
 import java.util.List;
 
 public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
-    ConversationsSearchViewModel conversationsSearchViewModel;
+    SearchViewModel searchViewModel;
     MutableLiveData<String> searchString = new MutableLiveData<>();
 
     @Override
@@ -53,10 +57,11 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
 
-        conversationsSearchViewModel = new ViewModelProvider(this).get(
-                ConversationsSearchViewModel.class);
+        searchViewModel = new ViewModelProvider(this).get(
+                SearchViewModel.class);
 
-        ConversationsThreadRecyclerAdapter conversationsThreadRecyclerAdapter = new ConversationsThreadRecyclerAdapter(this);
+        SearchConversationRecyclerAdapter searchConversationRecyclerAdapter =
+                new SearchConversationRecyclerAdapter(getApplicationContext());
 
         SearchView searchView = findViewById(R.id.search_view_input);
         CustomContactsCursorAdapter customContactsCursorAdapter = new CustomContactsCursorAdapter(getApplicationContext(),
@@ -87,25 +92,36 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 
-        messagesThreadRecyclerView.setAdapter(conversationsThreadRecyclerAdapter);
+        messagesThreadRecyclerView.setAdapter(searchConversationRecyclerAdapter);
 
         searchString.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                conversationsSearchViewModel.informChanges(getApplicationContext(), s);
+                try {
+                    if(s.isEmpty())
+                        searchConversationRecyclerAdapter.searchString = null;
+                    else
+                        searchConversationRecyclerAdapter.searchString = s;
+                    searchViewModel.search(s);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
-        conversationsSearchViewModel.getMessages(getApplicationContext(), searchString.getValue()).observe(this,
-                new Observer<List<Conversations>>() {
+        ThreadedConversationsDao threadedConversationsDao =
+                ThreadedConversations.getDao(getApplicationContext());
+
+        searchViewModel.get(threadedConversationsDao).observe(this,
+                new Observer<List<ThreadedConversations>>() {
                     @Override
-                    public void onChanged(List<Conversations> smsList) {
+                    public void onChanged(List<ThreadedConversations> smsList) {
                         if(!searchString.getValue().isEmpty() && smsList.isEmpty())
                             findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
-                        else
+                        else {
                             findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
-//                        conversationsThreadRecyclerAdapter.submitList(smsList, searchString.getValue());
-//                        conversationsThreadRecyclerAdapter.notifyDataSetChanged();
+                        }
+                        searchConversationRecyclerAdapter.mDiffer.submitList(smsList);
                     }
                 });
     }

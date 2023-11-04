@@ -27,13 +27,13 @@ import com.afkanerd.deku.DefaultSMS.R;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
+public class ThreadedConversationRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
 
     public final AsyncListDiffer<ThreadedConversations> mDiffer = new AsyncListDiffer<>(this, ThreadedConversations.DIFF_CALLBACK);
 
     Context context;
     Boolean isSearch = false;
-    String searchString = "";
+    public String searchString = "";
     RouterActivity routerActivity;
     ArchivedMessagesActivity archivedMessagesActivity;
 
@@ -55,7 +55,7 @@ public class ConversationsThreadRecyclerAdapter extends RecyclerView.Adapter<Tem
     private final int SENT_ENCRYPTED_UNREAD_VIEW_TYPE = 7;
     private final int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
-    public ConversationsThreadRecyclerAdapter(Context context) {
+    public ThreadedConversationRecyclerAdapter(Context context) {
        this.context = context;
     }
 

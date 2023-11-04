@@ -15,10 +15,10 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchivedViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class ArchivedMessagesActivity extends AppCompatActivity {
 
-    public ConversationsThreadRecyclerAdapter archivedThreadRecyclerAdapter;
+    public ThreadedConversationRecyclerAdapter archivedThreadRecyclerAdapter;
 
     ArchivedViewModel archivedViewModel;
     Toolbar myToolbar;
@@ -55,7 +55,7 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                 LinearLayoutManager.VERTICAL, false);
         archivedMessagesRecyclerView.setLayoutManager(linearLayoutManager);
 
-        archivedThreadRecyclerAdapter = new ConversationsThreadRecyclerAdapter(this);
+        archivedThreadRecyclerAdapter = new ThreadedConversationRecyclerAdapter(this);
 
         archivedMessagesRecyclerView.setAdapter(archivedThreadRecyclerAdapter);
 

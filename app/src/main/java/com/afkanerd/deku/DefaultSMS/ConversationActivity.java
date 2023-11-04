@@ -10,7 +10,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.provider.Telephony;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.Spannable;
@@ -42,18 +41,17 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.paging.PagingData;
+import androidx.paging.PagingSource;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationPagingRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.Conversations;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMS;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
@@ -76,10 +74,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import kotlinx.coroutines.flow.FlowCollector;
+
 public class ConversationActivity extends CustomAppCompactActivity {
     public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
     public static final String IMAGE_URI = "IMAGE_URI";
-    public static final String SEARCH_STRING = "search_string";
+    public static final String SEARCH_STRING = "SEARCH_STRING";
     public static final String SEARCH_OFFSET = "search_offset";
     public static final String SEARCH_POSITION = "search_position";
     public static final String SMS_SENT_INTENT = "SMS_SENT";
@@ -88,7 +90,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
     private final int RESULT_GALLERY = 100;
     ConversationsRecyclerAdapter conversationsRecyclerAdapter;
 
-    ConversationPagingRecyclerAdapter conversationPagingRecyclerAdapter;
     ConversationsViewModel conversationsViewModel;
     TextInputEditText smsTextView;
     ConstraintLayout multiSimcardConstraint;
@@ -117,36 +118,32 @@ public class ConversationActivity extends CustomAppCompactActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations);
+        test();
 
         try {
             _setupActivityDependencies();
+            _instantiateGlobals();
+            _configureToolbars();
+            _configureRecyclerView();
+            _configureMessagesTextBox();
+            configureBroadcastListeners(conversationsViewModel);
+
+            _configureLayoutForMessageType();
+            _configureEncryptionListeners();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        try {
-            _instantiateGlobals();
-            _configureToolbars();
-            _configureRecyclerView();
-            _configureMessagesTextBox();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        configureBroadcastListeners(conversationsViewModel);
-
-        _configureLayoutForMessageType();
-        _configureEncryptionListeners();
+    private void test() {
+//        if(BuildConfig.DEBUG)
+//            getIntent().putExtra(SEARCH_STRING, "Android");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        conversationsViewModel.loadNative(getApplicationContext());
+//        conversationsViewModel.loadNative(getApplicationContext());
 
         new Thread(new Runnable() {
             @Override
@@ -207,7 +204,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
          * ==> If not ThreadId do not populate, everything else should take the pleasure of finding
          * and sending a threadID to this intent
          */
-
         smsMetaEntity = new SMSMetaEntity();
         if(getIntent().getAction() != null && (getIntent().getAction().equals(Intent.ACTION_SENDTO) ||
                 getIntent().getAction().equals(Intent.ACTION_SEND))) {
@@ -250,6 +246,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
                 finish();
             }
         });
+
     }
 
     int searchPointerPosition;
@@ -282,8 +279,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
         conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
                 smsMetaEntity.getAddress());
-
-        conversationPagingRecyclerAdapter = new ConversationPagingRecyclerAdapter();
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
@@ -342,17 +337,30 @@ public class ConversationActivity extends CustomAppCompactActivity {
         };
     }
 
+    public static String JUMP_THRESHOLD = "JUMP_THRESHOLD";
     private void _configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
 
 
         ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
-        conversationsViewModel.get(conversationDao, smsMetaEntity.getThreadId())
+        Integer jumpThreshold = getIntent().hasExtra(JUMP_THRESHOLD) ?
+                getIntent().getIntExtra(JUMP_THRESHOLD, PagingSource.LoadResult.Page.COUNT_UNDEFINED) :
+                null;
+
+        conversationsRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
+            @Override
+            public Unit invoke() {
+                Log.d(getLocalClassName(), "Adapter got updated!");
+                return null;
+            }
+        });
+
+        conversationsViewModel.get(conversationDao, smsMetaEntity.getThreadId(), jumpThreshold)
                 .observe(this, new Observer<PagingData<Conversation>>() {
             @Override
             public void onChanged(PagingData<Conversation> smsList) {
+                Log.d(getLocalClassName(), "Refreshing data");
                 conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
-//                conversationPagingRecyclerAdapter.submitData(getLifecycle(), smsList);
             }
         });
 
@@ -402,6 +410,12 @@ public class ConversationActivity extends CustomAppCompactActivity {
             });
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        if(getIntent().hasExtra(SEARCH_STRING)) {
+            _configureSearchBox();
+            TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
+            textInputEditText.setText(getIntent().getStringExtra(SEARCH_STRING));
         }
 
     }
@@ -1076,11 +1090,11 @@ public class ConversationActivity extends CustomAppCompactActivity {
             if (keys.length > 1) {
                 smsMetaEntity.deleteMultipleMessages(getApplicationContext(), keys);
                 conversationsRecyclerAdapter.resetAllSelectedItems();
-                conversationsRecyclerAdapter.removeAllItems(keys);
+//                conversationsRecyclerAdapter.removeAllItems(keys);
             } else {
                 smsMetaEntity.deleteMessage(getApplicationContext(), keys[0]);
                 conversationsRecyclerAdapter.resetSelectedItem(keys[0], true);
-                conversationsRecyclerAdapter.removeItem(keys[0]);
+//                conversationsRecyclerAdapter.removeItem(keys[0]);
             }
         }
     }
