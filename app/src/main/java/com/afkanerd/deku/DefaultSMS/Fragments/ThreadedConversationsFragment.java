@@ -16,6 +16,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -85,7 +86,6 @@ public class ThreadedConversationsFragment extends Fragment {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
         threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter( getContext());
-        threadedConversationRecyclerAdapter.setHasStableIds(true);
         mListener.setRecyclerViewAdapter(messageType, threadedConversationRecyclerAdapter);
         mListener.setViewModel(messageType, threadedConversationsViewModel);
 
@@ -97,25 +97,14 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
         threadedConversationsDao = ThreadedConversations.getDao(getContext());
-        try {
-            threadedConversationsViewModel.get(threadedConversationsDao, getContext()).observe(getViewLifecycleOwner(),
-                    new Observer<List<ThreadedConversations>>() {
-                        @Override
-                        public void onChanged(List<ThreadedConversations> smsList) {
-                            TextView textView = view.findViewById(R.id.homepage_no_message);
-                            if(smsList == null || smsList.isEmpty()) {
-                                textView.setVisibility(View.VISIBLE);
-                            }
-                            else {
-                                textView.setVisibility(View.GONE);
-                            }
-                            view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                            threadedConversationRecyclerAdapter.mDiffer.submitList(smsList);
-                        }
-                    });
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        threadedConversationsViewModel.get(threadedConversationsDao).observe(getViewLifecycleOwner(),
+                new Observer<PagingData<ThreadedConversations>>() {
+                    @Override
+                    public void onChanged(PagingData<ThreadedConversations> smsList) {
+                        threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                        view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                    }
+                });
 
         threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<Set<TemplateViewHolder>>() {

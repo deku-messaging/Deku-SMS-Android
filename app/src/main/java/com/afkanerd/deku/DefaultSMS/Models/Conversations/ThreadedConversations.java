@@ -23,6 +23,10 @@ public class ThreadedConversations {
      int msg_count;
      int avatar_color;
 
+     int type;
+
+     long date;
+
      @Ignore
      public int offset = -1;
 
@@ -63,13 +67,35 @@ public class ThreadedConversations {
         int snippetIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
         int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
         int addressIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.ADDRESS);
+        int typeIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.TYPE);
+        int readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ);
+        int dateIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.DATE);
 
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setSnippet(cursor.getString(snippetIndex));
         threadedConversations.setThread_id(Long.parseLong(cursor.getString(threadIdIndex)));
         threadedConversations.setContact_name(cursor.getString(addressIndex));
+        threadedConversations.setType(cursor.getInt(typeIndex));
+        threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
+        threadedConversations.setDate(cursor.getInt(dateIndex));
 
         return threadedConversations;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public long getDate() {
+        return date;
+    }
+
+    public void setDate(long date) {
+        this.date = date;
     }
 
     public long getThread_id() {

@@ -23,34 +23,17 @@ import java.util.List;
 
 public class ConversationsViewModel extends ViewModel{
     public String threadId;
-
-    LiveData<PagingData<Conversation>> liveData;
-    LiveData<PagingData<Conversation>> searchLiveData;
-
     ConversationDao conversationDao;
 
-    public LiveData<PagingData<Conversation>> get(ConversationDao conversationDao, String threadId,
-                                                  Integer jumpThreshold)
+    public LiveData<PagingData<Conversation>> get(ConversationDao conversationDao, String threadId)
             throws InterruptedException {
         this.conversationDao = conversationDao;
         this.threadId = threadId;
-
-        liveData = new MutableLiveData<>();
-
-//        int pageSize = 30;
-//        int prefetchDistance = 50;
-//        boolean enablePlaceholder = true;
-//        int initialLoadSize = 20;
-//        int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
-        int maxSize = 5;
 
         int pageSize = 10;
         int prefetchDistance = 30;
         boolean enablePlaceholder = false;
         int initialLoadSize = 20;
-
-        if(jumpThreshold == null)
-            jumpThreshold = PagingSource.LoadResult.Page.COUNT_UNDEFINED;
 
         Pager<Integer, Conversation> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -61,6 +44,23 @@ public class ConversationsViewModel extends ViewModel{
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
+    public void loadConversationsFromNative(Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Cursor cursor = NativeSMSDB.fetchAll(context);
+                List<Conversation> conversationList = new ArrayList<>();
+                if(cursor.moveToNext()) {
+                    do {
+                        conversationList.add(Conversation.build(cursor));
+                    } while(cursor.moveToNext());
+                }
+                cursor.close();
+                ConversationDao conversationDao = Conversation.getDao(context);
+                conversationDao.insertAll(conversationList);
+            }
+        }).start();
+    }
 
     public void insert(Conversation conversation) {
         new Thread(new Runnable() {

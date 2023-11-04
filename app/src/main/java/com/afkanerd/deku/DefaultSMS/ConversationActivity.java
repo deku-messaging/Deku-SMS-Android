@@ -143,7 +143,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//        conversationsViewModel.loadNative(getApplicationContext());
+        conversationsViewModel.loadConversationsFromNative(getApplicationContext());
 
         new Thread(new Runnable() {
             @Override
@@ -343,23 +343,11 @@ public class ConversationActivity extends CustomAppCompactActivity {
 
 
         ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
-        Integer jumpThreshold = getIntent().hasExtra(JUMP_THRESHOLD) ?
-                getIntent().getIntExtra(JUMP_THRESHOLD, PagingSource.LoadResult.Page.COUNT_UNDEFINED) :
-                null;
 
-        conversationsRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
-            @Override
-            public Unit invoke() {
-                Log.d(getLocalClassName(), "Adapter got updated!");
-                return null;
-            }
-        });
-
-        conversationsViewModel.get(conversationDao, smsMetaEntity.getThreadId(), jumpThreshold)
+        conversationsViewModel.get(conversationDao, smsMetaEntity.getThreadId())
                 .observe(this, new Observer<PagingData<Conversation>>() {
             @Override
             public void onChanged(PagingData<Conversation> smsList) {
-                Log.d(getLocalClassName(), "Refreshing data");
                 conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
             }
         });

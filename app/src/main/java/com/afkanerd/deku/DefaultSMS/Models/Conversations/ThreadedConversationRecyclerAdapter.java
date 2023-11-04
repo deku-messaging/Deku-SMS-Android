@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
+import androidx.paging.PagingDataAdapter;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.WorkInfo;
@@ -19,6 +20,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ReceivedMes
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.SentMessagesViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
+import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -27,9 +29,7 @@ import com.afkanerd.deku.DefaultSMS.R;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ThreadedConversationRecyclerAdapter extends RecyclerView.Adapter<TemplateViewHolder> {
-
-    public final AsyncListDiffer<ThreadedConversations> mDiffer = new AsyncListDiffer<>(this, ThreadedConversations.DIFF_CALLBACK);
+public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<ThreadedConversations, TemplateViewHolder> {
 
     Context context;
     Boolean isSearch = false;
@@ -56,7 +56,8 @@ public class ThreadedConversationRecyclerAdapter extends RecyclerView.Adapter<Te
     private final int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
     public ThreadedConversationRecyclerAdapter(Context context) {
-       this.context = context;
+        super(ThreadedConversations.DIFF_CALLBACK);
+        this.context = context;
     }
 
     @NonNull
@@ -87,54 +88,49 @@ public class ThreadedConversationRecyclerAdapter extends RecyclerView.Adapter<Te
         return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedRead(view);
     }
 
-    @Override
-    public long getItemId(int position) {
-        return mDiffer.getCurrentList().get(position).getThread_id();
-        // return super.getItemId(position);
-    }
 
     @Override
     public int getItemViewType(int position) {
 //        Conversations conversations = mDiffer.getCurrentList().get(position);
 //        SMSMetaEntity smsMetaEntity = conversations.getNewestMessage();
-        ThreadedConversations threadedConversations = mDiffer.getCurrentList().get(position);
+        ThreadedConversations threadedConversations = peek(position);
 
         String snippet = threadedConversations.getSnippet();
-//        int type = threadedConversations.get_type();
-//
-//        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
-//            if(!smsMetaEntity.getNewestIsRead()) {
-//                if(type != MESSAGE_TYPE_INBOX)
-//                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
-//                else
-//                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
-//            }
-//            else {
-//                if(type != MESSAGE_TYPE_INBOX)
-//                    return SENT_ENCRYPTED_VIEW_TYPE;
-//                else
-//                    return RECEIVED_ENCRYPTED_VIEW_TYPE;
-//            }
-//        }
-//        else {
-//            if(!smsMetaEntity.getNewestIsRead()) {
-//                if(type != MESSAGE_TYPE_INBOX)
-//                    return SENT_UNREAD_VIEW_TYPE;
-//                else
-//                    return RECEIVED_UNREAD_VIEW_TYPE;
-//            }else {
-//                if(type != MESSAGE_TYPE_INBOX) {
-//                    return SENT_VIEW_TYPE;
-//                }
-//            }
-//        }
+        int type = threadedConversations.getType();
+
+        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
+            if(threadedConversations.isIs_read()) {
+                if(type != MESSAGE_TYPE_INBOX)
+                    return SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
+                else
+                    return RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
+            }
+            else {
+                if(type != MESSAGE_TYPE_INBOX)
+                    return SENT_ENCRYPTED_VIEW_TYPE;
+                else
+                    return RECEIVED_ENCRYPTED_VIEW_TYPE;
+            }
+        }
+        else {
+            if(threadedConversations.isIs_read()) {
+                if(type != MESSAGE_TYPE_INBOX)
+                    return SENT_UNREAD_VIEW_TYPE;
+                else
+                    return RECEIVED_UNREAD_VIEW_TYPE;
+            }else {
+                if(type != MESSAGE_TYPE_INBOX) {
+                    return SENT_VIEW_TYPE;
+                }
+            }
+        }
 
         return RECEIVED_VIEW_TYPE;
     }
 
     @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
-        ThreadedConversations threadedConversations = mDiffer.getCurrentList().get(position);
+        ThreadedConversations threadedConversations = getItem(position);
         String threadId = String.valueOf(threadedConversations.getThread_id());
         holder.id = threadId;
 
@@ -186,60 +182,5 @@ public class ThreadedConversationRecyclerAdapter extends RecyclerView.Adapter<Te
             }
         }
         selectedItems.setValue(new HashSet<>());
-    }
-
-    @Override
-    public int getItemCount() {
-        return mDiffer.getCurrentList().size();
-    }
-
-    private String getSMSFromWorkInfo(WorkInfo workInfo) {
-        String[] tags = Helpers.convertSetToStringArray(workInfo.getTags());
-        String messageId = "";
-        for(int i = 0; i< tags.length; ++i) {
-            if (tags[i].contains("swob.work.id")) {
-                tags = tags[i].split("\\.");
-                messageId = tags[tags.length - 1];
-                return messageId;
-            }
-        }
-        return messageId;
-    }
-
-    private void workManagerFactories() {
-//
-//        WorkQuery workQuery = WorkQuery.Builder
-//                .fromTags(Collections.singletonList(IncomingTextSMSBroadcastReceiver.TAG_NAME))
-//                .addStates(Arrays.asList(
-//                        WorkInfo.State.ENQUEUED,
-//                        WorkInfo.State.FAILED,
-//                        WorkInfo.State.CANCELLED,
-//                        WorkInfo.State.SUCCEEDED,
-//                        WorkInfo.State.RUNNING))
-//                .build();
-//
-//        workers = workManager.getWorkInfosLiveData(workQuery);
-//        workers.observe(routerActivity, new Observer<List<WorkInfo>>() {
-//            @Override
-//            public void onChanged(List<WorkInfo> workInfos) {
-//                if(workInfos.isEmpty())
-//                    return;
-//
-//                List<SMS> smsList = new ArrayList<>(mDiffer.getCurrentList());
-//
-//                for(WorkInfo workInfo: workInfos) {
-//                    String messageId = getSMSFromWorkInfo(workInfo);
-//                    for(int i=0;i<mDiffer.getCurrentList().size();++i)
-//                        if(mDiffer.getCurrentList().get(i).id.equals(messageId)) {
-//                            SMS sms = smsList.get(i);
-//                            conversation.routerStatus = workInfo.getState().name();
-//                            smsList.set(i, sms);
-//                            break;
-//                        }
-//                }
-//                mDiffer.submitList(smsList);
-//                notifyDataSetChanged();
-//            }
-//        });
     }
 }

@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
@@ -15,13 +16,20 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
 
 public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyclerAdapter {
+    public final AsyncListDiffer<ThreadedConversations> mDiffer =
+            new AsyncListDiffer(this, ThreadedConversations.DIFF_CALLBACK);
     public SearchConversationRecyclerAdapter(Context context) {
         super(context);
     }
 
     @Override
+    public int getItemCount() {
+        return mDiffer.getCurrentList().size();
+    }
+
+    @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
-        super.onBindViewHolder(holder, position);
+//        super.onBindViewHolder(holder, position);
         ThreadedConversations threadedConversations = mDiffer.getCurrentList().get(position);
         String threadId = String.valueOf(threadedConversations.getThread_id());
         View.OnClickListener onClickListener = new View.OnClickListener() {
