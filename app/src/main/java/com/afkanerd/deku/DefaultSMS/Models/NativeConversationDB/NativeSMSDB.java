@@ -297,6 +297,24 @@ public class NativeSMSDB {
 
 
     public static class Incoming {
+
+        public static int update_read(Context context, int read, String thread_id) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
+
+            try {
+                return context.getContentResolver().update(
+                        Telephony.Sms.CONTENT_URI,
+                        contentValues,
+                        "thread_id=?",
+                        new String[]{thread_id});
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return 0;
+        }
+
         public static String[] register_incoming_text(Context context, Intent intent) throws IOException {
             long messageId = System.currentTimeMillis();
             ContentValues contentValues = new ContentValues();
@@ -326,8 +344,9 @@ public class NativeSMSDB {
                 Uri uri = context.getContentResolver().insert(
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
-                String[] broadcastOutputs = broadcastStateChanged(context, uri);
-                String[] returnString = new String[4];
+                Log.d(NativeSMSDB.class.getName(), "URI: " + uri.toString());
+                String[] broadcastOutputs = broadcastStateChanged(context, String.valueOf(messageId));
+                String[] returnString = new String[5];
                 returnString[THREAD_ID] = broadcastOutputs[THREAD_ID];
                 returnString[MESSAGE_ID] = broadcastOutputs[MESSAGE_ID];
                 returnString[BODY] = body;

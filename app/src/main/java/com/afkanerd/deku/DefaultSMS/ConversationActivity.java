@@ -144,15 +144,7 @@ public class ConversationActivity extends CustomAppCompactActivity {
     protected void onResume() {
         super.onResume();
         conversationsViewModel.loadConversationsFromNative(getApplicationContext());
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if(getIntent().hasExtra(SMSMetaEntity.THREAD_ID))
-                    _updateThreadToRead();
-            }
-        }).start();
-
+        conversationsViewModel.updateToRead(getApplicationContext());
         try {
             _checkEncryptionStatus();
         } catch (Exception e) {

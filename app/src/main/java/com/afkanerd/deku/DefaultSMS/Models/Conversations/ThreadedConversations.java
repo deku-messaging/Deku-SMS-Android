@@ -215,9 +215,11 @@ public class ThreadedConversations {
 //                    threadedConversations.avatar_initials.equals(this.avatar_initials) &&
 //                    threadedConversations.msg_count == this.msg_count;
 
-            return threadedConversations.thread_id == this.thread_id &&
+            return threadedConversations.thread_id.equals(this.thread_id) &&
                     threadedConversations.is_archived == this.is_archived &&
                     threadedConversations.is_blocked == this.is_blocked &&
+                    threadedConversations.is_read == this.is_read &&
+                    threadedConversations.type == this.type &&
                     threadedConversations.snippet.equals(this.snippet) &&
                     threadedConversations.avatar_color == this.avatar_color &&
                     threadedConversations.msg_count == this.msg_count;

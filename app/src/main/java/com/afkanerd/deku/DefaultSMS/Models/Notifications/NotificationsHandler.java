@@ -90,13 +90,18 @@ public class NotificationsHandler {
             NotificationCompat.MessagingStyle messagingStyle =
                     new NotificationCompat.MessagingStyle(contactName);
 
-            Bitmap bitmap = Contacts.getContactBitmapPhoto(context, smsMetaEntity.getAddress());
             Person.Builder person = new Person.Builder();
-
             person.setName(contactName)
                     .setKey(smsMetaEntity.getAddress());
-            if(bitmap != null)
-                person.setIcon(IconCompat.createWithBitmap(bitmap));
+
+            try {
+                Bitmap bitmap = Contacts.getContactBitmapPhoto(context, smsMetaEntity.getAddress());
+
+                if (bitmap != null)
+                    person.setIcon(IconCompat.createWithBitmap(bitmap));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             for(StatusBarNotification notification : notifications) {
                 if (notification.getId() == Integer.parseInt(sms.getThreadId())) {

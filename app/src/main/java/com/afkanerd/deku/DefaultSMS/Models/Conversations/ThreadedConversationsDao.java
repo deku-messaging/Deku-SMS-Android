@@ -34,7 +34,7 @@ public interface ThreadedConversationsDao {
     List<Long> insertAll(List<ThreadedConversations> threadedConversationsList);
 
     @Update
-    void update(ThreadedConversations threadedConversations);
+    int update(ThreadedConversations threadedConversations);
 
     @Delete
     void delete(ThreadedConversations threadedConversations);
