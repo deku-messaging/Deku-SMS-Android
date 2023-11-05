@@ -76,6 +76,7 @@ public class Migrations {
                     "is_read INTEGER NOT NULL, " +
                     "snippet TEXT, " +
                     "contact_name TEXT, " +
+                    "address TEXT, " +
                     "avatar_initials TEXT, " +
                     "avatar_image TEXT, " +
                     "formatted_datetime TEXT)");

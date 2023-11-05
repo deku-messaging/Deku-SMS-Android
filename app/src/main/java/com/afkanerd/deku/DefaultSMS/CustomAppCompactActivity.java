@@ -55,13 +55,23 @@ public class CustomAppCompactActivity extends AppCompatActivity {
             finish();
         }
 
-        SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        if(sharedPreferences.getBoolean(LOAD_NATIVES, true)) {
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.threading_conversations_natives_loaded), Toast.LENGTH_LONG).show();
-            loadConversationsNativesBg();
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                if(sharedPreferences.getBoolean(LOAD_NATIVES, true)) {
+                    loadConversationsNativesBg();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(),
+                                    getString(R.string.threading_conversations_natives_loaded), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 
     private void loadConversationsNativesBg() {

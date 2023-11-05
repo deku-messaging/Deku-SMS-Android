@@ -90,14 +90,14 @@ public class Contacts {
                 null,
                 null, null);
 
-        String displayName = "";
         if(cursor.moveToFirst()) {
             int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
-            displayName = String.valueOf(cursor.getString(displayNameIndex));
+            String contactName = String.valueOf(cursor.getString(displayNameIndex));
+            cursor.close();
+            return contactName;
         }
-        cursor.close();
 
-        return displayName;
+        return null;
     }
 
     public static String retrieveContactPhoto(Context context, String phoneNumber) {

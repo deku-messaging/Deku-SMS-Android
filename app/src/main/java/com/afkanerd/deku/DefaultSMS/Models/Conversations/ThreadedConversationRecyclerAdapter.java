@@ -46,15 +46,15 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    private final int RECEIVED_VIEW_TYPE = 1;
-    private final int RECEIVED_UNREAD_VIEW_TYPE = 2;
-    private final int RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE = 3;
-    private final int RECEIVED_ENCRYPTED_VIEW_TYPE = 4;
+    public final static int RECEIVED_VIEW_TYPE = 1;
+    public final static int RECEIVED_UNREAD_VIEW_TYPE = 2;
+    public final static int RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE = 3;
+    public final static int RECEIVED_ENCRYPTED_VIEW_TYPE = 4;
 
-    private final int SENT_VIEW_TYPE = 5;
-    private final int SENT_UNREAD_VIEW_TYPE = 6;
-    private final int SENT_ENCRYPTED_UNREAD_VIEW_TYPE = 7;
-    private final int SENT_ENCRYPTED_VIEW_TYPE = 8;
+    public final static int SENT_VIEW_TYPE = 5;
+    public final static int SENT_UNREAD_VIEW_TYPE = 6;
+    public final static int SENT_ENCRYPTED_UNREAD_VIEW_TYPE = 7;
+    public final static int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
     public ThreadedConversationRecyclerAdapter(Context context) {
         super(ThreadedConversations.DIFF_CALLBACK);
@@ -94,31 +94,8 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     public int getItemViewType(int position) {
 //        Conversations conversations = mDiffer.getCurrentList().get(position);
 //        SMSMetaEntity smsMetaEntity = conversations.getNewestMessage();
-        ThreadedConversations threadedConversations = peek(position);
-
-        String snippet = threadedConversations.getSnippet();
-        int type = threadedConversations.getType();
-
-        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
-            if(!threadedConversations.isIs_read()) {
-                return type == MESSAGE_TYPE_INBOX ?
-                        RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE : SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
-            }
-            else {
-                return type == MESSAGE_TYPE_INBOX ?
-                        RECEIVED_ENCRYPTED_VIEW_TYPE : SENT_ENCRYPTED_VIEW_TYPE;
-            }
-        }
-        else {
-            if(!threadedConversations.isIs_read()) {
-                return type == MESSAGE_TYPE_INBOX ?
-                        RECEIVED_UNREAD_VIEW_TYPE : SENT_UNREAD_VIEW_TYPE;
-            }
-            else {
-                return type == MESSAGE_TYPE_INBOX ?
-                        RECEIVED_VIEW_TYPE : SENT_VIEW_TYPE;
-            }
-        }
+//        ThreadedConversations threadedConversations = peek(position);
+        return TemplateViewHolder.getViewType(position, snapshot().getItems());
     }
 
     @Override

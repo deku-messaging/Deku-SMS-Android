@@ -42,6 +42,7 @@ public class ThreadedConversations {
      String snippet;
 
      String contact_name;
+    private String address;
 
      String avatar_initials;
 
@@ -62,7 +63,7 @@ public class ThreadedConversations {
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setSnippet(conversation.getBody());
         threadedConversations.setThread_id(conversation.getThread_id());
-        threadedConversations.setContact_name(conversation.getAddress());
+        threadedConversations.setAddress(conversation.getAddress());
 
         return threadedConversations;
     }
@@ -82,6 +83,14 @@ public class ThreadedConversations {
         return threadedConversations;
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     public static ThreadedConversations build(Cursor cursor) {
         int snippetIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
         int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
@@ -93,7 +102,7 @@ public class ThreadedConversations {
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setSnippet(cursor.getString(snippetIndex));
         threadedConversations.setThread_id(cursor.getString(threadIdIndex));
-        threadedConversations.setContact_name(cursor.getString(addressIndex));
+        threadedConversations.setAddress(cursor.getString(addressIndex));
         threadedConversations.setType(cursor.getInt(typeIndex));
         threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
         threadedConversations.setDate(cursor.getString(dateIndex));
@@ -222,25 +231,16 @@ public class ThreadedConversations {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof ThreadedConversations) {
             ThreadedConversations threadedConversations = (ThreadedConversations) obj;
-//            return threadedConversations.thread_id == this.thread_id &&
-//                    threadedConversations.is_archived == this.is_archived &&
-//                    threadedConversations.is_blocked == this.is_blocked &&
-//                    threadedConversations.snippet.equals(this.snippet) &&
-//                    threadedConversations.formatted_datetime.equals(this.formatted_datetime) &&
-//                    threadedConversations.contact_name.equals(this.contact_name) &&
-//                    threadedConversations.avatar_color == this.avatar_color &&
-//                    threadedConversations.avatar_image.equals(this.avatar_image) &&
-//                    threadedConversations.avatar_initials.equals(this.avatar_initials) &&
-//                    threadedConversations.msg_count == this.msg_count;
 
             return threadedConversations.thread_id.equals(this.thread_id) &&
                     threadedConversations.is_archived == this.is_archived &&
                     threadedConversations.is_blocked == this.is_blocked &&
                     threadedConversations.is_read == this.is_read &&
                     threadedConversations.type == this.type &&
-                    threadedConversations.snippet.equals(this.snippet) &&
                     threadedConversations.avatar_color == this.avatar_color &&
-                    threadedConversations.msg_count == this.msg_count;
+                    threadedConversations.msg_count == this.msg_count &&
+                    threadedConversations.address.equals(this.address) &&
+                    threadedConversations.snippet.equals(this.snippet);
         }
         return super.equals(obj);
     }

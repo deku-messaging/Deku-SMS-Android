@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,7 +27,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsDa
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.R;
 
-import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class ThreadedConversationsFragment extends Fragment {
@@ -97,14 +96,38 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
         threadedConversationsDao = ThreadedConversations.getDao(getContext());
-        threadedConversationsViewModel.get(threadedConversationsDao).observe(getViewLifecycleOwner(),
-                new Observer<PagingData<ThreadedConversations>>() {
-                    @Override
-                    public void onChanged(PagingData<ThreadedConversations> smsList) {
-                        threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                        view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                    }
-                });
+        switch(Objects.requireNonNull(messageType)) {
+            case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
+                threadedConversationsViewModel.getEncrypted(threadedConversationsDao).observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
+                break;
+            case PLAIN_MESSAGES_THREAD_FRAGMENT:
+                threadedConversationsViewModel.getNotEncrypted(threadedConversationsDao).observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
+                break;
+            case ALL_MESSAGES_THREAD_FRAGMENT:
+            default:
+                threadedConversationsViewModel.get(threadedConversationsDao).observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
+        }
 
         threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<Set<TemplateViewHolder>>() {
@@ -149,6 +172,12 @@ public class ThreadedConversationsFragment extends Fragment {
         } else {
             throw new RuntimeException(context.toString() + " must implement OnViewManipulationListener");
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        threadedConversationsViewModel.loadNatives(getContext());
     }
 
     @Override

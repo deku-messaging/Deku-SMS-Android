@@ -1,5 +1,16 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
+import static android.provider.Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
+
+import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.RECEIVED_ENCRYPTED_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.RECEIVED_UNREAD_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.RECEIVED_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_ENCRYPTED_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_UNREAD_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_VIEW_TYPE;
+
 import android.graphics.Typeface;
 import android.view.View;
 import android.widget.TextView;
@@ -8,9 +19,13 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.google.android.material.card.MaterialCardView;
+
+import java.util.List;
 
 import io.getstream.avatarview.AvatarView;
 
@@ -46,22 +61,50 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
     public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener,
                      View.OnLongClickListener onLongClickListener) {
         this.id = String.valueOf(conversation.getThread_id());
-//
-//        final SMSMetaEntity smsMetaEntity = conversation.getNewestMessage();
-//        String address = smsMetaEntity.getAddress();
-//        if(smsMetaEntity.isContact()) {
-//            String _address = smsMetaEntity.getContactName();
-//            address = !_address.isEmpty() ? _address : address;
-//            this.contactInitials.setAvatarInitials(address.substring(0, 1));
+
+        if(conversation.getAvatar_initials() != null) {
+            this.contactInitials.setAvatarInitials(conversation.getAvatar_initials());
+            this.contactInitials.setAvatarInitialsBackgroundColor(
+                    Helpers.generateColor( conversation.getAddress() ));
 //            this.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
-//        }
-        this.address.setText(conversation.getContact_name());
+        }
+        if(conversation.getContact_name() != null) {
+            this.address.setText(conversation.getContact_name());
+        } else this.address.setText(conversation.getAddress());
+
         this.date.setText(conversation.getFormatted_datetime());
         this.snippet.setText(conversation.getSnippet());
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);
         // TODO: investigate new Avatar first before anything else
 //        this.contactInitials.setPlaceholder(itemView.getContext().getDrawable(R.drawable.round_person_24));
+    }
+
+    public static int getViewType(int position, List<ThreadedConversations> items) {
+        ThreadedConversations threadedConversations = items.get(position);
+        String snippet = threadedConversations.getSnippet();
+        int type = threadedConversations.getType();
+
+        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
+            if(!threadedConversations.isIs_read()) {
+                return type == MESSAGE_TYPE_INBOX ?
+                        RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE : SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
+            }
+            else {
+                return type == MESSAGE_TYPE_INBOX ?
+                        RECEIVED_ENCRYPTED_VIEW_TYPE : SENT_ENCRYPTED_VIEW_TYPE;
+            }
+        }
+        else {
+            if(!threadedConversations.isIs_read()) {
+                return type == MESSAGE_TYPE_INBOX ?
+                        RECEIVED_UNREAD_VIEW_TYPE : SENT_UNREAD_VIEW_TYPE;
+            }
+            else {
+                return type == MESSAGE_TYPE_INBOX ?
+                        RECEIVED_VIEW_TYPE : SENT_VIEW_TYPE;
+            }
+        }
     }
 
     public void setCardOnClickListener(View.OnClickListener onClickListener) {

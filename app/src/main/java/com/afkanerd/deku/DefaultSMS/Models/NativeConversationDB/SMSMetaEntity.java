@@ -109,7 +109,7 @@ public class SMSMetaEntity {
 
     private boolean getIsContact(Context context) {
         String addressInPhone = Contacts.retrieveContactName(context, this.address);
-        return !addressInPhone.isEmpty() && !addressInPhone.equals("null");
+        return addressInPhone != null && !addressInPhone.isEmpty();
     }
 
     public boolean getNewestIsRead() {

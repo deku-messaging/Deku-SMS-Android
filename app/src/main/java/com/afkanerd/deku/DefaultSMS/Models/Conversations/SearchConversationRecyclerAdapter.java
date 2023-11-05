@@ -28,6 +28,11 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
     }
 
     @Override
+    public int getItemViewType(int position) {
+        return TemplateViewHolder.getViewType(position, mDiffer.getCurrentList());
+    }
+
+    @Override
     public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
 //        super.onBindViewHolder(holder, position);
         ThreadedConversations threadedConversations = mDiffer.getCurrentList().get(position);

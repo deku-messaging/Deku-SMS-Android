@@ -278,14 +278,14 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         this.ITEM_TYPE = itemType;
         this.stringMessagesThreadViewModelHashMap.put(itemType, threadedConversationsViewModel);
         configureBroadcastListeners(threadedConversationsViewModel);
-        SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
-        if(sharedPreferences.getBoolean(LOAD_NATIVES, true)) {
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.threading_conversations_natives_loaded), Toast.LENGTH_LONG).show();
-            threadedConversationsViewModel.loadNatives(getApplicationContext());
-        }
+//        SharedPreferences sharedPreferences =
+//                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+//        if(sharedPreferences.getBoolean(LOAD_NATIVES, true)) {
+//            Toast.makeText(getApplicationContext(),
+//                    getString(R.string.threading_conversations_natives_loaded), Toast.LENGTH_LONG).show();
+//            threadedConversationsViewModel.loadNatives(getApplicationContext());
+//        }
     }
 
     @Override

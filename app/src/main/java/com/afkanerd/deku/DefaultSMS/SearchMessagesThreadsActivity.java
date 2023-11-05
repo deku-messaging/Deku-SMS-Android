@@ -18,6 +18,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -121,6 +122,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                         else {
                             findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
                         }
+                        Log.d(getLocalClassName(), "Found: " + smsList.size());
                         searchConversationRecyclerAdapter.mDiffer.submitList(smsList);
                     }
                 });
