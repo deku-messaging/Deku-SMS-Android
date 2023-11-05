@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsViewModel;
@@ -45,17 +46,17 @@ public class CustomAppCompactActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
                 if(intent.getAction().equals(NativeSMSDB.BROADCAST_STATUS_CHANGED_ACTION)) {
-                    String threadId = intent.getStringExtra(NativeSMSDB.BROADCAST_THREAD_ID_INTENT);
                     String messageId = intent.getStringExtra(NativeSMSDB.BROADCAST_CONVERSATION_ID_INTENT);
-                    if(threadId != null && obj instanceof ConversationsViewModel) {
+                    if(messageId != null && obj instanceof ConversationsViewModel) {
+                        Log.d(getLocalClassName(), "Message state changed: " + messageId);
                         ConversationsViewModel viewModel = (ConversationsViewModel) obj;
                         viewModel.updateFromNative(getApplicationContext(), messageId);
                     }
                 }
                 else if(intent.getAction().equals(NativeSMSDB.BROADCAST_NEW_MESSAGE_ACTION)) {
-                    Log.d(getLocalClassName(), "Broadcast new message received");
                     String threadId = intent.getStringExtra(NativeSMSDB.BROADCAST_THREAD_ID_INTENT);
                     String messageId = intent.getStringExtra(NativeSMSDB.BROADCAST_CONVERSATION_ID_INTENT);
+
                     if(threadId != null && obj instanceof ThreadedConversationsViewModel) {
                         ThreadedConversationsViewModel viewModel =
                                 (ThreadedConversationsViewModel) obj;
@@ -63,6 +64,15 @@ public class CustomAppCompactActivity extends AppCompatActivity {
                         if(cursor.moveToFirst()) {
                             ThreadedConversations threadedConversations = ThreadedConversations.build(cursor);
                             viewModel.insert(threadedConversations);
+                        }
+                        cursor.close();
+                    }
+                    else if(messageId != null && obj instanceof ConversationsViewModel) {
+                        ConversationsViewModel viewModel = (ConversationsViewModel) obj;
+                        Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
+                        if(cursor.moveToFirst()) {
+                            Conversation conversation = Conversation.build(cursor);
+                            viewModel.insert(conversation);
                         }
                         cursor.close();
                     }

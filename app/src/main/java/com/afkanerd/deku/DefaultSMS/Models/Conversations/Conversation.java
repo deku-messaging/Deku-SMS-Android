@@ -27,32 +27,32 @@ public class Conversation {
     public static String BROADCAST_CONVERSATION_ID_INTENT = "BROADCAST_CONVERSATION_ID_INTENT";
 
     @PrimaryKey(autoGenerate = true)
-    long id;
-    String message_id;
-    String thread_id;
+    private long id;
+    private String message_id;
+    private String thread_id;
 
-    String date;
-    String date_sent;
+    private String date;
+    private String date_sent;
 
-    int type;
-    int num_segments;
+    private int type;
+    private int num_segments;
 
-    int subscription_id;
+    private int subscription_id;
 
-    int status;
+    private int status;
 
-    boolean read;
+    private boolean read;
 
-    boolean is_encrypted;
+    private boolean is_encrypted;
 
-    boolean is_key;
+    private boolean is_key;
 
-    boolean is_image;
-    String formatted_date;
+    private boolean is_image;
+    private String formatted_date;
 
-    String address;
+    private String address;
 
-    String body;
+    private String body;
 
     public static ConversationDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
@@ -62,6 +62,14 @@ public class Conversation {
         ConversationDao conversationDao =  databaseConnector.conversationDao();
         databaseConnector.close();
         return conversationDao;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getDate_sent() {

@@ -253,10 +253,10 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
             animation = false;
         }
 
-        String date = Helpers.formatDateExtended(context, Long.parseLong(sms.date));
+        String date = Helpers.formatDateExtended(context, Long.parseLong(sms.getDate()));
 
         DateFormat dateFormat = new SimpleDateFormat("h:mm a");
-        String timeStamp = dateFormat.format(new Date(Long.parseLong(sms.date)));
+        String timeStamp = dateFormat.format(new Date(Long.parseLong(sms.getDate())));
 
         String _text = sms.getBody();
 

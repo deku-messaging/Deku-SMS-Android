@@ -101,11 +101,6 @@ public class NativeSMSDB {
      */
 
     private static String[] broadcastNewMessage(Context context, Uri uri) {
-        /**
-         * Threads ID
-         * Message ID
-         */
-
         Cursor cursor = context.getContentResolver().query(
                 uri,
                 new String[]{
@@ -165,7 +160,7 @@ public class NativeSMSDB {
 
     public static class Outgoing {
 
-        private static int update_status(Context context, int statusCode, long messageId, int errorCode) {
+        private static int update_status(Context context, int statusCode, String messageId, int errorCode) {
             ContentValues contentValues = new ContentValues();
             contentValues.put(Telephony.TextBasedSmsColumns.STATUS, statusCode);
 
@@ -173,15 +168,16 @@ public class NativeSMSDB {
                 contentValues.put(Telephony.TextBasedSmsColumns.TYPE,
                         Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT);
 
-            if(statusCode == Telephony.Sms.STATUS_FAILED || errorCode > -1)
+            if(statusCode == Telephony.Sms.STATUS_FAILED || errorCode > -1) {
                 contentValues.put(Telephony.TextBasedSmsColumns.ERROR_CODE, errorCode);
+            }
 
             try {
                 return context.getContentResolver().update(
                         Telephony.Sms.CONTENT_URI,
                         contentValues,
                         "_id=?",
-                        new String[]{Long.toString(messageId)});
+                        new String[]{messageId});
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -192,7 +188,7 @@ public class NativeSMSDB {
         public static String[] send_text(Context context, String destinationAddress,
                                                  String text, int subscriptionId, Bundle bundle) throws Exception {
             String[] pendingOutputs = register_pending(context, destinationAddress, text, subscriptionId);
-            long messageId = Long.parseLong(pendingOutputs[MESSAGE_ID]);
+            String messageId = pendingOutputs[MESSAGE_ID];
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
             Transmissions.sendTextSMS(destinationAddress, text,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
@@ -204,7 +200,7 @@ public class NativeSMSDB {
                                  int subscriptionId, Bundle bundle) throws Exception {
             String[] pendingOutputs = register_pending(context, destinationAddress,
                     Base64.encodeToString(data, Base64.DEFAULT), subscriptionId);
-            long messageId = Long.parseLong(pendingOutputs[MESSAGE_ID]);
+            String messageId = pendingOutputs[MESSAGE_ID];
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
             Transmissions.sendDataSMS(destinationAddress, data,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
@@ -217,19 +213,13 @@ public class NativeSMSDB {
             ContentValues contentValues = new ContentValues();
 
             contentValues.put(Telephony.Sms._ID, messageId);
-
             contentValues.put(Telephony.TextBasedSmsColumns.TYPE,
                     Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
-
             contentValues.put(Telephony.TextBasedSmsColumns.STATUS,
                     Telephony.TextBasedSmsColumns.STATUS_PENDING);
-
             contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
-
             contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
-
             contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
-
             contentValues.put(Telephony.TextBasedSmsColumns.DATE_SENT,
                     String.valueOf(System.currentTimeMillis()));
 
@@ -244,28 +234,30 @@ public class NativeSMSDB {
             }
         }
 
-        public static String[] register_failed(Context context, long messageId, int errorCode) {
+        public static String[] register_failed(Context context, String messageId, int errorCode) {
             int numberChanged =
                     update_status(context, Telephony.TextBasedSmsColumns.STATUS_FAILED,
                             messageId, errorCode);
             return broadcastStateChanged(context, String.valueOf(messageId));
         }
 
-        public static String[] register_delivered(@NonNull Context context, long messageId) {
+        public static String[] register_delivered(@NonNull Context context, String messageId) {
             int numberChanged =
                     update_status(context, Telephony.TextBasedSmsColumns.STATUS_COMPLETE,
                             messageId, -1);
             return broadcastStateChanged(context, String.valueOf(messageId));
         }
 
-        public static String[] register_sent(Context context, long messageId) {
+        public static String[] register_sent(Context context, String messageId) {
+            Log.d(NativeSMSDB.class.getName(), "Registered sent message");
             int numberChanged =
                     update_status(context, Telephony.TextBasedSmsColumns.STATUS_NONE,
                             messageId, -1);
+            Log.d(NativeSMSDB.class.getName(), "Registered sent message update: " + numberChanged);
             return broadcastStateChanged(context, String.valueOf(messageId));
         }
 
-        public static PendingIntent[] getPendingIntents(Context context, long messageId, Bundle bundle) {
+        public static PendingIntent[] getPendingIntents(Context context, String messageId, Bundle bundle) {
             Intent sentIntent = new Intent(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT);
             sentIntent.setPackage(context.getPackageName());
             sentIntent.putExtra(ID, messageId);
@@ -280,12 +272,12 @@ public class NativeSMSDB {
             }
 
             PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
-                    (int) messageId,
+                    (int)Long.parseLong(messageId),
                     sentIntent,
                     PendingIntent.FLAG_IMMUTABLE);
 
             PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
-                    (int) messageId,
+                    (int)Long.parseLong(messageId),
                     deliveredIntent,
                     PendingIntent.FLAG_IMMUTABLE);
 

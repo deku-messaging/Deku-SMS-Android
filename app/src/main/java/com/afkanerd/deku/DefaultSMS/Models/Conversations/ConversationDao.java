@@ -30,7 +30,7 @@ public interface ConversationDao {
 //    PagingSource<Integer, Conversation> find(String text);
 
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
-    LiveData<Conversation> get(long message_id);
+    Conversation getMessage(String message_id);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insert(Conversation conversation);
@@ -39,7 +39,7 @@ public interface ConversationDao {
     List<Long> insertAll(List<Conversation> conversationList);
 
     @Update
-    void update(Conversation conversation);
+    int update(Conversation conversation);
 
     @Delete
     void delete(Conversation conversation);

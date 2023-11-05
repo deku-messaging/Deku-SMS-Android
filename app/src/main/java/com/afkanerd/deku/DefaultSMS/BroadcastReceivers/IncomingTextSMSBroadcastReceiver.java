@@ -69,7 +69,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
 
         else if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT)) {
-            long id = intent.getLongExtra(NativeSMSDB.ID, -1);
+            String id = intent.getStringExtra(NativeSMSDB.ID);
             if (getResultCode() == Activity.RESULT_OK) {
                 NativeSMSDB.Outgoing.register_sent(context, id);
             } else {
@@ -81,7 +81,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             }
         }
         else if(intent.getAction().equals(SMS_DELIVERED_BROADCAST_INTENT)) {
-            long id = intent.getLongExtra(NativeSMSDB.ID, -1);
+            String id = intent.getStringExtra(NativeSMSDB.ID);
             if (getResultCode() == Activity.RESULT_OK) {
                 NativeSMSDB.Outgoing.register_delivered(context, id);
             } else {

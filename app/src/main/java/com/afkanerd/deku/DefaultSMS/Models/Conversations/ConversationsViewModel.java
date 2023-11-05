@@ -78,7 +78,10 @@ public class ConversationsViewModel extends ViewModel{
         new Thread(new Runnable() {
             @Override
             public void run() {
-                conversationDao.update(conversation);
+                Conversation conversation1 = conversationDao.getMessage(conversation.getMessage_id());
+                conversation.setId(conversation1.getId());
+                int numberUpdated = conversationDao.update(conversation);
+                Log.d(getClass().getName(), "ROOM updated: " + numberUpdated);
             }
         }).start();
     }
@@ -95,8 +98,8 @@ public class ConversationsViewModel extends ViewModel{
     public void updateFromNative(Context context, String messageId ) {
         Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
         if(cursor.moveToFirst()) {
-            Conversation conversation = Conversation.build(cursor);
-            update(conversation);
+            Conversation conversation1 = Conversation.build(cursor);
+            update(conversation1);
         }
         cursor.close();
     }
@@ -109,7 +112,7 @@ public class ConversationsViewModel extends ViewModel{
                 List<Conversation> list = conversationDao.getAll(threadId);
 
                 for(int i=0;i<list.size();++i) {
-                    if(list.get(i).body.contains(input))
+                    if(list.get(i).getBody().contains(input))
                         positions.add(i);
                 }
             }
