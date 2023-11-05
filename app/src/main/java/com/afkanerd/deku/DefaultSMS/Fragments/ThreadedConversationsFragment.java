@@ -113,7 +113,6 @@ public class ThreadedConversationsFragment extends Fragment {
                         highlightListener(stringViewHolderHashMap.size(), view);
                     }
                 });
-//        setRefreshTimer();
     }
 
 
@@ -139,16 +138,6 @@ public class ThreadedConversationsFragment extends Fragment {
                 mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
             }
         }, recyclerViewTimeUpdateLimit);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        try {
-            threadedConversationsViewModel.loadNative(getContext());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

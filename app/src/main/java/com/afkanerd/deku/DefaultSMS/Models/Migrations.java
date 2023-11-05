@@ -65,12 +65,12 @@ public class Migrations {
 
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            database.execSQL("CREATE TABLE IF NOT EXISTS ThreadedConversations" +
-                    "(thread_id TEXT NOT NULL PRIMARY KEY, " +
+            database.execSQL("CREATE TABLE IF NOT EXISTS ThreadedConversations " +
+                    "(thread_id TEXT PRIMARY KEY NOT NULL, " +
                     "msg_count INTEGER NOT NULL, " +
                     "avatar_color INTEGER NOT NULL, " +
-                    "date TEXT NOT NULL, " +
                     "type INTEGER NOT NULL, " +
+                    "date TEXT, " +
                     "is_archived INTEGER NOT NULL, " +
                     "is_blocked INTEGER NOT NULL, " +
                     "is_read INTEGER NOT NULL, " +
@@ -82,7 +82,7 @@ public class Migrations {
 
             database.execSQL("CREATE TABLE IF NOT EXISTS Conversation " +
                     "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                    "message_id TEXT NOT NULL, " +
+                    "message_id TEXT, " +
                     "thread_id TEXT, " +
                     "date TEXT, " +
                     "date_sent TEXT, " +
@@ -97,6 +97,7 @@ public class Migrations {
                     "formatted_date TEXT, " +
                     "address TEXT, " +
                     "body TEXT)");
+
             database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_Conversation_message_id ON Conversation (message_id)");
         }
     }

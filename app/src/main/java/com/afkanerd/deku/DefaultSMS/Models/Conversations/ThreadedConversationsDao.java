@@ -21,7 +21,7 @@ public interface ThreadedConversationsDao {
     PagingSource<Integer, ThreadedConversations> getAllWithoutArchived();
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")
-    LiveData<ThreadedConversations> get(long thread_id);
+    ThreadedConversations get(String thread_id);
 
     @Query("SELECT * FROM Conversation WHERE body " +
             "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")

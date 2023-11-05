@@ -15,6 +15,9 @@ import androidx.room.Room;
 import com.afkanerd.deku.DefaultSMS.Models.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Migrations;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 public class ThreadedConversations {
@@ -61,6 +64,21 @@ public class ThreadedConversations {
         threadedConversations.setThread_id(conversation.getThread_id());
         threadedConversations.setContact_name(conversation.getAddress());
 
+        return threadedConversations;
+    }
+
+    public static List<ThreadedConversations> buildRaw(Cursor cursor) {
+        List<String> seenThreads = new ArrayList<>();
+        List<ThreadedConversations> threadedConversations = new ArrayList<>();
+        if(cursor.moveToFirst()) {
+            do {
+                ThreadedConversations threadedConversation = build(cursor);
+                if(!seenThreads.contains(threadedConversation.getThread_id())) {
+                    seenThreads.add(threadedConversation.getThread_id());
+                    threadedConversations.add(threadedConversation);
+                }
+            } while(cursor.moveToNext());
+        }
         return threadedConversations;
     }
 

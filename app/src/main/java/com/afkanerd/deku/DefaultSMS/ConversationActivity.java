@@ -143,7 +143,6 @@ public class ConversationActivity extends CustomAppCompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        conversationsViewModel.loadConversationsFromNative(getApplicationContext());
         conversationsViewModel.updateToRead(getApplicationContext());
         try {
             _checkEncryptionStatus();

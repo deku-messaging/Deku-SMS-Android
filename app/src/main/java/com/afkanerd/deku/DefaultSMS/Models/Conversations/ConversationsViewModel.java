@@ -47,24 +47,6 @@ public class ConversationsViewModel extends ViewModel{
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public void loadConversationsFromNative(Context context) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Cursor cursor = NativeSMSDB.fetchAll(context);
-                List<Conversation> conversationList = new ArrayList<>();
-                if(cursor.moveToNext()) {
-                    do {
-                        conversationList.add(Conversation.build(cursor));
-                    } while(cursor.moveToNext());
-                }
-                cursor.close();
-                ConversationDao conversationDao = Conversation.getDao(context);
-                conversationDao.insertAll(conversationList);
-            }
-        }).start();
-    }
-
     public void insert(Conversation conversation) {
         new Thread(new Runnable() {
             @Override
@@ -125,16 +107,15 @@ public class ConversationsViewModel extends ViewModel{
 
     public void updateToRead(Context context) {
         NativeSMSDB.Incoming.update_read(context, 1, threadId);
-//        ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
-//        ThreadedConversations threadedConversations = new ThreadedConversations();
-//        threadedConversations.setThread_id(threadId);
-//        threadedConversations.setIs_read(true);
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                int num_updated = threadedConversationsDao.update(threadedConversations);
-//                Log.d(getClass().getName(), "Number updated: " + num_updated);
-//            }
-//        }).start();
+        ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ThreadedConversations threadedConversations = threadedConversationsDao.get(threadId);
+                threadedConversations.setIs_read(true);
+                int num_updated = threadedConversationsDao.update(threadedConversations);
+                Log.d(getClass().getName(), "Number updated: " + num_updated);
+            }
+        }).start();
     }
 }

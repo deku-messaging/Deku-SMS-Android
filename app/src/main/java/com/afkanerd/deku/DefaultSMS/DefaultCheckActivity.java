@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
 import android.Manifest;
 import android.app.Activity;
@@ -11,6 +12,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.role.RoleManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -97,6 +99,11 @@ public class DefaultCheckActivity extends AppCompatActivity {
 
         if (reqCode == 0) {
             if (resultCode == Activity.RESULT_OK) {
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                sharedPreferences.edit()
+                        .putBoolean(CustomAppCompactActivity.LOAD_NATIVES, true)
+                        .apply();
                 startActivity(new Intent(this, ThreadedConversationsActivity.class));
             }
         }
@@ -185,24 +192,6 @@ public class DefaultCheckActivity extends AppCompatActivity {
         int check = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
 
         return (check == PackageManager.PERMISSION_GRANTED);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == READ_SMS_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0) {
-                if (checkPermissionToReadContacts())
-                    startActivity(new Intent(this, ThreadedConversationsActivity.class));
-                else {
-                    ActivityCompat.requestPermissions(
-                            this,
-                            new String[]{Manifest.permission.READ_CONTACTS}, READ_CONTACTS_PERMISSION_REQUEST_CODE);
-                }
-            } else {
-                finish();
-            }
-        }
     }
 
     @Override

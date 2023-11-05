@@ -6,9 +6,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentManager;
+import androidx.preference.PreferenceManager;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.view.Menu;
@@ -17,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
@@ -57,7 +60,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         if(!checkIsDefaultApp()) {
             startActivity(new Intent(this, DefaultCheckActivity.class));
             finish();
-            return;
         }
 
     }
@@ -87,10 +89,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         fragmentManager.beginTransaction().replace(R.id.view_fragment,
                         HomepageFragment.class, null, "HOMEPAGE_TAG")
                 .setReorderingAllowed(true)
-//                .setCustomAnimations(android.R.anim.slide_in_left,
-//                        android.R.anim.slide_out_right,
-//                        android.R.anim.fade_in,
-//                        android.R.anim.fade_out)
                 .commit();
     }
 
@@ -280,6 +278,14 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         this.ITEM_TYPE = itemType;
         this.stringMessagesThreadViewModelHashMap.put(itemType, threadedConversationsViewModel);
         configureBroadcastListeners(threadedConversationsViewModel);
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        if(sharedPreferences.getBoolean(LOAD_NATIVES, true)) {
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.threading_conversations_natives_loaded), Toast.LENGTH_LONG).show();
+            threadedConversationsViewModel.loadNatives(getApplicationContext());
+        }
     }
 
     @Override
@@ -313,12 +319,5 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     public void tabSelected(int position) {
         this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
-        try {
-            ThreadedConversationsViewModel threadViewModel = stringMessagesThreadViewModelHashMap.get(ITEM_TYPE);
-//            if(threadViewModel != null)
-//                stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
     }
 }

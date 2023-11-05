@@ -14,24 +14,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/homepage_threaded_scrollview"
-        android:layout_width="0dp"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/messages_threads_recycler_view"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:fillViewport="true"
-        android:scrollbars="vertical"
+        android:layout_width="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/homepage_messages_loader">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/messages_threads_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </androidx.core.widget.NestedScrollView>
-
+        app:layout_constraintTop_toBottomOf="@id/homepage_messages_loader"/>
 
     <TextView
         android:id="@+id/homepage_no_message"
@@ -43,8 +33,8 @@
         android:textSize="20sp"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/homepage_threaded_scrollview"
-        app:layout_constraintStart_toStartOf="@+id/homepage_threaded_scrollview"
+        app:layout_constraintEnd_toEndOf="@+id/messages_threads_recycler_view"
+        app:layout_constraintStart_toStartOf="@+id/messages_threads_recycler_view"
         app:layout_constraintTop_toTopOf="parent" />
 
 

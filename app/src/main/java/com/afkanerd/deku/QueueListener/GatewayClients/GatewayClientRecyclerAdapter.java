@@ -37,7 +37,8 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
     public GatewayClientRecyclerAdapter(Context context) {
         this.context = context;
         runningServiceInfoList = ServiceHandler.getRunningService(context);
-        sharedPreferences = context.getSharedPreferences(GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+        sharedPreferences = context.getSharedPreferences(
+                GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
     }
 
     @NonNull

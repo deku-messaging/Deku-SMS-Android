@@ -42,7 +42,7 @@ public class NativeSMSDB {
         return context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,
                 null,
-                null,
+                "thread_id IS NOT NULL",
                 null,
                 null);
     }
@@ -61,22 +61,6 @@ public class NativeSMSDB {
                 Telephony.Sms._ID + "=?",
                 new String[]{id},
                 null);
-    }
-
-    public static Cursor fetchAndBuildConversation(Context context) {
-        return context.getContentResolver().query(
-                Telephony.Sms.CONTENT_URI,
-                new String[]{
-                        Telephony.TextBasedSmsColumns.THREAD_ID,
-                        Telephony.TextBasedSmsColumns.ADDRESS,
-                        Telephony.TextBasedSmsColumns.BODY,
-                        Telephony.TextBasedSmsColumns.READ,
-                        Telephony.TextBasedSmsColumns.TYPE,
-                        Telephony.TextBasedSmsColumns.DATE
-                },
-                "thread_id IS NOT NULL) GROUP BY(thread_id",
-                null,
-                "date DESC");
     }
 
     /*

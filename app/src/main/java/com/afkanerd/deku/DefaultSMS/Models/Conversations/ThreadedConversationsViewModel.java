@@ -27,7 +27,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
         int pageSize = 10;
         int prefetchDistance = 30;
         boolean enablePlaceholder = false;
-        int initialLoadSize = 20;
+        int initialLoadSize = 14;
 
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -38,25 +38,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public void loadNative(Context context) throws InterruptedException {
-        Thread loadNativeThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Cursor cursor = NativeSMSDB.fetchAndBuildConversation(context);
-                List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
-                if(cursor.moveToNext()) {
-                    do {
-                        ThreadedConversations threadedConversations = ThreadedConversations.build(cursor);
-                        threadedConversationsList.add(threadedConversations);
-                    } while(cursor.moveToNext());
-                }
-                cursor.close();
-                threadedConversationsDao.insertAll(threadedConversationsList);
-            }
-        });
-        loadNativeThread.setName("load_native_thread");
-        loadNativeThread.start();
-    }
 
     public void insert(ThreadedConversations threadedConversations) {
         new Thread(new Runnable() {
@@ -65,6 +46,19 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 threadedConversationsDao.insert(threadedConversations);
             }
         }).start();
+    }
+
+    public void loadNatives(Context context) {
+        Thread loadNativeThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Cursor cursor = NativeSMSDB.fetchAll(context);
+                threadedConversationsDao.insertAll(ThreadedConversations.buildRaw(cursor));
+                cursor.close();
+            }
+        });
+        loadNativeThread.setName("load_native_thread");
+        loadNativeThread.start();
     }
 
 }

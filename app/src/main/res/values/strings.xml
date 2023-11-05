@@ -218,4 +218,5 @@
     <string name="conversations_menu_search_title">Search</string>
 
     <string name="conversations_search_results_found">results founds</string>
+    <string name="threading_conversations_natives_loaded">Began importing SMS messages!</string>
 </resources>
