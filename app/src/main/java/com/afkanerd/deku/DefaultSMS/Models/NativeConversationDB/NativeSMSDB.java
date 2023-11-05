@@ -100,7 +100,7 @@ public class NativeSMSDB {
      *          - Read status
      */
 
-    private static String[] broadcastStateChanged(Context context, Uri uri) {
+    private static String[] broadcastNewMessage(Context context, Uri uri) {
         /**
          * Threads ID
          * Message ID
@@ -237,7 +237,7 @@ public class NativeSMSDB {
                 Uri uri = context.getContentResolver().insert(
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
-                return broadcastStateChanged(context, uri);
+                return broadcastNewMessage(context, uri);
 
             } catch (Exception e) {
                 throw e;
@@ -345,7 +345,7 @@ public class NativeSMSDB {
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
                 Log.d(NativeSMSDB.class.getName(), "URI: " + uri.toString());
-                String[] broadcastOutputs = broadcastStateChanged(context, String.valueOf(messageId));
+                String[] broadcastOutputs = broadcastNewMessage(context, uri);
                 String[] returnString = new String[5];
                 returnString[THREAD_ID] = broadcastOutputs[THREAD_ID];
                 returnString[MESSAGE_ID] = broadcastOutputs[MESSAGE_ID];
@@ -389,7 +389,7 @@ public class NativeSMSDB {
                 Uri uri = context.getContentResolver().insert(
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
-                String[] broadcastOutputs = broadcastStateChanged(context, uri);
+                String[] broadcastOutputs = broadcastNewMessage(context, uri);
                 String[] returnString = new String[4];
                 returnString[THREAD_ID] = broadcastOutputs[THREAD_ID];
                 returnString[MESSAGE_ID] = broadcastOutputs[MESSAGE_ID];

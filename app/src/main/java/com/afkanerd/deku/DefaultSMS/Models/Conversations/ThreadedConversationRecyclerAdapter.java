@@ -102,21 +102,21 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
         if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
             if(!threadedConversations.isIs_read()) {
                 return type == MESSAGE_TYPE_INBOX ?
-                        SENT_ENCRYPTED_UNREAD_VIEW_TYPE : RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
+                        RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE : SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
             }
             else {
                 return type == MESSAGE_TYPE_INBOX ?
-                        SENT_ENCRYPTED_VIEW_TYPE : RECEIVED_ENCRYPTED_VIEW_TYPE;
+                        RECEIVED_ENCRYPTED_VIEW_TYPE : SENT_ENCRYPTED_VIEW_TYPE;
             }
         }
         else {
             if(!threadedConversations.isIs_read()) {
                 return type == MESSAGE_TYPE_INBOX ?
-                        SENT_UNREAD_VIEW_TYPE : RECEIVED_UNREAD_VIEW_TYPE;
+                        RECEIVED_UNREAD_VIEW_TYPE : SENT_UNREAD_VIEW_TYPE;
             }
             else {
-                return type ==
-                        MESSAGE_TYPE_INBOX ? SENT_VIEW_TYPE : RECEIVED_VIEW_TYPE;
+                return type == MESSAGE_TYPE_INBOX ?
+                        RECEIVED_VIEW_TYPE : SENT_VIEW_TYPE;
             }
         }
     }
