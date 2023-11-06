@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 
@@ -58,9 +57,9 @@ public class RouterActivity extends CustomAppCompactActivity {
         routerViewModel = new ViewModelProvider(this).get( RouterViewModel.class);
 
         routerViewModel.getMessages(getApplicationContext()).observe(this,
-                new Observer<List<RouterMessages>>() {
+                new Observer<List<RouterConversation>>() {
                     @Override
-                    public void onChanged(List<RouterMessages> smsList) {
+                    public void onChanged(List<RouterConversation> smsList) {
                         routerRecyclerAdapter.submitList(smsList);
                         if(!smsList.isEmpty())
                             findViewById(R.id.router_no_showable_messages_text).setVisibility(View.GONE);

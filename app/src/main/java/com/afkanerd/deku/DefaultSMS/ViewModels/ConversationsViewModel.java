@@ -24,22 +24,26 @@ import java.util.List;
 public class ConversationsViewModel extends ViewModel{
     public String threadId;
     ConversationDao conversationDao;
+    public int pageSize = 10;
+    int prefetchDistance = 30;
+    boolean enablePlaceholder = false;
+    public int initialLoadSize = 20;
+    int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
+    int jumpThreshold = 10;
 
     public LiveData<PagingData<Conversation>> get(ConversationDao conversationDao, String threadId)
             throws InterruptedException {
         this.conversationDao = conversationDao;
         this.threadId = threadId;
 
-        int pageSize = 10;
-        int prefetchDistance = 30;
-        boolean enablePlaceholder = false;
-        int initialLoadSize = 20;
 
         Pager<Integer, Conversation> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
-                initialLoadSize
+                initialLoadSize,
+                maxSize,
+                jumpThreshold
         ), ()-> this.conversationDao.get(threadId));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }

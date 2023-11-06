@@ -17,9 +17,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class RouterViewModel extends ViewModel {
-    private MutableLiveData<List<RouterMessages>> messagesList;
+    private MutableLiveData<List<RouterConversation>> messagesList;
 
-    public LiveData<List<RouterMessages>> getMessages(Context context){
+    public LiveData<List<RouterConversation>> getMessages(Context context){
         if(messagesList == null) {
             messagesList = new MutableLiveData<>();
             loadSMSThreads(context);
@@ -40,7 +40,7 @@ public class RouterViewModel extends ViewModel {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                ListMultimap<Long, RouterMessages> routerMessagesListMultimap = ArrayListMultimap.create();
+                ListMultimap<Long, RouterConversation> routerMessagesListMultimap = ArrayListMultimap.create();
 
                 for(String[] workerList : routerJobs) {
                     String messageId = workerList[0];
@@ -55,25 +55,23 @@ public class RouterViewModel extends ViewModel {
                         String address = cursor.getString(addressIndex);
                         String body = cursor.getString(bodyIndex);
                         String date = cursor.getString(dateTimeIndex);
-                        cursor.close();
 
                         String routerStatus = workerList[1];
                         String url = workerList[2];
-                        RouterMessages routerMessage = new RouterMessages();
+                        RouterConversation routerMessage = new RouterConversation(cursor);
+                        cursor.close();
 
-                        routerMessage.setId(workerList[3]);
-                        routerMessage.setThreadId(threadId);
-                        routerMessage.setStatus(routerStatus);
-                        routerMessage.setUrl(url);
-                        routerMessage.setDate(Long.parseLong(date));
-                        routerMessage.setMessageId(Long.parseLong(messageId));
+                        routerMessage.routingStatus = routerStatus;
+                        routerMessage.url = url;
+                        routerMessage.routingDate = Long.parseLong(date);
+                        routerMessage.setMessage_id(messageId);
                         routerMessage.setBody(body);
                         routerMessage.setAddress(address);
 
                         routerMessagesListMultimap.put(Long.parseLong(date), routerMessage);
                     }
                 }
-                List<RouterMessages> sortedList = new ArrayList<>();
+                List<RouterConversation> sortedList = new ArrayList<>();
                 List<Long> keys = new ArrayList<>(routerMessagesListMultimap.keySet());
                 keys.sort(Collections.reverseOrder());
                 for(Long date : keys) {

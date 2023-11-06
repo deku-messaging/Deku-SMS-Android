@@ -2,8 +2,58 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "d319e1e902da13645f5e9696b9249d94",
+    "identityHash": "f042c6becc0a584be6a4387e902170de",
     "entities": [
+      {
+        "tableName": "GatewayServer",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`URL` TEXT, `protocol` TEXT, `tag` TEXT, `format` TEXT, `date` INTEGER, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "URL",
+            "columnName": "URL",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protocol",
+            "columnName": "protocol",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "tag",
+            "columnName": "tag",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "format",
+            "columnName": "format",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
       {
         "tableName": "Archive",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`threadId` INTEGER NOT NULL, PRIMARY KEY(`threadId`))",
@@ -262,7 +312,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd319e1e902da13645f5e9696b9249d94')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f042c6becc0a584be6a4387e902170de')"
     ]
   }
 }

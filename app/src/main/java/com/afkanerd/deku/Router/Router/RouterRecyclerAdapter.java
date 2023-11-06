@@ -16,7 +16,7 @@ import com.afkanerd.deku.DefaultSMS.R;
 import java.util.List;
 
 public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAdapter.ViewHolder> {
-    private final AsyncListDiffer<RouterMessages> mDiffer = new AsyncListDiffer<>(this, RouterMessages.DIFF_CALLBACK);
+    private final AsyncListDiffer<RouterConversation> mDiffer = new AsyncListDiffer<>(this, RouterConversation.DIFF_CALLBACK);
 
     Context context;
     public RouterRecyclerAdapter(Context context) {
@@ -34,8 +34,8 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        RouterMessages routerMessages = mDiffer.getCurrentList().get(position);
-        holder.init(routerMessages);
+        RouterConversation routerConversation = mDiffer.getCurrentList().get(position);
+        holder.init(routerConversation);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
         return mDiffer.getCurrentList().size();
     }
 
-    public void submitList(List<RouterMessages> list) {
+    public void submitList(List<RouterConversation> list) {
         mDiffer.submitList(list);
     }
 
@@ -60,12 +60,13 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
             this.date = itemView.findViewById(R.id.routed_messages_date);
         }
 
-        public void init(RouterMessages routerMessages) {
-            this.address.setText(routerMessages.getAddress());
-            this.url.setText(routerMessages.getUrl());
-            this.body.setText(routerMessages.getBody());
-            this.status.setText(routerMessages.getStatus());
-            this.date.setText(Helpers.formatDate(itemView.getContext(), routerMessages.getDate()));
+        public void init(RouterConversation routerConversation) {
+            this.address.setText(routerConversation.getAddress());
+            this.url.setText(routerConversation.url);
+            this.body.setText(routerConversation.getBody());
+            this.status.setText(routerConversation.routingStatus);
+            this.date.setText(Helpers.formatDate(itemView.getContext(),
+                    routerConversation.routingDate));
         }
     }
 

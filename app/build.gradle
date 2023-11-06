@@ -52,7 +52,6 @@ android {
                 exclude 'com/afkanerd/deku/Images/Images/'
                 exclude 'com/afkanerd/deku/E2EE/Security/'
                 exclude 'com/afkanerd/deku/QueueListener/'
-                exclude 'com/afkanerd/deku/Router/'
                 /* The holder name I want to excludes its all classes */
             }
         }

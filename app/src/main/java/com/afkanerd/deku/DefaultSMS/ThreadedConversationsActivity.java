@@ -22,6 +22,7 @@ import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.ViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
+import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.HashMap;
@@ -107,9 +108,9 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                             return true;
                         }
                         else if (item.getItemId() == R.id.messages_threads_menu_item_routed) {
-//                            Intent routingIntent = new Intent(getApplicationContext(), RouterActivity.class);
-//                            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                            startActivity(routingIntent);
+                            Intent routingIntent = new Intent(getApplicationContext(), RouterActivity.class);
+                            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(routingIntent);
                         }
                         else if (item.getItemId() == R.id.messages_threads_menu_item_web) {
                             Intent webIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);

@@ -82,7 +82,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 }
             }
         }
-        else if(intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
+        else if(intent.getAction() != null && intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
             String threadId = intent.getStringExtra(Conversation.THREAD_ID);
             try {
                 NativeSMSDB.Incoming.update_read(context, 1, threadId);

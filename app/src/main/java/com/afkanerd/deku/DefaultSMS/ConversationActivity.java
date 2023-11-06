@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
@@ -32,6 +33,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.CombinedLoadStates;
 import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,6 +56,10 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlinx.coroutines.flow.FlowCollector;
 
 public class ConversationActivity extends DualSIMConversationActivity {
     public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
@@ -223,7 +229,6 @@ public class ConversationActivity extends DualSIMConversationActivity {
             return;
         }
 
-        singleMessagesThreadRecyclerView.scrollToPosition(position);
         String text = (searchPointerPosition == -1 ?
                 0 :
                 searchPointerPosition + 1) + "/" + searchPositions.getValue().size() + " " + getString(R.string.conversations_search_results_found);
@@ -270,7 +275,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
             public void onChanged(List<Integer> integers) {
                 searchPointerPosition = 0;
                 if(!integers.isEmpty()) {
-                    scrollRecyclerViewSearch(0);
+                    scrollRecyclerViewSearch(searchPositions.getValue().get(searchPointerPosition));
                 } else {
                     conversationsRecyclerAdapter.searchString = null;
                     scrollRecyclerViewSearch(-2);
@@ -286,7 +291,6 @@ public class ConversationActivity extends DualSIMConversationActivity {
         }
     }
 
-    public static String JUMP_THRESHOLD = "JUMP_THRESHOLD";
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
 

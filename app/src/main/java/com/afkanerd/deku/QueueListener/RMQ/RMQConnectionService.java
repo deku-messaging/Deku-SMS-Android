@@ -28,6 +28,7 @@ import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.Router.Router.RouterConversation;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -74,11 +75,6 @@ public class RMQConnectionService extends Service {
 
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
-    public interface SmsForwardInterface {
-        void setTag(String tag);
-        void setText(String text);
-        void setMsisdn(String msisdn);
-    }
 
     @Override
     public void onCreate() {
@@ -151,7 +147,7 @@ public class RMQConnectionService extends Service {
        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
    }
 
-   private class SMSStatusReport implements SmsForwardInterface {
+   private class SMSStatusReport implements RouterConversation.SmsForwardInterface {
         public final String type = SMS_TYPE_STATUS;
         public String sid;
         public String status;

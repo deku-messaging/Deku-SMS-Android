@@ -32,32 +32,32 @@ public class Conversation {
     public static final String SHARED_SMS_BODY = "SHARED_SMS_BODY";
 
     @PrimaryKey(autoGenerate = true)
-    private long id;
-    private String message_id;
-    private String thread_id;
+    protected long id;
+    protected String message_id;
+    protected String thread_id;
 
-    private String date;
-    private String date_sent;
+    protected String date;
+    protected String date_sent;
 
-    private int type;
-    private int num_segments;
+    protected int type;
+    protected int num_segments;
 
-    private int subscription_id;
+    protected int subscription_id;
 
-    private int status;
+    protected int status;
 
-    private boolean read;
+    protected boolean read;
 
-    private boolean is_encrypted;
+    protected boolean is_encrypted;
 
-    private boolean is_key;
+    protected boolean is_key;
 
-    private boolean is_image;
-    private String formatted_date;
+    protected boolean is_image;
+    protected String formatted_date;
 
-    private String address;
+    protected String address;
 
-    private String body;
+    protected String body;
 
     public static ConversationDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
@@ -197,7 +197,9 @@ public class Conversation {
         this.body = body;
     }
 
-    public static Conversation build(Cursor cursor) {
+    public Conversation(){}
+
+    public Conversation(Cursor cursor) {
         int idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID);
         int bodyIndex = cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY);
         int threadIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.THREAD_ID);
@@ -209,19 +211,20 @@ public class Conversation {
         int readIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.READ);
         int subscriptionIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID);
 
-        Conversation conversation = new Conversation();
-        conversation.setMessage_id(cursor.getString(idIndex));
-        conversation.setBody(cursor.getString(bodyIndex));
-        conversation.setThread_id(cursor.getString(threadIdIndex));
-        conversation.setAddress(cursor.getString(addressIndex));
-        conversation.setDate(cursor.getString(dateIndex));
-        conversation.setDate_sent(cursor.getString(dateSentIndex));
-        conversation.setType(cursor.getInt(typeIndex));
-        conversation.setStatus(cursor.getInt(statusIndex));
-        conversation.setRead(cursor.getInt(readIndex) == 1);
-        conversation.setSubscription_id(cursor.getInt(subscriptionIdIndex));
+        this.setMessage_id(cursor.getString(idIndex));
+        this.setBody(cursor.getString(bodyIndex));
+        this.setThread_id(cursor.getString(threadIdIndex));
+        this.setAddress(cursor.getString(addressIndex));
+        this.setDate(cursor.getString(dateIndex));
+        this.setDate_sent(cursor.getString(dateSentIndex));
+        this.setType(cursor.getInt(typeIndex));
+        this.setStatus(cursor.getInt(statusIndex));
+        this.setRead(cursor.getInt(readIndex) == 1);
+        this.setSubscription_id(cursor.getInt(subscriptionIdIndex));
+    }
 
-        return conversation;
+    public static Conversation build(Cursor cursor) {
+        return new Conversation(cursor);
     }
 
 

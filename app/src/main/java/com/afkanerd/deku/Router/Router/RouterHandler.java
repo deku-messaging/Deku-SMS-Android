@@ -6,7 +6,6 @@ import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBro
 import android.content.Context;
 import android.util.Log;
 
-import androidx.room.Room;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.Data;
@@ -17,6 +16,8 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -24,10 +25,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
-import com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -72,9 +71,7 @@ public class RouterHandler {
 
     }
 
-    public static void createWorkForMessage(Context context,
-                                            RMQConnectionService.SmsForwardInterface jsonObject,
-                                            long messageId, boolean isBase64) {
+    public static void createWorkForMessage(Context context, RouterConversation routerConversation) {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setPrettyPrinting().serializeNulls();
         Gson gson = gsonBuilder.create();
@@ -83,13 +80,12 @@ public class RouterHandler {
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                Datastore.databaseName).build();
+        boolean isBase64 = Helpers.isBase64Encoded(routerConversation.getBody());
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
+                GatewayServerDAO gatewayServerDAO = GatewayServer.getDao(context);
                 List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
 
                 for (GatewayServer gatewayServer : gatewayServerList) {
@@ -97,8 +93,8 @@ public class RouterHandler {
                             gatewayServer.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
                         continue;
 
-                    jsonObject.setTag(gatewayServer.getTag());
-                    final String jsonStringBody = gson.toJson(jsonObject);
+                    routerConversation.tag = gatewayServer.getTag();
+                    final String jsonStringBody = gson.toJson(routerConversation);
 
                     try {
                         OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(RouterWorkManager.class)
@@ -109,7 +105,7 @@ public class RouterHandler {
                                         TimeUnit.MILLISECONDS
                                 )
                                 .addTag(TAG_NAME)
-                                .addTag(getTagForMessages(String.valueOf(messageId)))
+                                .addTag(getTagForMessages(routerConversation.getMessage_id()))
                                 .addTag(getTagForGatewayServers(gatewayServer.getURL()))
                                 .setInputData(
                                         new Data.Builder()
@@ -120,7 +116,7 @@ public class RouterHandler {
                                 .build();
 
                         // String uniqueWorkName = address + message;
-                        String uniqueWorkName = messageId + ":" + gatewayServer.getURL();
+                        String uniqueWorkName = routerConversation.getMessage_id() + ":" + gatewayServer.getURL();
                         WorkManager workManager = WorkManager.getInstance(context);
                         workManager.enqueueUniqueWork(
                                 uniqueWorkName,
@@ -130,7 +126,6 @@ public class RouterHandler {
                         throw e;
                     }
                 }
-                databaseConnector.close();
             }
         }).start();
     }
