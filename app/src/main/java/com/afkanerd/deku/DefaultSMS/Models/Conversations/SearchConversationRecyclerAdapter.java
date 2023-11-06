@@ -2,18 +2,13 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.AsyncListDiffer;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
-import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
 
 public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyclerAdapter {
     public final AsyncListDiffer<ThreadedConversations> mDiffer =
@@ -41,11 +36,8 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
             @Override
             public void onClick(View view) {
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
-                singleMessageThreadIntent.putExtra(SMSMetaEntity.THREAD_ID, threadId);
+                singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
                 singleMessageThreadIntent.putExtra(ConversationActivity.SEARCH_STRING, searchString);
-                if(threadedConversations.offset > -1)
-                    singleMessageThreadIntent.putExtra(ConversationActivity.JUMP_THRESHOLD,
-                            threadedConversations.offset);
                 singleMessageThreadIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(singleMessageThreadIntent);
             }

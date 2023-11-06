@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB;
+package com.afkanerd.deku.DefaultSMS.Models;
 
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -15,7 +15,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.Models.Transmissions;
+import com.afkanerd.deku.DefaultSMS.BuildConfig;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -248,7 +249,7 @@ public class NativeSMSDB {
 
             Intent deliveredIntent = new Intent(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT);
             deliveredIntent.setPackage(context.getPackageName());
-            deliveredIntent.putExtra(SMSMetaEntity.ID, messageId);
+            deliveredIntent.putExtra(Conversation.ID, messageId);
 
             if(bundle != null) {
                 sentIntent.putExtras(bundle);
@@ -303,6 +304,13 @@ public class NativeSMSDB {
 
             for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                 address = currentSMS.getDisplayOriginatingAddress();
+                if(BuildConfig.DEBUG) {
+                    Log.d(NativeSMSDB.class.getName(), "Incoming Display address: " + address);
+                    Log.d(NativeSMSDB.class.getName(), "Incoming Originating address: " + currentSMS.getOriginatingAddress());
+                    Log.d(NativeSMSDB.class.getName(), "Incoming sent date: " + currentSMS.getTimestampMillis());
+                    Log.d(NativeSMSDB.class.getName(), "Incoming is reply: " + currentSMS.isReplyPathPresent());
+                    Log.d(NativeSMSDB.class.getName(), "Incoming is status reply: " + currentSMS.isStatusReportMessage());
+                }
 
                 String text_message = currentSMS.getDisplayMessageBody();
 

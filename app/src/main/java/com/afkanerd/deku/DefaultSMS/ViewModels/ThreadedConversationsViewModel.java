@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Conversations;
+package com.afkanerd.deku.DefaultSMS.ViewModels;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -11,7 +11,9 @@ import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
 import java.util.List;
 

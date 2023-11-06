@@ -5,8 +5,9 @@ import android.util.Log;
 
 import androidx.room.Room;
 
-import com.afkanerd.deku.DefaultSMS.Models.Migrations;
-import com.afkanerd.deku.DefaultSMS.Models.Datastore;
+import com.afkanerd.deku.DefaultSMS.DAO.ArchiveDAO;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 
 import java.util.ArrayList;
 import java.util.List;

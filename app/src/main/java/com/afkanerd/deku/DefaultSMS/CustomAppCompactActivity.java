@@ -1,14 +1,11 @@
 package com.afkanerd.deku.DefaultSMS;
 
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.TAG_NAME;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -22,20 +19,16 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
-import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
-import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationWorkManager;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.ViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsDao;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
-import com.afkanerd.deku.Router.Router.RouterWorkManager;
+import com.afkanerd.deku.DefaultSMS.ViewModels.ThreadedConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
 import java.util.concurrent.TimeUnit;
 

@@ -19,10 +19,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.Router.Router.RouterHandler;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
@@ -183,7 +182,7 @@ public class RMQConnectionService extends Service {
                 SMSStatusReport smsStatusReport = new SMSStatusReport();
 
                 if (intent.hasExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)) {
-                    long messageId = intent.getLongExtra(SMSMetaEntity.ID, -1);
+                    long messageId = intent.getLongExtra(Conversation.ID, -1);
 
                     if(intent.hasExtra(RMQConnection.MESSAGE_SID)) {
                         Log.d(getClass().getName(), "RMQ Sid found!");

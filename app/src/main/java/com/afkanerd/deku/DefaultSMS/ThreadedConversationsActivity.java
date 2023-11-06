@@ -6,11 +6,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentManager;
-import androidx.preference.PreferenceManager;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.view.Menu;
@@ -19,19 +17,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
-import android.widget.Toast;
 
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
-import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.ViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.HashMap;
@@ -74,14 +64,14 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     private void startServices() {
-        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        try {
-            gatewayClientHandler.startServices();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            gatewayClientHandler.close();
-        }
+//        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+//        try {
+//            gatewayClientHandler.startServices();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        } finally {
+//            gatewayClientHandler.close();
+//        }
 
     }
 
@@ -117,9 +107,9 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                             return true;
                         }
                         else if (item.getItemId() == R.id.messages_threads_menu_item_routed) {
-                            Intent routingIntent = new Intent(getApplicationContext(), RouterActivity.class);
-                            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(routingIntent);
+//                            Intent routingIntent = new Intent(getApplicationContext(), RouterActivity.class);
+//                            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                            startActivity(routingIntent);
                         }
                         else if (item.getItemId() == R.id.messages_threads_menu_item_web) {
                             Intent webIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);
@@ -174,51 +164,52 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                ThreadedConversationRecyclerAdapter recyclerAdapter =
-                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
-                if(messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null) {
-                    TemplateViewHolder[] viewHolders = recyclerAdapter.selectedItems.getValue()
-                            .toArray(new TemplateViewHolder[0]);
-                    String[] ids =  new String[viewHolders.length];
-                    for(int i=0;i<viewHolders.length; ++i) {
-                        ids[i] = viewHolders[i].id;
-                    }
-                    if(item.getItemId() == R.id.threads_delete) {
-                        Runnable runnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-                                    for(String id : ids) {
-                                        SMSMetaEntity smsMetaEntity = new SMSMetaEntity();
-                                        smsMetaEntity.setThreadId(getApplicationContext(), id);
-                                        securityECDH.removeAllKeys(smsMetaEntity.getAddress());
-                                    }
-                                    SMSHandler.deleteThreads(getApplicationContext(), ids);
-                                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-//                                    stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
-                                } catch(Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        };
-                        showAlert(runnable);
-                    }
-                    else if(item.getItemId() == R.id.threads_archive) {
-                        try {
-                            ArchiveHandler archiveHandler = new ArchiveHandler(getApplicationContext());
-                            archiveHandler.archiveMultipleSMS(ids);
-                            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-//                            stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
-                            archiveHandler.close();
-                            return true;
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    return true;
-                }
+//                ThreadedConversationRecyclerAdapter recyclerAdapter =
+//                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+//                if(messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null) {
+//                    TemplateViewHolder[] viewHolders = recyclerAdapter.selectedItems.getValue()
+//                            .toArray(new TemplateViewHolder[0]);
+//                    String[] ids =  new String[viewHolders.length];
+//                    for(int i=0;i<viewHolders.length; ++i) {
+//                        ids[i] = viewHolders[i].id;
+//                    }
+//                    if(item.getItemId() == R.id.threads_delete) {
+//                        Runnable runnable = new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                try {
+//                                    SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
+//                                    for(String id : ids) {
+//                                        ConversationHandler conversationHandler = new ConversationHandler();
+//                                        conversationHandler.setThreadId(getApplicationContext(), id);
+//                                        securityECDH.removeAllKeys(conversationHandler.getAddress());
+//                                    }
+//                                    SMSHandler.deleteThreads(getApplicationContext(), ids);
+//                                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+////                                    stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+//                                } catch(Exception e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
+//                        };
+//                        showAlert(runnable);
+//                    }
+//                    else if(item.getItemId() == R.id.threads_archive) {
+//                        try {
+//                            ArchiveHandler archiveHandler = new ArchiveHandler(getApplicationContext());
+//                            archiveHandler.archiveMultipleSMS(ids);
+//                            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+////                            stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
+//                            archiveHandler.close();
+//                            return true;
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//
+//                    return true;
+//                }
+//                return false;
                 return false;
             }
         });

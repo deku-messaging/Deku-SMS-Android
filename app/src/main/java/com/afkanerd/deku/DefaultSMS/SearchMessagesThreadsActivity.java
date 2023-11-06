@@ -27,14 +27,11 @@ import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.SearchConversationRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.SearchViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.ViewModels.SearchViewModel;
 
 import java.util.List;
 
@@ -175,7 +172,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(context, ConversationActivity.class);
-                    intent.putExtra(SMSMetaEntity.ADDRESS, address);
+                    intent.putExtra(Conversation.ADDRESS, address);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(intent);
                 }

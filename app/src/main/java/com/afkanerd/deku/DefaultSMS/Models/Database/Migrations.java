@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models;
+package com.afkanerd.deku.DefaultSMS.Models.Database;
 
 import androidx.annotation.NonNull;
 import androidx.room.migration.Migration;
@@ -74,6 +74,7 @@ public class Migrations {
                     "is_archived INTEGER NOT NULL, " +
                     "is_blocked INTEGER NOT NULL, " +
                     "is_read INTEGER NOT NULL, " +
+                    "is_shortcode INTEGER NOT NULL, " +
                     "snippet TEXT, " +
                     "contact_name TEXT, " +
                     "address TEXT, " +

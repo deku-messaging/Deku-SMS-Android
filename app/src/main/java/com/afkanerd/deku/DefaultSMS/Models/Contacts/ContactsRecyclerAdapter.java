@@ -11,9 +11,9 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
     Context context;
 
-    String sharedSMS;
+    String sharedMessage;
     private final AsyncListDiffer<Contacts> mDiffer = new AsyncListDiffer(this, Contacts.DIFF_CALLBACK);
 
     public ContactsRecyclerAdapter(Context context) {
@@ -42,28 +42,11 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
         Contacts contacts = mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
         ContactsViewHolder viewHolder = (ContactsViewHolder) holder;
 
-        final int color = Helpers.generateColor(contacts.contactName);
-        viewHolder.address.setText(contacts.contactName);
-        viewHolder.contactInitials.setAvatarInitials(contacts.contactName.substring(0, 1));
-        viewHolder.contactInitials.setAvatarInitialsBackgroundColor(color);
-        viewHolder.snippet.setText(contacts.number);
-
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
-                singleMessageThreadIntent.putExtra(SMSMetaEntity.ADDRESS, contacts.number);
-
-                if(sharedSMS != null && !sharedSMS.isEmpty())
-                    singleMessageThreadIntent.putExtra(SMSMetaEntity.SHARED_SMS_BODY, sharedSMS);
-
-                context.startActivity(singleMessageThreadIntent);
-            }
-        });
+        viewHolder.bind(contacts, sharedMessage);
     }
 
-    public void setSharedSMS(String sharedSMS) {
-        this.sharedSMS = sharedSMS;
+    public void setSharedMessage(String sharedMessage) {
+        this.sharedMessage = sharedMessage;
     }
 
     @Override
@@ -76,12 +59,36 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
     }
 
     public static class ContactsViewHolder extends TemplateViewHolder {
+        View itemView;
         public ContactsViewHolder(@NonNull View itemView, boolean isContact) {
             super(itemView);
 
             snippet.setMaxLines(1);
             address.setMaxLines(1);
             date.setVisibility(View.GONE);
+
+            this.itemView = itemView;
+        }
+
+        public void bind(Contacts contacts, final String sharedConversation) {
+            final int color = Helpers.generateColor(contacts.contactName);
+            address.setText(contacts.contactName);
+            contactInitials.setAvatarInitials(contacts.contactName.substring(0, 1));
+            contactInitials.setAvatarInitialsBackgroundColor(color);
+            snippet.setText(contacts.number);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent singleMessageThreadIntent = new Intent(itemView.getContext(), ConversationActivity.class);
+                    singleMessageThreadIntent.putExtra(Conversation.ADDRESS, contacts.number);
+
+                    if(sharedConversation != null && !sharedConversation.isEmpty())
+                        singleMessageThreadIntent.putExtra(Conversation.SHARED_SMS_BODY, sharedConversation);
+
+                    itemView.getContext().startActivity(singleMessageThreadIntent);
+                }
+            });
         }
     }
 }

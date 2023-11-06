@@ -15,7 +15,7 @@ import android.text.TextWatcher;
 
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.ContactsRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts.ContactsViewModel;
+import com.afkanerd.deku.DefaultSMS.ViewModels.ContactsViewModel;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -103,7 +103,7 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
         if (Intent.ACTION_SEND.equals(getIntent().getAction()) && getIntent().getType() != null) {
             if ("text/plain".equals(getIntent().getType())) {
                 String sharedSMS = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-                contactsRecyclerAdapter.setSharedSMS(sharedSMS);
+                contactsRecyclerAdapter.setSharedMessage(sharedSMS);
             }
         }
     }

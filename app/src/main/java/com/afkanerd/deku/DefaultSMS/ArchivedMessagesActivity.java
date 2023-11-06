@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -14,11 +15,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.Conversations;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchivedViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.ViewModels.ArchivedViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 
 import java.util.List;
@@ -62,24 +63,15 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         archivedViewModel = new ViewModelProvider(this).get(
                 ArchivedViewModel.class);
 
-        try {
-            archivedViewModel.getMessages(getApplicationContext()).observe(this,
-                    new Observer<List<Conversations>>() {
-                        @Override
-                        public void onChanged(List<Conversations> smsList) {
-                            Log.d(getLocalClassName(), "Running for archived with size: " + smsList.size());
-//                            archivedThreadRecyclerAdapter.submitList(smsList);
-                            if(!smsList.isEmpty())
-                                findViewById(R.id.messages_archived_no_messages).setVisibility(View.GONE);
-                            else {
-                                findViewById(R.id.messages_archived_no_messages).setVisibility(View.VISIBLE);
-                                archivedMessagesRecyclerView.smoothScrollToPosition(0);
-                            }
-                        }
-                    });
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        ThreadedConversationsDao threadedConversationsDao =
+                ThreadedConversations.getDao(getApplicationContext());
+        archivedViewModel.get(threadedConversationsDao).observe(this,
+                new Observer<PagingData<ThreadedConversations>>() {
+                    @Override
+                    public void onChanged(PagingData<ThreadedConversations> smsList) {
+                        archivedThreadRecyclerAdapter.submitData(getLifecycle(), smsList);
+                    }
+                });
 
         archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<Set<TemplateViewHolder>>() {
             @Override
@@ -106,7 +98,8 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                         new ArchiveHandler(getApplicationContext())
                                 .removeMultipleFromArchive(getApplicationContext(), longArr);
                         archivedThreadRecyclerAdapter.resetAllSelectedItems();
-                        archivedViewModel.informChanges();
+                        // TODO
+//                        archivedViewModel.informChanges();
                         return true;
                     } catch(Exception e) {
                         e.printStackTrace();
@@ -114,9 +107,10 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                 }
                 else if(item.getItemId() == R.id.archive_delete) {
                     try {
-                        SMSHandler.deleteThreads(getApplicationContext(), ids);
-                        archivedThreadRecyclerAdapter.resetAllSelectedItems();
-                        archivedViewModel.informChanges();
+//                        SMSHandler.deleteThreads(getApplicationContext(), ids);
+//                        archivedThreadRecyclerAdapter.resetAllSelectedItems();
+//                        archivedViewModel.informChanges();
+                        // TODO
                         return true;
                     } catch(Exception e) {
                         e.printStackTrace();

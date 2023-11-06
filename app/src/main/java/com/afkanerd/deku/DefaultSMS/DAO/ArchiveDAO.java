@@ -1,10 +1,12 @@
-package com.afkanerd.deku.DefaultSMS.Models.Archive;
+package com.afkanerd.deku.DefaultSMS.DAO;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+
+import com.afkanerd.deku.DefaultSMS.Models.Archive.Archive;
 
 import java.util.List;
 

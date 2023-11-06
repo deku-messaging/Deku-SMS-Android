@@ -1,6 +1,5 @@
 package com.afkanerd.deku.Images.Images;
 
-import static com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler.ASCII_MAGIC_NUMBER;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -15,8 +14,6 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 
 import java.io.ByteArrayOutputStream;

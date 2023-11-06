@@ -6,8 +6,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.room.Room;
 
-import com.afkanerd.deku.DefaultSMS.Models.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Migrations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 
 import java.util.ArrayList;
 import java.util.List;

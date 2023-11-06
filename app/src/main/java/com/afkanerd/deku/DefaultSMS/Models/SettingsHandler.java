@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Settings;
+package com.afkanerd.deku.DefaultSMS.Models;
 
 import android.content.Context;
 import android.content.SharedPreferences;

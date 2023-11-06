@@ -10,7 +10,8 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
 import java.util.ArrayList;
 import java.util.List;

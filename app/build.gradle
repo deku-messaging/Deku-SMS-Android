@@ -45,23 +45,23 @@ android {
             }
         }
     }
-
-	/*
-    signingConfigs {
-        release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+            java {
+                exclude 'com/afkanerd/deku/Images/Images/'
+                exclude 'com/afkanerd/deku/E2EE/Security/'
+                exclude 'com/afkanerd/deku/QueueListener/'
+                exclude 'com/afkanerd/deku/Router/'
+                /* The holder name I want to excludes its all classes */
+            }
         }
     }
-    */
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            // signingConfig signingConfigs.release
         }
 
         nightly {
@@ -69,6 +69,7 @@ android {
             debuggable true
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8

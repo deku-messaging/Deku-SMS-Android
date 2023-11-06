@@ -3,7 +3,6 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,18 +10,11 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
-import androidx.recyclerview.widget.AsyncListDiffer;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.work.WorkInfo;
 
 import com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity;
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ReceivedMessagesViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.SentMessagesViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
-import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
-import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
@@ -35,7 +27,6 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     Context context;
     Boolean isSearch = false;
     public String searchString = "";
-    RouterActivity routerActivity;
     ArchivedMessagesActivity archivedMessagesActivity;
 
     public MutableLiveData<Set<TemplateViewHolder>> selectedItems = new MutableLiveData<>();
@@ -93,7 +84,7 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     @Override
     public int getItemViewType(int position) {
 //        Conversations conversations = mDiffer.getCurrentList().get(position);
-//        SMSMetaEntity smsMetaEntity = conversations.getNewestMessage();
+//        ConversationHandler smsMetaEntity = conversations.getNewestMessage();
 //        ThreadedConversations threadedConversations = peek(position);
         return TemplateViewHolder.getViewType(position, snapshot().getItems());
     }
@@ -123,7 +114,7 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                 }
 
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
-                singleMessageThreadIntent.putExtra(SMSMetaEntity.THREAD_ID, threadId);
+                singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
                 context.startActivity(singleMessageThreadIntent);
             }
         };

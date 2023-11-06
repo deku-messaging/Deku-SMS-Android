@@ -28,15 +28,10 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
-import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
-import com.afkanerd.deku.E2EE.Security.SecurityAES;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.io.IOException;
@@ -46,7 +41,6 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -92,27 +86,15 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
     final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
 
-    SecurityECDH securityECDH;
-    byte[] secretKey = null;
-
-    String address;
-
     public String searchString;
 
     private boolean animation = false;
     Context context;
 
-    public ConversationsRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
+    public ConversationsRecyclerAdapter(Context context) throws GeneralSecurityException, IOException {
         super(Conversation.DIFF_CALLBACK);
         this.context = context;
         this.selectedItem = mutableSelectedItems;
-
-        this.securityECDH = new SecurityECDH(context);
-
-        this.address = address;
-
-        if(securityECDH.hasSecretKey(address))
-            secretKey = Base64.decode(securityECDH.securelyFetchSecretKey(address), Base64.DEFAULT);
     }
 
     @NonNull
@@ -186,24 +168,6 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         return new MessageSentViewHandler(view);
     }
 
-    private String decryptContent(String input) {
-        if(this.secretKey != null &&
-                input.getBytes(StandardCharsets.UTF_8).length > 16
-                        + SecurityHelpers.ENCRYPTED_WATERMARK_START.length()
-                        + SecurityHelpers.ENCRYPTED_WATERMARK_END.length()
-                && SecurityHelpers.containersWaterMark(input)) {
-            try {
-                byte[] encryptedContent = SecurityAES.decrypt_256_cbc(Base64.decode(
-                        SecurityHelpers.removeEncryptedMessageWaterMark(input), Base64.DEFAULT),
-                        secretKey);
-                input = new String(encryptedContent, StandardCharsets.UTF_8);
-            } catch(Throwable e ) {
-                e.printStackTrace();
-            }
-        }
-        return input;
-    }
-
     public Spannable highlightSubstringYellow(String text) {
         // Find all occurrences of the substring in the text.
         List<Integer> startIndices = new ArrayList<>();
@@ -258,9 +222,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         DateFormat dateFormat = new SimpleDateFormat("h:mm a");
         String timeStamp = dateFormat.format(new Date(Long.parseLong(sms.getDate())));
 
-        String _text = sms.getBody();
+        String text = sms.getBody();
 
-        final String text = decryptContent(_text);
         if(holder instanceof MessageReceivedViewHandler) {
             MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
             if(holder instanceof TimestampMessageReceivedViewHandler || holder instanceof TimestampKeyReceivedViewHandler)
@@ -363,7 +326,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
                         String _text = text;
                         if(holder instanceof KeySentViewHandler) {
-                            _text = SecurityHelpers.removeKeyWaterMark(text);
+//                            _text = SecurityHelpers.removeKeyWaterMark(text);
                             messageValues[1] = _text;
                             retryFailedDataMessage.setValue(messageValues);
                         }
@@ -488,24 +451,24 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         if(sms == null)
             return super.getItemViewType(position);
 
-        boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
+//        boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
 
         int oldestItemPos = snapshot().getSize() - 1;
         int newestItemPos = 0;
 
-        if(isEncryptionKey) {
-            if(position == oldestItemPos || snapshot().size() < 2 ||
-                    (position > (oldestItemPos -1) &&
-                            Helpers.isSameMinute(Long.parseLong(sms.getDate()),
-                                    Long.parseLong(((Conversation) peek(position -1)).getDate())))) {
-                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        TIMESTAMP_KEY_TYPE_INBOX : TIMESTAMP_KEY_TYPE_OUTBOX;
-            }
-            else {
-                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
-                        MESSAGE_KEY_INBOX : MESSAGE_KEY_OUTBOX;
-            }
-        }
+//        if(isEncryptionKey) {
+//            if(position == oldestItemPos || snapshot().size() < 2 ||
+//                    (position > (oldestItemPos -1) &&
+//                            Helpers.isSameMinute(Long.parseLong(sms.getDate()),
+//                                    Long.parseLong(((Conversation) peek(position -1)).getDate())))) {
+//                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+//                        TIMESTAMP_KEY_TYPE_INBOX : TIMESTAMP_KEY_TYPE_OUTBOX;
+//            }
+//            else {
+//                return (sms.getType() == MESSAGE_TYPE_INBOX) ?
+//                        MESSAGE_KEY_INBOX : MESSAGE_KEY_OUTBOX;
+//            }
+//        }
 
         if(snapshot().getSize() < 2) {
             return (sms.getType() == MESSAGE_TYPE_INBOX) ?

@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.List;
@@ -85,25 +84,23 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         String snippet = threadedConversations.getSnippet();
         int type = threadedConversations.getType();
 
-        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
-            if(!threadedConversations.isIs_read()) {
-                return type == MESSAGE_TYPE_INBOX ?
-                        RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE : SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
-            }
-            else {
-                return type == MESSAGE_TYPE_INBOX ?
-                        RECEIVED_ENCRYPTED_VIEW_TYPE : SENT_ENCRYPTED_VIEW_TYPE;
-            }
+//        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
+//            if(!threadedConversations.isIs_read()) {
+//                return type == MESSAGE_TYPE_INBOX ?
+//                        RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE : SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
+//            }
+//            else {
+//                return type == MESSAGE_TYPE_INBOX ?
+//                        RECEIVED_ENCRYPTED_VIEW_TYPE : SENT_ENCRYPTED_VIEW_TYPE;
+//            }
+//        }
+        if(!threadedConversations.isIs_read()) {
+            return type == MESSAGE_TYPE_INBOX ?
+                    RECEIVED_UNREAD_VIEW_TYPE : SENT_UNREAD_VIEW_TYPE;
         }
         else {
-            if(!threadedConversations.isIs_read()) {
-                return type == MESSAGE_TYPE_INBOX ?
-                        RECEIVED_UNREAD_VIEW_TYPE : SENT_UNREAD_VIEW_TYPE;
-            }
-            else {
-                return type == MESSAGE_TYPE_INBOX ?
-                        RECEIVED_VIEW_TYPE : SENT_VIEW_TYPE;
-            }
+            return type == MESSAGE_TYPE_INBOX ?
+                    RECEIVED_VIEW_TYPE : SENT_VIEW_TYPE;
         }
     }
 

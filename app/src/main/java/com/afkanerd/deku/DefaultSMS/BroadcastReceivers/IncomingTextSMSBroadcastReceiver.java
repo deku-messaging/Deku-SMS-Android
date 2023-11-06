@@ -9,12 +9,10 @@ import android.provider.Telephony;
 import android.util.Log;
 
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
-import com.afkanerd.deku.Router.Router.RouterHandler;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Notifications.NotificationsHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 
 import java.io.IOException;
 
@@ -31,6 +29,15 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static String SMS_DELIVERED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
 
+    /*
+    - address received might be different from how address is saved.
+    - how it received is the trusted one, but won't match that which has been saved.
+    - when message gets stored it's associated to the thread - so matching is done by android
+    - without country code, can't know where message is coming from. Therefore best assumption is
+    - service providers do send in country code.
+    - How is matched to users stored without country code?
+     */
+
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -38,30 +45,14 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
-                final String[] regIncomingOutput;
                 try {
-                    regIncomingOutput = NativeSMSDB.Incoming.register_incoming_text(context, intent);
-                    final String threadId = regIncomingOutput[NativeSMSDB.THREAD_ID];
-                    final String messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
-                    final String body = regIncomingOutput[NativeSMSDB.BODY];
-                    final String address = regIncomingOutput[NativeSMSDB.ADDRESS];
-                    final String strSubscriptionId = regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID];
-                    int subscriptionId = Integer.parseInt(strSubscriptionId);
+                    final String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_text(context, intent);
+                    if(regIncomingOutput != null) {
+                        final String messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
 
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            NotificationsHandler.sendIncomingTextMessageNotification(
-                                    context,
-                                    body,
-                                    address,
-                                    Long.parseLong(messageId),
-                                    subscriptionId);
-                        }
-                    }).start();
-
-                    router_activities(address, body, Long.parseLong(messageId));
-
+                        NotificationsHandler.sendIncomingTextMessageNotification(context, messageId);
+                        router_activities(messageId);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -92,26 +83,20 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    public void router_activities(String finalAddress, String messageFinal, long finalMessageId) {
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Cursor cursor = NativeSMSDB.fetchByMessageId(context, String.valueOf(finalMessageId));
-                    if(cursor != null && cursor.moveToFirst()) {
-                        SMS sms = new SMS(cursor);
-                        sms.setMsisdn(finalAddress);
-                        sms.setText(messageFinal);
-
-                        RouterHandler.createWorkForMessage(context, sms, finalMessageId,
-                                Helpers.isBase64Encoded(messageFinal));
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
+    public void router_activities(String messageId) {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
+//                    if(cursor.moveToFirst()) {
+//                        RouterHandler.createWorkForMessage(context, , finalMessageId,
+//                                Helpers.isBase64Encoded(messageFinal));
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
     }
 }

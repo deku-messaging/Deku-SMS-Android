@@ -5,22 +5,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
-import android.telephony.SmsMessage;
 import android.util.Base64;
 import android.util.Log;
 
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
-import com.afkanerd.deku.DefaultSMS.Models.Notifications.NotificationsHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.afkanerd.deku.E2EE.Security.SecurityHelpers;
+import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 
 //import org.bouncycastle.operator.OperatorCreationException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
@@ -52,10 +46,10 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
                     try {
                         String strMessage = body;
-                        if(SecurityHelpers.isKeyExchange(body)) {
-                            strMessage = registerIncomingAgreement(context, address,
-                                    Base64.decode(strMessage, Base64.DEFAULT));
-                        }
+//                        if(SecurityHelpers.isKeyExchange(body)) {
+//                            strMessage = registerIncomingAgreement(context, address,
+//                                    Base64.decode(strMessage, Base64.DEFAULT));
+//                        }
 
                         String notificationNote = context.getString(R.string.security_key_new_request_notification);
 
@@ -68,8 +62,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 //                            NativeSMSDB.Incoming.register_incoming_text(context, intent);
 //                        }
 
-                        NotificationsHandler.sendIncomingTextMessageNotification(context, notificationNote,
-                                address, Long.parseLong(messageId), subscriptionId);
+                        NotificationsHandler.sendIncomingTextMessageNotification(context, messageId);
                         broadcastIntent(context);
 
                     } catch (Exception e) {
@@ -80,14 +73,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                 }
             }
         }
-    }
-
-    private String registerIncomingAgreement(Context context, String msisdn, byte[] keyPart) throws GeneralSecurityException, IOException {
-        SecurityECDH securityECDH = new SecurityECDH(context);
-
-//        if(securityECDH.hasSecretKey(msisdn))
-//            securityECDH.removeSecretKey(msisdn);
-        return securityECDH.securelyStorePeerAgreementKey(context, msisdn, keyPart);
     }
 
 

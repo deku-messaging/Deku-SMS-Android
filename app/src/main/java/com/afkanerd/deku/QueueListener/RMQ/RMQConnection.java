@@ -146,7 +146,7 @@ public class RMQConnection {
          * 5. We can translate this into managing multiple service providers
          */
         this.channel1.basicConsume(this.queueName, autoAck, deliverCallback, consumerTag -> {});
-        if(this.channel2 != null)
+        if(this.queueName2 != null)
             this.channel2.basicConsume(this.queueName2, autoAck, deliverCallback2, consumerTag -> {});
     }
 

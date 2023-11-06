@@ -20,7 +20,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
@@ -62,6 +64,34 @@ public class Helpers {
 
         // return the formed String[]
         return arrayOfString;
+    }
+
+    public static boolean isShortCode(Conversation conversation) {
+        Pattern pattern = Pattern.compile("[a-zA-Z]");
+        Matcher matcher = pattern.matcher(conversation.getAddress());
+        return !PhoneNumberUtils.isWellFormedSmsAddress(conversation.getAddress()) || matcher.find();
+    }
+
+    public static String formatPhoneNumbers(Context context, String data) throws NumberParseException {
+        String formattedString = data.replaceAll("%2B", "+")
+                .replaceAll("%20", "");
+
+        if(!PhoneNumberUtils.isWellFormedSmsAddress(formattedString))
+            return formattedString;
+
+        // Remove any non-digit characters except the plus sign at the beginning of the string
+        String strippedNumber = formattedString.replaceAll("[^0-9+;]", "");
+        if(strippedNumber.length() > 6) {
+            // If the stripped number starts with a plus sign followed by one or more digits, return it as is
+            if (!strippedNumber.matches("^\\+\\d+")) {
+                String dialingCode = getUserCountry(context);
+                strippedNumber = "+" + dialingCode + strippedNumber;
+            }
+            return strippedNumber;
+        }
+
+        // If the stripped number is not a valid phone number, return an empty string
+        return data;
     }
 
     public static String formatDateExtended(Context context, long epochTime) {

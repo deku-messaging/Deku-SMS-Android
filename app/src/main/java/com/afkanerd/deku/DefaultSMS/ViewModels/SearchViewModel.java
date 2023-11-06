@@ -1,8 +1,13 @@
-package com.afkanerd.deku.DefaultSMS.Models.Conversations;
+package com.afkanerd.deku.DefaultSMS.ViewModels;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 
 import java.util.ArrayList;
 import java.util.List;

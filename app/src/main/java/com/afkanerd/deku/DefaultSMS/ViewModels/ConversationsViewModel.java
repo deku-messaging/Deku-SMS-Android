@@ -1,27 +1,24 @@
-package com.afkanerd.deku.DefaultSMS.Models.Conversations;
+package com.afkanerd.deku.DefaultSMS.ViewModels;
 
 
 import android.content.Context;
 import android.database.Cursor;
-import android.provider.Telephony;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
-import androidx.paging.PagingSource;
 
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
-import java.lang.annotation.Native;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ConversationsViewModel extends ViewModel{
@@ -106,16 +103,20 @@ public class ConversationsViewModel extends ViewModel{
     }
 
     public void updateToRead(Context context) {
-        NativeSMSDB.Incoming.update_read(context, 1, threadId);
-        ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ThreadedConversations threadedConversations = threadedConversationsDao.get(threadId);
-                threadedConversations.setIs_read(true);
-                int num_updated = threadedConversationsDao.update(threadedConversations);
-                Log.d(getClass().getName(), "Number updated: " + num_updated);
-            }
-        }).start();
+        if(threadId != null && !threadId.isEmpty()) {
+            NativeSMSDB.Incoming.update_read(context, 1, threadId);
+            ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ThreadedConversations threadedConversations = threadedConversationsDao.get(threadId);
+                    if(threadedConversations != null) {
+                        threadedConversations.setIs_read(true);
+                        int num_updated = threadedConversationsDao.update(threadedConversations);
+                        Log.d(getClass().getName(), "Number updated: " + num_updated);
+                    }
+                }
+            }).start();
+        }
     }
 }

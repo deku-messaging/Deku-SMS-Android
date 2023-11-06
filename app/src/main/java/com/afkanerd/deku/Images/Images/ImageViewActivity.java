@@ -23,11 +23,8 @@ import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Compression;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSMetaEntity;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMS;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
@@ -79,8 +76,8 @@ public class ImageViewActivity extends AppCompatActivity {
         imageView = findViewById(R.id.compressed_image_holder);
         imageDescription = findViewById(R.id.image_details_size);
 
-        address = getIntent().getStringExtra(SMSMetaEntity.ADDRESS);
-        threadId = getIntent().getStringExtra(SMSMetaEntity.THREAD_ID);
+        address = getIntent().getStringExtra(ConversationHandler.ADDRESS);
+        threadId = getIntent().getStringExtra(ConversationHandler.THREAD_ID);
 
         String contactName = Contacts.retrieveContactName(getApplicationContext(), address);
         contactName = (contactName.equals("null") || contactName.isEmpty()) ?
@@ -135,10 +132,10 @@ public class ImageViewActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home ) {
             Intent intent = new Intent(this, ConversationActivity.class);
-            intent.putExtra(SMSMetaEntity.ADDRESS, address);
+            intent.putExtra(ConversationHandler.ADDRESS, address);
 
             if(!threadId.isEmpty())
-                intent.putExtra(SMSMetaEntity.THREAD_ID, threadId);
+                intent.putExtra(ConversationHandler.THREAD_ID, threadId);
 
             startActivity(intent);
             finish();
@@ -303,7 +300,7 @@ public class ImageViewActivity extends AppCompatActivity {
 
     public void sendImage(View view) throws InterruptedException {
 //        Intent intent = new Intent(this, ConversationActivity.class);
-//        intent.putExtra(SMSMetaEntity.ADDRESS, address);
+//        intent.putExtra(ConversationHandler.ADDRESS, address);
 //
 //        long messageId = Helpers.generateRandomNumber();
 //
@@ -321,7 +318,7 @@ public class ImageViewActivity extends AppCompatActivity {
 //                messageId,
 //                subscriptionId);
 //
-//        intent.putExtra(SMSMetaEntity.THREAD_ID, threadIdRx);
+//        intent.putExtra(ConversationHandler.THREAD_ID, threadIdRx);
 //        intent.putExtra(SMS_IMAGE_PENDING_LOCATION, messageId);
 //
 //        startActivity(intent);
@@ -333,10 +330,10 @@ public class ImageViewActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         Intent intent = new Intent(this, ConversationActivity.class);
-        intent.putExtra(SMSMetaEntity.ADDRESS, address);
+        intent.putExtra(ConversationHandler.ADDRESS, address);
 
         if (!threadId.isEmpty())
-            intent.putExtra(SMSMetaEntity.THREAD_ID, threadId);
+            intent.putExtra(ConversationHandler.THREAD_ID, threadId);
 
         startActivity(intent);
         finish();

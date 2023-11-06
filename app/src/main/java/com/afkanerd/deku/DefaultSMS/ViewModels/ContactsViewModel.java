@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Contacts;
+package com.afkanerd.deku.DefaultSMS.ViewModels;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -8,6 +8,7 @@ import android.telephony.PhoneNumberUtils;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.util.ArrayList;

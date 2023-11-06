@@ -8,8 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.NativeSMSDB;
-import com.afkanerd.deku.DefaultSMS.Models.NativeConversationDB.SMSHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 

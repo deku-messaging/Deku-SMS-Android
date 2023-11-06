@@ -19,8 +19,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.afkanerd.deku.DefaultSMS.Models.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Migrations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;

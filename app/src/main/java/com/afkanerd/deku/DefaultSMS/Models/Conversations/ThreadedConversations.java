@@ -12,8 +12,9 @@ import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
-import com.afkanerd.deku.DefaultSMS.Models.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Migrations;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,31 +24,30 @@ import java.util.List;
 public class ThreadedConversations {
     @NonNull
     @PrimaryKey
-     String thread_id;
-     int msg_count;
-     int avatar_color;
+     private String thread_id;
+     private int msg_count;
+     private int avatar_color;
 
-     int type;
+     private int type;
 
-     String date;
+     private String date;
 
-     @Ignore
-     public int offset = -1;
+     private boolean is_archived;
+     private boolean is_blocked;
 
-     boolean is_archived;
-     boolean is_blocked;
+     private boolean is_shortcode;
 
-     boolean is_read;
+     private boolean is_read;
 
-     String snippet;
+     private String snippet;
 
-     String contact_name;
+     private String contact_name;
     private String address;
 
-     String avatar_initials;
+     private String avatar_initials;
 
-     String avatar_image;
-     String formatted_datetime;
+     private String avatar_image;
+     private String formatted_datetime;
 
     public static ThreadedConversationsDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
@@ -81,6 +81,14 @@ public class ThreadedConversations {
             } while(cursor.moveToNext());
         }
         return threadedConversations;
+    }
+
+    public boolean isIs_shortcode() {
+        return is_shortcode;
+    }
+
+    public void setIs_shortcode(boolean is_shortcode) {
+        this.is_shortcode = is_shortcode;
     }
 
     public String getAddress() {

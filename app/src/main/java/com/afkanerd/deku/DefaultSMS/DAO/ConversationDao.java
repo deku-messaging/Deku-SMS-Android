@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Conversations;
+package com.afkanerd.deku.DefaultSMS.DAO;
 
 import androidx.lifecycle.LiveData;
 import androidx.paging.DataSource;
@@ -10,6 +10,8 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
+
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.util.List;
 

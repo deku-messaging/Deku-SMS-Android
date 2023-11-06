@@ -15,8 +15,8 @@ import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
-import com.afkanerd.deku.DefaultSMS.Models.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Migrations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService;
 import com.afkanerd.deku.QueueListener.RMQ.RMQWorkManager;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
