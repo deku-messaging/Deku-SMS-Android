@@ -11,8 +11,11 @@ import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversa
 import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_UNREAD_VIEW_TYPE;
 import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_VIEW_TYPE;
 
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -36,6 +39,7 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
     public TextView address;
     public TextView date;
     public AvatarView contactInitials;
+    public ImageView contactAvatar;
     public TextView youLabel;
 
     public ConstraintLayout layout;
@@ -55,6 +59,7 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         youLabel = itemView.findViewById(R.id.message_you_label);
         contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
         materialCardView = itemView.findViewById(R.id.messages_threads_cardview);
+        contactAvatar = itemView.findViewById(R.id.messages_threads_contact_photo);
     }
 
     public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener,
@@ -63,9 +68,14 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
 
         if(conversation.getAvatar_initials() != null) {
             this.contactInitials.setAvatarInitials(conversation.getAvatar_initials());
-            this.contactInitials.setAvatarInitialsBackgroundColor(
-                    Helpers.generateColor( conversation.getAddress() ));
-//            this.contactInitials.setAvatarInitialsBackgroundColor(Helpers.generateColor(address));
+            this.contactInitials.setAvatarInitialsBackgroundColor(conversation.getAvatar_color());
+            this.contactAvatar.setVisibility(View.GONE);
+        }
+        else {
+            Drawable drawable = contactAvatar.getDrawable();
+            drawable.setColorFilter(conversation.getAvatar_color(), PorterDuff.Mode.SRC_IN);
+            contactAvatar.setImageDrawable(drawable);
+            this.contactInitials.setVisibility(View.GONE);
         }
         if(conversation.getContact_name() != null) {
             this.address.setText(conversation.getContact_name());

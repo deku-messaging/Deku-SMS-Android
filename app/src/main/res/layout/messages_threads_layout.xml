@@ -26,18 +26,27 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp">
 
-            <io.getstream.avatarview.AvatarView
-                android:id="@+id/messages_threads_contact_initials"
+            <FrameLayout
+                android:id="@+id/messages_threads_avatar_frame"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:visibility="visible"
-                app:avatarViewBorderRadius="0dp"
-                app:avatarViewBorderWidth="0dp"
-                app:avatarViewInitialsTextColor="@color/primary_background_color"
-                app:avatarViewInitialsTextSize="20sp"
-                app:avatarViewInitialsTextStyle="normal"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/messages_thread_address_text" />
+                app:layout_constraintTop_toTopOf="@+id/messages_thread_address_text">
+                <io.getstream.avatarview.AvatarView
+                    android:id="@+id/messages_threads_contact_initials"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:avatarViewBorderRadius="0dp"
+                    app:avatarViewBorderWidth="0dp"
+                    app:avatarViewInitialsTextColor="@color/primary_background_color"
+                    app:avatarViewInitialsTextSize="20sp"
+                    app:avatarViewInitialsTextStyle="normal"/>
+                <ImageView
+                    android:id="@+id/messages_threads_contact_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:srcCompat="@drawable/baseline_account_circle_24" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/messages_thread_address_text"
@@ -50,23 +59,21 @@
                 android:textColor="@color/secondary_text_color"
                 android:textSize="18sp"
                 app:layout_constraintEnd_toStartOf="@+id/messages_thread_date"
-                app:layout_constraintStart_toEndOf="@+id/messages_threads_contact_initials"
+                app:layout_constraintStart_toEndOf="@+id/messages_threads_avatar_frame"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/messages_thread_text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
                 android:ellipsize="end"
                 android:maxLines="3"
                 android:text="TextView"
                 android:textColor="@color/secondary_text_color"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/messages_thread_address_text"
                 app:layout_constraintStart_toEndOf="@+id/message_you_label"
                 app:layout_constraintTop_toBottomOf="@+id/messages_thread_address_text" />
 

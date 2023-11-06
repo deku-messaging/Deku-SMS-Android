@@ -10,6 +10,7 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
@@ -95,7 +96,10 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     if(contactName != null) {
                         threadedConversation.setContact_name(contactName);
                         threadedConversation.setAvatar_initials(contactName.substring(0, 1));
+                        threadedConversation.setAvatar_color(Helpers.generateColor(contactName));
                     }
+                    else threadedConversation.setAvatar_color(
+                            Helpers.generateColor(threadedConversation.getAddress()));
                 }
                 threadedConversationsDao.insertAll(threadedConversations);
                 cursor.close();
