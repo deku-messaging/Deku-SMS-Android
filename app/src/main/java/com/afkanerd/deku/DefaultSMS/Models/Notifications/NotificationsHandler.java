@@ -84,7 +84,7 @@ public class NotificationsHandler {
             long timestamp = System.currentTimeMillis();
 
             String contactName = Contacts.retrieveContactName(context, smsMetaEntity.getAddress());
-            contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+            contactName = (contactName == null|| contactName.isEmpty()) ?
                     smsMetaEntity.getAddress() : contactName;
 
             NotificationCompat.MessagingStyle messagingStyle =
@@ -216,7 +216,7 @@ public class NotificationsHandler {
             smsMetaEntity.setThreadId(context, sms.getThreadId());
 
             String contactName = Contacts.retrieveContactName(context, smsMetaEntity.getAddress());
-            contactName = (contactName.equals("null") || contactName.isEmpty()) ?
+            contactName = (contactName == null|| contactName.isEmpty()) ?
                     smsMetaEntity.getAddress() : contactName;
 
             Uri smsUrl = Uri.parse("smsto:" + smsMetaEntity.getAddress());
