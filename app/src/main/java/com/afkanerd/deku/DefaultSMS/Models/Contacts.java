@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Contacts;
+package com.afkanerd.deku.DefaultSMS.Models;
 
 import android.content.Context;
 import android.database.Cursor;

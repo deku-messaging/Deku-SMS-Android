@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.ViewModels;
+package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 
 import android.content.Context;
@@ -23,6 +23,7 @@ import java.util.List;
 
 public class ConversationsViewModel extends ViewModel{
     public String threadId;
+    public String address;
     ConversationDao conversationDao;
     public int pageSize = 10;
     int prefetchDistance = 30;
@@ -36,7 +37,6 @@ public class ConversationsViewModel extends ViewModel{
         this.conversationDao = conversationDao;
         this.threadId = threadId;
 
-
         Pager<Integer, Conversation> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
@@ -45,6 +45,22 @@ public class ConversationsViewModel extends ViewModel{
                 maxSize,
                 jumpThreshold
         ), ()-> this.conversationDao.get(threadId));
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    public LiveData<PagingData<Conversation>> getByAddress(ConversationDao conversationDao, String address)
+            throws InterruptedException {
+        this.conversationDao = conversationDao;
+        this.address = address;
+
+        Pager<Integer, Conversation> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize,
+                jumpThreshold
+        ), ()-> this.conversationDao.getByAddress(address));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 

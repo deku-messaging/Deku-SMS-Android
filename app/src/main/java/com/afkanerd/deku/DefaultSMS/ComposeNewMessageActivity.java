@@ -13,9 +13,9 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 
-import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts.ContactsRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.ViewModels.ContactsViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.i18n.phonenumbers.NumberParseException;
 

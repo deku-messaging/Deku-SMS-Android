@@ -2,14 +2,10 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import static android.provider.Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
 
-import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE;
-import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.RECEIVED_ENCRYPTED_VIEW_TYPE;
-import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.RECEIVED_UNREAD_VIEW_TYPE;
-import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.RECEIVED_VIEW_TYPE;
-import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_ENCRYPTED_UNREAD_VIEW_TYPE;
-import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_ENCRYPTED_VIEW_TYPE;
-import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_UNREAD_VIEW_TYPE;
-import static com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter.SENT_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter.RECEIVED_UNREAD_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter.RECEIVED_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter.SENT_UNREAD_VIEW_TYPE;
+import static com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter.SENT_VIEW_TYPE;
 
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -22,7 +18,6 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.card.MaterialCardView;

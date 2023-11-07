@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.ViewModels;
+package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

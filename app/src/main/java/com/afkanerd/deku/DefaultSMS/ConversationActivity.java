@@ -1,18 +1,13 @@
 package com.afkanerd.deku.DefaultSMS;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,7 +20,6 @@ import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
@@ -33,7 +27,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.paging.CombinedLoadStates;
 import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -41,25 +34,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
-import com.afkanerd.deku.DefaultSMS.ViewModels.ConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import kotlin.Unit;
-import kotlin.coroutines.Continuation;
-import kotlinx.coroutines.flow.FlowCollector;
 
 public class ConversationActivity extends DualSIMConversationActivity {
     public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
@@ -181,6 +169,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
                 _address = Helpers.formatPhoneNumbers(getApplicationContext(), _address);
                 Log.d(getLocalClassName(), "Shared address: " + _address);
                 getIntent().putExtra(Conversation.ADDRESS, _address);
+                getIntent().setAction(null);
             }
         }
 
@@ -196,11 +185,15 @@ public class ConversationActivity extends DualSIMConversationActivity {
                     threadedConversations);
         }
 
-        if(getIntent().hasExtra(Conversation.ADDRESS)) {
+        else if(getIntent().hasExtra(Conversation.ADDRESS)) {
+            Log.d(getLocalClassName(), "Address available!");
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setAddress(getIntent().getStringExtra(Conversation.ADDRESS));
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
                     threadedConversations);
+            if(this.threadedConversations == null) {
+                this.threadedConversations = threadedConversations;
+            }
         }
 
 
@@ -291,19 +284,31 @@ public class ConversationActivity extends DualSIMConversationActivity {
         }
     }
 
+    ConversationDao conversationDao;
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
+        conversationDao = Conversation.getDao(getApplicationContext());
 
-
-        ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
-
-        conversationsViewModel.get(conversationDao, this.threadedConversations.getThread_id())
-                .observe(this, new Observer<PagingData<Conversation>>() {
-            @Override
-            public void onChanged(PagingData<Conversation> smsList) {
-                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
+        if(this.threadedConversations != null) {
+            if(this.threadedConversations.getThread_id()!= null &&
+                    !this.threadedConversations.getThread_id().isEmpty()) {
+                conversationsViewModel.get(conversationDao, this.threadedConversations.getThread_id())
+                        .observe(this, new Observer<PagingData<Conversation>>() {
+                            @Override
+                            public void onChanged(PagingData<Conversation> smsList) {
+                                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
+                            }
+                        });
+            } else if(this.threadedConversations.getAddress()!= null && !this.threadedConversations.getAddress().isEmpty()) {
+                conversationsViewModel.getByAddress(conversationDao, this.threadedConversations.getAddress())
+                        .observe(this, new Observer<PagingData<Conversation>>() {
+                            @Override
+                            public void onChanged(PagingData<Conversation> smsList) {
+                                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
+                            }
+                        });
             }
-        });
+        }
 
         conversationsRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
             @Override
@@ -409,9 +414,11 @@ public class ConversationActivity extends DualSIMConversationActivity {
             }
         });
 
-        String abTitle = (this.threadedConversations.getContact_name() != null &&
-                !this.threadedConversations.getContact_name().isEmpty()) ?
-                this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
+        String abTitle = getIntent().getStringExtra(Conversation.ADDRESS);
+        if(this.threadedConversations != null)
+            abTitle = (this.threadedConversations.getContact_name() != null &&
+                    !this.threadedConversations.getContact_name().isEmpty()) ?
+                    this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
         ab.setDisplayHomeAsUpEnabled(true);
         ab.setTitle(abTitle);
     }
@@ -520,7 +527,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
     }
 
     private void configureLayoutForMessageType() {
-        if(this.threadedConversations.isIs_shortcode()) {
+        if(this.threadedConversations != null && this.threadedConversations.isIs_shortcode()) {
             // Cannot reply to message
             ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
             smsLayout.setVisibility(View.GONE);
@@ -595,9 +602,11 @@ public class ConversationActivity extends DualSIMConversationActivity {
             String messageId = transmissionOutput[NativeSMSDB.MESSAGE_ID];
             String threadId = transmissionOutput[NativeSMSDB.THREAD_ID];
 
-            getIntent().putExtra(Conversation.THREAD_ID, threadId);
-            setupActivityDependencies();
             conversationsViewModel.insertFromNative(getApplicationContext(), messageId);
+            if(this.threadedConversations == null) {
+                getIntent().putExtra(Conversation.THREAD_ID, threadId);
+                setupActivityDependencies();
+            }
 
             smsTextView.getText().clear();
         }
@@ -605,8 +614,11 @@ public class ConversationActivity extends DualSIMConversationActivity {
 
     private String[] _sendSMSMessage(int subscriptionId, String text) {
         try {
-            return NativeSMSDB.Outgoing.send_text(getApplicationContext(),
-                    this.threadedConversations.getAddress(), text, subscriptionId, null);
+            String address = this.threadedConversations == null ?
+                    getIntent().getStringExtra(Conversation.ADDRESS) :
+                    this.threadedConversations.getAddress();
+            return NativeSMSDB.Outgoing.send_text(getApplicationContext(), address, text,
+                    subscriptionId, null);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.telephony.PhoneNumberUtils;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -23,7 +22,6 @@ import androidx.core.content.pm.ShortcutManagerCompat;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts.Contacts;
 import com.afkanerd.deku.DefaultSMS.R;
 
 public class NotificationsHandler {

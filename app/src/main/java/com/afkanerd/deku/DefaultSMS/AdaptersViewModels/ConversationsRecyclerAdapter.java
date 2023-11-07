@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Conversations;
+package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
@@ -31,6 +31,7 @@ import androidx.paging.PagingDataAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 

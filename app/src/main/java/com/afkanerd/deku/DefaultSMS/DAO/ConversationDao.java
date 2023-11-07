@@ -21,6 +21,9 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     PagingSource<Integer, Conversation> get(String thread_id);
 
+    @Query("SELECT * FROM Conversation WHERE address =:address ORDER BY date DESC")
+    PagingSource<Integer, Conversation> getByAddress(String address);
+
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     List<Conversation> getAll(String thread_id);
 

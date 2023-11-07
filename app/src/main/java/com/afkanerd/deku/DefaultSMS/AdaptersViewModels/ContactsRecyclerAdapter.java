@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Contacts;
+package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
@@ -60,14 +61,15 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
     public static class ContactsViewHolder extends TemplateViewHolder {
         View itemView;
-        public ContactsViewHolder(@NonNull View itemView, boolean isContact) {
+       public ContactsViewHolder(@NonNull View itemView, boolean isContact) {
             super(itemView);
 
+           this.itemView = itemView;
             snippet.setMaxLines(1);
             address.setMaxLines(1);
             date.setVisibility(View.GONE);
 
-            this.itemView = itemView;
+            contactAvatar.setVisibility(View.GONE);
         }
 
         public void bind(Contacts contacts, final String sharedConversation) {

@@ -19,8 +19,8 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.ViewModels.ThreadedConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.android.material.card.MaterialCardView;
