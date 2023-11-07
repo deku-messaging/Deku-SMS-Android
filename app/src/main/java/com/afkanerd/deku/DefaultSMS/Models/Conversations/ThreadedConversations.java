@@ -240,17 +240,16 @@ public class ThreadedConversations {
         if(obj instanceof ThreadedConversations) {
             ThreadedConversations threadedConversations = (ThreadedConversations) obj;
 
-//            return threadedConversations.thread_id.equals(this.thread_id) &&
-//                    threadedConversations.is_archived == this.is_archived &&
-//                    threadedConversations.is_blocked == this.is_blocked &&
-//                    threadedConversations.is_read == this.is_read &&
-//                    threadedConversations.type == this.type &&
-//                    threadedConversations.avatar_color == this.avatar_color &&
-//                    threadedConversations.msg_count == this.msg_count &&
-//                    threadedConversations.address.equals(this.address) &&
-//                    threadedConversations.snippet.equals(this.snippet);
+            return threadedConversations.thread_id.equals(this.thread_id) &&
+                    threadedConversations.is_archived == this.is_archived &&
+                    threadedConversations.is_blocked == this.is_blocked &&
+                    threadedConversations.is_read == this.is_read &&
+                    threadedConversations.type == this.type &&
+                    threadedConversations.avatar_color == this.avatar_color &&
+                    threadedConversations.msg_count == this.msg_count &&
+                    threadedConversations.address.equals(this.address) &&
+                    threadedConversations.snippet.equals(this.snippet);
 
-            return threadedConversations.getThread_id().equals(this.getThread_id());
         }
         return super.equals(obj);
     }

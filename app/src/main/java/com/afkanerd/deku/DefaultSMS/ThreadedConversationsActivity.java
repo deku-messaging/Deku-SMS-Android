@@ -68,8 +68,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         loadSubroutines();
         fragmentManagement();
         startServices();
-
-        threadedConversationsViewModel.loadNatives(getApplicationContext());
     }
 
     private void startServices() {
