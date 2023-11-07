@@ -68,6 +68,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         loadSubroutines();
         fragmentManagement();
         startServices();
+
+        threadedConversationsViewModel.loadNatives(getApplicationContext());
     }
 
     private void startServices() {
@@ -295,7 +297,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     public void tabUnselected(int position) {
         String itemType = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
-        ThreadedConversationRecyclerAdapter recyclerAdapter = this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
         if(this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(itemType).selectedItems.getValue() != null) {
@@ -307,11 +308,14 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     public void tabSelected(int position) {
         this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
+        ThreadedConversationRecyclerAdapter recyclerAdapter =
+                this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+        if(recyclerAdapter != null)
+            recyclerAdapter.refresh();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        threadedConversationsViewModel.loadNatives(getApplicationContext());
     }
 }

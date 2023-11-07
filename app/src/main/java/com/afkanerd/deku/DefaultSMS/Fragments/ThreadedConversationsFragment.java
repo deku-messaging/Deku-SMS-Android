@@ -86,9 +86,7 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(threadedConversationRecyclerAdapter);
-        messagesThreadRecyclerView.setItemViewCacheSize(20);
-        messagesThreadRecyclerView.setDrawingCacheEnabled(true);
-        messagesThreadRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        messagesThreadRecyclerView.setItemViewCacheSize(500);
 
         threadedConversationsViewModel = viewManipulationListener.getViewModel();
         switch(Objects.requireNonNull(messageType)) {
@@ -161,5 +159,11 @@ public class ThreadedConversationsFragment extends Fragment {
         super.onDestroyView();
         if (archiveHandler != null)
             archiveHandler.close();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        threadedConversationRecyclerAdapter.refresh();
     }
 }

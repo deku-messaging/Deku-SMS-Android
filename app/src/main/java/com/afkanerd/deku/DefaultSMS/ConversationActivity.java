@@ -295,6 +295,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
     ConversationDao conversationDao;
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
+        singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
         conversationDao = Conversation.getDao(getApplicationContext());
 
         if(this.threadedConversations != null) {
