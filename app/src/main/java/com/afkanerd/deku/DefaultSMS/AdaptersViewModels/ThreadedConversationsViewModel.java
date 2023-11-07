@@ -16,12 +16,13 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ThreadedConversationsViewModel extends ViewModel {
     ThreadedConversationsDao threadedConversationsDao;
 
-    public LiveData<PagingData<ThreadedConversations>> get(ThreadedConversationsDao threadedConversationsDao){
+    public LiveData<PagingData<ThreadedConversations>> get(){
         this.threadedConversationsDao = threadedConversationsDao;
 
         int pageSize = 10;
@@ -38,9 +39,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getEncrypted(ThreadedConversationsDao threadedConversationsDao){
-        this.threadedConversationsDao = threadedConversationsDao;
-
+    public LiveData<PagingData<ThreadedConversations>> getEncrypted(){
         int pageSize = 10;
         int prefetchDistance = 30;
         boolean enablePlaceholder = false;
@@ -55,9 +54,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getNotEncrypted(ThreadedConversationsDao threadedConversationsDao){
-        this.threadedConversationsDao = threadedConversationsDao;
-
+    public LiveData<PagingData<ThreadedConversations>> getNotEncrypted(){
         int pageSize = 10;
         int prefetchDistance = 30;
         boolean enablePlaceholder = false;
@@ -101,7 +98,17 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     else threadedConversation.setAvatar_color(
                             Helpers.generateColor(threadedConversation.getAddress()));
                 }
-                threadedConversationsDao.insertAll(threadedConversations);
+                if(!threadedConversations.isEmpty()) {
+                    threadedConversationsDao.insertAll(threadedConversations);
+                    List<ThreadedConversations> completeList = threadedConversationsDao.getAll();
+                    List<ThreadedConversations> deleteList = new ArrayList<>();
+                    for (ThreadedConversations threadedConversation : completeList) {
+                        if (!threadedConversations.contains(threadedConversation)) {
+                            deleteList.add(threadedConversation);
+                        }
+                    }
+                    threadedConversationsDao.delete(deleteList);
+                }
                 cursor.close();
             }
         });
@@ -109,4 +116,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
         loadNativeThread.start();
     }
 
+    public void setThreadedConversationsDao(ThreadedConversationsDao threadedConversationsDao) {
+        this.threadedConversationsDao = threadedConversationsDao;
+    }
 }

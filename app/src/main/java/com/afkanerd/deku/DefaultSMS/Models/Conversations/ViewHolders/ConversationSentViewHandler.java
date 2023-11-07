@@ -40,6 +40,11 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     }
 
     @Override
+    public String getMessage_id() {
+        return this.message_id;
+    }
+
+    @Override
     public String getText() {
         return sentMessage.getText().toString();
     }
@@ -55,6 +60,8 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     }
 
     public void bind(Conversation conversation) {
+        this.id = conversation.getId();
+        this.message_id = conversation.getMessage_id();
         String date = Helpers.formatDateExtended(itemView.getContext(), Long.parseLong(conversation.getDate()));
         DateFormat dateFormat = new SimpleDateFormat("h:mm a");
         String timeStamp = dateFormat.format(new Date(Long.parseLong(conversation.getDate())));

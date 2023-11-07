@@ -5,9 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
@@ -17,21 +15,17 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
-import androidx.compose.ui.text.android.style.PlaceholderSpan;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.paging.CombinedLoadStates;
 import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -49,16 +43,16 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import org.checkerframework.checker.units.qual.C;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
 
 public class ConversationActivity extends DualSIMConversationActivity {
     public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
@@ -423,7 +417,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
                 }
                 else if (R.id.delete == id || R.id.delete_multiple == id) {
                     try {
-                        _deleteItems();
+                        deleteItems();
                     }catch(Exception e) {
                         e.printStackTrace();
                     }
@@ -658,8 +652,17 @@ public class ConversationActivity extends DualSIMConversationActivity {
                 Toast.LENGTH_SHORT).show();
     }
 
-    private void _deleteItems() throws Exception {
-        // TODO
+    private void deleteItems() throws Exception {
+        List<Conversation> conversationList = new ArrayList<>();
+        for(ConversationTemplateViewHandler viewHandler :
+                conversationsRecyclerAdapter.mutableSelectedItems.getValue().values()) {
+            Conversation conversation = new Conversation();
+            conversation.setId(viewHandler.getId());
+            conversation.setMessage_id(viewHandler.getMessage_id());
+            conversationList.add(conversation);
+        }
+        conversationsRecyclerAdapter.mutableSelectedItems.setValue(null);
+        conversationsViewModel.deleteItems(getApplicationContext(), conversationList);
     }
 
     private void searchForInput(String search){

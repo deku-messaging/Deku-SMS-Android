@@ -42,6 +42,11 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
     }
 
     @Override
+    public String getMessage_id() {
+        return this.message_id;
+    }
+
+    @Override
     public String getText() {
         return receivedMessage.getText().toString();
     }
@@ -57,6 +62,8 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
     }
 
     public void bind(Conversation conversation) {
+        this.id = conversation.getId();
+        this.message_id = conversation.getMessage_id();
         // TODO: implement search highlight in activity
         String date = Helpers.formatDateExtended(itemView.getContext(), Long.parseLong(conversation.getDate()));
         DateFormat dateFormat = new SimpleDateFormat("h:mm a");

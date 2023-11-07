@@ -6,6 +6,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,10 +19,12 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.android.material.card.MaterialCardView;
 
@@ -39,6 +42,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     String ITEM_TYPE = "";
 
+    ThreadedConversationsViewModel threadedConversationsViewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,11 +58,12 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             finish();
         }
 
-    }
+        ThreadedConversationsDao threadedConversationsDao =
+                ThreadedConversations.getDao(getApplicationContext());
+        threadedConversationsViewModel = new ViewModelProvider(this).get(
+                ThreadedConversationsViewModel.class);
+        threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
 
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
         configureToolbarEvents();
         loadSubroutines();
         fragmentManagement();
@@ -259,25 +265,15 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     @Override
+    public ThreadedConversationsViewModel getViewModel() {
+        return threadedConversationsViewModel;
+    }
+
+    @Override
     public void setRecyclerViewAdapter(String itemType, ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter) {
         this.ITEM_TYPE = itemType;
         this.messagesThreadRecyclerAdapterHashMap.put(itemType, threadedConversationRecyclerAdapter);
 //        this.threadedConversationRecyclerAdapter = threadedConversationRecyclerAdapter;
-    }
-
-    @Override
-    public void setViewModel(String itemType, ThreadedConversationsViewModel threadedConversationsViewModel) {
-        this.ITEM_TYPE = itemType;
-        this.stringMessagesThreadViewModelHashMap.put(itemType, threadedConversationsViewModel);
-        configureBroadcastListeners(threadedConversationsViewModel);
-
-//        SharedPreferences sharedPreferences =
-//                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//        if(sharedPreferences.getBoolean(LOAD_NATIVES, true)) {
-//            Toast.makeText(getApplicationContext(),
-//                    getString(R.string.threading_conversations_natives_loaded), Toast.LENGTH_LONG).show();
-//            threadedConversationsViewModel.loadNatives(getApplicationContext());
-//        }
     }
 
     @Override
@@ -311,5 +307,11 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     public void tabSelected(int position) {
         this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        threadedConversationsViewModel.loadNatives(getApplicationContext());
     }
 }

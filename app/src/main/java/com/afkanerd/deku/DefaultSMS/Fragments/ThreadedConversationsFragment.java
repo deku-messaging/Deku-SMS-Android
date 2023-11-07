@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,7 +22,6 @@ import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.R;
 
@@ -51,15 +49,15 @@ public class ThreadedConversationsFragment extends Fragment {
 
     public static final String AUTOMATED_MESSAGES_THREAD_FRAGMENT = "AUTOMATED_MESSAGES_THREAD_FRAGMENT";
 
-    private OnViewManipulationListener mListener;
-    ThreadedConversationsDao threadedConversationsDao;
+    private OnViewManipulationListener viewManipulationListener;
 
     public interface OnViewManipulationListener extends HomepageFragment.TabListenerInterface {
         void activateDefaultToolbar();
         void deactivateDefaultToolbar(int size);
 
+        ThreadedConversationsViewModel getViewModel();
+
         void setRecyclerViewAdapter(String name, ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter);
-        void setViewModel(String name, ThreadedConversationsViewModel threadedConversationsViewModel);
         Toolbar getToolbar();
     }
 
@@ -77,16 +75,13 @@ public class ThreadedConversationsFragment extends Fragment {
 
         archiveHandler = new ArchiveHandler(getContext());
 
-        toolbar = mListener.getToolbar();
-
-        threadedConversationsViewModel = new ViewModelProvider(this).get(
-                ThreadedConversationsViewModel.class);
+        toolbar = viewManipulationListener.getToolbar();
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
         threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter( getContext());
-        mListener.setRecyclerViewAdapter(messageType, threadedConversationRecyclerAdapter);
-        mListener.setViewModel(messageType, threadedConversationsViewModel);
+
+        viewManipulationListener.setRecyclerViewAdapter(messageType, threadedConversationRecyclerAdapter);
 
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
@@ -95,10 +90,10 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView.setDrawingCacheEnabled(true);
         messagesThreadRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
-        threadedConversationsDao = ThreadedConversations.getDao(getContext());
+        threadedConversationsViewModel = viewManipulationListener.getViewModel();
         switch(Objects.requireNonNull(messageType)) {
             case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
-                threadedConversationsViewModel.getEncrypted(threadedConversationsDao).observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.getEncrypted().observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -108,7 +103,7 @@ public class ThreadedConversationsFragment extends Fragment {
                         });
                 break;
             case PLAIN_MESSAGES_THREAD_FRAGMENT:
-                threadedConversationsViewModel.getNotEncrypted(threadedConversationsDao).observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.getNotEncrypted().observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -119,7 +114,7 @@ public class ThreadedConversationsFragment extends Fragment {
                 break;
             case ALL_MESSAGES_THREAD_FRAGMENT:
             default:
-                threadedConversationsViewModel.get(threadedConversationsDao).observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.get().observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -143,24 +138,11 @@ public class ThreadedConversationsFragment extends Fragment {
         Menu menu = toolbar.getMenu();
         if(size < 1) {
             menu.setGroupVisible(R.id.threads_menu, false);
-            mListener.activateDefaultToolbar();
+            viewManipulationListener.activateDefaultToolbar();
         } else {
-            mListener.deactivateDefaultToolbar(size);
+            viewManipulationListener.deactivateDefaultToolbar(size);
             menu.setGroupVisible(R.id.threads_menu, true);
         }
-    }
-
-    private void setRefreshTimer() {
-        final int recyclerViewTimeUpdateLimit = 60 * 1000;
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if(threadedConversationRecyclerAdapter.selectedItems.getValue()==null ||
-                        threadedConversationRecyclerAdapter.selectedItems.getValue().isEmpty())
-                    threadedConversationRecyclerAdapter.notifyDataSetChanged();
-                mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
-            }
-        }, recyclerViewTimeUpdateLimit);
     }
 
     @Override
@@ -168,16 +150,10 @@ public class ThreadedConversationsFragment extends Fragment {
         super.onAttach(context);
 
         if (context instanceof OnViewManipulationListener) {
-            mListener = (OnViewManipulationListener) context;
+            viewManipulationListener = (OnViewManipulationListener) context;
         } else {
             throw new RuntimeException(context.toString() + " must implement OnViewManipulationListener");
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        threadedConversationsViewModel.loadNatives(getContext());
     }
 
     @Override

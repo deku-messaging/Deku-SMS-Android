@@ -18,7 +18,10 @@ import java.util.List;
 public interface ThreadedConversationsDao {
 
     @Query("SELECT * FROM ThreadedConversations")
-    LiveData<List<ThreadedConversations>> getAll();
+    LiveData<List<ThreadedConversations>> getAllLiveData();
+
+    @Query("SELECT * FROM ThreadedConversations")
+    List<ThreadedConversations> getAll();
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 1 ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getArchived();
@@ -61,4 +64,7 @@ public interface ThreadedConversationsDao {
 
     @Delete
     void delete(ThreadedConversations threadedConversations);
+
+    @Delete
+    void delete(List<ThreadedConversations> threadedConversations);
 }

@@ -168,10 +168,6 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
             return;
         }
 
-        holder.setId(conversation.getId());
-        setOnLongClickListeners(holder);
-        setOnClickListeners(holder);
-
         if(holder instanceof ConversationReceivedViewHandler) {
             ConversationReceivedViewHandler conversationReceivedViewHandler = (ConversationReceivedViewHandler) holder;
             conversationReceivedViewHandler.bind(conversation);
@@ -189,6 +185,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
             }
         }
 
+        setOnLongClickListeners(holder);
+        setOnClickListeners(holder);
     }
 
     private void addSelectedItems(ConversationTemplateViewHandler holder) {
@@ -355,6 +353,6 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
             notifyItemChanged(entry.getValue().getAbsoluteAdapterPosition());
         }
-        mutableSelectedItems.setValue(new HashMap<>());
+        mutableSelectedItems.setValue(null);
     }
 }

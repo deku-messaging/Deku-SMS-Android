@@ -47,5 +47,8 @@ public interface ConversationDao {
     int update(Conversation conversation);
 
     @Delete
-    void delete(Conversation conversation);
+    int delete(Conversation conversation);
+
+    @Delete
+    int delete(List<Conversation> conversation);
 }

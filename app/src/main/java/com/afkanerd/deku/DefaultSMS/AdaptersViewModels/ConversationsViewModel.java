@@ -22,6 +22,7 @@ import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import kotlin.coroutines.Continuation;
@@ -168,5 +169,20 @@ public class ConversationsViewModel extends ViewModel{
                 }
             }).start();
         }
+    }
+
+    public void deleteItems(Context context, List<Conversation> conversations) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                conversationDao.delete(conversations);
+                String[] ids = new String[conversations.size()];
+                for(int i=0;i<conversations.size(); ++i)
+                    ids[i] = conversations.get(i).getMessage_id();
+                Log.d(getClass().getName(), "Pre-delete: " + Arrays.toString(ids));
+                int deletedCount = NativeSMSDB.deleteMultipleMessages(context, ids);
+                Log.d(getClass().getName(), "Deleted: " + deletedCount + ":" + Arrays.toString(ids) + ":" + conversations.size());
+            }
+        }).start();
     }
 }

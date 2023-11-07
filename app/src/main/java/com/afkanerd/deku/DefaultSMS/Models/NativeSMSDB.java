@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
@@ -20,6 +21,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 
 public class NativeSMSDB {
     public static String BROADCAST_NATIVE_SMS_DB = "BROADCAST_NATIVE_SMS_DB";
@@ -62,6 +64,13 @@ public class NativeSMSDB {
                 Telephony.Sms._ID + "=?",
                 new String[]{id},
                 null);
+    }
+
+    public static int deleteMultipleMessages(Context context, String[] ids) {
+        return context.getContentResolver().delete(
+                Telephony.Sms.CONTENT_URI,
+                Telephony.Sms._ID + " in (" +
+                        TextUtils.join(",", Collections.nCopies(ids.length, "?")) + ")", ids);
     }
 
     /*
