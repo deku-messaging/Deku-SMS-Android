@@ -46,6 +46,10 @@ public interface ThreadedConversationsDao {
             "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")
     List<Conversation> find(String search_string );
 
+    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND body " +
+            "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")
+    List<Conversation> findByThread(String search_string, String thread_id);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(ThreadedConversations threadedConversations);
 

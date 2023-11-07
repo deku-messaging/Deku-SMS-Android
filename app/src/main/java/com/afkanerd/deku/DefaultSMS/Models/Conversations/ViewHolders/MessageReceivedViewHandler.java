@@ -24,7 +24,7 @@ public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
 
     final static int BOTTOM_MARGIN = 4;
     TextView receivedMessage;
-    TextView date;
+    public TextView date;
     TextView timestamp;
 
     AvatarView contactInitials;

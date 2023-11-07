@@ -189,19 +189,24 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final Conversation conversation = getItem(position);
         if(conversation == null) {
-            Log.d(getClass().getName(), "Yep it's null");
             return;
         }
 
-
-        String text = conversation.getBody();
-
         if(holder instanceof MessageReceivedViewHandler) {
-            ((MessageReceivedViewHandler) holder).bind(conversation);
+            MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
+            messageReceivedViewHandler.bind(conversation);
+            if(position == 0) {
+                messageReceivedViewHandler.date.setVisibility(View.VISIBLE);
+            }
         }
 
         else if(holder instanceof MessageSentViewHandler){
-            ((MessageSentViewHandler) holder).bind(conversation);
+            MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
+            messageSentViewHandler.bind(conversation);
+            if(position == 0) {
+                messageSentViewHandler.date.setVisibility(View.VISIBLE);
+                messageSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
+            }
         }
     }
 

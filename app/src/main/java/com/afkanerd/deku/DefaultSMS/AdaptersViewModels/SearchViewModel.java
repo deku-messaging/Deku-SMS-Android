@@ -19,10 +19,22 @@ public class SearchViewModel extends ViewModel {
     ThreadedConversationsDao threadedConversationsDao;
     ConversationDao conversationDao;
 
+    String threadId;
+
     public LiveData<List<ThreadedConversations>> get(ThreadedConversationsDao threadedConversationsDao){
         this.threadedConversationsDao = threadedConversationsDao;
         if(this.liveData == null) {
             liveData = new MutableLiveData<>();
+        }
+        return liveData;
+    }
+
+    public LiveData<List<ThreadedConversations>> getByThreadId(
+            ThreadedConversationsDao threadedConversationsDao, String threadId){
+        this.threadedConversationsDao = threadedConversationsDao;
+        if(this.liveData == null) {
+            liveData = new MutableLiveData<>();
+            this.threadId = threadId;
         }
         return liveData;
     }
@@ -39,7 +51,12 @@ public class SearchViewModel extends ViewModel {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                List<Conversation> conversations = threadedConversationsDao.find(input);
+                List<Conversation> conversations = new ArrayList<>();
+                if(threadId == null || threadId.isEmpty())
+                    conversations = threadedConversationsDao.find(input);
+                else
+                    conversations = threadedConversationsDao.findByThread(input,threadId);
+
                 List<ThreadedConversations> threadedConversations = new ArrayList<>();
                 for(Conversation conversation : conversations) {
                     ThreadedConversations threadedConversation =

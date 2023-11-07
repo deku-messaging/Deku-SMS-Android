@@ -5,12 +5,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
+import androidx.paging.PagingSource;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
@@ -21,14 +24,18 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import java.util.ArrayList;
 import java.util.List;
 
+import kotlin.coroutines.Continuation;
+import kotlin.coroutines.CoroutineContext;
+import kotlinx.coroutines.flow.FlowCollector;
+
 public class ConversationsViewModel extends ViewModel{
     public String threadId;
     public String address;
     ConversationDao conversationDao;
-    public int pageSize = 10;
+    int pageSize = 10;
     int prefetchDistance = 30;
     boolean enablePlaceholder = false;
-    public int initialLoadSize = 20;
+    int initialLoadSize = 20;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
     int jumpThreshold = 10;
 
@@ -36,6 +43,29 @@ public class ConversationsViewModel extends ViewModel{
             throws InterruptedException {
         this.conversationDao = conversationDao;
         this.threadId = threadId;
+
+        Pager<Integer, Conversation> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize,
+                jumpThreshold
+        ), ()-> this.conversationDao.get(threadId));
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    public LiveData<PagingData<Conversation>> getForSearch(ConversationDao conversationDao, String threadId)
+            throws InterruptedException {
+        this.conversationDao = conversationDao;
+        this.threadId = threadId;
+
+        int pageSize = 20;
+        int prefetchDistance = 10;
+        boolean enablePlaceholder = false;
+        int initialLoadSize = 20;
+        int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
+        int jumpThreshold = 10;
 
         Pager<Integer, Conversation> pager = new Pager<>(new PagingConfig(
                 pageSize,

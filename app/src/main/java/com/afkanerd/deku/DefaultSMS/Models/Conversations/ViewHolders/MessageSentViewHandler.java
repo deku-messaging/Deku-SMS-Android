@@ -22,16 +22,14 @@ public class MessageSentViewHandler extends RecyclerView.ViewHolder {
 
     final static int BOTTOM_MARGIN = 4;
     TextView sentMessage;
-    TextView sentMessageStatus;
-    TextView date;
+    public TextView sentMessageStatus;
+    public TextView date;
     TextView timestamp;
     ImageView imageView;
     ConstraintLayout constraintLayout, imageConstraintLayout, constraint4;
 
-    View itemView;
     public MessageSentViewHandler(@NonNull View itemView) {
         super(itemView);
-        this.itemView = itemView;
         sentMessage = itemView.findViewById(R.id.message_sent_text);
         sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
         date = itemView.findViewById(R.id.message_thread_sent_date_text);

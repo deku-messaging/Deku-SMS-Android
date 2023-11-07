@@ -68,8 +68,10 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         }
         else {
             Drawable drawable = contactAvatar.getDrawable();
-            drawable.setColorFilter(conversation.getAvatar_color(), PorterDuff.Mode.SRC_IN);
-            contactAvatar.setImageDrawable(drawable);
+            if(drawable != null) {
+                drawable.setColorFilter(conversation.getAvatar_color(), PorterDuff.Mode.SRC_IN);
+                contactAvatar.setImageDrawable(drawable);
+            }
             this.contactInitials.setVisibility(View.GONE);
         }
         if(conversation.getContact_name() != null) {

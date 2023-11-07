@@ -110,19 +110,37 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         ThreadedConversationsDao threadedConversationsDao =
                 ThreadedConversations.getDao(getApplicationContext());
 
-        searchViewModel.get(threadedConversationsDao).observe(this,
-                new Observer<List<ThreadedConversations>>() {
-                    @Override
-                    public void onChanged(List<ThreadedConversations> smsList) {
-                        if(!searchString.getValue().isEmpty() && smsList.isEmpty())
-                            findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
-                        else {
-                            findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
+        if(getIntent().hasExtra(Conversation.THREAD_ID)) {
+            searchViewModel.getByThreadId(threadedConversationsDao,
+                            getIntent().getStringExtra(Conversation.THREAD_ID)).observe(this,
+                    new Observer<List<ThreadedConversations>>() {
+                        @Override
+                        public void onChanged(List<ThreadedConversations> smsList) {
+                            if(!searchString.getValue().isEmpty() && smsList.isEmpty())
+                                findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
+                            else {
+                                findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
+                            }
+                            Log.d(getLocalClassName(), "Found for address: " + smsList.size());
+                            searchConversationRecyclerAdapter.mDiffer.submitList(smsList);
                         }
-                        Log.d(getLocalClassName(), "Found: " + smsList.size());
-                        searchConversationRecyclerAdapter.mDiffer.submitList(smsList);
-                    }
-                });
+                    });
+        }
+        else {
+            searchViewModel.get(threadedConversationsDao).observe(this,
+                    new Observer<List<ThreadedConversations>>() {
+                        @Override
+                        public void onChanged(List<ThreadedConversations> smsList) {
+                            if (!searchString.getValue().isEmpty() && smsList.isEmpty())
+                                findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
+                            else {
+                                findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
+                            }
+                            Log.d(getLocalClassName(), "Found: " + smsList.size());
+                            searchConversationRecyclerAdapter.mDiffer.submitList(smsList);
+                        }
+                    });
+        }
     }
 
 

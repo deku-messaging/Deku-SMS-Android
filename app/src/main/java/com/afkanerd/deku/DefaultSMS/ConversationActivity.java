@@ -23,10 +23,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
+import androidx.compose.ui.text.android.style.PlaceholderSpan;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.CombinedLoadStates;
 import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -48,6 +50,9 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 public class ConversationActivity extends DualSIMConversationActivity {
     public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
@@ -221,6 +226,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
             return;
         }
 
+        singleMessagesThreadRecyclerView.scrollToPosition(position);
         String text = (searchPointerPosition == -1 ?
                 0 :
                 searchPointerPosition + 1) + "/" + searchPositions.getValue().size() + " " + getString(R.string.conversations_search_results_found);
@@ -289,7 +295,16 @@ public class ConversationActivity extends DualSIMConversationActivity {
         conversationDao = Conversation.getDao(getApplicationContext());
 
         if(this.threadedConversations != null) {
-            if(this.threadedConversations.getThread_id()!= null &&
+            if(getIntent().hasExtra(SEARCH_STRING)) {
+                conversationsViewModel.getForSearch(conversationDao, this.threadedConversations.getThread_id())
+                        .observe(this, new Observer<PagingData<Conversation>>() {
+                            @Override
+                            public void onChanged(PagingData<Conversation> smsList) {
+                                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
+                            }
+                        });
+            }
+            else if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {
                 conversationsViewModel.get(conversationDao, this.threadedConversations.getThread_id())
                         .observe(this, new Observer<PagingData<Conversation>>() {
@@ -338,6 +353,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
             configureSearchBox();
             TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
             textInputEditText.setText(getIntent().getStringExtra(SEARCH_STRING));
+            getIntent().removeExtra(SEARCH_STRING);
         }
 
     }
@@ -407,7 +423,10 @@ public class ConversationActivity extends DualSIMConversationActivity {
                     return true;
                 }
                 else if(R.id.search_conversations == id) {
-                    configureSearchBox();
+//                    configureSearchBox();
+                    Intent intent = new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class);
+                    intent.putExtra(Conversation.THREAD_ID, threadedConversations.getThread_id());
+                    startActivity(intent);
                 }
                 return false;
             }
