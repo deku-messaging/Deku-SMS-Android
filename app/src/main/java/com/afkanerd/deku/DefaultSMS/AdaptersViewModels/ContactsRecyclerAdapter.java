@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
@@ -35,13 +35,13 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
         View view = inflater.inflate(R.layout.messages_threads_layout, parent, false);
-        return new ContactsViewHolder(view, true);
+        return new ContactsViewHolderThreadedConversations(view, true);
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Contacts contacts = mDiffer.getCurrentList().get(holder.getAbsoluteAdapterPosition());
-        ContactsViewHolder viewHolder = (ContactsViewHolder) holder;
+        ContactsViewHolderThreadedConversations viewHolder = (ContactsViewHolderThreadedConversations) holder;
 
         viewHolder.bind(contacts, sharedMessage);
     }
@@ -59,9 +59,9 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
         mDiffer.submitList(contactsList);
     }
 
-    public static class ContactsViewHolder extends TemplateViewHolder {
+    public static class ContactsViewHolderThreadedConversations extends ThreadedConversationsTemplateViewHolder {
         View itemView;
-       public ContactsViewHolder(@NonNull View itemView, boolean isContact) {
+       public ContactsViewHolderThreadedConversations(@NonNull View itemView, boolean isContact) {
             super(itemView);
 
            this.itemView = itemView;

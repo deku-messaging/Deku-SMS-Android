@@ -26,7 +26,7 @@ import java.util.List;
 
 import io.getstream.avatarview.AvatarView;
 
-public class TemplateViewHolder extends RecyclerView.ViewHolder {
+public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHolder {
 
     public String id;
     public long messageId;
@@ -43,7 +43,7 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
 
     View itemView;
 
-    public TemplateViewHolder(@NonNull View itemView) {
+    public ThreadedConversationsTemplateViewHolder(@NonNull View itemView) {
         super(itemView);
         this.itemView = itemView;
 
@@ -115,15 +115,15 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         this.materialCardView.setOnClickListener(onClickListener);
     }
 
-    public static class ReadViewHolder extends TemplateViewHolder{
-        public ReadViewHolder(@NonNull View itemView) {
+    public static class ReadViewHolderThreadedConversations extends ThreadedConversationsTemplateViewHolder {
+        public ReadViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
             snippet.setMaxLines(1);
         }
     }
 
-    public static class UnreadViewHolder extends TemplateViewHolder{
-        public UnreadViewHolder(@NonNull View itemView) {
+    public static class UnreadViewHolderThreadedConversations extends ThreadedConversationsTemplateViewHolder {
+        public UnreadViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
             address.setTypeface(Typeface.DEFAULT_BOLD);
             address.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
@@ -136,16 +136,16 @@ public class TemplateViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
-    public static class UnreadEncryptedViewHolder extends TemplateViewHolder.UnreadViewHolder {
-        public UnreadEncryptedViewHolder(@NonNull View itemView) {
+    public static class UnreadEncryptedViewHolderThreadedConversations extends UnreadViewHolderThreadedConversations {
+        public UnreadEncryptedViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
         }
     }
 
-    public static class ReadEncryptedViewHolder extends TemplateViewHolder.ReadViewHolder {
-        public ReadEncryptedViewHolder(@NonNull View itemView) {
+    public static class ReadEncryptedViewHolderThreadedConversations extends ReadViewHolderThreadedConversations {
+        public ReadEncryptedViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
             snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));

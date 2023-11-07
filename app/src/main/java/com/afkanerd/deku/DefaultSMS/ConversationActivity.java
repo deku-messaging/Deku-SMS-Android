@@ -1,5 +1,8 @@
 package com.afkanerd.deku.DefaultSMS;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -40,6 +43,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdap
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.google.android.material.textfield.TextInputEditText;
@@ -50,6 +54,8 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -124,9 +130,10 @@ public class ConversationActivity extends DualSIMConversationActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.conversations_menu, menu);
-        // TODO:
-//        if (ConversationHandler.isShortCode())
-//            menu.setGroupVisible(R.id.default_menu_items, false);
+        if (this.threadedConversations.isIs_shortcode()) {
+            // menu.setGroupVisible(R.id.default_menu_items, false);
+            menu.findItem(R.id.make_call).setVisible(false);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -145,10 +152,12 @@ public class ConversationActivity extends DualSIMConversationActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-//        if (item.getItemId() == android.R.id.home && conversationsRecyclerAdapter.hasSelectedItems()) {
-//            conversationsRecyclerAdapter.resetAllSelectedItems();
-//            return true;
-//        }
+        if (item.getItemId() == android.R.id.home &&
+                (conversationsRecyclerAdapter.mutableSelectedItems.getValue() != null &&
+                        !conversationsRecyclerAdapter.mutableSelectedItems.getValue().isEmpty())) {
+            conversationsRecyclerAdapter.unselectAllItems();
+            return true;
+        }
 
         if(isSearchActive()) {
             resetSearch();
@@ -339,9 +348,10 @@ public class ConversationActivity extends DualSIMConversationActivity {
         });
 
         try {
-            conversationsRecyclerAdapter.selectedItem.observe(this, new Observer<HashMap<String, RecyclerView.ViewHolder>>() {
+            conversationsRecyclerAdapter.mutableSelectedItems.observe(this,
+                    new Observer<HashMap<Long, ConversationTemplateViewHandler>>() {
                 @Override
-                public void onChanged(HashMap<String, RecyclerView.ViewHolder> selectedItems) {
+                public void onChanged(HashMap<Long, ConversationTemplateViewHandler> selectedItems) {
                     changeToolbarsItemSelected(selectedItems);
                 }
             });
@@ -408,6 +418,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
                 int id = item.getItemId();
                 if (R.id.copy == id) {
                     copyItem();
+                    conversationsRecyclerAdapter.unselectAllItems();
                     return true;
                 }
                 else if (R.id.delete == id || R.id.delete_multiple == id) {
@@ -432,13 +443,24 @@ public class ConversationActivity extends DualSIMConversationActivity {
             }
         });
 
+        ab.setDisplayHomeAsUpEnabled(true);
+        ab.setTitle(getAbTitle());
+        ab.setSubtitle(getAbSubTitle());
+    }
+
+    private String getAbTitle() {
         String abTitle = getIntent().getStringExtra(Conversation.ADDRESS);
         if(this.threadedConversations != null)
             abTitle = (this.threadedConversations.getContact_name() != null &&
                     !this.threadedConversations.getContact_name().isEmpty()) ?
                     this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
-        ab.setDisplayHomeAsUpEnabled(true);
-        ab.setTitle(abTitle);
+        return abTitle;
+    }
+    private String getAbSubTitle() {
+        return (this.threadedConversations != null &&
+                this.threadedConversations.getContact_name() != null &&
+                !this.threadedConversations.getContact_name().isEmpty()) ?
+                this.threadedConversations.getAddress(): "";
     }
 
     private void configureMessagesTextBox() throws GeneralSecurityException, IOException {
@@ -553,61 +575,12 @@ public class ConversationActivity extends DualSIMConversationActivity {
     }
 
 
-    private void changeToolbarsItemSelected(HashMap<String, RecyclerView.ViewHolder> selectedItems) {
-        if (selectedItems != null) {
-            if (selectedItems.isEmpty()) {
-                showDefaultToolbar(toolbar.getMenu());
-            } else {
-                hideDefaultToolbar(toolbar.getMenu(), selectedItems.size());
-            }
+    private void changeToolbarsItemSelected(HashMap<Long, ConversationTemplateViewHandler> selectedItems) {
+        if (selectedItems == null || selectedItems.isEmpty()) {
+            showDefaultToolbar(toolbar.getMenu());
+        } else {
+            hideDefaultToolbar(toolbar.getMenu(), selectedItems.size());
         }
-    }
-
-    private void showMultiSimcardAlert(Runnable runnable) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        builder.setTitle(getString(R.string.sim_chooser_layout_text));
-//        builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
-
-        View simChooserView = View.inflate(getApplicationContext(), R.layout.sim_chooser_layout, null);
-        builder.setView(simChooserView);
-
-        List<SubscriptionInfo> subscriptionInfos = SIMHandler.getSimCardInformation(getApplicationContext());
-
-        Bitmap sim1Bitmap = subscriptionInfos.get(0).createIconBitmap(getApplicationContext());
-        Bitmap sim2Bitmap = subscriptionInfos.get(1).createIconBitmap(getApplicationContext());
-
-        ImageView sim1ImageView = simChooserView.findViewById(R.id.sim_layout_simcard_1_img);
-        TextView sim1TextView = simChooserView.findViewById(R.id.sim_layout_simcard_1_name);
-
-        ImageView sim2ImageView = simChooserView.findViewById(R.id.sim_layout_simcard_2_img);
-        TextView sim2TextView = simChooserView.findViewById(R.id.sim_layout_simcard_2_name);
-
-        sim1ImageView.setImageBitmap(sim1Bitmap);
-        AlertDialog dialog = builder.create();
-
-        sim1ImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                defaultSubscriptionId = subscriptionInfos.get(0).getSubscriptionId();
-                runnable.run();
-                dialog.dismiss();
-            }
-        });
-        sim1TextView.setText(subscriptionInfos.get(0).getDisplayName());
-
-        sim2ImageView.setImageBitmap(sim2Bitmap);
-        sim2ImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                defaultSubscriptionId = subscriptionInfos.get(1).getSubscriptionId();
-                runnable.run();
-                dialog.dismiss();
-            }
-        });
-        sim2TextView.setText(subscriptionInfos.get(1).getDisplayName());
-
-        dialog.show();
     }
 
     public void sendTextMessage(View view) throws Exception {
@@ -644,6 +617,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
     }
 
     private void hideDefaultToolbar(Menu menu, int size) {
+        Log.d(getLocalClassName(), "Got called to work: " + size);
         menu.setGroupVisible(R.id.default_menu_items, false);
         if (size > 1) {
             menu.setGroupVisible(R.id.single_message_copy_menu, false);
@@ -657,7 +631,6 @@ public class ConversationActivity extends DualSIMConversationActivity {
         ab.setTitle(String.valueOf(size));
 
         ab.setSubtitle("");
-        ab.setElevation(10);
     }
 
     private void showDefaultToolbar(Menu menu) {
@@ -668,15 +641,21 @@ public class ConversationActivity extends DualSIMConversationActivity {
         menu.setGroupVisible(R.id.single_message_copy_menu, false);
 
         ab.setHomeAsUpIndicator(null);
-        ab.setTitle(this.threadedConversations.getContact_name());
+        ab.setTitle(getAbTitle());
+        ab.setSubtitle(getAbSubTitle());
     }
 
     private void copyItem() {
         // TODO
-//        ClipData clip = ClipData.newPlainText(keys[0], sms.getBody());
-//
-//        clipboard.setPrimaryClip(clip);
-//        Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT).show();
+        Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
+                conversationsRecyclerAdapter.mutableSelectedItems.getValue().entrySet();
+        String text = entry.iterator().next().getValue().getText();
+        ClipData clip = ClipData.newPlainText(text, text);
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(getApplicationContext(), getString(R.string.conversation_copied),
+                Toast.LENGTH_SHORT).show();
     }
 
     private void _deleteItems() throws Exception {

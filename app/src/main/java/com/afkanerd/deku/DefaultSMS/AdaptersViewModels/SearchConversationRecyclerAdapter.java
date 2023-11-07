@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 
 public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyclerAdapter {
     public final AsyncListDiffer<ThreadedConversations> mDiffer =
@@ -26,11 +26,11 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
 
     @Override
     public int getItemViewType(int position) {
-        return TemplateViewHolder.getViewType(position, mDiffer.getCurrentList());
+        return ThreadedConversationsTemplateViewHolder.getViewType(position, mDiffer.getCurrentList());
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ThreadedConversationsTemplateViewHolder holder, int position) {
 //        super.onBindViewHolder(holder, position);
         ThreadedConversations threadedConversations = mDiffer.getCurrentList().get(position);
         String threadId = String.valueOf(threadedConversations.getThread_id());

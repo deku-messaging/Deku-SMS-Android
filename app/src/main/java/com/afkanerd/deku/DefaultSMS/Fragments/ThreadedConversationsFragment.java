@@ -24,7 +24,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyc
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.Objects;
@@ -130,9 +130,9 @@ public class ThreadedConversationsFragment extends Fragment {
         }
 
         threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
-                new Observer<Set<TemplateViewHolder>>() {
+                new Observer<Set<ThreadedConversationsTemplateViewHolder>>() {
                     @Override
-                    public void onChanged(Set<TemplateViewHolder> stringViewHolderHashMap) {
+                    public void onChanged(Set<ThreadedConversationsTemplateViewHolder> stringViewHolderHashMap) {
                         highlightListener(stringViewHolderHashMap.size(), view);
                     }
                 });

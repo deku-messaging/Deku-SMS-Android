@@ -16,13 +16,13 @@
         android:textColor="@color/primary_text_color"
         android:textSize="12sp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/constraintLayout4"
+        app:layout_constraintBottom_toTopOf="@+id/conversation_sent_layout_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout4"
+        android:id="@+id/conversation_sent_layout_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="120dp"
@@ -97,7 +97,7 @@
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/message_thread_sent_status_text"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout4" />
+        app:layout_constraintTop_toBottomOf="@+id/conversation_sent_layout_container" />
 
     <TextView
         android:id="@+id/message_thread_sent_status_text"
@@ -107,8 +107,8 @@
         android:textSize="10sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/constraintLayout4"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout4" />
+        app:layout_constraintEnd_toEndOf="@+id/conversation_sent_layout_container"
+        app:layout_constraintTop_toBottomOf="@+id/conversation_sent_layout_container" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

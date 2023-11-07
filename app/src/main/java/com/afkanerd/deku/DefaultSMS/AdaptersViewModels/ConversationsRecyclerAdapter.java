@@ -1,63 +1,39 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
 import android.provider.Telephony;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
-import android.text.style.URLSpan;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.MessageReceivedViewHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.MessageSentViewHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationReceivedViewHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationSentViewHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.sql.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import io.getstream.avatarview.AvatarView;
-
-public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation, RecyclerView.ViewHolder> {
-//public class ConversationsRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    Toolbar toolbar;
-    String highlightedText;
-    View highlightedView;
-
-    private int selectedItemAbsPosition = RecyclerView.NO_POSITION;
-    public LiveData<HashMap<String, RecyclerView.ViewHolder>> selectedItem = new MutableLiveData<>();
-    MutableLiveData<HashMap<String, RecyclerView.ViewHolder>> mutableSelectedItems = new MutableLiveData<>();
+public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation, ConversationTemplateViewHandler> {
+    public MutableLiveData<HashMap<Long, ConversationTemplateViewHandler>> mutableSelectedItems;
     public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
     public MutableLiveData<String[]> retryFailedDataMessage = new MutableLiveData<>();
 
@@ -89,78 +65,78 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     public ConversationsRecyclerAdapter(Context context) throws GeneralSecurityException, IOException {
         super(Conversation.DIFF_CALLBACK);
         this.context = context;
-        this.selectedItem = mutableSelectedItems;
+        this.mutableSelectedItems = new MutableLiveData<>();
     }
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ConversationTemplateViewHandler onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
         if( viewType == TIMESTAMP_MESSAGE_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
-            return new MessageReceivedViewHandler.TimestampMessageReceivedViewHandler(view);
+            return new ConversationReceivedViewHandler.TimestampConversationReceivedViewHandler(view);
         }
         else if( viewType == MESSAGE_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
-            return new MessageReceivedViewHandler(view);
+            return new ConversationReceivedViewHandler(view);
         }
         else if( viewType == TIMESTAMP_MESSAGE_TYPE_OUTBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
-            return new MessageSentViewHandler.TimestampMessageSentViewHandler(view);
+            return new ConversationSentViewHandler.TimestampConversationSentViewHandler(view);
         }
         else if( viewType == MESSAGE_KEY_OUTBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
-            return new MessageSentViewHandler.KeySentViewHandler(view);
+            return new ConversationSentViewHandler.KeySentViewHandler(view);
         }
         else if( viewType == TIMESTAMP_KEY_TYPE_OUTBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
-            return new MessageSentViewHandler.TimestampKeySentViewHandler(view);
+            return new ConversationSentViewHandler.TimestampKeySentViewHandler(view);
         }
         else if( viewType == MESSAGE_KEY_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
-            return new MessageReceivedViewHandler.KeyReceivedViewHandler(view);
+            return new ConversationReceivedViewHandler.KeyReceivedViewHandler(view);
         }
         else if( viewType == TIMESTAMP_KEY_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
-            return new MessageReceivedViewHandler.TimestampKeyReceivedViewHandler(view);
+            return new ConversationReceivedViewHandler.TimestampKeyReceivedViewHandler(view);
         }
         else if( viewType == TIMESTAMP_MESSAGE_START_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
-            return new MessageReceivedViewHandler.TimestampKeyReceivedStartGroupViewHandler(view);
+            return new ConversationReceivedViewHandler.TimestampKeyReceivedStartGroupViewHandler(view);
         }
         else if( viewType == MESSAGE_START_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
-            return new MessageReceivedViewHandler.MessageReceivedStartViewHandler(view);
+            return new ConversationReceivedViewHandler.ConversationReceivedStartViewHandler(view);
         }
         else if( viewType == MESSAGE_END_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
-            return new MessageReceivedViewHandler.MessageReceivedEndViewHandler(view);
+            return new ConversationReceivedViewHandler.ConversationReceivedEndViewHandler(view);
         }
         else if( viewType == MESSAGE_MIDDLE_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
-            return new MessageReceivedViewHandler.MessageReceivedMiddleViewHandler(view);
+            return new ConversationReceivedViewHandler.ConversationReceivedMiddleViewHandler(view);
         }
         else if( viewType == TIMESTAMP_MESSAGE_START_TYPE_OUTBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
-            return new MessageSentViewHandler.TimestampKeySentStartGroupViewHandler(view);
+            return new ConversationSentViewHandler.TimestampKeySentStartGroupViewHandler(view);
         }
         else if( viewType == MESSAGE_START_TYPE_OUTBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
-            return new MessageSentViewHandler.MessageSentStartViewHandler(view);
+            return new ConversationSentViewHandler.ConversationSentStartViewHandler(view);
         }
         else if( viewType == MESSAGE_END_TYPE_OUTBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
-            return new MessageSentViewHandler.MessageSentEndViewHandler(view);
+            return new ConversationSentViewHandler.ConversationSentEndViewHandler(view);
         }
         else if( viewType == MESSAGE_MIDDLE_TYPE_OUTBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
-            return new MessageSentViewHandler.MessageSentMiddleViewHandler(view);
+            return new ConversationSentViewHandler.ConversationSentMiddleViewHandler(view);
         }
 
         View view = inflater.inflate(R.layout.messages_thread_sent_layout, parent, false);
-        return new MessageSentViewHandler(view);
+        return new ConversationSentViewHandler(view);
     }
 
     public Spannable highlightSubstringYellow(String text) {
@@ -186,28 +162,83 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ConversationTemplateViewHandler holder, int position) {
         final Conversation conversation = getItem(position);
         if(conversation == null) {
             return;
         }
 
-        if(holder instanceof MessageReceivedViewHandler) {
-            MessageReceivedViewHandler messageReceivedViewHandler = (MessageReceivedViewHandler) holder;
-            messageReceivedViewHandler.bind(conversation);
+        holder.setId(conversation.getId());
+        setOnLongClickListeners(holder);
+        setOnClickListeners(holder);
+
+        if(holder instanceof ConversationReceivedViewHandler) {
+            ConversationReceivedViewHandler conversationReceivedViewHandler = (ConversationReceivedViewHandler) holder;
+            conversationReceivedViewHandler.bind(conversation);
             if(position == 0) {
-                messageReceivedViewHandler.date.setVisibility(View.VISIBLE);
+                conversationReceivedViewHandler.date.setVisibility(View.VISIBLE);
             }
         }
 
-        else if(holder instanceof MessageSentViewHandler){
-            MessageSentViewHandler messageSentViewHandler = (MessageSentViewHandler) holder;
-            messageSentViewHandler.bind(conversation);
+        else if(holder instanceof ConversationSentViewHandler){
+            ConversationSentViewHandler conversationSentViewHandler = (ConversationSentViewHandler) holder;
+            conversationSentViewHandler.bind(conversation);
             if(position == 0) {
-                messageSentViewHandler.date.setVisibility(View.VISIBLE);
-                messageSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
+                conversationSentViewHandler.date.setVisibility(View.VISIBLE);
+                conversationSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
             }
         }
+
+    }
+
+    private void addSelectedItems(ConversationTemplateViewHandler holder) {
+        HashMap<Long, ConversationTemplateViewHandler> selectedItems =  mutableSelectedItems.getValue();
+        if(selectedItems == null)
+            selectedItems = new HashMap<>();
+        selectedItems.put(holder.getId(), holder);
+        holder.itemView.setActivated(true);
+        holder.activate();
+        mutableSelectedItems.setValue(selectedItems);
+    }
+
+    private void removeSelectedItems(ConversationTemplateViewHandler holder) {
+        HashMap<Long, ConversationTemplateViewHandler> selectedItems =  mutableSelectedItems.getValue();
+        if(selectedItems != null) {
+            selectedItems.remove(holder.getId());
+            holder.itemView.setActivated(false);
+            holder.deactivate();
+            mutableSelectedItems.setValue(selectedItems);
+        }
+    }
+
+    private void setOnClickListeners(ConversationTemplateViewHandler holder) {
+        holder.getContainerLayout().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mutableSelectedItems != null && mutableSelectedItems.getValue() != null) {
+                    if(mutableSelectedItems.getValue().containsKey(holder.getId())) {
+                        Log.d(getClass().getName(), "Removing item");
+                        removeSelectedItems(holder);
+                    } else if(!mutableSelectedItems.getValue().isEmpty()){
+                        addSelectedItems(holder);
+                    }
+                }
+            }
+        });
+    }
+
+    private void setOnLongClickListeners(ConversationTemplateViewHandler holder) {
+        holder.getContainerLayout().setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(holder.itemView.isActivated()) {
+                    removeSelectedItems(holder);
+                } else {
+                    addSelectedItems(holder);
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -316,5 +347,14 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
     }
 
+    public void unselectAllItems() {
+        for(Map.Entry<Long, ConversationTemplateViewHandler> entry :
+                mutableSelectedItems.getValue().entrySet()) {
+            entry.getValue().itemView.setActivated(false);
+            entry.getValue().deactivate();
 
+            notifyItemChanged(entry.getValue().getAbsoluteAdapterPosition());
+        }
+        mutableSelectedItems.setValue(new HashMap<>());
+    }
 }

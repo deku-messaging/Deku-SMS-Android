@@ -7,7 +7,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -20,7 +19,7 @@ import java.text.SimpleDateFormat;
 
 import io.getstream.avatarview.AvatarView;
 
-public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
+public class ConversationReceivedViewHandler extends ConversationTemplateViewHandler {
 
     final static int BOTTOM_MARGIN = 4;
     TextView receivedMessage;
@@ -31,7 +30,7 @@ public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
     public ImageView imageView;
     ConstraintLayout constraintLayout, imageConstraintLayout, constraint3;
 
-    public MessageReceivedViewHandler(@NonNull View itemView) {
+    public ConversationReceivedViewHandler(@NonNull View itemView) {
         super(itemView);
         receivedMessage = itemView.findViewById(R.id.message_received_text);
         date = itemView.findViewById(R.id.message_thread_received_date_text);
@@ -39,7 +38,22 @@ public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
         constraintLayout = itemView.findViewById(R.id.message_received_constraint);
         imageConstraintLayout = itemView.findViewById(R.id.message_received_image_container);
         imageView = itemView.findViewById(R.id.message_received_image_view);
-        constraint3 = itemView.findViewById(R.id.constraintLayout3);
+        constraint3 = itemView.findViewById(R.id.conversation_received_layout_container);
+    }
+
+    @Override
+    public String getText() {
+        return receivedMessage.getText().toString();
+    }
+
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Override
+    public long getId() {
+        return this.id;
     }
 
     public void bind(Conversation conversation) {
@@ -60,46 +74,31 @@ public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
         timestamp.setText(timeStamp);
 
         this.date.setText(date);
-
-        receivedMessage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                if(isHighlighted(String.valueOf(sms.getMessage_id())))
-//                    resetSelectedItem(String.valueOf(sms.getMessage_id()), true);
-//                else if(selectedItem.getValue() != null ){
-//                    longClickHighlight(messageReceivedViewHandler, smsId);
-//                } else {
-////                        dateView.setVisibility(dateView.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
-//                }
-            }
-        });
-
-        receivedMessage.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-//                return longClickHighlight(messageReceivedViewHandler, String.valueOf(sms.getMessage_id()));
-                return true;
-            }
-        });
-
     }
 
-    public void highlight() {
+    @Override
+    public View getContainerLayout() {
+        return receivedMessage;
+    }
+
+    @Override
+    public void activate() {
         constraintLayout.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
     }
 
-    public void unHighlight() {
+    @Override
+    public void deactivate() {
         constraintLayout.setBackgroundResource(R.drawable.received_messages_drawable);
     }
 
-    public static class TimestampMessageReceivedViewHandler extends MessageReceivedViewHandler {
-        public TimestampMessageReceivedViewHandler(@NonNull View itemView) {
+    public static class TimestampConversationReceivedViewHandler extends ConversationReceivedViewHandler {
+        public TimestampConversationReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
             timestamp.setVisibility(View.VISIBLE);
         }
     }
 
-    public static class KeyReceivedViewHandler extends MessageReceivedViewHandler {
+    public static class KeyReceivedViewHandler extends ConversationReceivedViewHandler {
 
         public KeyReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
@@ -125,7 +124,7 @@ public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
         }
     }
 
-    public static class TimestampKeyReceivedStartGroupViewHandler extends TimestampMessageReceivedViewHandler {
+    public static class TimestampKeyReceivedStartGroupViewHandler extends TimestampConversationReceivedViewHandler {
         public TimestampKeyReceivedStartGroupViewHandler(@NonNull View itemView) {
             super(itemView);
 
@@ -145,8 +144,8 @@ public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
         }
     }
 
-    public static class MessageReceivedStartViewHandler extends MessageReceivedViewHandler {
-        public MessageReceivedStartViewHandler(@NonNull View itemView) {
+    public static class ConversationReceivedStartViewHandler extends ConversationReceivedViewHandler {
+        public ConversationReceivedStartViewHandler(@NonNull View itemView) {
             super(itemView);
 
             constraintLayout.setBackground(
@@ -165,8 +164,8 @@ public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
             constraintLayout.setBackgroundResource(R.drawable.received_mesages_start_view_drawable);
         }
     }
-    public static class MessageReceivedEndViewHandler extends MessageReceivedViewHandler {
-        public MessageReceivedEndViewHandler(@NonNull View itemView) {
+    public static class ConversationReceivedEndViewHandler extends ConversationReceivedViewHandler {
+        public ConversationReceivedEndViewHandler(@NonNull View itemView) {
             super(itemView);
 
             constraintLayout.setBackground(
@@ -181,8 +180,8 @@ public class MessageReceivedViewHandler extends RecyclerView.ViewHolder {
         }
     }
 
-    public static class MessageReceivedMiddleViewHandler extends MessageReceivedViewHandler {
-        public MessageReceivedMiddleViewHandler(@NonNull View itemView) {
+    public static class ConversationReceivedMiddleViewHandler extends ConversationReceivedViewHandler {
+        public ConversationReceivedMiddleViewHandler(@NonNull View itemView) {
             super(itemView);
 
             constraintLayout.setBackground(

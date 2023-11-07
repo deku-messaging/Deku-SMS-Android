@@ -18,7 +18,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ArchivedViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 
 import java.util.Set;
 
@@ -70,9 +70,9 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                     }
                 });
 
-        archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<Set<TemplateViewHolder>>() {
+        archivedThreadRecyclerAdapter.selectedItems.observe(this, new Observer<Set<ThreadedConversationsTemplateViewHolder>>() {
             @Override
-            public void onChanged(Set<TemplateViewHolder> stringViewHolderHashMap) {
+            public void onChanged(Set<ThreadedConversationsTemplateViewHolder> stringViewHolderHashMap) {
                 highlightListener(stringViewHolderHashMap.size());
             }
         });
@@ -80,8 +80,8 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         myToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                TemplateViewHolder[] viewHolders = archivedThreadRecyclerAdapter.selectedItems.getValue()
-                        .toArray(new TemplateViewHolder[0]);
+                ThreadedConversationsTemplateViewHolder[] viewHolders = archivedThreadRecyclerAdapter.selectedItems.getValue()
+                        .toArray(new ThreadedConversationsTemplateViewHolder[0]);
                 String[] ids =  new String[viewHolders.length];
                 for(int i=0;i<viewHolders.length; ++i) {
                     ids[i] = viewHolders[i].id;

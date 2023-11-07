@@ -168,8 +168,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 //                ThreadedConversationRecyclerAdapter recyclerAdapter =
 //                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
 //                if(messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null) {
-//                    TemplateViewHolder[] viewHolders = recyclerAdapter.selectedItems.getValue()
-//                            .toArray(new TemplateViewHolder[0]);
+//                    ThreadedConversationsTemplateViewHolder[] viewHolders = recyclerAdapter.selectedItems.getValue()
+//                            .toArray(new ThreadedConversationsTemplateViewHolder[0]);
 //                    String[] ids =  new String[viewHolders.length];
 //                    for(int i=0;i<viewHolders.length; ++i) {
 //                        ids[i] = viewHolders[i].id;

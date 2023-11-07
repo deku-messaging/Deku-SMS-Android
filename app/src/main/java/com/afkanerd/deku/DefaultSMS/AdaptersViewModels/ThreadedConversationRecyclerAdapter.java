@@ -14,9 +14,9 @@ import androidx.paging.PagingDataAdapter;
 import com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ReceivedMessagesViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.SentMessagesViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.TemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsReceivedViewHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsSentViewHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
@@ -24,14 +24,14 @@ import com.afkanerd.deku.DefaultSMS.R;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<ThreadedConversations, TemplateViewHolder> {
+public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<ThreadedConversations, ThreadedConversationsTemplateViewHolder> {
 
     Context context;
     Boolean isSearch = false;
     public String searchString = "";
     ArchivedMessagesActivity archivedMessagesActivity;
 
-    public MutableLiveData<Set<TemplateViewHolder>> selectedItems = new MutableLiveData<>();
+    public MutableLiveData<Set<ThreadedConversationsTemplateViewHolder>> selectedItems = new MutableLiveData<>();
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
     final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
@@ -56,30 +56,30 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
 
     @NonNull
     @Override
-    public TemplateViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ThreadedConversationsTemplateViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
         View view = inflater.inflate(R.layout.messages_threads_layout, parent, false);
 //        View view = viewCacheExtension.getViewForPositionAndType(parent, 0, viewType);
         if(viewType == (RECEIVED_UNREAD_VIEW_TYPE))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderUnread(view);
+            return new ThreadedConversationsReceivedViewHandler.ReceivedViewHolderUnreadThreadedConversations(view);
         else if(viewType == (SENT_UNREAD_VIEW_TYPE))
-            return new SentMessagesViewHolder.SentViewHolderUnread(view);
+            return new ThreadedConversationsSentViewHandler.SentViewHolderUnreadThreadedConversations(view);
 
         else if(viewType == (RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE ))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedUnread(view);
+            return new ThreadedConversationsReceivedViewHandler.ReceivedViewHolderEncryptedUnreadThreadedConversations(view);
          else if(viewType == (SENT_ENCRYPTED_UNREAD_VIEW_TYPE ))
-            return new SentMessagesViewHolder.SentViewHolderEncryptedUnread(view);
+            return new ThreadedConversationsSentViewHandler.SentViewHolderEncryptedUnreadThreadedConversations(view);
 
         else if(viewType == (RECEIVED_VIEW_TYPE))
-            return new ReceivedMessagesViewHolder.ReceivedViewHolderRead(view);
+            return new ThreadedConversationsReceivedViewHandler.ReceivedViewHolderReadThreadedConversations(view);
         else if(viewType == (SENT_VIEW_TYPE))
-            return new SentMessagesViewHolder.SentViewHolderRead(view);
+            return new ThreadedConversationsSentViewHandler.SentViewHolderReadThreadedConversations(view);
 
         else if(viewType == (SENT_ENCRYPTED_VIEW_TYPE))
-            return new SentMessagesViewHolder.SentViewHolderEncryptedRead(view);
+            return new ThreadedConversationsSentViewHandler.SentViewHolderEncryptedReadThreadedConversations(view);
 
-        return new ReceivedMessagesViewHolder.ReceivedViewHolderEncryptedRead(view);
+        return new ThreadedConversationsReceivedViewHandler.ReceivedViewHolderEncryptedReadThreadedConversations(view);
     }
 
 
@@ -88,18 +88,18 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
 //        Conversations conversations = mDiffer.getCurrentList().get(position);
 //        ConversationHandler smsMetaEntity = conversations.getNewestMessage();
 //        ThreadedConversations threadedConversations = peek(position);
-        return TemplateViewHolder.getViewType(position, snapshot().getItems());
+        return ThreadedConversationsTemplateViewHolder.getViewType(position, snapshot().getItems());
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TemplateViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ThreadedConversationsTemplateViewHolder holder, int position) {
         ThreadedConversations threadedConversations = getItem(position);
         String threadId = String.valueOf(threadedConversations.getThread_id());
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Set<TemplateViewHolder> _selectedItems = selectedItems.getValue();
+                Set<ThreadedConversationsTemplateViewHolder> _selectedItems = selectedItems.getValue();
                 if(_selectedItems != null) {
                     if(_selectedItems.contains(holder)) {
                         _selectedItems.remove(holder);
@@ -124,7 +124,7 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
         View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Set<TemplateViewHolder> _selectedItems = selectedItems.getValue() == null ?
+                Set<ThreadedConversationsTemplateViewHolder> _selectedItems = selectedItems.getValue() == null ?
                         new HashSet<>() : selectedItems.getValue();
                 _selectedItems.add(holder);
                 selectedItems.postValue(_selectedItems);
@@ -137,9 +137,9 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
    }
 
     public void resetAllSelectedItems() {
-        Set<TemplateViewHolder> items = selectedItems.getValue();
+        Set<ThreadedConversationsTemplateViewHolder> items = selectedItems.getValue();
         if(items != null) {
-            for(TemplateViewHolder viewHolder : items) {
+            for(ThreadedConversationsTemplateViewHolder viewHolder : items) {
                 viewHolder.unHighlight();
             }
         }

@@ -43,13 +43,13 @@
         android:textColor="@color/primary_text_color"
         android:textSize="12sp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/constraintLayout3"
+        app:layout_constraintBottom_toTopOf="@+id/conversation_received_layout_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout3"
+        android:id="@+id/conversation_received_layout_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -120,8 +120,8 @@
         android:textSize="10sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/constraintLayout3"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout3" />
+        app:layout_constraintStart_toStartOf="@+id/conversation_received_layout_container"
+        app:layout_constraintTop_toBottomOf="@+id/conversation_received_layout_container" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -87,9 +87,9 @@ public class RouterActivity extends CustomAppCompactActivity {
     }
 
 //    private void listeners() {
-//        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, TemplateViewHolder>>() {
+//        messagesThreadRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<String, ThreadedConversationsTemplateViewHolder>>() {
 //            @Override
-//            public void onChanged(HashMap<String, TemplateViewHolder> stringTemplateViewHolderHashMap) {
+//            public void onChanged(HashMap<String, ThreadedConversationsTemplateViewHolder> stringTemplateViewHolderHashMap) {
 //                if(stringTemplateViewHolderHashMap != null) {
 //                    if(!stringTemplateViewHolderHashMap.isEmpty()) {
 //                        ab.setTitle(String.valueOf(stringTemplateViewHolderHashMap.size()));
@@ -117,7 +117,7 @@ public class RouterActivity extends CustomAppCompactActivity {
 //    public boolean onOptionsItemSelected(MenuItem item) {
 //        if(item.getItemId() == R.id.messages_thread_routing_cancel) {
 //            if(messagesThreadRecyclerAdapter.selectedItems.getValue() != null) {
-//                for (Map.Entry<String, TemplateViewHolder> entry :
+//                for (Map.Entry<String, ThreadedConversationsTemplateViewHolder> entry :
 //                        messagesThreadRecyclerAdapter.selectedItems.getValue().entrySet()) {
 //                    String messageId = String.valueOf(entry.getValue().messageId);
 //                    Log.d(getLocalClassName(), "Removing routing message: " + messageId);
