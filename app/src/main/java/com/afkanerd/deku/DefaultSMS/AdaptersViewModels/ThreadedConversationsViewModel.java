@@ -23,8 +23,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
     ThreadedConversationsDao threadedConversationsDao;
 
     public LiveData<PagingData<ThreadedConversations>> get(){
-        this.threadedConversationsDao = threadedConversationsDao;
-
         int pageSize = 10;
         int prefetchDistance = 30;
         boolean enablePlaceholder = false;

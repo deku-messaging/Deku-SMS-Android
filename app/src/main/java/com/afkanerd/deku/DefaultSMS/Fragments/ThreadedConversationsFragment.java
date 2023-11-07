@@ -14,9 +14,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
+import androidx.paging.CombinedLoadStates;
 import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
@@ -28,19 +30,18 @@ import com.afkanerd.deku.DefaultSMS.R;
 import java.util.Objects;
 import java.util.Set;
 
-public class ThreadedConversationsFragment extends Fragment {
-    BroadcastReceiver incomingBroadcastReceiver;
-    BroadcastReceiver incomingDataBroadcastReceiver;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
+
+public class ThreadedConversationsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     ThreadedConversationsViewModel threadedConversationsViewModel;
     ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
-    ArchiveHandler archiveHandler;
-
     Toolbar toolbar;
 
-    Handler mHandler = new Handler();
 
     public static final String MESSAGES_THREAD_FRAGMENT_TYPE = "MESSAGES_THREAD_FRAGMENT_TYPE";
     public static final String ALL_MESSAGES_THREAD_FRAGMENT = "ALL_MESSAGES_THREAD_FRAGMENT";
@@ -50,6 +51,8 @@ public class ThreadedConversationsFragment extends Fragment {
     public static final String AUTOMATED_MESSAGES_THREAD_FRAGMENT = "AUTOMATED_MESSAGES_THREAD_FRAGMENT";
 
     private OnViewManipulationListener viewManipulationListener;
+
+    SwipeRefreshLayout swipeRefreshLayout;
 
     public interface OnViewManipulationListener extends HomepageFragment.TabListenerInterface {
         void activateDefaultToolbar();
@@ -73,9 +76,10 @@ public class ThreadedConversationsFragment extends Fragment {
         Bundle args = getArguments();
         String messageType = args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
 
-        archiveHandler = new ArchiveHandler(getContext());
-
         toolbar = viewManipulationListener.getToolbar();
+
+        swipeRefreshLayout = view.findViewById(R.id.conversations_threads_fragment_swipe_layout);
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
@@ -89,6 +93,13 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView.setItemViewCacheSize(500);
 
         threadedConversationsViewModel = viewManipulationListener.getViewModel();
+        threadedConversationRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
+            @Override
+            public Unit invoke() {
+                swipeRefreshLayout.setRefreshing(false);
+                return null;
+            }
+        });
         switch(Objects.requireNonNull(messageType)) {
             case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
                 threadedConversationsViewModel.getEncrypted().observe(getViewLifecycleOwner(),
@@ -157,13 +168,16 @@ public class ThreadedConversationsFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (archiveHandler != null)
-            archiveHandler.close();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        threadedConversationRecyclerAdapter.refresh();
+        threadedConversationsViewModel.loadNatives(getContext());
+    }
+
+    @Override
+    public void onRefresh() {
+        threadedConversationsViewModel.loadNatives(getContext());
     }
 }
