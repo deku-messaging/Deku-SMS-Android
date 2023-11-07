@@ -103,13 +103,13 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                 if(_selectedItems != null) {
                     if(_selectedItems.contains(holder)) {
                         _selectedItems.remove(holder);
-                        selectedItems.postValue(_selectedItems);
+                        selectedItems.setValue(_selectedItems);
                         holder.unHighlight();
                         return;
                     }
                     else if(!_selectedItems.isEmpty()){
                         _selectedItems.add(holder);
-                        selectedItems.postValue(_selectedItems);
+                        selectedItems.setValue(_selectedItems);
                         holder.highlight();
                         return;
                     }
@@ -127,7 +127,7 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                 Set<ThreadedConversationsTemplateViewHolder> _selectedItems = selectedItems.getValue() == null ?
                         new HashSet<>() : selectedItems.getValue();
                 _selectedItems.add(holder);
-                selectedItems.postValue(_selectedItems);
+                selectedItems.setValue(_selectedItems);
                 holder.highlight();
                 return true;
             }

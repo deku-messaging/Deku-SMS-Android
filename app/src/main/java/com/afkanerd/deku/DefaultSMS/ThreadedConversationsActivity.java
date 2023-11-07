@@ -1,6 +1,5 @@
 package com.afkanerd.deku.DefaultSMS;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
@@ -24,11 +23,15 @@ import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
+import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.android.material.card.MaterialCardView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
@@ -171,9 +174,9 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-//                ThreadedConversationRecyclerAdapter recyclerAdapter =
-//                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
-//                if(messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null) {
+                ThreadedConversationRecyclerAdapter recyclerAdapter =
+                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+                if(messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null) {
 //                    ThreadedConversationsTemplateViewHolder[] viewHolders = recyclerAdapter.selectedItems.getValue()
 //                            .toArray(new ThreadedConversationsTemplateViewHolder[0]);
 //                    String[] ids =  new String[viewHolders.length];
@@ -201,22 +204,20 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 //                        };
 //                        showAlert(runnable);
 //                    }
-//                    else if(item.getItemId() == R.id.threads_archive) {
-//                        try {
-//                            ArchiveHandler archiveHandler = new ArchiveHandler(getApplicationContext());
-//                            archiveHandler.archiveMultipleSMS(ids);
-//                            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-////                            stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
-//                            archiveHandler.close();
-//                            return true;
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//
-//                    return true;
-//                }
-//                return false;
+                    if(item.getItemId() == R.id.threads_archive) {
+                        List<Archive> archiveList = new ArrayList<>();
+                        for(ThreadedConversationsTemplateViewHolder templateViewHolder :
+                               messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()) {
+                            Archive archive = new Archive();
+                            archive.thread_id = templateViewHolder.id;
+                            archive.is_archived = true;
+                            archiveList.add(archive);
+                        }
+                        threadedConversationsViewModel.archive(archiveList);
+                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+                    }
+                    return true;
+                }
                 return false;
             }
         });
@@ -280,6 +281,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home &&
                 this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null &&
+                this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue() != null) {
             this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
             return true;

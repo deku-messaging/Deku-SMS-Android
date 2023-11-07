@@ -11,6 +11,7 @@ import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
@@ -82,31 +83,51 @@ public class ThreadedConversationsViewModel extends ViewModel {
             @Override
             public void run() {
                 Cursor cursor = NativeSMSDB.fetchAll(context);
+
                 List<ThreadedConversations> threadedConversations =
                         ThreadedConversations.buildRaw(cursor);
-                for(ThreadedConversations threadedConversation : threadedConversations) {
-                    String contactName = Contacts.retrieveContactName(context,
-                            threadedConversation.getAddress());
+                List<ThreadedConversations> completeList = threadedConversationsDao.getAll();
 
-                    if(contactName != null) {
-                        threadedConversation.setContact_name(contactName);
-                        threadedConversation.setAvatar_initials(contactName.substring(0, 1));
-                        threadedConversation.setAvatar_color(Helpers.generateColor(contactName));
+                List<ThreadedConversations> insertList = new ArrayList<>();
+                for(ThreadedConversations threadedConversation : threadedConversations) {
+                    if(!completeList.contains(threadedConversation)) {
+                        String contactName = Contacts.retrieveContactName(context,
+                                threadedConversation.getAddress());
+
+                        if (contactName != null) {
+                            threadedConversation.setContact_name(contactName);
+                            threadedConversation.setAvatar_initials(contactName.substring(0, 1));
+                            threadedConversation.setAvatar_color(Helpers.generateColor(contactName));
+                        } else threadedConversation.setAvatar_color(
+                                Helpers.generateColor(threadedConversation.getAddress()));
+
+                        insertList.add(threadedConversation);
+                    } else {
+                        String contactName = Contacts.retrieveContactName(context,
+                                threadedConversation.getAddress());
+                        String currentContactName =
+                                completeList.get(completeList.indexOf(threadedConversation))
+                                        .getContact_name();
+                        if((contactName == null && currentContactName != null)
+                                || (currentContactName == null && contactName != null)){
+                            threadedConversation.setContact_name(contactName);
+                            insertList.add(threadedConversation);
+                        }
                     }
-                    else threadedConversation.setAvatar_color(
-                            Helpers.generateColor(threadedConversation.getAddress()));
                 }
-                if(!threadedConversations.isEmpty()) {
-                    threadedConversationsDao.insertAll(threadedConversations);
-                    List<ThreadedConversations> completeList = threadedConversationsDao.getAll();
-                    List<ThreadedConversations> deleteList = new ArrayList<>();
+
+                List<ThreadedConversations> deleteList = new ArrayList<>();
+                if(threadedConversations.isEmpty()) {
+                    deleteList = completeList;
+                } else {
                     for (ThreadedConversations threadedConversation : completeList) {
                         if (!threadedConversations.contains(threadedConversation)) {
                             deleteList.add(threadedConversation);
                         }
                     }
-                    threadedConversationsDao.delete(deleteList);
+                    threadedConversationsDao.insertAll(insertList);
                 }
+                threadedConversationsDao.delete(deleteList);
                 cursor.close();
             }
         });
@@ -116,5 +137,14 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
     public void setThreadedConversationsDao(ThreadedConversationsDao threadedConversationsDao) {
         this.threadedConversationsDao = threadedConversationsDao;
+    }
+
+    public void archive(List<Archive> archiveList) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversationsDao.archive(archiveList);
+            }
+        }).start();
     }
 }

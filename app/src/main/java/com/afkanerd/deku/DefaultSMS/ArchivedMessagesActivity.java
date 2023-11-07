@@ -12,9 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
-import com.afkanerd.deku.DefaultSMS.Models.Archive.ArchiveHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ArchivedViewModel;
@@ -67,6 +67,7 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
                     @Override
                     public void onChanged(PagingData<ThreadedConversations> smsList) {
                         archivedThreadRecyclerAdapter.submitData(getLifecycle(), smsList);
+                        findViewById(R.id.messages_archived_no_messages).setVisibility(View.GONE);
                     }
                 });
 
@@ -80,38 +81,11 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         myToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                ThreadedConversationsTemplateViewHolder[] viewHolders = archivedThreadRecyclerAdapter.selectedItems.getValue()
-                        .toArray(new ThreadedConversationsTemplateViewHolder[0]);
-                String[] ids =  new String[viewHolders.length];
-                for(int i=0;i<viewHolders.length; ++i) {
-                    ids[i] = viewHolders[i].id;
-                }
                 if(item.getItemId() == R.id.archive_unarchive) {
-                    try {
-                        long[] longArr = new long[ids.length];
-                        for (int i = 0; i < ids.length; i++)
-                            longArr[i] = Long.parseLong(ids[i]);
-
-                        new ArchiveHandler(getApplicationContext())
-                                .removeMultipleFromArchive(getApplicationContext(), longArr);
-                        archivedThreadRecyclerAdapter.resetAllSelectedItems();
-                        // TODO
-//                        archivedViewModel.informChanges();
-                        return true;
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                    }
+                    archivedThreadRecyclerAdapter.resetAllSelectedItems();
                 }
                 else if(item.getItemId() == R.id.archive_delete) {
-                    try {
-//                        SMSHandler.deleteThreads(getApplicationContext(), ids);
-//                        archivedThreadRecyclerAdapter.resetAllSelectedItems();
-//                        archivedViewModel.informChanges();
-                        // TODO
-                        return true;
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                    }
+                    archivedThreadRecyclerAdapter.resetAllSelectedItems();
                 }
                 return false;
             }

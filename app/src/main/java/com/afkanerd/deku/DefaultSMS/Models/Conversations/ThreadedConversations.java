@@ -231,12 +231,11 @@ public class ThreadedConversations {
 
         @Override
         public boolean areContentsTheSame(@NonNull ThreadedConversations oldItem, @NonNull ThreadedConversations newItem) {
-            return oldItem.equals(newItem);
+            return oldItem.diff_equals(newItem);
         }
     };
 
-    @Override
-    public boolean equals(@Nullable Object obj) {
+    public boolean diff_equals(@Nullable Object obj) {
         if(obj instanceof ThreadedConversations) {
             ThreadedConversations threadedConversations = (ThreadedConversations) obj;
 
@@ -248,7 +247,20 @@ public class ThreadedConversations {
                     threadedConversations.avatar_color == this.avatar_color &&
                     threadedConversations.msg_count == this.msg_count &&
                     threadedConversations.address.equals(this.address) &&
+                    threadedConversations.date.equals(this.date) &&
                     threadedConversations.snippet.equals(this.snippet);
+
+        }
+        return super.equals(obj);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if(obj instanceof ThreadedConversations) {
+            ThreadedConversations threadedConversations = (ThreadedConversations) obj;
+
+            return threadedConversations.thread_id.equals(this.thread_id) &&
+                    threadedConversations.address.equals(this.address);
 
         }
         return super.equals(obj);

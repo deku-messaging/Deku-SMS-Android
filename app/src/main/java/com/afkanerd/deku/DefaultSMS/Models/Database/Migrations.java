@@ -100,6 +100,9 @@ public class Migrations {
                     "address TEXT, " +
                     "body TEXT)");
 
+            database.execSQL("UPDATE ThreadedConversations SET is_archived = 1 " +
+                    "WHERE thread_id IN (SELECT threadId as thread_id FROM Archive)");
+
             database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_Conversation_message_id ON Conversation (message_id)");
         }
     }

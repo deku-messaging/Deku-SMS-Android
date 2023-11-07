@@ -7,8 +7,7 @@ import androidx.room.InvalidationTracker;
 import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
-import com.afkanerd.deku.DefaultSMS.Models.Archive.Archive;
-import com.afkanerd.deku.DefaultSMS.DAO.ArchiveDAO;
+import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
@@ -23,12 +22,11 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 //@Database(entities = {GatewayServer.class, Archive.class, GatewayClient.class,
 //        ThreadedConversations.class, Conversation.class}, version = 9)
 
-@Database(entities = {GatewayServer.class, Archive.class, ThreadedConversations.class, Conversation.class}, version = 9)
+@Database(entities = {Archive.class, GatewayServer.class, ThreadedConversations.class, Conversation.class}, version = 9)
 public abstract class Datastore extends RoomDatabase {
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
 
     public abstract GatewayServerDAO gatewayServerDAO();
-    public abstract ArchiveDAO archiveDAO();
 
 //    public abstract GatewayClientDAO gatewayClientDAO();
 

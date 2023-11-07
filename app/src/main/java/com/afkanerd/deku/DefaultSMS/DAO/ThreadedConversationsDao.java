@@ -9,6 +9,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
+import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 
@@ -56,7 +57,7 @@ public interface ThreadedConversationsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(ThreadedConversations threadedConversations);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     List<Long> insertAll(List<ThreadedConversations> threadedConversationsList);
 
     @Update
@@ -67,4 +68,7 @@ public interface ThreadedConversationsDao {
 
     @Delete
     void delete(List<ThreadedConversations> threadedConversations);
+
+    @Update(entity = ThreadedConversations.class)
+    void archive(List<Archive> archiveList);
 }
