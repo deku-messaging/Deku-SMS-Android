@@ -308,10 +308,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     public void tabSelected(int position) {
         this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
-        ThreadedConversationRecyclerAdapter recyclerAdapter =
-                this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
-        if(recyclerAdapter != null)
-            recyclerAdapter.refresh();
     }
 
     @Override

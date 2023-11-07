@@ -54,6 +54,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+
 public class ConversationActivity extends DualSIMConversationActivity {
     public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
     public static final String IMAGE_URI = "IMAGE_URI";
@@ -297,6 +300,15 @@ public class ConversationActivity extends DualSIMConversationActivity {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
         singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
         conversationDao = Conversation.getDao(getApplicationContext());
+
+        conversationsRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
+            @Override
+            public Unit invoke() {
+                if(conversationsRecyclerAdapter.getItemCount() < 1)
+                    finish();
+                return null;
+            }
+        });
 
         if(this.threadedConversations != null) {
             if(getIntent().hasExtra(SEARCH_STRING)) {
