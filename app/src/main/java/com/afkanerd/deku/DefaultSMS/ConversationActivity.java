@@ -140,11 +140,10 @@ public class ConversationActivity extends DualSIMConversationActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home
-                && conversationsRecyclerAdapter.hasSelectedItems()) {
-            conversationsRecyclerAdapter.resetAllSelectedItems();
-            return true;
-        }
+//        if (item.getItemId() == android.R.id.home && conversationsRecyclerAdapter.hasSelectedItems()) {
+//            conversationsRecyclerAdapter.resetAllSelectedItems();
+//            return true;
+//        }
 
         if(isSearchActive()) {
             resetSearch();
@@ -200,10 +199,10 @@ public class ConversationActivity extends DualSIMConversationActivity {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (conversationsRecyclerAdapter.hasSelectedItems()) {
-                    conversationsRecyclerAdapter.resetAllSelectedItems();
-                }
-                else if(isSearchActive()) {
+//                if (conversationsRecyclerAdapter.hasSelectedItems()) {
+//                    conversationsRecyclerAdapter.resetAllSelectedItems();
+//                }
+                if(isSearchActive()) {
                     resetSearch();
                 }
                 finish();
