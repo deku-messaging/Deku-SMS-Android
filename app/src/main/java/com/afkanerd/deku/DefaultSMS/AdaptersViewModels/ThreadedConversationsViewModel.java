@@ -138,4 +138,19 @@ public class ThreadedConversationsViewModel extends ViewModel {
             }
         }).start();
     }
+
+
+    public void delete(Context context, List<ThreadedConversations> threadedConversations) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String[] ids = new String[threadedConversations.size()];
+                for(int i=0; i<threadedConversations.size(); ++i)
+                    ids[i] = threadedConversations.get(i).getThread_id();
+                NativeSMSDB.deleteThreads(context, ids);
+                threadedConversationsDao.delete(threadedConversations);
+            }
+        }).start();
+    }
+
 }

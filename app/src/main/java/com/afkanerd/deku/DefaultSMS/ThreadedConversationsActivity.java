@@ -174,48 +174,42 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                ThreadedConversationRecyclerAdapter recyclerAdapter =
-                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
-                if(messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null) {
-//                    ThreadedConversationsTemplateViewHolder[] viewHolders = recyclerAdapter.selectedItems.getValue()
-//                            .toArray(new ThreadedConversationsTemplateViewHolder[0]);
-//                    String[] ids =  new String[viewHolders.length];
-//                    for(int i=0;i<viewHolders.length; ++i) {
-//                        ids[i] = viewHolders[i].id;
-//                    }
-//                    if(item.getItemId() == R.id.threads_delete) {
-//                        Runnable runnable = new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                try {
-//                                    SecurityECDH securityECDH = new SecurityECDH(getApplicationContext());
-//                                    for(String id : ids) {
-//                                        ConversationHandler conversationHandler = new ConversationHandler();
-//                                        conversationHandler.setThreadId(getApplicationContext(), id);
-//                                        securityECDH.removeAllKeys(conversationHandler.getAddress());
-//                                    }
-//                                    SMSHandler.deleteThreads(getApplicationContext(), ids);
-//                                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-////                                    stringMessagesThreadViewModelHashMap.get(ITEM_TYPE).informChanges(getApplicationContext());
-//                                } catch(Exception e) {
-//                                    e.printStackTrace();
-//                                }
-//                            }
-//                        };
-//                        showAlert(runnable);
-//                    }
-                    if(item.getItemId() == R.id.threads_archive) {
-                        List<Archive> archiveList = new ArrayList<>();
-                        for(ThreadedConversationsTemplateViewHolder templateViewHolder :
-                               messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()) {
-                            Archive archive = new Archive();
-                            archive.thread_id = templateViewHolder.id;
-                            archive.is_archived = true;
-                            archiveList.add(archive);
+                List<ThreadedConversations> threadedConversations = new ArrayList<>();
+                if(item.getItemId() == R.id.threads_delete) {
+                    ThreadedConversationRecyclerAdapter recyclerAdapter =
+                            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+                    if(recyclerAdapter != null && recyclerAdapter.selectedItems != null &&
+                            recyclerAdapter.selectedItems.getValue() != null) {
+                        for (ThreadedConversationsTemplateViewHolder viewHolder :
+                                recyclerAdapter.selectedItems.getValue()) {
+                            ThreadedConversations threadedConversation = new ThreadedConversations();
+                            threadedConversation.setThread_id(viewHolder.id);
+                            threadedConversations.add(threadedConversation);
                         }
-                        threadedConversationsViewModel.archive(archiveList);
-                        messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+                        Runnable runnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                recyclerAdapter.resetAllSelectedItems();
+                                threadedConversationsViewModel.delete(getApplicationContext(),
+                                        threadedConversations);
+                            }
+                        };
+                        showAlert(runnable);
                     }
+                    return true;
+                }
+
+                if(item.getItemId() == R.id.threads_archive) {
+                    List<Archive> archiveList = new ArrayList<>();
+                    for(ThreadedConversationsTemplateViewHolder templateViewHolder :
+                            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()) {
+                        Archive archive = new Archive();
+                        archive.thread_id = templateViewHolder.id;
+                        archive.is_archived = true;
+                        archiveList.add(archive);
+                    }
+                    threadedConversationsViewModel.archive(archiveList);
+                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
                     return true;
                 }
                 return false;
