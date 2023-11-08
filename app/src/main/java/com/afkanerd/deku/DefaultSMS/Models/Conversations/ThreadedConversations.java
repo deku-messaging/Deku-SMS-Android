@@ -12,6 +12,7 @@ import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
@@ -25,8 +26,17 @@ public class ThreadedConversations {
     @NonNull
     @PrimaryKey
      private String thread_id;
+    private String address;
+
+    @Ignore
+    private int avatar_color;
+
+    @Ignore
+    private String avatar_initials;
+
+    @Ignore
+    private String avatar_image;
      private int msg_count;
-     private int avatar_color;
 
      private int type;
 
@@ -42,11 +52,7 @@ public class ThreadedConversations {
      private String snippet;
 
      private String contact_name;
-    private String address;
 
-     private String avatar_initials;
-
-     private String avatar_image;
      private String formatted_datetime;
 
     public static ThreadedConversationsDao getDao(Context context) {
@@ -154,7 +160,7 @@ public class ThreadedConversations {
         return avatar_color;
     }
 
-    public void setAvatar_color(int avatar_color) {
+    protected void setAvatar_color(int avatar_color) {
         this.avatar_color = avatar_color;
     }
 
@@ -196,13 +202,20 @@ public class ThreadedConversations {
 
     public void setContact_name(String contact_name) {
         this.contact_name = contact_name;
+        if(this.contact_name != null && !this.contact_name.isEmpty()) {
+            this.setAvatar_initials(this.contact_name.substring(0, 1));
+            this.setAvatar_color(Helpers.generateColor(this.contact_name));
+        } else {
+            this.setAvatar_initials(null);
+            this.setAvatar_color(Helpers.generateColor(this.getAddress()));
+        }
     }
 
     public String getAvatar_initials() {
         return avatar_initials;
     }
 
-    public void setAvatar_initials(String avatar_initials) {
+    protected void setAvatar_initials(String avatar_initials) {
         this.avatar_initials = avatar_initials;
     }
 
@@ -265,4 +278,38 @@ public class ThreadedConversations {
         }
         return super.equals(obj);
     }
+
+    public boolean diffReplace(ThreadedConversations threadedConversations) {
+        if(!threadedConversations.equals(this))
+            return false;
+
+        boolean diff = false;
+        if(this.contact_name == null || !this.contact_name.equals(threadedConversations.getContact_name())) {
+            this.contact_name = threadedConversations.getContact_name();
+            diff = true;
+        }
+        if(this.avatar_initials == null || !this.avatar_initials.equals(threadedConversations.getAvatar_initials())) {
+            this.avatar_initials = threadedConversations.getAvatar_initials();
+            diff = true;
+        }
+        if(this.avatar_color != threadedConversations.getAvatar_color()) {
+            this.avatar_color = threadedConversations.getAvatar_color();
+            diff = true;
+        }
+        if(this.snippet == null || !this.snippet.equals(threadedConversations.getSnippet())) {
+            this.snippet = threadedConversations.getSnippet();
+            diff = true;
+        }
+        if(this.date == null || !this.date.equals(threadedConversations.getDate())) {
+            this.date = threadedConversations.getDate();
+            diff = true;
+        }
+        if(this.type != threadedConversations.getType()) {
+            this.type = threadedConversations.getType();
+            diff = true;
+        }
+        this.msg_count = threadedConversations.getMsg_count();
+        return diff;
+    }
+
 }

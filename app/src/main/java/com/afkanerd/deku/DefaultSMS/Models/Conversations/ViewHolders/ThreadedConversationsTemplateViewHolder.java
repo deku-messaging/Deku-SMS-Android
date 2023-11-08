@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.card.MaterialCardView;
@@ -78,7 +79,9 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
             this.address.setText(conversation.getContact_name());
         } else this.address.setText(conversation.getAddress());
 
-        this.date.setText(conversation.getFormatted_datetime());
+        String date = Helpers.formatDate(itemView.getContext(),
+                Long.parseLong(conversation.getDate()));
+        this.date.setText(date);
         this.snippet.setText(conversation.getSnippet());
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);

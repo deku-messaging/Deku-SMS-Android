@@ -65,9 +65,9 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         this.id = conversation.getId();
         this.message_id = conversation.getMessage_id();
         // TODO: implement search highlight in activity
-        String date = Helpers.formatDateExtended(itemView.getContext(), Long.parseLong(conversation.getDate()));
+        String timestamp = Helpers.formatDateExtended(itemView.getContext(), Long.parseLong(conversation.getDate()));
         DateFormat dateFormat = new SimpleDateFormat("h:mm a");
-        String timeStamp = dateFormat.format(new Date(Long.parseLong(conversation.getDate())));
+        String txDate = dateFormat.format(new Date(Long.parseLong(conversation.getDate())));
 
         Helpers.highlightLinks(receivedMessage, conversation.getBody(),
                 itemView.getContext().getColor(R.color.primary_text_color));
@@ -76,11 +76,11 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             String subscriptionName = SIMHandler.getSubscriptionName(itemView.getContext(),
                     String.valueOf(conversation.getSubscription_id()));
             if(subscriptionName != null && !subscriptionName.isEmpty())
-                timeStamp += " • " + subscriptionName;
+                txDate += " • " + subscriptionName;
         }
-        timestamp.setText(timeStamp);
+        this.timestamp.setText(timestamp);
 
-        this.date.setText(date);
+        this.date.setText(txDate);
     }
 
     @Override

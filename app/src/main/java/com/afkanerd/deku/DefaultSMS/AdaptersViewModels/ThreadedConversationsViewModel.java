@@ -91,28 +91,19 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 List<ThreadedConversations> insertList = new ArrayList<>();
                 for(ThreadedConversations threadedConversation : threadedConversations) {
                     if(!completeList.contains(threadedConversation)) {
+                        // new thread
                         String contactName = Contacts.retrieveContactName(context,
                                 threadedConversation.getAddress());
-
                         if (contactName != null) {
                             threadedConversation.setContact_name(contactName);
-                            threadedConversation.setAvatar_initials(contactName.substring(0, 1));
-                            threadedConversation.setAvatar_color(Helpers.generateColor(contactName));
-                        } else threadedConversation.setAvatar_color(
-                                Helpers.generateColor(threadedConversation.getAddress()));
-
+                        }
                         insertList.add(threadedConversation);
                     } else {
-                        String contactName = Contacts.retrieveContactName(context,
-                                threadedConversation.getAddress());
-                        String currentContactName =
-                                completeList.get(completeList.indexOf(threadedConversation))
-                                        .getContact_name();
-                        if((contactName == null && currentContactName != null)
-                                || (currentContactName == null && contactName != null)){
-                            threadedConversation.setContact_name(contactName);
+                        // present thread, needs update
+                        ThreadedConversations oldThread =
+                                completeList.get(completeList.indexOf(threadedConversation));
+                        if(oldThread.diffReplace(threadedConversation))
                             insertList.add(threadedConversation);
-                        }
                     }
                 }
 

@@ -62,12 +62,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public void bind(Conversation conversation) {
         this.id = conversation.getId();
         this.message_id = conversation.getMessage_id();
-        String date = Helpers.formatDateExtended(itemView.getContext(), Long.parseLong(conversation.getDate()));
-        DateFormat dateFormat = new SimpleDateFormat("h:mm a");
-        String timeStamp = dateFormat.format(new Date(Long.parseLong(conversation.getDate())));
-        timestamp.setText(timeStamp);
 
-        this.date.setText(date);
+        String timestamp = Helpers.formatDateExtended(itemView.getContext(), Long.parseLong(conversation.getDate()));
+        DateFormat dateFormat = new SimpleDateFormat("h:mm a");
+        String txDate = dateFormat.format(new Date(Long.parseLong(conversation.getDate())));
+
+        this.timestamp.setText(timestamp);
+        this.date.setText(txDate);
 
         final int status = conversation.getStatus();
         String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?

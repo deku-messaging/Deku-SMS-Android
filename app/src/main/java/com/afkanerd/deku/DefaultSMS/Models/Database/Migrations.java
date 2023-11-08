@@ -68,7 +68,6 @@ public class Migrations {
             database.execSQL("CREATE TABLE IF NOT EXISTS ThreadedConversations " +
                     "(thread_id TEXT PRIMARY KEY NOT NULL, " +
                     "msg_count INTEGER NOT NULL, " +
-                    "avatar_color INTEGER NOT NULL, " +
                     "type INTEGER NOT NULL, " +
                     "date TEXT, " +
                     "is_archived INTEGER NOT NULL, " +
@@ -78,8 +77,6 @@ public class Migrations {
                     "snippet TEXT, " +
                     "contact_name TEXT, " +
                     "address TEXT, " +
-                    "avatar_initials TEXT, " +
-                    "avatar_image TEXT, " +
                     "formatted_datetime TEXT)");
 
             database.execSQL("CREATE TABLE IF NOT EXISTS Conversation " +
