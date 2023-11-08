@@ -71,4 +71,7 @@ public interface ThreadedConversationsDao {
 
     @Update(entity = ThreadedConversations.class)
     void archive(List<Archive> archiveList);
+
+    @Update(entity = ThreadedConversations.class)
+    void unarchive(List<Archive> archiveList);
 }

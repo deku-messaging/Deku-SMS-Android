@@ -103,7 +103,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                         ThreadedConversations oldThread =
                                 completeList.get(completeList.indexOf(threadedConversation));
                         if(oldThread.diffReplace(threadedConversation))
-                            insertList.add(threadedConversation);
+                            insertList.add(oldThread);
                     }
                 }
 

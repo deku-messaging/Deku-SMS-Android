@@ -16,10 +16,13 @@ import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ArchivedViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class ArchivedMessagesActivity extends AppCompatActivity {
@@ -82,9 +85,30 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if(item.getItemId() == R.id.archive_unarchive) {
+                    List<Archive> archiveList = new ArrayList<>();
+                    if(archivedThreadRecyclerAdapter.selectedItems != null &&
+                            archivedThreadRecyclerAdapter.selectedItems.getValue() != null)
+                        for(ThreadedConversationsTemplateViewHolder viewHolder :
+                                archivedThreadRecyclerAdapter.selectedItems.getValue()) {
+                            Archive archive = new Archive();
+                            archive.thread_id = viewHolder.id;
+                            archive.is_archived = false;
+                            archiveList.add(archive);
+                        }
+                    archivedViewModel.unarchive(archiveList);
                     archivedThreadRecyclerAdapter.resetAllSelectedItems();
                 }
                 else if(item.getItemId() == R.id.archive_delete) {
+                    List<ThreadedConversations> threadedConversations = new ArrayList<>();
+                    if(archivedThreadRecyclerAdapter.selectedItems != null &&
+                            archivedThreadRecyclerAdapter.selectedItems.getValue() != null)
+                        for(ThreadedConversationsTemplateViewHolder viewHolder :
+                                archivedThreadRecyclerAdapter.selectedItems.getValue()) {
+                            ThreadedConversations threadedConversation = new ThreadedConversations();
+                            threadedConversation.setThread_id(viewHolder.id);
+                            threadedConversations.add(threadedConversation);
+                        }
+                    archivedViewModel.delete(getApplicationContext(), threadedConversations);
                     archivedThreadRecyclerAdapter.resetAllSelectedItems();
                 }
                 return false;

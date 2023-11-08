@@ -73,6 +73,13 @@ public class NativeSMSDB {
                         TextUtils.join(",", Collections.nCopies(ids.length, "?")) + ")", ids);
     }
 
+    public static int deleteThreads(Context context, String[] threadIds) {
+        return context.getContentResolver().delete(
+                Telephony.Sms.CONTENT_URI,
+                Telephony.TextBasedSmsColumns.THREAD_ID + " in (" +
+                        TextUtils.join(",", Collections.nCopies(threadIds.length, "?")) + ")", threadIds);
+    }
+
     /*
      * Places which require playing with Native SMS DB
      * Outgoing:
