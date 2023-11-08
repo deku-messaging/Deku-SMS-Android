@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="conversation_properties_default_font_size">18sp</dimen>
-    <dimen name="conversation_properties_default_font_size_subtext">14sp</dimen>
+    <dimen name="conversation_properties_default_font_size_subtext">12sp</dimen>
 </resources>

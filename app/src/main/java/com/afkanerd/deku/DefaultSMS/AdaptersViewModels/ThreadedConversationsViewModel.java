@@ -90,16 +90,12 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
                 List<ThreadedConversations> insertList = new ArrayList<>();
                 for(ThreadedConversations threadedConversation : threadedConversations) {
+                    String contactName = Contacts.retrieveContactName(context,
+                            threadedConversation.getAddress());
+                    threadedConversation.setContact_name(contactName);
                     if(!completeList.contains(threadedConversation)) {
-                        // new thread
-                        String contactName = Contacts.retrieveContactName(context,
-                                threadedConversation.getAddress());
-                        if (contactName != null) {
-                            threadedConversation.setContact_name(contactName);
-                        }
                         insertList.add(threadedConversation);
                     } else {
-                        // present thread, needs update
                         ThreadedConversations oldThread =
                                 completeList.get(completeList.indexOf(threadedConversation));
                         if(oldThread.diffReplace(threadedConversation))

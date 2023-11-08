@@ -56,7 +56,7 @@
         app:layout_constraintBottom_toTopOf="@+id/compose_message_include_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/conversations_search_results_found"
         app:reverseLayout="true" />
 
     <include
