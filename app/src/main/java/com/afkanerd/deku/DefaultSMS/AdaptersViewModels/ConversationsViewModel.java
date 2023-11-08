@@ -63,7 +63,7 @@ public class ConversationsViewModel extends ViewModel{
 
         int pageSize = 20;
         int prefetchDistance = 10;
-        boolean enablePlaceholder = false;
+        boolean enablePlaceholder = true;
         int initialLoadSize = 20;
         int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
         int jumpThreshold = 10;

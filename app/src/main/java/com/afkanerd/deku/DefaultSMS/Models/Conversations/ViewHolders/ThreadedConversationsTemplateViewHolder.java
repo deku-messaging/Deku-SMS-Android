@@ -90,6 +90,8 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
     }
 
     public static int getViewType(int position, List<ThreadedConversations> items) {
+        if(position >= items.size())
+            return RECEIVED_VIEW_TYPE;
         ThreadedConversations threadedConversations = items.get(position);
         String snippet = threadedConversations.getSnippet();
         int type = threadedConversations.getType();

@@ -22,12 +22,12 @@ import java.util.List;
 
 public class ThreadedConversationsViewModel extends ViewModel {
     ThreadedConversationsDao threadedConversationsDao;
+    int pageSize = 10;
+    int prefetchDistance = 30;
+    boolean enablePlaceholder = true;
+    int initialLoadSize = 14;
 
     public LiveData<PagingData<ThreadedConversations>> get(){
-        int pageSize = 10;
-        int prefetchDistance = 30;
-        boolean enablePlaceholder = false;
-        int initialLoadSize = 14;
 
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -39,11 +39,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public LiveData<PagingData<ThreadedConversations>> getEncrypted(){
-        int pageSize = 10;
-        int prefetchDistance = 30;
-        boolean enablePlaceholder = false;
-        int initialLoadSize = 14;
-
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
@@ -54,11 +49,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public LiveData<PagingData<ThreadedConversations>> getNotEncrypted(){
-        int pageSize = 10;
-        int prefetchDistance = 30;
-        boolean enablePlaceholder = false;
-        int initialLoadSize = 14;
-
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
