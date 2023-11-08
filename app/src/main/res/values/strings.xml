@@ -126,7 +126,7 @@
     <string name="settings_SMS_listening_title">SMS listening</string>
     <string name="settings_SMS_routing_custom_server">Configure SMS routing Gateways</string>
     <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
-    <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for routing SMS messages through HTTP/s</string>
+    <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for routing SMS messages through HTTPS</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>

@@ -142,7 +142,7 @@ public class NotificationsHandler {
 
         NotificationCompat.BubbleMetadata bubbleMetadata = new NotificationCompat.BubbleMetadata
                 .Builder(conversation.getAddress())
-                .setDesiredHeight(600)
+                .setDesiredHeight(400)
                 .setSuppressNotification(true)
                 .build();
 
@@ -204,8 +204,9 @@ public class NotificationsHandler {
     private static String getShortcutInfo(Context context, Person person, Conversation conversation) {
         Uri smsUrl = Uri.parse("smsto:" + conversation.getAddress());
         Intent intent = new Intent(Intent.ACTION_SENDTO, smsUrl);
-        intent.putExtra(Conversation.THREAD_ID, conversation.getAddress())
-                .putExtra(Conversation.SHARED_SMS_BODY, conversation.getBody());
+//        intent.putExtra(Conversation.THREAD_ID, conversation.getThread_id())
+//                .putExtra(Conversation.SHARED_SMS_BODY, conversation.getBody());
+        intent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
 
         ShortcutInfoCompat shortcutInfoCompat = new ShortcutInfoCompat.Builder(context,
                 conversation.getAddress())
