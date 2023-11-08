@@ -46,107 +46,30 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/send_smsactivity_toolbar" />
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/coordinator"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/single_messages_thread_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="16dp"
+        android:scrollbars="vertical"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@+id/compose_message_include_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/conversations_search_results_found">
+        app:layout_constraintTop_toTopOf="parent"
+        app:reverseLayout="true" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/single_messages_thread_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:scrollbars="vertical"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                app:layout_constraintBottom_toTopOf="@+id/send_message_content_layouts"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:reverseLayout="true" />
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/send_message_content_layouts"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="4dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-                <TextView
-                    android:id="@+id/send_sms_encrypted_version"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:maxLines="7"
-                    android:scrollbars="vertical"
-                    android:textColor="@color/secondary_text_color"
-                    android:textSize="16sp"
-                    android:verticalScrollbarPosition="defaultPosition"
-                    android:visibility="gone"
-                    app:layout_constraintEnd_toEndOf="@+id/send_text"
-                    app:layout_constraintStart_toStartOf="@+id/send_text"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/send_text"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:background="@drawable/compose_message_drawable"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginBottom="5dp"
-                    android:hint="@string/send_message_text_box_hint"
-                    app:boxStrokeWidth="0dp"
-                    app:boxStrokeWidthFocused="0dp"
-                    app:counterEnabled="false"
-                    app:endIconMode="custom"
-                    app:hintEnabled="true"
-                    app:hintTextColor="@color/received_message_color"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/sms_send_button"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/send_sms_encrypted_version">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/sms_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:maxLines="7"
-                        android:textSize="16sp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <ImageButton
-                    android:id="@+id/sms_send_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:backgroundTint="@android:color/transparent"
-                    app:layout_constraintBottom_toBottomOf="@+id/send_text"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:srcCompat="@drawable/ic_round_send_24" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <include
+        android:id="@+id/compose_message_include_layout"
+        layout="@layout/conversation_compose_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 

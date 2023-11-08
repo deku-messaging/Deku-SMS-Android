@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/compose_message_drawable"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/send_text"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        app:boxStrokeWidth="0dp"
+        app:boxStrokeWidthFocused="0dp"
+        app:endIconMode="custom"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/conversation_send_btn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:placeholderText="@string/send_message_text_box_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/sms_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text|textAutoComplete|textAutoCorrect|textCapSentences|textEnableTextConversionSuggestions|textMultiLine"
+            android:maxLines="3"
+            android:scrollbars="vertical"
+            android:textSize="@dimen/conversation_properties_default_font_size" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/conversation_send_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@null"
+        android:src="@drawable/twotone_send_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

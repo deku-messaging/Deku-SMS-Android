@@ -470,18 +470,18 @@ public class ConversationActivity extends DualSIMConversationActivity {
                 this.threadedConversations.getAddress(): "";
     }
 
-    private void configureMessagesTextBox() throws GeneralSecurityException, IOException {
+    private void configureMessagesTextBox() {
         if (mutableLiveDataComposeMessage.getValue() == null ||
                 mutableLiveDataComposeMessage.getValue().isEmpty())
-            findViewById(R.id.sms_send_button).setVisibility(View.INVISIBLE);
+            findViewById(R.id.conversation_send_btn).setVisibility(View.INVISIBLE);
 
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                findViewById(R.id.sms_send_button).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                findViewById(R.id.conversation_send_btn).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
             }
         });
-        findViewById(R.id.sms_send_button).setOnLongClickListener(new View.OnLongClickListener() {
+        findViewById(R.id.conversation_send_btn).setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 onLongClickSendButton(v);
@@ -502,10 +502,10 @@ public class ConversationActivity extends DualSIMConversationActivity {
             }
         });
 
-        TextView encryptedMessageTextView = findViewById(R.id.send_sms_encrypted_version);
-        encryptedMessageTextView.setMovementMethod(new ScrollingMovementMethod());
-
-        findViewById(R.id.sms_send_button).setOnClickListener(new View.OnClickListener() {
+//        TextView encryptedMessageTextView = findViewById(R.id.send_sms_encrypted_version);
+//        encryptedMessageTextView.setMovementMethod(new ScrollingMovementMethod());
+//
+        findViewById(R.id.conversation_send_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
@@ -561,22 +561,13 @@ public class ConversationActivity extends DualSIMConversationActivity {
         if (getIntent().hasExtra(Conversation.SHARED_SMS_BODY)) {
             smsTextView.setText(getIntent().getStringExtra(Conversation.SHARED_SMS_BODY));
             getIntent().removeExtra(Conversation.SHARED_SMS_BODY);
-
-            // TODO
-//            runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    mutableLiveDataComposeMessage
-//                            .setValue(getIntent().getStringExtra(Conversation.SHARED_SMS_BODY));
-//                }
-//            });
         }
     }
 
     private void configureLayoutForMessageType() {
         if(this.threadedConversations != null && this.threadedConversations.isIs_shortcode()) {
             // Cannot reply to message
-            ConstraintLayout smsLayout = findViewById(R.id.send_message_content_layouts);
+            ConstraintLayout smsLayout = findViewById(R.id.compose_message_include_layout);
             smsLayout.setVisibility(View.GONE);
         }
     }
