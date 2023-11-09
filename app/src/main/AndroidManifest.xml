@@ -125,7 +125,7 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
                 <action android:name="android.intent.action.SEND" />

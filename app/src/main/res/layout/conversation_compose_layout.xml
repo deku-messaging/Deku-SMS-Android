@@ -13,13 +13,11 @@
         android:layout_marginEnd="8dp"
         app:boxStrokeWidth="0dp"
         app:boxStrokeWidthFocused="0dp"
-        app:endIconMode="custom"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/conversation_send_btn"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:placeholderText="@string/send_message_text_box_hint">
-
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/sms_text"
             android:layout_width="match_parent"
@@ -27,8 +25,7 @@
             android:inputType="text|textAutoComplete|textAutoCorrect|textCapSentences|textEnableTextConversionSuggestions|textMultiLine"
             android:maxLines="3"
             android:scrollbars="vertical"
-            android:textSize="@dimen/conversation_properties_default_font_size" />
-
+            android:textSize="@dimen/conversation_properties_default_font_size"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.appcompat.widget.AppCompatImageButton

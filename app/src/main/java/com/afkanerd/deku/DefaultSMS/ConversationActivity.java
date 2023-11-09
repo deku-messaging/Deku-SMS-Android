@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
@@ -14,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,6 +54,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import kotlin.Unit;
@@ -122,6 +125,8 @@ public class ConversationActivity extends DualSIMConversationActivity {
     protected void onResume() {
         super.onResume();
         conversationsViewModel.updateToRead(getApplicationContext());
+        TextInputLayout layout = findViewById(R.id.send_text);
+        layout.requestFocus();
     }
 
     @Override
@@ -529,33 +534,9 @@ public class ConversationActivity extends DualSIMConversationActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 mutableLiveDataComposeMessage.setValue(s.toString());
-
-                // TODO
-//                try {
-//                    if (!s.toString().isEmpty() && hasSecretKey) {
-//                        String encryptedString = Base64.encodeToString(
-//                                SecurityAES.encrypt_256_cbc(s.toString().getBytes(StandardCharsets.UTF_8),
-//                                        secretKey, null),
-//                                Base64.DEFAULT);
-//
-//                        encryptedString = SecurityHelpers.putEncryptedMessageWaterMark(encryptedString);
-//                        String stats = SMSHandler.calculateSMS(encryptedString);
-//                        String displayedString = encryptedString + "\n\n" + stats;
-//
-//                        encryptedMessageTextView.setVisibility(View.VISIBLE);
-//                        encryptedMessageTextView.setText(displayedString);
-//                        if (encryptedMessageTextView.getLayout() != null)
-//                            encryptedMessageTextView.scrollTo(0,
-//                                    encryptedMessageTextView.getLayout().getLineTop(
-//                                            encryptedMessageTextView.getLineCount()) - encryptedMessageTextView.getHeight());
-//                    } else {
-//                        encryptedMessageTextView.setVisibility(View.GONE);
-//                    }
-//                } catch (Throwable e) {
-//                    e.printStackTrace();
-//                }
             }
         });
+
 
         // Message has been shared from another app to send by SMS
         if (getIntent().hasExtra(Conversation.SHARED_SMS_BODY)) {
