@@ -41,9 +41,6 @@ public class ThreadedConversationsFragment extends Fragment {
     private OnViewManipulationListener viewManipulationListener;
 
     public interface OnViewManipulationListener extends HomepageFragment.TabListenerInterface {
-        void activateDefaultToolbar();
-        void deactivateDefaultToolbar(int size);
-
         ThreadedConversationsViewModel getViewModel();
 
         void setRecyclerViewAdapter(String name, ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter);
@@ -72,11 +69,6 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView.setAdapter(threadedConversationRecyclerAdapter);
         messagesThreadRecyclerView.setItemViewCacheSize(500);
 
-//        ThreadedConversationsDao threadedConversationsDao =
-//                ThreadedConversations.getDao(getContext());
-//        threadedConversationsViewModel = new ViewModelProvider(this).get(
-//                ThreadedConversationsViewModel.class);
-//        threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
         threadedConversationsViewModel = viewManipulationListener.getViewModel();
 
         switch(Objects.requireNonNull(messageType)) {
@@ -111,28 +103,9 @@ public class ThreadedConversationsFragment extends Fragment {
                             }
                         });
         }
-
-        threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
-                new Observer<Set<ThreadedConversationsTemplateViewHolder>>() {
-                    @Override
-                    public void onChanged(Set<ThreadedConversationsTemplateViewHolder> stringViewHolderHashMap) {
-                        highlightListener(stringViewHolderHashMap.size(), view);
-                    }
-                });
     }
 
 
-    private void highlightListener(int size, View view){
-//        if(size < 1) {
-//            menu.setGroupVisible(R.id.conversations_threads_main_menu_item_selected, false);
-//            viewManipulationListener.activateDefaultToolbar();
-//        } else {
-//            viewManipulationListener.deactivateDefaultToolbar(size);
-//            menu.setGroupVisible(R.id.conversations_threads_main_menu_item_selected, true);
-//        }
-    }
-
-    @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
 

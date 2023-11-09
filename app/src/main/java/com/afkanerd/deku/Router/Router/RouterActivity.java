@@ -78,7 +78,7 @@ public class RouterActivity extends CustomAppCompactActivity {
                 else if(actionMode == null) {
                     actionMode = startActionMode(actionModeCallback);
                 }
-                actionMode.setTitle(String.valueOf(longs.size()));
+                if(actionMode != null) actionMode.setTitle(String.valueOf(longs.size()));
             }
         });
     }
@@ -91,8 +91,6 @@ public class RouterActivity extends CustomAppCompactActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.router_cancel_menu_item) {
-        }
         if(item.getItemId() == R.id.router_list_gateways_menu_item) {
             startActivity(new Intent(this, GatewayServerListingActivity.class));
             return true;
@@ -106,30 +104,17 @@ public class RouterActivity extends CustomAppCompactActivity {
 
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
 
-        // Called when the action mode is created. startActionMode() is called.
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            // Inflate a menu resource providing context menu items.
-//            if(routerRecyclerAdapter.selectedItems != null &&
-//                    routerRecyclerAdapter.selectedItems.getValue() != null &&
-//                    !routerRecyclerAdapter.selectedItems.getValue().isEmpty()) {
-//                mode.getMenuInflater().inflate(R.menu.routing_menu_items_selected, menu);
-//            } else {
-//                mode.getMenuInflater().inflate(R.menu.routing_menu, menu);
-//            }
             mode.getMenuInflater().inflate(R.menu.routing_menu_items_selected, menu);
             return true;
         }
 
-        // Called each time the action mode is shown. Always called after
-        // onCreateActionMode, and might be called multiple times if the mode
-        // is invalidated.
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             return false; // Return false if nothing is done.
         }
 
-        // Called when the user selects a contextual menu item.
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             if (item.getItemId() == R.id.router_cancel_menu_item) {
@@ -150,7 +135,6 @@ public class RouterActivity extends CustomAppCompactActivity {
             return false;
         }
 
-        // Called when the user exits the action mode.
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             actionMode = null;

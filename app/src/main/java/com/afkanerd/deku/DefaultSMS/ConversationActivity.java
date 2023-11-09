@@ -6,16 +6,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,12 +44,9 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import org.checkerframework.checker.units.qual.C;
-
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,21 +66,17 @@ public class ConversationActivity extends DualSIMConversationActivity {
     public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
     private final int RESULT_GALLERY = 100;
+
+    ActionMode actionMode;
     ConversationsRecyclerAdapter conversationsRecyclerAdapter;
 
     ConversationsViewModel conversationsViewModel;
     TextInputEditText smsTextView;
-    ConstraintLayout multiSimcardConstraint;
     MutableLiveData<String> mutableLiveDataComposeMessage = new MutableLiveData<>();
-
-    Toolbar toolbar;
-    ActionBar ab;
 
     LinearLayoutManager linearLayoutManager;
     RecyclerView singleMessagesThreadRecyclerView;
 
-    SharedPreferences sharedPreferences;
-    SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener;
     int defaultSubscriptionId;
 
     String searchString;
@@ -134,8 +126,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.conversations_menu, menu);
         if (this.threadedConversations.isIs_shortcode()) {
-            // menu.setGroupVisible(R.id.default_menu_items, false);
-            menu.findItem(R.id.make_call).setVisible(false);
+            menu.findItem(R.id.conversation_main_menu_call).setVisible(false);
         }
         return super.onCreateOptionsMenu(menu);
     }
@@ -147,21 +138,21 @@ public class ConversationActivity extends DualSIMConversationActivity {
 
     private void resetSearch() {
         findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
-        findViewById(R.id.conversations_search_box_layout).setVisibility(View.GONE);
+//        findViewById(R.id.conversations_search_box_layout).setVisibility(View.GONE);
         conversationsRecyclerAdapter.searchString = null;
-//        conversationsViewModel.informNewItemChanges(getApplicationContext());
-//        conversationsRecyclerAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home &&
-                (conversationsRecyclerAdapter.mutableSelectedItems.getValue() != null &&
-                        !conversationsRecyclerAdapter.mutableSelectedItems.getValue().isEmpty())) {
-            conversationsRecyclerAdapter.unselectAllItems();
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (R.id.conversation_main_menu_call == item.getItemId()) {
+            ThreadedConversationsHandler.call(getApplicationContext(), threadedConversations);
             return true;
         }
-
+        else if(R.id.conversation_main_menu_search == item.getItemId()) {
+            Intent intent = new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class);
+            intent.putExtra(Conversation.THREAD_ID, threadedConversations.getThread_id());
+            startActivity(intent);
+        }
         if(isSearchActive()) {
             resetSearch();
             return true;
@@ -246,9 +237,6 @@ public class ConversationActivity extends DualSIMConversationActivity {
     }
 
     private void instantiateGlobals() throws GeneralSecurityException, IOException {
-        toolbar = (Toolbar) findViewById(R.id.send_smsactivity_toolbar);
-        setSupportActionBar(toolbar);
-        ab = getSupportActionBar();
         searchFoundTextView = findViewById(R.id.conversations_search_results_found_counter_text);
 
         backSearchBtn = findViewById(R.id.conversation_search_found_back_btn);
@@ -360,105 +348,73 @@ public class ConversationActivity extends DualSIMConversationActivity {
             }
         });
 
-        try {
-            conversationsRecyclerAdapter.mutableSelectedItems.observe(this,
-                    new Observer<HashMap<Long, ConversationTemplateViewHandler>>() {
-                @Override
-                public void onChanged(HashMap<Long, ConversationTemplateViewHandler> selectedItems) {
-                    changeToolbarsItemSelected(selectedItems);
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        conversationsRecyclerAdapter.mutableSelectedItems.observe(this,
+                new Observer<HashMap<Long, ConversationTemplateViewHandler>>() {
+                    @Override
+                    public void onChanged(HashMap<Long, ConversationTemplateViewHandler> selectedItems) {
+                        if(selectedItems == null || selectedItems.isEmpty()) {
+                            if(actionMode != null) {
+                                actionMode.finish();
+                            }
+                            return;
+                        }
+                        else if(actionMode == null) {
+                            actionMode = startActionMode(actionModeCallback);
+                        }
+                        if(selectedItems.size() > 1 && actionMode != null)
+                            actionMode.invalidate();
+                        if(actionMode != null)
+                            actionMode.setTitle(String.valueOf(selectedItems.size()));
+                    }
+                });
 
         if(getIntent().hasExtra(SEARCH_STRING)) {
             configureSearchBox();
-            TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
-            textInputEditText.setText(getIntent().getStringExtra(SEARCH_STRING));
+//            TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
+//            textInputEditText.setText(getIntent().getStringExtra(SEARCH_STRING));
             getIntent().removeExtra(SEARCH_STRING);
         }
 
     }
 
     private void configureSearchBox() {
-        TextInputLayout textInputLayout = findViewById(R.id.conversations_search_box_layout);
-        textInputLayout.setVisibility(View.VISIBLE);
-
-        findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
-
-        TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
-        scrollRecyclerViewSearch(-2);
-        textInputEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                if(editable != null && editable.length() > 1) {
-                    conversationsRecyclerAdapter.searchString = editable.toString();
-                    resetPreviousSelections();
-                    searchForInput(editable.toString());
-                }
-                else {
-                    conversationsRecyclerAdapter.searchString = null;
-                    resetPreviousSelections();
-                    searchPositions.setValue(new ArrayList<>());
-                }
-            }
-        });
-    }
-
-    private void resetPreviousSelections() {
-        final List<Integer> prevPositions = searchPositions.getValue();
-        if(prevPositions != null)
-            for(Integer position : prevPositions) {
-                conversationsRecyclerAdapter.notifyItemChanged(position);
-            }
+//        TextInputLayout textInputLayout = findViewById(R.id.conversations_search_box_layout);
+//        textInputLayout.setVisibility(View.VISIBLE);
+//
+//        findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
+//
+//        TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
+//        scrollRecyclerViewSearch(-2);
+//        textInputEditText.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//                if(editable != null && editable.length() > 1) {
+//                    conversationsRecyclerAdapter.searchString = editable.toString();
+//                    resetPreviousSelections();
+//                    searchForInput(editable.toString());
+//                }
+//                else {
+//                    conversationsRecyclerAdapter.searchString = null;
+//                    resetPreviousSelections();
+//                    searchPositions.setValue(new ArrayList<>());
+//                }
+//            }
+//        });
     }
 
     private void configureToolbars() {
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                int id = item.getItemId();
-                if (R.id.copy == id) {
-                    copyItem();
-                    conversationsRecyclerAdapter.unselectAllItems();
-                    return true;
-                }
-                else if (R.id.delete == id || R.id.delete_multiple == id) {
-                    try {
-                        deleteItems();
-                    }catch(Exception e) {
-                        e.printStackTrace();
-                    }
-                    return true;
-                }
-                else if (R.id.make_call == id) {
-                    ThreadedConversationsHandler.call(getApplicationContext(), threadedConversations);
-                    return true;
-                }
-                else if(R.id.search_conversations == id) {
-//                    configureSearchBox();
-                    Intent intent = new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class);
-                    intent.putExtra(Conversation.THREAD_ID, threadedConversations.getThread_id());
-                    startActivity(intent);
-                }
-                return false;
-            }
-        });
-
-        ab.setDisplayHomeAsUpEnabled(true);
-        ab.setTitle(getAbTitle());
-        ab.setSubtitle(getAbSubTitle());
+        setTitle(getAbTitle());
+        getSupportActionBar().setSubtitle(getAbSubTitle());
     }
 
     private String getAbTitle() {
@@ -508,9 +464,6 @@ public class ConversationActivity extends DualSIMConversationActivity {
             }
         });
 
-//        TextView encryptedMessageTextView = findViewById(R.id.send_sms_encrypted_version);
-//        encryptedMessageTextView.setMovementMethod(new ScrollingMovementMethod());
-//
         findViewById(R.id.conversation_send_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -554,15 +507,6 @@ public class ConversationActivity extends DualSIMConversationActivity {
         }
     }
 
-
-    private void changeToolbarsItemSelected(HashMap<Long, ConversationTemplateViewHandler> selectedItems) {
-        if (selectedItems == null || selectedItems.isEmpty()) {
-            showDefaultToolbar(toolbar.getMenu());
-        } else {
-            hideDefaultToolbar(toolbar.getMenu(), selectedItems.size());
-        }
-    }
-
     public void sendTextMessage(View view) throws Exception {
         if(smsTextView.getText() != null) {
             String text = smsTextView.getText().toString();
@@ -594,35 +538,6 @@ public class ConversationActivity extends DualSIMConversationActivity {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private void hideDefaultToolbar(Menu menu, int size) {
-        Log.d(getLocalClassName(), "Got called to work: " + size);
-        menu.setGroupVisible(R.id.default_menu_items, false);
-        if (size > 1) {
-            menu.setGroupVisible(R.id.single_message_copy_menu, false);
-            menu.setGroupVisible(R.id.multiple_message_copy_menu, true);
-        } else {
-            menu.setGroupVisible(R.id.multiple_message_copy_menu, false);
-            menu.setGroupVisible(R.id.single_message_copy_menu, true);
-        }
-
-        ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
-        ab.setTitle(String.valueOf(size));
-
-        ab.setSubtitle("");
-    }
-
-    private void showDefaultToolbar(Menu menu) {
-        // TODO
-//        if(!conversationHandler.isShortCode())
-//            menu.setGroupVisible(R.id.default_menu_items, true);
-        menu.setGroupVisible(R.id.default_menu_items, true);
-        menu.setGroupVisible(R.id.single_message_copy_menu, false);
-
-        ab.setHomeAsUpIndicator(null);
-        ab.setTitle(getAbTitle());
-        ab.setSubtitle(getAbSubTitle());
     }
 
     private void copyItem() {
@@ -671,4 +586,50 @@ public class ConversationActivity extends DualSIMConversationActivity {
         }
     }
 
+    private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.conversations_menu_item_selected, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            if(Objects.requireNonNull(conversationsRecyclerAdapter.mutableSelectedItems.getValue()).size() > 1) {
+                menu.clear();
+                mode.getMenuInflater().inflate(R.menu.conversations_menu_items_selected, menu);
+                return true;
+            }
+            return false; // Return false if nothing is done.
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            int id = item.getItemId();
+            if (R.id.conversations_menu_copy == id) {
+                copyItem();
+                conversationsRecyclerAdapter.resetAllSelectedItems();
+                return true;
+            }
+            else if (R.id.conversations_menu_delete == id ||
+                    R.id.conversations_menu_delete_multiple == id) {
+                try {
+                    deleteItems();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        // Called when the user exits the action mode.
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            actionMode = null;
+            conversationsRecyclerAdapter.resetAllSelectedItems();
+        }
+    };
 }

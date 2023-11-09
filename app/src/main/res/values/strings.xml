@@ -223,4 +223,7 @@
     <string name="conversation_copied">Copied!</string>
     <string name="router_list_gateways">View Gateway servers</string>
     <string name="router_add_gateways">Add Gateway servers</string>
+    <string name="arhived_no_archived_messages">No Archived Messages</string>
+    <string name="conversation_menu_copy">copy</string>
+    <string name="conversation_menu_delete">delete</string>
 </resources>

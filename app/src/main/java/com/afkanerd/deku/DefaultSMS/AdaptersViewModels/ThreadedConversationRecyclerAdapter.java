@@ -21,6 +21,7 @@ import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     public String searchString = "";
     ArchivedMessagesActivity archivedMessagesActivity;
 
-    public MutableLiveData<Set<ThreadedConversationsTemplateViewHolder>> selectedItems = new MutableLiveData<>();
+    public MutableLiveData<HashMap<Long, ThreadedConversationsTemplateViewHolder>> selectedItems = new MutableLiveData<>();
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
     final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
@@ -85,9 +86,6 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
 
     @Override
     public int getItemViewType(int position) {
-//        Conversations conversations = mDiffer.getCurrentList().get(position);
-//        ConversationHandler smsMetaEntity = conversations.getNewestMessage();
-//        ThreadedConversations threadedConversations = peek(position);
         return ThreadedConversationsTemplateViewHolder.getViewType(position, snapshot().getItems());
     }
 
@@ -101,16 +99,17 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Set<ThreadedConversationsTemplateViewHolder> _selectedItems = selectedItems.getValue();
+                HashMap<Long, ThreadedConversationsTemplateViewHolder> _selectedItems = selectedItems.getValue();
                 if(_selectedItems != null) {
-                    if(_selectedItems.contains(holder)) {
-                        _selectedItems.remove(holder);
+                    if(_selectedItems.containsKey(holder)) {
+                        ThreadedConversationsTemplateViewHolder templateViewHolder = _selectedItems.remove(holder);
                         selectedItems.setValue(_selectedItems);
-                        holder.unHighlight();
+                        if(templateViewHolder != null)
+                            templateViewHolder.unHighlight();
                         return;
                     }
                     else if(!_selectedItems.isEmpty()){
-                        _selectedItems.add(holder);
+                        _selectedItems.put(Long.valueOf(holder.id), holder);
                         selectedItems.setValue(_selectedItems);
                         holder.highlight();
                         return;
@@ -126,9 +125,9 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
         View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Set<ThreadedConversationsTemplateViewHolder> _selectedItems = selectedItems.getValue() == null ?
-                        new HashSet<>() : selectedItems.getValue();
-                _selectedItems.add(holder);
+                HashMap<Long, ThreadedConversationsTemplateViewHolder> _selectedItems = selectedItems.getValue() == null ?
+                        new HashMap<>() : selectedItems.getValue();
+                _selectedItems.put(Long.valueOf(holder.id), holder);
                 selectedItems.setValue(_selectedItems);
                 holder.highlight();
                 return true;
@@ -139,12 +138,12 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
    }
 
     public void resetAllSelectedItems() {
-        Set<ThreadedConversationsTemplateViewHolder> items = selectedItems.getValue();
+        HashMap<Long, ThreadedConversationsTemplateViewHolder> items = selectedItems.getValue();
         if(items != null) {
-            for(ThreadedConversationsTemplateViewHolder viewHolder : items) {
+            for(ThreadedConversationsTemplateViewHolder viewHolder : items.values()){
                 viewHolder.unHighlight();
             }
         }
-        selectedItems.setValue(new HashSet<>());
+        selectedItems.setValue(null);
     }
 }

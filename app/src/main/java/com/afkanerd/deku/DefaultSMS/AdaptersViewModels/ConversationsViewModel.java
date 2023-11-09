@@ -35,10 +35,9 @@ public class ConversationsViewModel extends ViewModel{
     ConversationDao conversationDao;
     int pageSize = 10;
     int prefetchDistance = 30;
-    boolean enablePlaceholder = false;
-    int initialLoadSize = 20;
+    boolean enablePlaceholder = true;
+    int initialLoadSize = 14;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
-    int jumpThreshold = 10;
 
     public LiveData<PagingData<Conversation>> get(ConversationDao conversationDao, String threadId)
             throws InterruptedException {
@@ -50,8 +49,7 @@ public class ConversationsViewModel extends ViewModel{
                 prefetchDistance,
                 enablePlaceholder,
                 initialLoadSize,
-                maxSize,
-                jumpThreshold
+                maxSize
         ), ()-> this.conversationDao.get(threadId));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
@@ -66,15 +64,13 @@ public class ConversationsViewModel extends ViewModel{
         boolean enablePlaceholder = true;
         int initialLoadSize = 20;
         int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
-        int jumpThreshold = 10;
 
         Pager<Integer, Conversation> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
                 initialLoadSize,
-                maxSize,
-                jumpThreshold
+                maxSize
         ), ()-> this.conversationDao.get(threadId));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
@@ -89,8 +85,7 @@ public class ConversationsViewModel extends ViewModel{
                 prefetchDistance,
                 enablePlaceholder,
                 initialLoadSize,
-                maxSize,
-                jumpThreshold
+                maxSize
         ), ()-> this.conversationDao.getByAddress(address));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }

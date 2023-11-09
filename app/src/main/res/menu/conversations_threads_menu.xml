@@ -33,18 +33,4 @@
             android:title="@string/settings_about" />
 
     </group>
-    <group
-        android:id="@+id/conversations_threads_main_menu_item_selected"
-        android:visible="false">
-        <item
-            android:id="@+id/conversations_threads_main_menu_delete"
-            android:icon="@drawable/round_delete_24"
-            android:title="@string/message_threads_menu_delete"
-            app:showAsAction="always" />
-        <item
-            android:id="@+id/conversations_threads_main_menu_archive"
-            android:icon="@drawable/round_archive_24"
-            android:title="@string/messages_threads_menu_archive"
-            app:showAsAction="always" />
-    </group>
 </menu>

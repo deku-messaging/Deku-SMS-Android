@@ -13,10 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -345,7 +343,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 MESSAGE_TYPE_INBOX : MESSAGE_TYPE_OUTBOX;
     }
 
-    public void unselectAllItems() {
+    public void resetAllSelectedItems() {
         for(Map.Entry<Long, ConversationTemplateViewHandler> entry :
                 mutableSelectedItems.getValue().entrySet()) {
             entry.getValue().itemView.setActivated(false);

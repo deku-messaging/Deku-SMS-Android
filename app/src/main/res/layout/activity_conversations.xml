@@ -7,35 +7,6 @@
     tools:context=".ConversationActivity"
     android:layout_height="match_parent" >
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/send_smsactivity_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="?attr/actionBarSize"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/conversations_menu"
-        app:titleTextAppearance="@style/TextAppearance.AppCompat.Medium" >
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/conversations_search_box_layout"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            app:endIconDrawable="@drawable/baseline_cancel_24"
-            app:endIconMode="clear_text"
-            tools:layout_editor_absoluteX="16dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/conversations_search_box"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:textSize="14sp" />
-        </com.google.android.material.textfield.TextInputLayout>
-    </androidx.appcompat.widget.Toolbar>
-
     <include
         android:id="@+id/conversations_search_results_found"
         layout="@layout/conversations_search_navigation_layout"
@@ -44,7 +15,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/send_smsactivity_toolbar" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/single_messages_thread_recycler_view"

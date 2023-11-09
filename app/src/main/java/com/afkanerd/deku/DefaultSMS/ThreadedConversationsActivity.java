@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.content.DialogInterface;
@@ -12,7 +13,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -29,6 +32,7 @@ import com.afkanerd.deku.Router.Router.RouterActivity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
@@ -38,11 +42,12 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     ActionBar ab;
 
     HashMap<String, ThreadedConversationRecyclerAdapter> messagesThreadRecyclerAdapterHashMap = new HashMap<>();
-    HashMap<String, ThreadedConversationsViewModel> stringMessagesThreadViewModelHashMap = new HashMap<>();
 
     String ITEM_TYPE = "";
 
     ThreadedConversationsViewModel threadedConversationsViewModel;
+
+    ActionMode actionMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,19 +142,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     @Override
-    public void activateDefaultToolbar() {
-        ab.setDisplayHomeAsUpEnabled(false);
-        ab.setHomeAsUpIndicator(null);
-    }
-
-    @Override
-    public void deactivateDefaultToolbar(int size) {
-        ab.setDisplayHomeAsUpEnabled(true);
-        ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
-        ab.setTitle(String.valueOf(size));
-    }
-
-    @Override
     public ThreadedConversationsViewModel getViewModel() {
         return threadedConversationsViewModel;
     }
@@ -158,57 +150,32 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     public void setRecyclerViewAdapter(String itemType, ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter) {
         this.ITEM_TYPE = itemType;
         this.messagesThreadRecyclerAdapterHashMap.put(itemType, threadedConversationRecyclerAdapter);
-//        this.threadedConversationRecyclerAdapter = threadedConversationRecyclerAdapter;
+
+        this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.observe(this,
+                new Observer<HashMap<Long, ThreadedConversationsTemplateViewHolder>>() {
+            @Override
+            public void onChanged(HashMap<Long, ThreadedConversationsTemplateViewHolder>
+                                          threadedConversationsTemplateViewHolders) {
+                if(threadedConversationsTemplateViewHolders == null ||
+                        threadedConversationsTemplateViewHolders.isEmpty()) {
+                    if(actionMode != null) {
+                        actionMode.finish();
+                    }
+                    return;
+                }
+                else if(actionMode == null) {
+                    actionMode = startActionMode(actionModeCallback);
+                }
+                if(actionMode != null)
+                    actionMode
+                            .setTitle(String.valueOf(threadedConversationsTemplateViewHolders.size()));
+
+            }
+        });
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(getLocalClassName(), "Item clicked: " + item.getItemId());
-        if (item.getItemId() == android.R.id.home &&
-                this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null &&
-                this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems != null &&
-                this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue() != null) {
-            this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-            return true;
-        }
-        if(item.getItemId() == R.id.conversations_threads_main_menu_delete) {
-            List<ThreadedConversations> threadedConversations = new ArrayList<>();
-            ThreadedConversationRecyclerAdapter recyclerAdapter =
-                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
-            if(recyclerAdapter != null && recyclerAdapter.selectedItems != null &&
-                    recyclerAdapter.selectedItems.getValue() != null) {
-                for (ThreadedConversationsTemplateViewHolder viewHolder :
-                        recyclerAdapter.selectedItems.getValue()) {
-                    ThreadedConversations threadedConversation = new ThreadedConversations();
-                    threadedConversation.setThread_id(viewHolder.id);
-                    threadedConversations.add(threadedConversation);
-                }
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        recyclerAdapter.resetAllSelectedItems();
-                        threadedConversationsViewModel.delete(getApplicationContext(),
-                                threadedConversations);
-                    }
-                };
-                showAlert(runnable);
-            }
-            return true;
-        }
-
-        if(item.getItemId() == R.id.conversations_threads_main_menu_archive) {
-            List<Archive> archiveList = new ArrayList<>();
-            for(ThreadedConversationsTemplateViewHolder templateViewHolder :
-                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()) {
-                Archive archive = new Archive();
-                archive.thread_id = templateViewHolder.id;
-                archive.is_archived = true;
-                archiveList.add(archive);
-            }
-            threadedConversationsViewModel.archive(archiveList);
-            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-            return true;
-        }
         if (item.getItemId() == R.id.conversation_threads_main_menu_archived) {
             Intent archivedIntent = new Intent(getApplicationContext(),
                     ArchivedMessagesActivity.class);
@@ -239,18 +206,13 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             startActivity(aboutIntent);
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     @Override
     public void tabUnselected(int position) {
-        String itemType = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
-        if(this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
-                this.messagesThreadRecyclerAdapterHashMap.get(itemType) != null &&
-                this.messagesThreadRecyclerAdapterHashMap.get(itemType).selectedItems.getValue() != null) {
-
-            this.messagesThreadRecyclerAdapterHashMap.get(itemType).resetAllSelectedItems();
-        }
+        if(actionMode != null)
+            actionMode.finish();
     }
 
     @Override
@@ -262,4 +224,75 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     protected void onResume() {
         super.onResume();
     }
+
+    private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.conversations_threads_menu_items_selected, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Return false if nothing is done.
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            final ThreadedConversationRecyclerAdapter recyclerAdapter =
+                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+            if(recyclerAdapter != null) {
+                if(item.getItemId() == R.id.conversations_threads_main_menu_delete) {
+                    List<ThreadedConversations> threadedConversations = new ArrayList<>();
+                    if(recyclerAdapter.selectedItems != null && recyclerAdapter.selectedItems.getValue() != null) {
+                        for (ThreadedConversationsTemplateViewHolder viewHolder :
+                                recyclerAdapter.selectedItems.getValue().values()) {
+                            ThreadedConversations threadedConversation = new ThreadedConversations();
+                            threadedConversation.setThread_id(viewHolder.id);
+                            threadedConversations.add(threadedConversation);
+                        }
+                        Runnable runnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                recyclerAdapter.resetAllSelectedItems();
+                                threadedConversationsViewModel.delete(getApplicationContext(),
+                                        threadedConversations);
+                            }
+                        };
+                        showAlert(runnable);
+                    }
+                    return true;
+                }
+
+                if(item.getItemId() == R.id.conversations_threads_main_menu_archive) {
+                    List<Archive> archiveList = new ArrayList<>();
+                    for(ThreadedConversationsTemplateViewHolder templateViewHolder :
+                            recyclerAdapter.selectedItems.getValue().values()) {
+                        Archive archive = new Archive();
+                        archive.thread_id = templateViewHolder.id;
+                        archive.is_archived = true;
+                        archiveList.add(archive);
+                    }
+                    threadedConversationsViewModel.archive(archiveList);
+                    recyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
+
+            }
+            return false;
+        }
+
+        // Called when the user exits the action mode.
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            actionMode = null;
+            final ThreadedConversationRecyclerAdapter recyclerAdapter =
+                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+            if(recyclerAdapter != null)
+                recyclerAdapter.resetAllSelectedItems();
+        }
+    };
+
 }
