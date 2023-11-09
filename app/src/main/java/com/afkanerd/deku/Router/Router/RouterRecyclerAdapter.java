@@ -64,9 +64,11 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
                if(items != null && !items.isEmpty()){
                    if(items.contains(holder.getItemId())) {
                        items.remove(holder.getItemId());
+                       holder.unhighlight();
                    } else {
                        Log.d(getClass().getName(), "Item id: " + holder.getItemId());
                        items.add(holder.getItemId());
+                       holder.highlight();
                    }
                    selectedItems.setValue(items);
                }
@@ -84,6 +86,7 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
                 Log.d(getClass().getName(), "Item id: " + holder.getItemId());
                 items.add(holder.getItemId());
                 selectedItems.setValue(items);
+                holder.highlight();
                 return true;
             }
         });
@@ -120,6 +123,13 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
             this.status.setText(routerItem.routingStatus);
             this.date.setText(Helpers.formatDate(itemView.getContext(),
                     routerItem.routingDate));
+        }
+
+        public void highlight() {
+            this.materialCardView.setBackgroundResource(R.drawable.received_messages_drawable);
+        }
+        public void unhighlight() {
+            this.materialCardView.setBackgroundResource(0);
         }
     }
 }
