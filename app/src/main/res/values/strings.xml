@@ -32,7 +32,7 @@
     <string name="new_gateway_client_virtualhost_name">Enter a virtualhost - <i>default /</i></string>
     <string name="new_gateway_client_port">Port: <i>default 5672</i></string>
     <string name="homepage_menu_archived">Archived</string>
-    <string name="homepage_menu_routed">Routing history</string>
+    <string name="homepage_menu_routed">Message Forwarding</string>
     <string name="homepage_menu_web">Linked devices</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
@@ -122,7 +122,7 @@
     <string name="settings_security_category_end_to_end_disable_summary">Will not affect contacts you are already communicating securely with, but you will not be asked to secure communications with other contacts</string>
     <string name="settings_security_category_end_to_end_duration_summary">When enabled, encryption request sent to contacts would expire after <b>1 hour</b> of not being agreed.</string>
 
-    <string name="settings_SMS_routing_title">SMS routing</string>
+    <string name="settings_SMS_routing_title">Forwarded History</string>
     <string name="settings_SMS_listening_title">SMS listening</string>
     <string name="settings_SMS_routing_custom_server">Configure SMS routing Gateways</string>
     <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
@@ -221,4 +221,6 @@
     <string name="threading_conversations_natives_loaded">Began importing SMS messages!</string>
 
     <string name="conversation_copied">Copied!</string>
+    <string name="router_list_gateways">View Gateway servers</string>
+    <string name="router_add_gateways">Add Gateway servers</string>
 </resources>

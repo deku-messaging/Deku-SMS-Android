@@ -33,17 +33,6 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_servers_listing_activitiy);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.gateway_server_listing_toolbar);
-        myToolbar.setTitle(R.string.gateway_server_listing_toolbar_title);
-
-        setSupportActionBar(myToolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        ab.setDisplayHomeAsUpEnabled(true);
-
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
         recentsRecyclerView.setLayoutManager(linearLayoutManager);
@@ -101,11 +90,9 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
-            case R.id.add_gateway_server:
-                Intent addGatewayIntent = new Intent(getApplicationContext(), GatewayServerAddActivity.class);
-                startActivity(addGatewayIntent);
-                break;
+        if (item.getItemId() == R.id.add_gateway_server) {
+            Intent addGatewayIntent = new Intent(getApplicationContext(), GatewayServerAddActivity.class);
+            startActivity(addGatewayIntent);
         }
         return false;
     }

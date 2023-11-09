@@ -9,11 +9,9 @@ import android.provider.Telephony;
 import android.util.Log;
 
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
-import com.afkanerd.deku.Router.Router.RouterConversation;
+import com.afkanerd.deku.Router.Router.RouterItem;
 import com.afkanerd.deku.Router.Router.RouterHandler;
 
 import java.io.IOException;
@@ -92,9 +90,9 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 try {
                     Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
                     if(cursor.moveToFirst()) {
-                        RouterConversation routerConversation = new RouterConversation(cursor);
+                        RouterItem routerItem = new RouterItem(cursor);
                         cursor.close();
-                        RouterHandler.createWorkForMessage(context, routerConversation);
+                        RouterHandler.route(context, routerItem);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

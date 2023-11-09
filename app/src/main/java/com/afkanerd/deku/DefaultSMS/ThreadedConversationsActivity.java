@@ -11,12 +11,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.PopupMenu;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
@@ -27,7 +25,6 @@ import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.Router.Router.RouterActivity;
-import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,8 +49,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations_threads);
 
-        toolbar = findViewById(R.id.messages_threads_toolbar);
-        setSupportActionBar(toolbar);
         ab = getSupportActionBar();
 
         if(!checkIsDefaultApp()) {
@@ -67,8 +62,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
 
-        configureToolbarEvents();
-        loadSubroutines();
         fragmentManagement();
         startServices();
     }
@@ -90,60 +83,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                         HomepageFragment.class, null, "HOMEPAGE_TAG")
                 .setReorderingAllowed(true)
                 .commit();
-    }
-
-    private void loadSubroutines() {
-        MaterialCardView cardView = findViewById(R.id.homepage_search_card);
-        cardView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class));
-            }
-        });
-
-        ImageButton imageButton = findViewById(R.id.homepage_search_image_btn);
-        imageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PopupMenu popup = new PopupMenu(getApplicationContext(), v);
-                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        if (item.getItemId() == R.id.messages_threads_menu_item_archived) {
-                            Intent archivedIntent = new Intent(getApplicationContext(),
-                                    ArchivedMessagesActivity.class);
-                            archivedIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(archivedIntent);
-                            return true;
-                        }
-                        else if (item.getItemId() == R.id.messages_threads_menu_item_routed) {
-                            Intent routingIntent = new Intent(getApplicationContext(), RouterActivity.class);
-                            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(routingIntent);
-                        }
-                        else if (item.getItemId() == R.id.messages_threads_menu_item_web) {
-                            Intent webIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);
-                            webIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(webIntent);
-                        }
-                        else if (item.getItemId() == R.id.messages_threads_settings) {
-                            Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
-                            settingsIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(settingsIntent);
-                        }
-                        else if (item.getItemId() == R.id.messages_threads_about) {
-                            Intent aboutIntent = new Intent(getApplicationContext(), AboutActivity.class);
-                            aboutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(aboutIntent);
-                        }
-                        return false;
-                    }
-                });
-                MenuInflater inflater = popup.getMenuInflater();
-                inflater.inflate(R.menu.conversations_threads_main_menu, popup.getMenu());
-                popup.show();
-            }
-        });
     }
 
     private void showAlert(Runnable runnable) {
@@ -168,53 +107,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
         AlertDialog dialog = builder.create();
         dialog.show();
-    }
-
-    private void configureToolbarEvents() {
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                List<ThreadedConversations> threadedConversations = new ArrayList<>();
-                if(item.getItemId() == R.id.threads_delete) {
-                    ThreadedConversationRecyclerAdapter recyclerAdapter =
-                            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
-                    if(recyclerAdapter != null && recyclerAdapter.selectedItems != null &&
-                            recyclerAdapter.selectedItems.getValue() != null) {
-                        for (ThreadedConversationsTemplateViewHolder viewHolder :
-                                recyclerAdapter.selectedItems.getValue()) {
-                            ThreadedConversations threadedConversation = new ThreadedConversations();
-                            threadedConversation.setThread_id(viewHolder.id);
-                            threadedConversations.add(threadedConversation);
-                        }
-                        Runnable runnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                recyclerAdapter.resetAllSelectedItems();
-                                threadedConversationsViewModel.delete(getApplicationContext(),
-                                        threadedConversations);
-                            }
-                        };
-                        showAlert(runnable);
-                    }
-                    return true;
-                }
-
-                if(item.getItemId() == R.id.threads_archive) {
-                    List<Archive> archiveList = new ArrayList<>();
-                    for(ThreadedConversationsTemplateViewHolder templateViewHolder :
-                            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()) {
-                        Archive archive = new Archive();
-                        archive.thread_id = templateViewHolder.id;
-                        archive.is_archived = true;
-                        archiveList.add(archive);
-                    }
-                    threadedConversationsViewModel.archive(archiveList);
-                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
-                    return true;
-                }
-                return false;
-            }
-        });
     }
 
     private boolean checkIsDefaultApp() {
@@ -246,14 +138,12 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     @Override
     public void activateDefaultToolbar() {
-        findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.VISIBLE);
         ab.setDisplayHomeAsUpEnabled(false);
         ab.setHomeAsUpIndicator(null);
     }
 
     @Override
     public void deactivateDefaultToolbar(int size) {
-        findViewById(R.id.messages_thread_search_input_constrain).setVisibility(View.GONE);
         ab.setDisplayHomeAsUpEnabled(true);
         ab.setHomeAsUpIndicator(R.drawable.baseline_cancel_24);
         ab.setTitle(String.valueOf(size));
@@ -273,6 +163,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d(getLocalClassName(), "Item clicked: " + item.getItemId());
         if (item.getItemId() == android.R.id.home &&
                 this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE) != null &&
                 this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems != null &&
@@ -280,12 +171,75 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
             return true;
         }
-        return super.onOptionsItemSelected(item);
-    }
+        if(item.getItemId() == R.id.conversations_threads_main_menu_delete) {
+            List<ThreadedConversations> threadedConversations = new ArrayList<>();
+            ThreadedConversationRecyclerAdapter recyclerAdapter =
+                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
+            if(recyclerAdapter != null && recyclerAdapter.selectedItems != null &&
+                    recyclerAdapter.selectedItems.getValue() != null) {
+                for (ThreadedConversationsTemplateViewHolder viewHolder :
+                        recyclerAdapter.selectedItems.getValue()) {
+                    ThreadedConversations threadedConversation = new ThreadedConversations();
+                    threadedConversation.setThread_id(viewHolder.id);
+                    threadedConversations.add(threadedConversation);
+                }
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        recyclerAdapter.resetAllSelectedItems();
+                        threadedConversationsViewModel.delete(getApplicationContext(),
+                                threadedConversations);
+                    }
+                };
+                showAlert(runnable);
+            }
+            return true;
+        }
 
-    @Override
-    public Toolbar getToolbar() {
-        return toolbar;
+        if(item.getItemId() == R.id.conversations_threads_main_menu_archive) {
+            List<Archive> archiveList = new ArrayList<>();
+            for(ThreadedConversationsTemplateViewHolder templateViewHolder :
+                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.getValue()) {
+                Archive archive = new Archive();
+                archive.thread_id = templateViewHolder.id;
+                archive.is_archived = true;
+                archiveList.add(archive);
+            }
+            threadedConversationsViewModel.archive(archiveList);
+            messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).resetAllSelectedItems();
+            return true;
+        }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_archived) {
+            Intent archivedIntent = new Intent(getApplicationContext(),
+                    ArchivedMessagesActivity.class);
+            archivedIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(archivedIntent);
+            return true;
+        }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_routed) {
+            Intent routingIntent = new Intent(getApplicationContext(), RouterActivity.class);
+            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(routingIntent);
+            return true;
+        }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_devices) {
+            Intent webIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);
+            webIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(webIntent);
+            return true;
+        }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_settings) {
+            Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(settingsIntent);
+            return true;
+        }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_about) {
+            Intent aboutIntent = new Intent(getApplicationContext(), AboutActivity.class);
+            aboutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(aboutIntent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

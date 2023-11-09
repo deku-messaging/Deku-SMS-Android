@@ -2,18 +2,49 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <group
-        android:id="@+id/threads_menu"
+        android:id="@+id/conversations_threads_main_menu"
+        android:visible="true">
+        <item
+            android:id="@+id/conversation_threads_main_menu_search"
+            android:icon="@drawable/ic_outline_search_24"
+            android:title="@string/message_threads_menu_delete"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/conversation_threads_main_menu_archived"
+            android:theme="@style/Theme.main"
+            android:title="@string/homepage_menu_archived"/>
+        <item
+            android:id="@+id/conversation_threads_main_menu_routed"
+            android:theme="@style/Theme.main"
+            android:title="@string/homepage_menu_routed" />
+
+        <item
+            android:id="@+id/conversation_threads_main_menu_devices"
+            android:theme="@style/Theme.main"
+            android:title="@string/homepage_menu_web" />
+
+        <item
+            android:id="@+id/conversation_threads_main_menu_settings"
+            android:theme="@style/Theme.main"
+            android:title="@string/settings_title" />
+        <item
+            android:theme="@style/Theme.main"
+            android:id="@+id/conversation_threads_main_menu_about"
+            android:title="@string/settings_about" />
+
+    </group>
+    <group
+        android:id="@+id/conversations_threads_main_menu_item_selected"
         android:visible="false">
         <item
-            android:id="@+id/threads_delete"
+            android:id="@+id/conversations_threads_main_menu_delete"
             android:icon="@drawable/round_delete_24"
             android:title="@string/message_threads_menu_delete"
             app:showAsAction="always" />
         <item
-            android:id="@+id/threads_archive"
+            android:id="@+id/conversations_threads_main_menu_archive"
             android:icon="@drawable/round_archive_24"
             android:title="@string/messages_threads_menu_archive"
             app:showAsAction="always" />
     </group>
-
 </menu>

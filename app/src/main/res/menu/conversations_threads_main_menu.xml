@@ -1,26 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item
-        android:theme="@style/Theme.main"
-        android:id="@+id/messages_threads_menu_item_archived"
-        android:title="@string/homepage_menu_archived" />
-
-    <item
-        android:theme="@style/Theme.main"
-        android:id="@+id/messages_threads_menu_item_routed"
-        android:title="@string/homepage_menu_routed" />
-
-    <item
-        android:theme="@style/Theme.main"
-        android:id="@+id/messages_threads_menu_item_web"
-        android:title="@string/homepage_menu_web" />
-
-    <item
-        android:theme="@style/Theme.main"
-        android:id="@+id/messages_threads_settings"
-        android:title="@string/settings_title" />
-    <item
-        android:theme="@style/Theme.main"
-        android:id="@+id/messages_threads_about"
-        android:title="@string/settings_about" />
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group
+        android:id="@+id/conversation_main_menu_group">
+    </group>
 </menu>

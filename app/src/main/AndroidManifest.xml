@@ -60,6 +60,7 @@
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.SettingsActivity"
             android:exported="false"
+            android:label="@string/settings_title"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity" />
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.ComposeNewMessageActivity"
@@ -91,17 +92,14 @@
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.SettingsActivity">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
+            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity"/>
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity" />
+            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity" />
         <activity
             android:name="com.afkanerd.deku.Router.Router.RouterActivity"
+            android:label="@string/settings_SMS_routing_title"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity" />
         <activity

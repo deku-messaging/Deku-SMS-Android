@@ -28,7 +28,7 @@ import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.Router.Router.RouterConversation;
+import com.afkanerd.deku.Router.Router.RouterItem;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -147,7 +147,7 @@ public class RMQConnectionService extends Service {
        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
    }
 
-   private class SMSStatusReport implements RouterConversation.SmsForwardInterface {
+   private class SMSStatusReport implements RouterItem.SmsForwardInterface {
         public final String type = SMS_TYPE_STATUS;
         public String sid;
         public String status;
@@ -233,7 +233,7 @@ public class RMQConnectionService extends Service {
                             smsStatusReport.status = SMS_STATUS_FAILED;
                         }
 
-                        RouterHandler.createWorkForMessage(getApplicationContext(),
+                        RouterHandler.route(getApplicationContext(),
                                 smsStatusReport, messageId, false);
                     }
                     else Log.d(getClass().getName(), "Sid not found!");

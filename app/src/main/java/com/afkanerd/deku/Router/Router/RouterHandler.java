@@ -17,7 +17,6 @@ import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -71,7 +70,7 @@ public class RouterHandler {
 
     }
 
-    public static void createWorkForMessage(Context context, RouterConversation routerConversation) {
+    public static void route(Context context, RouterItem routerItem) {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setPrettyPrinting().serializeNulls();
         Gson gson = gsonBuilder.create();
@@ -80,7 +79,7 @@ public class RouterHandler {
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
-        boolean isBase64 = Helpers.isBase64Encoded(routerConversation.getBody());
+        boolean isBase64 = Helpers.isBase64Encoded(routerItem.getBody());
 
         new Thread(new Runnable() {
             @Override
@@ -93,8 +92,8 @@ public class RouterHandler {
                             gatewayServer.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
                         continue;
 
-                    routerConversation.tag = gatewayServer.getTag();
-                    final String jsonStringBody = gson.toJson(routerConversation);
+                    routerItem.tag = gatewayServer.getTag();
+                    final String jsonStringBody = gson.toJson(routerItem);
 
                     try {
                         OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(RouterWorkManager.class)
@@ -105,7 +104,7 @@ public class RouterHandler {
                                         TimeUnit.MILLISECONDS
                                 )
                                 .addTag(TAG_NAME)
-                                .addTag(getTagForMessages(routerConversation.getMessage_id()))
+                                .addTag(getTagForMessages(routerItem.getMessage_id()))
                                 .addTag(getTagForGatewayServers(gatewayServer.getURL()))
                                 .setInputData(
                                         new Data.Builder()
@@ -115,8 +114,7 @@ public class RouterHandler {
                                 )
                                 .build();
 
-                        // String uniqueWorkName = address + message;
-                        String uniqueWorkName = routerConversation.getMessage_id() + ":" + gatewayServer.getURL();
+                        String uniqueWorkName = routerItem.getMessage_id() + ":" + gatewayServer.getURL();
                         WorkManager workManager = WorkManager.getInstance(context);
                         workManager.enqueueUniqueWork(
                                 uniqueWorkName,
@@ -150,7 +148,10 @@ public class RouterHandler {
         workManager.cancelAllWorkByTag(tag);
     }
 
-
+    public static int MESSAGE_ID = 0;
+    public static int WORK_NAME = 1;
+    public static int ROUTING_URL = 2;
+    public static int ROUTING_ID = 3;
     public static ArrayList<String[]> getMessageIdsFromWorkManagers(Context context) {
 
         WorkQuery workQuery = WorkQuery.Builder
@@ -188,10 +189,10 @@ public class RouterHandler {
 //                ArrayList<String> routeJobState = new ArrayList<>();
                 String[] routeJobState = new String[4];
                 if(!messageId.isEmpty() && !gatewayServerUrl.isEmpty()) {
-                    routeJobState[0] = messageId;
-                    routeJobState[1] = workInfo.getState().name();
-                    routeJobState[2] = gatewayServerUrl;
-                    routeJobState[3] = workInfo.getId().toString();
+                    routeJobState[MESSAGE_ID] = messageId;
+                    routeJobState[WORK_NAME] = workInfo.getState().name();
+                    routeJobState[ROUTING_URL] = gatewayServerUrl;
+                    routeJobState[ROUTING_ID] = workInfo.getId().toString();
                 }
 
                 workerIds.add(routeJobState);

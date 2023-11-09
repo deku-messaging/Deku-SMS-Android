@@ -17,9 +17,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class RouterViewModel extends ViewModel {
-    private MutableLiveData<List<RouterConversation>> messagesList;
+    private MutableLiveData<List<RouterItem>> messagesList;
 
-    public LiveData<List<RouterConversation>> getMessages(Context context){
+    public LiveData<List<RouterItem>> getMessages(Context context){
         if(messagesList == null) {
             messagesList = new MutableLiveData<>();
             loadSMSThreads(context);
@@ -40,7 +40,7 @@ public class RouterViewModel extends ViewModel {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                ListMultimap<Long, RouterConversation> routerMessagesListMultimap = ArrayListMultimap.create();
+                ListMultimap<Long, RouterItem> routerMessagesListMultimap = ArrayListMultimap.create();
 
                 for(String[] workerList : routerJobs) {
                     String messageId = workerList[0];
@@ -58,7 +58,7 @@ public class RouterViewModel extends ViewModel {
 
                         String routerStatus = workerList[1];
                         String url = workerList[2];
-                        RouterConversation routerMessage = new RouterConversation(cursor);
+                        RouterItem routerMessage = new RouterItem(cursor);
                         cursor.close();
 
                         routerMessage.routingStatus = routerStatus;
@@ -71,7 +71,7 @@ public class RouterViewModel extends ViewModel {
                         routerMessagesListMultimap.put(Long.parseLong(date), routerMessage);
                     }
                 }
-                List<RouterConversation> sortedList = new ArrayList<>();
+                List<RouterItem> sortedList = new ArrayList<>();
                 List<Long> keys = new ArrayList<>(routerMessagesListMultimap.keySet());
                 keys.sort(Collections.reverseOrder());
                 for(Long date : keys) {
@@ -82,5 +82,6 @@ public class RouterViewModel extends ViewModel {
             }
         });
         thread.start();
+
     }
 }

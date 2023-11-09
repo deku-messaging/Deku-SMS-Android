@@ -31,9 +31,6 @@ public class ThreadedConversationsFragment extends Fragment {
     ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
-    Toolbar toolbar;
-
-
     public static final String MESSAGES_THREAD_FRAGMENT_TYPE = "MESSAGES_THREAD_FRAGMENT_TYPE";
     public static final String ALL_MESSAGES_THREAD_FRAGMENT = "ALL_MESSAGES_THREAD_FRAGMENT";
     public static final String PLAIN_MESSAGES_THREAD_FRAGMENT = "PLAIN_MESSAGES_THREAD_FRAGMENT";
@@ -50,7 +47,6 @@ public class ThreadedConversationsFragment extends Fragment {
         ThreadedConversationsViewModel getViewModel();
 
         void setRecyclerViewAdapter(String name, ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter);
-        Toolbar getToolbar();
     }
 
     @Nullable
@@ -64,8 +60,6 @@ public class ThreadedConversationsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Bundle args = getArguments();
         String messageType = args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
-
-        toolbar = viewManipulationListener.getToolbar();
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
@@ -129,14 +123,13 @@ public class ThreadedConversationsFragment extends Fragment {
 
 
     private void highlightListener(int size, View view){
-        Menu menu = toolbar.getMenu();
-        if(size < 1) {
-            menu.setGroupVisible(R.id.threads_menu, false);
-            viewManipulationListener.activateDefaultToolbar();
-        } else {
-            viewManipulationListener.deactivateDefaultToolbar(size);
-            menu.setGroupVisible(R.id.threads_menu, true);
-        }
+//        if(size < 1) {
+//            menu.setGroupVisible(R.id.conversations_threads_main_menu_item_selected, false);
+//            viewManipulationListener.activateDefaultToolbar();
+//        } else {
+//            viewManipulationListener.deactivateDefaultToolbar(size);
+//            menu.setGroupVisible(R.id.conversations_threads_main_menu_item_selected, true);
+//        }
     }
 
     @Override

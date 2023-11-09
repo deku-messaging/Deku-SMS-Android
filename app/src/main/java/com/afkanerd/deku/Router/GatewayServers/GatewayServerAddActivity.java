@@ -28,15 +28,6 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_server_add);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.new_gateway_server_toolbar);
-        setSupportActionBar(myToolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        ab.setDisplayHomeAsUpEnabled(true);
-
         gatewayServerHandler = new GatewayServerHandler(getApplicationContext());
 
         dataTypeFilter();
@@ -129,8 +120,8 @@ public class GatewayServerAddActivity extends AppCompatActivity {
                 gatewayServerHandler.add(gatewayServer);
 
             Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
-            gatewayServerListIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(gatewayServerListIntent);
+            finish();
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
@@ -140,9 +131,8 @@ public class GatewayServerAddActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_ID)) {
             getMenuInflater().inflate(R.menu.gateway_server_add_menu, menu);
-            return super.onCreateOptionsMenu(menu);
         }
-        return false;
+        return super.onCreateOptionsMenu(menu);
     }
 
     private void deleteGatewayServer() throws InterruptedException {

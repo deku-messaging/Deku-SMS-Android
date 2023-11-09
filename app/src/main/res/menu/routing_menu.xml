@@ -2,10 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:theme="@style/Theme.main"
-        android:id="@+id/messages_thread_routing_cancel"
-        android:icon="@drawable/round_stop_circle_24"
-        android:visible="false"
-        app:showAsAction="always"
-        android:title="@string/message_threads_menu_cancel" />
+        android:id="@+id/router_list_gateways_menu_item"
+        android:title="@string/router_list_gateways" />
+    <item
+        android:id="@+id/router_add_gateways_menu_item"
+        android:title="@string/router_add_gateways" />
 </menu>

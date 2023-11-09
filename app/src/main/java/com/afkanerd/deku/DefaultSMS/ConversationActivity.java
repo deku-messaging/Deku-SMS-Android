@@ -124,7 +124,8 @@ public class ConversationActivity extends DualSIMConversationActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        conversationsViewModel.updateToRead(getApplicationContext());
+        if(this.conversationsViewModel != null)
+            conversationsViewModel.updateToRead(getApplicationContext());
         TextInputLayout layout = findViewById(R.id.send_text);
         layout.requestFocus();
     }
