@@ -21,8 +21,10 @@ import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.card.MaterialCardView;
 import com.google.gson.JsonElement;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAdapter.ViewHolder> {
@@ -30,7 +32,7 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
 
     Context context;
 
-    public MutableLiveData<Set<Long>> selectedItems;
+    public MutableLiveData<HashMap<Long, ViewHolder>> selectedItems;
     public RouterRecyclerAdapter(Context context) {
         this.context = context;
         this.selectedItems = new MutableLiveData<>();
@@ -60,14 +62,14 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
        holder.materialCardView.setOnClickListener(new View.OnClickListener() {
            @Override
            public void onClick(View v) {
-               Set<Long> items = selectedItems.getValue();
+               HashMap<Long, ViewHolder> items = selectedItems.getValue();
                if(items != null && !items.isEmpty()){
-                   if(items.contains(holder.getItemId())) {
-                       items.remove(holder.getItemId());
-                       holder.unhighlight();
+                   if(items.containsKey(holder.getItemId())) {
+                       ViewHolder viewHolder = items.remove(holder.getItemId());
+                       viewHolder.unhighlight();
                    } else {
                        Log.d(getClass().getName(), "Item id: " + holder.getItemId());
-                       items.add(holder.getItemId());
+                       items.put(holder.getItemId(), holder);
                        holder.highlight();
                    }
                    selectedItems.setValue(items);
@@ -80,16 +82,23 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
         holder.materialCardView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Set<Long> items = selectedItems.getValue();
+                HashMap<Long, ViewHolder> items = selectedItems.getValue();
                 if(items == null)
-                    items = new HashSet<>();
+                    items = new HashMap<>();
                 Log.d(getClass().getName(), "Item id: " + holder.getItemId());
-                items.add(holder.getItemId());
+                items.put(holder.getItemId(), holder);
                 selectedItems.setValue(items);
                 holder.highlight();
                 return true;
             }
         });
+    }
+
+    public void resetAllSelected() {
+        for(Map.Entry<Long, ViewHolder> entry : selectedItems.getValue().entrySet()) {
+            entry.getValue().unhighlight();
+        }
+        selectedItems.setValue(null);
     }
 
     @Override
@@ -132,4 +141,5 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
             this.materialCardView.setBackgroundResource(0);
         }
     }
+
 }

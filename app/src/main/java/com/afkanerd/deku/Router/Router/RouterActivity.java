@@ -21,7 +21,9 @@ import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class RouterActivity extends CustomAppCompactActivity {
@@ -64,15 +66,18 @@ public class RouterActivity extends CustomAppCompactActivity {
                     }
                 });
 
-        routerRecyclerAdapter.selectedItems.observe(this, new Observer<Set<Long>>() {
+        routerRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<Long, RouterRecyclerAdapter.ViewHolder>>() {
             @Override
-            public void onChanged(Set<Long> longs) {
+            public void onChanged(HashMap<Long, RouterRecyclerAdapter.ViewHolder> longs) {
                 if(longs == null || longs.isEmpty()) {
-                    actionMode.finish();
+                    if(actionMode != null) {
+                        actionMode.finish();
+                    }
                     return;
                 }
-                if(actionMode == null)
+                else if(actionMode == null) {
                     actionMode = startActionMode(actionModeCallback);
+                }
                 actionMode.setTitle(String.valueOf(longs.size()));
             }
         });
@@ -105,13 +110,14 @@ public class RouterActivity extends CustomAppCompactActivity {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             // Inflate a menu resource providing context menu items.
-            if(routerRecyclerAdapter.selectedItems != null &&
-                    routerRecyclerAdapter.selectedItems.getValue() != null &&
-                    !routerRecyclerAdapter.selectedItems.getValue().isEmpty()) {
-                mode.getMenuInflater().inflate(R.menu.routing_menu_items_selected, menu);
-            } else {
-                mode.getMenuInflater().inflate(R.menu.routing_menu, menu);
-            }
+//            if(routerRecyclerAdapter.selectedItems != null &&
+//                    routerRecyclerAdapter.selectedItems.getValue() != null &&
+//                    !routerRecyclerAdapter.selectedItems.getValue().isEmpty()) {
+//                mode.getMenuInflater().inflate(R.menu.routing_menu_items_selected, menu);
+//            } else {
+//                mode.getMenuInflater().inflate(R.menu.routing_menu, menu);
+//            }
+            mode.getMenuInflater().inflate(R.menu.routing_menu_items_selected, menu);
             return true;
         }
 
@@ -128,15 +134,15 @@ public class RouterActivity extends CustomAppCompactActivity {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             if (item.getItemId() == R.id.router_cancel_menu_item) {
                 if(routerRecyclerAdapter.selectedItems.getValue() != null) {
-                    for (Long holderId : routerRecyclerAdapter.selectedItems.getValue()) {
+                    for (Map.Entry<Long, RouterRecyclerAdapter.ViewHolder>entry : routerRecyclerAdapter.selectedItems.getValue().entrySet()) {
                         RouterItem routerItem =
-                                routerRecyclerAdapter.mDiffer.getCurrentList().get(Math.toIntExact(holderId));
+                                routerRecyclerAdapter.mDiffer
+                                        .getCurrentList()
+                                        .get(Math.toIntExact(entry.getKey()));
                         String messageId = String.valueOf(routerItem.getMessage_id());
-                        Log.d(getLocalClassName(), "Removing routing message: " + messageId);
                         RouterHandler.removeWorkForMessage(getApplicationContext(), messageId);
-                        routerRecyclerAdapter.notifyItemChanged(Math.toIntExact(holderId));
+                        routerRecyclerAdapter.notifyItemChanged(Math.toIntExact(entry.getKey()));
                     }
-                    routerRecyclerAdapter.selectedItems.setValue(null);
                     return true;
                 }
                 return true;
@@ -148,6 +154,7 @@ public class RouterActivity extends CustomAppCompactActivity {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             actionMode = null;
+            routerRecyclerAdapter.resetAllSelected();
         }
     };
 }
