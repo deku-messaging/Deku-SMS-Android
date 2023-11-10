@@ -167,8 +167,6 @@ dependencies {
     // optional - Jetpack Compose integration
     implementation "androidx.paging:paging-compose:3.2.1"
 
-    implementation "androidx.security:security-crypto:1.1.0-alpha06"
-
     implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.54'
     implementation 'io.michaelrocks:libphonenumber-android:8.13.10'
 

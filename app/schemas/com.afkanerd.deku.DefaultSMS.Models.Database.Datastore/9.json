@@ -82,13 +82,19 @@
       },
       {
         "tableName": "ThreadedConversations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`thread_id` TEXT NOT NULL, `msg_count` INTEGER NOT NULL, `type` INTEGER NOT NULL, `date` TEXT, `is_archived` INTEGER NOT NULL, `is_blocked` INTEGER NOT NULL, `is_shortcode` INTEGER NOT NULL, `is_read` INTEGER NOT NULL, `snippet` TEXT, `contact_name` TEXT, `address` TEXT, `formatted_datetime` TEXT, PRIMARY KEY(`thread_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`thread_id` TEXT NOT NULL, `address` TEXT, `msg_count` INTEGER NOT NULL, `type` INTEGER NOT NULL, `date` TEXT, `is_archived` INTEGER NOT NULL, `is_blocked` INTEGER NOT NULL, `is_shortcode` INTEGER NOT NULL, `is_read` INTEGER NOT NULL, `snippet` TEXT, `contact_name` TEXT, `formatted_datetime` TEXT, PRIMARY KEY(`thread_id`))",
         "fields": [
           {
             "fieldPath": "thread_id",
             "columnName": "thread_id",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "msg_count",
@@ -141,12 +147,6 @@
           {
             "fieldPath": "contact_name",
             "columnName": "contact_name",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "address",
-            "columnName": "address",
             "affinity": "TEXT",
             "notNull": false
           },

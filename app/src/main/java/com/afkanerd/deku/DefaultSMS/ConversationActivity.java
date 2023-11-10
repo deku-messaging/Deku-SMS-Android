@@ -101,7 +101,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
             configureToolbars();
             configureRecyclerView();
             configureMessagesTextBox();
-            configureBroadcastListeners(conversationsViewModel);
+            configureBroadcastListeners(conversationsViewModel, conversationsRecyclerAdapter);
 
             configureLayoutForMessageType();
         } catch (Exception e) {

@@ -9,6 +9,8 @@ import android.provider.Telephony;
 import android.util.Log;
 
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.Router.Router.RouterItem;
@@ -45,16 +47,34 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
+                String messageId = "";
                 try {
                     final String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_text(context, intent);
                     if(regIncomingOutput != null) {
-                        final String messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
+                        messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
 
                         NotificationsHandler.sendIncomingTextMessageNotification(context, messageId);
                         router_activities(messageId);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    try {
+                        Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
+                        if (cursor.moveToFirst()) {
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Conversation conversation = Conversation.build(cursor);
+                                    ConversationDao conversationDao = Conversation.getDao(context);
+                                    conversationDao.insert(conversation);
+                                    cursor.close();
+                                }
+                            }).start();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

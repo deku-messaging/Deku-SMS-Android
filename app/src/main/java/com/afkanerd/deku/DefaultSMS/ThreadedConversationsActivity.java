@@ -66,21 +66,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
-
+        threadedConversationsViewModel.loadNatives(getApplicationContext());
         fragmentManagement();
-        startServices();
-    }
-
-    private void startServices() {
-//        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-//        try {
-//            gatewayClientHandler.startServices();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        } finally {
-//            gatewayClientHandler.close();
-//        }
-
     }
 
     private void fragmentManagement() {
@@ -127,9 +114,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     public void onNewMessageClick(View view) {
-//        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
-//        startActivityForResult(intent, 1);
-
         Intent intent = new Intent(this, ComposeNewMessageActivity.class);
         startActivity(intent);
     }
@@ -172,6 +156,9 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
             }
         });
+
+        configureBroadcastListeners(threadedConversationsViewModel,
+                threadedConversationRecyclerAdapter);
     }
 
     @Override

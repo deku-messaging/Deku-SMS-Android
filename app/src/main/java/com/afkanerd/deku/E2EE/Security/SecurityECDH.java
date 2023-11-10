@@ -5,9 +5,6 @@ import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.Log;
 
-import androidx.security.crypto.EncryptedSharedPreferences;
-import androidx.security.crypto.MasterKey;
-
 //import org.bouncycastle.operator.OperatorCreationException;
 
 import org.spongycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
@@ -57,8 +54,6 @@ public class SecurityECDH {
         keyPairGenerator.initialize(DEFAULT_KEY_SIZE);
         return keyPairGenerator.generateKeyPair();
     }
-
-
 
     /**
      * Use this if parameters used by other party is not known.

@@ -20,6 +20,8 @@ import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationWorkManager;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
@@ -92,7 +94,7 @@ public class CustomAppCompactActivity extends AppCompatActivity {
         return myPackageName.equals(defaultPackage);
     }
 
-    public void configureBroadcastListeners(Object obj) {
+    public void configureBroadcastListeners(Object obj, Object obj1) {
         nativeStateChangedBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
@@ -108,26 +110,22 @@ public class CustomAppCompactActivity extends AppCompatActivity {
                     String threadId = intent.getStringExtra(NativeSMSDB.BROADCAST_THREAD_ID_INTENT);
                     String messageId = intent.getStringExtra(NativeSMSDB.BROADCAST_CONVERSATION_ID_INTENT);
 
-                    if(threadId != null && obj instanceof ThreadedConversationsViewModel) {
+                    if(obj instanceof ThreadedConversationsViewModel) {
                         ThreadedConversationsViewModel viewModel =
                                 (ThreadedConversationsViewModel) obj;
-                        Cursor cursor = NativeSMSDB.fetchByThreadId(context, threadId);
-                        if(cursor.moveToFirst()) {
-                            ThreadedConversations threadedConversations = ThreadedConversations.build(cursor);
-                            cursor.close();
-                            viewModel.insert(threadedConversations);
-                        }
+                        viewModel.loadNatives(getApplicationContext());
                     }
-                    else if(messageId != null && obj instanceof ConversationsViewModel) {
+                    else if(obj instanceof ConversationsViewModel) {
                         ConversationsViewModel viewModel = (ConversationsViewModel) obj;
-                        Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
-                        if(cursor.moveToFirst()) {
-                            Conversation conversation = Conversation.build(cursor);
-                            cursor.close();
-                            viewModel.insert(conversation);
+                        if(viewModel.threadId.equals(threadId)) {
+                            if (obj1 instanceof ConversationsRecyclerAdapter) {
+                                ConversationsRecyclerAdapter conversationsRecyclerAdapter =
+                                        (ConversationsRecyclerAdapter) obj1;
+                                conversationsRecyclerAdapter.refresh();
+                                cancelAllNotifications(Integer.parseInt(threadId));
+                            }
                         }
                     }
-
                 }
             }
         };
@@ -148,6 +146,12 @@ public class CustomAppCompactActivity extends AppCompatActivity {
             registerReceiver(nativeStateChangedBroadcastReceiver,
                     new IntentFilter(NativeSMSDB.BROADCAST_NEW_MESSAGE_ACTION));
         }
+    }
+
+    private void cancelAllNotifications(int id) {
+        NotificationManagerCompat notificationManager =
+                NotificationManagerCompat.from(getApplicationContext());
+        notificationManager.cancel(id);
     }
 
     @Override
