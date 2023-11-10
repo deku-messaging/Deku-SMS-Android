@@ -33,10 +33,10 @@ public class ConversationsViewModel extends ViewModel{
     public String threadId;
     public String address;
     ConversationDao conversationDao;
-    int pageSize = 10;
-    int prefetchDistance = 30;
-    boolean enablePlaceholder = true;
-    int initialLoadSize = 14;
+    int pageSize = 20;
+    int prefetchDistance = 3 * pageSize;
+    boolean enablePlaceholder = false;
+    int initialLoadSize = 2 * pageSize;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
     public LiveData<PagingData<Conversation>> get(ConversationDao conversationDao, String threadId)
@@ -59,18 +59,11 @@ public class ConversationsViewModel extends ViewModel{
         this.conversationDao = conversationDao;
         this.threadId = threadId;
 
-        int pageSize = 20;
-        int prefetchDistance = 10;
-        boolean enablePlaceholder = true;
-        int initialLoadSize = 20;
-        int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
-
         Pager<Integer, Conversation> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
-                initialLoadSize,
-                maxSize
+                initialLoadSize
         ), ()-> this.conversationDao.get(threadId));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
@@ -84,8 +77,7 @@ public class ConversationsViewModel extends ViewModel{
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
-                initialLoadSize,
-                maxSize
+                initialLoadSize
         ), ()-> this.conversationDao.getByAddress(address));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
@@ -124,9 +116,9 @@ public class ConversationsViewModel extends ViewModel{
         Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
         if(cursor.moveToFirst()) {
             Conversation conversation1 = Conversation.build(cursor);
+            cursor.close();
             update(conversation1);
         }
-        cursor.close();
     }
 
     public List<Integer> search(String input) throws InterruptedException {

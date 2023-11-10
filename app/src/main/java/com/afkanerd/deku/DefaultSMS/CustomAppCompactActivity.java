@@ -114,18 +114,18 @@ public class CustomAppCompactActivity extends AppCompatActivity {
                         Cursor cursor = NativeSMSDB.fetchByThreadId(context, threadId);
                         if(cursor.moveToFirst()) {
                             ThreadedConversations threadedConversations = ThreadedConversations.build(cursor);
+                            cursor.close();
                             viewModel.insert(threadedConversations);
                         }
-                        cursor.close();
                     }
                     else if(messageId != null && obj instanceof ConversationsViewModel) {
                         ConversationsViewModel viewModel = (ConversationsViewModel) obj;
                         Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
                         if(cursor.moveToFirst()) {
                             Conversation conversation = Conversation.build(cursor);
+                            cursor.close();
                             viewModel.insert(conversation);
                         }
-                        cursor.close();
                     }
 
                 }

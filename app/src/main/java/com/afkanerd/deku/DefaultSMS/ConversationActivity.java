@@ -22,6 +22,7 @@ import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.MutableLiveData;
@@ -244,6 +245,10 @@ public class ConversationActivity extends DualSIMConversationActivity {
 
         smsTextView = findViewById(R.id.sms_text);
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
+        linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setStackFromEnd(false);
+        linearLayoutManager.setReverseLayout(true);
+        singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 
         conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext());
 

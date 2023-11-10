@@ -4,6 +4,7 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Uri;
@@ -39,6 +40,11 @@ public class Helpers {
     public static long generateRandomNumber() {
         Random random = new Random();
         return random.nextInt(Integer.MAX_VALUE);
+    }
+
+    public static int dpToPixel(float dpValue) {
+        float density = Resources.getSystem().getDisplayMetrics().density;
+        return (int) (dpValue * density);
     }
 
     public static int getRandomColor() {

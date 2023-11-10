@@ -2,11 +2,16 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import android.provider.Telephony;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+//import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -25,7 +30,9 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public TextView date;
     TextView timestamp;
     ImageView imageView;
-    ConstraintLayout constraintLayout, imageConstraintLayout, constraint4;
+    ConstraintLayout constraintLayout, imageConstraintLayout;
+
+    LinearLayoutCompat linearLayoutCompat;
 
     public ConversationSentViewHandler(@NonNull View itemView) {
         super(itemView);
@@ -33,10 +40,16 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
         date = itemView.findViewById(R.id.message_thread_sent_date_text);
         timestamp = itemView.findViewById(R.id.sent_message_date_segment);
-        constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
-        imageConstraintLayout = itemView.findViewById(R.id.message_sent_image_container);
-        imageView = itemView.findViewById(R.id.message_sent_image_view);
-        constraint4 = itemView.findViewById(R.id.conversation_sent_layout_container);
+        linearLayoutCompat = itemView.findViewById(R.id.conversation_linear_layout);
+
+//        constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
+//        imageConstraintLayout = itemView.findViewById(R.id.message_sent_image_container);
+//        imageView = itemView.findViewById(R.id.message_sent_image_view);
+//        constraint4 = itemView.findViewById(R.id.conversation_sent_layout_container);
+
+        RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
+        layoutParams.bottomMargin = Helpers.dpToPixel(16);
+        linearLayoutCompat.setLayoutParams(layoutParams);
     }
 
     @Override
@@ -109,17 +122,20 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     @Override
     public void activate() {
-        constraintLayout.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
+        sentMessage.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
     }
 
     @Override
     public void deactivate() {
-        constraintLayout.setBackgroundResource(R.drawable.sent_messages_drawable);
+        sentMessage.setBackgroundResource(R.drawable.sent_messages_drawable);
     }
 
     public static class TimestampConversationSentViewHandler extends ConversationSentViewHandler {
         public TimestampConversationSentViewHandler(@NonNull View itemView) {
             super(itemView);
+            RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
+            layoutParams.bottomMargin = Helpers.dpToPixel(1);
+            linearLayoutCompat.setLayoutParams(layoutParams);
             timestamp.setVisibility(View.VISIBLE);
         }
     }
@@ -129,15 +145,15 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
             super(itemView);
             imageView.setImageDrawable(itemView.getContext().getDrawable(R.drawable.round_key_24));
             imageConstraintLayout.setVisibility(View.VISIBLE);
-            constraintLayout.setVisibility(View.GONE);
+            sentMessage.setVisibility(View.GONE);
         }
 
         public void highlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
         }
 
         public void unHighlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_drawable);
         }
     }
 
@@ -151,75 +167,72 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class TimestampKeySentStartGroupViewHandler extends TimestampConversationSentViewHandler {
         public TimestampKeySentStartGroupViewHandler(@NonNull View itemView) {
             super(itemView);
-
-            constraintLayout.setBackground(
+            sentMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_start_view_drawable));
-            ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
-                    constraint4.getLayoutParams();
-            params.bottomMargin= BOTTOM_MARGIN;
-            constraint4.setLayoutParams(params);
+
         }
 
         public void highlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
         }
         public void unHighlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
         }
     }
 
     public static class ConversationSentStartViewHandler extends ConversationSentViewHandler {
         public ConversationSentStartViewHandler(@NonNull View itemView) {
             super(itemView);
+            RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
+            layoutParams.bottomMargin = Helpers.dpToPixel(1);
+            linearLayoutCompat.setLayoutParams(layoutParams);
 
-            constraintLayout.setBackground(
+            sentMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_start_view_drawable));
-
-            ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
-                    constraint4.getLayoutParams();
-            params.bottomMargin= BOTTOM_MARGIN;
-            constraint4.setLayoutParams(params);
         }
 
         public void highlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
         }
         public void unHighlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
         }
     }
     public static class ConversationSentEndViewHandler extends ConversationSentViewHandler {
         public ConversationSentEndViewHandler(@NonNull View itemView) {
             super(itemView);
 
-            constraintLayout.setBackground(
+            RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
+            layoutParams.bottomMargin = Helpers.dpToPixel(16);
+            linearLayoutCompat.setLayoutParams(layoutParams);
+
+            sentMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_end_view_drawable));
         }
         public void highlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_end_highlight_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_end_highlight_drawable);
         }
         public void unHighlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_end_view_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_end_view_drawable);
         }
     }
 
     public static class ConversationSentMiddleViewHandler extends ConversationSentViewHandler {
         public ConversationSentMiddleViewHandler(@NonNull View itemView) {
             super(itemView);
+            RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
+            layoutParams.bottomMargin = Helpers.dpToPixel(1);
+            linearLayoutCompat.setLayoutParams(layoutParams);
 
-            constraintLayout.setBackground(
+            sentMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_middle_view_drawable));
-            ConstraintLayout.LayoutParams params= (ConstraintLayout.LayoutParams)
-                    constraint4.getLayoutParams();
-            params.bottomMargin= BOTTOM_MARGIN;
-            constraint4.setLayoutParams(params);
         }
 
         public void highlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_middle_hightlight_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_middle_hightlight_drawable);
         }
         public void unHighlight() {
-            constraintLayout.setBackgroundResource(R.drawable.sent_messages_middle_view_drawable);
+            sentMessage.setBackgroundResource(R.drawable.sent_messages_middle_view_drawable);
         }
     }
 

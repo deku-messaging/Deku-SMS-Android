@@ -284,9 +284,9 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         if(position > 0) {
             Conversation secondMessage = (Conversation) peek(position + 1);
-            if(secondMessage == null)
-                return super.getItemViewType(position);
             Conversation thirdMessage = (Conversation) peek(position - 1);
+            if(secondMessage == null || thirdMessage == null)
+                return super.getItemViewType(position);
             if(!Helpers.isSameHour(Long.parseLong(sms.getDate()), Long.parseLong(secondMessage.getDate()))) {
                 if(sms.getType() == thirdMessage.getType() && Helpers.isSameMinute(Long.parseLong(sms.getDate()),
                         Long.parseLong(thirdMessage.getDate())))

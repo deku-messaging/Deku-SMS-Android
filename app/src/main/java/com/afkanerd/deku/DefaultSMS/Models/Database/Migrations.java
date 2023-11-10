@@ -100,6 +100,10 @@ public class Migrations {
             database.execSQL("UPDATE ThreadedConversations SET is_archived = 1 " +
                     "WHERE thread_id IN (SELECT threadId as thread_id FROM Archive)");
 
+            database.execSQL("DROP TABLE IF EXISTS Archive");
+            database.execSQL("CREATE TABLE IF NOT EXISTS Archive " +
+                    "(thread_id TEXT PRIMARY KEY NOT NULL, is_archived INTEGER NOT NULL)");
+
             database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_Conversation_message_id ON Conversation (message_id)");
         }
     }
