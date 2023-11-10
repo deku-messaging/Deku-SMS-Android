@@ -64,6 +64,7 @@
     <!--    </androidx.constraintlayout.widget.ConstraintLayout>-->
 
     <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/conversation_status_linear_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"

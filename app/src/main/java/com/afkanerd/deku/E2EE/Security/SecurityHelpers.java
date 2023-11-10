@@ -9,6 +9,12 @@ package com.afkanerd.deku.E2EE.Security;
 //import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 
 public class SecurityHelpers {
 
@@ -21,25 +27,6 @@ public class SecurityHelpers {
 
     public final static String ENCRYPTED_WATERMARK_START = "$d3$";
     public final static String ENCRYPTED_WATERMARK_END = ".d.$";
-
-//    public static X509Certificate generateCertificate(KeyPair keyPair) throws NoSuchAlgorithmException, InvalidKeyException, IOException, CertificateException, OperatorCreationException, InvalidKeySpecException {
-//        // Create self-signed certificate
-//        byte[] publicKeyBytes = keyPair.getPublic().getEncoded();
-//        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
-//        SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKeySpec.getEncoded());
-//
-//        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
-//                new X500Name("CN=DH Test Certificate"), // subject
-//                BigInteger.valueOf(new SecureRandom().nextLong()), // serial number
-//                new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000L), // not before
-//                new Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000L), // not after
-//                new X500Name("CN=DH Test Certificate"), // issuer
-//                subjectPublicKeyInfo);
-//        JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder("SHA256withDSA");
-//        signerBuilder.setProvider("BC");
-//        ContentSigner signer = signerBuilder.build(keyPair.getPrivate());
-//        return new JcaX509CertificateConverter().setProvider("BC").getCertificate(builder.build(signer));
-//    }
 
     /**
      * Includes the headers required to identify that this is an agreement request.
@@ -117,5 +104,23 @@ public class SecurityHelpers {
 
     public static boolean isKeyExchange(String body) {
         return body.contains(FIRST_HEADER) && body.contains(END_HEADER);
+    }
+
+
+    public static PrivateKey bytesToPrivateKey(byte[] privateKeyBytes, String algorithm) throws
+            NoSuchAlgorithmException, InvalidKeySpecException {
+        KeyFactory keyFactory = KeyFactory.getInstance(algorithm); // Replace "RSA" with your key algorithm
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
+
+        return keyFactory.generatePrivate(keySpec);
+    }
+
+    public static byte[] generateRandomBytes(int length) {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new
+
+                byte[length];
+        random.nextBytes(bytes);
+        return bytes;
     }
 }

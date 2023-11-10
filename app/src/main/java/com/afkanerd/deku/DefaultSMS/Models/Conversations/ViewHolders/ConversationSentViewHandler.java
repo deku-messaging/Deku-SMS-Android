@@ -26,13 +26,14 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     final static int BOTTOM_MARGIN = 4;
     TextView sentMessage;
-    public TextView sentMessageStatus;
-    public TextView date;
+    TextView sentMessageStatus;
+    TextView date;
     TextView timestamp;
     ImageView imageView;
-    ConstraintLayout constraintLayout, imageConstraintLayout;
+    ConstraintLayout imageConstraintLayout;
 
     LinearLayoutCompat linearLayoutCompat;
+    public LinearLayoutCompat messageStatusLinearLayoutCompact;
 
     public ConversationSentViewHandler(@NonNull View itemView) {
         super(itemView);
@@ -41,6 +42,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         date = itemView.findViewById(R.id.message_thread_sent_date_text);
         timestamp = itemView.findViewById(R.id.sent_message_date_segment);
         linearLayoutCompat = itemView.findViewById(R.id.conversation_linear_layout);
+        messageStatusLinearLayoutCompact = itemView.findViewById(R.id.conversation_status_linear_layout);
 
 //        constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
 //        imageConstraintLayout = itemView.findViewById(R.id.message_sent_image_container);

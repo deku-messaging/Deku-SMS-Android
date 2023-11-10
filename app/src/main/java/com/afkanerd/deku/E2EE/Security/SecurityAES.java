@@ -8,15 +8,11 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class SecurityAES {
 
-    public static MGF1ParameterSpec defaultEncryptionDigest = MGF1ParameterSpec.SHA256;
-    public static MGF1ParameterSpec defaultDecryptionDigest = MGF1ParameterSpec.SHA1;
-
     public static final String DEFAULT_AES_ALGORITHM = "AES/CBC/PKCS5Padding";
 
-    public SecurityAES(){
-    }
+    public static final String ALGORITHM = "AES";
 
-    public static byte[] encrypt_256_cbc(byte[] input, byte[] secretKey, byte[] iv) throws Throwable {
+    public static byte[] encryptAES256CBC(byte[] input, byte[] secretKey, byte[] iv) throws Throwable {
         try {
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, secretKey.length, "AES");
 
@@ -41,9 +37,9 @@ public class SecurityAES {
         }
     }
 
-    public static byte[] decrypt_256_cbc(byte[] input, byte[] sharedKey) throws Throwable {
+    public static byte[] decryptAES256CBC(byte[] input, byte[] sharedKey) throws Throwable {
         try {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(sharedKey, "AES");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(sharedKey, ALGORITHM);
 
             byte[] iv = new byte[16];
             System.arraycopy(input, 0, iv, 0, 16);

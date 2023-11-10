@@ -178,8 +178,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
             ConversationSentViewHandler conversationSentViewHandler = (ConversationSentViewHandler) holder;
             conversationSentViewHandler.bind(conversation);
             if(position == 0) {
-                conversationSentViewHandler.date.setVisibility(View.VISIBLE);
-                conversationSentViewHandler.sentMessageStatus.setVisibility(View.VISIBLE);
+                conversationSentViewHandler.messageStatusLinearLayoutCompact.setVisibility(View.VISIBLE);
             }
         }
 
