@@ -32,6 +32,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.main">
 
         <activity
@@ -65,7 +66,9 @@
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.ComposeNewMessageActivity"
             android:exported="true"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity">
+            android:label="@string/compose_new_message_title"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
+            android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 

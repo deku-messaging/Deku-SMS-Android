@@ -4,7 +4,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -21,9 +20,6 @@ import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.widget.LinearLayoutCompat;
-import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -33,6 +29,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdapter;
@@ -40,8 +37,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -96,7 +93,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
         test();
 
         try {
-            setupActivityDependencies();
+            configureActivityDependencies();
             instantiateGlobals();
             configureToolbars();
             configureRecyclerView();
@@ -161,7 +158,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setupActivityDependencies() throws Exception {
+    private void configureActivityDependencies() throws Exception {
         /**
          * Address = This could come from Shared Intent, Contacts etc
          * ThreadID = This comes from Thread screen and notifications
@@ -172,12 +169,12 @@ public class ConversationActivity extends DualSIMConversationActivity {
         if(getIntent().getAction() != null && (getIntent().getAction().equals(Intent.ACTION_SENDTO) ||
                 getIntent().getAction().equals(Intent.ACTION_SEND))) {
             String sendToString = getIntent().getDataString();
-            if (sendToString != null && (sendToString.contains("smsto:") || sendToString.contains("sms:"))) {
-                String _address = sendToString.substring(sendToString.indexOf(':') + 1);
-                _address = Helpers.formatPhoneNumbers(getApplicationContext(), _address);
-                Log.d(getLocalClassName(), "Shared address: " + _address);
-                getIntent().putExtra(Conversation.ADDRESS, _address);
-                getIntent().setAction(null);
+            if (sendToString != null && (sendToString.contains("smsto:") ||
+                    sendToString.contains("sms:"))) {
+                String defaultRegion = Helpers.getUserCountry(getApplicationContext());
+                String address = Helpers.formatPhoneNumbers(sendToString, defaultRegion);
+                Log.d(getLocalClassName(), "Shared address: " + address);
+                getIntent().putExtra(Conversation.ADDRESS, address);
             }
         }
 
@@ -194,14 +191,11 @@ public class ConversationActivity extends DualSIMConversationActivity {
         }
 
         else if(getIntent().hasExtra(Conversation.ADDRESS)) {
-            Log.d(getLocalClassName(), "Address available!");
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setAddress(getIntent().getStringExtra(Conversation.ADDRESS));
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
                     threadedConversations);
-            if(this.threadedConversations == null) {
-                this.threadedConversations = threadedConversations;
-            }
+            Log.d(getLocalClassName(), "Address available!: " + this.threadedConversations.getAddress());
         }
 
 
@@ -303,7 +297,10 @@ public class ConversationActivity extends DualSIMConversationActivity {
         conversationsRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
             @Override
             public Unit invoke() {
-                if(conversationsRecyclerAdapter.getItemCount() < 1)
+                if(conversationsRecyclerAdapter.getItemCount() < 1 &&
+                        getIntent().getAction() != null &&
+                        !getIntent().getAction().equals(Intent.ACTION_SENDTO) &&
+                        !getIntent().getAction().equals(Intent.ACTION_SEND))
                     finish();
                 return null;
             }
@@ -424,16 +421,24 @@ public class ConversationActivity extends DualSIMConversationActivity {
 
     private String getAbTitle() {
         String abTitle = getIntent().getStringExtra(Conversation.ADDRESS);
-        if(this.threadedConversations != null)
-            abTitle = (this.threadedConversations.getContact_name() != null &&
-                    !this.threadedConversations.getContact_name().isEmpty()) ?
-                    this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
-        return abTitle;
+//        if(this.threadedConversations != null)
+//            abTitle = (this.threadedConversations.getContact_name() != null &&
+//                    !this.threadedConversations.getContact_name().isEmpty()) ?
+//                    this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
+        Log.d(getLocalClassName(), "AbTitle: " + abTitle);
+        if(this.threadedConversations == null || this.threadedConversations.getContact_name() == null) {
+            this.threadedConversations.setContact_name(
+                    Contacts.retrieveContactName(getApplicationContext(), abTitle));
+        }
+        Log.d(getLocalClassName(), "Thread said: " + this.threadedConversations.getContact_name());
+        return (this.threadedConversations.getContact_name() != null &&
+                !this.threadedConversations.getContact_name().isEmpty()) ?
+                this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
+//        return abTitle;
     }
     private String getAbSubTitle() {
-        return (this.threadedConversations != null &&
-                this.threadedConversations.getContact_name() != null &&
-                !this.threadedConversations.getContact_name().isEmpty()) ?
+        return this.threadedConversations != null &&
+                this.threadedConversations.getAddress() != null ?
                 this.threadedConversations.getAddress(): "";
     }
 
@@ -517,32 +522,23 @@ public class ConversationActivity extends DualSIMConversationActivity {
             String text = smsTextView.getText().toString();
             // TODO: encryption
 
-            String[] transmissionOutput = _sendSMSMessage(defaultSubscriptionId, text);
-
-            String messageId = transmissionOutput[NativeSMSDB.MESSAGE_ID];
-            String threadId = transmissionOutput[NativeSMSDB.THREAD_ID];
-
-            conversationsViewModel.insertFromNative(getApplicationContext(), messageId);
-            if(this.threadedConversations == null) {
-                getIntent().putExtra(Conversation.THREAD_ID, threadId);
-                setupActivityDependencies();
-            }
+            _sendSMSMessage(defaultSubscriptionId, text);
 
             smsTextView.getText().clear();
         }
     }
 
-    private String[] _sendSMSMessage(int subscriptionId, String text) {
+    private void _sendSMSMessage(int subscriptionId, String text) {
         try {
             String address = this.threadedConversations == null ?
                     getIntent().getStringExtra(Conversation.ADDRESS) :
                     this.threadedConversations.getAddress();
-            return NativeSMSDB.Outgoing.send_text(getApplicationContext(), address, text,
+            String messageId = String.valueOf(System.currentTimeMillis());
+            SMSDatabaseWrapper.send_text(getApplicationContext(), messageId, address, text,
                     subscriptionId, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     private void copyItem() {
@@ -567,7 +563,6 @@ public class ConversationActivity extends DualSIMConversationActivity {
             conversation.setMessage_id(viewHandler.getMessage_id());
             conversationList.add(conversation);
         }
-        conversationsRecyclerAdapter.mutableSelectedItems.setValue(null);
         conversationsViewModel.deleteItems(getApplicationContext(), conversationList);
     }
 
@@ -615,13 +610,16 @@ public class ConversationActivity extends DualSIMConversationActivity {
             int id = item.getItemId();
             if (R.id.conversations_menu_copy == id) {
                 copyItem();
-                conversationsRecyclerAdapter.resetAllSelectedItems();
+                if(actionMode != null)
+                    actionMode.finish();
                 return true;
             }
             else if (R.id.conversations_menu_delete == id ||
                     R.id.conversations_menu_delete_multiple == id) {
                 try {
                     deleteItems();
+                    if(actionMode != null)
+                        actionMode.finish();
                 } catch(Exception e) {
                     e.printStackTrace();
                 }

@@ -31,16 +31,6 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose_new_message);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.compose_new_message_toolbar);
-        setSupportActionBar(toolbar);
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-        // Enable the Up button
-        ab.setDisplayHomeAsUpEnabled(true);
-
-        ab.setTitle(getString(R.string.search_title));
-
         contactsViewModel = new ViewModelProvider(this).get(
                 ContactsViewModel.class);
 
@@ -106,5 +96,11 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
                 contactsRecyclerAdapter.setSharedMessage(sharedSMS);
             }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        findViewById(R.id.compose_new_message_to).requestFocus();
     }
 }

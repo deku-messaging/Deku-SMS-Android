@@ -18,6 +18,7 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.R;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
@@ -51,7 +52,8 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                     return;
 
                 try {
-                    NativeSMSDB.Outgoing.send_text(context, address, reply.toString(),
+                    String messageId = String.valueOf(System.currentTimeMillis());
+                    SMSDatabaseWrapper.send_text(context, messageId, address, reply.toString(),
                             subscriptionId, null);
                 } catch (Exception e) {
                     e.printStackTrace();

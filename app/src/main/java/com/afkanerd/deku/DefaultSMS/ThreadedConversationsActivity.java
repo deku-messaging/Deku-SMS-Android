@@ -66,7 +66,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
-        threadedConversationsViewModel.loadNatives(getApplicationContext());
         fragmentManagement();
     }
 
@@ -282,4 +281,10 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         }
     };
 
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+
+        threadedConversationsViewModel.loadNatives(getApplicationContext());
+    }
 }

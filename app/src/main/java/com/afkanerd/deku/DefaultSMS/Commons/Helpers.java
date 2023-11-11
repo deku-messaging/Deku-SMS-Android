@@ -24,6 +24,8 @@ import android.widget.TextView;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
@@ -33,8 +35,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import io.michaelrocks.libphonenumber.android.PhoneNumberUtil;
 
 public class Helpers {
     public static long generateRandomNumber() {
@@ -78,25 +78,26 @@ public class Helpers {
         return !PhoneNumberUtils.isWellFormedSmsAddress(conversation.getAddress()) || matcher.find();
     }
 
-    public static String formatPhoneNumbers(Context context, String data) throws NumberParseException {
-        String formattedString = data.replaceAll("%2B", "+")
-                .replaceAll("%20", "");
-
-        if(!PhoneNumberUtils.isWellFormedSmsAddress(formattedString))
-            return formattedString;
-
-        // Remove any non-digit characters except the plus sign at the beginning of the string
-        String strippedNumber = formattedString.replaceAll("[^0-9+;]", "");
-        if(strippedNumber.length() > 6) {
-            // If the stripped number starts with a plus sign followed by one or more digits, return it as is
-            if (!strippedNumber.matches("^\\+\\d+")) {
-                String dialingCode = getUserCountry(context);
-                strippedNumber = "+" + dialingCode + strippedNumber;
+    public static String formatPhoneNumbers(String data, String defaultRegion) {
+        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+        try {
+            long nationalNumber = 0;
+            try {
+                Phonenumber.PhoneNumber phoneNumber = phoneNumberUtil.parse(data, defaultRegion);
+                nationalNumber = phoneNumber.getNationalNumber();
+            } catch(NumberParseException e) {
+                data = data.replaceAll("sms[to]*:", "");
+                if(data.startsWith(defaultRegion)) {
+                    data = "+" + data;
+                } else {
+                    data = defaultRegion + data;
+                }
+                nationalNumber = Long.parseLong(formatPhoneNumbers(data, defaultRegion));
             }
-            return strippedNumber;
+            return String.valueOf(nationalNumber);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        // If the stripped number is not a valid phone number, return an empty string
         return data;
     }
 
@@ -185,8 +186,7 @@ public class Helpers {
                 countryCode = tm.getNetworkCountryIso().toUpperCase(Locale.US);
             }
         }
-        return String.valueOf(
-                PhoneNumberUtil.createInstance(context).getCountryCodeForRegion(countryCode));
+        return String.valueOf(PhoneNumberUtil.getInstance().getCountryCodeForRegion(countryCode));
     }
 
     public static int generateColor(int input) {

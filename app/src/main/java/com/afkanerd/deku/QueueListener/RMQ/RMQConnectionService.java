@@ -21,6 +21,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.Router.Router.RouterHandler;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
@@ -268,7 +269,9 @@ public class RMQConnectionService extends Service {
 
                     Bundle bundle = new Bundle();
                     bundle.putString(RMQConnection.MESSAGE_SID, sid);
-                    NativeSMSDB.Outgoing.send_text(getApplicationContext(), msisdn, body, subscriptionId, bundle);
+                    String messageId = String.valueOf(System.currentTimeMillis());
+                    SMSDatabaseWrapper.send_text(getApplicationContext(), messageId, msisdn, body,
+                            subscriptionId, bundle);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     channel.basicReject(delivery.getEnvelope().getDeliveryTag(), false);

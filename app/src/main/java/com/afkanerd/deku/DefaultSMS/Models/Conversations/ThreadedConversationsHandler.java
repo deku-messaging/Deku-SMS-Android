@@ -10,7 +10,7 @@ public class ThreadedConversationsHandler {
 
     public static ThreadedConversations get(Context context, ThreadedConversations threadedConversations) throws InterruptedException {
         ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
-        final ThreadedConversations[] threadedConversations1 = {null};
+        final ThreadedConversations[] threadedConversations1 = {threadedConversations};
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -19,9 +19,14 @@ public class ThreadedConversationsHandler {
                     threadedConversations1[0] =
                             threadedConversationsDao.get(threadedConversations.getThread_id());
                 else if(threadedConversations.getAddress() != null &&
-                        !threadedConversations.getAddress().isEmpty())
-                    threadedConversations1[0] =
+                        !threadedConversations.getAddress().isEmpty()) {
+//                    threadedConversations1[0] =
+//                            threadedConversationsDao.getByAddress(threadedConversations.getAddress());
+                    ThreadedConversations threadedConversation =
                             threadedConversationsDao.getByAddress(threadedConversations.getAddress());
+                    if(threadedConversation != null )
+                        threadedConversations1[0] = threadedConversation;
+                }
             }
         });
         thread.start();

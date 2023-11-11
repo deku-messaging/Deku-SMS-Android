@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -83,16 +84,18 @@ public class Contacts {
     }
 
     public static String retrieveContactName(Context context, String phoneNumber) {
-        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                Uri.encode(phoneNumber));
         Cursor cursor = context.getContentResolver().query(
                 uri,
                 new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME},
                 null,
                 null, null);
 
-        if(cursor.moveToFirst()) {
+        Log.d(Contacts.class.getName(), "In contacts yes I am: " + uri.toString());
+        if(cursor != null && cursor.moveToFirst()) {
             int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
-            String contactName = String.valueOf(cursor.getString(displayNameIndex));
+            String contactName = cursor.getString(displayNameIndex);
             cursor.close();
             return contactName;
         }

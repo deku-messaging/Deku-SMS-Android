@@ -186,10 +186,9 @@ public class NativeSMSDB {
             return 0;
         }
 
-        public static String[] send_text(Context context, String destinationAddress,
+        protected static String[] _send_text(Context context, String messageId, String destinationAddress,
                                                  String text, int subscriptionId, Bundle bundle) throws Exception {
-            String[] pendingOutputs = register_pending(context, destinationAddress, text, subscriptionId);
-            String messageId = pendingOutputs[MESSAGE_ID];
+            String[] pendingOutputs = register_pending(context, messageId, destinationAddress, text, subscriptionId);
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
             Transmissions.sendTextSMS(destinationAddress, text,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
@@ -197,20 +196,18 @@ public class NativeSMSDB {
         }
 
 
-        public static String[] send_data(Context context, String destinationAddress, byte[] data,
-                                 int subscriptionId, Bundle bundle) throws Exception {
-            String[] pendingOutputs = register_pending(context, destinationAddress,
+        protected static String[] send_data(Context context, String messageId, String destinationAddress,
+                                         byte[] data, int subscriptionId, Bundle bundle) throws Exception {
+            String[] pendingOutputs = register_pending(context, messageId, destinationAddress,
                     Base64.encodeToString(data, Base64.DEFAULT), subscriptionId);
-            String messageId = pendingOutputs[MESSAGE_ID];
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
             Transmissions.sendDataSMS(destinationAddress, data,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
             return pendingOutputs;
         }
 
-        private static String[] register_pending(Context context, String destinationAddress,
-                                                String text, int subscriptionId) {
-            long messageId = System.currentTimeMillis();
+        private static String[] register_pending(Context context, String messageId,
+                                                 String destinationAddress, String text, int subscriptionId) {
             ContentValues contentValues = new ContentValues();
 
             contentValues.put(Telephony.Sms._ID, messageId);
