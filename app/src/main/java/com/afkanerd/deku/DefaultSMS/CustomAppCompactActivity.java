@@ -101,9 +101,12 @@ public class CustomAppCompactActivity extends AppCompatActivity {
                 if(intent.getAction().equals(NativeSMSDB.BROADCAST_STATUS_CHANGED_ACTION)) {
                     String messageId = intent.getStringExtra(NativeSMSDB.BROADCAST_CONVERSATION_ID_INTENT);
                     if(messageId != null && obj instanceof ConversationsViewModel) {
-                        Log.d(getLocalClassName(), "Message state changed: " + messageId);
                         ConversationsViewModel viewModel = (ConversationsViewModel) obj;
                         viewModel.updateFromNative(getApplicationContext(), messageId);
+                    }
+                    else if(obj instanceof ThreadedConversationsViewModel) {
+                        ThreadedConversationsViewModel viewModel = (ThreadedConversationsViewModel) obj;
+                        viewModel.loadNatives(getApplicationContext());
                     }
                 }
                 else if(intent.getAction().equals(NativeSMSDB.BROADCAST_NEW_MESSAGE_ACTION)) {

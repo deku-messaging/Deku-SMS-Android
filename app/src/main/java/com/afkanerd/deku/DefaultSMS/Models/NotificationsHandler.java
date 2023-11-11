@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.telephony.PhoneNumberUtils;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -165,6 +166,7 @@ public class NotificationsHandler {
 
         Intent markAsReadIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
         markAsReadIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+        markAsReadIntent.putExtra(Conversation.ID, conversation.getMessage_id());
         markAsReadIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.MARK_AS_READ_BROADCAST_INTENT);
 
         PendingIntent markAsReadPendingIntent =

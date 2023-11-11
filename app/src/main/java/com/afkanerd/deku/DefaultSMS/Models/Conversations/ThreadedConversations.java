@@ -308,6 +308,10 @@ public class ThreadedConversations {
             this.type = threadedConversations.getType();
             diff = true;
         }
+        if(this.is_read != threadedConversations.isIs_read()) {
+            this.is_read = threadedConversations.isIs_read();
+            diff = true;
+        }
         this.msg_count = threadedConversations.getMsg_count();
         return diff;
     }

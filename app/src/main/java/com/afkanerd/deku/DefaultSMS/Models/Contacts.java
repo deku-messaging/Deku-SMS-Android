@@ -92,7 +92,6 @@ public class Contacts {
                 null,
                 null, null);
 
-        Log.d(Contacts.class.getName(), "In contacts yes I am: " + uri.toString());
         if(cursor != null && cursor.moveToFirst()) {
             int displayNameIndex = cursor.getColumnIndexOrThrow(ContactsContract.PhoneLookup.DISPLAY_NAME);
             String contactName = cursor.getString(displayNameIndex);

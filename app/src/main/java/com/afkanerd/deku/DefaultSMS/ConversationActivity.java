@@ -421,20 +421,13 @@ public class ConversationActivity extends DualSIMConversationActivity {
 
     private String getAbTitle() {
         String abTitle = getIntent().getStringExtra(Conversation.ADDRESS);
-//        if(this.threadedConversations != null)
-//            abTitle = (this.threadedConversations.getContact_name() != null &&
-//                    !this.threadedConversations.getContact_name().isEmpty()) ?
-//                    this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
-        Log.d(getLocalClassName(), "AbTitle: " + abTitle);
         if(this.threadedConversations == null || this.threadedConversations.getContact_name() == null) {
             this.threadedConversations.setContact_name(
                     Contacts.retrieveContactName(getApplicationContext(), abTitle));
         }
-        Log.d(getLocalClassName(), "Thread said: " + this.threadedConversations.getContact_name());
         return (this.threadedConversations.getContact_name() != null &&
                 !this.threadedConversations.getContact_name().isEmpty()) ?
                 this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
-//        return abTitle;
     }
     private String getAbSubTitle() {
         return this.threadedConversations != null &&

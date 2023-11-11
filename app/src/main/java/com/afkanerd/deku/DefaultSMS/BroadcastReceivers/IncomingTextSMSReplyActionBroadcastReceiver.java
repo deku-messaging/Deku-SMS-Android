@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -86,8 +87,11 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
         }
         else if(intent.getAction() != null && intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
             String threadId = intent.getStringExtra(Conversation.THREAD_ID);
+            String messageId = intent.getStringExtra(Conversation.ID);
+            Log.d(getClass().getName(), "Got this from mark: " + messageId);
+            Log.d(getClass().getName(), "Got this from thread mark: " + threadId);
             try {
-                NativeSMSDB.Incoming.update_read(context, 1, threadId);
+                NativeSMSDB.Incoming.update_read(context, 1, threadId, messageId);
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
                 notificationManager.cancel(Integer.parseInt(threadId));
             } catch(Exception e) {

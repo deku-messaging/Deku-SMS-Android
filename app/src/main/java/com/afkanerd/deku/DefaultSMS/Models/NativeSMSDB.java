@@ -288,16 +288,20 @@ public class NativeSMSDB {
 
     public static class Incoming {
 
-        public static int update_read(Context context, int read, String thread_id) {
+        public static int update_read(Context context, int read, String thread_id, String messageId) {
             ContentValues contentValues = new ContentValues();
             contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
 
             try {
-                return context.getContentResolver().update(
+                int numberUpdated = context.getContentResolver().update(
                         Telephony.Sms.CONTENT_URI,
                         contentValues,
                         "thread_id=?",
                         new String[]{thread_id});
+
+                if(messageId != null)
+                    broadcastStateChanged(context, messageId);
+                return numberUpdated;
             } catch (Exception e) {
                 e.printStackTrace();
             }

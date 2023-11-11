@@ -142,7 +142,7 @@ public class ConversationsViewModel extends ViewModel{
 
     public void updateToRead(Context context) {
         if(threadId != null && !threadId.isEmpty()) {
-            NativeSMSDB.Incoming.update_read(context, 1, threadId);
+            NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
             ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
             new Thread(new Runnable() {
                 @Override
