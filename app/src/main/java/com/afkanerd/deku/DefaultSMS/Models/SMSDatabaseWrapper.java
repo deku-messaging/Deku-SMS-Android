@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.provider.Telephony;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
@@ -25,8 +26,10 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
             public void run() {
                 long id = conversationDao.insert(conversation);
                 try {
-                    String[] nativeOutputs = NativeSMSDB.Outgoing._send_text(context, messageId, destinationAddress,
-                            text, subscriptionId, bundle);
+                    String transmissionAddress = Helpers.getFormatForTransmission(destinationAddress,
+                            Helpers.getUserCountry(context));
+                    String[] nativeOutputs = NativeSMSDB.Outgoing._send_text(context, messageId,
+                            transmissionAddress, text, subscriptionId, bundle);
                     Conversation conversation1 = new Conversation();
                     conversation1.setThread_id(nativeOutputs[NativeSMSDB.THREAD_ID]);
                     conversation1.setId(id);

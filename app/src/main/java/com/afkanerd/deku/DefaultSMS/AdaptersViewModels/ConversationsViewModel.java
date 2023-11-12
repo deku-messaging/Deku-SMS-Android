@@ -37,11 +37,9 @@ public class ConversationsViewModel extends ViewModel{
     ConversationDao conversationDao;
     public int pageSize = 20;
     int prefetchDistance = 3 * pageSize;
-    boolean enablePlaceholder = true;
+    boolean enablePlaceholder = false;
     int initialLoadSize = 2 * pageSize;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
-
-    PagingSource pagingSource;
 
     public Integer initialKey = null;
 
@@ -138,7 +136,7 @@ public class ConversationsViewModel extends ViewModel{
                 List<Conversation> list = conversationDao.getAll(threadId);
 
                 for(int i=0;i<list.size();++i) {
-                    if(list.get(i).getBody().contains(input))
+                    if(list.get(i).getBody().toLowerCase().contains(input.toLowerCase()))
                         positions.add(i);
                 }
             }

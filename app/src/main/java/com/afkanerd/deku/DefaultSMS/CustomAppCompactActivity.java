@@ -120,6 +120,8 @@ public class CustomAppCompactActivity extends AppCompatActivity {
                     }
                     else if(obj instanceof ConversationsViewModel) {
                         ConversationsViewModel viewModel = (ConversationsViewModel) obj;
+                        if(viewModel.threadId == null)
+                            viewModel.threadId = threadId;
                         if(viewModel.threadId.equals(threadId)) {
                             if (obj1 instanceof ConversationsRecyclerAdapter) {
                                 ConversationsRecyclerAdapter conversationsRecyclerAdapter =

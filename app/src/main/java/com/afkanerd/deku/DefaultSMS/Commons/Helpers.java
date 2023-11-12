@@ -78,23 +78,74 @@ public class Helpers {
         return !PhoneNumberUtils.isWellFormedSmsAddress(conversation.getAddress()) || matcher.find();
     }
 
-    public static String formatPhoneNumbers(String data, String defaultRegion) {
+    public static String getFormatCompleteNumber(String data, String defaultRegion) {
+        data = data.replaceAll("%2B", "+")
+                .replaceAll("%20", "");
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+        String outputNumber = data;
         try {
-            long nationalNumber = 0;
+            Phonenumber.PhoneNumber phoneNumber = phoneNumberUtil.parse(data, defaultRegion);
+            long nationalNumber = phoneNumber.getNationalNumber();
+            long countryCode = phoneNumber.getCountryCode();
+
+            return "+" + countryCode + nationalNumber;
+        } catch(NumberParseException e) {
+            e.printStackTrace();
+            if(e.getErrorType() == NumberParseException.ErrorType.INVALID_COUNTRY_CODE) {
+                data = outputNumber.replaceAll("sms[to]*:", "");
+                if (data.startsWith(defaultRegion)) {
+                    outputNumber = "+" + data;
+                } else {
+                    outputNumber = "+" + defaultRegion + data;
+                }
+                return outputNumber;
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
+    public static String getFormatForTransmission(String data, String defaultRegion){
+        data = data.replaceAll("%2B", "+")
+                .replaceAll("%20", "")
+                .replaceAll("sms[to]*:", "");
+
+        // Remove any non-digit characters except the plus sign at the beginning of the string
+        String strippedNumber = data.replaceAll("[^0-9+;]", "");
+        if(strippedNumber.length() > 6) {
+            // If the stripped number starts with a plus sign followed by one or more digits, return it as is
+            if (!strippedNumber.matches("^\\+\\d+")) {
+                strippedNumber = "+" + defaultRegion + strippedNumber;
+            }
+            return strippedNumber;
+        }
+
+        // If the stripped number is not a valid phone number, return an empty string
+        return data;
+    }
+
+    public static String getFormatNationalNumber(String data, String defaultRegion) {
+        data = data.replaceAll("%2B", "+")
+                .replaceAll("%20", "");
+        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+        String outputNumber = data;
+        try {
             try {
                 Phonenumber.PhoneNumber phoneNumber = phoneNumberUtil.parse(data, defaultRegion);
-                nationalNumber = phoneNumber.getNationalNumber();
+
+                return String.valueOf(phoneNumber.getNationalNumber());
             } catch(NumberParseException e) {
-                data = data.replaceAll("sms[to]*:", "");
-                if(data.startsWith(defaultRegion)) {
-                    data = "+" + data;
-                } else {
-                    data = defaultRegion + data;
+                if(e.getErrorType() == NumberParseException.ErrorType.INVALID_COUNTRY_CODE) {
+                    data = data.replaceAll("sms[to]*:", "");
+                    if (data.startsWith(defaultRegion)) {
+                        outputNumber = "+" + data;
+                    } else {
+                        outputNumber = "+" + defaultRegion + data;
+                    }
+                    return getFormatNationalNumber(outputNumber, defaultRegion);
                 }
-                nationalNumber = Long.parseLong(formatPhoneNumbers(data, defaultRegion));
             }
-            return String.valueOf(nationalNumber);
         } catch (Exception e) {
             e.printStackTrace();
         }

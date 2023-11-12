@@ -14,21 +14,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.paging.CombinedLoadStates;
 import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -57,10 +52,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import kotlin.Unit;
-import kotlin.coroutines.Continuation;
-import kotlin.coroutines.CoroutineContext;
 import kotlin.jvm.functions.Function0;
-import kotlinx.coroutines.flow.FlowCollector;
 
 public class ConversationActivity extends DualSIMConversationActivity {
     public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
@@ -181,7 +173,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
             if (sendToString != null && (sendToString.contains("smsto:") ||
                     sendToString.contains("sms:"))) {
                 String defaultRegion = Helpers.getUserCountry(getApplicationContext());
-                String address = Helpers.formatPhoneNumbers(sendToString, defaultRegion);
+                String address = Helpers.getFormatCompleteNumber(sendToString, defaultRegion);
                 Log.d(getLocalClassName(), "Shared address: " + address);
                 getIntent().putExtra(Conversation.ADDRESS, address);
             }
@@ -191,6 +183,8 @@ public class ConversationActivity extends DualSIMConversationActivity {
                 !getIntent().hasExtra(Conversation.ADDRESS)) {
             throw new Exception("No threadId nor Address supplied for activity");
         }
+        Log.d(getLocalClassName(), "ThreadID: " + getIntent().getStringExtra(Conversation.THREAD_ID));
+        Log.d(getLocalClassName(), "Address: " + getIntent().getStringExtra(Conversation.ADDRESS));
 
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
             ThreadedConversations threadedConversations = new ThreadedConversations();
@@ -198,15 +192,25 @@ public class ConversationActivity extends DualSIMConversationActivity {
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
                     threadedConversations);
         }
-
         else if(getIntent().hasExtra(Conversation.ADDRESS)) {
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setAddress(getIntent().getStringExtra(Conversation.ADDRESS));
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
                     threadedConversations);
-            Log.d(getLocalClassName(), "Address available!: " + this.threadedConversations.getAddress());
         }
 
+        final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
+        final String address = this.threadedConversations.getAddress();
+        this.threadedConversations.setAddress(
+                Helpers.getFormatCompleteNumber(address, defaultUserCountry));
+        String contactName = Contacts.retrieveContactName(getApplicationContext(),
+                this.threadedConversations.getAddress());
+        if(contactName == null) {
+            this.threadedConversations.setContact_name(Helpers.getFormatNationalNumber(address,
+                    defaultUserCountry ));
+        } else {
+            this.threadedConversations.setContact_name(contactName);
+        }
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override

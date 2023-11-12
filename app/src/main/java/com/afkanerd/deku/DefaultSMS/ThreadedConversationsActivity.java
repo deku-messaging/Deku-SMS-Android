@@ -162,6 +162,13 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.conversation_threads_main_menu_search) {
+            Intent searchIntent = new Intent(getApplicationContext(),
+                    SearchMessagesThreadsActivity.class);
+            searchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(searchIntent);
+            return true;
+        }
         if (item.getItemId() == R.id.conversation_threads_main_menu_archived) {
             Intent archivedIntent = new Intent(getApplicationContext(),
                     ArchivedMessagesActivity.class);

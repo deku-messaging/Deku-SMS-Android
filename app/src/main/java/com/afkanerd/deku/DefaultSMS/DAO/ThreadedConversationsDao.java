@@ -46,8 +46,9 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE address =:address")
     ThreadedConversations getByAddress(String address);
 
-    @Query("SELECT * FROM Conversation WHERE body " +
-            "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")
+    @Query("SELECT Conversation.* FROM Conversation, ThreadedConversations WHERE body " +
+            "LIKE '%' || :search_string || '%' AND Conversation.thread_id = ThreadedConversations.thread_id " +
+            "GROUP BY Conversation.thread_id ORDER BY date DESC")
     List<Conversation> find(String search_string );
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND body " +
