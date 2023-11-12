@@ -14,16 +14,21 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.CombinedLoadStates;
 import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -52,7 +57,10 @@ import java.util.Objects;
 import java.util.Set;
 
 import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlin.coroutines.CoroutineContext;
 import kotlin.jvm.functions.Function0;
+import kotlinx.coroutines.flow.FlowCollector;
 
 public class ConversationActivity extends DualSIMConversationActivity {
     public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
@@ -86,11 +94,12 @@ public class ConversationActivity extends DualSIMConversationActivity {
 
     ThreadedConversations threadedConversations;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations);
-        test();
+//        test();
 
         try {
             configureActivityDependencies();
@@ -107,8 +116,8 @@ public class ConversationActivity extends DualSIMConversationActivity {
     }
 
     private void test() {
-//        if(BuildConfig.DEBUG)
-//            getIntent().putExtra(SEARCH_STRING, "Android");
+        if(BuildConfig.DEBUG)
+            getIntent().putExtra(SEARCH_STRING, "35");
     }
 
     @Override
@@ -224,7 +233,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
             return;
         }
 
-        singleMessagesThreadRecyclerView.scrollToPosition(position);
+        conversationsViewModel.refresh(position);
         String text = (searchPointerPosition == -1 ?
                 0 :
                 searchPointerPosition + 1) + "/" + searchPositions.getValue().size() + " " + getString(R.string.conversations_search_results_found);
@@ -289,6 +298,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
     }
 
     ConversationDao conversationDao;
+    boolean firstScrollInitiated = false;
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
         singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
@@ -302,21 +312,27 @@ public class ConversationActivity extends DualSIMConversationActivity {
                         !getIntent().getAction().equals(Intent.ACTION_SENDTO) &&
                         !getIntent().getAction().equals(Intent.ACTION_SEND))
                     finish();
+                if(searchPositions != null && searchPositions.getValue() != null
+                        && !searchPositions.getValue().isEmpty()
+                        && !firstScrollInitiated) {
+                    singleMessagesThreadRecyclerView.scrollToPosition(searchPositions.getValue().get(0));
+                    firstScrollInitiated = true;
+                }
                 return null;
             }
         });
 
         if(this.threadedConversations != null) {
             if(getIntent().hasExtra(SEARCH_STRING)) {
-                conversationsViewModel.getForSearch(conversationDao, this.threadedConversations.getThread_id())
+                conversationsViewModel.getSearch(conversationDao, this.threadedConversations.getThread_id(), null)
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
-                            public void onChanged(PagingData<Conversation> smsList) {
-                                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
+                            public void onChanged(PagingData<Conversation> conversationPagingData) {
+                                conversationsRecyclerAdapter.submitData(getLifecycle(), conversationPagingData);
                             }
                         });
             }
-            else if(this.threadedConversations.getThread_id()!= null &&
+            if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {
                 conversationsViewModel.get(conversationDao, this.threadedConversations.getThread_id())
                         .observe(this, new Observer<PagingData<Conversation>>() {
@@ -372,43 +388,42 @@ public class ConversationActivity extends DualSIMConversationActivity {
 
         if(getIntent().hasExtra(SEARCH_STRING)) {
             configureSearchBox();
-//            TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
-//            textInputEditText.setText(getIntent().getStringExtra(SEARCH_STRING));
-            getIntent().removeExtra(SEARCH_STRING);
         }
 
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
+
     private void configureSearchBox() {
-//        TextInputLayout textInputLayout = findViewById(R.id.conversations_search_box_layout);
-//        textInputLayout.setVisibility(View.VISIBLE);
-//
-//        findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
-//
-//        TextInputEditText textInputEditText = findViewById(R.id.conversations_search_box);
+        findViewById(R.id.conversations_pop_ups_layouts).setVisibility(View.VISIBLE);
+        findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
+
 //        scrollRecyclerViewSearch(-2);
+        actionMode = startActionMode(searchActionModeCallback);
+
+//        TextInputEditText textInputEditText = findViewById(R.id.convers_search);
 //        textInputEditText.addTextChangedListener(new TextWatcher() {
 //            @Override
 //            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//
 //            }
 //
 //            @Override
 //            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//
 //            }
 //
 //            @Override
 //            public void afterTextChanged(Editable editable) {
 //                if(editable != null && editable.length() > 1) {
 //                    conversationsRecyclerAdapter.searchString = editable.toString();
-//                    resetPreviousSelections();
 //                    searchForInput(editable.toString());
 //                }
 //                else {
 //                    conversationsRecyclerAdapter.searchString = null;
-//                    resetPreviousSelections();
-//                    searchPositions.setValue(new ArrayList<>());
+//                    if(actionMode != null)
+//                        actionMode.finish();
 //                }
 //            }
 //        });
@@ -417,6 +432,7 @@ public class ConversationActivity extends DualSIMConversationActivity {
     private void configureToolbars() {
         setTitle(getAbTitle());
         getSupportActionBar().setSubtitle(getAbSubTitle());
+
     }
 
     private String getAbTitle() {
@@ -579,6 +595,63 @@ public class ConversationActivity extends DualSIMConversationActivity {
         }
     }
 
+    TextInputEditText textInputEditText;
+    private final ActionMode.Callback searchActionModeCallback = new ActionMode.Callback() {
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            View viewGroup = getLayoutInflater().inflate(R.layout.conversation_search_bar_layout,
+                    null);
+            mode.setCustomView(viewGroup);
+            String searchString = getIntent().getStringExtra(SEARCH_STRING);
+            getIntent().removeExtra(SEARCH_STRING);
+
+            textInputEditText = findViewById(R.id.conversation_search_input);
+            textInputEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    if(editable != null && editable.length() > 1) {
+                        conversationsRecyclerAdapter.searchString = editable.toString();
+                        searchForInput(editable.toString());
+                    }
+                    else {
+                        conversationsRecyclerAdapter.searchString = null;
+                        if(actionMode != null)
+                            actionMode.finish();
+                    }
+                }
+            });
+            textInputEditText.setText(searchString);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Return false if nothing is done.
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            return false;
+        }
+
+        // Called when the user exits the action mode.
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            actionMode = null;
+            resetSearch();
+        }
+    };
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
 
         @Override
@@ -628,4 +701,5 @@ public class ConversationActivity extends DualSIMConversationActivity {
             conversationsRecyclerAdapter.resetAllSelectedItems();
         }
     };
+
 }

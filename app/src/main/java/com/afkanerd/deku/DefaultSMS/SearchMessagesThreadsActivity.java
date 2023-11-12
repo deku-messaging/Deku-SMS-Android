@@ -44,17 +44,6 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_messages_threads);
-
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.search_messages_toolbar);
-//        myToolbar.setTitle(R.string.search_messages_text);
-
-        setSupportActionBar(myToolbar);
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        ab.setDisplayHomeAsUpEnabled(true);
-
         searchViewModel = new ViewModelProvider(this).get(
                 SearchViewModel.class);
 

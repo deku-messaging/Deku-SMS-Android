@@ -228,4 +228,5 @@
     <string name="conversation_menu_delete">delete</string>
     <string name="compose_new_message_to">To</string>
     <string name="compose_new_message_title">New conversation</string>
+    <string name="conversation_secure_popup_text"><![CDATA[Click to request secure conversation with <insert name>]]></string>
 </resources>

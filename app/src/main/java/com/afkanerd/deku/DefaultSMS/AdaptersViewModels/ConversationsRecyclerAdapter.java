@@ -352,4 +352,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         }
         mutableSelectedItems.setValue(null);
     }
+
+    public void getForce(int position) {
+        getItem(position);
+    }
 }

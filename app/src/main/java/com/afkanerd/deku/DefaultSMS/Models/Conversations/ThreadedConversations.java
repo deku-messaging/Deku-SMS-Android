@@ -70,6 +70,7 @@ public class ThreadedConversations {
         threadedConversations.setSnippet(conversation.getBody());
         threadedConversations.setThread_id(conversation.getThread_id());
         threadedConversations.setAddress(conversation.getAddress());
+        threadedConversations.setDate(conversation.getDate());
 
         return threadedConversations;
     }

@@ -22,10 +22,11 @@ import java.util.List;
 
 public class ThreadedConversationsViewModel extends ViewModel {
     ThreadedConversationsDao threadedConversationsDao;
-    int pageSize = 10;
-    int prefetchDistance = 30;
+    int pageSize = 20;
+    int prefetchDistance = 3 * pageSize;
     boolean enablePlaceholder = false;
-    int initialLoadSize = 14;
+    int initialLoadSize = 2 * pageSize;
+    int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
     public LiveData<PagingData<ThreadedConversations>> get(){
 
@@ -33,7 +34,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
-                initialLoadSize
+                initialLoadSize,
+                maxSize
         ), ()-> this.threadedConversationsDao.getAllWithoutArchived());
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }

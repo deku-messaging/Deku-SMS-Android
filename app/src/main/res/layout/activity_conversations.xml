@@ -7,15 +7,36 @@
     tools:context=".ConversationActivity"
     android:layout_height="match_parent" >
 
-    <include
-        android:id="@+id/conversations_search_results_found"
-        layout="@layout/conversations_search_navigation_layout"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/conversations_pop_ups_layouts"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
+        android:visibility="visible"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <include
+            android:id="@+id/conversations_search_results_found"
+            layout="@layout/conversations_search_navigation_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <include
+            android:id="@+id/conversations_request_secure_pop_layout"
+            layout="@layout/conversation_secure_popup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/single_messages_thread_recycler_view"
@@ -26,7 +47,7 @@
         app:layout_constraintBottom_toTopOf="@+id/compose_message_include_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@+id/conversations_pop_ups_layouts" />
 
     <include
         android:id="@+id/compose_message_include_layout"

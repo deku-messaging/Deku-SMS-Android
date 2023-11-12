@@ -27,6 +27,9 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     List<Conversation> getAll(String thread_id);
 
+    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC LIMIT 1 OFFSET :offset")
+    List<Conversation> getAllWithOffset(String thread_id, int offset);
+
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
     List<Conversation> getComplete();
 

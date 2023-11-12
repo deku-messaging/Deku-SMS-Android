@@ -8,12 +8,14 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
+import androidx.paging.PagingState;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
@@ -33,11 +35,32 @@ public class ConversationsViewModel extends ViewModel{
     public String threadId;
     public String address;
     ConversationDao conversationDao;
-    int pageSize = 20;
+    public int pageSize = 20;
     int prefetchDistance = 3 * pageSize;
-    boolean enablePlaceholder = false;
+    boolean enablePlaceholder = true;
     int initialLoadSize = 2 * pageSize;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
+
+    PagingSource pagingSource;
+
+    public Integer initialKey = null;
+
+    ConversationPagingSource conversationPagingSource;
+    public LiveData<PagingData<Conversation>> getSearch(ConversationDao conversationDao,
+                                                        String threadId, Integer initialKey) {
+        this.initialKey = initialKey;
+        this.conversationDao = conversationDao;
+        this.threadId = threadId;
+
+        conversationPagingSource = new ConversationPagingSource();
+        Pager<Integer, Conversation> pager =
+                conversationPagingSource.getRoomPaging(conversationDao, threadId, initialKey);
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+    public void refresh(Integer initialKey) {
+        this.initialKey = initialKey;
+        conversationPagingSource.pagingSource.invalidate();
+    }
 
     public LiveData<PagingData<Conversation>> get(ConversationDao conversationDao, String threadId)
             throws InterruptedException {
@@ -50,21 +73,7 @@ public class ConversationsViewModel extends ViewModel{
                 enablePlaceholder,
                 initialLoadSize,
                 maxSize
-        ), ()-> this.conversationDao.get(threadId));
-        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
-    }
-
-    public LiveData<PagingData<Conversation>> getForSearch(ConversationDao conversationDao, String threadId)
-            throws InterruptedException {
-        this.conversationDao = conversationDao;
-        this.threadId = threadId;
-
-        Pager<Integer, Conversation> pager = new Pager<>(new PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize
-        ), ()-> this.conversationDao.get(threadId));
+        ), initialKey, ()-> this.conversationDao.get(threadId));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
