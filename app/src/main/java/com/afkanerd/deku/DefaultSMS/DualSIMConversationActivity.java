@@ -9,12 +9,13 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 
 import java.util.List;
 
-public class DualSIMConversationActivity extends CustomAppCompactActivity {
+public class DualSIMConversationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

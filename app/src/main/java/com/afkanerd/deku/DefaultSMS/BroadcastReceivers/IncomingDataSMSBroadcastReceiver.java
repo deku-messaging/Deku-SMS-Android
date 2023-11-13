@@ -46,7 +46,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
                     try {
                         String strMessage = body;
-//                        if(SecurityHelpers.isKeyExchange(body)) {
+//                        if(SecurityHandler.isKeyExchange(body)) {
 //                            strMessage = registerIncomingAgreement(context, address,
 //                                    Base64.decode(strMessage, Base64.DEFAULT));
 //                        }
@@ -56,8 +56,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 //                        if(smsMetaEntity.isPendingAgreement(context)) {
 //                            notificationNote = context.getString(R.string.security_key_new_agreed_notification);
 //
-//                            strMessage = SecurityHelpers.FIRST_HEADER +
-//                                    strMessage + SecurityHelpers.END_HEADER;
+//                            strMessage = SecurityHandler.FIRST_HEADER +
+//                                    strMessage + SecurityHandler.END_HEADER;
 //
 //                            NativeSMSDB.Incoming.register_incoming_text(context, intent);
 //                        }

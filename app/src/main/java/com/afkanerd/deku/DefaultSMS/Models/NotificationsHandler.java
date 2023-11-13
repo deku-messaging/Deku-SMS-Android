@@ -36,7 +36,7 @@ public class NotificationsHandler {
             cursor.close();
 
             // TODO
-//            if(SecurityHelpers.isKeyExchange(text)) {
+//            if(SecurityHandler.isKeyExchange(text)) {
 //                text = context.getString(R.string.notification_title_new_key);
 //            }
 

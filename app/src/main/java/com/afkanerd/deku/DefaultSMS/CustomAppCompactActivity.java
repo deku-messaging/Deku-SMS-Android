@@ -31,7 +31,7 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
 import java.util.concurrent.TimeUnit;
 
-public class CustomAppCompactActivity extends AppCompatActivity {
+public class CustomAppCompactActivity extends DualSIMConversationActivity {
     BroadcastReceiver nativeStateChangedBroadcastReceiver;
 
     public static final String TAG_NAME = "NATIVE_CONVERSATION_TAG";

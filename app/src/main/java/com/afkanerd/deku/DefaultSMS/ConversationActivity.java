@@ -39,6 +39,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
+import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -54,16 +55,10 @@ import java.util.Set;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 
-public class ConversationActivity extends DualSIMConversationActivity {
-    public static final String COMPRESSED_IMAGE_BYTES = "COMPRESSED_IMAGE_BYTES";
+public class ConversationActivity extends E2EECompactActivity {
     public static final String IMAGE_URI = "IMAGE_URI";
     public static final String SEARCH_STRING = "SEARCH_STRING";
-    public static final String SEARCH_OFFSET = "search_offset";
-    public static final String SEARCH_POSITION = "search_position";
-    public static final String SMS_SENT_INTENT = "SMS_SENT";
-    public static final String SMS_DELIVERED_INTENT = "SMS_DELIVERED";
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
-    private final int RESULT_GALLERY = 100;
 
     ActionMode actionMode;
     ConversationsRecyclerAdapter conversationsRecyclerAdapter;
@@ -183,9 +178,6 @@ public class ConversationActivity extends DualSIMConversationActivity {
                 !getIntent().hasExtra(Conversation.ADDRESS)) {
             throw new Exception("No threadId nor Address supplied for activity");
         }
-        Log.d(getLocalClassName(), "ThreadID: " + getIntent().getStringExtra(Conversation.THREAD_ID));
-        Log.d(getLocalClassName(), "Address: " + getIntent().getStringExtra(Conversation.ADDRESS));
-
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setThread_id(getIntent().getStringExtra(Conversation.THREAD_ID));
@@ -402,35 +394,9 @@ public class ConversationActivity extends DualSIMConversationActivity {
     }
 
     private void configureSearchBox() {
-        findViewById(R.id.conversations_pop_ups_layouts).setVisibility(View.VISIBLE);
+//        findViewById(R.id.conversations_pop_ups_layouts).setVisibility(View.VISIBLE);
         findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
-
-//        scrollRecyclerViewSearch(-2);
         actionMode = startActionMode(searchActionModeCallback);
-
-//        TextInputEditText textInputEditText = findViewById(R.id.convers_search);
-//        textInputEditText.addTextChangedListener(new TextWatcher() {
-//            @Override
-//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//            }
-//
-//            @Override
-//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//            }
-//
-//            @Override
-//            public void afterTextChanged(Editable editable) {
-//                if(editable != null && editable.length() > 1) {
-//                    conversationsRecyclerAdapter.searchString = editable.toString();
-//                    searchForInput(editable.toString());
-//                }
-//                else {
-//                    conversationsRecyclerAdapter.searchString = null;
-//                    if(actionMode != null)
-//                        actionMode.finish();
-//                }
-//            }
-//        });
     }
 
     private void configureToolbars() {

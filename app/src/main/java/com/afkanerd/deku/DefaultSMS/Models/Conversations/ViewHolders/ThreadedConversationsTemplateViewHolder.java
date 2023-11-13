@@ -96,7 +96,7 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         String snippet = threadedConversations.getSnippet();
         int type = threadedConversations.getType();
 
-//        if(SecurityHelpers.containersWaterMark(snippet) || SecurityHelpers.isKeyExchange(snippet)) {
+//        if(SecurityHandler.containersWaterMark(snippet) || SecurityHandler.isKeyExchange(snippet)) {
 //            if(!threadedConversations.isIs_read()) {
 //                return type == MESSAGE_TYPE_INBOX ?
 //                        RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE : SENT_ENCRYPTED_UNREAD_VIEW_TYPE;

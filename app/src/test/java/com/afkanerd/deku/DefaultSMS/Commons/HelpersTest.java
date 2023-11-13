@@ -1,7 +1,10 @@
 package com.afkanerd.deku.DefaultSMS.Commons;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import com.google.i18n.phonenumbers.NumberParseException;
 
 import org.junit.Test;
 
@@ -102,5 +105,14 @@ public class HelpersTest {
         String nationalNumber = "123456704";
         String formattedOutput = Helpers.getFormatForTransmission(fullPhoneNumber, defaultRegion);
         assertEquals(("+" + defaultRegion + nationalNumber), formattedOutput);
+    }
+
+    @Test
+    public void formatPhoneNumbersAndCountryCodeTest() throws NumberParseException {
+        String fullPhoneNumber = "+237612345678";
+        String defaultRegion = "237";
+        String nationalNumber = "612345678";
+        String[] formattedOutput = Helpers.getCountryNationalAndCountryCode(fullPhoneNumber);
+        assertArrayEquals(new String[]{defaultRegion, nationalNumber}, formattedOutput);
     }
 }

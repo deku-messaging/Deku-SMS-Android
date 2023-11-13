@@ -106,6 +106,15 @@ public class Helpers {
         return data;
     }
 
+    public static String[] getCountryNationalAndCountryCode(String data) throws NumberParseException {
+        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+        Phonenumber.PhoneNumber phoneNumber = phoneNumberUtil.parse(data, "");
+        long nationNumber = phoneNumber.getNationalNumber();
+        long countryCode = phoneNumber.getCountryCode();
+
+        return new String[]{String.valueOf(countryCode), String.valueOf(nationNumber)};
+    }
+
     public static String getFormatForTransmission(String data, String defaultRegion){
         data = data.replaceAll("%2B", "+")
                 .replaceAll("%20", "")

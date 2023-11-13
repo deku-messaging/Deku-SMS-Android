@@ -242,7 +242,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         if(sms == null)
             return super.getItemViewType(position);
 
-//        boolean isEncryptionKey = SecurityHelpers.isKeyExchange(sms.getBody());
+//        boolean isEncryptionKey = SecurityHandler.isKeyExchange(sms.getBody());
 
         int oldestItemPos = snapshot().getSize() - 1;
         int newestItemPos = 0;

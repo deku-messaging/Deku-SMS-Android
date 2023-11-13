@@ -8,15 +8,23 @@ package com.afkanerd.deku.E2EE.Security;
 //import org.bouncycastle.operator.OperatorCreationException;
 //import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import android.util.Base64;
+
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
-public class SecurityHelpers {
+public class SecurityHandler {
 
 
     public final static String FIRST_HEADER = "--D.E.K.U.start---";
@@ -80,15 +88,15 @@ public class SecurityHelpers {
 
 
     public static String putEncryptedMessageWaterMark(String text) {
-        return SecurityHelpers.ENCRYPTED_WATERMARK_START
+        return SecurityHandler.ENCRYPTED_WATERMARK_START
                 + text
-                + SecurityHelpers.ENCRYPTED_WATERMARK_END;
+                + SecurityHandler.ENCRYPTED_WATERMARK_END;
     }
 
     public static String removeEncryptedMessageWaterMark(String text) {
-        int lastWaterMark = text.lastIndexOf(SecurityHelpers.ENCRYPTED_WATERMARK_END);
+        int lastWaterMark = text.lastIndexOf(SecurityHandler.ENCRYPTED_WATERMARK_END);
 
-        return text.substring(SecurityHelpers.ENCRYPTED_WATERMARK_START.length(), lastWaterMark);
+        return text.substring(SecurityHandler.ENCRYPTED_WATERMARK_START.length(), lastWaterMark);
     }
 
     public static String removeKeyWaterMark(String text) {
@@ -97,9 +105,9 @@ public class SecurityHelpers {
     }
 
     public static boolean containersWaterMark(String text) {
-        return text.indexOf(SecurityHelpers.ENCRYPTED_WATERMARK_START) == 0 &&
-                text.indexOf(SecurityHelpers.ENCRYPTED_WATERMARK_END) ==
-                        text.length() - SecurityHelpers.ENCRYPTED_WATERMARK_END.length();
+        return text.indexOf(SecurityHandler.ENCRYPTED_WATERMARK_START) == 0 &&
+                text.indexOf(SecurityHandler.ENCRYPTED_WATERMARK_END) ==
+                        text.length() - SecurityHandler.ENCRYPTED_WATERMARK_END.length();
     }
 
     public static boolean isKeyExchange(String body) {
@@ -122,5 +130,17 @@ public class SecurityHelpers {
                 byte[length];
         random.nextBytes(bytes);
         return bytes;
+    }
+
+    public static PublicKey getPublicKeyFromKeyStore(String keystoreAlias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        return keyStore.getCertificate(keystoreAlias).getPublicKey();
+    }
+
+    public static String convertPublicKeyToPEMFormat(byte[] publicKey) {
+        return "-----BEGIN PUBLIC KEY-----\n"
+                + Base64.encodeToString(publicKey, Base64.DEFAULT) +
+                "\n-----END PUBLIC KEY-----";
     }
 }
