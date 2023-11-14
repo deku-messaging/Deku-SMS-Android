@@ -39,7 +39,7 @@ public class E2EEHandler {
     }
 
     public static PublicKey createNewKeyPair(Context context, String keystoreAlias)
-            throws GeneralSecurityException, InterruptedException {
+            throws GeneralSecurityException, InterruptedException, IOException {
         return SecurityECDH.generateKeyPair(context, keystoreAlias);
     }
 

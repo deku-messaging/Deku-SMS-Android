@@ -16,6 +16,7 @@ import org.spongycastle.util.io.pem.PemObjectParser;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.security.AlgorithmParameters;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -27,10 +28,15 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.PublicKey;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.interfaces.ECKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.InvalidKeySpecException;
@@ -47,7 +53,7 @@ public class SecurityECDH {
     public final static String DEFAULT_ALGORITHM = "ECDH";
 
     public final int DEFAULT_KEY_SIZE = 256;
-    public static final String PROVIDER = "SC";
+    public static final String PROVIDER = BouncyCastleProvider.PROVIDER_NAME;
 
 
     static {
@@ -146,6 +152,16 @@ public class SecurityECDH {
         return keyAgreement.generateSecret();
     }
 
+    public static void storeInCustomKeyStore(String keystoreAlias, KeyPair keyPair) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, NoSuchProviderException {
+//        for(Provider provider : Security.getProviders()) {
+//            Log.d(SecurityECDH.class.getName(), "Provider: " + provider.getName());
+//        }
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        keyStore.setKeyEntry(keystoreAlias, keyPair.getPrivate(), null, new Certificate[1]);
+        keyStore.store(null);
+    }
+
     public static void storeInCustomKeyStore(Context context, String keystoreAlias, KeyPair keyPair)
             throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException,
             NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException,
@@ -182,14 +198,14 @@ public class SecurityECDH {
     }
 
     public static PublicKey generateKeyPair(Context context, String keystoreAlias) throws
-            GeneralSecurityException, InterruptedException {
+            GeneralSecurityException, InterruptedException, IOException {
         /*
          * Generate a new EC key pair entry in the Android Keystore by
          * using the KeyPairGenerator API. The private key can only be
          * used for signing or verification and only with SHA-256 or
          * SHA-512 as the message digest.
          */
-        if(Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // puts into the keystore
             KeyPairGenerator kpg = KeyPairGenerator.getInstance(
                     KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
@@ -212,20 +228,41 @@ public class SecurityECDH {
         }
     }
 
-
     public static KeyPair generateKeyPairFromPublicKey(
-            Context context, String keystoreAlias, PublicKey publicKey) throws GeneralSecurityException, InterruptedException {
-        ECParameterSpec dhParameterSpec = ((BCECPublicKey)publicKey).getParams();
+            Context context, String keystoreAlias, PublicKey publicKey) throws GeneralSecurityException, InterruptedException, IOException {
+//        if(Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S ) {
+////            ECParameterSpec dhParameterSpec = ((ECPublicKey) publicKey).getParams();
+//            ECParameterSpec ecParameterSpec = ((ECKey) publicKey).getParams();
+////            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(ecParameterSpec.getCurve());
+//            Log.d(SecurityECDH.class.getName(), ecParameterSpec.getCurve().toString());
+//
+//            KeyPairGenerator keyPairGenerator =
+//                    KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
+//
+//            KeyGenParameterSpec keyGenParameterSpec =
+//                    new KeyGenParameterSpec.Builder(keystoreAlias, KeyProperties.PURPOSE_AGREE_KEY)
+//                            .setAlgorithmParameterSpec(ecParameterSpec)
+//                            .build();
+//            keyPairGenerator.initialize(keyGenParameterSpec);
+//
+//            KeyPair keyPair =  keyPairGenerator.generateKeyPair();
+////            storeInCustomKeyStore(keystoreAlias, keyPair);
+//            return keyPair;
+//        }
 
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(DEFAULT_ALGORITHM);
+        if(Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S ) {
+            ECParameterSpec dhParameterSpec = ((BCECPublicKey) publicKey).getParams();
 
-        keyPairGenerator.initialize(dhParameterSpec);
+            KeyPairGenerator keyPairGenerator =
+                    KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC);
 
-        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            keyPairGenerator.initialize(dhParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-        storeInCustomKeyStore(context, keystoreAlias, keyPair);
-
-        return keyPair;
+            storeInCustomKeyStore(context, keystoreAlias, keyPair);
+            return keyPair;
+        }
+        return null;
     }
 
 }

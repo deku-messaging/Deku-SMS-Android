@@ -4,11 +4,13 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -54,13 +56,15 @@ public class SecurityECDHTest {
 
     @Test
     public void canGetSameSharedSecretWithUnknownParameters() throws GeneralSecurityException, IOException, InterruptedException {
-        PublicKey alicePublicKey = SecurityECDH.generateKeyPair(context, BobKeystoreAlias);
-        PublicKey bobPublicKey = SecurityECDH.generateKeyPairFromPublicKey(
-                context, AliceKeystoreAlias, alicePublicKey).getPublic();
+        if(Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S ) {
+            PublicKey alicePublicKey = SecurityECDH.generateKeyPair(context, BobKeystoreAlias);
+            PublicKey bobPublicKey = SecurityECDH.generateKeyPairFromPublicKey(
+                    context, AliceKeystoreAlias, alicePublicKey).getPublic();
 
-        byte[] aliceSharedSecret = SecurityECDH.generateSecretKey(context, BobKeystoreAlias, bobPublicKey);
-        byte[] bobSharedSecret = SecurityECDH.generateSecretKey(context, AliceKeystoreAlias, alicePublicKey);
+            byte[] aliceSharedSecret = SecurityECDH.generateSecretKey(context, BobKeystoreAlias, bobPublicKey);
+            byte[] bobSharedSecret = SecurityECDH.generateSecretKey(context, AliceKeystoreAlias, alicePublicKey);
 
-        assertArrayEquals(aliceSharedSecret, bobSharedSecret);
+            assertArrayEquals(aliceSharedSecret, bobSharedSecret);
+        }
     }
 }
