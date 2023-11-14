@@ -2,19 +2,19 @@ package com.afkanerd.deku.E2EE.Security;
 
 import android.content.Context;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
-import com.afkanerd.deku.E2EE.E2EEHandler;
 
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -25,14 +25,16 @@ import java.security.spec.InvalidKeySpecException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
-@Entity
+@Entity(indices = {@Index(value={"keystoreAlias"}, unique=true)})
 public class CustomKeyStore {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
     private long date;
-    private String keyStoreAlias;
+    private String keystoreAlias;
 
     private String publicKey;
 
@@ -54,12 +56,12 @@ public class CustomKeyStore {
         this.id = id;
     }
 
-    public String getKeyStoreAlias() {
-        return keyStoreAlias;
+    public String getKeystoreAlias() {
+        return keystoreAlias;
     }
 
-    public void setKeyStoreAlias(String keyStoreAlias) {
-        this.keyStoreAlias = keyStoreAlias;
+    public void setKeystoreAlias(String keystoreAlias) {
+        this.keystoreAlias = keystoreAlias;
     }
 
     public String getPublicKey() {
@@ -80,10 +82,11 @@ public class CustomKeyStore {
 
     public PrivateKey buildPrivateKey() throws NoSuchAlgorithmException, InvalidKeySpecException,
             UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
-        PrivateKey keystorePrivateKey = SecurityECDH.getPrivateKeyFromKeystore(this.keyStoreAlias);
-        byte[] decodePrivateKey = Base64.decode(this.privateKey, Base64.DEFAULT);
-        byte[] privateKey = SecurityRSA.decrypt(keystorePrivateKey, decodePrivateKey);
+            NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
+
+        PrivateKey keystorePrivateKey = SecurityECDH.getPrivateKeyFromKeystore(this.keystoreAlias);
+        byte[] decodedPrivateKey = Base64.decode(this.privateKey, Base64.DEFAULT);
+        byte[] privateKey = SecurityRSA.decrypt(keystorePrivateKey, decodedPrivateKey);
         return SecurityECDH.buildPrivateKey(privateKey);
     }
 

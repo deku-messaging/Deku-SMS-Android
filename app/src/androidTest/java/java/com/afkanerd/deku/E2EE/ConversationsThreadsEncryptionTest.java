@@ -37,17 +37,15 @@ public class ConversationsThreadsEncryptionTest {
     }
 
     @Test
-    public void isActiveSessionTest() throws GeneralSecurityException, IOException, InterruptedException {
+    public void testCanCreateAndRemoveKeyPair() throws GeneralSecurityException, IOException, InterruptedException {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         String keystoreAlias = "MjM3NjEyMzQ1Njc4XzA=";
+
         E2EEHandler.createNewKeyPair(context, keystoreAlias);
         assertTrue(E2EEHandler.isAvailableInKeystore(keystoreAlias));
-    }
 
-    @Test
-    public void isNotActiveSessionTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchProviderException {
-        String keystoreAlias = "MjM3NjEyMzQ1Njc4XzA=";
-        E2EEHandler.removeFromKeystore(keystoreAlias);
+        int numberRemoved = E2EEHandler.removeFromKeystore(context, keystoreAlias);
         assertFalse(E2EEHandler.isAvailableInKeystore(keystoreAlias));
+        assertEquals(1, numberRemoved);
     }
 }

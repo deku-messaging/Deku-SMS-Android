@@ -28,7 +28,8 @@ public class E2EEHandler {
         return Base64.encodeToString(keystoreAliasRequirements.getBytes(), Base64.NO_WRAP);
     }
 
-    public static boolean isAvailableInKeystore(String keystoreAlias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+    public static boolean isAvailableInKeystore(String keystoreAlias) throws KeyStoreException,
+            CertificateException, IOException, NoSuchAlgorithmException {
         /*
          * Load the Android KeyStore instance using the
          * AndroidKeyStore provider to list the currently stored entries.
@@ -42,8 +43,9 @@ public class E2EEHandler {
         return SecurityECDH.generateKeyPair(context, keystoreAlias);
     }
 
-    public static void removeFromKeystore(String keystoreAlias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+    public static int removeFromKeystore(Context context, String keystoreAlias) throws KeyStoreException,
+            CertificateException, IOException, NoSuchAlgorithmException, InterruptedException {
         SecurityECDH securityECDH = new SecurityECDH();
-        securityECDH.removeFromKeystore(keystoreAlias);
+        return securityECDH.removeFromKeystore(context, keystoreAlias);
     }
 }

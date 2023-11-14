@@ -5,14 +5,17 @@ import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+import android.util.Log;
 
-
-import com.afkanerd.deku.E2EE.E2EEHandler;
 
 import org.spongycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.spongycastle.jce.provider.BouncyCastleProvider;
+import org.spongycastle.jce.provider.PEMUtil;
+import org.spongycastle.util.io.pem.PemObject;
+import org.spongycastle.util.io.pem.PemObjectParser;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -31,12 +34,14 @@ import java.security.cert.CertificateException;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyAgreement;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 public class SecurityECDH {
     public final static String DEFAULT_ALGORITHM = "ECDH";
@@ -60,7 +65,24 @@ public class SecurityECDH {
         return keyStore.containsAlias(keystoreAlias);
     }
 
-    public void removeFromKeystore(String keystoreAlias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+    public static int removeFromCustomKeystore(Context context, String keystoreAlias) throws InterruptedException {
+        CustomKeyStoreDao customKeyStoreDao = CustomKeyStore.getDao(context);
+        final int[] numberUpdated = {0};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                numberUpdated[0] = customKeyStoreDao.delete(keystoreAlias);
+            }
+        });
+
+        thread.start();
+        thread.join();
+
+        return numberUpdated[0];
+    }
+
+    public int removeFromKeystore(Context context, String keystoreAlias) throws KeyStoreException,
+            CertificateException, IOException, NoSuchAlgorithmException, InterruptedException {
         /*
          * Load the Android KeyStore instance using the
          * AndroidKeyStore provider to list the currently stored entries.
@@ -68,20 +90,20 @@ public class SecurityECDH {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         keyStore.deleteEntry(keystoreAlias);
+
+        return removeFromCustomKeystore(context, keystoreAlias);
     }
 
     public static PublicKey buildPublicKey(byte[] publicKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         KeyFactory keyFactory = KeyFactory.getInstance(DEFAULT_ALGORITHM);
-        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(publicKey);
-
-        return keyFactory.generatePublic(x509KeySpec);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(publicKey);
+        return keyFactory.generatePublic(keySpec);
     }
 
     public static PrivateKey buildPrivateKey(byte[] privateKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         KeyFactory keyFactory = KeyFactory.getInstance(DEFAULT_ALGORITHM);
-        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(privateKey);
-
-        return keyFactory.generatePrivate(x509KeySpec);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKey);
+        return keyFactory.generatePrivate(keySpec);
     }
 
     public static PrivateKey getPrivateKeyFromKeystore(String keystoreAlias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
@@ -90,20 +112,36 @@ public class SecurityECDH {
         return (PrivateKey) keyStore.getKey(keystoreAlias, null);
     }
 
-    public static byte[] generateSecretKey(String keystoreAlias, PublicKey publicKey)
-            throws GeneralSecurityException, IOException {
+    public static byte[] generateSecretKey(Context context, String keystoreAlias, PublicKey publicKey)
+            throws GeneralSecurityException, IOException, InterruptedException {
 
-        PrivateKey privateKey;
+        final PrivateKey[] privateKey = new PrivateKey[1];
         if(Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
-            CustomKeyStore customKeyStore = new CustomKeyStore();
-            privateKey = customKeyStore.buildPrivateKey();
+            CustomKeyStoreDao customKeyStoreDao = CustomKeyStore.getDao(context);
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    CustomKeyStore customKeyStore = customKeyStoreDao.find(keystoreAlias);
+                    try {
+                        privateKey[0] = customKeyStore.buildPrivateKey();
+                    } catch (NoSuchAlgorithmException | InvalidKeySpecException |
+                             UnrecoverableKeyException | KeyStoreException | CertificateException |
+                             IOException | NoSuchPaddingException | IllegalBlockSizeException |
+                             BadPaddingException | InvalidKeyException |
+                             InvalidAlgorithmParameterException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+            thread.start();
+            thread.join();
         }
         else {
-            privateKey = getPrivateKeyFromKeystore(keystoreAlias);
+            privateKey[0] = getPrivateKeyFromKeystore(keystoreAlias);
         }
 
         KeyAgreement keyAgreement = KeyAgreement.getInstance(DEFAULT_ALGORITHM);
-        keyAgreement.init(privateKey);
+        keyAgreement.init(privateKey[0]);
         keyAgreement.doPhase(publicKey, true);
         return keyAgreement.generateSecret();
     }
@@ -114,29 +152,29 @@ public class SecurityECDH {
             InterruptedException {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(
                 KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
-        kpg.initialize(new KeyGenParameterSpec.Builder(
-                keystoreAlias,
+        kpg.initialize(new KeyGenParameterSpec.Builder(keystoreAlias,
                 KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+                .setKeySize(2048)
+                .setDigests(KeyProperties.DIGEST_SHA1, KeyProperties.DIGEST_SHA256,
+                        KeyProperties.DIGEST_SHA512)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
                 .build());
 
-        byte[] encodedPrivateKey = SecurityRSA.encrypt(kpg.generateKeyPair().getPublic(),
+        KeyPair keystoreKeyPair = kpg.generateKeyPair();
+        byte[] encryptedPrivateKey = SecurityRSA.encrypt(keystoreKeyPair.getPublic(),
                 keyPair.getPrivate().getEncoded());
 
-        String strEncodedPrivateKey = Base64.encodeToString(encodedPrivateKey, Base64.DEFAULT);
-
         CustomKeyStore customKeyStore = new CustomKeyStore();
-        customKeyStore.setPrivateKey(strEncodedPrivateKey);
+        customKeyStore.setPrivateKey(Base64.encodeToString(encryptedPrivateKey, Base64.DEFAULT));
         customKeyStore.setPublicKey(Base64.encodeToString(keyPair.getPublic().getEncoded(),
                 Base64.DEFAULT));
-        customKeyStore.setKeyStoreAlias(keystoreAlias);
+        customKeyStore.setKeystoreAlias(keystoreAlias);
         CustomKeyStoreDao customKeyStoreDao = CustomKeyStore.getDao(context);
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                customKeyStoreDao.insert(customKeyStore);
+                Log.d(getClass().getName(), "Number inserted: " + customKeyStoreDao.insert(customKeyStore));
             }
         });
         thread.start();
@@ -170,7 +208,7 @@ public class SecurityECDH {
 
             storeInCustomKeyStore(context, keystoreAlias, keyPair);
 
-            return keyPairGenerator.generateKeyPair().getPublic();
+            return keyPair.getPublic();
         }
     }
 

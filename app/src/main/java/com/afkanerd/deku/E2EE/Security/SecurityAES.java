@@ -1,8 +1,15 @@
 package com.afkanerd.deku.E2EE.Security;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.spec.MGF1ParameterSpec;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -11,6 +18,25 @@ public class SecurityAES {
     public static final String DEFAULT_AES_ALGORITHM = "AES/CBC/PKCS5Padding";
 
     public static final String ALGORITHM = "AES";
+
+
+    public static SecretKey generateSecretKey(int size) throws NoSuchAlgorithmException {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        keyGenerator.init(size); // Adjust key size as needed
+        return keyGenerator.generateKey();
+    }
+
+    public static byte[] encryptAESGCM(byte[] data, SecretKey secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+        aesCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        return aesCipher.doFinal(data);
+    }
+
+    public static byte[] decryptAESGCM(byte[] data, SecretKey secretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+        aesCipher.init(Cipher.DECRYPT_MODE, secretKey);
+        return aesCipher.doFinal(data);
+    }
 
     public static byte[] encryptAES256CBC(byte[] input, byte[] secretKey, byte[] iv) throws Throwable {
         try {

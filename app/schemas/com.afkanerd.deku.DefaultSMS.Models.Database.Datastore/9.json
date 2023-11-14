@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "9d6ed320d9799d15c807f06c124aa121",
+    "identityHash": "639472f092c743f118307c930036e595",
     "entities": [
       {
         "tableName": "CustomKeyStore",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `keyStoreAlias` TEXT, `publicKey` TEXT, `privateKey` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `keystoreAlias` TEXT, `publicKey` TEXT, `privateKey` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -21,8 +21,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "keyStoreAlias",
-            "columnName": "keyStoreAlias",
+            "fieldPath": "keystoreAlias",
+            "columnName": "keystoreAlias",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -45,7 +45,17 @@
             "id"
           ]
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_CustomKeyStore_keystoreAlias",
+            "unique": true,
+            "columnNames": [
+              "keystoreAlias"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_CustomKeyStore_keystoreAlias` ON `${TABLE_NAME}` (`keystoreAlias`)"
+          }
+        ],
         "foreignKeys": []
       },
       {
@@ -334,7 +344,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9d6ed320d9799d15c807f06c124aa121')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '639472f092c743f118307c930036e595')"
     ]
   }
 }
