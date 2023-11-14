@@ -51,13 +51,14 @@ public class Conversation {
     protected boolean is_encrypted;
 
     protected boolean is_key;
-
     protected boolean is_image;
     protected String formatted_date;
 
     protected String address;
 
-    protected String body;
+    protected String text;
+
+    protected String data;
 
     public static ConversationDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
@@ -67,6 +68,14 @@ public class Conversation {
         ConversationDao conversationDao =  databaseConnector.conversationDao();
         databaseConnector.close();
         return conversationDao;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
     }
 
     public long getId() {
@@ -189,12 +198,12 @@ public class Conversation {
         this.address = address;
     }
 
-    public String getBody() {
-        return body;
+    public String getText() {
+        return text;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public void setText(String text) {
+        this.text = text;
     }
 
     public Conversation(){}
@@ -212,7 +221,7 @@ public class Conversation {
         int subscriptionIdIndex = cursor.getColumnIndex(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID);
 
         this.setMessage_id(cursor.getString(idIndex));
-        this.setBody(cursor.getString(bodyIndex));
+        this.setText(cursor.getString(bodyIndex));
         this.setThread_id(cursor.getString(threadIdIndex));
         this.setAddress(cursor.getString(addressIndex));
         this.setDate(cursor.getString(dateIndex));
@@ -231,7 +240,7 @@ public class Conversation {
     public static final DiffUtil.ItemCallback<Conversation> DIFF_CALLBACK = new DiffUtil.ItemCallback<Conversation>() {
         @Override
         public boolean areItemsTheSame(@NonNull Conversation oldItem, @NonNull Conversation newItem) {
-            return oldItem.message_id == newItem.message_id;
+            return oldItem.message_id.equals(newItem.message_id);
         }
 
         @Override
@@ -243,11 +252,11 @@ public class Conversation {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof Conversation) {
             Conversation conversation = (Conversation) obj;
-            return conversation.thread_id == this.thread_id &&
-                    conversation.message_id == this.message_id &&
-                    conversation.body.equals(this.body) &&
+            return conversation.thread_id.equals(this.thread_id) &&
+                    conversation.message_id.equals(this.message_id) &&
+                    conversation.text.equals(this.text) &&
                     conversation.status == this.status &&
-                    conversation.date == this.date &&
+                    conversation.date.equals(this.date) &&
                     conversation.address.equals(this.address) &&
                     conversation.type == this.type;
         }

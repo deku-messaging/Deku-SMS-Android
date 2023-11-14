@@ -22,19 +22,14 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 
 public class SecurityHandler {
 
 
-    public final static String FIRST_HEADER = "--D.E.K.U.start---";
-    public final static String END_HEADER = "--D.E.K.U.end---";
 
 //    public final static String ENCRYPTED_WATERMARK = "\u007F";
 //    public final static String ENCRYPTED_WATERMARK = "\u001B";
 
-    public final static String ENCRYPTED_WATERMARK_START = "$d3$";
-    public final static String ENCRYPTED_WATERMARK_END = ".d.$";
 
     /**
      * Includes the headers required to identify that this is an agreement request.
@@ -42,8 +37,8 @@ public class SecurityHandler {
      * @return
      */
     public static byte[] txAgreementFormatter(byte[] agreementKey) {
-        byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
-        byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
+        byte[] firstHeader = dekuHeaderStartPrefix.getBytes(StandardCharsets.US_ASCII);
+        byte[] endHeader = dekuHeaderEndPrefix.getBytes(StandardCharsets.US_ASCII);
 
         int SMS_CONSTANT = 130;
 
@@ -59,8 +54,8 @@ public class SecurityHandler {
 
     public static byte[] rxAgreementFormatter(byte[][] agreementKey) {
 
-        byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
-        byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
+        byte[] firstHeader = dekuHeaderStartPrefix.getBytes(StandardCharsets.US_ASCII);
+        byte[] endHeader = dekuHeaderEndPrefix.getBytes(StandardCharsets.US_ASCII);
 
         int dstLen = agreementKey[0].length - firstHeader.length;
         int dstLen1 = agreementKey[1].length - endHeader.length;
@@ -75,8 +70,8 @@ public class SecurityHandler {
     }
 
     public static byte[] rxAgreementFormatter(byte[] agreementKey) {
-        byte[] firstHeader = FIRST_HEADER.getBytes(StandardCharsets.US_ASCII);
-        byte[] endHeader = END_HEADER.getBytes(StandardCharsets.US_ASCII);
+        byte[] firstHeader = dekuHeaderStartPrefix.getBytes(StandardCharsets.US_ASCII);
+        byte[] endHeader = dekuHeaderEndPrefix.getBytes(StandardCharsets.US_ASCII);
 
         int keyLength = agreementKey.length - (firstHeader.length + endHeader.length);
         byte[] agreementPubKey = new byte[keyLength];
@@ -88,30 +83,30 @@ public class SecurityHandler {
 
 
     public static String putEncryptedMessageWaterMark(String text) {
-        return SecurityHandler.ENCRYPTED_WATERMARK_START
+        return SecurityHandler.dekuTextStartPrefix
                 + text
-                + SecurityHandler.ENCRYPTED_WATERMARK_END;
+                + SecurityHandler.dekuTextEndPrefix;
     }
 
     public static String removeEncryptedMessageWaterMark(String text) {
-        int lastWaterMark = text.lastIndexOf(SecurityHandler.ENCRYPTED_WATERMARK_END);
+        int lastWaterMark = text.lastIndexOf(SecurityHandler.dekuTextEndPrefix);
 
-        return text.substring(SecurityHandler.ENCRYPTED_WATERMARK_START.length(), lastWaterMark);
+        return text.substring(SecurityHandler.dekuTextStartPrefix.length(), lastWaterMark);
     }
 
     public static String removeKeyWaterMark(String text) {
-        return text.replace(FIRST_HEADER, "")
-                .replace(END_HEADER, "");
+        return text.replace(dekuHeaderStartPrefix, "")
+                .replace(dekuHeaderEndPrefix, "");
     }
 
     public static boolean containersWaterMark(String text) {
-        return text.indexOf(SecurityHandler.ENCRYPTED_WATERMARK_START) == 0 &&
-                text.indexOf(SecurityHandler.ENCRYPTED_WATERMARK_END) ==
-                        text.length() - SecurityHandler.ENCRYPTED_WATERMARK_END.length();
+        return text.indexOf(SecurityHandler.dekuTextStartPrefix) == 0 &&
+                text.indexOf(SecurityHandler.dekuTextEndPrefix) ==
+                        text.length() - SecurityHandler.dekuTextEndPrefix.length();
     }
 
     public static boolean isKeyExchange(String body) {
-        return body.contains(FIRST_HEADER) && body.contains(END_HEADER);
+        return body.contains(dekuHeaderStartPrefix) && body.contains(dekuHeaderEndPrefix);
     }
 
 
@@ -138,9 +133,28 @@ public class SecurityHandler {
         return keyStore.getCertificate(keystoreAlias).getPublicKey();
     }
 
-    public static String convertPublicKeyToPEMFormat(byte[] publicKey) {
-        return "-----BEGIN PUBLIC KEY-----\n"
+    public final static String dekuHeaderStartPrefix = "HDEKU{";
+    public final static String dekuHeaderEndPrefix = "}UKEDH";
+    public final static String pemStartPrefix = "-----BEGIN PUBLIC KEY-----\n";
+    public final static String pemEndPrefix = "\n-----END PUBLIC KEY-----";
+
+    public final static String dekuTextStartPrefix = "TDEKU{";
+    public final static String dekuTextEndPrefix = "}UKEDT";
+
+    public static String convertTextToDekuFormat(byte[] data) {
+        return dekuTextStartPrefix
+                + Base64.encodeToString(data, Base64.DEFAULT) +
+                dekuTextEndPrefix;
+    }
+
+    public static String convertPublicKeyToDekuFormat(byte[] publicKey) {
+        return dekuHeaderStartPrefix
                 + Base64.encodeToString(publicKey, Base64.DEFAULT) +
-                "\n-----END PUBLIC KEY-----";
+                dekuHeaderEndPrefix;
+    }
+    public static String convertPublicKeyToPEMFormat(byte[] publicKey) {
+        return pemStartPrefix
+                + Base64.encodeToString(publicKey, Base64.DEFAULT) +
+                pemEndPrefix;
     }
 }

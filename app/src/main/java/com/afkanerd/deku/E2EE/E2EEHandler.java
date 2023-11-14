@@ -3,19 +3,27 @@ package com.afkanerd.deku.E2EE;
 
 import android.content.Context;
 import android.util.Base64;
+import android.util.Log;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
+import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
+import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
+import com.afkanerd.deku.E2EE.Security.SecurityHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.Security;
 import java.security.cert.CertificateException;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class E2EEHandler {
 
@@ -47,5 +55,114 @@ public class E2EEHandler {
             CertificateException, IOException, NoSuchAlgorithmException, InterruptedException {
         SecurityECDH securityECDH = new SecurityECDH();
         return securityECDH.removeFromKeystore(context, keystoreAlias);
+    }
+
+    public static boolean isValidDekuPublicKey(String dekuPublicKey) {
+        try {
+            return dekuPublicKey.startsWith(SecurityHandler.dekuHeaderStartPrefix) &&
+                    dekuPublicKey.endsWith(SecurityHandler.dekuHeaderEndPrefix) &&
+                    (SecurityECDH.buildPublicKey(Base64.decode(
+                            dekuPublicKey.substring(
+                                    SecurityHandler.dekuHeaderStartPrefix.length(),
+                                    (dekuPublicKey.length() - SecurityHandler.dekuHeaderEndPrefix.length())
+                            ), Base64.DEFAULT)
+                    ) != null);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean isValidDekuText(String text) {
+        try {
+            String encodedText = text.substring(SecurityHandler.dekuTextStartPrefix.length(),
+                    (text.length() - SecurityHandler.dekuTextEndPrefix.length()));
+            return text.startsWith(SecurityHandler.dekuTextStartPrefix) &&
+                    text.endsWith(SecurityHandler.dekuTextEndPrefix) &&
+                    Helpers.isBase64Encoded(encodedText);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static String buildDekuPublicKey(byte[] data) {
+//        return SecurityHandler.convertPublicKeyToPEMFormat(data);
+        return SecurityHandler.convertPublicKeyToDekuFormat(data);
+    }
+
+    public static byte[] extractTransmissionKey(String data) {
+        String encodedKey = data.substring(SecurityHandler.dekuHeaderStartPrefix.length(),
+                (data.length() - SecurityHandler.dekuHeaderEndPrefix.length()));
+
+        return Base64.decode(encodedKey, Base64.DEFAULT);
+    }
+
+    public static String buildForEncryptionRequest(Context context, String address) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
+        int session = 0;
+        String keystoreAlias = getKeyStoreAlias(address, session);
+        PublicKey publicKey = createNewKeyPair(context, keystoreAlias);
+        return buildDekuPublicKey(publicKey.getEncoded());
+    }
+
+    public static long insertNewPeerPublicKey(Context context, byte[] publicKey, String keystoreAlias) {
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                ConversationsThreadsEncryption.getDao(context);
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
+        conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.DEFAULT));
+        conversationsThreadsEncryption.setExchangeDate(System.currentTimeMillis());
+        conversationsThreadsEncryption.setKeystoreAlias(keystoreAlias);
+        return conversationsThreadsEncryptionDao.insert(conversationsThreadsEncryption);
+    }
+
+    public static byte[] encryptText(Context context, String keystoreAlias, String text) throws GeneralSecurityException, IOException, InterruptedException {
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                ConversationsThreadsEncryption.getDao(context);
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
+
+        Log.d(E2EEHandler.class.getName(), "Encryption pub key: " +
+                conversationsThreadsEncryption.getPublicKey());
+        PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
+                conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
+        byte[] _secretKey = SecurityECDH.generateSecretKey(context, keystoreAlias, publicKey);
+        Log.d(E2EEHandler.class.getName(), "Encrypt sharedsecret: " +
+                Base64.encodeToString(_secretKey, Base64.DEFAULT));
+        SecretKey secretKey = new SecretKeySpec(_secretKey, "AES");
+        return SecurityAES.encryptAESGCM(text.getBytes(StandardCharsets.UTF_8), secretKey);
+    }
+
+    public static byte[] decryptText(Context context, String keystoreAlias, byte[] text) throws GeneralSecurityException, IOException, InterruptedException {
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                ConversationsThreadsEncryption.getDao(context);
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
+
+        Log.d(E2EEHandler.class.getName(), "Decryption pub key: " +
+                conversationsThreadsEncryption.getPublicKey());
+        PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
+                conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
+        byte[] _secretKey = SecurityECDH.generateSecretKey(context, keystoreAlias, publicKey);
+        SecretKey secretKey = new SecretKeySpec(_secretKey, "AES");
+        Log.d(E2EEHandler.class.getName(), "Decrypt sharedsecret: " +
+                Base64.encodeToString(_secretKey, Base64.DEFAULT));
+        return SecurityAES.decryptAESGCM(text, secretKey);
+    }
+
+    public static String buildTransmissionText(byte[] data) {
+        return SecurityHandler.convertTextToDekuFormat(data);
+    }
+
+    public static byte[] extractTransmissionText(String text) {
+        String encodedText = text.substring(SecurityHandler.dekuTextStartPrefix.length(),
+                (text.length() - SecurityHandler.dekuTextEndPrefix.length()));
+
+        return Base64.decode(encodedText, Base64.DEFAULT);
+    }
+
+    public static void clearAll(Context context) {
+        CustomKeyStoreDao customKeyStoreDao = CustomKeyStore.getDao(context);
+        customKeyStoreDao.clear();
     }
 }

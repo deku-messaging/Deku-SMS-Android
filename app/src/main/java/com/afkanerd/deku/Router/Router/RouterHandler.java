@@ -79,7 +79,7 @@ public class RouterHandler {
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
-        boolean isBase64 = Helpers.isBase64Encoded(routerItem.getBody());
+        boolean isBase64 = Helpers.isBase64Encoded(routerItem.getText());
 
         new Thread(new Runnable() {
             @Override

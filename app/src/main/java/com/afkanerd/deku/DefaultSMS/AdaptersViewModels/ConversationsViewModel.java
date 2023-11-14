@@ -5,17 +5,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
-import androidx.paging.PagingSource;
-import androidx.paging.PagingState;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
@@ -26,10 +21,6 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import kotlin.coroutines.Continuation;
-import kotlin.coroutines.CoroutineContext;
-import kotlinx.coroutines.flow.FlowCollector;
 
 public class ConversationsViewModel extends ViewModel{
     public String threadId;
@@ -136,7 +127,7 @@ public class ConversationsViewModel extends ViewModel{
                 List<Conversation> list = conversationDao.getAll(threadId);
 
                 for(int i=0;i<list.size();++i) {
-                    if(list.get(i).getBody().toLowerCase().contains(input.toLowerCase()))
+                    if(list.get(i).getText().toLowerCase().contains(input.toLowerCase()))
                         positions.add(i);
                 }
             }

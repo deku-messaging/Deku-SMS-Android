@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.telephony.PhoneNumberUtils;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -47,7 +46,7 @@ public class NotificationsHandler {
 
             NotificationCompat.Builder builder = getNotificationBuilder(context, person, conversation,
                     getReplyIntent(context, conversation), getPendingIntent(context, conversation));
-            builder.setContentTitle(person.getName()).setContentText(conversation.getBody());
+            builder.setContentTitle(person.getName()).setContentText(conversation.getText());
             builder.setStyle(messagingStyle);
 
             NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
@@ -123,7 +122,7 @@ public class NotificationsHandler {
         }
         return new NotificationCompat.MessagingStyle(name).addMessage(
                 new NotificationCompat.MessagingStyle.Message(
-                        conversation.getBody(), System.currentTimeMillis(), person));
+                        conversation.getText(), System.currentTimeMillis(), person));
     }
 
     public static NotificationCompat.Builder getNotificationBuilder(

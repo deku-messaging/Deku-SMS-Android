@@ -2,9 +2,7 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import android.provider.Telephony;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -113,7 +111,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         sentMessageStatus.setText(statusMessage);
 
-        Helpers.highlightLinks(sentMessage, conversation.getBody(),
+        Helpers.highlightLinks(sentMessage, conversation.getText(),
                 itemView.getContext().getColor(R.color.primary_background_color));
     }
 

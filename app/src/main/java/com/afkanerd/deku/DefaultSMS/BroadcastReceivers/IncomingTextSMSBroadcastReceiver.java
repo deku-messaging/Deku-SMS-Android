@@ -13,6 +13,7 @@ import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.Router.RouterItem;
 import com.afkanerd.deku.Router.Router.RouterHandler;
 
@@ -52,8 +53,11 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     final String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_text(context, intent);
                     if(regIncomingOutput != null) {
                         messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
-
                         NotificationsHandler.sendIncomingTextMessageNotification(context, messageId);
+
+                        String text = regIncomingOutput[NativeSMSDB.BODY];
+
+                        handleEncryption(text);
                         router_activities(messageId);
                     }
                 } catch (IOException e) {
@@ -100,6 +104,12 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
                             + getResultCode());
             }
+        }
+    }
+
+    private void handleEncryption(String text) {
+        if(E2EEHandler.isValidDekuPublicKey(text)) {
+
         }
     }
 

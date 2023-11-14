@@ -1,9 +1,21 @@
 package com.afkanerd.deku.E2EE;
 
+import android.content.Context;
+
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+import androidx.room.Room;
+
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
+
+@Entity(indices = {@Index(value={"keystoreAlias"}, unique=true)})
 public class ConversationsThreadsEncryption {
 
-    private int id;
-    private int keyExchangeCount;
+    @PrimaryKey(autoGenerate = true)
+    private long id;
 
     private String publicKey;
 
@@ -19,20 +31,12 @@ public class ConversationsThreadsEncryption {
         this.keystoreAlias = keystoreAlias;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
-    }
-
-    public int getKeyExchangeCount() {
-        return keyExchangeCount;
-    }
-
-    public void setKeyExchangeCount(int keyExchangeCount) {
-        this.keyExchangeCount = keyExchangeCount;
     }
 
     public String getPublicKey() {
@@ -50,4 +54,17 @@ public class ConversationsThreadsEncryption {
     public void setExchangeDate(long exchangeDate) {
         this.exchangeDate = exchangeDate;
     }
+
+
+    public static ConversationsThreadsEncryptionDao getDao(Context context) {
+        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                        Datastore.databaseName)
+                .addMigrations(new Migrations.Migration8To9())
+                .build();
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                databaseConnector.conversationsThreadsEncryptionDao();
+        databaseConnector.close();
+        return conversationsThreadsEncryptionDao;
+    }
+
 }

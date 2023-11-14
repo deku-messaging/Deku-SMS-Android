@@ -21,7 +21,7 @@ public class RouterItem extends Conversation  {
     public RouterItem(Cursor cursor) {
         super(cursor);
         this.MSISDN = this.getAddress();
-        this.text = this.getBody();
+        this.text = this.getText();
     }
 
     public static RouterItem build(Cursor cursor) {
@@ -46,7 +46,7 @@ public class RouterItem extends Conversation  {
             RouterItem routerItem = (RouterItem) obj;
 
             return routerItem.getMessage_id().equals(this.getMessage_id()) &&
-                    routerItem.getBody().equals(this.getBody()) &&
+                    routerItem.getText().equals(this.getText()) &&
                     routerItem.url.equals(this.url) &&
                     routerItem.routingDate == this.routingDate;
         }

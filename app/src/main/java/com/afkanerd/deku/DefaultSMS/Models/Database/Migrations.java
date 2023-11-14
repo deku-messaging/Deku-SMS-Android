@@ -95,7 +95,8 @@ public class Migrations {
                     "is_image INTEGER NOT NULL, " +
                     "formatted_date TEXT, " +
                     "address TEXT, " +
-                    "body TEXT)");
+                    "text TEXT, " +
+                    "data TEXT)");
 
             database.execSQL("UPDATE ThreadedConversations SET is_archived = 1 " +
                     "WHERE thread_id IN (SELECT threadId as thread_id FROM Archive)");

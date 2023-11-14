@@ -196,8 +196,8 @@ public class NativeSMSDB {
         }
 
 
-        protected static String[] send_data(Context context, String messageId, String destinationAddress,
-                                         byte[] data, int subscriptionId, Bundle bundle) throws Exception {
+        protected static String[] _send_data(Context context, String messageId, String destinationAddress,
+                                             byte[] data, int subscriptionId, Bundle bundle) throws Exception {
             String[] pendingOutputs = register_pending(context, messageId, destinationAddress,
                     Base64.encodeToString(data, Base64.DEFAULT), subscriptionId);
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);

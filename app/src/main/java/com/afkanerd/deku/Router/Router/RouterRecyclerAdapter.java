@@ -3,15 +3,11 @@ package com.afkanerd.deku.Router.Router;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.view.ActionMode;
 import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,13 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.card.MaterialCardView;
-import com.google.gson.JsonElement;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAdapter.ViewHolder> {
     public final AsyncListDiffer<RouterItem> mDiffer = new AsyncListDiffer<>(this, RouterItem.DIFF_CALLBACK);
@@ -128,7 +121,7 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
         public void bind(RouterItem routerItem) {
             this.address.setText(routerItem.getAddress());
             this.url.setText(routerItem.url);
-            this.body.setText(routerItem.getBody());
+            this.body.setText(routerItem.getText());
             this.status.setText(routerItem.routingStatus);
             this.date.setText(Helpers.formatDate(itemView.getContext(),
                     routerItem.routingDate));

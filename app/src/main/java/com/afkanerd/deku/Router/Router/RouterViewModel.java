@@ -65,7 +65,7 @@ public class RouterViewModel extends ViewModel {
                         routerMessage.url = url;
                         routerMessage.routingDate = Long.parseLong(date);
                         routerMessage.setMessage_id(messageId);
-                        routerMessage.setBody(body);
+                        routerMessage.setText(body);
                         routerMessage.setAddress(address);
 
                         routerMessagesListMultimap.put(Long.parseLong(date), routerMessage);

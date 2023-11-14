@@ -67,7 +67,7 @@ public class ThreadedConversations {
 
     public static ThreadedConversations build(Conversation conversation) {
         ThreadedConversations threadedConversations = new ThreadedConversations();
-        threadedConversations.setSnippet(conversation.getBody());
+        threadedConversations.setSnippet(conversation.getText());
         threadedConversations.setThread_id(conversation.getThread_id());
         threadedConversations.setAddress(conversation.getAddress());
         threadedConversations.setDate(conversation.getDate());

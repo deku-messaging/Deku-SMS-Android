@@ -7,5 +7,4 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import org.junit.Test;
 
 public class ConversationsThreadsEncryptionTest {
-
 }

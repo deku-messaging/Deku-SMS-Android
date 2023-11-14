@@ -24,4 +24,7 @@ public interface CustomKeyStoreDao {
 
     @Query("SELECT * FROM CustomKeyStore")
     List<CustomKeyStore> getAll();
+
+    @Query("DELETE FROM CustomKeyStore")
+    void clear();
 }

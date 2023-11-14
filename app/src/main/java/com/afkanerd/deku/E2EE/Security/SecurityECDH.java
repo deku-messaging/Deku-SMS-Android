@@ -101,8 +101,14 @@ public class SecurityECDH {
     }
 
     public static PublicKey buildPublicKey(byte[] publicKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        KeyFactory keyFactory = KeyFactory.getInstance(DEFAULT_ALGORITHM);
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(publicKey);
+//        KeyFactory keyFactory = KeyFactory.getInstance(DEFAULT_ALGORITHM);
+//        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(publicKey);
+//        return keyFactory.generatePublic(keySpec);
+
+        // Assuming the key is in X.509 format (common for RSA keys)
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKey);
+        KeyFactory keyFactory = KeyFactory.getInstance(SecurityECDH.DEFAULT_ALGORITHM);
+
         return keyFactory.generatePublic(keySpec);
     }
 

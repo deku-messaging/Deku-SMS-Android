@@ -1,5 +1,6 @@
 package com.afkanerd.deku.E2EE.Security;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import android.security.keystore.KeyProperties;
@@ -22,18 +23,19 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 public class SecurityRSATest {
 
     @Test
-    public void testCanEncrypt() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+    public void testCanEncrypt() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA);
         keyGenerator.initialize(2048);
         KeyPair keyPair = keyGenerator.generateKeyPair();
 
-        String data = "Hello world";
-        byte[] cipherText = SecurityRSA.encrypt(keyPair.getPublic(), data.getBytes(StandardCharsets.UTF_8));
+        SecretKey secretKey = SecurityAES.generateSecretKey(256);
+        byte[] cipherText = SecurityRSA.encrypt(keyPair.getPublic(), secretKey.getEncoded());
         byte[] plainText = SecurityRSA.decrypt(keyPair.getPrivate(), cipherText);
-        assertEquals(data, new String(plainText));
+        assertArrayEquals(secretKey.getEncoded(), plainText);
     }
 }

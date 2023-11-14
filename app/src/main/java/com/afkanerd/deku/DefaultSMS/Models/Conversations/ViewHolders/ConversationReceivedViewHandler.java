@@ -69,7 +69,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         DateFormat dateFormat = new SimpleDateFormat("h:mm a");
         String txDate = dateFormat.format(new Date(Long.parseLong(conversation.getDate())));
 
-        Helpers.highlightLinks(receivedMessage, conversation.getBody(),
+        Helpers.highlightLinks(receivedMessage, conversation.getText(),
                 itemView.getContext().getColor(R.color.primary_text_color));
 
         if(conversation.getSubscription_id() > 0) {

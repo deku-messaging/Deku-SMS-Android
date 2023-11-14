@@ -28,9 +28,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
          * Important note: either image or dump it
          */
 
-        if(BuildConfig.DEBUG)
-            Log.d(getClass().getName(), "New data received..");
-
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
                 String[] regIncomingOutput = new String[0];

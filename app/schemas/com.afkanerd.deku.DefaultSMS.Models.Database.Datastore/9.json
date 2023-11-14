@@ -2,8 +2,94 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "639472f092c743f118307c930036e595",
+    "identityHash": "11b29416e8e422845e48e64ca3560351",
     "entities": [
+      {
+        "tableName": "ThreadedConversations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`thread_id` TEXT NOT NULL, `address` TEXT, `msg_count` INTEGER NOT NULL, `type` INTEGER NOT NULL, `date` TEXT, `is_archived` INTEGER NOT NULL, `is_blocked` INTEGER NOT NULL, `is_shortcode` INTEGER NOT NULL, `is_read` INTEGER NOT NULL, `snippet` TEXT, `contact_name` TEXT, `formatted_datetime` TEXT, PRIMARY KEY(`thread_id`))",
+        "fields": [
+          {
+            "fieldPath": "thread_id",
+            "columnName": "thread_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "msg_count",
+            "columnName": "msg_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "is_archived",
+            "columnName": "is_archived",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "is_blocked",
+            "columnName": "is_blocked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "is_shortcode",
+            "columnName": "is_shortcode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "is_read",
+            "columnName": "is_read",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "snippet",
+            "columnName": "snippet",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "contact_name",
+            "columnName": "contact_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "formatted_datetime",
+            "columnName": "formatted_datetime",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "thread_id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
       {
         "tableName": "CustomKeyStore",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `keystoreAlias` TEXT, `publicKey` TEXT, `privateKey` TEXT)",
@@ -135,94 +221,56 @@
         "foreignKeys": []
       },
       {
-        "tableName": "ThreadedConversations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`thread_id` TEXT NOT NULL, `address` TEXT, `msg_count` INTEGER NOT NULL, `type` INTEGER NOT NULL, `date` TEXT, `is_archived` INTEGER NOT NULL, `is_blocked` INTEGER NOT NULL, `is_shortcode` INTEGER NOT NULL, `is_read` INTEGER NOT NULL, `snippet` TEXT, `contact_name` TEXT, `formatted_datetime` TEXT, PRIMARY KEY(`thread_id`))",
+        "tableName": "ConversationsThreadsEncryption",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `publicKey` TEXT, `keystoreAlias` TEXT, `exchangeDate` INTEGER NOT NULL)",
         "fields": [
           {
-            "fieldPath": "thread_id",
-            "columnName": "thread_id",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "address",
-            "columnName": "address",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "msg_count",
-            "columnName": "msg_count",
+            "fieldPath": "id",
+            "columnName": "id",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "type",
-            "columnName": "type",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "date",
-            "columnName": "date",
+            "fieldPath": "publicKey",
+            "columnName": "publicKey",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "is_archived",
-            "columnName": "is_archived",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "is_blocked",
-            "columnName": "is_blocked",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "is_shortcode",
-            "columnName": "is_shortcode",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "is_read",
-            "columnName": "is_read",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "snippet",
-            "columnName": "snippet",
+            "fieldPath": "keystoreAlias",
+            "columnName": "keystoreAlias",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "contact_name",
-            "columnName": "contact_name",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "formatted_datetime",
-            "columnName": "formatted_datetime",
-            "affinity": "TEXT",
-            "notNull": false
+            "fieldPath": "exchangeDate",
+            "columnName": "exchangeDate",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
-          "autoGenerate": false,
+          "autoGenerate": true,
           "columnNames": [
-            "thread_id"
+            "id"
           ]
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_ConversationsThreadsEncryption_keystoreAlias",
+            "unique": true,
+            "columnNames": [
+              "keystoreAlias"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_ConversationsThreadsEncryption_keystoreAlias` ON `${TABLE_NAME}` (`keystoreAlias`)"
+          }
+        ],
         "foreignKeys": []
       },
       {
         "tableName": "Conversation",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` TEXT, `thread_id` TEXT, `date` TEXT, `date_sent` TEXT, `type` INTEGER NOT NULL, `num_segments` INTEGER NOT NULL, `subscription_id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `read` INTEGER NOT NULL, `is_encrypted` INTEGER NOT NULL, `is_key` INTEGER NOT NULL, `is_image` INTEGER NOT NULL, `formatted_date` TEXT, `address` TEXT, `body` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` TEXT, `thread_id` TEXT, `date` TEXT, `date_sent` TEXT, `type` INTEGER NOT NULL, `num_segments` INTEGER NOT NULL, `subscription_id` INTEGER NOT NULL, `status` INTEGER NOT NULL, `read` INTEGER NOT NULL, `is_encrypted` INTEGER NOT NULL, `is_key` INTEGER NOT NULL, `is_image` INTEGER NOT NULL, `formatted_date` TEXT, `address` TEXT, `text` TEXT, `data` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -315,8 +363,14 @@
             "notNull": false
           },
           {
-            "fieldPath": "body",
-            "columnName": "body",
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "data",
+            "columnName": "data",
             "affinity": "TEXT",
             "notNull": false
           }
@@ -344,7 +398,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '639472f092c743f118307c930036e595')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '11b29416e8e422845e48e64ca3560351')"
     ]
   }
 }
