@@ -24,13 +24,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 public class NativeSMSDB {
-    public static String BROADCAST_NATIVE_SMS_DB = "BROADCAST_NATIVE_SMS_DB";
-    public static String BROADCAST_THREAD_ID_INTENT = "BROADCAST_THREAD_ID_INTENT";
-    public static String BROADCAST_CONVERSATION_ID_INTENT = "BROADCAST_CONVERSATION_ID_INTENT";
-
-    public static String BROADCAST_STATUS_CHANGED_ACTION = "BROADCAST_STATUS_CHANGED_ACTION";
-    public static String BROADCAST_NEW_MESSAGE_ACTION = "BROADCAST_NEW_MESSAGE_ACTION";
-
     public static String ID = "ID";
 
     public static int THREAD_ID = 0;
@@ -40,6 +33,7 @@ public class NativeSMSDB {
 
     public static int ADDRESS = 3;
     public static int SUBSCRIPTION_ID = 4;
+    public static int DATE_SENT = 5;
 
     public static Cursor fetchAll(Context context) {
         return context.getContentResolver().query(
@@ -101,7 +95,7 @@ public class NativeSMSDB {
      *          - Read status
      */
 
-    private static String[] broadcastNewMessage(Context context, Uri uri) {
+    private static String[] parseNewIncomingUriForThreadInformation(Context context, Uri uri) {
         Cursor cursor = context.getContentResolver().query(
                 uri,
                 new String[]{
@@ -117,12 +111,6 @@ public class NativeSMSDB {
             String messageId = cursor.getString(
                     cursor.getColumnIndexOrThrow(Telephony.Sms._ID));
             cursor.close();
-
-            Intent broadcastIntent = new Intent(BROADCAST_NEW_MESSAGE_ACTION);
-            broadcastIntent.putExtra(BROADCAST_THREAD_ID_INTENT, threadId);
-            broadcastIntent.putExtra(BROADCAST_CONVERSATION_ID_INTENT, messageId);
-            context.sendBroadcast(broadcastIntent);
-
             return new String[]{threadId, messageId};
         }
 
@@ -147,12 +135,6 @@ public class NativeSMSDB {
             String threadId = cursor.getString(
                     cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID));
             cursor.close();
-
-            Intent broadcastIntent = new Intent(BROADCAST_STATUS_CHANGED_ACTION);
-            broadcastIntent.putExtra(BROADCAST_THREAD_ID_INTENT, threadId);
-            broadcastIntent.putExtra(BROADCAST_CONVERSATION_ID_INTENT, messageId);
-            context.sendBroadcast(broadcastIntent);
-
             return new String[]{threadId, messageId};
         }
 
@@ -198,12 +180,45 @@ public class NativeSMSDB {
 
         protected static String[] _send_data(Context context, String messageId, String destinationAddress,
                                              byte[] data, int subscriptionId, Bundle bundle) throws Exception {
-            String[] pendingOutputs = register_pending(context, messageId, destinationAddress,
+            String[] outputs = register_pending_data(context, messageId, destinationAddress,
                     Base64.encodeToString(data, Base64.DEFAULT), subscriptionId);
-            PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
+            PendingIntent[] pendingIntents = getPendingIntentsForData(context, messageId, bundle);
             Transmissions.sendDataSMS(destinationAddress, data,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
-            return pendingOutputs;
+            return outputs;
+        }
+
+        protected static void _send_key(Context context, String messageId, String destinationAddress,
+                                             byte[] data, int subscriptionId, Bundle bundle) throws Exception {
+            PendingIntent[] pendingIntents = getPendingIntentsForData(context, messageId, bundle);
+            Transmissions.sendDataSMS(destinationAddress, data,
+                    pendingIntents[0], pendingIntents[1], subscriptionId);
+        }
+
+        private static String[] register_pending_data(Context context, String messageId,
+                                                 String destinationAddress, String text, int subscriptionId) {
+            ContentValues contentValues = new ContentValues();
+
+            contentValues.put(Telephony.Sms._ID, messageId);
+            contentValues.put(Telephony.TextBasedSmsColumns.TYPE,
+                    Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
+            contentValues.put(Telephony.TextBasedSmsColumns.STATUS,
+                    Telephony.TextBasedSmsColumns.STATUS_PENDING);
+            contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
+            contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
+            contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
+            contentValues.put(Telephony.TextBasedSmsColumns.DATE_SENT,
+                    String.valueOf(System.currentTimeMillis()));
+
+            try {
+                Uri uri = context.getContentResolver().insert(
+                        Telephony.Sms.CONTENT_URI,
+                        contentValues);
+                return parseNewIncomingUriForThreadInformation(context, uri);
+
+            } catch (Exception e) {
+                throw e;
+            }
         }
 
         private static String[] register_pending(Context context, String messageId,
@@ -225,7 +240,7 @@ public class NativeSMSDB {
                 Uri uri = context.getContentResolver().insert(
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
-                return broadcastNewMessage(context, uri);
+                return parseNewIncomingUriForThreadInformation(context, uri);
 
             } catch (Exception e) {
                 throw e;
@@ -253,6 +268,33 @@ public class NativeSMSDB {
                             messageId, -1);
             Log.d(NativeSMSDB.class.getName(), "Registered sent message update: " + numberChanged);
             return broadcastStateChanged(context, String.valueOf(messageId));
+        }
+
+        public static PendingIntent[] getPendingIntentsForData(Context context, String messageId, Bundle bundle) {
+            Intent sentIntent = new Intent(IncomingTextSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT);
+            sentIntent.setPackage(context.getPackageName());
+            sentIntent.putExtra(ID, messageId);
+
+            Intent deliveredIntent = new Intent(IncomingTextSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT);
+            deliveredIntent.setPackage(context.getPackageName());
+            deliveredIntent.putExtra(Conversation.ID, messageId);
+
+            if(bundle != null) {
+                sentIntent.putExtras(bundle);
+                deliveredIntent.putExtras(bundle);
+            }
+
+            PendingIntent sentPendingIntent = PendingIntent.getBroadcast(context,
+                    (int)Long.parseLong(messageId),
+                    sentIntent,
+                    PendingIntent.FLAG_IMMUTABLE);
+
+            PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context,
+                    (int)Long.parseLong(messageId),
+                    deliveredIntent,
+                    PendingIntent.FLAG_IMMUTABLE);
+
+            return new PendingIntent[]{sentPendingIntent, deliveredPendingIntent};
         }
 
         public static PendingIntent[] getPendingIntents(Context context, String messageId, Bundle bundle) {
@@ -318,6 +360,7 @@ public class NativeSMSDB {
 
             String address = "";
             StringBuilder bodyBuffer = new StringBuilder();
+            long dateSent = 0;
 
             for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                 address = currentSMS.getDisplayOriginatingAddress();
@@ -331,6 +374,8 @@ public class NativeSMSDB {
 
                 String text_message = currentSMS.getDisplayMessageBody();
 
+                dateSent = currentSMS.getTimestampMillis();
+
                 bodyBuffer.append(text_message);
             }
             String body = bodyBuffer.toString();
@@ -339,6 +384,7 @@ public class NativeSMSDB {
             contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address);
             contentValues.put(Telephony.TextBasedSmsColumns.BODY, body);
             contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
+            contentValues.put(Telephony.TextBasedSmsColumns.DATE_SENT, dateSent);
             contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 
             try {
@@ -346,13 +392,14 @@ public class NativeSMSDB {
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
                 Log.d(NativeSMSDB.class.getName(), "URI: " + uri.toString());
-                String[] broadcastOutputs = broadcastNewMessage(context, uri);
-                String[] returnString = new String[5];
+                String[] broadcastOutputs = parseNewIncomingUriForThreadInformation(context, uri);
+                String[] returnString = new String[6];
                 returnString[THREAD_ID] = broadcastOutputs[THREAD_ID];
                 returnString[MESSAGE_ID] = broadcastOutputs[MESSAGE_ID];
                 returnString[BODY] = body;
                 returnString[ADDRESS] = address;
                 returnString[SUBSCRIPTION_ID] = String.valueOf(subscriptionId);
+                returnString[DATE_SENT] = String.valueOf(dateSent);
                 return returnString;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -390,7 +437,7 @@ public class NativeSMSDB {
                 Uri uri = context.getContentResolver().insert(
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
-                String[] broadcastOutputs = broadcastNewMessage(context, uri);
+                String[] broadcastOutputs = parseNewIncomingUriForThreadInformation(context, uri);
                 String[] returnString = new String[4];
                 returnString[THREAD_ID] = broadcastOutputs[THREAD_ID];
                 returnString[MESSAGE_ID] = broadcastOutputs[MESSAGE_ID];

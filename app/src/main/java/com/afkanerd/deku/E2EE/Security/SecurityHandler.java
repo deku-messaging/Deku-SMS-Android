@@ -10,6 +10,8 @@ package com.afkanerd.deku.E2EE.Security;
 
 import android.util.Base64;
 
+import com.google.common.primitives.Bytes;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -147,10 +149,22 @@ public class SecurityHandler {
                 dekuTextEndPrefix;
     }
 
-    public static String convertPublicKeyToDekuFormat(byte[] publicKey) {
-        return dekuHeaderStartPrefix
-                + Base64.encodeToString(publicKey, Base64.DEFAULT) +
-                dekuHeaderEndPrefix;
+    public static byte[] convertPublicKeyToDekuFormat(byte[] data) {
+//        byte[] encodedString = new byte[data.length +
+//                dekuHeaderStartPrefix.length() +
+//                dekuHeaderEndPrefix.length()];
+
+//        System.arraycopy(dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8), 0,
+//                encodedString, 0, dekuHeaderStartPrefix.length());
+//
+//        System.arraycopy(data, 0, encodedString, dekuHeaderStartPrefix.length(), data.length);
+//
+//        System.arraycopy(dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8), 0,
+//                encodedString, dekuHeaderStartPrefix.length() + data.length,
+//                dekuHeaderEndPrefix.length());
+
+        return Bytes.concat(dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8),
+                data, dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8));
     }
     public static String convertPublicKeyToPEMFormat(byte[] publicKey) {
         return pemStartPrefix

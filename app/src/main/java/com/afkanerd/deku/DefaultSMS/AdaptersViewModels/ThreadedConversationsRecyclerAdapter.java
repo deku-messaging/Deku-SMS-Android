@@ -10,7 +10,6 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
@@ -20,7 +19,7 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ThreadedConversationsViewModel extends ViewModel {
+public class ThreadedConversationsRecyclerAdapter extends ViewModel {
     ThreadedConversationsDao threadedConversationsDao;
     int pageSize = 20;
     int prefetchDistance = 3 * pageSize;
@@ -140,5 +139,4 @@ public class ThreadedConversationsViewModel extends ViewModel {
             }
         }).start();
     }
-
 }

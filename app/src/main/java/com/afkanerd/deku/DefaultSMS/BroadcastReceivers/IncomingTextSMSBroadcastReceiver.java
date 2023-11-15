@@ -25,12 +25,20 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
     public static final String TAG_ROUTING_URL = "swob.work.route.url,";
 
-    public static final String EXTRA_TIMESTAMP = "EXTRA_TIMESTAMP";
+
+    public static String SMS_DELIVER_ACTION =
+            BuildConfig.APPLICATION_ID + ".SMS_DELIVER_ACTION";
     public static String SMS_SENT_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".SMS_SENT_BROADCAST_INTENT";
 
     public static String SMS_DELIVERED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
+
+    public static String DATA_SENT_BROADCAST_INTENT =
+            BuildConfig.APPLICATION_ID + ".DATA_SENT_BROADCAST_INTENT";
+
+    public static String DATA_DELIVERED_BROADCAST_INTENT =
+            BuildConfig.APPLICATION_ID + ".DATA_DELIVERED_BROADCAST_INTENT";
 
     /*
     - address received might be different from how address is saved.
@@ -48,57 +56,122 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
-                String messageId = "";
                 try {
                     final String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_text(context, intent);
                     if(regIncomingOutput != null) {
-                        messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
-                        NotificationsHandler.sendIncomingTextMessageNotification(context, messageId);
+                        final String messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
+                        final String text = regIncomingOutput[NativeSMSDB.BODY];
+                        final String threadId = regIncomingOutput[NativeSMSDB.THREAD_ID];
+                        final String address = regIncomingOutput[NativeSMSDB.ADDRESS];
+                        final String dateSent = regIncomingOutput[NativeSMSDB.DATE_SENT];
+                        final int subscriptionId = Integer.parseInt(regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID]);
 
-                        String text = regIncomingOutput[NativeSMSDB.BODY];
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Conversation conversation = new Conversation();
+                                conversation.setMessage_id(messageId);
+                                conversation.setText(text);
+                                conversation.setThread_id(threadId);
+                                conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+                                conversation.setAddress(address);
+                                conversation.setSubscription_id(subscriptionId);
+                                conversation.setDate(dateSent);
+                                ConversationDao conversationDao = Conversation.getDao(context);
+                                conversationDao.insert(conversation);
 
-                        handleEncryption(text);
-                        router_activities(messageId);
+                                Intent broadcastIntent = new Intent(SMS_DELIVER_ACTION);
+                                broadcastIntent.putExtra(Conversation.ID, messageId);
+                                context.sendBroadcast(broadcastIntent);
+                            }
+                        }).start();
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                NotificationsHandler.sendIncomingTextMessageNotification(context, messageId);
+//                                handleEncryption(text);
+                                router_activities(messageId);
+                            }
+                        }).start();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
-                    try {
-                        Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
-                        if (cursor.moveToFirst()) {
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Conversation conversation = Conversation.build(cursor);
-                                    ConversationDao conversationDao = Conversation.getDao(context);
-                                    conversationDao.insert(conversation);
-                                    cursor.close();
-                                }
-                            }).start();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
                 }
             }
         }
 
         else if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT)) {
             String id = intent.getStringExtra(NativeSMSDB.ID);
-            if (getResultCode() == Activity.RESULT_OK) {
-                NativeSMSDB.Outgoing.register_sent(context, id);
-            } else {
-                try {
-                    NativeSMSDB.Outgoing.register_failed(context, id, getResultCode());
-                } catch (Exception e) {
-                    e.printStackTrace();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ConversationDao conversationDao = Conversation.getDao(context);
+                    Conversation conversation = conversationDao.getMessage(id);
+                    if (getResultCode() == Activity.RESULT_OK) {
+                        NativeSMSDB.Outgoing.register_sent(context, id);
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_NONE);
+                    } else {
+                        try {
+                            NativeSMSDB.Outgoing.register_failed(context, id, getResultCode());
+                            conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_FAILED);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    conversationDao.update(conversation);
                 }
-            }
+            }).start();
         }
         else if(intent.getAction().equals(SMS_DELIVERED_BROADCAST_INTENT)) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String id = intent.getStringExtra(NativeSMSDB.ID);
+                    ConversationDao conversationDao = Conversation.getDao(context);
+                    Conversation conversation = conversationDao.getMessage(id);
+                    if (getResultCode() == Activity.RESULT_OK) {
+                        NativeSMSDB.Outgoing.register_delivered(context, id);
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
+                    } else {
+                        if (BuildConfig.DEBUG)
+                            Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
+                                    + getResultCode());
+                    }
+                    conversationDao.update(conversation);
+                }
+            }).start();
+        }
+        else if(intent.getAction().equals(DATA_SENT_BROADCAST_INTENT)) {
             String id = intent.getStringExtra(NativeSMSDB.ID);
             if (getResultCode() == Activity.RESULT_OK) {
-                NativeSMSDB.Outgoing.register_delivered(context, id);
+                ConversationDao conversationDao = Conversation.getDao(context);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Conversation conversation = conversationDao.getMessage(id);
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_NONE);
+                        conversationDao.update(conversation);
+                    }
+                }).start();
+            } else {
+                if (BuildConfig.DEBUG)
+                    Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
+                            + getResultCode());
+            }
+        }
+        else if(intent.getAction().equals(DATA_DELIVERED_BROADCAST_INTENT)) {
+            String id = intent.getStringExtra(NativeSMSDB.ID);
+            if (getResultCode() == Activity.RESULT_OK) {
+                ConversationDao conversationDao = Conversation.getDao(context);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Conversation conversation = conversationDao.getMessage(id);
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
+                        conversationDao.update(conversation);
+                    }
+                }).start();
             } else {
                 if (BuildConfig.DEBUG)
                     Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
@@ -107,11 +180,11 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    private void handleEncryption(String text) {
-        if(E2EEHandler.isValidDekuPublicKey(text)) {
-
-        }
-    }
+//    private void handleEncryption(String text) {
+//        if(E2EEHandler.isValidDekuPublicKey(text)) {
+//
+//        }
+//    }
 
     public void router_activities(String messageId) {
         new Thread(new Runnable() {

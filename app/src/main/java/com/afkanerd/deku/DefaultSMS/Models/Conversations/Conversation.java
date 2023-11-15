@@ -46,6 +46,8 @@ public class Conversation {
 
     protected int status;
 
+    protected int error_code;
+
     protected boolean read;
 
     protected boolean is_encrypted;
@@ -60,6 +62,7 @@ public class Conversation {
 
     protected String data;
 
+
     public static ConversationDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
@@ -68,6 +71,14 @@ public class Conversation {
         ConversationDao conversationDao =  databaseConnector.conversationDao();
         databaseConnector.close();
         return conversationDao;
+    }
+
+    public int getError_code() {
+        return error_code;
+    }
+
+    public void setError_code(int error_code) {
+        this.error_code = error_code;
     }
 
     public String getData() {
@@ -252,13 +263,22 @@ public class Conversation {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof Conversation) {
             Conversation conversation = (Conversation) obj;
-            return conversation.thread_id.equals(this.thread_id) &&
-                    conversation.message_id.equals(this.message_id) &&
-                    conversation.text.equals(this.text) &&
-                    conversation.status == this.status &&
-                    conversation.date.equals(this.date) &&
-                    conversation.address.equals(this.address) &&
-                    conversation.type == this.type;
+            if(data ==  null)
+                return conversation.thread_id.equals(this.thread_id) &&
+                        conversation.message_id.equals(this.message_id) &&
+                        conversation.text.equals(this.text) &&
+                        conversation.status == this.status &&
+                        conversation.date.equals(this.date) &&
+                        conversation.address.equals(this.address) &&
+                        conversation.type == this.type;
+            if(text == null)
+                return conversation.thread_id.equals(this.thread_id) &&
+                        conversation.message_id.equals(this.message_id) &&
+                        conversation.data.equals(this.data) &&
+                        conversation.status == this.status &&
+                        conversation.date.equals(this.date) &&
+                        conversation.address.equals(this.address) &&
+                        conversation.type == this.type;
         }
         return super.equals(obj);
     }

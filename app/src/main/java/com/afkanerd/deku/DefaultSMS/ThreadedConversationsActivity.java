@@ -12,7 +12,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,7 +21,7 @@ import android.view.View;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
@@ -32,7 +31,6 @@ import com.afkanerd.deku.Router.Router.RouterActivity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
@@ -45,7 +43,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     String ITEM_TYPE = "";
 
-    ThreadedConversationsViewModel threadedConversationsViewModel;
+    ThreadedConversationsRecyclerAdapter threadedConversationsViewModel;
 
     ActionMode actionMode;
 
@@ -64,9 +62,10 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         ThreadedConversationsDao threadedConversationsDao =
                 ThreadedConversations.getDao(getApplicationContext());
         threadedConversationsViewModel = new ViewModelProvider(this).get(
-                ThreadedConversationsViewModel.class);
+                ThreadedConversationsRecyclerAdapter.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
         fragmentManagement();
+        configureBroadcastListeners();
     }
 
     private void fragmentManagement() {
@@ -125,7 +124,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     @Override
-    public ThreadedConversationsViewModel getViewModel() {
+    public ThreadedConversationsRecyclerAdapter getViewModel() {
         return threadedConversationsViewModel;
     }
 
@@ -155,9 +154,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
             }
         });
-
-        configureBroadcastListeners(threadedConversationsViewModel,
-                threadedConversationRecyclerAdapter);
     }
 
     @Override

@@ -1,38 +1,39 @@
 package com.afkanerd.deku.DefaultSMS;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.lifecycle.ViewModel;
+import androidx.paging.PagingDataAdapter;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationWorkManager;
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
 import java.util.concurrent.TimeUnit;
 
 public class CustomAppCompactActivity extends DualSIMConversationActivity {
-    BroadcastReceiver nativeStateChangedBroadcastReceiver;
+    BroadcastReceiver generateUpdateEventsBroadcastReceiver;
+    BroadcastReceiver smsDeliverActionBroadcastReceiver;
+    BroadcastReceiver smsSentBroadcastIntent;
+    BroadcastReceiver smsDeliveredBroadcastIntent;
+    BroadcastReceiver dataSentBroadcastIntent;
+    BroadcastReceiver dataDeliveredBroadcastIntent;
 
     public static final String TAG_NAME = "NATIVE_CONVERSATION_TAG";
     public static final String UNIQUE_WORK_NAME = "NATIVE_CONVERSATION_TAG_UNIQUE_WORK_NAME";
@@ -94,63 +95,78 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         return myPackageName.equals(defaultPackage);
     }
 
-    public void configureBroadcastListeners(Object obj, Object obj1) {
-        nativeStateChangedBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, @NonNull Intent intent) {
-                if(intent.getAction().equals(NativeSMSDB.BROADCAST_STATUS_CHANGED_ACTION)) {
-                    String messageId = intent.getStringExtra(NativeSMSDB.BROADCAST_CONVERSATION_ID_INTENT);
-                    if(messageId != null && obj instanceof ConversationsViewModel) {
-                        ConversationsViewModel viewModel = (ConversationsViewModel) obj;
-                        viewModel.updateFromNative(getApplicationContext(), messageId);
-                    }
-                    else if(obj instanceof ThreadedConversationsViewModel) {
-                        ThreadedConversationsViewModel viewModel = (ThreadedConversationsViewModel) obj;
-                        viewModel.loadNatives(getApplicationContext());
-                    }
-                }
-                else if(intent.getAction().equals(NativeSMSDB.BROADCAST_NEW_MESSAGE_ACTION)) {
-                    String threadId = intent.getStringExtra(NativeSMSDB.BROADCAST_THREAD_ID_INTENT);
-                    String messageId = intent.getStringExtra(NativeSMSDB.BROADCAST_CONVERSATION_ID_INTENT);
+    ViewModel viewModel;
+    public void setViewModel(ViewModel viewModel) {
+        this.viewModel = viewModel;
+    }
 
-                    if(obj instanceof ThreadedConversationsViewModel) {
-                        ThreadedConversationsViewModel viewModel =
-                                (ThreadedConversationsViewModel) obj;
-                        viewModel.loadNatives(getApplicationContext());
-                    }
-                    else if(obj instanceof ConversationsViewModel) {
-                        ConversationsViewModel viewModel = (ConversationsViewModel) obj;
-                        if(viewModel.threadId == null)
-                            viewModel.threadId = threadId;
-                        if(viewModel.threadId.equals(threadId)) {
-                            if (obj1 instanceof ConversationsRecyclerAdapter) {
-                                ConversationsRecyclerAdapter conversationsRecyclerAdapter =
-                                        (ConversationsRecyclerAdapter) obj1;
-                                conversationsRecyclerAdapter.refresh();
-                                cancelAllNotifications(Integer.parseInt(threadId));
+    public void configureBroadcastListeners() {
+
+        generateUpdateEventsBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if(intent.getAction() == null)
+                    return;
+
+                if(intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION)) {
+                    String messageId = intent.getStringExtra(Conversation.ID);
+                    if(viewModel instanceof ConversationsViewModel) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
+                                Conversation conversation = conversationDao.getMessage(messageId);
+                                try {
+                                    ((ConversationsViewModel) viewModel).insert(conversation);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
-                        }
+                        }).start();
+                    }
+                } else {
+                    String messageId = intent.getStringExtra(Conversation.ID);
+                    if(viewModel instanceof ConversationsViewModel) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
+                                Conversation conversation = conversationDao.getMessage(messageId);
+                                if (getResultCode() == Activity.RESULT_OK) {
+                                    if(intent.getAction().equals(
+                                            IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT)
+                                    || intent.getAction().equals(
+                                            IncomingTextSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT)) {
+                                        conversation.setStatus(
+                                                Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
+                                    }
+                                    else if(intent.getAction().equals(
+                                            IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT)
+                                    || intent.getAction().equals(
+                                            IncomingTextSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT)) {
+                                        conversation.setStatus(
+                                                Telephony.TextBasedSmsColumns.STATUS_NONE);
+                                    }
+                                } else {
+                                    conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_FAILED);
+                                    conversation.setError_code(getResultCode());
+                                }
+                                ((ConversationsViewModel) viewModel).update(conversation);
+                            }
+                        }).start();
                     }
                 }
             }
         };
 
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION);
+        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT);
+        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT);
+        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT);
+        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT);
 
-        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            registerReceiver(nativeStateChangedBroadcastReceiver,
-                    new IntentFilter(NativeSMSDB.BROADCAST_STATUS_CHANGED_ACTION),
-                    Context.RECEIVER_EXPORTED);
-
-            registerReceiver(nativeStateChangedBroadcastReceiver,
-                    new IntentFilter(NativeSMSDB.BROADCAST_NEW_MESSAGE_ACTION),
-                    Context.RECEIVER_EXPORTED);
-        } else {
-            registerReceiver(nativeStateChangedBroadcastReceiver,
-                    new IntentFilter(NativeSMSDB.BROADCAST_STATUS_CHANGED_ACTION));
-
-            registerReceiver(nativeStateChangedBroadcastReceiver,
-                    new IntentFilter(NativeSMSDB.BROADCAST_NEW_MESSAGE_ACTION));
-        }
+        registerReceiver(generateUpdateEventsBroadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
     }
 
     private void cancelAllNotifications(int id) {
@@ -162,8 +178,23 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (nativeStateChangedBroadcastReceiver != null)
-            unregisterReceiver(nativeStateChangedBroadcastReceiver);
+        if(generateUpdateEventsBroadcastReceiver != null)
+            unregisterReceiver(generateUpdateEventsBroadcastReceiver);
+
+        if(smsDeliverActionBroadcastReceiver != null)
+            unregisterReceiver(smsDeliverActionBroadcastReceiver);
+
+        if(smsSentBroadcastIntent != null)
+            unregisterReceiver(smsSentBroadcastIntent);
+
+        if(smsDeliveredBroadcastIntent != null)
+            unregisterReceiver(smsDeliveredBroadcastIntent);
+
+        if(dataSentBroadcastIntent != null)
+            unregisterReceiver(dataSentBroadcastIntent);
+
+        if(dataDeliveredBroadcastIntent != null)
+            unregisterReceiver(dataDeliveredBroadcastIntent);
     }
 
     public void cancelNotifications(String threadId) {

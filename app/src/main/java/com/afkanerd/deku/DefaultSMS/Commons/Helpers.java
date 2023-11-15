@@ -304,7 +304,9 @@ public class Helpers {
         }
     }
 
-    public static Spannable highlightLinks(TextView textView, String text, int color) {
+    public static void highlightLinks(TextView textView, String text, int color) {
+        if(text == null)
+            return;
         // Regular expression to find URLs in the text
 //        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|(\\+\\d{1,3})\\d+";
 //        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|\\b\\+?\\d+\\b|\\b\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
@@ -321,7 +323,7 @@ public class Helpers {
 
         while (matcher.find()) {
             String tmp_url = matcher.group();
-            if(PhoneNumberUtils.isWellFormedSmsAddress(tmp_url)) {
+            if (PhoneNumberUtils.isWellFormedSmsAddress(tmp_url)) {
                 final String tel = tmp_url;
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override
@@ -333,7 +335,7 @@ public class Helpers {
                     }
                 };
                 spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else if(tmp_url.contains("@")) {
+            } else if (tmp_url.contains("@")) {
                 final String email = tmp_url;
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override
@@ -345,8 +347,7 @@ public class Helpers {
                     }
                 };
                 spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-            else {
+            } else {
                 if (!tmp_url.startsWith("http://") && !tmp_url.startsWith("https://")) {
                     tmp_url = "http://" + tmp_url;
                 }
@@ -369,8 +370,6 @@ public class Helpers {
 
         textView.setMovementMethod(LinkMovementMethod.getInstance());
         textView.setText(spannableString);
-
-        return spannableString;
     }
 
 

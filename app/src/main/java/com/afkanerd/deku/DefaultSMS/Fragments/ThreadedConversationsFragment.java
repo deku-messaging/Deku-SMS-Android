@@ -3,13 +3,11 @@ package com.afkanerd.deku.DefaultSMS.Fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.paging.PagingData;
@@ -17,17 +15,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.Objects;
-import java.util.Set;
 
 public class ThreadedConversationsFragment extends Fragment {
 
-    ThreadedConversationsViewModel threadedConversationsViewModel;
+    ThreadedConversationsRecyclerAdapter threadedConversationsViewModel;
     ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
@@ -41,7 +37,7 @@ public class ThreadedConversationsFragment extends Fragment {
     private OnViewManipulationListener viewManipulationListener;
 
     public interface OnViewManipulationListener extends HomepageFragment.TabListenerInterface {
-        ThreadedConversationsViewModel getViewModel();
+        ThreadedConversationsRecyclerAdapter getViewModel();
 
         void setRecyclerViewAdapter(String name, ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter);
     }

@@ -1,5 +1,7 @@
 package com.afkanerd.deku.E2EE.Security;
 
+import com.google.common.primitives.Bytes;
+
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -67,11 +69,7 @@ public class SecurityAES {
             }
             byte[] ciphertext = cipher.doFinal(input);
 
-            byte[] cipherTextIv = new byte[16 + ciphertext.length];
-            System.arraycopy(cipher.getIV(), 0,  cipherTextIv, 0, 16);
-            System.arraycopy(ciphertext, 0,  cipherTextIv, 16, ciphertext.length);
-
-            return cipherTextIv;
+            return Bytes.concat(cipher.getIV(), ciphertext);
         }
         catch (Exception e) {
             e.printStackTrace();

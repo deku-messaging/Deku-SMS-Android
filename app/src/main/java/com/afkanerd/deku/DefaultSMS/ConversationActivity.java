@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Telephony;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -37,6 +38,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
@@ -94,9 +96,10 @@ public class ConversationActivity extends E2EECompactActivity {
             configureToolbars();
             configureRecyclerView();
             configureMessagesTextBox();
-            configureBroadcastListeners(conversationsViewModel, conversationsRecyclerAdapter);
+            setViewModel(conversationsViewModel);
 
             configureLayoutForMessageType();
+            configureBroadcastListeners();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -204,6 +207,8 @@ public class ConversationActivity extends E2EECompactActivity {
             this.threadedConversations.setContact_name(contactName);
         }
 
+        setEncryptionThreadedConversations(this.threadedConversations);
+
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -308,11 +313,14 @@ public class ConversationActivity extends E2EECompactActivity {
                         !getIntent().getAction().equals(Intent.ACTION_SENDTO) &&
                         !getIntent().getAction().equals(Intent.ACTION_SEND))
                     finish();
-                if(searchPositions != null && searchPositions.getValue() != null
+                else if(searchPositions != null && searchPositions.getValue() != null
                         && !searchPositions.getValue().isEmpty()
                         && !firstScrollInitiated) {
                     singleMessagesThreadRecyclerView.scrollToPosition(searchPositions.getValue().get(0));
                     firstScrollInitiated = true;
+                }
+                else if(linearLayoutManager.findFirstCompletelyVisibleItemPosition() == 0) {
+                    singleMessagesThreadRecyclerView.scrollToPosition(0);
                 }
                 return null;
             }
@@ -499,24 +507,23 @@ public class ConversationActivity extends E2EECompactActivity {
     public void sendTextMessage(View view) throws Exception {
         if(smsTextView.getText() != null) {
             String text = smsTextView.getText().toString();
+            final String messageId = String.valueOf(System.currentTimeMillis());
             // TODO: encryption
+            Conversation conversation = new Conversation();
+            conversation.setMessage_id(messageId);
+            conversation.setText(text);
+            conversation.setSubscription_id(defaultSubscriptionId);
+            conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
+            conversation.setDate(String.valueOf(System.currentTimeMillis()));
+            conversation.setAddress(this.threadedConversations.getAddress());
+            conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-            _sendSMSMessage(defaultSubscriptionId, text);
+            long id = conversationsViewModel.insert(conversation);
+            SMSDatabaseWrapper.send_text(getApplicationContext(), conversation);
+            conversation.setId(id);
+            conversationsViewModel.update(conversation);
 
-            smsTextView.getText().clear();
-        }
-    }
-
-    private void _sendSMSMessage(int subscriptionId, String text) {
-        try {
-            String address = this.threadedConversations == null ?
-                    getIntent().getStringExtra(Conversation.ADDRESS) :
-                    this.threadedConversations.getAddress();
-            String messageId = String.valueOf(System.currentTimeMillis());
-            SMSDatabaseWrapper.send_text(getApplicationContext(), messageId, address, text,
-                    subscriptionId, null);
-        } catch (Exception e) {
-            e.printStackTrace();
+            smsTextView.setText(null);
         }
     }
 

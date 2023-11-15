@@ -5,7 +5,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
@@ -18,11 +22,12 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
+import java.sql.Ref;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ConversationsViewModel extends ViewModel{
+public class ConversationsViewModel extends ViewModel {
     public String threadId;
     public String address;
     ConversationDao conversationDao;
@@ -35,6 +40,10 @@ public class ConversationsViewModel extends ViewModel{
     public Integer initialKey = null;
 
     ConversationPagingSource conversationPagingSource;
+
+    LifecycleOwner lifecycleOwner;
+
+    MutableLiveData<PagingData<Conversation>> mutableLiveData;
     public LiveData<PagingData<Conversation>> getSearch(ConversationDao conversationDao,
                                                         String threadId, Integer initialKey) {
         this.initialKey = initialKey;
@@ -60,10 +69,10 @@ public class ConversationsViewModel extends ViewModel{
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
-                initialLoadSize,
-                maxSize
-        ), initialKey, ()-> this.conversationDao.get(threadId));
+                initialLoadSize
+        ), ()-> this.conversationDao.get(threadId));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+
     }
 
     public LiveData<PagingData<Conversation>> getByAddress(ConversationDao conversationDao, String address)
@@ -80,28 +89,32 @@ public class ConversationsViewModel extends ViewModel{
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public void insert(Conversation conversation) {
-        new Thread(new Runnable() {
+    public long insert(Conversation conversation) throws InterruptedException {
+        final long[] id = {0};
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                conversationDao.insert(conversation);
+                id[0] = conversationDao.insert(conversation);
             }
-        }).start();
+        });
+        thread.start();
+        thread.join();
+        return id[0];
     }
 
     public void update(Conversation conversation) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Conversation conversation1 = conversationDao.getMessage(conversation.getMessage_id());
-                conversation.setId(conversation1.getId());
+//                Conversation conversation1 = conversationDao.getMessage(conversation.getMessage_id());
+//                conversation.setId(conversation1.getId());
                 int numberUpdated = conversationDao.update(conversation);
                 Log.d(getClass().getName(), "ROOM updated: " + numberUpdated);
             }
         }).start();
     }
 
-    public void insertFromNative(Context context, String messageId) {
+    public void insertFromNative(Context context, String messageId) throws InterruptedException {
         Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
         if(cursor.moveToFirst()) {
             Conversation conversation = Conversation.build(cursor);

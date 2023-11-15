@@ -11,6 +11,7 @@ import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.afkanerd.deku.E2EE.Security.SecurityHandler;
+import com.google.common.primitives.Bytes;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
@@ -57,20 +58,29 @@ public class E2EEHandler {
         return securityECDH.removeFromKeystore(context, keystoreAlias);
     }
 
-    public static boolean isValidDekuPublicKey(String dekuPublicKey) {
-        try {
-            return dekuPublicKey.startsWith(SecurityHandler.dekuHeaderStartPrefix) &&
-                    dekuPublicKey.endsWith(SecurityHandler.dekuHeaderEndPrefix) &&
-                    (SecurityECDH.buildPublicKey(Base64.decode(
-                            dekuPublicKey.substring(
-                                    SecurityHandler.dekuHeaderStartPrefix.length(),
-                                    (dekuPublicKey.length() - SecurityHandler.dekuHeaderEndPrefix.length())
-                            ), Base64.DEFAULT)
-                    ) != null);
-        } catch(Exception e) {
-            e.printStackTrace();
-            return false;
+    public static boolean isValidDekuPublicKey(byte[] dekuPublicKey) {
+        byte[] start = SecurityHandler.dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8);
+        byte[] end = SecurityHandler.dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8);
+
+        int indexStart = Bytes.indexOf(dekuPublicKey, start);
+        int indexEnd = Bytes.indexOf(dekuPublicKey, end);
+//        Log.d(E2EEHandler.class.getName(), "Index start: " + indexStart);
+//        Log.d(E2EEHandler.class.getName(), "Index end: " + indexEnd);
+//        Log.d(E2EEHandler.class.getName(), "Data size: " + dekuPublicKey.length);
+
+        if(indexStart == 0 && indexEnd == ((dekuPublicKey.length - end.length))) {
+            byte[] keyValue = new byte[dekuPublicKey.length - (start.length + end.length)];
+            System.arraycopy(dekuPublicKey, start.length, keyValue, 0, keyValue.length);
+
+            try {
+                SecurityECDH.buildPublicKey(keyValue);
+            } catch(Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
         }
+        return false;
     }
 
     public static boolean isValidDekuText(String text) {
@@ -86,19 +96,21 @@ public class E2EEHandler {
         }
     }
 
-    public static String buildDekuPublicKey(byte[] data) {
+    public static byte[] buildDekuPublicKey(byte[] data) {
 //        return SecurityHandler.convertPublicKeyToPEMFormat(data);
         return SecurityHandler.convertPublicKeyToDekuFormat(data);
     }
 
-    public static byte[] extractTransmissionKey(String data) {
-        String encodedKey = data.substring(SecurityHandler.dekuHeaderStartPrefix.length(),
-                (data.length() - SecurityHandler.dekuHeaderEndPrefix.length()));
+    public static byte[] extractTransmissionKey(byte[] data) {
+        byte[] start = SecurityHandler.dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8);
+        byte[] end = SecurityHandler.dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8);
 
-        return Base64.decode(encodedKey, Base64.DEFAULT);
+        byte[] transmissionKey = new byte[data.length - (start.length + end.length)];
+        System.arraycopy(data, start.length, transmissionKey, 0, transmissionKey.length);
+        return transmissionKey;
     }
 
-    public static String buildForEncryptionRequest(Context context, String address) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
+    public static byte[] buildForEncryptionRequest(Context context, String address) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
         int session = 0;
         String keystoreAlias = getKeyStoreAlias(address, session);
         PublicKey publicKey = createNewKeyPair(context, keystoreAlias);

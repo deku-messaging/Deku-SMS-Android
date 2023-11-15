@@ -133,6 +133,13 @@
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SENDTO" />
 
+
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
+
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
@@ -173,6 +180,8 @@
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
                 <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
                 <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
             </intent-filter>
         </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
         <receiver

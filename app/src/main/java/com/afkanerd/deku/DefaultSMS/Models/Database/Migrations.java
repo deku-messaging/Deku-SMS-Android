@@ -88,6 +88,7 @@ public class Migrations {
                     "type INTEGER NOT NULL, " +
                     "num_segments INTEGER NOT NULL, " +
                     "subscription_id INTEGER NOT NULL, " +
+                    "error_code INTEGER NOT NULL, " +
                     "status INTEGER NOT NULL, " +
                     "read INTEGER NOT NULL, " +
                     "is_encrypted INTEGER NOT NULL, " +

@@ -54,8 +54,8 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
 
                 try {
                     String messageId = String.valueOf(System.currentTimeMillis());
-                    SMSDatabaseWrapper.send_text(context, messageId, address, reply.toString(),
-                            subscriptionId, null);
+//                    SMSDatabaseWrapper.send_text(context, messageId, address, reply.toString(),
+//                            subscriptionId, null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

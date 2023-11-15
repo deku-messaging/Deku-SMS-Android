@@ -40,7 +40,7 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
     Conversation getMessage(String message_id);
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(Conversation conversation);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

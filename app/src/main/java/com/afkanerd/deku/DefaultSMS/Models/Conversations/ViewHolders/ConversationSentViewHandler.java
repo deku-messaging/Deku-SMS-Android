@@ -143,9 +143,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class KeySentViewHandler extends ConversationSentViewHandler {
         public KeySentViewHandler(@NonNull View itemView) {
             super(itemView);
-            imageView.setImageDrawable(itemView.getContext().getDrawable(R.drawable.round_key_24));
-            imageConstraintLayout.setVisibility(View.VISIBLE);
-            sentMessage.setVisibility(View.GONE);
         }
 
         public void highlight() {
@@ -154,6 +151,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         public void unHighlight() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_drawable);
+        }
+
+        @Override
+        public void bind(Conversation conversation) {
+            super.bind(conversation);
+            sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title));
+            sentMessage.setTextAppearance(R.style.key_request_initiated);
         }
     }
 

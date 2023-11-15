@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import javax.crypto.spec.SecretKeySpec;
 
-public class SecurityAESTest {
+public class SecurityAESRandomTest {
 
     @Test
     public void canEncryptDecryptAES256CBC() throws Throwable {
