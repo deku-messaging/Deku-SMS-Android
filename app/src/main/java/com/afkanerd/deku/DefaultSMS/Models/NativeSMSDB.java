@@ -418,18 +418,19 @@ public class NativeSMSDB {
             String address = "";
             ByteArrayOutputStream dataBodyBuffer = new ByteArrayOutputStream();
 
+            long dateSent = 0;
+
             for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                 address = currentSMS.getDisplayOriginatingAddress();
 
-                byte[] data_message = currentSMS.getUserData();
-
-                dataBodyBuffer.write(data_message);
+                dataBodyBuffer.write(currentSMS.getUserData());
+                dateSent = currentSMS.getTimestampMillis();
             }
 
             String body = Base64.encodeToString(dataBodyBuffer.toByteArray(), Base64.DEFAULT);
             contentValues.put(Telephony.Sms._ID, messageId);
             contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address);
-            contentValues.put(Telephony.TextBasedSmsColumns.BODY, body);
+//            contentValues.put(Telephony.TextBasedSmsColumns.BODY, body);
             contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
             contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 
@@ -438,12 +439,13 @@ public class NativeSMSDB {
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
                 String[] broadcastOutputs = parseNewIncomingUriForThreadInformation(context, uri);
-                String[] returnString = new String[4];
+                String[] returnString = new String[6];
                 returnString[THREAD_ID] = broadcastOutputs[THREAD_ID];
                 returnString[MESSAGE_ID] = broadcastOutputs[MESSAGE_ID];
                 returnString[BODY] = body;
                 returnString[ADDRESS] = address;
                 returnString[SUBSCRIPTION_ID] = String.valueOf(subscriptionId);
+                returnString[DATE_SENT] = String.valueOf(dateSent);
                 return returnString;
             } catch (Exception e) {
                 e.printStackTrace();

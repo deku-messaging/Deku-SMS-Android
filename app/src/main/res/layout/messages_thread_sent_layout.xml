@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingBottom="1dp"
+    android:paddingStart="80dp"
     android:paddingEnd="8dp">
 
     <TextView
@@ -17,11 +18,7 @@
         android:layout_marginBottom="8dp"
         android:textColor="@color/primary_text_color"
         android:textSize="@dimen/conversation_properties_default_font_size_subtext"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/message_sent_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/message_sent_text"
@@ -36,33 +33,6 @@
         android:textColor="@color/black"
         android:textSize="@dimen/conversation_properties_default_font_size" />
 
-    <!--    <androidx.constraintlayout.widget.ConstraintLayout-->
-    <!--        android:id="@+id/conversation_sent_layout_container"-->
-    <!--        android:layout_width="0dp"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginStart="120dp"-->
-    <!--        android:layout_marginEnd="8dp"-->
-    <!--        android:layout_marginBottom="16dp"-->
-    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
-    <!--        app:layout_constraintEnd_toEndOf="parent"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toBottomOf="@+id/sent_message_date_segment">-->
-    <!--        -->
-
-    <!--&lt;!&ndash;        <androidx.constraintlayout.widget.ConstraintLayout&ndash;&gt;-->
-    <!--&lt;!&ndash;            android:id="@+id/message_sent_constraint"&ndash;&gt;-->
-    <!--&lt;!&ndash;            android:layout_width="0dp"&ndash;&gt;-->
-    <!--&lt;!&ndash;            android:layout_height="wrap_content"&ndash;&gt;-->
-    <!--&lt;!&ndash;            android:background="@drawable/sent_messages_drawable"&ndash;&gt;-->
-    <!--&lt;!&ndash;            android:theme="@style/Theme.main"&ndash;&gt;-->
-    <!--&lt;!&ndash;            app:layout_constraintBottom_toBottomOf="parent"&ndash;&gt;-->
-    <!--&lt;!&ndash;            app:layout_constraintEnd_toEndOf="parent"&ndash;&gt;-->
-    <!--&lt;!&ndash;            app:layout_constraintTop_toTopOf="parent">&ndash;&gt;-->
-
-    <!--&lt;!&ndash;&lt;!&ndash;            android:text="@string/lengthy_sms_sample"&ndash;&gt;&ndash;&gt;-->
-    <!--&lt;!&ndash;        </androidx.constraintlayout.widget.ConstraintLayout>&ndash;&gt;-->
-    <!--    </androidx.constraintlayout.widget.ConstraintLayout>-->
-
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/conversation_status_linear_layout"
         android:layout_width="wrap_content"
@@ -76,17 +46,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:textAlignment="textEnd"
-            android:textColor="#BDBBBB"
-            android:textSize="@dimen/conversation_properties_default_font_size_subtext"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/message_thread_sent_status_text"
-            app:layout_constraintTop_toBottomOf="@+id/message_sent_text" />
+            android:textColor="@color/secondary_text_color"
+            android:textSize="@dimen/conversation_properties_default_font_size_subtext"/>
 
         <TextView
             android:id="@+id/message_thread_sent_status_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#BDBBBB"
+            android:textColor="@color/secondary_text_color"
             android:textSize="@dimen/conversation_properties_default_font_size_subtext"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/message_sent_text"

@@ -83,13 +83,15 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                                 Intent broadcastIntent = new Intent(SMS_DELIVER_ACTION);
                                 broadcastIntent.putExtra(Conversation.ID, messageId);
                                 context.sendBroadcast(broadcastIntent);
+
+                                NotificationsHandler.sendIncomingTextMessageNotification(context,
+                                        conversation);
                             }
                         }).start();
 
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                NotificationsHandler.sendIncomingTextMessageNotification(context, messageId);
 //                                handleEncryption(text);
                                 router_activities(messageId);
                             }

@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
 
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -65,20 +66,18 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                     Conversation conversation = Conversation.build(cursor);
                     cursor.close();
 
-                    Person.Builder personBuilder = new Person.Builder()
-                            .setName(context.getString(R.string.notification_title_reply_you));
-                    Person person = personBuilder.build();
 
                     NotificationCompat.MessagingStyle messagingStyle =
-                            NotificationsHandler.getMessagingStyle(context,
-                                    context.getString(R.string.notification_title_reply_you),
-                                    null, person, conversation);
+                            NotificationsHandler.getMessagingStyle(context, conversation, reply.toString());
+
+                    Intent replyIntent = NotificationsHandler.getReplyIntent(context, conversation);
+                    PendingIntent pendingIntent = NotificationsHandler.getPendingIntent(context, conversation);
 
                     NotificationCompat.Builder builder =
-                            NotificationsHandler.getNotificationBuilder(context, person, conversation,
-                            NotificationsHandler.getReplyIntent(context, conversation),
-                            NotificationsHandler.getPendingIntent(context, conversation));
-                    builder.setStyle(messagingStyle.addMessage(reply, System.currentTimeMillis(), person));
+                            NotificationsHandler.getNotificationBuilder(context, replyIntent,
+                                    conversation, pendingIntent);
+
+                    builder.setStyle(messagingStyle);
 
                     NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
                     notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());

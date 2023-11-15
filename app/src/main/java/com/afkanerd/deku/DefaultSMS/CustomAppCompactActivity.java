@@ -20,6 +20,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -69,24 +70,24 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
     }
 
     private void loadConversationsNativesBg() {
-        Constraints constraints = new Constraints.Builder()
-                .build();
-        OneTimeWorkRequest routeMessageWorkRequest =
-                new OneTimeWorkRequest.Builder(ConversationWorkManager.class)
-                .setConstraints(constraints)
-                .setBackoffCriteria(
-                        BackoffPolicy.LINEAR,
-                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                        TimeUnit.MILLISECONDS
-                )
-                .addTag(TAG_NAME)
-                .build();
-
-        WorkManager workManager = WorkManager.getInstance(getApplicationContext());
-        workManager.enqueueUniqueWork(
-                UNIQUE_WORK_NAME,
-                ExistingWorkPolicy.KEEP,
-                routeMessageWorkRequest);
+//        Constraints constraints = new Constraints.Builder()
+//                .build();
+//        OneTimeWorkRequest routeMessageWorkRequest =
+//                new OneTimeWorkRequest.Builder(ConversationWorkManager.class)
+//                .setConstraints(constraints)
+//                .setBackoffCriteria(
+//                        BackoffPolicy.LINEAR,
+//                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+//                        TimeUnit.MILLISECONDS
+//                )
+//                .addTag(TAG_NAME)
+//                .build();
+//
+//        WorkManager workManager = WorkManager.getInstance(getApplicationContext());
+//        workManager.enqueueUniqueWork(
+//                UNIQUE_WORK_NAME,
+//                ExistingWorkPolicy.KEEP,
+//                routeMessageWorkRequest);
     }
     private boolean _checkIsDefaultApp() {
         final String myPackageName = getPackageName();
@@ -160,7 +161,10 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         };
 
         IntentFilter intentFilter = new IntentFilter();
+
         intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION);
+        intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
+
         intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT);
         intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT);
         intentFilter.addAction(IncomingTextSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT);

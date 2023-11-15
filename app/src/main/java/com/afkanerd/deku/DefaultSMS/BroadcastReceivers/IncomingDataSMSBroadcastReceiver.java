@@ -8,10 +8,14 @@ import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
 
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.i18n.phonenumbers.NumberParseException;
 
 //import org.bouncycastle.operator.OperatorCreationException;
 
@@ -20,7 +24,7 @@ import java.security.GeneralSecurityException;
 
 public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
-    public static String DATA_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".DATA_SMS_RECEIVED_ACTION" ;
+    public static String DATA_DELIVER_ACTION = BuildConfig.APPLICATION_ID + ".DATA_DELIVER_ACTION" ;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -30,41 +34,47 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
-                String[] regIncomingOutput = new String[0];
                 try {
-                    regIncomingOutput = NativeSMSDB.Incoming.register_incoming_data(context, intent);
+                    String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_data(context, intent);
 
                     final String threadId = regIncomingOutput[NativeSMSDB.THREAD_ID];
                     final String messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
-                    final String body = regIncomingOutput[NativeSMSDB.BODY];
+                    final String data = regIncomingOutput[NativeSMSDB.BODY];
                     final String address = regIncomingOutput[NativeSMSDB.ADDRESS];
                     final String strSubscriptionId = regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID];
+                    final String dateSent = regIncomingOutput[NativeSMSDB.DATE_SENT];
                     int subscriptionId = Integer.parseInt(strSubscriptionId);
 
-                    try {
-                        String strMessage = body;
-//                        if(SecurityHandler.isKeyExchange(body)) {
-//                            strMessage = registerIncomingAgreement(context, address,
-//                                    Base64.decode(strMessage, Base64.DEFAULT));
-//                        }
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Conversation conversation = new Conversation();
+                            conversation.setData(data);
+                            conversation.setAddress(address);
+                            try {
+                                conversation.setIs_key(processForEncryptionKey(context, conversation));
+                            } catch (NumberParseException e) {
+                                e.printStackTrace();
+                            }
 
-                        String notificationNote = context.getString(R.string.security_key_new_request_notification);
+                            conversation.setMessage_id(messageId);
+                            conversation.setThread_id(threadId);
+                            conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+                            conversation.setSubscription_id(subscriptionId);
+                            conversation.setDate(dateSent);
 
-//                        if(smsMetaEntity.isPendingAgreement(context)) {
-//                            notificationNote = context.getString(R.string.security_key_new_agreed_notification);
-//
-//                            strMessage = SecurityHandler.FIRST_HEADER +
-//                                    strMessage + SecurityHandler.END_HEADER;
-//
-//                            NativeSMSDB.Incoming.register_incoming_text(context, intent);
-//                        }
+                            ConversationDao conversationDao = Conversation.getDao(context);
+                            conversationDao.insert(conversation);
 
-                        NotificationsHandler.sendIncomingTextMessageNotification(context, messageId);
-                        broadcastIntent(context);
+                            Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
+                            broadcastIntent.putExtra(Conversation.ID, messageId);
+                            context.sendBroadcast(broadcastIntent);
 
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                            NotificationsHandler.sendIncomingTextMessageNotification(context,
+                                    conversation);
+                        }
+                    }).start();
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -72,9 +82,17 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
+    boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException {
+        byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
+        boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);
 
-    private void broadcastIntent(Context context) {
-        Intent intent = new Intent(DATA_BROADCAST_INTENT);
-        context.sendBroadcast(intent);
+        if(isValidKey) {
+            String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
+            byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
+            E2EEHandler.insertNewPeerPublicKey(context, extractedTransmissionKey, keystoreAlias);
+        }
+        Log.d(getClass().getName(), "Is Encrypted data: " + isValidKey);
+
+        return isValidKey;
     }
 }

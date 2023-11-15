@@ -102,7 +102,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         }
         else if( viewType == TIMESTAMP_MESSAGE_START_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);
-            return new ConversationReceivedViewHandler.TimestampKeyReceivedStartGroupViewHandler(view);
+            return new ConversationReceivedViewHandler.TimestampKeyReceivedStartViewHandler(view);
         }
         else if( viewType == MESSAGE_START_TYPE_INBOX ) {
             View view = inflater.inflate(R.layout.messages_thread_received_layout, parent, false);

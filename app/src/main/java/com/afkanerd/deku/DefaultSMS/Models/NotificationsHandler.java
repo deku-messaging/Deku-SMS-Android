@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Message;
 import android.service.notification.StatusBarNotification;
 import android.telephony.PhoneNumberUtils;
 
@@ -24,34 +25,28 @@ import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class NotificationsHandler {
-
-
     @SuppressLint("MissingPermission")
-    public static void sendIncomingTextMessageNotification(Context context, String messageId) {
-        Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
-        if(cursor.moveToFirst()) {
-            Conversation conversation = Conversation.build(cursor);
-            cursor.close();
+    public static void sendIncomingTextMessageNotification(Context context, Conversation conversation) {
+        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
+        if(contactName != null)
+            conversation.setAddress(contactName);
 
-            // TODO
-//            if(SecurityHandler.isKeyExchange(text)) {
-//                text = context.getString(R.string.notification_title_new_key);
-//            }
 
-            Person person = getPerson(context, conversation);
+        NotificationCompat.MessagingStyle messagingStyle = getMessagingStyle(context, conversation, null);
 
-            NotificationCompat.MessagingStyle messagingStyle = getMessagingStyle(context,
-                    person.getName().toString(), person, null, conversation);
+        Intent replyIntent = getReplyIntent(context, conversation);
+        PendingIntent pendingIntent = getPendingIntent(context, conversation);
 
-            NotificationCompat.Builder builder = getNotificationBuilder(context, person, conversation,
-                    getReplyIntent(context, conversation), getPendingIntent(context, conversation));
-            builder.setContentTitle(person.getName()).setContentText(conversation.getText());
-            builder.setStyle(messagingStyle);
+        NotificationCompat.Builder builder = getNotificationBuilder(context, replyIntent,
+                conversation, pendingIntent);
+        builder.setStyle(messagingStyle);
 
-            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
-            notificationManagerCompat.notify(Integer.parseInt(conversation.getThread_id()), builder.build());
-        }
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+        notificationManagerCompat.notify(Integer.parseInt(conversation.getThread_id()), builder.build());
     }
 
     public static PendingIntent getPendingIntent(Context context, Conversation conversation) {
@@ -60,13 +55,10 @@ public class NotificationsHandler {
                 receivedIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    public static Person getPerson(Context context, Conversation conversation) {
-        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
-        if(contactName == null || contactName.isEmpty()) contactName = conversation.getAddress();
-
+    public static Person getPerson(Conversation conversation) {
         Person.Builder personBuilder = new Person.Builder()
-                .setName(contactName)
-                .setKey(conversation.getAddress());
+                .setName(conversation.getAddress())
+                .setKey(conversation.getThread_id());
         return personBuilder.build();
     }
 
@@ -98,56 +90,74 @@ public class NotificationsHandler {
         return receivedSmsIntent;
     }
 
-    public static NotificationCompat.MessagingStyle getMessagingStyle(
-            Context context, String name, Person person, Person person1, Conversation conversation) {
+    private static class MessageTrackers {
+        String title;
+        StringBuilder message = new StringBuilder();
+        Person person;
+    }
 
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
+    public static NotificationCompat.MessagingStyle getMessagingStyle(Context context,
+                                                                      Conversation conversation, String reply) {
+
+
+        Person person = getPerson(conversation);
+
+        Person.Builder personBuilder = new Person.Builder()
+                .setName(context.getString(R.string.notification_title_reply_you))
+                .setKey(context.getString(R.string.notification_title_reply_you));
+        Person replyPerson = personBuilder.build();
+
+        NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        List<StatusBarNotification> notifications = notificationManager.getActiveNotifications();
+        List<MessageTrackers> listMessages = new ArrayList<>();
         for(StatusBarNotification notification : notifications) {
             if (notification.getId() == Integer.parseInt(conversation.getThread_id())) {
                 Bundle extras = notification.getNotification().extras;
                 String prevMessage = extras.getCharSequence(Notification.EXTRA_TEXT).toString();
                 String prevTitle = extras.getCharSequence(Notification.EXTRA_TITLE).toString();
 
-                if(prevTitle.equals(context.getString(R.string.notification_title_reply_you))
-                        && person1 != null) {
-                    return new NotificationCompat.MessagingStyle(getPerson(context, conversation))
-                            .addMessage( new NotificationCompat.MessagingStyle.Message(prevMessage,
-                                    notification.getPostTime(), person1));
-                }
-                return new NotificationCompat.MessagingStyle(getPerson(context, conversation)).addMessage(
-                        new NotificationCompat.MessagingStyle.Message(
-                                prevMessage, notification.getPostTime(), getPerson(context, conversation)));
+                MessageTrackers messageTrackers = new MessageTrackers();
+                messageTrackers.message.append(prevMessage);
+                messageTrackers.title = prevTitle;
+                messageTrackers.person = prevTitle.equals(conversation.getAddress()) ?
+                        person:replyPerson;
+                listMessages.add(messageTrackers);
             }
         }
-        return new NotificationCompat.MessagingStyle(name).addMessage(
-                new NotificationCompat.MessagingStyle.Message(
-                        conversation.getText(), System.currentTimeMillis(), person));
+        MessageTrackers messageTrackers = new MessageTrackers();
+        messageTrackers.message.append(conversation.isIs_key() ?
+                context.getString(R.string.notification_title_new_key) :
+                reply == null ? conversation.getText() : reply);
+        messageTrackers.title = reply == null ? conversation.getAddress() :
+                context.getString(R.string.notification_title_reply_you);
+        messageTrackers.person = reply == null ? person :replyPerson;
+        listMessages.add(messageTrackers);
+
+        for(MessageTrackers messageTracker : listMessages) {
+            messagingStyle.addMessage(
+                    new NotificationCompat.MessagingStyle.Message(messageTracker.message,
+                            System.currentTimeMillis(),messageTracker.person));
+        }
+
+        return messagingStyle;
     }
 
-    public static NotificationCompat.Builder getNotificationBuilder(
-            Context context, Person person, Conversation conversation, Intent replyBroadcastIntent,
-            PendingIntent pendingReceivedSmsIntent) {
+    public static NotificationCompat.Builder
+    getNotificationBuilder(Context context, Intent replyBroadcastIntent, Conversation conversation,
+                           PendingIntent pendingIntent){
 
-        String shortCutId = getShortcutInfo(context, person, conversation);
-
-        return getNotificationHandler(context, replyBroadcastIntent,
-                conversation, shortCutId)
-                .setContentIntent(pendingReceivedSmsIntent);
-    }
-
-    private static NotificationCompat.Builder
-    getNotificationHandler(Context context, Intent replyBroadcastIntent, Conversation conversation,
-                           String shortcutId){
+        String shortcutInfo = getShortcutInfo(context, conversation);
 
         NotificationCompat.BubbleMetadata bubbleMetadata = new NotificationCompat.BubbleMetadata
                 .Builder(conversation.getAddress())
                 .setDesiredHeight(400)
-                .setSuppressNotification(true)
                 .build();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.incoming_messages_channel_id))
+                .setContentTitle(conversation.getAddress())
                 .setWhen(System.currentTimeMillis())
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_stat_name)
@@ -156,8 +166,9 @@ public class NotificationsHandler {
                 .setOnlyAlertOnce(true)
                 .setAllowSystemGeneratedContextualActions(true)
                 .setPriority(Notification.PRIORITY_MAX)
-                .setShortcutId(shortcutId)
+                .setShortcutId(shortcutInfo)
                 .setBubbleMetadata(bubbleMetadata)
+                .setContentIntent(pendingIntent)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE);
 
 
@@ -202,18 +213,18 @@ public class NotificationsHandler {
         return builder;
     }
 
-    private static String getShortcutInfo(Context context, Person person, Conversation conversation) {
+    private static String getShortcutInfo(Context context, Conversation conversation) {
         Uri smsUrl = Uri.parse("smsto:" + conversation.getAddress());
         Intent intent = new Intent(Intent.ACTION_SENDTO, smsUrl);
-//        intent.putExtra(Conversation.THREAD_ID, conversation.getThread_id())
-//                .putExtra(Conversation.SHARED_SMS_BODY, conversation.getBody());
         intent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+
+        Person person = getPerson(conversation);
 
         ShortcutInfoCompat shortcutInfoCompat = new ShortcutInfoCompat.Builder(context,
                 conversation.getAddress())
                 .setLongLived(true)
                 .setIntent(intent)
-                .setShortLabel(person.getName())
+                .setShortLabel(conversation.getAddress())
                 .setPerson(person)
                 .build();
 
