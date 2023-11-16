@@ -137,10 +137,13 @@ public class ThreadedConversationsViewModel extends ViewModel {
             @Override
             public void run() {
                 String[] ids = new String[threadedConversations.size()];
-                for(int i=0; i<threadedConversations.size(); ++i)
+                ConversationDao conversationDao = Conversation.getDao(context);
+                for(int i=0; i<threadedConversations.size(); ++i) {
                     ids[i] = threadedConversations.get(i).getThread_id();
-                NativeSMSDB.deleteThreads(context, ids);
+                    conversationDao.delete(threadedConversations.get(i).getThread_id());
+                }
                 threadedConversationsDao.delete(threadedConversations);
+                NativeSMSDB.deleteThreads(context, ids);
             }
         }).start();
     }

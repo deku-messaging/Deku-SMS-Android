@@ -34,11 +34,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static String SMS_DELIVERED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
 
-    public static String DATA_SENT_BROADCAST_INTENT =
-            BuildConfig.APPLICATION_ID + ".DATA_SENT_BROADCAST_INTENT";
-
-    public static String DATA_DELIVERED_BROADCAST_INTENT =
-            BuildConfig.APPLICATION_ID + ".DATA_DELIVERED_BROADCAST_INTENT";
 
     /*
     - address received might be different from how address is saved.
@@ -56,6 +51,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
+                Log.d(getClass().getName(), "Yes incoming sms message");
                 try {
                     final String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_text(context, intent);
                     if(regIncomingOutput != null) {
@@ -63,6 +59,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         final String text = regIncomingOutput[NativeSMSDB.BODY];
                         final String threadId = regIncomingOutput[NativeSMSDB.THREAD_ID];
                         final String address = regIncomingOutput[NativeSMSDB.ADDRESS];
+                        final String date = regIncomingOutput[NativeSMSDB.DATE];
                         final String dateSent = regIncomingOutput[NativeSMSDB.DATE_SENT];
                         final int subscriptionId = Integer.parseInt(regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID]);
 
@@ -76,7 +73,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                                 conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
                                 conversation.setAddress(address);
                                 conversation.setSubscription_id(subscriptionId);
-                                conversation.setDate(dateSent);
+                                conversation.setDate(date);
+                                conversation.setDate_sent(dateSent);
                                 ConversationDao conversationDao = Conversation.getDao(context);
                                 conversationDao.insert(conversation);
 
@@ -143,42 +141,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     conversationDao.update(conversation);
                 }
             }).start();
-        }
-        else if(intent.getAction().equals(DATA_SENT_BROADCAST_INTENT)) {
-            String id = intent.getStringExtra(NativeSMSDB.ID);
-            if (getResultCode() == Activity.RESULT_OK) {
-                ConversationDao conversationDao = Conversation.getDao(context);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Conversation conversation = conversationDao.getMessage(id);
-                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_NONE);
-                        conversationDao.update(conversation);
-                    }
-                }).start();
-            } else {
-                if (BuildConfig.DEBUG)
-                    Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
-                            + getResultCode());
-            }
-        }
-        else if(intent.getAction().equals(DATA_DELIVERED_BROADCAST_INTENT)) {
-            String id = intent.getStringExtra(NativeSMSDB.ID);
-            if (getResultCode() == Activity.RESULT_OK) {
-                ConversationDao conversationDao = Conversation.getDao(context);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Conversation conversation = conversationDao.getMessage(id);
-                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
-                        conversationDao.update(conversation);
-                    }
-                }).start();
-            } else {
-                if (BuildConfig.DEBUG)
-                    Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
-                            + getResultCode());
-            }
         }
     }
 

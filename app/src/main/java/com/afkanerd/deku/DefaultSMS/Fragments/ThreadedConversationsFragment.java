@@ -122,6 +122,5 @@ public class ThreadedConversationsFragment extends Fragment {
         super.onResume();
 //        threadedConversationsViewModel.loadNatives(getContext());
 
-        threadedConversationsViewModel.refresh(getContext());
     }
 }

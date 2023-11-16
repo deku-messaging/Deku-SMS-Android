@@ -101,7 +101,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                 if(intent.getAction() == null)
                     return;
 
-                if(intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION)) {
+                if(intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION) ||
+                intent.getAction().equals(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION)) {
                     String messageId = intent.getStringExtra(Conversation.ID);
                     if(viewModel instanceof ConversationsViewModel) {
                         new Thread(new Runnable() {
@@ -109,11 +110,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                             public void run() {
                                 ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
                                 Conversation conversation = conversationDao.getMessage(messageId);
-                                try {
-                                    ((ConversationsViewModel) viewModel).insert(conversation);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
+                                conversation.setRead(true);
+                                ((ConversationsViewModel) viewModel).update(conversation);
                             }
                         }).start();
                     } else if(viewModel instanceof ThreadedConversationsViewModel) {
@@ -132,18 +130,19 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                     if(intent.getAction().equals(
                                             IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT)
                                     || intent.getAction().equals(
-                                            IncomingTextSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT)) {
+                                            IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT)) {
                                         conversation.setStatus(
                                                 Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
                                     }
                                     else if(intent.getAction().equals(
                                             IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT)
                                     || intent.getAction().equals(
-                                            IncomingTextSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT)) {
+                                            IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT)) {
                                         conversation.setStatus(
                                                 Telephony.TextBasedSmsColumns.STATUS_NONE);
                                     }
-                                } else {
+                                }
+                                else {
                                     conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_FAILED);
                                     conversation.setError_code(getResultCode());
                                 }
@@ -162,10 +161,13 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
         intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT);
         intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT);
-        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT);
-        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT);
+        intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT);
+        intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT);
 
-        registerReceiver(generateUpdateEventsBroadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
+            registerReceiver(generateUpdateEventsBroadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+        else
+            registerReceiver(generateUpdateEventsBroadcastReceiver, intentFilter);
     }
 
     private void cancelAllNotifications(int id) {

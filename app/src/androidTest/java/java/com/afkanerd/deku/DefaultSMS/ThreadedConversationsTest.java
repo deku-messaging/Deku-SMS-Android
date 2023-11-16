@@ -35,13 +35,4 @@ public class ThreadedConversationsTest {
 
         assertEquals(conversations.get(0).getText(), threadedConversations.get(0).getSnippet());
     }
-
-    @Test
-    public void testThreadedConversationsDiffMethods() {
-       ThreadedConversations threadedConversation = new ThreadedConversations();
-       threadedConversation.setThread_id("0");
-       threadedConversation.setAddress("1234");
-       threadedConversation.setContact_name("person");
-//       threadedConversation.
-    }
 }

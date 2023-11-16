@@ -3,6 +3,7 @@ package com.afkanerd.deku.E2EE;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -12,6 +13,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -40,30 +42,37 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         securePopUpRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    int subscriptionId = 0;
-
-                    byte[] transmissionRequest =
-                            E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                        try {
+                            byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
                                     threadedConversations.getAddress());
-                    final String messageId = String.valueOf(System.currentTimeMillis());
-                    Conversation conversation = new Conversation();
-                    conversation.setIs_key(true);
-                    conversation.setMessage_id(messageId);
-                    conversation.setData(Base64.encodeToString(transmissionRequest, Base64.DEFAULT));
-                    conversation.setSubscription_id(subscriptionId);
-                    conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
-                    conversation.setDate(String.valueOf(System.currentTimeMillis()));
-                    conversation.setAddress(threadedConversations.getAddress());
-                    conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-                    long id = conversationsViewModel.insert(conversation);
-                    SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
-                    conversation.setId(id);
-                    conversationsViewModel.update(conversation);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                            final String messageId = String.valueOf(System.currentTimeMillis());
+                            Conversation conversation = new Conversation();
+                            conversation.setIs_key(true);
+                            conversation.setMessage_id(messageId);
+                            conversation.setData(Base64.encodeToString(transmissionRequest, Base64.DEFAULT));
+                            conversation.setSubscription_id(subscriptionId);
+                            conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
+                            conversation.setDate(String.valueOf(System.currentTimeMillis()));
+                            conversation.setAddress(threadedConversations.getAddress());
+                            conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+
+                            long id = conversationsViewModel.insert(conversation);
+                            SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
+                            conversationsViewModel.updateThreadId(conversation.getThread_id(),
+                                    messageId, id);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                thread.setName("sec_coms_request");
+                thread.start();
             }
         });
     }

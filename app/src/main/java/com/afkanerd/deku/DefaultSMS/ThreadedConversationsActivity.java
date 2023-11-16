@@ -308,6 +308,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 }
             }).start();
         }
+
+        threadedConversationsViewModel.refresh(getApplicationContext());
     }
 
     private void loadConversationsFromNative(Context context) {

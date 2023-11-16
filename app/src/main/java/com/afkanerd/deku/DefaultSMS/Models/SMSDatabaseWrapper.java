@@ -24,6 +24,9 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
         String[] nativeOutputs = NativeSMSDB.Outgoing._send_data(context, conversation.getMessage_id(),
                 transmissionAddress, Base64.decode(conversation.getData(), Base64.DEFAULT),
                 conversation.getSubscription_id(), null);
+        if(nativeOutputs == null) {
+            return;
+        }
 
         conversation.setThread_id(nativeOutputs[NativeSMSDB.THREAD_ID]);
     }

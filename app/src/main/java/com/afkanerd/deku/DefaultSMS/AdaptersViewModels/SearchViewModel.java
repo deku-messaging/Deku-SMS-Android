@@ -1,5 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
+import android.content.Context;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -47,7 +49,7 @@ public class SearchViewModel extends ViewModel {
         return liveData;
     }
 
-    public void search(String input) throws InterruptedException {
+    public void search(Context context, String input) throws InterruptedException {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -60,7 +62,7 @@ public class SearchViewModel extends ViewModel {
                 List<ThreadedConversations> threadedConversations = new ArrayList<>();
                 for(Conversation conversation : conversations) {
                     ThreadedConversations threadedConversation =
-                            ThreadedConversations.build(conversation);
+                            ThreadedConversations.build(context, conversation);
                     threadedConversations.add(threadedConversation);
                 }
                 liveData.postValue(threadedConversations);

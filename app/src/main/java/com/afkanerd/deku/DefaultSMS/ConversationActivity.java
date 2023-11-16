@@ -518,10 +518,19 @@ public class ConversationActivity extends E2EECompactActivity {
             conversation.setAddress(this.threadedConversations.getAddress());
             conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-            long id = conversationsViewModel.insert(conversation);
-            SMSDatabaseWrapper.send_text(getApplicationContext(), conversation);
-            conversation.setId(id);
-            conversationsViewModel.update(conversation);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        long id = conversationsViewModel.insert(conversation);
+                        SMSDatabaseWrapper.send_text(getApplicationContext(), conversation);
+                        conversationsViewModel.updateThreadId(conversation.getThread_id(),
+                                messageId, id);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
 
             smsTextView.setText(null);
         }

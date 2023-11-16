@@ -18,6 +18,7 @@ import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,16 +68,17 @@ public class ThreadedConversations {
         return threadedConversationsDao;
     }
 
-    public static ThreadedConversations build(Conversation conversation) {
+    public static ThreadedConversations build(Context context, Conversation conversation) {
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setAddress(conversation.getAddress());
-        threadedConversations.setSnippet(conversation.getText());
+        if(conversation.isIs_key()) {
+            threadedConversations.setSnippet(context.getString(R.string.conversation_key_title));
+        }
+        else threadedConversations.setSnippet(conversation.getText());
         threadedConversations.setThread_id(conversation.getThread_id());
         threadedConversations.setDate(conversation.getDate());
         threadedConversations.setType(conversation.getType());
         threadedConversations.setIs_read(conversation.isRead());
-        Log.d(ThreadedConversations.class.getName(), "Is read: " + conversation.isRead());
-        Log.d(ThreadedConversations.class.getName(), "Is read: " + conversation.getText());
 
         return threadedConversations;
     }
@@ -99,7 +101,7 @@ public class ThreadedConversations {
     public static List<ThreadedConversations> buildRaw(Context context, List<Conversation> conversations) {
         List<ThreadedConversations> threadedConversations = new ArrayList<>();
         for(Conversation conversation : conversations) {
-            ThreadedConversations threadedConversation = build(conversation);
+            ThreadedConversations threadedConversation = build(context, conversation);
             String contactName = Contacts.retrieveContactName(context,
                     threadedConversation.getAddress());
             threadedConversation.setContact_name(contactName);

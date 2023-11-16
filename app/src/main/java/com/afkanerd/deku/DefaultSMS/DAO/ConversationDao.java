@@ -27,7 +27,8 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     List<Conversation> getAll(String thread_id);
 
-    @Query("SELECT * FROM ( SELECT * FROM Conversation GROUP BY thread_id HAVING MAX(date)) AS latest_items ORDER BY date DESC")
+    @Query("SELECT * FROM ( SELECT * FROM Conversation GROUP BY thread_id HAVING MAX(date)) AS " +
+            "latest_items WHERE thread_id IS NOT NULL ORDER BY date DESC")
     List<Conversation> getForThreading();
 
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
@@ -43,7 +44,7 @@ public interface ConversationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(Conversation conversation);
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> insertAll(List<Conversation> conversationList);
 
     @Update
@@ -52,6 +53,8 @@ public interface ConversationDao {
     @Update
     int update(List<Conversation> conversations);
 
+    @Query("DELETE FROM Conversation WHERE thread_id = :threadId")
+    int delete(String threadId);
     @Delete
     int delete(Conversation conversation);
 

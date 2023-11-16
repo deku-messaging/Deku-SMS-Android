@@ -31,10 +31,10 @@ public class ConversationsViewModel extends ViewModel {
     public String threadId;
     public String address;
     ConversationDao conversationDao;
-    public int pageSize = 20;
+    public int pageSize = 10;
     int prefetchDistance = 3 * pageSize;
     boolean enablePlaceholder = false;
-    int initialLoadSize = 10;
+    int initialLoadSize = pageSize * 2;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
     public Integer initialKey = null;
@@ -90,16 +90,7 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public long insert(Conversation conversation) throws InterruptedException {
-        final long[] id = {0};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                id[0] = conversationDao.insert(conversation);
-            }
-        });
-        thread.start();
-        thread.join();
-        return id[0];
+        return conversationDao.insert(conversation);
     }
 
     public void update(Conversation conversation) {
@@ -182,6 +173,19 @@ public class ConversationsViewModel extends ViewModel {
                 Log.d(getClass().getName(), "Pre-delete: " + Arrays.toString(ids));
                 int deletedCount = NativeSMSDB.deleteMultipleMessages(context, ids);
                 Log.d(getClass().getName(), "Deleted: " + deletedCount + ":" + Arrays.toString(ids) + ":" + conversations.size());
+            }
+        }).start();
+    }
+
+    public void updateThreadId(String threadId, String messageId, long id) {
+        this.threadId = threadId;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Conversation conversation = conversationDao.getMessage(messageId);
+                conversation.setId(id);
+                conversation.setThread_id(threadId);
+                conversationDao.update(conversation);
             }
         }).start();
     }

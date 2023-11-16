@@ -26,6 +26,12 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
     public static String DATA_DELIVER_ACTION = BuildConfig.APPLICATION_ID + ".DATA_DELIVER_ACTION" ;
 
+    public static String DATA_SENT_BROADCAST_INTENT =
+            BuildConfig.APPLICATION_ID + ".DATA_SENT_BROADCAST_INTENT";
+
+    public static String DATA_DELIVERED_BROADCAST_INTENT =
+            BuildConfig.APPLICATION_ID + ".DATA_DELIVERED_BROADCAST_INTENT";
+
     @Override
     public void onReceive(Context context, Intent intent) {
         /**
@@ -33,6 +39,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
          */
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
+            Log.d(getClass().getName(), "Yes new data received");
             if (getResultCode() == Activity.RESULT_OK) {
                 try {
                     String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_data(context, intent);
@@ -43,35 +50,48 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     final String address = regIncomingOutput[NativeSMSDB.ADDRESS];
                     final String strSubscriptionId = regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID];
                     final String dateSent = regIncomingOutput[NativeSMSDB.DATE_SENT];
+                    final String date = regIncomingOutput[NativeSMSDB.DATE];
                     int subscriptionId = Integer.parseInt(strSubscriptionId);
+
+                    boolean isValidKey = E2EEHandler.isValidDekuPublicKey( Base64.decode(data, Base64.DEFAULT));
+
+                    Conversation conversation = new Conversation();
+                    conversation.setData(data);
+                    conversation.setAddress(address);
+                    conversation.setIs_key(isValidKey);
+                    conversation.setMessage_id(messageId);
+                    conversation.setThread_id(threadId);
+                    conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+                    conversation.setSubscription_id(subscriptionId);
+                    conversation.setDate(dateSent);
+                    conversation.setDate(date);
+
+                    if(isValidKey)
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    processForEncryptionKey(context, conversation);
+                                } catch (NumberParseException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
 
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            Conversation conversation = new Conversation();
-                            conversation.setData(data);
-                            conversation.setAddress(address);
-                            try {
-                                conversation.setIs_key(processForEncryptionKey(context, conversation));
-                            } catch (NumberParseException e) {
-                                e.printStackTrace();
-                            }
-
-                            conversation.setMessage_id(messageId);
-                            conversation.setThread_id(threadId);
-                            conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
-                            conversation.setSubscription_id(subscriptionId);
-                            conversation.setDate(dateSent);
-
                             ConversationDao conversationDao = Conversation.getDao(context);
                             conversationDao.insert(conversation);
 
-                            Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
-                            broadcastIntent.putExtra(Conversation.ID, messageId);
-                            context.sendBroadcast(broadcastIntent);
-
                             NotificationsHandler.sendIncomingTextMessageNotification(context,
                                     conversation);
+
+                            Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
+                            broadcastIntent.putExtra(Conversation.ID, messageId);
+                            broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
+                            context.sendBroadcast(broadcastIntent);
+
                         }
                     }).start();
 
@@ -80,6 +100,44 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                 }
             }
         }
+
+        else if(intent.getAction().equals(DATA_SENT_BROADCAST_INTENT)) {
+            String id = intent.getStringExtra(NativeSMSDB.ID);
+            if (getResultCode() == Activity.RESULT_OK) {
+                ConversationDao conversationDao = Conversation.getDao(context);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Conversation conversation = conversationDao.getMessage(id);
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_NONE);
+                        conversationDao.update(conversation);
+                    }
+                }).start();
+            } else {
+                if (BuildConfig.DEBUG)
+                    Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
+                            + getResultCode());
+            }
+        }
+        else if(intent.getAction().equals(DATA_DELIVERED_BROADCAST_INTENT)) {
+            String id = intent.getStringExtra(NativeSMSDB.ID);
+            if (getResultCode() == Activity.RESULT_OK) {
+                ConversationDao conversationDao = Conversation.getDao(context);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Conversation conversation = conversationDao.getMessage(id);
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
+                        conversationDao.update(conversation);
+                    }
+                }).start();
+            } else {
+                if (BuildConfig.DEBUG)
+                    Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
+                            + getResultCode());
+            }
+        }
+
     }
 
     boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException {
