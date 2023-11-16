@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.Telephony;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +15,7 @@ import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 
@@ -67,10 +69,14 @@ public class ThreadedConversations {
 
     public static ThreadedConversations build(Conversation conversation) {
         ThreadedConversations threadedConversations = new ThreadedConversations();
+        threadedConversations.setAddress(conversation.getAddress());
         threadedConversations.setSnippet(conversation.getText());
         threadedConversations.setThread_id(conversation.getThread_id());
-        threadedConversations.setAddress(conversation.getAddress());
         threadedConversations.setDate(conversation.getDate());
+        threadedConversations.setType(conversation.getType());
+        threadedConversations.setIs_read(conversation.isRead());
+        Log.d(ThreadedConversations.class.getName(), "Is read: " + conversation.isRead());
+        Log.d(ThreadedConversations.class.getName(), "Is read: " + conversation.getText());
 
         return threadedConversations;
     }
@@ -86,6 +92,18 @@ public class ThreadedConversations {
                     threadedConversations.add(threadedConversation);
                 }
             } while(cursor.moveToNext());
+        }
+        return threadedConversations;
+    }
+
+    public static List<ThreadedConversations> buildRaw(Context context, List<Conversation> conversations) {
+        List<ThreadedConversations> threadedConversations = new ArrayList<>();
+        for(Conversation conversation : conversations) {
+            ThreadedConversations threadedConversation = build(conversation);
+            String contactName = Contacts.retrieveContactName(context,
+                    threadedConversation.getAddress());
+            threadedConversation.setContact_name(contactName);
+            threadedConversations.add(threadedConversation);
         }
         return threadedConversations;
     }
@@ -245,39 +263,44 @@ public class ThreadedConversations {
 
         @Override
         public boolean areContentsTheSame(@NonNull ThreadedConversations oldItem, @NonNull ThreadedConversations newItem) {
-            return oldItem.diff_equals(newItem);
+            return oldItem.equals(newItem);
         }
     };
-
-    public boolean diff_equals(@Nullable Object obj) {
-        if(obj instanceof ThreadedConversations) {
-            ThreadedConversations threadedConversations = (ThreadedConversations) obj;
-
-            return threadedConversations.thread_id.equals(this.thread_id) &&
-                    threadedConversations.is_archived == this.is_archived &&
-                    threadedConversations.is_blocked == this.is_blocked &&
-                    threadedConversations.is_read == this.is_read &&
-                    threadedConversations.type == this.type &&
-                    threadedConversations.avatar_color == this.avatar_color &&
-                    threadedConversations.msg_count == this.msg_count &&
-                    threadedConversations.address.equals(this.address) &&
-                    threadedConversations.date.equals(this.date) &&
-                    threadedConversations.snippet.equals(this.snippet);
-
-        }
-        return super.equals(obj);
-    }
 
     @Override
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof ThreadedConversations) {
             ThreadedConversations threadedConversations = (ThreadedConversations) obj;
 
-            return threadedConversations.thread_id.equals(this.thread_id) &&
-                    threadedConversations.address.equals(this.address);
+            if(snippet == null) {
+                //secure content
+                return threadedConversations.thread_id.equals(this.thread_id) &&
+                        threadedConversations.is_archived == this.is_archived &&
+                        threadedConversations.is_blocked == this.is_blocked &&
+                        threadedConversations.is_read == this.is_read &&
+                        threadedConversations.type == this.type &&
+                        threadedConversations.avatar_color == this.avatar_color &&
+                        threadedConversations.msg_count == this.msg_count &&
+                        threadedConversations.address.equals(this.address) &&
+                        threadedConversations.date.equals(this.date);
+            }
+            try {
+                return threadedConversations.thread_id.equals(this.thread_id) &&
+                        threadedConversations.is_archived == this.is_archived &&
+                        threadedConversations.is_blocked == this.is_blocked &&
+                        threadedConversations.is_read == this.is_read &&
+                        threadedConversations.type == this.type &&
+                        threadedConversations.avatar_color == this.avatar_color &&
+                        threadedConversations.msg_count == this.msg_count &&
+                        threadedConversations.address.equals(this.address) &&
+                        threadedConversations.date.equals(this.date) &&
+                        threadedConversations.snippet.equals(this.snippet);
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
 
         }
-        return super.equals(obj);
+        return false;
     }
 
     public boolean diffReplace(ThreadedConversations threadedConversations) {
@@ -309,10 +332,10 @@ public class ThreadedConversations {
             this.type = threadedConversations.getType();
             diff = true;
         }
-        if(this.is_read != threadedConversations.isIs_read()) {
-            this.is_read = threadedConversations.isIs_read();
-            diff = true;
-        }
+//        if(this.is_read != threadedConversations.isIs_read()) {
+//            this.is_read = threadedConversations.isIs_read();
+//            diff = true;
+//        }
         this.msg_count = threadedConversations.getMsg_count();
         return diff;
     }

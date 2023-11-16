@@ -7,9 +7,13 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.view.ActionMode;
@@ -18,14 +22,17 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 
 import java.util.ArrayList;
@@ -43,7 +50,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     String ITEM_TYPE = "";
 
-    ThreadedConversationsRecyclerAdapter threadedConversationsViewModel;
+    ThreadedConversationsViewModel threadedConversationsViewModel;
 
     ActionMode actionMode;
 
@@ -62,9 +69,10 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         ThreadedConversationsDao threadedConversationsDao =
                 ThreadedConversations.getDao(getApplicationContext());
         threadedConversationsViewModel = new ViewModelProvider(this).get(
-                ThreadedConversationsRecyclerAdapter.class);
+                ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
         fragmentManagement();
+        setViewModel(threadedConversationsViewModel);
         configureBroadcastListeners();
     }
 
@@ -124,7 +132,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     @Override
-    public ThreadedConversationsRecyclerAdapter getViewModel() {
+    public ThreadedConversationsViewModel getViewModel() {
         return threadedConversationsViewModel;
     }
 
@@ -288,6 +296,30 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     protected void onPostResume() {
         super.onPostResume();
 
-        threadedConversationsViewModel.loadNatives(getApplicationContext());
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        if(sharedPreferences.getBoolean(LOAD_NATIVES, true) ) {
+            sharedPreferences.edit().putBoolean(LOAD_NATIVES, false).apply();
+            threadedConversationsViewModel.loadNatives(getApplicationContext());
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    loadConversationsFromNative(getApplicationContext());
+                }
+            }).start();
+        }
+    }
+
+    private void loadConversationsFromNative(Context context) {
+        Cursor cursor = NativeSMSDB.fetchAll(context);
+        List<Conversation> conversationList = new ArrayList<>();
+        if(cursor.moveToNext()) {
+            do {
+                conversationList.add(Conversation.build(cursor));
+            } while(cursor.moveToNext());
+        }
+        cursor.close();
+        ConversationDao conversationDao = Conversation.getDao(context);
+        conversationDao.insertAll(conversationList);
     }
 }

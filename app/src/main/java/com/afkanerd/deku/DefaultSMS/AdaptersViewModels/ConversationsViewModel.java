@@ -34,7 +34,7 @@ public class ConversationsViewModel extends ViewModel {
     public int pageSize = 20;
     int prefetchDistance = 3 * pageSize;
     boolean enablePlaceholder = false;
-    int initialLoadSize = 2 * pageSize;
+    int initialLoadSize = 10;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
     public Integer initialKey = null;
@@ -153,17 +153,19 @@ public class ConversationsViewModel extends ViewModel {
 
     public void updateToRead(Context context) {
         if(threadId != null && !threadId.isEmpty()) {
-            NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
-            ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    ThreadedConversations threadedConversations = threadedConversationsDao.get(threadId);
-                    if(threadedConversations != null) {
-                        threadedConversations.setIs_read(true);
-                        int num_updated = threadedConversationsDao.update(threadedConversations);
-                        Log.d(getClass().getName(), "Number updated: " + num_updated);
+                    NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
+                    List<Conversation> conversations = conversationDao.getAll(threadId);
+                    List<Conversation> updateList = new ArrayList<>();
+                    for(Conversation conversation : conversations) {
+                        if(!conversation.isRead()) {
+                            conversation.setRead(true);
+                            updateList.add(conversation);
+                        }
                     }
+                    conversationDao.update(updateList);
                 }
             }).start();
         }

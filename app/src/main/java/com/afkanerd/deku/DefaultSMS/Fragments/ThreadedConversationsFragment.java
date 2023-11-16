@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsRecyclerAdapter;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
 
@@ -23,7 +23,7 @@ import java.util.Objects;
 
 public class ThreadedConversationsFragment extends Fragment {
 
-    ThreadedConversationsRecyclerAdapter threadedConversationsViewModel;
+    ThreadedConversationsViewModel threadedConversationsViewModel;
     ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
@@ -37,7 +37,7 @@ public class ThreadedConversationsFragment extends Fragment {
     private OnViewManipulationListener viewManipulationListener;
 
     public interface OnViewManipulationListener extends HomepageFragment.TabListenerInterface {
-        ThreadedConversationsRecyclerAdapter getViewModel();
+        ThreadedConversationsViewModel getViewModel();
 
         void setRecyclerViewAdapter(String name, ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter);
     }
@@ -121,5 +121,7 @@ public class ThreadedConversationsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 //        threadedConversationsViewModel.loadNatives(getContext());
+
+        threadedConversationsViewModel.refresh(getContext());
     }
 }

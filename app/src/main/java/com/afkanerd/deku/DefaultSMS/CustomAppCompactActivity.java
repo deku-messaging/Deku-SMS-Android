@@ -12,21 +12,13 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.ViewModel;
-import androidx.paging.PagingDataAdapter;
-import androidx.work.BackoffPolicy;
-import androidx.work.Constraints;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationWorkManager;
-
-import java.util.concurrent.TimeUnit;
 
 public class CustomAppCompactActivity extends DualSIMConversationActivity {
     BroadcastReceiver generateUpdateEventsBroadcastReceiver;
@@ -124,6 +116,9 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                 }
                             }
                         }).start();
+                    } else if(viewModel instanceof ThreadedConversationsViewModel) {
+                        Log.d(getLocalClassName(), "yes getting the intent");
+                        ((ThreadedConversationsViewModel) viewModel).refresh(context);
                     }
                 } else {
                     String messageId = intent.getStringExtra(Conversation.ID);

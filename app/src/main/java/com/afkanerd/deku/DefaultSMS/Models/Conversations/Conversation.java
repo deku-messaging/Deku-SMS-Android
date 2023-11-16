@@ -263,6 +263,8 @@ public class Conversation {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof Conversation) {
             Conversation conversation = (Conversation) obj;
+            if(data == null && text == null)
+                return false;
             if(data ==  null)
                 return conversation.thread_id.equals(this.thread_id) &&
                         conversation.message_id.equals(this.message_id) &&

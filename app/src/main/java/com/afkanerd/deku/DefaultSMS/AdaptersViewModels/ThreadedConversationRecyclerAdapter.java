@@ -12,6 +12,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
 
 import com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsReceivedViewHandler;

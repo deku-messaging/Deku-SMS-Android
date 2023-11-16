@@ -27,8 +27,8 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     List<Conversation> getAll(String thread_id);
 
-    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC LIMIT 1 OFFSET :offset")
-    List<Conversation> getAllWithOffset(String thread_id, int offset);
+    @Query("SELECT * FROM ( SELECT * FROM Conversation GROUP BY thread_id HAVING MAX(date)) AS latest_items ORDER BY date DESC")
+    List<Conversation> getForThreading();
 
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
     List<Conversation> getComplete();
@@ -48,6 +48,9 @@ public interface ConversationDao {
 
     @Update
     int update(Conversation conversation);
+
+    @Update
+    int update(List<Conversation> conversations);
 
     @Delete
     int delete(Conversation conversation);
