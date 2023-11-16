@@ -231,4 +231,5 @@
     <string name="conversation_secure_popup_text"><![CDATA[Click to request secure conversation with <insert name>]]></string>
 
     <string name="conversation_key_title">Secure Request Initiated</string>
+    <string name="conversation_inform_user_now_secured_toast">Secure communications is a go!</string>
 </resources>

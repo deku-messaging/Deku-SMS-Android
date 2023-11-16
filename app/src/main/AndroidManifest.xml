@@ -183,7 +183,7 @@
                 <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
                 <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
             </intent-filter>
-        </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
+        </receiver>
         <receiver
             android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MMSReceiverBroadcastReceiver"
             android:exported="true"

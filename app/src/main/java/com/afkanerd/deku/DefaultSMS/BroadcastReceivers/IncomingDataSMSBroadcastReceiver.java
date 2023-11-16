@@ -32,11 +32,16 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     public static String DATA_DELIVERED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".DATA_DELIVERED_BROADCAST_INTENT";
 
+    public static String DATA_UPDATED_BROADCAST_INTENT =
+            BuildConfig.APPLICATION_ID + ".DATA_UPDATED_BROADCAST_INTENT";
+
     @Override
     public void onReceive(Context context, Intent intent) {
         /**
          * Important note: either image or dump it
          */
+
+        Log.d(getClass().getName(), "Broadcast data received: " + intent.getAction());
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
             Log.d(getClass().getName(), "Yes new data received");
@@ -100,44 +105,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                 }
             }
         }
-
-        else if(intent.getAction().equals(DATA_SENT_BROADCAST_INTENT)) {
-            String id = intent.getStringExtra(NativeSMSDB.ID);
-            if (getResultCode() == Activity.RESULT_OK) {
-                ConversationDao conversationDao = Conversation.getDao(context);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Conversation conversation = conversationDao.getMessage(id);
-                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_NONE);
-                        conversationDao.update(conversation);
-                    }
-                }).start();
-            } else {
-                if (BuildConfig.DEBUG)
-                    Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
-                            + getResultCode());
-            }
-        }
-        else if(intent.getAction().equals(DATA_DELIVERED_BROADCAST_INTENT)) {
-            String id = intent.getStringExtra(NativeSMSDB.ID);
-            if (getResultCode() == Activity.RESULT_OK) {
-                ConversationDao conversationDao = Conversation.getDao(context);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Conversation conversation = conversationDao.getMessage(id);
-                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
-                        conversationDao.update(conversation);
-                    }
-                }).start();
-            } else {
-                if (BuildConfig.DEBUG)
-                    Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
-                            + getResultCode());
-            }
-        }
-
     }
 
     boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException {

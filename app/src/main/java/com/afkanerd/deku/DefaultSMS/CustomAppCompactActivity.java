@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.ViewModel;
+import androidx.preference.PreferenceManager;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
@@ -19,6 +21,14 @@ import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastR
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.E2EE.E2EECompactActivity;
+import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.i18n.phonenumbers.NumberParseException;
+
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 public class CustomAppCompactActivity extends DualSIMConversationActivity {
     BroadcastReceiver generateUpdateEventsBroadcastReceiver;
@@ -98,11 +108,9 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         generateUpdateEventsBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(intent.getAction() == null)
-                    return;
-
-                if(intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION) ||
-                intent.getAction().equals(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION)) {
+                if(intent.getAction() != null && (
+                        intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION) ||
+                intent.getAction().equals(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION))) {
                     String messageId = intent.getStringExtra(Conversation.ID);
                     if(viewModel instanceof ConversationsViewModel) {
                         new Thread(new Runnable() {
@@ -115,36 +123,30 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                             }
                         }).start();
                     } else if(viewModel instanceof ThreadedConversationsViewModel) {
-                        Log.d(getLocalClassName(), "yes getting the intent");
                         ((ThreadedConversationsViewModel) viewModel).refresh(context);
                     }
                 } else {
                     String messageId = intent.getStringExtra(Conversation.ID);
-                    if(viewModel instanceof ConversationsViewModel) {
+                    if(viewModel instanceof ConversationsViewModel && messageId != null) {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
                                 Conversation conversation = conversationDao.getMessage(messageId);
-                                if (getResultCode() == Activity.RESULT_OK) {
-                                    if(intent.getAction().equals(
-                                            IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT)
-                                    || intent.getAction().equals(
-                                            IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT)) {
-                                        conversation.setStatus(
-                                                Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
+                                conversation.setRead(true);
+                                try {
+                                    SharedPreferences sharedPreferences =
+                                            PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
+                                            E2EEHandler.getKeyStoreAlias(
+                                                    conversation.getAddress(), 0)) &&
+                                    !sharedPreferences.getBoolean(
+                                            E2EECompactActivity.INFORMED_SECURED, false)) {
+                                        informSecured(true);
                                     }
-                                    else if(intent.getAction().equals(
-                                            IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT)
-                                    || intent.getAction().equals(
-                                            IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT)) {
-                                        conversation.setStatus(
-                                                Telephony.TextBasedSmsColumns.STATUS_NONE);
-                                    }
-                                }
-                                else {
-                                    conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_FAILED);
-                                    conversation.setError_code(getResultCode());
+                                } catch (CertificateException | KeyStoreException | IOException |
+                                         NoSuchAlgorithmException | NumberParseException e) {
+                                    e.printStackTrace();
                                 }
                                 ((ConversationsViewModel) viewModel).update(conversation);
                             }
@@ -159,16 +161,16 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION);
         intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
 
-        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT);
-        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT);
-        intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT);
-        intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT);
+        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT);
+        intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT);
 
         if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
             registerReceiver(generateUpdateEventsBroadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
         else
             registerReceiver(generateUpdateEventsBroadcastReceiver, intentFilter);
     }
+
+    public void informSecured(boolean secured) { }
 
     private void cancelAllNotifications(int id) {
         NotificationManagerCompat notificationManager =

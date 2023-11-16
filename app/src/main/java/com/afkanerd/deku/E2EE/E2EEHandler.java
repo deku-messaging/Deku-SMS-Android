@@ -47,6 +47,13 @@ public class E2EEHandler {
         return securityECDH.isAvailableInKeystore(keystoreAlias);
     }
 
+    public static boolean canCommunicateSecurely(Context context, String keystoreAlias) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                ConversationsThreadsEncryption.getDao(context);
+        return isAvailableInKeystore(keystoreAlias) &&
+                conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias) != null;
+    }
+
     public static PublicKey createNewKeyPair(Context context, String keystoreAlias)
             throws GeneralSecurityException, InterruptedException, IOException {
         return SecurityECDH.generateKeyPair(context, keystoreAlias);

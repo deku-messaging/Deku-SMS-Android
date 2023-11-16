@@ -1,13 +1,16 @@
 package com.afkanerd.deku.E2EE;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModel;
+import androidx.preference.PreferenceManager;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
@@ -21,6 +24,9 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 public class E2EECompactActivity extends CustomAppCompactActivity {
 
@@ -36,6 +42,21 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     public void setViewModel(ConversationsViewModel viewModel) {
         super.setViewModel(viewModel);
         this.conversationsViewModel = viewModel;
+    }
+
+    public static String INFORMED_SECURED = "INFORMED_SECURED";
+
+    @Override
+    public void informSecured(boolean secured) {
+        if(secured) {
+            securePopUpRequest.setVisibility(View.GONE);
+            SharedPreferences sharedPreferences =
+                    PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            sharedPreferences.edit().putBoolean(INFORMED_SECURED, true).apply();
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.conversation_inform_user_now_secured_toast),
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private void setSecurePopUpRequest() {
@@ -84,11 +105,29 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(this.threadedConversations != null) {
-            securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
-            securePopUpRequest.setVisibility(View.VISIBLE);
-            setSecurePopUpRequest();
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if(threadedConversations != null &&
+                            !E2EEHandler.canCommunicateSecurely(getApplicationContext(),
+                                    E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0))) {
+                        securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                securePopUpRequest.setVisibility(View.VISIBLE);
+                                setSecurePopUpRequest();
+                            }
+                        });
+                    }
+                } catch (CertificateException | NumberParseException | NoSuchAlgorithmException |
+                         IOException | KeyStoreException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }).start();
     }
 
     @Override

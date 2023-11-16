@@ -145,6 +145,9 @@ public class ConversationsThreadsEncryptionTest {
         assertTrue(E2EEHandler.isAvailableInKeystore(aliceKeystoreAlias));
         assertTrue(E2EEHandler.isAvailableInKeystore(bobKeystoreAlias));
 
+        assertTrue(E2EEHandler.canCommunicateSecurely(context, aliceKeystoreAlias));
+        assertTrue(E2EEHandler.canCommunicateSecurely(context, bobKeystoreAlias));
+
         String aliceText = "Hello world!";
         byte[] aliceCipherText = E2EEHandler.encryptText(context, bobKeystoreAlias, aliceText);
         String aliceTransmissionText = E2EEHandler.buildTransmissionText(aliceCipherText);

@@ -1,5 +1,9 @@
 package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
+import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT;
+import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT;
+import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,6 +34,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             BuildConfig.APPLICATION_ID + ".SMS_DELIVER_ACTION";
     public static String SMS_SENT_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".SMS_SENT_BROADCAST_INTENT";
+    public static String SMS_UPDATED_BROADCAST_INTENT =
+            BuildConfig.APPLICATION_ID + ".SMS_UPDATED_BROADCAST_INTENT";
 
     public static String SMS_DELIVERED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT";
@@ -48,6 +54,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
+
+        Log.d(getClass().getName(), "Broadcast sms received: " + intent.getAction());
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
@@ -102,10 +110,10 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
 
         else if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT)) {
-            String id = intent.getStringExtra(NativeSMSDB.ID);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    String id = intent.getStringExtra(NativeSMSDB.ID);
                     ConversationDao conversationDao = Conversation.getDao(context);
                     Conversation conversation = conversationDao.getMessage(id);
                     if (getResultCode() == Activity.RESULT_OK) {
@@ -119,7 +127,12 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                             e.printStackTrace();
                         }
                     }
-                    conversationDao.update(conversation);
+
+                    Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
+                    broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
+                    broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+
+                    context.sendBroadcast(broadcastIntent);
                 }
             }).start();
         }
@@ -134,21 +147,79 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         NativeSMSDB.Outgoing.register_delivered(context, id);
                         conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
                     } else {
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_FAILED);
                         if (BuildConfig.DEBUG)
                             Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
                                     + getResultCode());
                     }
                     conversationDao.update(conversation);
+
+                    Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
+                    broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
+                    broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+
+                    context.sendBroadcast(broadcastIntent);
                 }
             }).start();
         }
+
+
+        else if(intent.getAction().equals(DATA_SENT_BROADCAST_INTENT)) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String id = intent.getStringExtra(NativeSMSDB.ID);
+                    ConversationDao conversationDao = Conversation.getDao(context);
+                    Conversation conversation = conversationDao.getMessage(id);
+                    if (getResultCode() == Activity.RESULT_OK) {
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_NONE);
+                    } else {
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_FAILED);
+                        conversation.setError_code(getResultCode());
+                        if (BuildConfig.DEBUG)
+                            Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
+                                    + getResultCode());
+                    }
+                    conversationDao.update(conversation);
+
+                    Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
+                    broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
+                    broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+
+                    context.sendBroadcast(broadcastIntent);
+                }
+            }).start();
+        }
+        else if(intent.getAction().equals(DATA_DELIVERED_BROADCAST_INTENT)) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String id = intent.getStringExtra(NativeSMSDB.ID);
+                    ConversationDao conversationDao = Conversation.getDao(context);
+                    Conversation conversation = conversationDao.getMessage(id);
+                    if (getResultCode() == Activity.RESULT_OK) {
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
+                    } else {
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_FAILED);
+                        conversation.setError_code(getResultCode());
+
+                        if (BuildConfig.DEBUG)
+                            Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
+                                    + getResultCode());
+                    }
+                    conversationDao.update(conversation);
+
+                    Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
+                    broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
+                    broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+
+                    context.sendBroadcast(broadcastIntent);
+                }
+            }).start();
+        }
+
     }
 
-//    private void handleEncryption(String text) {
-//        if(E2EEHandler.isValidDekuPublicKey(text)) {
-//
-//        }
-//    }
 
     public void router_activities(String messageId) {
         new Thread(new Runnable() {

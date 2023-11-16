@@ -263,6 +263,9 @@ public class Conversation {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof Conversation) {
             Conversation conversation = (Conversation) obj;
+            if(data == null && text == null)
+                return false;
+
             if(data ==  null)
                 return conversation.thread_id.equals(this.thread_id) &&
                         conversation.message_id.equals(this.message_id) &&
@@ -270,6 +273,7 @@ public class Conversation {
                         conversation.status == this.status &&
                         conversation.date.equals(this.date) &&
                         conversation.address.equals(this.address) &&
+                        conversation.isRead() == this.isRead() &&
                         conversation.type == this.type;
             if(text == null)
                 return conversation.thread_id.equals(this.thread_id) &&
@@ -278,6 +282,7 @@ public class Conversation {
                         conversation.status == this.status &&
                         conversation.date.equals(this.date) &&
                         conversation.address.equals(this.address) &&
+                        conversation.isRead() == this.isRead() &&
                         conversation.type == this.type;
         }
         return super.equals(obj);
