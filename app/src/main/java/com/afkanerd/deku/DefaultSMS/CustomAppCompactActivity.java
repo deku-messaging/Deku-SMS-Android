@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
@@ -21,8 +22,11 @@ import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastR
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
@@ -176,6 +180,38 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         NotificationManagerCompat notificationManager =
                 NotificationManagerCompat.from(getApplicationContext());
         notificationManager.cancel(id);
+    }
+
+    public void sendTextMessage(String text, int subscriptionId,
+                                ThreadedConversations threadedConversations) throws Exception {
+        if(text != null) {
+            final String messageId = String.valueOf(System.currentTimeMillis());
+            Conversation conversation = new Conversation();
+            conversation.setMessage_id(messageId);
+            conversation.setText(text);
+            conversation.setSubscription_id(subscriptionId);
+            conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
+            conversation.setDate(String.valueOf(System.currentTimeMillis()));
+            conversation.setAddress(threadedConversations.getAddress());
+            conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+
+            if(viewModel instanceof ConversationsViewModel) {
+                ConversationsViewModel conversationsViewModel = (ConversationsViewModel) viewModel;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            long id = conversationsViewModel.insert(conversation);
+                            SMSDatabaseWrapper.send_text(getApplicationContext(), conversation);
+                            conversationsViewModel.updateThreadId(conversation.getThread_id(),
+                                    messageId, id);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+            }
+        }
     }
 
     @Override

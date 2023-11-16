@@ -465,7 +465,9 @@ public class ConversationActivity extends E2EECompactActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    sendTextMessage(v);
+                    final String text = smsTextView.getText().toString();
+                    sendTextMessage(text, defaultSubscriptionId, threadedConversations);
+                    smsTextView.setText(null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -504,37 +506,6 @@ public class ConversationActivity extends E2EECompactActivity {
         }
     }
 
-    public void sendTextMessage(View view) throws Exception {
-        if(smsTextView.getText() != null) {
-            String text = smsTextView.getText().toString();
-            final String messageId = String.valueOf(System.currentTimeMillis());
-            // TODO: encryption
-            Conversation conversation = new Conversation();
-            conversation.setMessage_id(messageId);
-            conversation.setText(text);
-            conversation.setSubscription_id(defaultSubscriptionId);
-            conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
-            conversation.setDate(String.valueOf(System.currentTimeMillis()));
-            conversation.setAddress(this.threadedConversations.getAddress());
-            conversation.setStatus(Telephony.Sms.STATUS_PENDING);
-
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        long id = conversationsViewModel.insert(conversation);
-                        SMSDatabaseWrapper.send_text(getApplicationContext(), conversation);
-                        conversationsViewModel.updateThreadId(conversation.getThread_id(),
-                                messageId, id);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-
-            smsTextView.setText(null);
-        }
-    }
 
     private void copyItem() {
         // TODO

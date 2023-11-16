@@ -15,6 +15,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 
 import java.sql.Date;
 import java.text.DateFormat;
@@ -111,7 +112,30 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         sentMessageStatus.setText(statusMessage);
 
-        Helpers.highlightLinks(sentMessage, conversation.getText(),
+        final String[] text = {conversation.getText()};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
+                    if(E2EEHandler.canCommunicateSecurely(itemView.getContext(), keystoreAlias) &&
+                            E2EEHandler.isValidDekuText(text[0])) {
+                        byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
+                        text[0] = new String(E2EEHandler.decryptText(itemView.getContext(), keystoreAlias, extractedText));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+        try {
+            thread.join();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        Helpers.highlightLinks(sentMessage, text[0],
                 itemView.getContext().getColor(R.color.primary_background_color));
     }
 

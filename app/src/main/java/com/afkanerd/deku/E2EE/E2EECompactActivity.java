@@ -19,6 +19,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
@@ -47,8 +48,32 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     public static String INFORMED_SECURED = "INFORMED_SECURED";
 
     @Override
+    public void sendTextMessage(final String text, int subscriptionId, ThreadedConversations threadedConversations) throws Exception {
+        String keystoreAlias = E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0);
+        final String[] transmissionText = {text};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias)) {
+                        byte[] cipherText = E2EEHandler.encryptText(getApplicationContext(),
+                                keystoreAlias, text);
+                        transmissionText[0] = E2EEHandler.buildTransmissionText(cipherText);
+                    }
+                } catch (IOException | GeneralSecurityException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+        thread.join();
+
+        super.sendTextMessage(transmissionText[0], subscriptionId, threadedConversations);
+    }
+
+    @Override
     public void informSecured(boolean secured) {
-        if(secured) {
+        if(secured && securePopUpRequest != null) {
             securePopUpRequest.setVisibility(View.GONE);
             SharedPreferences sharedPreferences =
                     PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
