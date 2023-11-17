@@ -74,10 +74,10 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     conversation.setDate(dateSent);
                     conversation.setDate(date);
 
-                    if(isValidKey)
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(isValidKey) {
                                 try {
                                     processForEncryptionKey(context, conversation);
                                 } catch (NumberParseException | CertificateException |
@@ -86,11 +86,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                                     e.printStackTrace();
                                 }
                             }
-                        }).start();
 
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
                             ConversationDao conversationDao = Conversation.getDao(context);
                             conversationDao.insert(conversation);
 
