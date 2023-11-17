@@ -60,6 +60,7 @@ public class ConversationsThreadsEncryption {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration8To9())
+                .enableMultiInstanceInvalidation()
                 .build();
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
                 databaseConnector.conversationsThreadsEncryptionDao();

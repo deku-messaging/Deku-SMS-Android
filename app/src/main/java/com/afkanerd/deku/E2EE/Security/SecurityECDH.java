@@ -87,7 +87,7 @@ public class SecurityECDH {
         return numberUpdated[0];
     }
 
-    public int removeFromKeystore(Context context, String keystoreAlias) throws KeyStoreException,
+    public static int removeFromKeystore(Context context, String keystoreAlias) throws KeyStoreException,
             CertificateException, IOException, NoSuchAlgorithmException, InterruptedException {
         /*
          * Load the Android KeyStore instance using the

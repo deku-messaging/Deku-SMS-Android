@@ -73,15 +73,21 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
     @Override
     public void informSecured(boolean secured) {
-        if(secured && securePopUpRequest != null) {
-            securePopUpRequest.setVisibility(View.GONE);
-            SharedPreferences sharedPreferences =
-                    PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            sharedPreferences.edit().putBoolean(INFORMED_SECURED, true).apply();
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.conversation_inform_user_now_secured_toast),
-                    Toast.LENGTH_LONG).show();
-        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(secured && securePopUpRequest != null) {
+                    securePopUpRequest.setVisibility(View.GONE);
+                    SharedPreferences sharedPreferences =
+                            PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                    sharedPreferences.edit().putBoolean(INFORMED_SECURED, true).apply();
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.conversation_inform_user_now_secured_toast),
+                            Toast.LENGTH_LONG).show();
+                }
+
+            }
+        });
     }
 
     private void setSecurePopUpRequest() {

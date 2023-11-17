@@ -61,8 +61,7 @@ public class E2EEHandler {
 
     public static int removeFromKeystore(Context context, String keystoreAlias) throws KeyStoreException,
             CertificateException, IOException, NoSuchAlgorithmException, InterruptedException {
-        SecurityECDH securityECDH = new SecurityECDH();
-        return securityECDH.removeFromKeystore(context, keystoreAlias);
+        return SecurityECDH.removeFromKeystore(context, keystoreAlias);
     }
 
     public static boolean isValidDekuPublicKey(byte[] dekuPublicKey) {
