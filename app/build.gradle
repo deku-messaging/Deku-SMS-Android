@@ -50,7 +50,6 @@ android {
             jniLibs.srcDirs = ['libs']
             java {
                 exclude 'com/afkanerd/deku/Images/Images/'
-                exclude 'com/afkanerd/deku/QueueListener/'
                 /* The holder name I want to excludes its all classes */
             }
         }

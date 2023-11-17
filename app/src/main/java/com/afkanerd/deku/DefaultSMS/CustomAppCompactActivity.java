@@ -26,6 +26,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -56,6 +57,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         }
 
         loadConversationsNativesBg();
+        startServices();
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
@@ -202,7 +204,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     public void run() {
                         try {
                             long id = conversationsViewModel.insert(conversation);
-                            SMSDatabaseWrapper.send_text(getApplicationContext(), conversation);
+                            SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, null);
                             conversationsViewModel.updateThreadId(conversation.getThread_id(),
                                     messageId, id);
                         } catch (Exception e) {
@@ -242,6 +244,19 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     getApplicationContext());
             notificationManager.cancel(Integer.parseInt(threadId));
         }
+    }
+
+
+    private void startServices() {
+        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+        try {
+            gatewayClientHandler.startServices();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            gatewayClientHandler.close();
+        }
+
     }
 
 }

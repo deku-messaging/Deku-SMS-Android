@@ -31,11 +31,12 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
         conversation.setThread_id(nativeOutputs[NativeSMSDB.THREAD_ID]);
     }
 
-    public static void send_text(Context context, Conversation conversation) throws Exception {
+    public static void send_text(Context context, Conversation conversation, Bundle bundle) throws Exception {
         String transmissionAddress = Helpers.getFormatForTransmission(conversation.getAddress(),
                 Helpers.getUserCountry(context));
         String[] nativeOutputs = NativeSMSDB.Outgoing._send_text(context, conversation.getMessage_id(),
-                transmissionAddress, conversation.getText(), conversation.getSubscription_id(), null);
+                transmissionAddress, conversation.getText(),
+                conversation.getSubscription_id(), bundle);
 
         conversation.setThread_id(nativeOutputs[NativeSMSDB.THREAD_ID]);
     }

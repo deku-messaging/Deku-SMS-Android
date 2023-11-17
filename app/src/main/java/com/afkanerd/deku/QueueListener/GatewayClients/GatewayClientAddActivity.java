@@ -20,15 +20,6 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_add);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.new_gateway_client_toolbar);
-        setSupportActionBar(myToolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        ab.setDisplayHomeAsUpEnabled(true);
-
         if(getIntent().hasExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID)) {
             try {
                 editGatewayClient();

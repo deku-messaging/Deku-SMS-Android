@@ -12,6 +12,7 @@ import com.afkanerd.deku.E2EE.EndToEndFragments;
 //import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 //import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
@@ -36,7 +37,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         smsListeningSMSWithoutBorders.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(@NonNull Preference preference) {
-//                startActivity(new Intent(getContext(), GatewayClientListingActivity.class));
+                startActivity(new Intent(getContext(), GatewayClientListingActivity.class));
                 return true;
             }
         });

@@ -53,10 +53,12 @@
         <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
             android:exported="false"
+            android:label="@string/add_new_gateway_server_toolbar_title"
             android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity"
             android:exported="false"
+            android:label="@string/gateway_client_listing_toolbar_title"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.SettingsActivity" />
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.SettingsActivity"

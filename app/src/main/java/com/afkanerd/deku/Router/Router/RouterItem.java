@@ -12,16 +12,23 @@ public class RouterItem extends Conversation  {
 
     public String url;
     public String  tag;
-    public String text;
     public String MSISDN;
     public long routingDate;
 
     public String routingStatus;
 
+    public String sid;
+
+    public String reportedStatus;
+
     public RouterItem(Cursor cursor) {
         super(cursor);
         this.MSISDN = this.getAddress();
         this.text = this.getText();
+    }
+
+    public RouterItem() {
+
     }
 
     public static RouterItem build(Cursor cursor) {

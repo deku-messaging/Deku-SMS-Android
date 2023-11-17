@@ -1,7 +1,9 @@
 package com.afkanerd.deku.QueueListener.RMQ;
 
+import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -10,8 +12,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.Telephony;
 import android.telephony.SubscriptionInfo;
 import android.util.Log;
 
@@ -19,6 +23,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
@@ -148,102 +154,78 @@ public class RMQConnectionService extends Service {
        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
    }
 
-   private class SMSStatusReport implements RouterItem.SmsForwardInterface {
-        public final String type = SMS_TYPE_STATUS;
-        public String sid;
-        public String status;
-
-        public String tag;
-
-       @Override
-       public void setTag(String tag) {
-           this.tag = tag;
-       }
-
-       @Override
-       public void setText(String text) {
-       }
-
-       @Override
-       public void setMsisdn(String msisdn) {
-       }
-   }
-
-
     private void handleBroadcast() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT);
+        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT);
+
         messageStateChangedBroadcast = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
                 // TODO: in case this intent comes back but the internet connection broke to send back acknowledgement
                 // TODO: should store pending confirmations in a place
-                SMSStatusReport smsStatusReport = new SMSStatusReport();
+                Log.d(getClass().getName(), "Got request for RMQ broadcast!");
 
-                if (intent.hasExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE)) {
-                    long messageId = intent.getLongExtra(Conversation.ID, -1);
+                if (intent.getAction() != null &&
+                        intentFilter.hasAction(intent.getAction())) {
+                    RouterItem smsStatusReport = new RouterItem();
 
                     if(intent.hasExtra(RMQConnection.MESSAGE_SID)) {
                         Log.d(getClass().getName(), "RMQ Sid found!");
-                        String broadcastState = intent.getStringExtra(IncomingTextSMSReplyActionBroadcastReceiver.BROADCAST_STATE);
-
-//                        if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)
-//                                || broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.DELIVERED_BROADCAST_INTENT) ) {
                         String messageSid = intent.getStringExtra(RMQConnection.MESSAGE_SID);
-                        if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.SENT_BROADCAST_INTENT)) {
-                            Log.d(getClass().getName(), "Got broadcast state of: " + broadcastState);
+                        if (intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT)) {
                             Map<Long, Channel> deliveryChannel = channelList.get(messageSid);
                             final Long deliveryTag = deliveryChannel.keySet().iterator().next();
                             Channel channel = deliveryChannel.get(deliveryTag);
 
-                            if (channel != null && channel.isOpen()) {
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            channel.basicAck(deliveryTag, false);
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
+                            smsStatusReport.sid = messageSid;
+                            if(getResultCode() == Activity.RESULT_OK) {
+                                if (channel != null && channel.isOpen()) {
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                channel.basicAck(deliveryTag, false);
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
                                         }
-                                    }
-                                }).start();
+                                    }).start();
+                                }
+                                smsStatusReport.reportedStatus = SMS_STATUS_SENT;
+                            } else {
+                                if (channel != null && channel.isOpen()) {
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                channel.basicReject(deliveryTag, true);
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }).start();
+                                    smsStatusReport.reportedStatus = SMS_STATUS_FAILED;
+                                }
                             }
 
-                            smsStatusReport.sid = messageSid;
-                            smsStatusReport.status = SMS_STATUS_SENT;
                         }
-                        else if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.DELIVERED_BROADCAST_INTENT)) {
+                        else if (intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT)) {
                             smsStatusReport.sid = messageSid;
-                            smsStatusReport.status = SMS_STATUS_DELIVERED;
-                        }
-                        else if (broadcastState.equals(IncomingTextSMSReplyActionBroadcastReceiver.FAILED_BROADCAST_INTENT)) {
-                            Map<Long, Channel> deliveryChannel = channelList.get(messageSid);
-                            Long deliveryTag = deliveryChannel.keySet().iterator().next();
-                            Channel channel = deliveryChannel.get(deliveryTag);
-                            if (channel != null && channel.isOpen()) {
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            channel.basicReject(deliveryTag, true);
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }).start();
-                            }
-                            smsStatusReport.sid = messageSid;
-                            smsStatusReport.status = SMS_STATUS_FAILED;
+                            smsStatusReport.reportedStatus = SMS_STATUS_DELIVERED;
                         }
 
-                        RouterHandler.route(getApplicationContext(),
-                                smsStatusReport, messageId, false);
+                        RouterHandler.route(getApplicationContext(), smsStatusReport);
                     }
                     else Log.d(getClass().getName(), "Sid not found!");
                 }
             }
         };
 
-        registerReceiver(messageStateChangedBroadcast,
-                new IntentFilter(SMSHandler.NATIVE_STATE_CHANGED_BROADCAST_INTENT));
+        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
+            registerReceiver(messageStateChangedBroadcast, intentFilter, Context.RECEIVER_EXPORTED);
+        else
+            registerReceiver(messageStateChangedBroadcast, intentFilter);
     }
 
     private DeliverCallback getDeliverCallback(Channel channel, final int subscriptionId) {
@@ -270,8 +252,17 @@ public class RMQConnectionService extends Service {
                     Bundle bundle = new Bundle();
                     bundle.putString(RMQConnection.MESSAGE_SID, sid);
                     String messageId = String.valueOf(System.currentTimeMillis());
-                    SMSDatabaseWrapper.send_text(getApplicationContext(), messageId, msisdn, body,
-                            subscriptionId, bundle);
+
+                    Conversation conversation = new Conversation();
+                    conversation.setMessage_id(messageId);
+                    conversation.setText(body);
+                    conversation.setSubscription_id(subscriptionId);
+                    conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
+                    conversation.setDate(String.valueOf(System.currentTimeMillis()));
+                    conversation.setAddress(msisdn);
+                    conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+
+                    SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, bundle);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     channel.basicReject(delivery.getEnvelope().getDeliveryTag(), false);

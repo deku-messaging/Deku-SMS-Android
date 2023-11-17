@@ -41,18 +41,9 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_customization);
 
-        myToolbar = (Toolbar) findViewById(R.id.gateway_client_customization_toolbar);
-        setSupportActionBar(myToolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        ab.setDisplayHomeAsUpEnabled(true);
-
         try {
             getGatewayClient();
-            ab.setTitle(gatewayClient.getHostUrl());
+            getSupportActionBar().setTitle(gatewayClient.getHostUrl());
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -60,7 +51,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                ab.invalidateOptionsMenu();
+                invalidateOptionsMenu();
             }
         };
 

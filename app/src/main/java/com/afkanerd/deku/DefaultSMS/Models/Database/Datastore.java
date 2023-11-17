@@ -16,6 +16,8 @@ import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientDAO;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 //import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
@@ -27,13 +29,13 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 //        ThreadedConversations.class, Conversation.class}, version = 9)
 
 @Database(entities = {ThreadedConversations.class, CustomKeyStore.class, Archive.class, GatewayServer.class,
-        ConversationsThreadsEncryption.class, Conversation.class}, version = 9)
+        ConversationsThreadsEncryption.class, Conversation.class, GatewayClient.class}, version = 9)
 public abstract class Datastore extends RoomDatabase {
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
 
     public abstract GatewayServerDAO gatewayServerDAO();
 
-//    public abstract GatewayClientDAO gatewayClientDAO();
+    public abstract GatewayClientDAO gatewayClientDAO();
 
     public abstract ThreadedConversationsDao threadedConversationsDao();
 

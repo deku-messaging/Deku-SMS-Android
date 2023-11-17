@@ -12,26 +12,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/gateway_client_customization_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="?attr/actionBarSize"
-            android:theme="?attr/actionBarTheme"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:menu="@menu/gateway_client_customization_menu" />
-
         <TextView
             android:id="@+id/new_gateway_descriptive_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="8dp"
             android:text="@string/gateway_client_project_name"
             android:textColor="@color/disabled_gray"
             app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintTop_toBottomOf="@id/gateway_client_customization_toolbar" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/new_gateway_client_input_constraint"

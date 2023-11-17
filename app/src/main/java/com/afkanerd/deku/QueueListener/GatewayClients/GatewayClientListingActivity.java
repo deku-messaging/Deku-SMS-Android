@@ -56,17 +56,6 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_listing);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.gateway_client_listing_toolbar);
-        myToolbar.setTitle(R.string.gateway_client_listing_toolbar_title);
-
-        setSupportActionBar(myToolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        ab.setDisplayHomeAsUpEnabled(true);
-
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);

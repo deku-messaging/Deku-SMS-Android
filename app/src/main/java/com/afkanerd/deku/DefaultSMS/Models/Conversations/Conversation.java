@@ -32,35 +32,35 @@ public class Conversation {
     public static final String SHARED_SMS_BODY = "SHARED_SMS_BODY";
 
     @PrimaryKey(autoGenerate = true)
-    protected long id;
-    protected String message_id;
-    protected String thread_id;
+    public long id;
+    public String message_id;
+    public String thread_id;
 
-    protected String date;
-    protected String date_sent;
+    public String date;
+    public String date_sent;
 
-    protected int type;
-    protected int num_segments;
+    public int type;
+    public int num_segments;
 
-    protected int subscription_id;
+    public int subscription_id;
 
-    protected int status;
+    public int status;
 
-    protected int error_code;
+    public int error_code;
 
-    protected boolean read;
+    public boolean read;
 
-    protected boolean is_encrypted;
+    public boolean is_encrypted;
 
-    protected boolean is_key;
-    protected boolean is_image;
-    protected String formatted_date;
+    public boolean is_key;
+    public boolean is_image;
+    public String formatted_date;
 
-    protected String address;
+    public String address;
 
-    protected String text;
+    public String text;
 
-    protected String data;
+    public String data;
 
 
     public static ConversationDao getDao(Context context) {

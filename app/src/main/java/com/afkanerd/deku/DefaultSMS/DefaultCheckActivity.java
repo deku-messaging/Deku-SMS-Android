@@ -199,4 +199,5 @@ public class DefaultCheckActivity extends AppCompatActivity {
         super.onResume();
         checkIsDefaultApp();
     }
+
 }

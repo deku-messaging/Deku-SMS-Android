@@ -64,7 +64,8 @@ public class RMQConnection {
     }
 
     public void close() throws IOException {
-        connection.close();
+        if(connection != null)
+            connection.close();
     }
 
     public Connection getConnection() {

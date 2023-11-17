@@ -116,6 +116,10 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
                     ConversationDao conversationDao = Conversation.getDao(context);
                     Conversation conversation = conversationDao.getMessage(id);
+
+                    if(conversation == null)
+                        return;
+
                     if (getResultCode() == Activity.RESULT_OK) {
                         NativeSMSDB.Outgoing.register_sent(context, id);
                         conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_NONE);
@@ -131,6 +135,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
                     broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+                    if(intent.getExtras() != null)
+                        broadcastIntent.putExtras(intent.getExtras());
 
                     context.sendBroadcast(broadcastIntent);
                 }
@@ -157,6 +163,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
                     broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+                    if(intent.getExtras() != null)
+                        broadcastIntent.putExtras(intent.getExtras());
 
                     context.sendBroadcast(broadcastIntent);
                 }
