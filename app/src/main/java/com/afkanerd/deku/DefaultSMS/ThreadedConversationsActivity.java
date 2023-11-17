@@ -33,8 +33,14 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.Router.RouterActivity;
+import com.google.i18n.phonenumbers.NumberParseException;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -242,13 +248,15 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                     messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
             if(recyclerAdapter != null) {
                 if(item.getItemId() == R.id.conversations_threads_main_menu_delete) {
-                    List<ThreadedConversations> threadedConversations = new ArrayList<>();
                     if(recyclerAdapter.selectedItems != null && recyclerAdapter.selectedItems.getValue() != null) {
+                        List<ThreadedConversations> threadedConversations = new ArrayList<>();
+                        List<String> ids = new ArrayList<>();
                         for (ThreadedConversationsTemplateViewHolder viewHolder :
                                 recyclerAdapter.selectedItems.getValue().values()) {
                             ThreadedConversations threadedConversation = new ThreadedConversations();
                             threadedConversation.setThread_id(viewHolder.id);
                             threadedConversations.add(threadedConversation);
+                            ids.add(threadedConversation.getThread_id());
                         }
                         Runnable runnable = new Runnable() {
                             @Override
@@ -256,6 +264,28 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                                 recyclerAdapter.resetAllSelectedItems();
                                 threadedConversationsViewModel.delete(getApplicationContext(),
                                         threadedConversations);
+
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ThreadedConversationsDao threadedConversationsDao =
+                                                ThreadedConversations.getDao(getApplicationContext());
+                                        List<ThreadedConversations> foundList =
+                                                threadedConversationsDao.find(ids);
+                                        for(ThreadedConversations threadedConversation :
+                                                foundList) {
+                                            try {
+                                                E2EEHandler.removeFromKeystore(getApplicationContext(),
+                                                        E2EEHandler.getKeyStoreAlias(threadedConversation.getAddress(),
+                                                                0));
+                                            } catch (KeyStoreException | NumberParseException |
+                                                     InterruptedException | NoSuchAlgorithmException | IOException |
+                                                     CertificateException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+                                }).start();
                             }
                         };
                         showAlert(runnable);
