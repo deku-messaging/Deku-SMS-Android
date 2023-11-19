@@ -1,6 +1,5 @@
 package com.afkanerd.deku.DefaultSMS;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
@@ -147,7 +146,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
 //            return LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false);
-            return LayoutInflater.from(context).inflate(R.layout.messages_threads_layout, parent, false);
+            return LayoutInflater.from(context).inflate(R.layout.conversations_threads_layout, parent, false);
         }
 
         @Override

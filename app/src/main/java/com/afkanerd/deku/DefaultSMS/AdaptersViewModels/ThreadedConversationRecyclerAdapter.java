@@ -12,7 +12,6 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
 
 import com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsReceivedViewHandler;
@@ -23,8 +22,6 @@ import com.afkanerd.deku.DefaultSMS.R;
 
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<ThreadedConversations, ThreadedConversationsTemplateViewHolder> {
 
@@ -61,7 +58,7 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     public ThreadedConversationsTemplateViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
 
-        View view = inflater.inflate(R.layout.messages_threads_layout, parent, false);
+        View view = inflater.inflate(R.layout.conversations_threads_layout, parent, false);
 //        View view = viewCacheExtension.getViewForPositionAndType(parent, 0, viewType);
         if(viewType == (RECEIVED_UNREAD_VIEW_TYPE))
             return new ThreadedConversationsReceivedViewHandler.ReceivedViewHolderUnreadThreadedConversations(view);

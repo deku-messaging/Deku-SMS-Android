@@ -35,6 +35,8 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     LinearLayoutCompat linearLayoutCompat;
     public LinearLayoutCompat messageStatusLinearLayoutCompact;
 
+    LinearLayoutCompat.LayoutParams layoutParams;
+
     public ConversationSentViewHandler(@NonNull View itemView) {
         super(itemView);
         sentMessage = itemView.findViewById(R.id.message_sent_text);
@@ -49,7 +51,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 //        imageView = itemView.findViewById(R.id.message_sent_image_view);
 //        constraint4 = itemView.findViewById(R.id.conversation_sent_layout_container);
 
-        RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
+        layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
         layoutParams.bottomMargin = Helpers.dpToPixel(16);
         linearLayoutCompat.setLayoutParams(layoutParams);
     }
@@ -158,9 +160,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class TimestampConversationSentViewHandler extends ConversationSentViewHandler {
         public TimestampConversationSentViewHandler(@NonNull View itemView) {
             super(itemView);
-            RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
-            layoutParams.bottomMargin = Helpers.dpToPixel(1);
-            linearLayoutCompat.setLayoutParams(layoutParams);
             timestamp.setVisibility(View.VISIBLE);
         }
     }
@@ -196,6 +195,9 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class TimestampKeySentStartGroupViewHandler extends TimestampConversationSentViewHandler {
         public TimestampKeySentStartGroupViewHandler(@NonNull View itemView) {
             super(itemView);
+
+            layoutParams.bottomMargin = Helpers.dpToPixel(1);
+            linearLayoutCompat.setLayoutParams(layoutParams);
             sentMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_start_view_drawable));
 
@@ -212,7 +214,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class ConversationSentStartViewHandler extends ConversationSentViewHandler {
         public ConversationSentStartViewHandler(@NonNull View itemView) {
             super(itemView);
-            RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
             linearLayoutCompat.setLayoutParams(layoutParams);
 
@@ -230,8 +231,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class ConversationSentEndViewHandler extends ConversationSentViewHandler {
         public ConversationSentEndViewHandler(@NonNull View itemView) {
             super(itemView);
-
-            RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
             layoutParams.bottomMargin = Helpers.dpToPixel(16);
             linearLayoutCompat.setLayoutParams(layoutParams);
 
@@ -249,7 +248,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class ConversationSentMiddleViewHandler extends ConversationSentViewHandler {
         public ConversationSentMiddleViewHandler(@NonNull View itemView) {
             super(itemView);
-            RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) linearLayoutCompat.getLayoutParams();
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
             linearLayoutCompat.setLayoutParams(layoutParams);
 
