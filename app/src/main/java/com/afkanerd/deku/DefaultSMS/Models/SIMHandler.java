@@ -52,10 +52,11 @@ public class SIMHandler {
         List<SubscriptionInfo> subscriptionInfos = getSimCardInformation(context);
 
         for(SubscriptionInfo subscriptionInfo : subscriptionInfos)
-            if(subscriptionInfo.getSubscriptionId() == subId)
-                return subscriptionInfo.getCarrierName().toString();
-
-        return null;
+            if(subscriptionInfo.getSubscriptionId() == subId) {
+                if(subscriptionInfo.getCarrierName() != null)
+                    return subscriptionInfo.getCarrierName().toString();
+            }
+        return "";
     }
 
     public static String getOperatorName(Context context, String serviceCenterAddress) {

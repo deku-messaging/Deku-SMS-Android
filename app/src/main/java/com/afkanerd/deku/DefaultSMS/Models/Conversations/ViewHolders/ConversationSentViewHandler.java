@@ -37,6 +37,8 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     LinearLayoutCompat.LayoutParams layoutParams;
 
+    boolean lastKnownStateIsFailed = false;
+
     public ConversationSentViewHandler(@NonNull View itemView) {
         super(itemView);
         sentMessage = itemView.findViewById(R.id.message_sent_text);
@@ -94,22 +96,24 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         if(status == Telephony.TextBasedSmsColumns.STATUS_PENDING )
             statusMessage = itemView.getContext().getString(R.string.sms_status_sending);
-        if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED ) {
+        else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED ) {
             statusMessage = itemView.getContext().getString(R.string.sms_status_failed);
             sentMessageStatus.setVisibility(View.VISIBLE);
             this.date.setVisibility(View.VISIBLE);
-            sentMessageStatus.setTextColor(
-                    itemView.getContext().getResources().getColor(R.color.failed_red,
-                            itemView.getContext().getTheme()));
-            this.date.setTextColor(itemView.getContext().getResources().getColor(R.color.failed_red,
-                    itemView.getContext().getTheme()));
-        } else {
-            statusMessage = " • " + statusMessage;
+            sentMessageStatus.setTextAppearance(R.style.conversation_failed);
+            this.date.setTextAppearance(R.style.conversation_failed);
+            lastKnownStateIsFailed = true;
         }
+        if(lastKnownStateIsFailed && status != Telephony.TextBasedSmsColumns.STATUS_FAILED) {
+            sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
+            lastKnownStateIsFailed = false;
+        }
+        statusMessage = " • " + statusMessage;
+
         if(conversation.getSubscription_id() > 0) {
             String subscriptionName = SIMHandler.getSubscriptionName(itemView.getContext(),
                     String.valueOf(conversation.getSubscription_id()));
-            if(subscriptionName != null && !subscriptionName.isEmpty())
+            if(!subscriptionName.isEmpty())
                 statusMessage += " • " + subscriptionName;
         }
 

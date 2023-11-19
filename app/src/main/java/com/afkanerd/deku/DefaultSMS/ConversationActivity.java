@@ -361,17 +361,31 @@ public class ConversationActivity extends E2EECompactActivity {
             }
         }
 
-        conversationsRecyclerAdapter.retryFailedMessage.observe(this, new Observer<String[]>() {
+        conversationsRecyclerAdapter.retryFailedMessage.observe(this, new Observer<Conversation>() {
             @Override
-            public void onChanged(String[] strings) {
-                // TODO
+            public void onChanged(Conversation conversation) {
+                List<Conversation> list = new ArrayList<>();
+                list.add(conversation);
+                conversationsViewModel.deleteItems(getApplicationContext(), list);
+                try {
+                    sendTextMessage(conversation, threadedConversations);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 
-        conversationsRecyclerAdapter.retryFailedDataMessage.observe(this, new Observer<String[]>() {
+        conversationsRecyclerAdapter.retryFailedDataMessage.observe(this, new Observer<Conversation>() {
             @Override
-            public void onChanged(String[] strings) {
-                // TODO
+            public void onChanged(Conversation conversation) {
+                List<Conversation> list = new ArrayList<>();
+                list.add(conversation);
+                conversationsViewModel.deleteItems(getApplicationContext(), list);
+                try {
+                    sendDataMessage(threadedConversations);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 

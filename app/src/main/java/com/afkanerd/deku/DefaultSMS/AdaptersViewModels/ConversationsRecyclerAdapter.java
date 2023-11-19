@@ -32,8 +32,8 @@ import java.util.Map;
 
 public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation, ConversationTemplateViewHandler> {
     public MutableLiveData<HashMap<Long, ConversationTemplateViewHandler>> mutableSelectedItems;
-    public MutableLiveData<String[]> retryFailedMessage = new MutableLiveData<>();
-    public MutableLiveData<String[]> retryFailedDataMessage = new MutableLiveData<>();
+    public MutableLiveData<Conversation> retryFailedMessage = new MutableLiveData<>();
+    public MutableLiveData<Conversation> retryFailedDataMessage = new MutableLiveData<>();
 
     final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
     final int MESSAGE_TYPE_OUTBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
@@ -183,7 +183,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         }
 
         setOnLongClickListeners(holder);
-        setOnClickListeners(holder);
+        setOnClickListeners(holder, conversation);
     }
 
     private void addSelectedItems(ConversationTemplateViewHandler holder) {
@@ -206,7 +206,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         }
     }
 
-    private void setOnClickListeners(ConversationTemplateViewHandler holder) {
+    private void setOnClickListeners(ConversationTemplateViewHandler holder, Conversation conversation) {
         holder.getContainerLayout().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -216,6 +216,13 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                         removeSelectedItems(holder);
                     } else if(!mutableSelectedItems.getValue().isEmpty()){
                         addSelectedItems(holder);
+                    }
+                } else {
+                    if(conversation.getStatus() == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
+                        if(conversation.getData() != null)
+                            retryFailedDataMessage.setValue(conversation);
+                        else
+                            retryFailedMessage.setValue(conversation);
                     }
                 }
             }

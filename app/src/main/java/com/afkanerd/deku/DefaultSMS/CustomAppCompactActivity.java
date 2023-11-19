@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 
@@ -23,6 +24,7 @@ import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastR
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
@@ -182,6 +184,47 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         NotificationManagerCompat notificationManager =
                 NotificationManagerCompat.from(getApplicationContext());
         notificationManager.cancel(id);
+    }
+
+    public void sendDataMessage(ThreadedConversations threadedConversations) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                ConversationsViewModel conversationsViewModel = (ConversationsViewModel) viewModel;
+                try {
+                    byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
+                            threadedConversations.getAddress());
+
+                    final String messageId = String.valueOf(System.currentTimeMillis());
+                    Conversation conversation = new Conversation();
+                    conversation.setIs_key(true);
+                    conversation.setMessage_id(messageId);
+                    conversation.setData(Base64.encodeToString(transmissionRequest, Base64.DEFAULT));
+                    conversation.setSubscription_id(subscriptionId);
+                    conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
+                    conversation.setDate(String.valueOf(System.currentTimeMillis()));
+                    conversation.setAddress(threadedConversations.getAddress());
+                    conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+
+                    long id = conversationsViewModel.insert(conversation);
+                    SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
+                    conversationsViewModel.updateThreadId(conversation.getThread_id(),
+                            messageId, id);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.setName("sec_coms_request");
+        thread.start();
+    }
+
+    public void sendTextMessage(Conversation conversation, ThreadedConversations threadedConversations) throws Exception {
+        sendTextMessage(conversation.getText(),
+                conversation.getSubscription_id(),
+                threadedConversations);
     }
 
     public void sendTextMessage(String text, int subscriptionId,
