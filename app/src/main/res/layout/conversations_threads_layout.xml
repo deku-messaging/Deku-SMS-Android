@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:theme="@style/Theme.main"
+    android:clickable="true"
+    android:focusable="true">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/messages_threads_cardview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/messages_threads_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp">
+
+            <FrameLayout
+                android:id="@+id/messages_threads_avatar_frame"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/messages_thread_address_text">
+
+                <io.getstream.avatarview.AvatarView
+                    android:id="@+id/messages_threads_contact_initials"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:avatarViewBorderRadius="0dp"
+                    app:avatarViewBorderWidth="0dp"
+                    app:avatarViewInitialsTextColor="@color/primary_background_color"
+                    app:avatarViewInitialsTextSize="20sp"
+                    app:avatarViewInitialsTextStyle="normal" />
+
+                <ImageView
+                    android:id="@+id/messages_threads_contact_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:srcCompat="@drawable/baseline_account_circle_24" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/messages_thread_address_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:text="TextView"
+                android:textColor="@color/secondary_text_color"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toStartOf="@+id/messages_thread_date"
+                app:layout_constraintStart_toEndOf="@+id/messages_threads_avatar_frame"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/messages_thread_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:ellipsize="end"
+                android:maxLines="3"
+                android:text="TextView"
+                android:textColor="@color/secondary_text_color"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/messages_thread_address_text"
+                app:layout_constraintStart_toEndOf="@+id/message_you_label"
+                app:layout_constraintTop_toBottomOf="@+id/messages_thread_address_text" />
+
+            <TextView
+                android:id="@+id/messages_thread_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:textColor="@color/secondary_text_color"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/message_you_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/messages_thread_you"
+                android:textColor="@color/secondary_text_color"
+                android:textStyle="normal"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
+                app:layout_constraintTop_toTopOf="@+id/messages_thread_text" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

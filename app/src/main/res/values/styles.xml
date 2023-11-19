@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+<!--        <item name="android:background">@color/primary_background_color</item>-->
         <item name="android:statusBarColor"> @android:color/transparent </item>
         <item name="android:navigationBarColor"> @android:color/transparent </item>
 
@@ -9,5 +10,15 @@
 
         <item name="android:textColor">@color/primary_text_color</item>
         <item name="android:fontFamily">@font/roboto</item>
+        <item name="android:textCursorDrawable">@null</item>
     </style>
+
+    <style name="conversation_failed">
+        <item name="android:textStyle">italic</item>
+        <item name="android:textSize">@dimen/conversation_properties_default_font_size_subtext</item>
+        <item name="android:textColor">@color/failed_red</item>
+    </style>
+
 </resources>
+
+

@@ -32,38 +32,45 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.main">
+
         <activity
-            android:name="com.example.swob_deku.AboutActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.AboutActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.MessagesThreadsActivity"/>
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"/>
         <activity
-            android:name="com.example.swob_deku.LinkedDevicesQRActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity"
             android:exported="false">
             <meta-data
                 android:name="com.google.android.gms.vision.DEPENDENCIES"
                 android:value="barcode" />
         </activity>
         <activity
-            android:name="com.example.swob_deku.GatewayClientCustomizationActivity"
+            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientCustomizationActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.GatewayClientListingActivity" />
+            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity
-            android:name="com.example.swob_deku.GatewayClientAddActivity"
+            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.GatewayClientListingActivity" />
+            android:label="@string/add_new_gateway_server_toolbar_title"
+            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity
-            android:name="com.example.swob_deku.GatewayClientListingActivity"
+            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.SettingsActivity" />
+            android:label="@string/gateway_client_listing_toolbar_title"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.SettingsActivity" />
         <activity
-            android:name="com.example.swob_deku.SettingsActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.SettingsActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.MessagesThreadsActivity" />
+            android:label="@string/settings_title"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity" />
         <activity
-            android:name="com.example.swob_deku.ComposeNewMessageActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.ComposeNewMessageActivity"
             android:exported="true"
-            android:parentActivityName="com.example.swob_deku.MessagesThreadsActivity">
+            android:label="@string/compose_new_message_title"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
+            android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -73,40 +80,38 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.swob_deku.ArchivedMessagesActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.MessagesThreadsActivity" />
+            android:label="@string/archived_messages_toolbar_title"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity" />
         <activity
-            android:name="com.example.swob_deku.ImageViewActivity"
+            android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.SMSSendActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ConversationActivity" />
         <activity
-            android:name="com.example.swob_deku.RespondViaMessageActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.RespondViaMessageActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name="com.example.swob_deku.GatewayServerListingActivity"
+            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.SettingsActivity">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
+            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity"/>
         <activity
-            android:name="com.example.swob_deku.GatewayServerAddActivity"
+            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.GatewayServerListingActivity" />
+            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity" />
         <activity
-            android:name="com.example.swob_deku.RouterActivity"
+            android:name="com.afkanerd.deku.Router.Router.RouterActivity"
+            android:label="@string/settings_SMS_routing_title"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.DefaultCheckActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity" />
         <activity
-            android:name="com.example.swob_deku.SearchMessagesThreadsActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity"
             android:exported="false"
-            android:parentActivityName="com.example.swob_deku.DefaultCheckActivity">
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity">
 
             <!-- <intent-filter> -->
             <!-- <action android:name="android.intent.action.SEARCH"/> -->
@@ -117,18 +122,25 @@
             <!-- android:value=".SearchMessagesThreadsActivity"/> -->
         </activity>
         <activity
-            android:name="com.example.swob_deku.MessagesThreadsActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
             android:exported="false" />
         <activity
-            android:name="com.example.swob_deku.SMSSendActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.ConversationActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:parentActivityName="com.example.swob_deku.MessagesThreadsActivity"
-            android:windowSoftInputMode="adjustResize">
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
+            android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SENDTO" />
+
+
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
+
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -140,7 +152,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.swob_deku.DefaultCheckActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -150,7 +162,7 @@
         </activity>
 
         <receiver
-            android:name="com.example.swob_deku.BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -162,18 +174,20 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.example.swob_deku.BroadcastReceivers.IncomingTextSMSBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
-                <!-- <category android:name="android.intent.category.DEFAULT" /> -->
-                <!-- <category android:name="android.intent.category.BROWSABLE" /> -->
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
             </intent-filter>
-        </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
+        </receiver>
         <receiver
-            android:name="com.example.swob_deku.BroadcastReceivers.MMSReceiverBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MMSReceiverBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter>
@@ -183,18 +197,16 @@
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
         <receiver
-            android:name="com.example.swob_deku.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
                 <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
-                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.example.swob_deku.BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -202,7 +214,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.example.swob_deku.BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -212,7 +224,7 @@
         </receiver>
 
         <service
-            android:name="com.example.swob_deku.RespondViaMessageActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.RespondViaMessageActivity"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
             <intent-filter>
@@ -227,11 +239,7 @@
             </intent-filter>
         </service>
         <service
-            android:name="com.example.swob_deku.Models.RMQ.RMQConnectionService"
-            android:enabled="true"
-            android:exported="false" />
-        <service
-            android:name="com.example.swob_deku.Models.Web.WebWebsocketsService"
+            android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService"
             android:enabled="true"
             android:exported="false" />
     </application>

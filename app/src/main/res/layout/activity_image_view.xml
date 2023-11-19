@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:scrollbarSize="7dp"
     android:theme="@style/Theme.main"
-    tools:context=".ImageViewActivity">
+    tools:context="com.afkanerd.deku.Images.Images.ImageViewActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/image_view_toolbar"
