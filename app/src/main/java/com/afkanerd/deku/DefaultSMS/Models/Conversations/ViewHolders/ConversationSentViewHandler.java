@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import android.provider.Telephony;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -84,7 +85,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         this.timestamp.setText(timestamp);
         this.date.setText(txDate);
 
-        final int status = conversation.getStatus();
+        int status = conversation.getStatus();
         String statusMessage = status == Telephony.TextBasedSmsColumns.STATUS_COMPLETE ?
                 itemView.getContext().getString(R.string.sms_status_delivered) :
                 itemView.getContext().getString(R.string.sms_status_sent);

@@ -41,6 +41,9 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_archived_messages);
 
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.archived_toolbar);
+        setSupportActionBar(myToolbar);
+
         RecyclerView archivedMessagesRecyclerView = findViewById(R.id.messages_archived_recycler_view);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,

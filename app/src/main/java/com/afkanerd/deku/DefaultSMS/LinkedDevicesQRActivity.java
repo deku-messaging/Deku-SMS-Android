@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -39,6 +40,11 @@ public class LinkedDevicesQRActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web);
+
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_web_toolbar);
+        setSupportActionBar(myToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         CodeScannerView scannerView = findViewById(R.id.web_qr_scanner_view);
         codeScanner = new CodeScanner(this, scannerView);

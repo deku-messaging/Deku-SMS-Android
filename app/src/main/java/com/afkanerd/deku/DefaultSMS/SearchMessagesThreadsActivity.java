@@ -47,6 +47,11 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         searchViewModel = new ViewModelProvider(this).get(
                 SearchViewModel.class);
 
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.search_messages_toolbar);
+        setSupportActionBar(myToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         SearchConversationRecyclerAdapter searchConversationRecyclerAdapter =
                 new SearchConversationRecyclerAdapter(getApplicationContext());
 

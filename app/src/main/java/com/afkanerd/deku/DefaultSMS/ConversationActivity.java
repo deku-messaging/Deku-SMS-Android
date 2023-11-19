@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -89,6 +90,10 @@ public class ConversationActivity extends E2EECompactActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations);
 //        test();
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.conversation_toolbar);
+        setSupportActionBar(myToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         try {
             configureActivityDependencies();

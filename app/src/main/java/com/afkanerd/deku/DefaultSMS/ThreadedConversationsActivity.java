@@ -65,6 +65,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations_threads);
 
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.conversation_threads_toolbar);
+        setSupportActionBar(myToolbar);
         ab = getSupportActionBar();
 
         if(!checkIsDefaultApp()) {

@@ -7,6 +7,14 @@
     tools:context=".ConversationActivity"
     android:layout_height="match_parent" >
 
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/conversation_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/conversations_pop_ups_layouts"
         android:layout_width="match_parent"
@@ -15,7 +23,7 @@
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/conversation_toolbar">
 
         <include
             android:id="@+id/conversations_search_results_found"

@@ -131,6 +131,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                             e.printStackTrace();
                         }
                     }
+                    conversationDao.update(conversation);
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -139,6 +140,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         broadcastIntent.putExtras(intent.getExtras());
 
                     context.sendBroadcast(broadcastIntent);
+                    Log.d(getClass().getName(), "Broadcasting: " + id);
                 }
             }).start();
         }
