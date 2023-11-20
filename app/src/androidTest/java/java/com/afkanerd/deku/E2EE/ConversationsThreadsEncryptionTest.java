@@ -49,6 +49,14 @@ public class ConversationsThreadsEncryptionTest {
     }
 
     @Test
+    public void getAddressFromKeystore() throws NumberParseException {
+        String keystoreAlias = E2EEHandler.getKeyStoreAlias(address, 0);
+        String derivedAddress = E2EEHandler.getAddressFromKeystore(keystoreAlias);
+
+        assertEquals(address, derivedAddress);
+    }
+
+    @Test
     public void testCanCreateAndRemoveKeyPair() throws GeneralSecurityException, IOException, InterruptedException {
         E2EEHandler.createNewKeyPair(context, keystoreAlias);
         assertTrue(E2EEHandler.isAvailableInKeystore(keystoreAlias));
