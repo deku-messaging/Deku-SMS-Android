@@ -60,7 +60,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         return this.id;
     }
 
-    public void bind(Conversation conversation) {
+    public void bind(Conversation conversation, String searchString) {
         this.id = conversation.getId();
         this.message_id = conversation.getMessage_id();
         // TODO: implement search highlight in activity
@@ -133,8 +133,8 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         }
 
         @Override
-        public void bind(Conversation conversation) {
-            super.bind(conversation);
+        public void bind(Conversation conversation, String searchString) {
+            super.bind(conversation, searchString);
             receivedMessage.setText(itemView.getContext().getString(R.string.conversation_key_title));
             receivedMessage.setTextAppearance(R.style.key_request_initiated);
         }

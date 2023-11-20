@@ -12,8 +12,10 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
+import android.text.style.BackgroundColorSpan;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.Base64;
@@ -29,7 +31,9 @@ import com.google.i18n.phonenumbers.Phonenumber;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
@@ -37,6 +41,28 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Helpers {
+
+    public static Spannable highlightSubstringYellow(String text, String searchString) {
+        // Find all occurrences of the substring in the text.
+        List<Integer> startIndices = new ArrayList<>();
+        int index = text.toLowerCase().indexOf(searchString.toLowerCase());
+        while (index >= 0) {
+            startIndices.add(index);
+            index = text.indexOf(searchString, index + searchString.length());
+        }
+
+        // Create a SpannableString object.
+        SpannableString spannableString = new SpannableString(text);
+
+        // Set the foreground color of the substring to yellow.
+        BackgroundColorSpan backgroundColorSpan = new BackgroundColorSpan(Color.YELLOW);
+        for (int startIndex : startIndices) {
+            spannableString.setSpan(backgroundColorSpan, startIndex, startIndex + searchString.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+
+        return spannableString;
+    }
     public static long generateRandomNumber() {
         Random random = new Random();
         return random.nextInt(Integer.MAX_VALUE);
