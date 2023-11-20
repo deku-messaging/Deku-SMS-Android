@@ -28,6 +28,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+
 public class ArchivedMessagesActivity extends AppCompatActivity {
 
     public ThreadedConversationRecyclerAdapter archivedThreadRecyclerAdapter;
@@ -56,6 +59,17 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
 
         archivedViewModel = new ViewModelProvider(this).get(
                 ArchivedViewModel.class);
+
+        archivedThreadRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
+            @Override
+            public Unit invoke() {
+                if(archivedThreadRecyclerAdapter.getItemCount() < 1)
+                    findViewById(R.id.messages_archived_no_messages).setVisibility(View.VISIBLE);
+                else
+                    findViewById(R.id.messages_archived_no_messages).setVisibility(View.GONE);
+                return null;
+            }
+        });
 
         ThreadedConversationsDao threadedConversationsDao =
                 ThreadedConversations.getDao(getApplicationContext());

@@ -38,7 +38,8 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE address =:address")
     ThreadedConversations getByAddress(String address);
 
-    @Query("SELECT * FROM ThreadedConversations WHERE address IN(:addresses)")
+    @Query("SELECT * FROM ThreadedConversations WHERE address IN(:addresses) AND is_archived = 0 " +
+            "ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getByAddress(List<String> addresses);
 
     @Query("SELECT * FROM ThreadedConversations WHERE address NOT IN(:addresses)")
