@@ -124,8 +124,9 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(this.conversationsViewModel != null)
+        if(this.conversationsViewModel != null) {
             conversationsViewModel.updateToRead(getApplicationContext());
+        }
         TextInputLayout layout = findViewById(R.id.send_text);
         layout.requestFocus();
     }
@@ -133,7 +134,7 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.conversations_menu, menu);
-        if (this.threadedConversations.isIs_shortcode()) {
+        if (isShortCode) {
             menu.findItem(R.id.conversation_main_menu_call).setVisible(false);
         }
         return super.onCreateOptionsMenu(menu);
@@ -220,6 +221,7 @@ public class ConversationActivity extends E2EECompactActivity {
         }
 
         setEncryptionThreadedConversations(this.threadedConversations);
+        isShortCode = Helpers.isShortCode(this.threadedConversations);
     }
 
     int searchPointerPosition;
@@ -451,6 +453,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 this.threadedConversations.getAddress(): "";
     }
 
+    boolean isShortCode = false;
     private void configureMessagesTextBox() {
         if (mutableLiveDataComposeMessage.getValue() == null ||
                 mutableLiveDataComposeMessage.getValue().isEmpty())
@@ -521,7 +524,7 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void configureLayoutForMessageType() {
-        if(this.threadedConversations != null && this.threadedConversations.isIs_shortcode()) {
+        if(isShortCode) {
             // Cannot reply to message
             ConstraintLayout smsLayout = findViewById(R.id.compose_message_include_layout);
             smsLayout.setVisibility(View.GONE);

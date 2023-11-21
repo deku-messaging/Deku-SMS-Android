@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 
+import android.text.Spannable;
 import android.view.View;
 import android.widget.TextView;
 
@@ -90,8 +91,15 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         } catch(Exception e) {
             e.printStackTrace();
         }
-        Helpers.highlightLinks(receivedMessage, text[0],
-                itemView.getContext().getColor(R.color.primary_text_color));
+
+        if(searchString != null && !searchString.isEmpty() && text[0] != null) {
+            Spannable spannable = Helpers.highlightSubstringYellow(itemView.getContext(),
+                    text[0], searchString, false);
+            receivedMessage.setText(spannable);
+        }
+        else
+            Helpers.highlightLinks(receivedMessage, text[0],
+                    itemView.getContext().getColor(R.color.primary_text_color));
 
         if(conversation.getSubscription_id() > 0) {
             String subscriptionName = SIMHandler.getSubscriptionName(itemView.getContext(),

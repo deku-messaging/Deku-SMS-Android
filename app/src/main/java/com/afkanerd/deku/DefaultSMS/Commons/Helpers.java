@@ -24,6 +24,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
@@ -42,7 +43,8 @@ import java.util.regex.Pattern;
 
 public class Helpers {
 
-    public static Spannable highlightSubstringYellow(String text, String searchString) {
+    public static Spannable highlightSubstringYellow(Context context, String text,
+                                                     String searchString, boolean sent) {
         // Find all occurrences of the substring in the text.
         List<Integer> startIndices = new ArrayList<>();
         int index = text.toLowerCase().indexOf(searchString.toLowerCase());
@@ -55,7 +57,10 @@ public class Helpers {
         SpannableString spannableString = new SpannableString(text);
 
         // Set the foreground color of the substring to yellow.
-        BackgroundColorSpan backgroundColorSpan = new BackgroundColorSpan(Color.YELLOW);
+        BackgroundColorSpan backgroundColorSpan = new BackgroundColorSpan(
+                context.getColor(sent ?
+                        R.color.highlight_yellow_send :
+                        R.color.highlight_yellow_received));
         for (int startIndex : startIndices) {
             spannableString.setSpan(backgroundColorSpan, startIndex, startIndex + searchString.length(),
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -98,10 +103,10 @@ public class Helpers {
         return arrayOfString;
     }
 
-    public static boolean isShortCode(Conversation conversation) {
+    public static boolean isShortCode(ThreadedConversations threadedConversations) {
         Pattern pattern = Pattern.compile("[a-zA-Z]");
-        Matcher matcher = pattern.matcher(conversation.getAddress());
-        return !PhoneNumberUtils.isWellFormedSmsAddress(conversation.getAddress()) || matcher.find();
+        Matcher matcher = pattern.matcher(threadedConversations.getAddress());
+        return !PhoneNumberUtils.isWellFormedSmsAddress(threadedConversations.getAddress()) || matcher.find();
     }
 
     public static String getFormatCompleteNumber(String data, String defaultRegion) {
