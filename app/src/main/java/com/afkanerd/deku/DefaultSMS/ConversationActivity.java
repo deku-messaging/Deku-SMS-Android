@@ -95,7 +95,7 @@ public class ConversationActivity extends E2EECompactActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations);
-        test();
+//        test();
 
         toolbar = (Toolbar) findViewById(R.id.conversation_toolbar);
         setSupportActionBar(toolbar);
