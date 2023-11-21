@@ -5,7 +5,8 @@
     <color name="black">#191c1e</color>
 <!--    <color name="white">#FFFFFFFF</color>-->
     <color name="white">#dee0e2</color>
-    <color name="highlight_yellow">#fde293</color>
+    <color name="highlight_yellow_send">#EDC38F</color>
+    <color name="highlight_yellow_received">#BD8754</color>
     <color name="default_gray">#2e3133</color>
     <color name="disabled_gray">#525D63</color>
     <color name="light_blue"> #FF219BCC </color>

@@ -10,6 +10,8 @@
     <item
         android:icon="@drawable/ic_outline_search_24"
         android:id="@+id/conversation_main_menu_search"
+        app:showAsAction="ifRoom"
+        app:actionViewClass="com.google.android.material.search.SearchView"
         android:title="@string/conversations_menu_search_title"/>
 
 </menu>

@@ -15,6 +15,7 @@ import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
+import androidx.paging.PagingSource;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
@@ -30,7 +31,7 @@ import java.util.List;
 public class ConversationsViewModel extends ViewModel {
     public String threadId;
     public String address;
-    ConversationDao conversationDao;
+    public ConversationDao conversationDao;
     public int pageSize = 10;
     int prefetchDistance = 3 * pageSize;
     boolean enablePlaceholder = false;
@@ -44,20 +45,43 @@ public class ConversationsViewModel extends ViewModel {
     LifecycleOwner lifecycleOwner;
 
     MutableLiveData<PagingData<Conversation>> mutableLiveData;
+
+    List<Integer> positions = new ArrayList<>();
+    int pointer = 0;
+    Pager<Integer, Conversation> pager;
+
     public LiveData<PagingData<Conversation>> getSearch(ConversationDao conversationDao,
-                                                        String threadId, Integer initialKey) {
-        this.initialKey = initialKey;
+                                                        String threadId, List<Integer> positions) {
+        int pageSize = 5;
+        int prefetchDistance = 3 * pageSize;
+        boolean enablePlaceholder = false;
+        int initialLoadSize = 10;
         this.conversationDao = conversationDao;
         this.threadId = threadId;
+        this.positions = positions;
 
-        conversationPagingSource = new ConversationPagingSource();
-        Pager<Integer, Conversation> pager =
-                conversationPagingSource.getRoomPaging(conversationDao, threadId, initialKey);
+        initialKey = this.positions.get(pointer);
+
+        pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize
+        ), initialKey, ()-> getNewConversationPagingSource());
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
-    public void refresh(Integer initialKey) {
-        this.initialKey = initialKey;
-        conversationPagingSource.pagingSource.invalidate();
+
+
+    PagingSource<Integer, Conversation> searchPagingSource;
+    public PagingSource<Integer, Conversation> getNewConversationPagingSource() {
+        searchPagingSource = new ConversationPagingSource(this.conversationDao, threadId,
+                pointer >= this.positions.size()-1 ? null : this.positions.get(++pointer));
+        return searchPagingSource;
+    }
+
+    public LiveData<PagingData<Conversation>> invalidateSearch() throws InterruptedException {
+        searchPagingSource.invalidate();
+        return get(conversationDao, threadId);
     }
 
     public LiveData<PagingData<Conversation>> get(ConversationDao conversationDao, String threadId)
@@ -131,8 +155,9 @@ public class ConversationsViewModel extends ViewModel {
                 List<Conversation> list = conversationDao.getAll(threadId);
 
                 for(int i=0;i<list.size();++i) {
-                    if(list.get(i).getText().toLowerCase().contains(input.toLowerCase()))
-                        positions.add(i);
+                    if(list.get(i).getText() != null)
+                        if(list.get(i).getText().toLowerCase().contains(input.toLowerCase()))
+                            positions.add(i);
                 }
             }
         });

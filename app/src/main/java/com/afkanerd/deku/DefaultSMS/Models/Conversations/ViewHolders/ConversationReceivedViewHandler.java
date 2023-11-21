@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 
+import android.text.Spannable;
 import android.view.View;
 import android.widget.TextView;
 
@@ -60,7 +61,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         return this.id;
     }
 
-    public void bind(Conversation conversation) {
+    public void bind(Conversation conversation, String searchString) {
         this.id = conversation.getId();
         this.message_id = conversation.getMessage_id();
         // TODO: implement search highlight in activity
@@ -90,8 +91,15 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         } catch(Exception e) {
             e.printStackTrace();
         }
-        Helpers.highlightLinks(receivedMessage, text[0],
-                itemView.getContext().getColor(R.color.primary_text_color));
+
+        if(searchString != null && !searchString.isEmpty() && text[0] != null) {
+            Spannable spannable = Helpers.highlightSubstringYellow(itemView.getContext(),
+                    text[0], searchString, false);
+            receivedMessage.setText(spannable);
+        }
+        else
+            Helpers.highlightLinks(receivedMessage, text[0],
+                    itemView.getContext().getColor(R.color.primary_text_color));
 
         if(conversation.getSubscription_id() > 0) {
             String subscriptionName = SIMHandler.getSubscriptionName(itemView.getContext(),
@@ -133,8 +141,8 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         }
 
         @Override
-        public void bind(Conversation conversation) {
-            super.bind(conversation);
+        public void bind(Conversation conversation, String searchString) {
+            super.bind(conversation, searchString);
             receivedMessage.setText(itemView.getContext().getString(R.string.conversation_key_title));
             receivedMessage.setTextAppearance(R.style.key_request_initiated);
         }

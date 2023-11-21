@@ -19,11 +19,12 @@
         android:id="@+id/conversations_pop_ups_layouts"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="visible"
         android:orientation="vertical"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/conversation_toolbar">
+        app:layout_constraintTop_toBottomOf="@+id/conversation_toolbar"
+        tools:visibility="visible">
 
         <include
             android:id="@+id/conversations_search_results_found"
@@ -33,7 +34,8 @@
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
 
         <include
             android:id="@+id/conversations_request_secure_pop_layout"
@@ -43,7 +45,8 @@
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -62,8 +65,8 @@
         layout="@layout/conversation_compose_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

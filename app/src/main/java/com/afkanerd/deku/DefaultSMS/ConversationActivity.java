@@ -23,6 +23,9 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.MenuItemCompat;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -43,6 +46,7 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
+import com.google.android.material.search.SearchView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -84,6 +88,8 @@ public class ConversationActivity extends E2EECompactActivity {
 
     ThreadedConversations threadedConversations;
 
+    Toolbar toolbar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,8 +97,8 @@ public class ConversationActivity extends E2EECompactActivity {
         setContentView(R.layout.activity_conversations);
 //        test();
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.conversation_toolbar);
-        setSupportActionBar(myToolbar);
+        toolbar = (Toolbar) findViewById(R.id.conversation_toolbar);
+        setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         try {
@@ -112,14 +118,15 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void test() {
         if(BuildConfig.DEBUG)
-            getIntent().putExtra(SEARCH_STRING, "35");
+            getIntent().putExtra(SEARCH_STRING, "hey");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(this.conversationsViewModel != null)
+        if(this.conversationsViewModel != null) {
             conversationsViewModel.updateToRead(getApplicationContext());
+        }
         TextInputLayout layout = findViewById(R.id.send_text);
         layout.requestFocus();
     }
@@ -127,7 +134,7 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.conversations_menu, menu);
-        if (this.threadedConversations.isIs_shortcode()) {
+        if (isShortCode) {
             menu.findItem(R.id.conversation_main_menu_call).setVisible(false);
         }
         return super.onCreateOptionsMenu(menu);
@@ -140,8 +147,9 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void resetSearch() {
         findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
-//        findViewById(R.id.conversations_search_box_layout).setVisibility(View.GONE);
         conversationsRecyclerAdapter.searchString = null;
+        conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
+        searchPositions = new MutableLiveData<>();
     }
 
     @Override
@@ -213,20 +221,7 @@ public class ConversationActivity extends E2EECompactActivity {
         }
 
         setEncryptionThreadedConversations(this.threadedConversations);
-
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-//                if (conversationsRecyclerAdapter.hasSelectedItems()) {
-//                    conversationsRecyclerAdapter.resetAllSelectedItems();
-//                }
-                if(isSearchActive()) {
-                    resetSearch();
-                }
-                finish();
-            }
-        });
-
+        isShortCode = Helpers.isShortCode(this.threadedConversations);
     }
 
     int searchPointerPosition;
@@ -239,7 +234,8 @@ public class ConversationActivity extends E2EECompactActivity {
             return;
         }
 
-        conversationsViewModel.refresh(position);
+        conversationsRecyclerAdapter.refresh();
+        singleMessagesThreadRecyclerView.scrollToPosition(position);
         String text = (searchPointerPosition == -1 ?
                 0 :
                 searchPointerPosition + 1) + "/" + searchPositions.getValue().size() + " " + getString(R.string.conversations_search_results_found);
@@ -305,10 +301,14 @@ public class ConversationActivity extends E2EECompactActivity {
 
     ConversationDao conversationDao;
     boolean firstScrollInitiated = false;
+
+    LifecycleOwner lifecycleOwner;
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
         singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
         conversationDao = Conversation.getDao(getApplicationContext());
+
+        lifecycleOwner = this;
 
         conversationsRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
             @Override
@@ -333,7 +333,16 @@ public class ConversationActivity extends E2EECompactActivity {
 
         if(this.threadedConversations != null) {
             if(getIntent().hasExtra(SEARCH_STRING)) {
-                conversationsViewModel.getSearch(conversationDao, this.threadedConversations.getThread_id(), null)
+                conversationsViewModel.conversationDao = conversationDao;
+                conversationsViewModel.threadId = threadedConversations.getThread_id();
+                findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
+                String searching = getIntent().getStringExtra(SEARCH_STRING);
+//                List<Integer> positions = conversationsViewModel.search(searching);
+//                searchPositions.setValue(positions);
+                searchForInput(searching);
+                configureSearchBox();
+                conversationsViewModel.getSearch(conversationDao, this.threadedConversations.getThread_id(),
+                                searchPositions.getValue())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
                             public void onChanged(PagingData<Conversation> conversationPagingData) {
@@ -341,7 +350,7 @@ public class ConversationActivity extends E2EECompactActivity {
                             }
                         });
             }
-            if(this.threadedConversations.getThread_id()!= null &&
+            else if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {
                 conversationsViewModel.get(conversationDao, this.threadedConversations.getThread_id())
                         .observe(this, new Observer<PagingData<Conversation>>() {
@@ -409,10 +418,6 @@ public class ConversationActivity extends E2EECompactActivity {
                     }
                 });
 
-        if(getIntent().hasExtra(SEARCH_STRING)) {
-            configureSearchBox();
-        }
-
     }
 
     @Override
@@ -448,6 +453,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 this.threadedConversations.getAddress(): "";
     }
 
+    boolean isShortCode = false;
     private void configureMessagesTextBox() {
         if (mutableLiveDataComposeMessage.getValue() == null ||
                 mutableLiveDataComposeMessage.getValue().isEmpty())
@@ -518,7 +524,7 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void configureLayoutForMessageType() {
-        if(this.threadedConversations != null && this.threadedConversations.isIs_shortcode()) {
+        if(isShortCode) {
             // Cannot reply to message
             ConstraintLayout smsLayout = findViewById(R.id.compose_message_include_layout);
             smsLayout.setVisibility(View.GONE);
@@ -553,6 +559,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void searchForInput(String search){
         try {
+            conversationsRecyclerAdapter.searchString = search;
             searchPositions.setValue(conversationsViewModel.search(search));
         } catch(Exception e) {
             e.printStackTrace();
@@ -579,10 +586,12 @@ public class ConversationActivity extends E2EECompactActivity {
             View viewGroup = getLayoutInflater().inflate(R.layout.conversation_search_bar_layout,
                     null);
             mode.setCustomView(viewGroup);
+
+            toolbar.setVisibility(View.GONE);
             String searchString = getIntent().getStringExtra(SEARCH_STRING);
             getIntent().removeExtra(SEARCH_STRING);
 
-            textInputEditText = findViewById(R.id.conversation_search_input);
+            textInputEditText = viewGroup.findViewById(R.id.conversation_search_input);
             textInputEditText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -598,6 +607,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 public void afterTextChanged(Editable editable) {
                     if(editable != null && editable.length() > 1) {
                         conversationsRecyclerAdapter.searchString = editable.toString();
+                        conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
                         searchForInput(editable.toString());
                     }
                     else {
@@ -625,6 +635,7 @@ public class ConversationActivity extends E2EECompactActivity {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             actionMode = null;
+            toolbar.setVisibility(View.VISIBLE);
             resetSearch();
         }
     };

@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.Fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,9 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.Objects;
+
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 public class ThreadedConversationsFragment extends Fragment {
 
@@ -67,26 +71,46 @@ public class ThreadedConversationsFragment extends Fragment {
 
         threadedConversationsViewModel = viewManipulationListener.getViewModel();
 
+        threadedConversationRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
+            @Override
+            public Unit invoke() {
+                if(threadedConversationRecyclerAdapter.getItemCount() < 1)
+                    getView().findViewById(R.id.homepage_no_message).setVisibility(View.VISIBLE);
+                else
+                    getView().findViewById(R.id.homepage_no_message).setVisibility(View.GONE);
+                return null;
+            }
+        });
+
         switch(Objects.requireNonNull(messageType)) {
             case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
-                threadedConversationsViewModel.getEncrypted().observe(getViewLifecycleOwner(),
-                        new Observer<PagingData<ThreadedConversations>>() {
-                            @Override
-                            public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                            }
-                        });
+                Log.d(getClass().getName(), "Fragment at encrypted");
+                try {
+                    threadedConversationsViewModel.getEncrypted(getContext()).observe(getViewLifecycleOwner(),
+                            new Observer<PagingData<ThreadedConversations>>() {
+                                @Override
+                                public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                    threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                    view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                                }
+                            });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case PLAIN_MESSAGES_THREAD_FRAGMENT:
-                threadedConversationsViewModel.getNotEncrypted().observe(getViewLifecycleOwner(),
-                        new Observer<PagingData<ThreadedConversations>>() {
-                            @Override
-                            public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                            }
-                        });
+                try {
+                    threadedConversationsViewModel.getNotEncrypted(getContext()).observe(getViewLifecycleOwner(),
+                            new Observer<PagingData<ThreadedConversations>>() {
+                                @Override
+                                public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                    threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                    view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                                }
+                            });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case ALL_MESSAGES_THREAD_FRAGMENT:
             default:

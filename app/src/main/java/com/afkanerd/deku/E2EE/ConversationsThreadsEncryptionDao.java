@@ -6,6 +6,8 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
+import java.util.List;
+
 @Dao
 public interface ConversationsThreadsEncryptionDao {
 
@@ -14,4 +16,7 @@ public interface ConversationsThreadsEncryptionDao {
 
     @Query("SELECT * FROM ConversationsThreadsEncryption WHERE keystoreAlias = :keystoreAlias")
     ConversationsThreadsEncryption findByKeystoreAlias(String keystoreAlias);
+
+    @Query("SELECT * FROM ConversationsThreadsEncryption")
+    List<ConversationsThreadsEncryption> getAll();
 }

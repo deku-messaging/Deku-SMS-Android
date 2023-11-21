@@ -12,8 +12,10 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
+import android.text.style.BackgroundColorSpan;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.Base64;
@@ -22,6 +24,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
@@ -29,7 +32,9 @@ import com.google.i18n.phonenumbers.Phonenumber;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
@@ -37,6 +42,32 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Helpers {
+
+    public static Spannable highlightSubstringYellow(Context context, String text,
+                                                     String searchString, boolean sent) {
+        // Find all occurrences of the substring in the text.
+        List<Integer> startIndices = new ArrayList<>();
+        int index = text.toLowerCase().indexOf(searchString.toLowerCase());
+        while (index >= 0) {
+            startIndices.add(index);
+            index = text.indexOf(searchString, index + searchString.length());
+        }
+
+        // Create a SpannableString object.
+        SpannableString spannableString = new SpannableString(text);
+
+        // Set the foreground color of the substring to yellow.
+        BackgroundColorSpan backgroundColorSpan = new BackgroundColorSpan(
+                context.getColor(sent ?
+                        R.color.highlight_yellow_send :
+                        R.color.highlight_yellow_received));
+        for (int startIndex : startIndices) {
+            spannableString.setSpan(backgroundColorSpan, startIndex, startIndex + searchString.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+
+        return spannableString;
+    }
     public static long generateRandomNumber() {
         Random random = new Random();
         return random.nextInt(Integer.MAX_VALUE);
@@ -72,10 +103,10 @@ public class Helpers {
         return arrayOfString;
     }
 
-    public static boolean isShortCode(Conversation conversation) {
+    public static boolean isShortCode(ThreadedConversations threadedConversations) {
         Pattern pattern = Pattern.compile("[a-zA-Z]");
-        Matcher matcher = pattern.matcher(conversation.getAddress());
-        return !PhoneNumberUtils.isWellFormedSmsAddress(conversation.getAddress()) || matcher.find();
+        Matcher matcher = pattern.matcher(threadedConversations.getAddress());
+        return !PhoneNumberUtils.isWellFormedSmsAddress(threadedConversations.getAddress()) || matcher.find();
     }
 
     public static String getFormatCompleteNumber(String data, String defaultRegion) {

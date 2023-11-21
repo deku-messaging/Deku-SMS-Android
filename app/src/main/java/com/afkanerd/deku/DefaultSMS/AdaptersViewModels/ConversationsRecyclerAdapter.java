@@ -137,27 +137,6 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         return new ConversationSentViewHandler(view);
     }
 
-    public Spannable highlightSubstringYellow(String text) {
-        // Find all occurrences of the substring in the text.
-        List<Integer> startIndices = new ArrayList<>();
-        int index = text.indexOf(searchString);
-        while (index >= 0) {
-            startIndices.add(index);
-            index = text.indexOf(searchString, index + searchString.length());
-        }
-
-        // Create a SpannableString object.
-        SpannableString spannableString = new SpannableString(text);
-
-        // Set the foreground color of the substring to yellow.
-        BackgroundColorSpan backgroundColorSpan = new BackgroundColorSpan(Color.YELLOW);
-        for (int startIndex : startIndices) {
-            spannableString.setSpan(backgroundColorSpan, startIndex, startIndex + searchString.length(),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
-
-        return spannableString;
-    }
 
     @Override
     public void onBindViewHolder(@NonNull ConversationTemplateViewHandler holder, int position) {
@@ -168,7 +147,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         if(holder instanceof ConversationReceivedViewHandler) {
             ConversationReceivedViewHandler conversationReceivedViewHandler = (ConversationReceivedViewHandler) holder;
-            conversationReceivedViewHandler.bind(conversation);
+            conversationReceivedViewHandler.bind(conversation, searchString);
             if(position == 0) {
                 conversationReceivedViewHandler.date.setVisibility(View.VISIBLE);
             }
@@ -176,7 +155,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         else if(holder instanceof ConversationSentViewHandler){
             ConversationSentViewHandler conversationSentViewHandler = (ConversationSentViewHandler) holder;
-            conversationSentViewHandler.bind(conversation);
+            conversationSentViewHandler.bind(conversation, searchString);
             if(position == 0) {
                 conversationSentViewHandler.messageStatusLinearLayoutCompact.setVisibility(View.VISIBLE);
             }
@@ -360,5 +339,11 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
     public void getForce(int position) {
         getItem(position);
+    }
+
+    public void resetSearchItems(List<Integer> positions) {
+        for(Integer position : positions) {
+            notifyItemChanged(position);
+        }
     }
 }

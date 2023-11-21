@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import android.provider.Telephony;
+import android.text.Spannable;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -78,7 +79,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         return this.id;
     }
 
-    public void bind(Conversation conversation) {
+    public void bind(Conversation conversation, String searchString) {
         this.id = conversation.getId();
         this.message_id = conversation.getMessage_id();
 
@@ -142,8 +143,14 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
             e.printStackTrace();
         }
 
-        Helpers.highlightLinks(sentMessage, text[0],
-                itemView.getContext().getColor(R.color.primary_background_color));
+        if(searchString != null && !searchString.isEmpty() && text[0] != null) {
+            Spannable spannable = Helpers.highlightSubstringYellow(itemView.getContext(),
+                    text[0], searchString, true);
+            sentMessage.setText(spannable);
+        }
+        else
+            Helpers.highlightLinks(sentMessage, text[0],
+                    itemView.getContext().getColor(R.color.primary_background_color));
     }
 
     @Override
@@ -182,8 +189,8 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         }
 
         @Override
-        public void bind(Conversation conversation) {
-            super.bind(conversation);
+        public void bind(Conversation conversation, String searchString) {
+            super.bind(conversation, searchString);
             sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title));
             sentMessage.setTextAppearance(R.style.key_request_initiated);
         }

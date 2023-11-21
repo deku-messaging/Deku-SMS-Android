@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
@@ -10,6 +11,7 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
@@ -17,6 +19,9 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,23 +46,64 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getEncrypted(){
+    public LiveData<PagingData<ThreadedConversations>> getEncrypted(Context context) throws InterruptedException {
+        List<String> address = new ArrayList<>();
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                        ConversationsThreadsEncryption.getDao(context);
+                List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
+                        conversationsThreadsEncryptionDao.getAll();
+
+                for(ConversationsThreadsEncryption conversationsThreadsEncryption :
+                        conversationsThreadsEncryptionList) {
+                    String derivedAddress =
+                            E2EEHandler.getAddressFromKeystore(
+                                    conversationsThreadsEncryption.getKeystoreAlias());
+                    address.add(derivedAddress);
+                }
+            }
+        });
+        thread.start();
+        thread.join();
+
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
                 initialLoadSize
-        ), ()-> this.threadedConversationsDao.getAllEncrypted());
+        ), ()-> this.threadedConversationsDao.getByAddress(address));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getNotEncrypted(){
+    public LiveData<PagingData<ThreadedConversations>> getNotEncrypted(Context context) throws InterruptedException {
+        List<String> address = new ArrayList<>();
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                        ConversationsThreadsEncryption.getDao(context);
+                List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
+                        conversationsThreadsEncryptionDao.getAll();
+
+                for(ConversationsThreadsEncryption conversationsThreadsEncryption :
+                        conversationsThreadsEncryptionList) {
+                    String derivedAddress =
+                            E2EEHandler.getAddressFromKeystore(
+                                    conversationsThreadsEncryption.getKeystoreAlias());
+                    address.add(derivedAddress);
+                }
+            }
+        });
+        thread.start();
+        thread.join();
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
                 initialLoadSize
-        ), ()-> this.threadedConversationsDao.getAllNotEncrypted());
+        ), ()-> this.threadedConversationsDao.getNotInAddress(address));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 

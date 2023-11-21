@@ -37,6 +37,12 @@ public class E2EEHandler {
         return Base64.encodeToString(keystoreAliasRequirements.getBytes(), Base64.NO_WRAP);
     }
 
+    public static String getAddressFromKeystore(String keystoreAlias) {
+        String decodedAlias = new String(Base64.decode(keystoreAlias, Base64.DEFAULT),
+                StandardCharsets.UTF_8);
+        return "+" + decodedAlias.split("_")[0];
+    }
+
     public static boolean isAvailableInKeystore(String keystoreAlias) throws KeyStoreException,
             CertificateException, IOException, NoSuchAlgorithmException {
         /*
