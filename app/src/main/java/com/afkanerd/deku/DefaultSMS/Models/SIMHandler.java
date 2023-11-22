@@ -46,13 +46,11 @@ public class SIMHandler {
         return subscriptionInfo.getSubscriptionId();
     }
 
-    public static String getSubscriptionName(Context context, String subscriptionId) {
-        int subId = Integer.parseInt(subscriptionId);
-
+    public static String getSubscriptionName(Context context, int subscriptionId) {
         List<SubscriptionInfo> subscriptionInfos = getSimCardInformation(context);
 
         for(SubscriptionInfo subscriptionInfo : subscriptionInfos)
-            if(subscriptionInfo.getSubscriptionId() == subId) {
+            if(subscriptionInfo.getSubscriptionId() == subscriptionId) {
                 if(subscriptionInfo.getCarrierName() != null)
                     return subscriptionInfo.getCarrierName().toString();
             }

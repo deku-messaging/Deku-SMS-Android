@@ -77,7 +77,6 @@ public class ConversationActivity extends E2EECompactActivity {
     LinearLayoutManager linearLayoutManager;
     RecyclerView singleMessagesThreadRecyclerView;
 
-    int defaultSubscriptionId;
 
     String searchString;
 
@@ -291,12 +290,6 @@ public class ConversationActivity extends E2EECompactActivity {
             }
         });
 
-        try {
-            // TODO should work on this as the SMS does not open in real time
-            defaultSubscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-        } catch(Exception e ) {
-            e.printStackTrace();
-        }
     }
 
     ConversationDao conversationDao;
@@ -462,17 +455,16 @@ public class ConversationActivity extends E2EECompactActivity {
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                findViewById(R.id.conversation_send_btn).setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                if(simCount > 0) {
+                    findViewById(R.id.conversation_send_btn)
+                            .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                    if(simCount > 1) {
+                        findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
+                                .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                    }
+                }
             }
         });
-        findViewById(R.id.conversation_send_btn).setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                onLongClickSendButton(v);
-                return true;
-            }
-        });
-
 
         smsTextView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -491,7 +483,7 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onClick(View v) {
                 try {
                     final String text = smsTextView.getText().toString();
-                    sendTextMessage(text, defaultSubscriptionId, threadedConversations);
+                    sendTextMessage(text, defaultSubscriptionId.getValue(), threadedConversations);
                     smsTextView.setText(null);
                 } catch (Exception e) {
                     e.printStackTrace();

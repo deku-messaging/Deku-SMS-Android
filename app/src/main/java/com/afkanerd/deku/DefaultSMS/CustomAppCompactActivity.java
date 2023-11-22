@@ -160,6 +160,9 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                             }
                         }).start();
                     }
+                    else if(viewModel instanceof ThreadedConversationsViewModel) {
+                        ((ThreadedConversationsViewModel) viewModel).refresh(context);
+                    }
                 }
             }
         };

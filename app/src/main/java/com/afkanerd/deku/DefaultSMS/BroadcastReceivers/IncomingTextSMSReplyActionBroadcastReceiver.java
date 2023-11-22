@@ -1,6 +1,8 @@
 package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
 
+import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
+
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -8,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.Telephony;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -15,6 +18,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
@@ -49,13 +53,36 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 if (reply == null || reply.toString().isEmpty())
                     return;
 
-                try {
-                    String messageId = String.valueOf(System.currentTimeMillis());
-//                    SMSDatabaseWrapper.send_text(context, messageId, address, reply.toString(),
-//                            subscriptionId, null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String messageId = String.valueOf(System.currentTimeMillis());
+                        Conversation conversation = new Conversation();
+                        conversation.setAddress(address);
+                        conversation.setSubscription_id(subscriptionId);
+                        conversation.setThread_id(threadId);
+                        conversation.setText(reply.toString());
+                        conversation.setMessage_id(messageId);
+                        conversation.setDate(String.valueOf(System.currentTimeMillis()));
+                        conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
+                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_PENDING);
+                        ConversationDao conversationDao = Conversation.getDao(context);
+                        conversationDao.insert(conversation);
+                        try {
+                            SMSDatabaseWrapper.send_text(context, conversation, null);
+
+                            Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
+                            broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
+                            broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+                            if(intent.getExtras() != null)
+                                broadcastIntent.putExtras(intent.getExtras());
+
+                            context.sendBroadcast(broadcastIntent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
 
                 Cursor cursor = NativeSMSDB.fetchByThreadId(context, threadId);
                 if(cursor.moveToFirst()) {

@@ -103,7 +103,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
         if(conversation.getSubscription_id() > 0) {
             String subscriptionName = SIMHandler.getSubscriptionName(itemView.getContext(),
-                    String.valueOf(conversation.getSubscription_id()));
+                    conversation.getSubscription_id());
             if(subscriptionName != null && !subscriptionName.isEmpty())
                 txDate += " • " + subscriptionName;
         }
