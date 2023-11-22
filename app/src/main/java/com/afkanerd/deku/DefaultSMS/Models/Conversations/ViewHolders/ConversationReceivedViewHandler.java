@@ -10,9 +10,12 @@ import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -64,7 +67,6 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
     public void bind(Conversation conversation, String searchString) {
         this.id = conversation.getId();
         this.message_id = conversation.getMessage_id();
-        // TODO: implement search highlight in activity
         String timestamp = Helpers.formatDateExtended(itemView.getContext(), Long.parseLong(conversation.getDate()));
         DateFormat dateFormat = new SimpleDateFormat("h:mm a");
         String txDate = dateFormat.format(new Date(Long.parseLong(conversation.getDate())));
@@ -103,7 +105,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
         if(conversation.getSubscription_id() > 0) {
             String subscriptionName = SIMHandler.getSubscriptionName(itemView.getContext(),
-                    String.valueOf(conversation.getSubscription_id()));
+                    conversation.getSubscription_id());
             if(subscriptionName != null && !subscriptionName.isEmpty())
                 txDate += " • " + subscriptionName;
         }
@@ -143,7 +145,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         @Override
         public void bind(Conversation conversation, String searchString) {
             super.bind(conversation, searchString);
-            receivedMessage.setText(itemView.getContext().getString(R.string.conversation_key_title));
+            receivedMessage.setText(itemView.getContext().getString(R.string.conversation_key_title_request));
             receivedMessage.setTextAppearance(R.style.key_request_initiated);
         }
     }

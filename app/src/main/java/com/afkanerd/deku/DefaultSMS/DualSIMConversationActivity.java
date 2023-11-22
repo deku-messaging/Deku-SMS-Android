@@ -4,25 +4,71 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 
 import java.util.List;
 
 public class DualSIMConversationActivity extends AppCompatActivity {
+
+    protected MutableLiveData<Integer> defaultSubscriptionId = new MutableLiveData<>();
+    protected int simCount = 0;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
+    ImageButton sendImageButton;
+    TextView currentSimcardTextView;
 
-    private void showMultiDualSimAlert(Runnable runnable) {
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        sendImageButton = findViewById(R.id.conversation_send_btn);
+        currentSimcardTextView = findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
+        simCount = SIMHandler.getActiveSimcardCount(getApplicationContext());
+
+        if(sendImageButton != null) {
+            try {
+                defaultSubscriptionId.setValue(SIMHandler.getDefaultSimSubscription(getApplicationContext()));
+            } catch(Exception e ) {
+                e.printStackTrace();
+            }
+
+            sendImageButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (simCount > 1) {
+                        showMultiDualSimAlert();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
+
+        defaultSubscriptionId.observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                if(simCount > 1) {
+                    String subscriptionName = SIMHandler.getSubscriptionName(getApplicationContext(), integer);
+                    currentSimcardTextView.setText(subscriptionName);
+                }
+            }
+        });
+    }
+
+    private void showMultiDualSimAlert() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         builder.setTitle(getString(R.string.sim_chooser_layout_text));
@@ -48,8 +94,7 @@ public class DualSIMConversationActivity extends AppCompatActivity {
         sim1ImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                defaultSubscriptionId = subscriptionInfos.get(0).getSubscriptionId();
-                runnable.run();
+                defaultSubscriptionId.setValue(subscriptionInfos.get(0).getSubscriptionId());
                 dialog.dismiss();
             }
         });
@@ -59,53 +104,13 @@ public class DualSIMConversationActivity extends AppCompatActivity {
         sim2ImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                defaultSubscriptionId = subscriptionInfos.get(1).getSubscriptionId();
-                runnable.run();
+                defaultSubscriptionId.setValue(subscriptionInfos.get(1).getSubscriptionId());
                 dialog.dismiss();
             }
         });
         sim2TextView.setText(subscriptionInfos.get(1).getDisplayName());
 
         dialog.show();
-    }
-
-
-    public void onLongClickSendButton(View view) {
-//        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
-//
-//        TextView simcard1 = findViewById(R.id.simcard_select_operator_1_name);
-//        TextView simcard2 = findViewById(R.id.simcard_select_operator_2_name);
-//
-//        ImageButton simcard1Img = findViewById(R.id.simcard_select_operator_1);
-//        ImageButton simcard2Img = findViewById(R.id.simcard_select_operator_2);
-//
-//        ArrayList<TextView> views = new ArrayList();
-//        views.add(simcard1);
-//        views.add(simcard2);
-//
-//        ArrayList<ImageButton> buttons = new ArrayList();
-//        buttons.add(simcard1Img);
-//        buttons.add(simcard2Img);
-//
-//        for (int i = 0; i < simcards.size(); ++i) {
-//            CharSequence carrierName = simcards.get(i).getCarrierName();
-//            views.get(i).setText(carrierName);
-//            buttons.get(i).setImageBitmap(simcards.get(i).createIconBitmap(getApplicationContext()));
-//
-//            final int subscriptionId = simcards.get(i).getSubscriptionId();
-//            buttons.get(i).setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    defaultSubscriptionId = subscriptionId;
-//                    findViewById(R.id.simcard_select_constraint).setVisibility(View.INVISIBLE);
-//                    String subscriptionText = getString(R.string.default_subscription_id_changed) +
-//                            carrierName;
-//                    Toast.makeText(getApplicationContext(), subscriptionText, Toast.LENGTH_SHORT).show();
-//                }
-//            });
-//        }
-//
-//        multiSimcardConstraint.setVisibility(View.VISIBLE);
     }
 
 }

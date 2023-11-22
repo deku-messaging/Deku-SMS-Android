@@ -22,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.Security;
 import java.security.cert.CertificateException;
+import java.util.List;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -76,9 +77,6 @@ public class E2EEHandler {
 
         int indexStart = Bytes.indexOf(dekuPublicKey, start);
         int indexEnd = Bytes.indexOf(dekuPublicKey, end);
-//        Log.d(E2EEHandler.class.getName(), "Index start: " + indexStart);
-//        Log.d(E2EEHandler.class.getName(), "Index end: " + indexEnd);
-//        Log.d(E2EEHandler.class.getName(), "Data size: " + dekuPublicKey.length);
 
         if(indexStart == 0 && indexEnd == ((dekuPublicKey.length - end.length))) {
             byte[] keyValue = new byte[dekuPublicKey.length - (start.length + end.length)];
@@ -140,6 +138,12 @@ public class E2EEHandler {
         return conversationsThreadsEncryptionDao.insert(conversationsThreadsEncryption);
     }
 
+    public static ConversationsThreadsEncryption fetchPeerPublicKey(Context context, String keystoreAlias) {
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                ConversationsThreadsEncryption.getDao(context);
+        return conversationsThreadsEncryptionDao.fetch(keystoreAlias);
+    }
+
     public static byte[] encryptText(Context context, String keystoreAlias, String text) throws GeneralSecurityException, IOException, InterruptedException {
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
                 ConversationsThreadsEncryption.getDao(context);
@@ -185,8 +189,31 @@ public class E2EEHandler {
         return Base64.decode(encodedText, Base64.DEFAULT);
     }
 
-    public static void clearAll(Context context) {
+    public static void clearAll(Context context) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
         CustomKeyStoreDao customKeyStoreDao = CustomKeyStore.getDao(context);
-        customKeyStoreDao.clear();
+        List<CustomKeyStore> customKeyStore = customKeyStoreDao.getAll();
+
+        for(CustomKeyStore customKeyStore1 : customKeyStore)
+            removeFromKeystore(context, customKeyStore1.getKeystoreAlias());
+
+    }
+
+    public final static int REQUEST_KEY = 0;
+    public final static int AGREEMENT_KEY = 1;
+    public final static int IGNORE_KEY = 2;
+    public static int getKeyType(Context context, String keystoreAlias, byte[] publicKey)
+            throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        if(isAvailableInKeystore(keystoreAlias)) {
+            ConversationsThreadsEncryption conversationsThreadsEncryption =
+                    fetchPeerPublicKey(context, keystoreAlias);
+            if(conversationsThreadsEncryption == null) {
+                return AGREEMENT_KEY;
+            }
+            if(conversationsThreadsEncryption.getPublicKey().equals(
+                    Base64.encodeToString(publicKey, Base64.DEFAULT))) {
+                return IGNORE_KEY;
+            }
+        }
+        return REQUEST_KEY;
     }
 }

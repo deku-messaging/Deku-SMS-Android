@@ -18,7 +18,10 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.cert.CertificateException;
 
 @RunWith(AndroidJUnit4.class)
 public class SecurityECDHTest {
@@ -31,7 +34,7 @@ public class SecurityECDHTest {
     String BobKeystoreAlias;
     Context context;
 
-    public SecurityECDHTest() throws NumberParseException{
+    public SecurityECDHTest() throws NumberParseException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         AliceKeystoreAlias = E2EEHandler.getKeyStoreAlias(addressAlice, session);
         BobKeystoreAlias = E2EEHandler.getKeyStoreAlias(addressBob, session);

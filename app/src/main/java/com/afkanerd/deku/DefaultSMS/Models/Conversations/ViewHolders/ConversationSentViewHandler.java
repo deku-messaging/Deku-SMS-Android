@@ -113,7 +113,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         if(conversation.getSubscription_id() > 0) {
             String subscriptionName = SIMHandler.getSubscriptionName(itemView.getContext(),
-                    String.valueOf(conversation.getSubscription_id()));
+                    conversation.getSubscription_id());
             if(!subscriptionName.isEmpty())
                 statusMessage += " • " + subscriptionName;
         }
@@ -191,7 +191,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         @Override
         public void bind(Conversation conversation, String searchString) {
             super.bind(conversation, searchString);
-            sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title));
+            sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title_requested));
             sentMessage.setTextAppearance(R.style.key_request_initiated);
         }
     }

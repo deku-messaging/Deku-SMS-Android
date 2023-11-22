@@ -11,7 +11,7 @@ import java.util.List;
 @Dao
 public interface ConversationsThreadsEncryptionDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insert(ConversationsThreadsEncryption conversationsThreadsEncryption);
 
     @Query("SELECT * FROM ConversationsThreadsEncryption WHERE keystoreAlias = :keystoreAlias")
@@ -19,4 +19,7 @@ public interface ConversationsThreadsEncryptionDao {
 
     @Query("SELECT * FROM ConversationsThreadsEncryption")
     List<ConversationsThreadsEncryption> getAll();
+
+    @Query("SELECT * FROM ConversationsThreadsEncryption WHERE keystoreAlias = :keystoreAlias")
+    ConversationsThreadsEncryption fetch(String keystoreAlias);
 }

@@ -101,7 +101,9 @@ public class GatewayServer {
 
     public static GatewayServerDAO getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                Datastore.databaseName).build();
+                Datastore.databaseName)
+                .enableMultiInstanceInvalidation()
+                .build();
 
         GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
         databaseConnector.close();

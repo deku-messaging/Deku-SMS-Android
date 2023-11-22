@@ -24,7 +24,10 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.cert.CertificateException;
 
 import javax.crypto.SecretKey;
 
@@ -36,7 +39,7 @@ public class ConversationsThreadsEncryptionTest {
     int sessionNumber = 0;
     String keystoreAlias = "MjM3NjEyMzQ1Njc4XzA=";
 
-    public ConversationsThreadsEncryptionTest() {
+    public ConversationsThreadsEncryptionTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
         E2EEHandler.clearAll(context);
@@ -108,47 +111,32 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void canE2EE() throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
+        E2EEHandler.clearAll(context);
         String aliceAddress = "+237612345678";
         String bobAddress = "+237612345670";
 
-//        String aliceKeystoreAlias = E2EEHandler.getKeyStoreAlias(aliceAddress, 0);
-//        String bobKeystoreAlias = E2EEHandler.getKeyStoreAlias(bobAddress, 0);
-//
-//        PublicKey alicePublicKey = E2EEHandler.createNewKeyPair(context, bobKeystoreAlias);
-//        Log.d(getClass().getName(), "Alice public key: " +
-//                Base64.encodeToString(alicePublicKey.getEncoded(),Base64.DEFAULT));
-//
-//        PublicKey bobPublicKey = E2EEHandler.createNewKeyPair(context, aliceKeystoreAlias);
-//        Log.d(getClass().getName(), "Bob public key: " +
-//                Base64.encodeToString(bobPublicKey.getEncoded(),Base64.DEFAULT));
-//
-//        byte[] aliceSharedSecret = SecurityECDH.generateSecretKey(context, bobKeystoreAlias, bobPublicKey);
-//        byte[] bobSharedSecret = SecurityECDH.generateSecretKey(context, aliceKeystoreAlias, alicePublicKey);
-//        assertArrayEquals(aliceSharedSecret, bobSharedSecret);
-//
-//
-//        String aliceTransmissionKey = E2EEHandler.buildDekuPublicKey(alicePublicKey.getEncoded());
-//        String bobTransmissionKey = E2EEHandler.buildDekuPublicKey(bobPublicKey.getEncoded());
-
         byte[] aliceTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, bobAddress);
-        byte[] bobTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, aliceAddress);
-
-        // sends key over data channel
 
         // bob received alice's key
         assertTrue(E2EEHandler.isValidDekuPublicKey(aliceTransmissionKey));
         byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
-//        assertArrayEquals(alicePublicKey.getEncoded(), aliceExtractedTransmissionKey);
-//        E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey, aliceKeystoreAlias);
         String aliceKeystoreAlias = E2EEHandler.getKeyStoreAlias(aliceAddress, 0);
-        E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey, aliceKeystoreAlias);
+        assertEquals(E2EEHandler.REQUEST_KEY,
+                E2EEHandler.getKeyType(context, aliceKeystoreAlias, aliceExtractedTransmissionKey));
+        E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey,
+                aliceKeystoreAlias);
+
+        byte[] bobTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, aliceAddress);
 
         // alice received bob's key
         assertTrue(E2EEHandler.isValidDekuPublicKey(bobTransmissionKey));
         byte[] bobExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(bobTransmissionKey);
-//        assertArrayEquals(bobPublicKey.getEncoded(), bobExtractedTransmissionKey);
         String bobKeystoreAlias = E2EEHandler.getKeyStoreAlias(bobAddress, 0);
+        assertEquals(E2EEHandler.AGREEMENT_KEY,
+                E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey));
         E2EEHandler.insertNewPeerPublicKey(context, bobExtractedTransmissionKey, bobKeystoreAlias);
+        assertEquals(E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey),
+                E2EEHandler.IGNORE_KEY);
 
         assertTrue(E2EEHandler.isAvailableInKeystore(aliceKeystoreAlias));
         assertTrue(E2EEHandler.isAvailableInKeystore(bobKeystoreAlias));
@@ -164,7 +152,6 @@ public class ConversationsThreadsEncryptionTest {
         // <----- bob receives the message
         assertTrue(E2EEHandler.isValidDekuText(aliceTransmissionText));
         byte[] aliceExtractedText = E2EEHandler.extractTransmissionText(aliceTransmissionText);
-//        assertArrayEquals(aliceCipherText, aliceExtractedText);
 
         byte[] alicePlainText = E2EEHandler.decryptText(context, aliceKeystoreAlias, aliceExtractedText);
         assertEquals(aliceText, new String(alicePlainText));
