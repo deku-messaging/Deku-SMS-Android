@@ -191,7 +191,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         @Override
         public void bind(Conversation conversation, String searchString) {
             super.bind(conversation, searchString);
-            sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title));
+            sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title_requested));
             sentMessage.setTextAppearance(R.style.key_request_initiated);
         }
     }

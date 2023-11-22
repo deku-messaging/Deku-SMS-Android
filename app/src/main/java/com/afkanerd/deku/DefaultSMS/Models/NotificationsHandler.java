@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Message;
 import android.service.notification.StatusBarNotification;
 import android.telephony.PhoneNumberUtils;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -122,7 +123,7 @@ public class NotificationsHandler {
                 messageTrackers.message.append(prevMessage);
                 messageTrackers.title = prevTitle;
                 messageTrackers.person = prevTitle.equals(conversation.getAddress()) ?
-                        person:replyPerson;
+                        person : replyPerson;
                 listMessages.add(messageTrackers);
             }
         }
@@ -130,15 +131,60 @@ public class NotificationsHandler {
         messageTrackers.message.append(conversation.isIs_key() ?
                 context.getString(R.string.notification_title_new_key) :
                 reply == null ? conversation.getText() : reply);
-        messageTrackers.title = reply == null ? conversation.getAddress() :
-                context.getString(R.string.notification_title_reply_you);
-        messageTrackers.person = reply == null ? person :replyPerson;
+        messageTrackers.title = reply == null ?
+                conversation.getAddress() : context.getString(R.string.notification_title_reply_you);
+        messageTrackers.person = reply == null ? person : replyPerson;
         listMessages.add(messageTrackers);
 
+        StringBuilder personConversations = new StringBuilder();
+        StringBuilder replyConversations = new StringBuilder();
+
+        List<MessageTrackers> newTrackers = new ArrayList<>();
         for(MessageTrackers messageTracker : listMessages) {
-            messagingStyle.addMessage(
-                    new NotificationCompat.MessagingStyle.Message(messageTracker.message,
-                            System.currentTimeMillis(),messageTracker.person));
+            if(messageTracker.title.equals(conversation.getAddress())) {
+                if(personConversations.length() > 0)
+                    personConversations.append("\n");
+                personConversations.append(messageTracker.message);
+                if(replyConversations.length() > 0) {
+                    MessageTrackers messageTrackers1 = new MessageTrackers();
+                    messageTrackers1.person = replyPerson;
+                    messageTrackers1.message = replyConversations;
+                    newTrackers.add(messageTrackers1);
+                    replyConversations = new StringBuilder();
+                }
+            }
+            else {
+                if(replyConversations.length() > 0)
+                    replyConversations.append("\n");
+                replyConversations.append(messageTracker.message);
+                if(personConversations.length() > 0) {
+                    MessageTrackers messageTrackers1 = new MessageTrackers();
+                    messageTrackers1.person = person;
+                    messageTrackers1.message = personConversations;
+                    newTrackers.add(messageTrackers1);
+                    personConversations = new StringBuilder();
+                }
+            }
+        }
+
+        if(personConversations.length() > 0) {
+            MessageTrackers messageTrackers1 = new MessageTrackers();
+            messageTrackers1.person = person;
+            messageTrackers1.message = personConversations;
+            newTrackers.add(messageTrackers1);
+        }
+
+        if(replyConversations.length() > 0) {
+            MessageTrackers messageTrackers1 = new MessageTrackers();
+            messageTrackers1.person = replyPerson;
+            messageTrackers1.message = replyConversations;
+            newTrackers.add(messageTrackers1);
+        }
+
+        for(MessageTrackers messageTracker : newTrackers) {
+            Log.d(NotificationsHandler.class.getName(), "Adding person: " + messageTracker.person.getName());
+            messagingStyle.addMessage(new NotificationCompat.MessagingStyle.Message(
+                    messageTracker.message, System.currentTimeMillis(),messageTracker.person));
         }
 
         return messagingStyle;

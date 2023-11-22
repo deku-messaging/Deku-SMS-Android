@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.text.Editable;
@@ -30,6 +31,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.paging.PagingData;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -132,9 +134,13 @@ public class ConversationActivity extends E2EECompactActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.conversations_menu, menu);
-        if (isShortCode) {
-            menu.findItem(R.id.conversation_main_menu_call).setVisible(false);
+        try {
+            getMenuInflater().inflate(R.menu.conversations_menu, menu);
+            if (isShortCode) {
+                menu.findItem(R.id.conversation_main_menu_call).setVisible(false);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return super.onCreateOptionsMenu(menu);
     }

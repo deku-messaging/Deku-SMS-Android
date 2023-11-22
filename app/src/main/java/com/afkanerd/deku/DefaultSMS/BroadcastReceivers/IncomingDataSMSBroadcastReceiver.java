@@ -115,6 +115,16 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         if(isValidKey) {
             String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
             byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
+            // TODO
+            switch(E2EEHandler.getKeyType(context, keystoreAlias, extractedTransmissionKey)) {
+                case E2EEHandler.REQUEST_KEY:
+                    break;
+                case E2EEHandler.AGREEMENT_KEY:
+                    break;
+                case E2EEHandler.IGNORE_KEY:
+                default:
+                    break;
+            }
             E2EEHandler.insertNewPeerPublicKey(context, extractedTransmissionKey, keystoreAlias);
         }
         Log.d(getClass().getName(), "Is Encrypted data: " + isValidKey);

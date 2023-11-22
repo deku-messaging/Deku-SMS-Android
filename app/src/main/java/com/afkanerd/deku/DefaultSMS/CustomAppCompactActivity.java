@@ -127,6 +127,16 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                 ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
                                 Conversation conversation = conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
+                                try {
+                                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
+                                            E2EEHandler.getKeyStoreAlias(
+                                                    conversation.getAddress(), 0))) {
+                                        informSecured(true);
+                                    }
+                                } catch (CertificateException | KeyStoreException | IOException |
+                                         NoSuchAlgorithmException | NumberParseException e) {
+                                    e.printStackTrace();
+                                }
                                 ((ConversationsViewModel) viewModel).update(conversation);
                             }
                         }).start();

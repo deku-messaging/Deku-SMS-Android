@@ -72,7 +72,7 @@ public class ThreadedConversations {
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setAddress(conversation.getAddress());
         if(conversation.isIs_key()) {
-            threadedConversations.setSnippet(context.getString(R.string.conversation_key_title));
+            threadedConversations.setSnippet(context.getString(R.string.conversation_threads_secured_content));
         }
         else threadedConversations.setSnippet(conversation.getText());
         threadedConversations.setThread_id(conversation.getThread_id());
