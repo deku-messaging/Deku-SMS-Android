@@ -233,7 +233,7 @@
     <string name="conversation_threads_secured_content">Secured Content</string>
     <string name="conversation_key_title_request">Secure Requested</string>
     <string name="conversation_key_title_requested">Secure Requested</string>
-    <string name="conversation_key_title_agree">Secure Agreement</string>
+    <string name="conversation_key_title_agree">Click to Agree to secure this Communication</string>
     <string name="conversation_key_title_agreed">Secure request Agreed!</string>
     <string name="conversation_inform_user_now_secured_toast">Secure communications is a go!</string>
 </resources>

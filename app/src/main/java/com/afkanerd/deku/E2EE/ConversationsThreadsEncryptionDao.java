@@ -22,4 +22,7 @@ public interface ConversationsThreadsEncryptionDao {
 
     @Query("SELECT * FROM ConversationsThreadsEncryption WHERE keystoreAlias = :keystoreAlias")
     ConversationsThreadsEncryption fetch(String keystoreAlias);
+
+    @Query("DELETE FROM ConversationsThreadsEncryption WHERE keystoreAlias = :keystoreAlias")
+    int delete(String keystoreAlias);
 }

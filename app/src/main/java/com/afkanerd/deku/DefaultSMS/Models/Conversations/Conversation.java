@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.Telephony;
+import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -241,6 +242,21 @@ public class Conversation {
         this.setStatus(cursor.getInt(statusIndex));
         this.setRead(cursor.getInt(readIndex) == 1);
         this.setSubscription_id(cursor.getInt(subscriptionIdIndex));
+    }
+
+    public static Conversation buildForDataTransmission(Conversation conversation, byte[] transmissionData) {
+        String messageId = String.valueOf(System.currentTimeMillis());
+        Conversation newConversation = new Conversation();
+        newConversation.setIs_key(conversation.isIs_key());
+        newConversation.setMessage_id(messageId);
+        newConversation.setData(Base64.encodeToString(transmissionData, Base64.DEFAULT));
+        newConversation.setSubscription_id(conversation.getSubscription_id());
+        newConversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
+        newConversation.setDate(String.valueOf(System.currentTimeMillis()));
+        newConversation.setAddress(conversation.getAddress());
+        newConversation.setStatus(Telephony.Sms.STATUS_PENDING);
+
+        return newConversation;
     }
 
     public static Conversation build(Cursor cursor) {
