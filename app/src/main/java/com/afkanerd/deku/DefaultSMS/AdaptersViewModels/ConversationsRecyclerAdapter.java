@@ -144,6 +144,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         if(conversation == null) {
             return;
         }
+        setOnLongClickListeners(holder);
+        setOnClickListeners(holder, conversation);
 
         if(holder instanceof ConversationReceivedViewHandler) {
             ConversationReceivedViewHandler conversationReceivedViewHandler = (ConversationReceivedViewHandler) holder;
@@ -161,8 +163,6 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
             }
         }
 
-        setOnLongClickListeners(holder);
-        setOnClickListeners(holder, conversation);
     }
 
     private void addSelectedItems(ConversationTemplateViewHandler holder) {

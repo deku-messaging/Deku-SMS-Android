@@ -16,6 +16,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -264,8 +265,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                             @Override
                             public void run() {
                                 recyclerAdapter.resetAllSelectedItems();
-                                threadedConversationsViewModel.delete(getApplicationContext(),
-                                        threadedConversations);
 
                                 new Thread(new Runnable() {
                                     @Override
@@ -277,15 +276,22 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                                         for(ThreadedConversations threadedConversation :
                                                 foundList) {
                                             try {
-                                                E2EEHandler.removeFromKeystore(getApplicationContext(),
-                                                        E2EEHandler.getKeyStoreAlias(threadedConversation.getAddress(),
-                                                                0));
+                                                String keystoreAlias =
+                                                        E2EEHandler.getKeyStoreAlias(
+                                                                threadedConversation.getAddress(),
+                                                                0);
+                                                E2EEHandler.removeFromKeystore(
+                                                        getApplicationContext(), keystoreAlias);
+                                                E2EEHandler.removeFromEncryptionDatabase(
+                                                        getApplicationContext(), keystoreAlias);
                                             } catch (KeyStoreException | NumberParseException |
                                                      InterruptedException | NoSuchAlgorithmException | IOException |
                                                      CertificateException e) {
                                                 e.printStackTrace();
                                             }
                                         }
+                                        threadedConversationsViewModel.delete(getApplicationContext(),
+                                                threadedConversations);
                                     }
                                 }).start();
                             }

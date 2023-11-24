@@ -71,6 +71,13 @@ public class E2EEHandler {
         return SecurityECDH.removeFromKeystore(context, keystoreAlias);
     }
 
+    public static int removeFromEncryptionDatabase(Context context, String keystoreAlias) throws KeyStoreException,
+            CertificateException, IOException, NoSuchAlgorithmException, InterruptedException {
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                ConversationsThreadsEncryption.getDao(context);
+        return conversationsThreadsEncryptionDao.delete(keystoreAlias);
+    }
+
     public static boolean isValidDekuPublicKey(byte[] dekuPublicKey) {
         byte[] start = SecurityHandler.dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8);
         byte[] end = SecurityHandler.dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8);
@@ -193,9 +200,10 @@ public class E2EEHandler {
         CustomKeyStoreDao customKeyStoreDao = CustomKeyStore.getDao(context);
         List<CustomKeyStore> customKeyStore = customKeyStoreDao.getAll();
 
-        for(CustomKeyStore customKeyStore1 : customKeyStore)
+        for(CustomKeyStore customKeyStore1 : customKeyStore) {
             removeFromKeystore(context, customKeyStore1.getKeystoreAlias());
-
+            removeFromEncryptionDatabase(context, customKeyStore1.getKeystoreAlias());
+        }
     }
 
     public final static int REQUEST_KEY = 0;

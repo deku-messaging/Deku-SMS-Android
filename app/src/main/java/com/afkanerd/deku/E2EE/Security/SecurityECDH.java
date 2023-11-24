@@ -8,6 +8,8 @@ import android.util.Base64;
 import android.util.Log;
 
 
+import com.afkanerd.deku.E2EE.E2EEHandler;
+
 import org.spongycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.spongycastle.jce.provider.BouncyCastleProvider;
 import org.spongycastle.jce.provider.PEMUtil;
@@ -77,6 +79,7 @@ public class SecurityECDH {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                Log.d(SecurityECDH.class.getName(), "Removing keystoreAlias: " + keystoreAlias);
                 numberUpdated[0] = customKeyStoreDao.delete(keystoreAlias);
             }
         });

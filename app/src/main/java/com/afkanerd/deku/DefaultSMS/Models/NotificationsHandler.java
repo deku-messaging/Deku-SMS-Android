@@ -22,8 +22,10 @@ import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
 
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.ArrayList;
@@ -64,7 +66,8 @@ public class NotificationsHandler {
     }
 
     public static Intent getReplyIntent(Context context, Conversation conversation) {
-        if(PhoneNumberUtils.isWellFormedSmsAddress(conversation.getAddress())) {
+        if(conversation != null &&
+                !Helpers.isShortCode(ThreadedConversations.build(context, conversation) )) {
             Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
 
             replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_ADDRESS,

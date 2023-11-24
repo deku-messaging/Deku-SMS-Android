@@ -121,10 +121,12 @@ public class ConversationsThreadsEncryptionTest {
         assertTrue(E2EEHandler.isValidDekuPublicKey(aliceTransmissionKey));
         byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
         String aliceKeystoreAlias = E2EEHandler.getKeyStoreAlias(aliceAddress, 0);
-        assertEquals(E2EEHandler.REQUEST_KEY,
+        assertEquals(E2EEHandler.AGREEMENT_KEY,
                 E2EEHandler.getKeyType(context, aliceKeystoreAlias, aliceExtractedTransmissionKey));
         E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey,
                 aliceKeystoreAlias);
+        assertEquals(E2EEHandler.getKeyType(context, aliceKeystoreAlias, aliceExtractedTransmissionKey),
+                E2EEHandler.IGNORE_KEY);
 
         byte[] bobTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, aliceAddress);
 

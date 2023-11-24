@@ -4,13 +4,10 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.provider.Telephony;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,18 +17,15 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.view.MenuItemCompat;
 import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.paging.PagingData;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -44,11 +38,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
-import com.google.android.material.search.SearchView;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -119,7 +110,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void test() {
         if(BuildConfig.DEBUG)
-            getIntent().putExtra(SEARCH_STRING, "hey");
+            getIntent().putExtra(SEARCH_STRING, "Android");
     }
 
     @Override
@@ -128,8 +119,23 @@ public class ConversationActivity extends E2EECompactActivity {
         if(this.conversationsViewModel != null) {
             conversationsViewModel.updateToRead(getApplicationContext());
         }
-        TextInputLayout layout = findViewById(R.id.send_text);
+        TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
+                            E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(),
+                                    0) )) {
+                        layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     @Override
@@ -168,10 +174,10 @@ public class ConversationActivity extends E2EECompactActivity {
             intent.putExtra(Conversation.THREAD_ID, threadedConversations.getThread_id());
             startActivity(intent);
         }
-        if(isSearchActive()) {
-            resetSearch();
-            return true;
-        }
+//        if(isSearchActive()) {
+//            resetSearch();
+//            return true;
+//        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -253,7 +259,7 @@ public class ConversationActivity extends E2EECompactActivity {
         backSearchBtn = findViewById(R.id.conversation_search_found_back_btn);
         forwardSearchBtn = findViewById(R.id.conversation_search_found_forward_btn);
 
-        smsTextView = findViewById(R.id.sms_text);
+        smsTextView = findViewById(R.id.conversation_send_text_input);
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setStackFromEnd(false);
@@ -408,7 +414,7 @@ public class ConversationActivity extends E2EECompactActivity {
                             return;
                         }
                         else if(actionMode == null) {
-                            actionMode = startActionMode(actionModeCallback);
+                            actionMode = startSupportActionMode(actionModeCallback);
                         }
                         if(selectedItems.size() > 1 && actionMode != null)
                             actionMode.invalidate();
@@ -427,7 +433,7 @@ public class ConversationActivity extends E2EECompactActivity {
     private void configureSearchBox() {
 //        findViewById(R.id.conversations_pop_ups_layouts).setVisibility(View.VISIBLE);
         findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
-        actionMode = startActionMode(searchActionModeCallback);
+        actionMode = startSupportActionMode(searchActionModeCallback);
     }
 
     private void configureToolbars() {
@@ -581,11 +587,18 @@ public class ConversationActivity extends E2EECompactActivity {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            Objects.requireNonNull(getSupportActionBar()).hide();
+
             View viewGroup = getLayoutInflater().inflate(R.layout.conversation_search_bar_layout,
                     null);
             mode.setCustomView(viewGroup);
 
-            toolbar.setVisibility(View.GONE);
+//            MenuInflater inflater = mode.getMenuInflater();
+//            inflater.inflate(R.menu.conversations_menu_search, menu);
+//
+//            MenuItem searchItem = menu.findItem(R.id.conversations_search_active);
+//            searchItem.expandActionView();
+
             String searchString = getIntent().getStringExtra(SEARCH_STRING);
             getIntent().removeExtra(SEARCH_STRING);
 
@@ -641,6 +654,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            Objects.requireNonNull(getSupportActionBar()).hide();
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(R.menu.conversations_menu_item_selected, menu);
             return true;
@@ -682,6 +696,7 @@ public class ConversationActivity extends E2EECompactActivity {
         // Called when the user exits the action mode.
         @Override
         public void onDestroyActionMode(ActionMode mode) {
+            Objects.requireNonNull(getSupportActionBar()).show();
             actionMode = null;
             conversationsRecyclerAdapter.resetAllSelectedItems();
         }

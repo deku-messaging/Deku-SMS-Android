@@ -2,8 +2,10 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 
 import android.text.Spannable;
+import android.util.Base64;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.LinearLayoutCompat;
@@ -13,12 +15,18 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -32,6 +40,8 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
     LinearLayoutCompat.LayoutParams layoutParams;
 
+    ConversationDao conversationDao;
+
     public ConversationReceivedViewHandler(@NonNull View itemView) {
         super(itemView);
         receivedMessage = itemView.findViewById(R.id.message_received_text);
@@ -42,6 +52,8 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
         layoutParams.bottomMargin = Helpers.dpToPixel(16);
         linearLayoutCompat.setLayoutParams(layoutParams);
+
+        conversationDao = Conversation.getDao(itemView.getContext());
     }
 
     @Override
@@ -145,8 +157,74 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         @Override
         public void bind(Conversation conversation, String searchString) {
             super.bind(conversation, searchString);
-            receivedMessage.setText(itemView.getContext().getString(R.string.conversation_key_title_request));
             receivedMessage.setTextAppearance(R.style.key_request_initiated);
+            try {
+                String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(),
+                        0);
+                byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
+                boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);
+
+                if(isValidKey) {
+                    byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
+                    final int[] keyType = {-1};
+                    Thread thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                keyType[0] = E2EEHandler.getKeyType(itemView.getContext(), keystoreAlias,
+                                        extractedTransmissionKey);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    thread.start();
+                    thread.join();
+
+                    if (keyType[0] == E2EEHandler.AGREEMENT_KEY) {
+                        receivedMessage.setText(
+                                itemView.getContext().getString(R.string.conversation_key_title_agree));
+
+                        receivedMessage.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            E2EEHandler.insertNewPeerPublicKey(itemView.getContext(),
+                                                    extractedTransmissionKey, keystoreAlias);
+
+                                            byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(
+                                                    itemView.getContext(), conversation.getAddress());
+
+                                            Conversation transmitConversation =
+                                                    Conversation.buildForDataTransmission(conversation,
+                                                            transmissionRequest);
+
+                                            long id = conversationDao.insert(transmitConversation);
+                                            SMSDatabaseWrapper.send_data(itemView.getContext(),
+                                                    transmitConversation);
+
+                                            transmitConversation.setId(id);
+                                            conversationDao.update(transmitConversation);
+
+                                            Toast.makeText(itemView.getContext(), "Request made!",
+                                                    Toast.LENGTH_SHORT).show();
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }).start();
+                            }
+                        });
+
+                    } else receivedMessage.setText(
+                            itemView.getContext().getString(R.string.conversation_threads_secured_content));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
     public static class TimestampKeyReceivedViewHandler extends KeyReceivedViewHandler {

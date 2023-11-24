@@ -77,15 +77,15 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            if(isValidKey) {
-                                try {
-                                    processForEncryptionKey(context, conversation);
-                                } catch (NumberParseException | CertificateException |
-                                         KeyStoreException | IOException |
-                                         NoSuchAlgorithmException | InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
+//                            if(isValidKey) {
+//                                try {
+//                                    processForEncryptionKey(context, conversation);
+//                                } catch (NumberParseException | CertificateException |
+//                                         KeyStoreException | IOException |
+//                                         NoSuchAlgorithmException | InterruptedException e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
 
                             ConversationDao conversationDao = Conversation.getDao(context);
                             conversationDao.insert(conversation);
@@ -108,27 +108,17 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
-        byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-        boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);
-
-        if(isValidKey) {
-            String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
-            byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
-            // TODO
-            switch(E2EEHandler.getKeyType(context, keystoreAlias, extractedTransmissionKey)) {
-                case E2EEHandler.REQUEST_KEY:
-                    break;
-                case E2EEHandler.AGREEMENT_KEY:
-                    break;
-                case E2EEHandler.IGNORE_KEY:
-                default:
-                    break;
-            }
-            E2EEHandler.insertNewPeerPublicKey(context, extractedTransmissionKey, keystoreAlias);
-        }
-        Log.d(getClass().getName(), "Is Encrypted data: " + isValidKey);
-
-        return isValidKey;
-    }
+//    boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
+//        byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
+//        boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);
+//
+//        if(isValidKey) {
+//            String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
+//            byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
+//            E2EEHandler.insertNewPeerPublicKey(context, extractedTransmissionKey, keystoreAlias);
+//        }
+//        Log.d(getClass().getName(), "Is Encrypted data: " + isValidKey);
+//
+//        return isValidKey;
+//    }
 }
