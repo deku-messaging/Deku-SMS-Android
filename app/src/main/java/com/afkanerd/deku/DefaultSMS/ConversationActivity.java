@@ -10,7 +10,6 @@ import android.provider.Telephony;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,6 +21,7 @@ import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.MenuItemCompat;
@@ -96,7 +96,7 @@ public class ConversationActivity extends E2EECompactActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations);
-//        test();
+        test();
 
         toolbar = (Toolbar) findViewById(R.id.conversation_toolbar);
         setSupportActionBar(toolbar);
@@ -119,7 +119,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void test() {
         if(BuildConfig.DEBUG)
-            getIntent().putExtra(SEARCH_STRING, "hey");
+            getIntent().putExtra(SEARCH_STRING, "Android");
     }
 
     @Override
@@ -408,7 +408,7 @@ public class ConversationActivity extends E2EECompactActivity {
                             return;
                         }
                         else if(actionMode == null) {
-                            actionMode = startActionMode(actionModeCallback);
+                            actionMode = startSupportActionMode(actionModeCallback);
                         }
                         if(selectedItems.size() > 1 && actionMode != null)
                             actionMode.invalidate();
@@ -427,7 +427,7 @@ public class ConversationActivity extends E2EECompactActivity {
     private void configureSearchBox() {
 //        findViewById(R.id.conversations_pop_ups_layouts).setVisibility(View.VISIBLE);
         findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
-        actionMode = startActionMode(searchActionModeCallback);
+        actionMode = startSupportActionMode(searchActionModeCallback);
     }
 
     private void configureToolbars() {
@@ -581,11 +581,18 @@ public class ConversationActivity extends E2EECompactActivity {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            Objects.requireNonNull(getSupportActionBar()).hide();
+
             View viewGroup = getLayoutInflater().inflate(R.layout.conversation_search_bar_layout,
                     null);
             mode.setCustomView(viewGroup);
 
-            toolbar.setVisibility(View.GONE);
+//            MenuInflater inflater = mode.getMenuInflater();
+//            inflater.inflate(R.menu.conversations_menu_search, menu);
+//
+//            MenuItem searchItem = menu.findItem(R.id.conversations_search_active);
+//            searchItem.expandActionView();
+
             String searchString = getIntent().getStringExtra(SEARCH_STRING);
             getIntent().removeExtra(SEARCH_STRING);
 
@@ -641,6 +648,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            Objects.requireNonNull(getSupportActionBar()).hide();
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(R.menu.conversations_menu_item_selected, menu);
             return true;
@@ -682,6 +690,7 @@ public class ConversationActivity extends E2EECompactActivity {
         // Called when the user exits the action mode.
         @Override
         public void onDestroyActionMode(ActionMode mode) {
+            Objects.requireNonNull(getSupportActionBar()).show();
             actionMode = null;
             conversationsRecyclerAdapter.resetAllSelectedItems();
         }
