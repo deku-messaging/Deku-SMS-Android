@@ -7,7 +7,7 @@
     android:layout_height="wrap_content">
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/send_text"
+        android:id="@+id/conversations_send_text_layout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -21,7 +21,7 @@
         app:placeholderText="@string/send_message_text_box_hint">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/sms_text"
+            android:id="@+id/conversation_send_text_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text|textAutoComplete|textAutoCorrect|textCapSentences|textEnableTextConversionSuggestions|textMultiLine"

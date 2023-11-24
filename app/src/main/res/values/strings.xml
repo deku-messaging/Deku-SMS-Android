@@ -214,7 +214,9 @@
     <string name="about_deku_github_url">https://github.com/deku-messaging/Deku-SMS-Android</string>
 
     <string name="send_message_text_box_hint">Text Message</string>
+    <string name="send_message_secured_text_box_hint">Text Message (secured)</string>
     <string name="conversations_menu_call_title">Call</string>
+    <string name="conversations_menu_encrypt_title">Encrypt</string>
     <string name="conversations_menu_search_title">Search</string>
 
     <string name="conversations_search_results_found">results founds</string>

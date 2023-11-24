@@ -5,9 +5,11 @@ import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModel;
 import androidx.preference.PreferenceManager;
@@ -131,6 +133,18 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
             }
         }).start();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (R.id.conversation_main_menu_encrypt_lock == item.getItemId()) {
+            if(securePopUpRequest != null) {
+                securePopUpRequest.setVisibility(securePopUpRequest.getVisibility() == View.VISIBLE ?
+                        View.GONE : View.VISIBLE);
+                return true;
+            }
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

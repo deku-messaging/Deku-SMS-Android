@@ -4,9 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.provider.Telephony;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -19,19 +17,15 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.view.MenuItemCompat;
 import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.paging.PagingData;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -44,11 +38,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
-import com.google.android.material.search.SearchView;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -96,7 +87,7 @@ public class ConversationActivity extends E2EECompactActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations);
-        test();
+//        test();
 
         toolbar = (Toolbar) findViewById(R.id.conversation_toolbar);
         setSupportActionBar(toolbar);
@@ -128,8 +119,23 @@ public class ConversationActivity extends E2EECompactActivity {
         if(this.conversationsViewModel != null) {
             conversationsViewModel.updateToRead(getApplicationContext());
         }
-        TextInputLayout layout = findViewById(R.id.send_text);
+        TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
+                            E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(),
+                                    0) )) {
+                        layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     @Override
@@ -168,10 +174,10 @@ public class ConversationActivity extends E2EECompactActivity {
             intent.putExtra(Conversation.THREAD_ID, threadedConversations.getThread_id());
             startActivity(intent);
         }
-        if(isSearchActive()) {
-            resetSearch();
-            return true;
-        }
+//        if(isSearchActive()) {
+//            resetSearch();
+//            return true;
+//        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -253,7 +259,7 @@ public class ConversationActivity extends E2EECompactActivity {
         backSearchBtn = findViewById(R.id.conversation_search_found_back_btn);
         forwardSearchBtn = findViewById(R.id.conversation_search_found_forward_btn);
 
-        smsTextView = findViewById(R.id.sms_text);
+        smsTextView = findViewById(R.id.conversation_send_text_input);
         singleMessagesThreadRecyclerView = findViewById(R.id.single_messages_thread_recycler_view);
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setStackFromEnd(false);
