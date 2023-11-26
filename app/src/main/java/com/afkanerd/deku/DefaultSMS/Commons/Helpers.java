@@ -106,6 +106,7 @@ public class Helpers {
     public static boolean isShortCode(ThreadedConversations threadedConversations) {
         Pattern pattern = Pattern.compile("[a-zA-Z]");
         Matcher matcher = pattern.matcher(threadedConversations.getAddress());
+        Log.d(Helpers.class.getName(), "Notifying for: " + threadedConversations.getAddress());
         return !PhoneNumberUtils.isWellFormedSmsAddress(threadedConversations.getAddress()) || matcher.find();
     }
 
