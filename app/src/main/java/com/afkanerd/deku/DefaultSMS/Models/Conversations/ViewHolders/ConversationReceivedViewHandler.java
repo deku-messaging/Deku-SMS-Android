@@ -95,7 +95,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                         text[0] = new String(E2EEHandler.decryptText(itemView.getContext(), keystoreAlias, extractedText));
                     }
                 } catch (Exception e) {
-//                    e.printStackTrace();
+                    e.printStackTrace();
                 }
             }
         });
@@ -158,6 +158,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         public void bind(Conversation conversation, String searchString) {
             super.bind(conversation, searchString);
             receivedMessage.setTextAppearance(R.style.key_request_initiated);
+
             try {
                 String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(),
                         0);
@@ -165,7 +166,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                 boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);
 
                 if(isValidKey) {
-                    byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
+                    final byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
                     final int[] keyType = {-1};
                     Thread thread = new Thread(new Runnable() {
                         @Override
@@ -181,7 +182,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                     thread.start();
                     thread.join();
 
-                    if (keyType[0] == E2EEHandler.AGREEMENT_KEY) {
+                    if (keyType[0] == E2EEHandler.REQUEST_KEY ) {
                         receivedMessage.setText(
                                 itemView.getContext().getString(R.string.conversation_key_title_agree));
 
@@ -192,8 +193,8 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                                     @Override
                                     public void run() {
                                         try {
-                                            E2EEHandler.insertNewPeerPublicKey(itemView.getContext(),
-                                                    extractedTransmissionKey, keystoreAlias);
+                                            if (E2EEHandler.canCommunicateSecurely(itemView.getContext(), keystoreAlias))
+                                                return;
 
                                             byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(
                                                     itemView.getContext(), conversation.getAddress());
@@ -208,9 +209,6 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
                                             transmitConversation.setId(id);
                                             conversationDao.update(transmitConversation);
-
-                                            Toast.makeText(itemView.getContext(), "Request made!",
-                                                    Toast.LENGTH_SHORT).show();
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -222,6 +220,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                     } else receivedMessage.setText(
                             itemView.getContext().getString(R.string.conversation_threads_secured_content));
                 }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }

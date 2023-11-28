@@ -32,13 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NotificationsHandler {
+
+
     @SuppressLint("MissingPermission")
     public static void sendIncomingTextMessageNotification(Context context, Conversation conversation) {
-        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
-        if(contactName != null)
-            conversation.setAddress(contactName);
-
-
         NotificationCompat.MessagingStyle messagingStyle = getMessagingStyle(context, conversation, null);
 
         Intent replyIntent = getReplyIntent(context, conversation);
@@ -58,9 +55,10 @@ public class NotificationsHandler {
                 receivedIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    public static Person getPerson(Conversation conversation) {
+    public static Person getPerson(Context context, Conversation conversation) {
+        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
         Person.Builder personBuilder = new Person.Builder()
-                .setName(conversation.getAddress())
+                .setName(contactName == null ? conversation.getAddress() : contactName)
                 .setKey(conversation.getThread_id());
         return personBuilder.build();
     }
@@ -104,12 +102,14 @@ public class NotificationsHandler {
                                                                       Conversation conversation, String reply) {
 
 
-        Person person = getPerson(conversation);
+        Person person = getPerson(context, conversation);
 
         Person.Builder personBuilder = new Person.Builder()
                 .setName(context.getString(R.string.notification_title_reply_you))
                 .setKey(context.getString(R.string.notification_title_reply_you));
         Person replyPerson = personBuilder.build();
+        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
+        Log.d(Helpers.class.getName(), "Name: " + contactName + " - " + String.valueOf(contactName == null));
 
         NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person);
 
@@ -125,7 +125,8 @@ public class NotificationsHandler {
                 MessageTrackers messageTrackers = new MessageTrackers();
                 messageTrackers.message.append(prevMessage);
                 messageTrackers.title = prevTitle;
-                messageTrackers.person = prevTitle.equals(conversation.getAddress()) ?
+                messageTrackers.person = prevTitle.equals(contactName == null ?
+                        conversation.getAddress() : contactName) ?
                         person : replyPerson;
                 listMessages.add(messageTrackers);
             }
@@ -135,7 +136,7 @@ public class NotificationsHandler {
                 context.getString(R.string.notification_title_new_key) :
                 reply == null ? conversation.getText() : reply);
         messageTrackers.title = reply == null ?
-                conversation.getAddress() : context.getString(R.string.notification_title_reply_you);
+                (contactName == null ? conversation.getAddress() : contactName) : context.getString(R.string.notification_title_reply_you);
         messageTrackers.person = reply == null ? person : replyPerson;
         listMessages.add(messageTrackers);
 
@@ -144,9 +145,9 @@ public class NotificationsHandler {
 
         List<MessageTrackers> newTrackers = new ArrayList<>();
         for(MessageTrackers messageTracker : listMessages) {
-            if(messageTracker.title.equals(conversation.getAddress())) {
+            if(messageTracker.title.equals(contactName == null ? conversation.getAddress(): contactName)) {
                 if(personConversations.length() > 0)
-                    personConversations.append("\n");
+                    personConversations.append("\n\n");
                 personConversations.append(messageTracker.message);
                 if(replyConversations.length() > 0) {
                     MessageTrackers messageTrackers1 = new MessageTrackers();
@@ -158,7 +159,7 @@ public class NotificationsHandler {
             }
             else {
                 if(replyConversations.length() > 0)
-                    replyConversations.append("\n");
+                    replyConversations.append("\n\n");
                 replyConversations.append(messageTracker.message);
                 if(personConversations.length() > 0) {
                     MessageTrackers messageTrackers1 = new MessageTrackers();
@@ -199,14 +200,15 @@ public class NotificationsHandler {
 
         String shortcutInfo = getShortcutInfo(context, conversation);
 
+        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
         NotificationCompat.BubbleMetadata bubbleMetadata = new NotificationCompat.BubbleMetadata
-                .Builder(conversation.getAddress())
+                .Builder(contactName == null ? conversation.getAddress() : contactName)
                 .setDesiredHeight(400)
                 .build();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 context, context.getString(R.string.incoming_messages_channel_id))
-                .setContentTitle(conversation.getAddress())
+                .setContentTitle(contactName == null ? conversation.getAddress() : contactName)
                 .setWhen(System.currentTimeMillis())
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setSmallIcon(R.drawable.ic_stat_name)
@@ -267,13 +269,14 @@ public class NotificationsHandler {
         Intent intent = new Intent(Intent.ACTION_SENDTO, smsUrl);
         intent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
 
-        Person person = getPerson(conversation);
+        Person person = getPerson(context, conversation);
+        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
 
         ShortcutInfoCompat shortcutInfoCompat = new ShortcutInfoCompat.Builder(context,
-                conversation.getAddress())
+                contactName == null ? conversation.getAddress() : contactName)
                 .setLongLived(true)
                 .setIntent(intent)
-                .setShortLabel(conversation.getAddress())
+                .setShortLabel(contactName == null ? conversation.getAddress() : contactName)
                 .setPerson(person)
                 .build();
 

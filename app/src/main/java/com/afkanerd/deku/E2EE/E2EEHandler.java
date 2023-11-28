@@ -201,9 +201,10 @@ public class E2EEHandler {
         List<CustomKeyStore> customKeyStore = customKeyStoreDao.getAll();
 
         for(CustomKeyStore customKeyStore1 : customKeyStore) {
-            removeFromKeystore(context, customKeyStore1.getKeystoreAlias());
             removeFromEncryptionDatabase(context, customKeyStore1.getKeystoreAlias());
         }
+
+        SecurityECDH.removeAllFromKeystore(context);
     }
 
     public final static int REQUEST_KEY = 0;

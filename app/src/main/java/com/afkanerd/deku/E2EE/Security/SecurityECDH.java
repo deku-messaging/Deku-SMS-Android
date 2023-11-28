@@ -44,6 +44,7 @@ import java.security.spec.ECParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Enumeration;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -88,6 +89,16 @@ public class SecurityECDH {
         thread.join();
 
         return numberUpdated[0];
+    }
+
+    public static void removeAllFromKeystore(Context context) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        Enumeration<String> aliases = keyStore.aliases();
+        if(aliases.hasMoreElements())
+            do {
+                keyStore.deleteEntry(aliases.nextElement());
+            } while(aliases.hasMoreElements());
     }
 
     public static int removeFromKeystore(Context context, String keystoreAlias) throws KeyStoreException,

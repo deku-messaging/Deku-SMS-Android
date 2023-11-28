@@ -43,6 +43,10 @@ import java.util.concurrent.TimeoutException;
 
 public class RouterHandler {
     public static final String TAG_WORKER_ID = "swob.work.id.";
+    public static int MESSAGE_ID = 0;
+    public static int WORK_NAME = 1;
+    public static int ROUTING_URL = 2;
+    public static int ROUTING_ID = 3;
 
     public static void routeJsonMessages(Context context, String jsonStringBody, String gatewayServerUrl)
             throws ExecutionException, InterruptedException, TimeoutException, JSONException {
@@ -148,10 +152,6 @@ public class RouterHandler {
         workManager.cancelAllWorkByTag(tag);
     }
 
-    public static int MESSAGE_ID = 0;
-    public static int WORK_NAME = 1;
-    public static int ROUTING_URL = 2;
-    public static int ROUTING_ID = 3;
     public static ArrayList<String[]> getMessageIdsFromWorkManagers(Context context) {
 
         WorkQuery workQuery = WorkQuery.Builder
