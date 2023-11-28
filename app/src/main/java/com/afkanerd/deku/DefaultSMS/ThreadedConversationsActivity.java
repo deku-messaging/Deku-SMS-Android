@@ -81,7 +81,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
         fragmentManagement();
-        setViewModel(threadedConversationsViewModel);
         configureBroadcastListeners();
     }
 
@@ -227,8 +226,30 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        setViewModel(null);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        setViewModel(threadedConversationsViewModel);
+
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        if(sharedPreferences.getBoolean(LOAD_NATIVES, true) ) {
+            sharedPreferences.edit().putBoolean(LOAD_NATIVES, false).apply();
+            threadedConversationsViewModel.loadNatives(getApplicationContext());
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    loadConversationsFromNative(getApplicationContext());
+                }
+            }).start();
+        }
+
+        threadedConversationsViewModel.refresh(getApplicationContext(), null);
     }
 
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
@@ -329,26 +350,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 recyclerAdapter.resetAllSelectedItems();
         }
     };
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-
-        SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        if(sharedPreferences.getBoolean(LOAD_NATIVES, true) ) {
-            sharedPreferences.edit().putBoolean(LOAD_NATIVES, false).apply();
-            threadedConversationsViewModel.loadNatives(getApplicationContext());
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    loadConversationsFromNative(getApplicationContext());
-                }
-            }).start();
-        }
-
-        threadedConversationsViewModel.refresh(getApplicationContext());
-    }
 
     private void loadConversationsFromNative(Context context) {
         Cursor cursor = NativeSMSDB.fetchAll(context);
