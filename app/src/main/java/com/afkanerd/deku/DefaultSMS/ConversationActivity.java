@@ -129,7 +129,12 @@ public class ConversationActivity extends E2EECompactActivity {
                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
                             E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(),
                                     0) )) {
-                        layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                            }
+                        });
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
