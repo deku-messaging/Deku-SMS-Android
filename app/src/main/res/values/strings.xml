@@ -242,6 +242,6 @@
     <string name="conversation_secure_popup_request_menu_yes">Send</string>
     <string name="conversation_secure_popup_request_menu_cancel">Cancel</string>
     <string name="conversation_secure_popup_request_menu_title">Secure Conversation Request</string>
-    <string name="conversation_secure_popup_request_menu_description">Secure communications request will send an SMS to [contact name]. \n\nThey will need have Deku SMS installed to receive this request.</string>
+    <string name="conversation_secure_popup_request_menu_description">A secure communications request will send an SMS to [contact name]. \n\nThey will need have Deku SMS installed to receive this request.</string>
     <string name="conversation_secure_popup_request_menu_description_subtext">* SMS cost still applies</string>
 </resources>
