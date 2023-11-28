@@ -156,13 +156,9 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                 Conversation conversation = conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
                                 try {
-                                    SharedPreferences sharedPreferences =
-                                            PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                            E2EEHandler.getKeyStoreAlias(
-                                                    conversation.getAddress(), 0)) &&
-                                    !sharedPreferences.getBoolean(
-                                            E2EECompactActivity.INFORMED_SECURED, false)) {
+                                            E2EEHandler.getKeyStoreAlias( conversation.getAddress(),
+                                                    0))) {
                                         informSecured(true);
                                     }
                                 } catch (CertificateException | KeyStoreException | IOException |

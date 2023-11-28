@@ -68,6 +68,7 @@ public class Conversation {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration8To9())
+                .enableMultiInstanceInvalidation()
                 .build();
         ConversationDao conversationDao =  databaseConnector.conversationDao();
         databaseConnector.close();
