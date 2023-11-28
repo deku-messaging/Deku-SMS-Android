@@ -228,7 +228,14 @@ public class ThreadedConversations {
             this.setAvatar_color(Helpers.generateColor(this.contact_name));
         } else {
             this.setAvatar_initials(null);
-            this.setAvatar_color(Helpers.generateColor(this.getAddress()));
+            try {
+                if (this.getAddress() != null && !this.getAddress().isEmpty())
+                    this.setAvatar_color(Helpers.generateColor(this.getAddress()));
+                else
+                    this.setAvatar_color(Helpers.getRandomColor());
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
