@@ -5,24 +5,12 @@
     android:theme="@style/Theme.main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GatewayServerAddActivity">
+    tools:context="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity">
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/new_gateway_client_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="?attr/actionBarSize"
-            android:theme="?attr/actionBarTheme"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:title="@string/add_new_gateway_server_toolbar_title" />
-
         <TextView
             android:id="@+id/new_gateway_descriptive_text"
             android:layout_width="wrap_content"
@@ -31,7 +19,7 @@
             android:text="@string/new_gateway_client_url"
             android:textColor="@color/disabled_gray"
             app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_client_toolbar" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/new_gateway_client_input_constraint"
@@ -49,7 +37,6 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-thin"
                 android:gravity="center"
                 app:boxBackgroundColor="@color/received_message_color"
                 app:boxCornerRadiusBottomEnd="50dp"
@@ -103,7 +90,6 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-thin"
                 android:gravity="center"
                 app:boxBackgroundColor="@color/received_message_color"
                 app:boxCornerRadiusBottomEnd="50dp"
@@ -156,7 +142,6 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-thin"
                 android:gravity="center"
                 app:boxBackgroundColor="@color/received_message_color"
                 app:boxCornerRadiusBottomEnd="50dp"
@@ -209,7 +194,6 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-thin"
                 android:gravity="center"
                 app:boxBackgroundColor="@color/received_message_color"
                 app:boxCornerRadiusBottomEnd="50dp"
@@ -261,7 +245,6 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-thin"
                 android:gravity="center"
                 app:boxBackgroundColor="@color/received_message_color"
                 app:boxCornerRadiusBottomEnd="50dp"
@@ -314,7 +297,6 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-thin"
                 android:gravity="center"
                 app:boxBackgroundColor="@color/received_message_color"
                 app:boxCornerRadiusBottomEnd="50dp"
@@ -349,7 +331,6 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/compose_message_drawable"
-            android:fontFamily="sans-serif"
             android:onClick="onSaveGatewayClient"
             android:text="@string/save_new_gateway_client"
             android:textAllCaps="false"
@@ -374,7 +355,6 @@
                 android:id="@+id/add_gateway_client_protocol_amqp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:fontFamily="sans-serif"
                 android:text="@string/settings_gateway_client_amqp_protocol"
                 android:textSize="14sp" />
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/gateway_client_delete"
+        android:title="@string/gateway_client_customization_delete"
+        android:icon="@drawable/round_delete_24"
+        app:showAsAction="always" />
+</menu>

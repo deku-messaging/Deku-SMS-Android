@@ -1,0 +1,4 @@
+- fix: multi device support for linked devices
+- update: seperated workManagers routings into differents items
+- update: added About page
+- update: fixed issues with broadcast and version builds

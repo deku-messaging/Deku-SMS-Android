@@ -1,22 +1,56 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+	id "com.diffplug.spotless" version "6.20.0"
 }
 
+import com.android.tools.profgen.ArtProfileKt
+import com.android.tools.profgen.ArtProfileSerializer
+import com.android.tools.profgen.DexFile
+
+// def keystorePropertiesFile = rootProject.file("keystore.properties")
+// def keystoreProperties = new Properties()
+// keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+def versionsPropertiesFile = rootProject.file("version.properties")
+def versionProperties = new Properties()
+versionProperties.load(new FileInputStream(versionsPropertiesFile))
+
+def minSdkVersionFromManifest = project.properties['minSdkVersion']
+
 android {
-    compileSdk 33
+    compileSdk 34
+    namespace 'com.afkanerd.deku.DefaultSMS'
+
+    def nightlyVersion = Integer.parseInt(versionProperties['nightlyVersion'])
+    def stagingVersion = Integer.parseInt(versionProperties['stagingVersion'])
+    def releaseVersion = Integer.parseInt(versionProperties['releaseVersion'])
+    def _versionName = versionProperties['versionName']
+    def tagVersion = Integer.parseInt(versionProperties['tagVersion'])
+
+    println(tagVersion)
+    println(_versionName)
 
     defaultConfig {
         applicationId "com.afkanerd.deku"
-        minSdk 23
-        targetSdk 33
-        versionCode 24
-        versionName "24.0"
+        minSdk 24
+        targetSdk 34
+        versionCode tagVersion
+        versionName _versionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+            java {
+                exclude 'com/afkanerd/deku/Images/Images/'
+                /* The holder name I want to excludes its all classes */
             }
         }
     }
@@ -26,7 +60,13 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
+        nightly {
+            versionNameSuffix "-nightly"
+            debuggable true
+        }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -35,45 +75,84 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
-    namespace 'com.example.swob_deku'
+
+	project.afterEvaluate {
+	    tasks.compileReleaseArtProfile.doLast {
+            outputs.files.each { file ->
+                if (file.name.endsWith(".profm")) {
+                    exec {
+                        commandLine(
+                        "../reproducible-apk-tools/inplace-fix.py",
+                        "sort-baseline", file
+                        )
+                    }
+                }
+            }
+	    }
+	}
+
+
+	project.afterEvaluate {
+        tasks.each { task ->
+            if (task.name.startsWith("compile") && task.name.endsWith("ReleaseArtProfile")) {
+                task.doLast {
+                    outputs.files.each { file ->
+                        if (file.name.endsWith(".profm")) {
+                            println("Sorting ${file} ...")
+                            def version = ArtProfileSerializer.valueOf("METADATA_0_0_2")
+                            def profile = ArtProfileKt.ArtProfile(file)
+                            def keys = new ArrayList(profile.profileData.keySet())
+                            def sortedData = new LinkedHashMap()
+                            Collections.sort keys, new DexFile.Companion()
+                            keys.each { key -> sortedData[key] = profile.profileData[key] }
+                            new FileOutputStream(file).with {
+                                write(version.magicBytes$profgen)
+                                write(version.versionBytes$profgen)
+                                version.write$profgen(it, sortedData, "")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 }
 
 dependencies {
+    def paging_version = "3.2.1"
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    // optional - Test helpers
+    androidTestImplementation "androidx.work:work-testing:2.8.1"
+    // alternatively - without Android dependencies for tests
+    testImplementation "androidx.paging:paging-common:$paging_version"
 
     implementation "androidx.work:work-runtime:2.8.1"
     implementation "androidx.work:work-rxjava2:2.8.1"
     // optional - GCMNetworkManager support
-    implementation 'androidx.core:core-ktx:1.10.0'
-    implementation 'androidx.paging:paging-guava:3.1.1'
-    // optional - Test helpers
-    androidTestImplementation "androidx.work:work-testing:2.8.1"
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.paging:paging-guava:3.2.1'
     // optional - Multiprocess support
     implementation "androidx.work:work-multiprocess:2.8.1"
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.android.volley:volley:1.2.1'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    implementation "androidx.core:core:1.10.1"
+    implementation "androidx.core:core:1.12.0"
 
-    implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'commons-codec:commons-codec:1.15'
     implementation "io.getstream:avatarview-coil:1.0.7"
 
-    implementation "androidx.room:room-runtime:2.6.0-alpha01"
-    annotationProcessor "androidx.room:room-compiler:2.6.0-alpha01"
-
-    def paging_version = "3.2.0-beta01"
+    implementation "androidx.room:room-runtime:2.6.0"
+    implementation "androidx.room:room-paging:2.6.0"
+    annotationProcessor "androidx.room:room-compiler:2.6.0"
 
     implementation "androidx.paging:paging-runtime:$paging_version"
-
-    // alternatively - without Android dependencies for tests
-    testImplementation "androidx.paging:paging-common:$paging_version"
 
     // optional - RxJava2 support
     implementation "androidx.paging:paging-rxjava2:$paging_version"
@@ -85,20 +164,21 @@ dependencies {
     implementation "androidx.paging:paging-guava:$paging_version"
 
     // optional - Jetpack Compose integration
-    implementation "androidx.paging:paging-compose:3.2.0-beta01"
+    implementation "androidx.paging:paging-compose:3.2.1"
 
-//    implementation "org.bouncycastle:bcpkix-jdk15on:1.68"
-    implementation "androidx.security:security-crypto:1.1.0-alpha06"
-
-//    implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.13'
-    implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.34'
-    implementation 'io.michaelrocks:libphonenumber-android:8.13.10'
+    implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.54'
 
     implementation 'com.madgag.spongycastle:prov:1.58.0.0'
 
     implementation 'net.jpountz.lz4:lz4:1.3.0'
-    implementation 'androidx.preference:preference:1.2.0'
+    implementation 'androidx.preference:preference:1.2.1'
 
     implementation 'com.rabbitmq:amqp-client:5.10.0'
 
+    implementation 'org.java-websocket:Java-WebSocket:1.5.1'
+
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    implementation 'com.budiyev.android:code-scanner:2.1.0'
 }
+

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:icon="@drawable/baseline_enhanced_encryption_24"
+        android:id="@+id/conversation_main_menu_encrypt_lock"
+        app:showAsAction="ifRoom"
+        android:title="@string/conversations_menu_encrypt_title"/>
+    <item
+        android:icon="@drawable/round_call_24"
+        android:id="@+id/conversation_main_menu_call"
+        app:showAsAction="ifRoom"
+        android:title="@string/conversations_menu_call_title"/>
+    <item
+        android:icon="@drawable/ic_outline_search_24"
+        android:id="@+id/conversation_main_menu_search"
+        app:showAsAction="ifRoom"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        android:title="@string/conversations_menu_search_title"/>
+
+</menu>

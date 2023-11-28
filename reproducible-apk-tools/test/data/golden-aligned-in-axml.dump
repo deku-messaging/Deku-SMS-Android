@@ -1,0 +1,20 @@
+N: android=http://schemas.android.com/apk/res/android (line=16)
+  E: manifest (line=16)
+    A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=10
+    A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="1.0" (Raw: "1.0")
+    A: package="android.appsecurity.cts.tinyapp" (Raw: "android.appsecurity.cts.tinyapp")
+    A: platformBuildVersionCode=23 (Raw: "23")
+    A: platformBuildVersionName="6.0-2166767" (Raw: "6.0-2166767")
+      E: uses-sdk (line=0)
+        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=23
+        A: http://schemas.android.com/apk/res/android:targetSdkVersion(0x01010270)=23
+      E: application (line=20)
+        A: http://schemas.android.com/apk/res/android:label(0x01010001)=@0x7f020000
+          E: activity (line=21)
+            A: http://schemas.android.com/apk/res/android:label(0x01010001)=@0x7f020000
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)=".MainActivity" (Raw: ".MainActivity")
+              E: intent-filter (line=24)
+                  E: action (line=25)
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.action.MAIN" (Raw: "android.intent.action.MAIN")
+                  E: category (line=26)
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.category.LAUNCHER" (Raw: "android.intent.category.LAUNCHER")

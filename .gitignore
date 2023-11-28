@@ -13,5 +13,11 @@
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 *.aab
+*.apk
+local.properties
+keystore.properties
+*.jks
+ks.passwd
+venv/*
+/release.properties

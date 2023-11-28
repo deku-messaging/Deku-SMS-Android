@@ -1,0 +1,9 @@
+--- level6.apk
++++ level9.apk
+entry LICENSE.GPLv3:
+- compress_size=12112
++ compress_size=12106
+- compresslevel=6
++ compresslevel=9
+- compress_crc=0x239c1219
++ compress_crc=0x6e60f3de

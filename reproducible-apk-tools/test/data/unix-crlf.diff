@@ -1,0 +1,11 @@
+--- unix.apk
++++ crlf.apk
+entry LICENSE.GPLv3:
+- CRC=2540125440
++ CRC=3469622163
+- compress_size=12112
++ compress_size=12289
+- file_size=35149
++ file_size=35823
+- compress_crc=0x239c1219
++ compress_crc=0xe097b554

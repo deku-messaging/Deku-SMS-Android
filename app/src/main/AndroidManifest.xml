@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-sdk android:minSdkVersion="@{minSdk}" />
+
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_SMS" />
@@ -12,83 +14,133 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:icon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.main"
-        android:usesCleartextTraffic="false">
+        android:enableOnBackInvokedCallback="true"
+        android:theme="@style/Theme.main">
+
         <activity
-            android:name=".GatewayClientCustomizationActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.AboutActivity"
             android:exported="false"
-            android:parentActivityName=".GatewayClientListingActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"/>
         <activity
-            android:name=".GatewayClientAddActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity"
+            android:exported="false">
+            <meta-data
+                android:name="com.google.android.gms.vision.DEPENDENCIES"
+                android:value="barcode" />
+        </activity>
+        <activity
+            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientCustomizationActivity"
             android:exported="false"
-            android:parentActivityName=".GatewayClientListingActivity" />
+            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity
-            android:name=".GatewayClientListingActivity"
+            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
             android:exported="false"
-            android:parentActivityName=".SettingsActivity" />
+            android:label="@string/add_new_gateway_server_toolbar_title"
+            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity"
             android:exported="false"
-            android:parentActivityName=".MessagesThreadsActivity" />
+            android:label="@string/gateway_client_listing_toolbar_title"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.SettingsActivity" />
         <activity
-            android:name=".ComposeNewMessageActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.SettingsActivity"
             android:exported="false"
-            android:parentActivityName=".MessagesThreadsActivity" />
+            android:label="@string/settings_title"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity" />
         <activity
-            android:name=".ArchivedMessagesActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.ComposeNewMessageActivity"
+            android:exported="true"
+            android:label="@string/compose_new_message_title"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
+            android:windowSoftInputMode="stateAlwaysHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity"
             android:exported="false"
-            android:parentActivityName=".MessagesThreadsActivity" />
+            android:label="@string/archived_messages_toolbar_title"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity" />
         <activity
-            android:name=".ImageViewActivity"
+            android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"
-            android:parentActivityName=".SMSSendActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ConversationActivity" />
         <activity
-            android:name=".RespondViaMessageActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.RespondViaMessageActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
         <activity
-            android:name=".GatewayServerListingActivity"
+            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity"
             android:exported="false"
-            android:parentActivityName=".SettingsActivity">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
+            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity"/>
+        <activity
+            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity"
+            android:exported="false"
+            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity" />
+        <activity
+            android:name="com.afkanerd.deku.Router.Router.RouterActivity"
+            android:label="@string/settings_SMS_routing_title"
+            android:exported="false"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity" />
+        <activity
+            android:name="com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity"
+            android:exported="false"
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity">
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.SEARCH"/> -->
+            <!-- </intent-filter> -->
+            <!-- <meta-data android:name="android.app.searchable" -->
+            <!-- android:resource="@xml/searchable"/> -->
+            <!-- <meta-data android:name="android.app.default_searchable" -->
+            <!-- android:value=".SearchMessagesThreadsActivity"/> -->
         </activity>
         <activity
-            android:name=".GatewayServerAddActivity"
-            android:exported="false"
-            android:parentActivityName=".GatewayServerListingActivity" />
-        <activity
-            android:name=".RouterActivity"
-            android:exported="false"
-            android:parentActivityName=".DefaultCheckActivity" />
-        <activity
-            android:name=".SearchMessagesThreadsActivity"
-            android:exported="false"
-            android:parentActivityName=".DefaultCheckActivity" />
-        <activity
-            android:name=".MessagesThreadsActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
             android:exported="false" />
         <activity
-            android:name=".SMSSendActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.ConversationActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:parentActivityName=".MessagesThreadsActivity"
-            android:windowSoftInputMode="adjustResize">
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
+            android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SENDTO" />
+
+
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
+
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -100,7 +152,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".DefaultCheckActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -110,7 +162,7 @@
         </activity>
 
         <receiver
-            android:name=".BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -122,18 +174,20 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
-                <!-- <category android:name="android.intent.category.DEFAULT" /> -->
-                <!-- <category android:name="android.intent.category.BROWSABLE" /> -->
+                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_SENT_BROADCAST_INTENT" />
+                <action android:name="com.afkanerd.deku.DATA_DELIVERED_BROADCAST_INTENT" />
             </intent-filter>
-        </receiver> <!-- BroadcastReceiver that listens for incoming MMS messages -->
+        </receiver>
         <receiver
-            android:name=".BroadcastReceivers.MMSReceiverBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.MMSReceiverBroadcastReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter>
@@ -143,36 +197,34 @@
             </intent-filter>
         </receiver> <!-- Activity that allows the user to send new SMS/MMS messages -->
         <receiver
-            android:name=".BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.afkanerd.deku.REPLY_BROADCAST_ACTION" />
                 <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
-                <action android:name="com.afkanerd.deku.SMS_DELIVERED_BROADCAST_INTENT" />
-                <action android:name="com.afkanerd.deku.SMS_SENT_BROADCAST_INTENT" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST"/>
+                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
+            android:name="com.afkanerd.deku.DefaultSMS.BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST"/>
-                <action android:name="com.afkanerd.deku.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST"/>
+                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST" />
+                <action android:name="com.afkanerd.deku.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST" />
             </intent-filter>
         </receiver>
 
         <service
-            android:name=".RespondViaMessageActivity"
+            android:name="com.afkanerd.deku.DefaultSMS.RespondViaMessageActivity"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
             <intent-filter>
@@ -186,11 +238,14 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-
         <service
-            android:name=".Models.RMQ.RMQConnectionService"
+            android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService"
             android:enabled="true"
             android:exported="false" />
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
     </application>
 
 </manifest>

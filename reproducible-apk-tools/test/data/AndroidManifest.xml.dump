@@ -1,0 +1,12 @@
+N: android=http://schemas.android.com/apk/res/android (line=1)
+  E: manifest (line=1)
+    A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=1
+    A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="1" (Raw: "1")
+    A: http://schemas.android.com/apk/res/android:compileSdkVersion(0x01010572)=29
+    A: http://schemas.android.com/apk/res/android:compileSdkVersionCodename(0x01010573)="10.0.0" (Raw: "10.0.0")
+    A: package="com.example" (Raw: "com.example")
+    A: platformBuildVersionCode=29
+    A: platformBuildVersionName="10.0.0" (Raw: "10.0.0")
+      E: uses-sdk (line=2)
+        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=21
+        A: http://schemas.android.com/apk/res/android:targetSdkVersion(0x01010270)=29

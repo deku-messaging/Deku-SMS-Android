@@ -7,6 +7,7 @@
     android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/gateway_server_card_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -30,7 +31,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:fontFamily="sans-serif-condensed"
                 android:text="https://example.com"
                 android:textSize="20sp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -43,7 +43,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="16dp"
-                android:fontFamily="sans-serif-medium"
                 android:text="POST"
                 android:textColor="@color/disabled_gray"
                 android:textSize="12sp"
@@ -67,7 +66,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
-                android:fontFamily="sans-serif"
                 android:text="2022-12-22"
                 android:textColor="@color/primary_highlight_color"
                 android:textSize="12sp"

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+root_dir=$(git rev-parse --show-toplevel)
+branch_name=$(git symbolic-ref HEAD)
+
+if [ "$branch_name" == "refs/heads/master" ] || [ "$branch_name" == "refs/heads/staging" ]; then
+	$root_dir/gradlew test
+else
+	exit 0
+fi

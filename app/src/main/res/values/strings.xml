@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">Deku SMS</string>
+    <string name="privacy_policy_url">https://smswithoutborders.com/privacy-policy</string>
     <string name="incoming_messages_channel_name">Incoming Messages</string>
-    <string name="running_gateway_clients_channel_name">Running Gateway Clients</string>
+    <string name="running_gateway_clients_channel_name">Running Gateway Listeners</string>
     <string name="foreground_service_failed_channel_name">Gateway clients auto-reconnect</string>
 
     <string name="incoming_messages_channel_description">Gets called when a new message is received.</string>
@@ -23,6 +24,7 @@
     <string name="save_new_gateway_client">Save</string>
     <string name="archived_messages_toolbar_title">Archive</string>
     <string name="new_gateway_server_url">Enter URL - e.g. https://example.com:8080/api/</string>
+    <string name="new_gateway_server_tag">Enter tag would be used for identifying this device <i>(optional)</i></string>
     <string name="new_gateway_client_url">Enter URL - e.g. example.com <i>(do not include protocol)</i></string>
     <string name="new_gateway_client_username">Enter username</string>
     <string name="new_gateway_client_password">Enter password</string>
@@ -30,7 +32,8 @@
     <string name="new_gateway_client_virtualhost_name">Enter a virtualhost - <i>default /</i></string>
     <string name="new_gateway_client_port">Port: <i>default 5672</i></string>
     <string name="homepage_menu_archived">Archived</string>
-    <string name="homepage_menu_routed">Routing history</string>
+    <string name="homepage_menu_routed">Message Forwarding</string>
+    <string name="homepage_menu_web">Linked devices</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">SMS routing Gateways</string>
@@ -96,7 +99,7 @@
 
     <string name="search_nothing_found">Nothing found</string>
     <string name="search_title">Search</string>
-    <string name="lengthy_sms_sample" />
+    <string name="lengthy_sms_sample">SMS: Short, simple, and still going strong. An essential part of our digital lives for quick messages and notifications.</string>
 
     <string name="default_check_text">To use Deku SMS, make it your default SMS app</string>
     <string name="default_check_btn_text">Set default SMS app</string>
@@ -109,6 +112,7 @@
     <string name="sms_status_failed">failed, click to retry.</string>
     <string name="sms_sent_date_today">Today </string>
 
+    <string name="settings_about">About</string>
     <string name="settings_title">Settings</string>
     <string name="settings_security_category_title">Security</string>
     <string name="settings_security_category_end_to_end_encryption">Communication Encryption</string>
@@ -118,11 +122,11 @@
     <string name="settings_security_category_end_to_end_disable_summary">Will not affect contacts you are already communicating securely with, but you will not be asked to secure communications with other contacts</string>
     <string name="settings_security_category_end_to_end_duration_summary">When enabled, encryption request sent to contacts would expire after <b>1 hour</b> of not being agreed.</string>
 
-    <string name="settings_SMS_routing_title">SMS routing</string>
+    <string name="settings_SMS_routing_title">Forwarded History</string>
     <string name="settings_SMS_listening_title">SMS listening</string>
     <string name="settings_SMS_routing_custom_server">Configure SMS routing Gateways</string>
     <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
-    <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for routing SMS messages through HTTP/s</string>
+    <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for routing SMS messages through HTTPS</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
@@ -176,4 +180,68 @@
     <string name="messages_thread_delete_confirmation_text">Proceed with deleting threads.</string>
     <string name="messages_thread_delete_confirmation_yes">Yes</string>
     <string name="messages_thread_delete_confirmation_cancel">Cancel</string>
+
+    <string name="single_message_thread_yesterday">Yesterday</string>
+
+    <string name="deku_websocket_running">Deku Web running</string>
+    <string name="deku_websocket_running_description">You are connected to Deku web on the browser</string>
+
+    <string name="security_key_new_request_notification">Requesting to secure communication</string>
+    <string name="security_key_new_agreed_notification">Has agreed to secure communication</string>
+    <string name="sim_chooser_layout_text">Send message via</string>
+
+    <string name="linked_devices_new_gateway_client_added">New Gateway Client Added!</string>
+    <string name="linked_devices_new_gateway_server_added">New Gateway Server Added!</string>
+    <string name="message_threads_menu_delete">delete</string>
+    <string name="message_threads_menu_cancel">cancel</string>
+    <string name="messages_threads_menu_archive">archive</string>
+    <string name="title_activity_about">AboutActivity</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+
+    <string name="about_deku">About</string>
+    <string name="about_deku_motto">Open source SMS done right</string>
+
+    <string name="about_deku_github_titile">GitHub</string>
+    <string name="about_deku_github_description">Deku SMS remains free and open sourced. We believe in giving back to the community that has given us so much. A lot on this app is experimental, but with great experiments comes great findings. Please support us by starring the project on Github and sharing it with your friends.</string>
+    <string name="about_deku_github_btn">View on GitHub</string>
+    <string name="about_deku_github_url">https://github.com/deku-messaging/Deku-SMS-Android</string>
+
+    <string name="send_message_text_box_hint">Text Message</string>
+    <string name="send_message_secured_text_box_hint">Text Message (secured)</string>
+    <string name="conversations_menu_call_title">Call</string>
+    <string name="conversations_menu_encrypt_title">Encrypt</string>
+    <string name="conversations_menu_search_title">Search</string>
+
+    <string name="conversations_search_results_found">results founds</string>
+    <string name="threading_conversations_natives_loaded">Began importing SMS messages!</string>
+
+    <string name="conversation_copied">Copied!</string>
+    <string name="router_list_gateways">View Gateway servers</string>
+    <string name="router_add_gateways">Add Gateway servers</string>
+    <string name="arhived_no_archived_messages">No Archived Messages</string>
+    <string name="conversation_menu_copy">copy</string>
+    <string name="conversation_menu_delete">delete</string>
+    <string name="compose_new_message_to">To</string>
+    <string name="compose_new_message_title">New conversation</string>
+    <string name="conversation_secure_popup_text">Click to request secure conversation</string>
+
+    <string name="conversation_threads_secured_content">Secured Content</string>
+    <string name="conversation_key_title_request">Secure Requested</string>
+    <string name="conversation_key_title_requested">Secure Requested</string>
+    <string name="conversation_key_title_agree">Click to Agree to secure this Communication</string>
+    <string name="conversation_key_title_agreed">Secure request Agreed!</string>
+    <string name="conversation_inform_user_now_secured_toast">Secure communications is a go!</string>
+
+    <string name="conversation_secure_popup_request_menu_yes">Send</string>
+    <string name="conversation_secure_popup_request_menu_cancel">Cancel</string>
+    <string name="conversation_secure_popup_request_menu_title">Secure Conversation Request</string>
+    <string name="conversation_secure_popup_request_menu_description">A secure communications request will send an SMS to [contact name]. \n\nThey will need have Deku SMS installed to receive this request.</string>
+    <string name="conversation_secure_popup_request_menu_description_subtext">* SMS cost still applies</string>
 </resources>
