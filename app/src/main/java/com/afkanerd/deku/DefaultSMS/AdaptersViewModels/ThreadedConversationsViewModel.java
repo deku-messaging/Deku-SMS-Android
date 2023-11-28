@@ -194,11 +194,12 @@ public class ThreadedConversationsViewModel extends ViewModel {
         }).start();
     }
 
-    public void refresh(Context context) {
+    public void refresh(Context context, final ConversationDao conversationDaoInstance) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ConversationDao conversationDao = Conversation.getDao(context);
+                ConversationDao conversationDao = conversationDaoInstance == null ?
+                        Conversation.getDao(context) : conversationDaoInstance;
                 List<Conversation> conversations = conversationDao.getForThreading();
                 List<ThreadedConversations> threadedConversationsList =
                         ThreadedConversations.buildRaw(context, conversations);

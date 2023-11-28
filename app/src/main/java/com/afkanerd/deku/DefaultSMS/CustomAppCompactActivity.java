@@ -52,6 +52,9 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
     public static final String UNIQUE_WORK_NAME = "NATIVE_CONVERSATION_TAG_UNIQUE_WORK_NAME";
     public static final String LOAD_NATIVES = "LOAD_NATIVES";
 
+    Conversation conversation;
+    ConversationDao conversationDao;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +66,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
         loadConversationsNativesBg();
         startServices();
+        conversation = new Conversation();
+        conversationDao = conversation.getDaoInstance(getApplicationContext());
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
@@ -127,7 +132,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
                                 Conversation conversation = conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
                                 try {
@@ -144,7 +148,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                             }
                         }).start();
                     } else if(viewModel instanceof ThreadedConversationsViewModel) {
-                        ((ThreadedConversationsViewModel) viewModel).refresh(context);
+                        ((ThreadedConversationsViewModel) viewModel).refresh(context, conversationDao);
                     }
                 } else {
                     String messageId = intent.getStringExtra(Conversation.ID);
@@ -152,7 +156,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                ConversationDao conversationDao = Conversation.getDao(getApplicationContext());
                                 Conversation conversation = conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
                                 try {
@@ -170,7 +173,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         }).start();
                     }
                     else if(viewModel instanceof ThreadedConversationsViewModel) {
-                        ((ThreadedConversationsViewModel) viewModel).refresh(context);
+                        ((ThreadedConversationsViewModel) viewModel).refresh(context, conversationDao);
                     }
                 }
             }
@@ -291,6 +294,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
         if(dataDeliveredBroadcastIntent != null)
             unregisterReceiver(dataDeliveredBroadcastIntent);
+        conversation.close();
     }
 
     public void cancelNotifications(String threadId) {

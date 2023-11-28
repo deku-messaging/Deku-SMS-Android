@@ -63,6 +63,22 @@ public class Conversation {
 
     public String data;
 
+    @Ignore
+    private Datastore databaseConnector;
+
+    public ConversationDao getDaoInstance(Context context) {
+        databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                        Datastore.databaseName)
+                .addMigrations(new Migrations.Migration8To9())
+                .enableMultiInstanceInvalidation()
+                .build();
+        return databaseConnector.conversationDao();
+    }
+
+    public void close() {
+        databaseConnector.close();
+    }
+
 
     public static ConversationDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
