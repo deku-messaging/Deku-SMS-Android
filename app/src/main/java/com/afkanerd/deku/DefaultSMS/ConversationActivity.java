@@ -201,7 +201,6 @@ public class ConversationActivity extends E2EECompactActivity {
                     sendToString.contains("sms:"))) {
                 String defaultRegion = Helpers.getUserCountry(getApplicationContext());
                 String address = Helpers.getFormatCompleteNumber(sendToString, defaultRegion);
-                Log.d(getLocalClassName(), "Shared address: " + address);
                 getIntent().putExtra(Conversation.ADDRESS, address);
             }
         }
@@ -472,14 +471,13 @@ public class ConversationActivity extends E2EECompactActivity {
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                if(simCount > 0) {
+                Log.d(getLocalClassName(), "Mutable data compose changed: " + s);
+                if(simCount > 1) {
+                    findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
+                            .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                } else
                     findViewById(R.id.conversation_send_btn)
                             .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-                    if(simCount > 1) {
-                        findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
-                                .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-                    }
-                }
             }
         });
 
