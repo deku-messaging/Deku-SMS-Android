@@ -46,6 +46,8 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.archived_toolbar);
         setSupportActionBar(myToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getString(R.string.archived_messages_toolbar_title));
 
         RecyclerView archivedMessagesRecyclerView = findViewById(R.id.messages_archived_recycler_view);
 

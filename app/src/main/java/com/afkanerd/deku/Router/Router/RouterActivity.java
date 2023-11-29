@@ -34,10 +34,17 @@ public class RouterActivity extends CustomAppCompactActivity {
 
     ActionMode actionMode;
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_router);
+
+        toolbar = findViewById(R.id.router_activity_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getString(R.string.settings_SMS_routing_title));
 
         routedMessageRecyclerView = findViewById(R.id.routed_messages_recycler_view);
 

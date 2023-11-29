@@ -15,10 +15,18 @@ import com.google.android.material.textfield.TextInputEditText;
 
 public class GatewayClientAddActivity extends AppCompatActivity {
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_add);
+
+        toolbar = findViewById(R.id.gateway_client_add_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        getSupportActionBar().setTitle(getString(R.string.add_new_gateway_server_toolbar_title));
 
         if(getIntent().hasExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID)) {
             try {

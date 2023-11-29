@@ -21,6 +21,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -46,7 +47,6 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         searchViewModel = new ViewModelProvider(this).get(
                 SearchViewModel.class);
 
-
         Toolbar myToolbar = (Toolbar) findViewById(R.id.search_messages_toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -54,27 +54,31 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         SearchConversationRecyclerAdapter searchConversationRecyclerAdapter =
                 new SearchConversationRecyclerAdapter(getApplicationContext());
 
-        SearchView searchView = findViewById(R.id.search_view_input);
         CustomContactsCursorAdapter customContactsCursorAdapter = new CustomContactsCursorAdapter(getApplicationContext(),
                 Contacts.filterContacts(getApplicationContext(), ""), 0);
+
         onSearchRequested();
+
         ListView suggestionsListView = findViewById(R.id.search_messages_suggestions_list);
         suggestionsListView.setAdapter(customContactsCursorAdapter);
+
+        SearchView searchView = findViewById(R.id.search_view_input);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchString.setValue(query);
-                return false;
+                return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                if(newText.length() != 1) {
+                if(newText.length() > 1) {
                     customContactsCursorAdapter.changeCursor(
                             Contacts.filterContacts(getApplicationContext(), newText));
-                    return true;
+                } else if(newText.length() < 1) {
+                    searchString.setValue(null);
                 }
-                return false;
+                return true;
             }
         });
 
@@ -89,11 +93,11 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onChanged(String s) {
                 try {
-                    if(s.isEmpty())
+                    if(s == null || s.isEmpty())
                         searchConversationRecyclerAdapter.searchString = null;
                     else
                         searchConversationRecyclerAdapter.searchString = s;
-                    searchViewModel.search(getApplicationContext(), s);
+                    searchViewModel.search(s);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -114,7 +118,6 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                             else {
                                 findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
                             }
-                            Log.d(getLocalClassName(), "Found for address: " + smsList.size());
                             searchConversationRecyclerAdapter.mDiffer.submitList(smsList);
                         }
                     });
@@ -124,12 +127,11 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                     new Observer<List<ThreadedConversations>>() {
                         @Override
                         public void onChanged(List<ThreadedConversations> smsList) {
-                            if (!searchString.getValue().isEmpty() && smsList.isEmpty())
+                            if (smsList != null && smsList.isEmpty())
                                 findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
                             else {
                                 findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
                             }
-                            Log.d(getLocalClassName(), "Found: " + smsList.size());
                             searchConversationRecyclerAdapter.mDiffer.submitList(smsList);
                         }
                     });
@@ -163,21 +165,12 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             textView2.setTextSize(12);
             textView2.setText(address);
 
+            ImageView avatarImage = view.findViewById(R.id.messages_threads_contact_photo);
+
             final int color = Helpers.generateColor(address);
             Drawable drawable = context.getDrawable(R.drawable.baseline_account_circle_24);
             drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-
-//            ImageView imageView = view.findViewById(R.id.messages_threads_contact_photo);
-//            imageView.setAdjustViewBounds(true);
-//            imageView.setMaxHeight(150);
-//            imageView.setMaxWidth(150);
-
-//            ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
-//            layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-//            layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-//
-//            imageView.setLayoutParams(layoutParams);
-//            imageView.setImageDrawable(drawable);
+            avatarImage.setImageDrawable(drawable);
 
             view.findViewById(R.id.messages_threads_layout).setOnClickListener(new View.OnClickListener() {
                 @Override

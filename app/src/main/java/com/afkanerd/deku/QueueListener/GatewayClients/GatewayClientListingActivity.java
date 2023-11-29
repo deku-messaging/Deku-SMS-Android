@@ -51,12 +51,20 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
     SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_listing);
 
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+
+        toolbar = findViewById(R.id.gateway_client_listing_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        getSupportActionBar().setTitle(getString(R.string.gateway_client_listing_toolbar_title));
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         RecyclerView recyclerView = findViewById(R.id.gateway_client_listing_recycler_view);

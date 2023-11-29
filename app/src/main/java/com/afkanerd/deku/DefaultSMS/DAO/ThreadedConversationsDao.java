@@ -48,10 +48,10 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id IN (:threadedConversationsList)")
     List<ThreadedConversations> find(List<String> threadedConversationsList);
 
-    @Query("SELECT Conversation.* FROM Conversation, ThreadedConversations WHERE text " +
+    @Query("SELECT ThreadedConversations.* FROM Conversation, ThreadedConversations WHERE text " +
             "LIKE '%' || :search_string || '%' AND Conversation.thread_id = ThreadedConversations.thread_id " +
-            "GROUP BY Conversation.thread_id ORDER BY date DESC")
-    List<Conversation> find(String search_string );
+            "GROUP BY ThreadedConversations.thread_id ORDER BY date DESC")
+    List<ThreadedConversations> find(String search_string );
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND text " +
             "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:theme="@style/Theme.main"
@@ -7,375 +7,393 @@
     android:layout_height="match_parent"
     tools:context="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity">
 
-
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/gateway_client_add_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/new_gateway_descriptive_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/new_gateway_client_url"
-            android:textColor="@color/disabled_gray"
-            app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gateway_client_add_toolbar">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/new_gateway_client_input_constraint"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/compose_message_drawable"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_descriptive_text">
+            android:layout_height="wrap_content">
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            <TextView
+                android:id="@+id/new_gateway_descriptive_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/new_gateway_client_url"
+                android:textColor="@color/disabled_gray"
+                app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/new_gateway_client_input_constraint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                app:boxBackgroundColor="@color/received_message_color"
-                app:boxCornerRadiusBottomEnd="50dp"
-                app:boxCornerRadiusBottomStart="50dp"
-                app:boxCornerRadiusTopEnd="50dp"
-                app:boxCornerRadiusTopStart="50dp"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
-                app:helperTextEnabled="false"
-                app:hintAnimationEnabled="false"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/compose_message_drawable"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/baseline_add_link_24">
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_descriptive_text">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/new_gateway_client_url_input"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:imeOptions="actionGo"
-                    android:inputType="text|textUri|textMultiLine"
-                    android:maxLines="7" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:gravity="center"
+                    app:boxBackgroundColor="@color/received_message_color"
+                    app:boxCornerRadiusBottomEnd="50dp"
+                    app:boxCornerRadiusBottomStart="50dp"
+                    app:boxCornerRadiusTopEnd="50dp"
+                    app:boxCornerRadiusTopStart="50dp"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp"
+                    app:helperTextEnabled="false"
+                    app:hintAnimationEnabled="false"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:startIconDrawable="@drawable/baseline_add_link_24">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/new_gateway_client_url_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionGo"
+                        android:inputType="text|textUri|textMultiLine"
+                        android:maxLines="7" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/new_gateway_client_username_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/new_gateway_client_username"
+                android:textColor="@color/disabled_gray"
+                app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_client_input_constraint" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/new_gateway_client_username_constraint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/compose_message_drawable"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_client_username_text">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    app:boxBackgroundColor="@color/received_message_color"
+                    app:boxCornerRadiusBottomEnd="50dp"
+                    app:boxCornerRadiusBottomStart="50dp"
+                    app:boxCornerRadiusTopEnd="50dp"
+                    app:boxCornerRadiusTopStart="50dp"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp"
+                    app:helperTextEnabled="false"
+                    app:hintAnimationEnabled="false"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:startIconDrawable="@drawable/round_person_24">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/new_gateway_client_username"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionGo"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/new_gateway_password_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/new_gateway_client_password"
+                android:textColor="@color/disabled_gray"
+                app:layout_constraintStart_toStartOf="@+id/new_gateway_client_username_constraint"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_client_username_constraint" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/new_gateway_password_text_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/compose_message_drawable"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_password_text">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    app:boxBackgroundColor="@color/received_message_color"
+                    app:boxCornerRadiusBottomEnd="50dp"
+                    app:boxCornerRadiusBottomStart="50dp"
+                    app:boxCornerRadiusTopEnd="50dp"
+                    app:boxCornerRadiusTopStart="50dp"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp"
+                    app:helperTextEnabled="false"
+                    app:hintAnimationEnabled="false"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:startIconDrawable="@drawable/round_password_24">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/new_gateway_password"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionGo"
+                        android:inputType="textPassword" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/new_gateway_client_friendly_name_descriptive_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/new_gateway_client_friendly_name"
+                android:textColor="@color/disabled_gray"
+                app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_password_text_container" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/new_gateway_client_friendly_name_constraint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/compose_message_drawable"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_client_friendly_name_descriptive_text">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    app:boxBackgroundColor="@color/received_message_color"
+                    app:boxCornerRadiusBottomEnd="50dp"
+                    app:boxCornerRadiusBottomStart="50dp"
+                    app:boxCornerRadiusTopEnd="50dp"
+                    app:boxCornerRadiusTopStart="50dp"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp"
+                    app:helperTextEnabled="false"
+                    app:hintAnimationEnabled="false"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:startIconDrawable="@drawable/round_computer_24">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/new_gateway_client_friendly_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/new_gateway_client_virtualhost_descriptive_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/new_gateway_client_virtualhost_name"
+                android:textColor="@color/disabled_gray"
+                app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_client_friendly_name_constraint" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/new_gateway_client_virtualhost_constraint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/compose_message_drawable"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_client_virtualhost_descriptive_text">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    app:boxBackgroundColor="@color/received_message_color"
+                    app:boxCornerRadiusBottomEnd="50dp"
+                    app:boxCornerRadiusBottomStart="50dp"
+                    app:boxCornerRadiusTopEnd="50dp"
+                    app:boxCornerRadiusTopStart="50dp"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp"
+                    app:helperTextEnabled="false"
+                    app:hintAnimationEnabled="false"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:startIconDrawable="@drawable/baseline_account_tree_24">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/new_gateway_client_virtualhost"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:text="@string/settings_gateway_client_default_virtualhost" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/new_gateway_client_port_descriptive_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/new_gateway_client_port"
+                android:textColor="@color/disabled_gray"
+                app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_client_virtualhost_constraint" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/new_gateway_client_port_constraint"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="120dp"
+                android:background="@drawable/compose_message_drawable"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/new_gateway_client_port_descriptive_text">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    app:boxBackgroundColor="@color/received_message_color"
+                    app:boxCornerRadiusBottomEnd="50dp"
+                    app:boxCornerRadiusBottomStart="50dp"
+                    app:boxCornerRadiusTopEnd="50dp"
+                    app:boxCornerRadiusTopStart="50dp"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp"
+                    app:helperTextEnabled="false"
+                    app:hintAnimationEnabled="false"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:startIconDrawable="@drawable/baseline_webhook_24">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/new_gateway_client_port"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:text="@string/settings_gateway_client_default_port" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/gateway_client_customization_save_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/compose_message_drawable"
+                android:text="@string/save_new_gateway_client"
+                android:textAllCaps="false"
+                android:textColor="@color/colorSecondary"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/new_gateway_client_input_constraint"
+                app:layout_constraintStart_toStartOf="@+id/add_gateway_client_protocol_group"
+                app:layout_constraintTop_toBottomOf="@+id/add_gateway_client_protocol_group" />
+
+            <RadioGroup
+                android:id="@+id/add_gateway_client_protocol_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:checkedButton="@id/add_gateway_client_protocol_amqp"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="@+id/textView6"
+                app:layout_constraintTop_toBottomOf="@+id/textView6">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/add_gateway_client_protocol_amqp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="@string/settings_gateway_client_amqp_protocol"
+                    android:textSize="14sp" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:enabled="false"
+                    android:text="@string/settings_gateway_client_amqps_protocol" />
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/settings_add_gateway_client_protocol_description"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
+                app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_port_constraint" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <TextView
-            android:id="@+id/new_gateway_client_username_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/new_gateway_client_username"
-            android:textColor="@color/disabled_gray"
-            app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_client_input_constraint" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/new_gateway_client_username_constraint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/compose_message_drawable"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_client_username_text">
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                app:boxBackgroundColor="@color/received_message_color"
-                app:boxCornerRadiusBottomEnd="50dp"
-                app:boxCornerRadiusBottomStart="50dp"
-                app:boxCornerRadiusTopEnd="50dp"
-                app:boxCornerRadiusTopStart="50dp"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
-                app:helperTextEnabled="false"
-                app:hintAnimationEnabled="false"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/round_person_24">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/new_gateway_client_username"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:imeOptions="actionGo"
-                    android:inputType="text"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <TextView
-            android:id="@+id/new_gateway_password_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/new_gateway_client_password"
-            android:textColor="@color/disabled_gray"
-            app:layout_constraintStart_toStartOf="@+id/new_gateway_client_username_constraint"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_client_username_constraint" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/new_gateway_password_text_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/compose_message_drawable"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_password_text">
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                app:boxBackgroundColor="@color/received_message_color"
-                app:boxCornerRadiusBottomEnd="50dp"
-                app:boxCornerRadiusBottomStart="50dp"
-                app:boxCornerRadiusTopEnd="50dp"
-                app:boxCornerRadiusTopStart="50dp"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
-                app:helperTextEnabled="false"
-                app:hintAnimationEnabled="false"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/round_password_24">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/new_gateway_password"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:imeOptions="actionGo"
-                    android:inputType="textPassword"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <TextView
-            android:id="@+id/new_gateway_client_friendly_name_descriptive_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/new_gateway_client_friendly_name"
-            android:textColor="@color/disabled_gray"
-            app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_password_text_container" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/new_gateway_client_friendly_name_constraint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/compose_message_drawable"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_client_friendly_name_descriptive_text">
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                app:boxBackgroundColor="@color/received_message_color"
-                app:boxCornerRadiusBottomEnd="50dp"
-                app:boxCornerRadiusBottomStart="50dp"
-                app:boxCornerRadiusTopEnd="50dp"
-                app:boxCornerRadiusTopStart="50dp"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
-                app:helperTextEnabled="false"
-                app:hintAnimationEnabled="false"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/round_computer_24">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/new_gateway_client_friendly_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <TextView
-            android:id="@+id/new_gateway_client_virtualhost_descriptive_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/new_gateway_client_virtualhost_name"
-            android:textColor="@color/disabled_gray"
-            app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_client_friendly_name_constraint" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/new_gateway_client_virtualhost_constraint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/compose_message_drawable"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_client_virtualhost_descriptive_text">
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                app:boxBackgroundColor="@color/received_message_color"
-                app:boxCornerRadiusBottomEnd="50dp"
-                app:boxCornerRadiusBottomStart="50dp"
-                app:boxCornerRadiusTopEnd="50dp"
-                app:boxCornerRadiusTopStart="50dp"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
-                app:helperTextEnabled="false"
-                app:hintAnimationEnabled="false"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/baseline_account_tree_24">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/new_gateway_client_virtualhost"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:text="@string/settings_gateway_client_default_virtualhost" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <TextView
-            android:id="@+id/new_gateway_client_port_descriptive_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/new_gateway_client_port"
-            android:textColor="@color/disabled_gray"
-            app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_client_virtualhost_constraint" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/new_gateway_client_port_constraint"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="120dp"
-            android:background="@drawable/compose_message_drawable"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/new_gateway_client_port_descriptive_text">
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                app:boxBackgroundColor="@color/received_message_color"
-                app:boxCornerRadiusBottomEnd="50dp"
-                app:boxCornerRadiusBottomStart="50dp"
-                app:boxCornerRadiusTopEnd="50dp"
-                app:boxCornerRadiusTopStart="50dp"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
-                app:helperTextEnabled="false"
-                app:hintAnimationEnabled="false"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:startIconDrawable="@drawable/baseline_webhook_24">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/new_gateway_client_port"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    android:text="@string/settings_gateway_client_default_port" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
 
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/gateway_client_customization_save_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/compose_message_drawable"
-            android:onClick="onSaveGatewayClient"
-            android:text="@string/save_new_gateway_client"
-            android:textAllCaps="false"
-            android:textColor="@color/colorSecondary"
-            android:textSize="14sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintStart_toStartOf="@+id/add_gateway_client_protocol_group"
-            app:layout_constraintTop_toBottomOf="@+id/add_gateway_client_protocol_group" />
 
-        <RadioGroup
-            android:id="@+id/add_gateway_client_protocol_group"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:checkedButton="@id/add_gateway_client_protocol_amqp"
-            android:orientation="horizontal"
-            app:layout_constraintStart_toStartOf="@+id/textView6"
-            app:layout_constraintTop_toBottomOf="@+id/textView6">
-
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/add_gateway_client_protocol_amqp"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="@string/settings_gateway_client_amqp_protocol"
-                android:textSize="14sp" />
-
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:enabled="false"
-                android:text="@string/settings_gateway_client_amqps_protocol" />
-        </RadioGroup>
-
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/settings_add_gateway_client_protocol_description"
-            android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="@+id/new_gateway_client_input_constraint"
-            app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_port_constraint" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

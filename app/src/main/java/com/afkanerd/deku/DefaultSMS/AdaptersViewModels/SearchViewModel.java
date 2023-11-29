@@ -49,22 +49,22 @@ public class SearchViewModel extends ViewModel {
         return liveData;
     }
 
-    public void search(Context context, String input) throws InterruptedException {
+    public void search(String input) throws InterruptedException {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                List<Conversation> conversations = new ArrayList<>();
-                if(threadId == null || threadId.isEmpty())
-                    conversations = threadedConversationsDao.find(input);
-                else
-                    conversations = threadedConversationsDao.findByThread(input,threadId);
+//                List<Conversation> conversations = new ArrayList<>();
+//                if(threadId == null || threadId.isEmpty())
+//                    conversations = threadedConversationsDao.find(input);
+//                else
+//                    conversations = threadedConversationsDao.findByThread(input,threadId);
 
-                List<ThreadedConversations> threadedConversations = new ArrayList<>();
-                for(Conversation conversation : conversations) {
-                    ThreadedConversations threadedConversation =
-                            ThreadedConversations.build(context, conversation);
-                    threadedConversations.add(threadedConversation);
-                }
+                List<ThreadedConversations> threadedConversations = threadedConversationsDao.find(input);
+//                for(Conversation conversation : conversations) {
+//                    ThreadedConversations threadedConversation =
+//                            ThreadedConversations.build(context, conversation);
+//                    threadedConversations.add(threadedConversation);
+//                }
                 liveData.postValue(threadedConversations);
             }
         });

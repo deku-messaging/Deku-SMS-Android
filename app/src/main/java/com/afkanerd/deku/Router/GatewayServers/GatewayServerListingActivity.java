@@ -28,10 +28,17 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
     SharedPreferences sharedPreferences;
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_servers_listing_activitiy);
+
+        toolbar = findViewById(R.id.gateway_servers_listing_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getString(R.string.gateway_server_listing_toolbar_title));
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
