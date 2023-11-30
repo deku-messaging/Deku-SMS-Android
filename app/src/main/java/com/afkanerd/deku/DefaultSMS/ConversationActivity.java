@@ -250,7 +250,8 @@ public class ConversationActivity extends E2EECompactActivity {
         }
 
         conversationsRecyclerAdapter.refresh();
-        singleMessagesThreadRecyclerView.scrollToPosition(position);
+        if(position != -3)
+            singleMessagesThreadRecyclerView.scrollToPosition(position);
         String text = (searchPointerPosition == -1 ?
                 0 :
                 searchPointerPosition + 1) + "/" + searchPositions.getValue().size() + " " + getString(R.string.conversations_search_results_found);
@@ -296,9 +297,11 @@ public class ConversationActivity extends E2EECompactActivity {
         searchPositions.observe(this, new Observer<List<Integer>>() {
             @Override
             public void onChanged(List<Integer> integers) {
-                searchPointerPosition = 0;
                 if(!integers.isEmpty()) {
-                    scrollRecyclerViewSearch(searchPositions.getValue().get(searchPointerPosition));
+                    searchPointerPosition = 0;
+                    scrollRecyclerViewSearch(
+                            firstScrollInitiated ?
+                            searchPositions.getValue().get(searchPointerPosition):-3);
                 } else {
                     conversationsRecyclerAdapter.searchString = null;
                     scrollRecyclerViewSearch(-2);
@@ -330,7 +333,8 @@ public class ConversationActivity extends E2EECompactActivity {
                 else if(searchPositions != null && searchPositions.getValue() != null
                         && !searchPositions.getValue().isEmpty()
                         && !firstScrollInitiated) {
-                    singleMessagesThreadRecyclerView.scrollToPosition(searchPositions.getValue().get(0));
+                    singleMessagesThreadRecyclerView.scrollToPosition(
+                            searchPositions.getValue().get(searchPositions.getValue().size() -1));
                     firstScrollInitiated = true;
                 }
                 else if(linearLayoutManager.findFirstCompletelyVisibleItemPosition() == 0) {

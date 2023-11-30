@@ -97,7 +97,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                         searchConversationRecyclerAdapter.searchString = null;
                     else
                         searchConversationRecyclerAdapter.searchString = s;
-                    searchViewModel.search(s);
+                    searchViewModel.search(getApplicationContext(), s);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
