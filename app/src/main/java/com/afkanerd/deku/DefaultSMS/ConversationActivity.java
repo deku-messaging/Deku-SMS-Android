@@ -201,7 +201,6 @@ public class ConversationActivity extends E2EECompactActivity {
                     sendToString.contains("sms:"))) {
                 String defaultRegion = Helpers.getUserCountry(getApplicationContext());
                 String address = Helpers.getFormatCompleteNumber(sendToString, defaultRegion);
-                Log.d(getLocalClassName(), "Shared address: " + address);
                 getIntent().putExtra(Conversation.ADDRESS, address);
             }
         }
@@ -251,7 +250,8 @@ public class ConversationActivity extends E2EECompactActivity {
         }
 
         conversationsRecyclerAdapter.refresh();
-        singleMessagesThreadRecyclerView.scrollToPosition(position);
+        if(position != -3)
+            singleMessagesThreadRecyclerView.scrollToPosition(position);
         String text = (searchPointerPosition == -1 ?
                 0 :
                 searchPointerPosition + 1) + "/" + searchPositions.getValue().size() + " " + getString(R.string.conversations_search_results_found);
@@ -297,9 +297,11 @@ public class ConversationActivity extends E2EECompactActivity {
         searchPositions.observe(this, new Observer<List<Integer>>() {
             @Override
             public void onChanged(List<Integer> integers) {
-                searchPointerPosition = 0;
                 if(!integers.isEmpty()) {
-                    scrollRecyclerViewSearch(searchPositions.getValue().get(searchPointerPosition));
+                    searchPointerPosition = 0;
+                    scrollRecyclerViewSearch(
+                            firstScrollInitiated ?
+                            searchPositions.getValue().get(searchPointerPosition):-3);
                 } else {
                     conversationsRecyclerAdapter.searchString = null;
                     scrollRecyclerViewSearch(-2);
@@ -331,7 +333,8 @@ public class ConversationActivity extends E2EECompactActivity {
                 else if(searchPositions != null && searchPositions.getValue() != null
                         && !searchPositions.getValue().isEmpty()
                         && !firstScrollInitiated) {
-                    singleMessagesThreadRecyclerView.scrollToPosition(searchPositions.getValue().get(0));
+                    singleMessagesThreadRecyclerView.scrollToPosition(
+                            searchPositions.getValue().get(searchPositions.getValue().size() -1));
                     firstScrollInitiated = true;
                 }
                 else if(linearLayoutManager.findFirstCompletelyVisibleItemPosition() == 0) {
@@ -472,14 +475,13 @@ public class ConversationActivity extends E2EECompactActivity {
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                if(simCount > 0) {
+                Log.d(getLocalClassName(), "Mutable data compose changed: " + s);
+                if(simCount > 1) {
+                    findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
+                            .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                } else
                     findViewById(R.id.conversation_send_btn)
                             .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-                    if(simCount > 1) {
-                        findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
-                                .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-                    }
-                }
             }
         });
 

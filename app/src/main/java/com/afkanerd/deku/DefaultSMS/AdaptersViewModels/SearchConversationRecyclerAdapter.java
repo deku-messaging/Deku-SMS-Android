@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -36,7 +37,7 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
         if(threadedConversations == null)
             return;
 
-        String threadId = String.valueOf(threadedConversations.getThread_id());
+        String threadId = threadedConversations.getThread_id();
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {

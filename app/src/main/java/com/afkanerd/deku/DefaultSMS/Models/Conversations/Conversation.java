@@ -20,17 +20,10 @@ import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 
 @Entity(indices = {@Index(value={"message_id"}, unique=true)})
 public class Conversation {
-
-    @Ignore
-    public static String BROADCAST_THREAD_ID_INTENT = "BROADCAST_THREAD_ID_INTENT";
-
-    @Ignore
-    public static String BROADCAST_CONVERSATION_ID_INTENT = "BROADCAST_CONVERSATION_ID_INTENT";
-    @Ignore
     public static final String ID = "ID";
     public static final String ADDRESS = "ADDRESS";
     public static final String THREAD_ID = "THREAD_ID";
-    public static final String SHARED_SMS_BODY = "SHARED_SMS_BODY";
+    public static final String SHARED_SMS_BODY = "sms_body";
 
     @PrimaryKey(autoGenerate = true)
     public long id;

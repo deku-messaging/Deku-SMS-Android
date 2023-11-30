@@ -6,6 +6,14 @@
     android:layout_height="match_parent"
     tools:context="com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/gateway_servers_listing_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/no_gateway_server_added"
         android:layout_width="wrap_content"
@@ -14,16 +22,17 @@
         android:textSize="20sp"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/gateway_server_listing_recycler_view"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/gateway_servers_listing_toolbar" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/gateway_server_listing_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/gateway_servers_listing_toolbar" />
 </androidx.constraintlayout.widget.ConstraintLayout>

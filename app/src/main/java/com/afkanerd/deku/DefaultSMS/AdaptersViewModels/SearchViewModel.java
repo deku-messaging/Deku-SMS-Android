@@ -59,12 +59,8 @@ public class SearchViewModel extends ViewModel {
                 else
                     conversations = threadedConversationsDao.findByThread(input,threadId);
 
-                List<ThreadedConversations> threadedConversations = new ArrayList<>();
-                for(Conversation conversation : conversations) {
-                    ThreadedConversations threadedConversation =
-                            ThreadedConversations.build(context, conversation);
-                    threadedConversations.add(threadedConversation);
-                }
+                List<ThreadedConversations> threadedConversations =
+                        ThreadedConversations.buildRaw(context, conversations);
                 liveData.postValue(threadedConversations);
             }
         });

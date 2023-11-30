@@ -36,6 +36,8 @@ public class LinkedDevicesQRActivity extends AppCompatActivity {
     public final String WEB_LINKED_OUTGOING_VIRTUAL_HOST = "virtual_host";
     public final String WEB_LINKED_OUTGOING_PROJECT_NAME = "project_name";
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +47,7 @@ public class LinkedDevicesQRActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_web_toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getString(R.string.linked_devices_scan_qr_code_title));
 
         CodeScannerView scannerView = findViewById(R.id.web_qr_scanner_view);
         codeScanner = new CodeScanner(this, scannerView);

@@ -190,6 +190,7 @@
     <string name="security_key_new_agreed_notification">Has agreed to secure communication</string>
     <string name="sim_chooser_layout_text">Send message via</string>
 
+    <string name="linked_devices_scan_qr_code_title">Linked devices QR code</string>
     <string name="linked_devices_new_gateway_client_added">New Gateway Client Added!</string>
     <string name="linked_devices_new_gateway_server_added">New Gateway Server Added!</string>
     <string name="message_threads_menu_delete">delete</string>

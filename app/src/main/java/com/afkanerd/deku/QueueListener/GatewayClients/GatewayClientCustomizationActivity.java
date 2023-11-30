@@ -35,11 +35,15 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
-    Toolbar myToolbar;
+    Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_customization);
+
+        toolbar = findViewById(R.id.gateway_client_customization_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         try {
             getGatewayClient();

@@ -1,12 +1,25 @@
 package com.afkanerd.deku.DefaultSMS.Commons;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.telephony.PhoneNumberUtils;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.view.View;
+
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import org.junit.Test;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HelpersRandomTest {
 

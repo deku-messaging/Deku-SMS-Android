@@ -23,10 +23,17 @@ public class GatewayServerAddActivity extends AppCompatActivity {
 
     GatewayServerHandler gatewayServerHandler;
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_server_add);
+
+        toolbar = findViewById(R.id.gateway_server_add_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(R.string.add_new_gateway_server_toolbar_title);
 
         gatewayServerHandler = new GatewayServerHandler(getApplicationContext());
 

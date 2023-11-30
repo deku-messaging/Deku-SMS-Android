@@ -10,6 +10,7 @@ import static com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversati
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -63,21 +64,26 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         this.id = String.valueOf(conversation.getThread_id());
 
         if(conversation.getAvatar_initials() != null) {
+            this.contactAvatar.setVisibility(View.GONE);
+            this.contactInitials.setVisibility(View.VISIBLE);
             this.contactInitials.setAvatarInitials(conversation.getAvatar_initials());
             this.contactInitials.setAvatarInitialsBackgroundColor(conversation.getAvatar_color());
-            this.contactAvatar.setVisibility(View.GONE);
         }
         else {
-            Drawable drawable = contactAvatar.getDrawable();
-            if(drawable != null) {
-                drawable.setColorFilter(conversation.getAvatar_color(), PorterDuff.Mode.SRC_IN);
-                contactAvatar.setImageDrawable(drawable);
-            }
+            this.contactAvatar.setVisibility(View.VISIBLE);
             this.contactInitials.setVisibility(View.GONE);
+            Drawable drawable = contactAvatar.getDrawable();
+            if (drawable == null) {
+                drawable = itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24);
+            }
+            if(drawable != null)
+                drawable.setColorFilter(conversation.getAvatar_color(), PorterDuff.Mode.SRC_IN);
+            contactAvatar.setImageDrawable(drawable);
         }
         if(conversation.getContact_name() != null) {
             this.address.setText(conversation.getContact_name());
-        } else this.address.setText(conversation.getAddress());
+        }
+        else this.address.setText(conversation.getAddress());
 
         String date = Helpers.formatDate(itemView.getContext(),
                 Long.parseLong(conversation.getDate()));
