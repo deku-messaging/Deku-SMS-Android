@@ -128,4 +128,13 @@ public class HelpersRandomTest {
         String[] formattedOutput = Helpers.getCountryNationalAndCountryCode(fullPhoneNumber);
         assertArrayEquals(new String[]{defaultRegion, nationalNumber}, formattedOutput);
     }
+
+    @Test
+    public void formatPhoneNumbersAndCountryCodeSpecialCharacterTest() throws NumberParseException {
+        String fullPhoneNumber = "676-096-187";
+        String defaultRegion = "237";
+        String nationalNumber = "676096187";
+        String formattedOutput = Helpers.getFormatCompleteNumber(fullPhoneNumber, defaultRegion);
+        assertEquals(("+" + defaultRegion + nationalNumber), formattedOutput);
+    }
 }
