@@ -131,9 +131,9 @@ public class HelpersRandomTest {
 
     @Test
     public void formatPhoneNumbersAndCountryCodeSpecialCharacterTest() throws NumberParseException {
-        String fullPhoneNumber = "676-096-187";
+        String fullPhoneNumber = "123-456-789";
         String defaultRegion = "237";
-        String nationalNumber = "676096187";
+        String nationalNumber = "123456789";
         String formattedOutput = Helpers.getFormatCompleteNumber(fullPhoneNumber, defaultRegion);
         assertEquals(("+" + defaultRegion + nationalNumber), formattedOutput);
     }
