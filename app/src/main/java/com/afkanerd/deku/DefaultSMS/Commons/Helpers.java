@@ -113,7 +113,8 @@ public class Helpers {
     public static String getFormatCompleteNumber(String data, String defaultRegion) {
         data = data.replaceAll("%2B", "+")
                 .replaceAll("-", "")
-                .replaceAll("%20", "");
+                .replaceAll("%20", "")
+                .replaceAll(" ", "");
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         String outputNumber = data;
         try {
