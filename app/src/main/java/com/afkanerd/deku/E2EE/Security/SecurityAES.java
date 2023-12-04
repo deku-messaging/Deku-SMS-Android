@@ -57,24 +57,17 @@ public class SecurityAES {
     }
 
     public static byte[] encryptAES256CBC(byte[] input, byte[] secretKey, byte[] iv) throws Throwable {
-        try {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, secretKey.length, "AES");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, 0, secretKey.length, "AES");
 
-            Cipher cipher = Cipher.getInstance(DEFAULT_AES_ALGORITHM);
-            if(iv != null) {
-                IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
-            } else {
-                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
-            }
-            byte[] ciphertext = cipher.doFinal(input);
-
-            return Bytes.concat(cipher.getIV(), ciphertext);
+        Cipher cipher = Cipher.getInstance(DEFAULT_AES_ALGORITHM);
+        if(iv != null) {
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
+        } else {
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            throw new Throwable(e);
-        }
+        byte[] ciphertext = cipher.doFinal(input);
+        return Bytes.concat(cipher.getIV(), ciphertext);
     }
 
     public static byte[] decryptAES256CBC(byte[] input, byte[] sharedKey) throws Throwable {

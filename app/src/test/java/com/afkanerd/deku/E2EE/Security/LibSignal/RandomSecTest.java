@@ -1,16 +1,22 @@
 package com.afkanerd.deku.E2EE.Security.LibSignal;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import android.util.Base64;
 
 import com.afkanerd.deku.E2EE.Security.SecurityHandler;
+import com.google.common.primitives.Bytes;
+import com.google.crypto.tink.shaded.protobuf.InvalidProtocolBufferException;
 import com.google.crypto.tink.subtle.Hkdf;
 
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.Security;
+
+import javax.crypto.Mac;
 
 public class RandomSecTest {
 
@@ -55,5 +61,28 @@ public class RandomSecTest {
         expectedOut[1] = com.google.crypto.tink.subtle.Base64.decode(
                 "dQ6vtJ394Y4OhPM4iiLXw0vVjCPoDMzd288BNHJ64gE=".getBytes(), Base64.NO_WRAP);
         assertArrayEquals(expectedOut, hkdfOutput);
+    }
+
+    @Test
+    public void HMACTest() throws GeneralSecurityException, InvalidProtocolBufferException {
+        String helloWorldB64Digest = "Dei+5df5xdIJ+Mb6vtDqhMs/yhJE6O04B5phtZmoTEc=";
+        Mac mac = SecurityHandler.HMAC("hello world".getBytes());
+        byte[] macOutput = mac.doFinal();
+
+        String output = java.util.Base64.getEncoder().encodeToString(macOutput);
+        assertEquals(helloWorldB64Digest, output);
+
+        String helloWorldB64DigestWithUpdate1 = "0J0pwZbLRrifdO0NSkg+ih613V5eK8cO5GGQwkfkEl4=";
+        String helloWorldB64DigestWithUpdate2 = "bHujacd1S7gcfJw7ypJhcvtFuKgyopCGJNX5GMxpfPc=";
+        mac = SecurityHandler.HMAC("hello world".getBytes());
+        byte[] macOutput1 = mac.doFinal(new byte[]{0x01});
+        byte[] macOutput2 = mac.doFinal(new byte[]{0x02});
+
+        assertArrayEquals(
+                java.util.Base64.getDecoder().decode(
+                        helloWorldB64DigestWithUpdate1), macOutput1);
+        assertArrayEquals(
+                java.util.Base64.getDecoder().decode(
+                        helloWorldB64DigestWithUpdate2), macOutput2);
     }
 }

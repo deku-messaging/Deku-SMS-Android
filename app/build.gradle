@@ -182,5 +182,7 @@ dependencies {
     implementation 'com.budiyev.android:code-scanner:2.1.0'
 
     implementation 'com.google.crypto.tink:tink-android:1.11.0'
+
+    implementation 'com.google.crypto.tink:tink-mac:1.7.0'
 }
 

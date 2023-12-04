@@ -17,10 +17,12 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.util.List;
 
@@ -42,6 +44,10 @@ public class E2EEHandler {
         String decodedAlias = new String(Base64.decode(keystoreAlias, Base64.DEFAULT),
                 StandardCharsets.UTF_8);
         return "+" + decodedAlias.split("_")[0];
+    }
+
+    public static KeyPair getKeyPairFromKeystore(Context context, String keystoreAlias) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
+        return SecurityECDH.getKeyPairFromKeystore(context, keystoreAlias);
     }
 
     public static boolean isAvailableInKeystore(String keystoreAlias) throws KeyStoreException,

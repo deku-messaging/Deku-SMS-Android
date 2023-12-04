@@ -2,11 +2,13 @@ package com.afkanerd.deku.E2EE.Security.LibSignal;
 
 import androidx.annotation.Nullable;
 
+import org.spongycastle.util.Arrays;
+
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class States {
     public KeyPair DHs;
@@ -16,11 +18,11 @@ public class States {
     public byte[] CKs;
     public byte[] CKr;
 
-    int Ns = 0;
+    public int Ns = 0;
 
-    int Nr = 0;
+    public int Nr = 0;
 
-    int PN = 0;
+    public int PN = 0;
 
     Map<String, String> MKSKIPPED = new HashMap<>();
 
@@ -28,7 +30,10 @@ public class States {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof States) {
             States state = (States) obj;
-            return state.DHr.equals(this.DHr) &&
+            return (
+                    (state.DHr != null && this.DHr != null &&
+                            Arrays.areEqual(state.DHr.getEncoded(), this.DHr.getEncoded()))
+                    || Objects.equals(state.DHr, this.DHr)) &&
                     state.MKSKIPPED.equals(this.MKSKIPPED) &&
                     state.Ns == this.Ns &&
                     state.Nr == this.Nr &&
