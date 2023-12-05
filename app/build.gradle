@@ -183,6 +183,5 @@ dependencies {
 
     implementation 'com.google.crypto.tink:tink-android:1.11.0'
 
-    implementation 'com.google.crypto.tink:tink-mac:1.7.0'
 }
 

@@ -1,6 +1,8 @@
 package com.afkanerd.deku.E2EE.Security.LibSignal;
 
 import android.content.Context;
+import android.util.Base64;
+import android.util.Log;
 
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
@@ -22,6 +24,7 @@ import java.security.Security;
 import java.security.Signature;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -71,12 +74,34 @@ public class Protocols {
         System.arraycopy(hkdfOutput, 64, iv, 0, 16);
 
         byte[] cipherText = SecurityAES.encryptAES256CBC(plainText, key, iv);
-        return Bytes.concat(cipherText,
-                buildVerificationHash(authenticationKey, associated_data, cipherText).doFinal());
+        byte[] mac = buildVerificationHash(authenticationKey, associated_data, cipherText).doFinal();
+
+        Log.d(Protocols.class.getName(), "AD Encrypt: " +
+                Base64.encodeToString(associated_data, Base64.DEFAULT) + ":" +
+                Base64.encodeToString(associated_data, Base64.DEFAULT).length());
+
+        Log.d(Protocols.class.getName(), "CipherText Encrypt: " +
+                Base64.encodeToString(cipherText, Base64.DEFAULT) + ":" +
+        Base64.encodeToString(cipherText, Base64.DEFAULT).length());
+
+        Log.d(Protocols.class.getName(), "AuthenticationKey Encrypt: " +
+                Base64.encodeToString(authenticationKey, Base64.DEFAULT) + ":" +
+        Base64.encodeToString(authenticationKey, Base64.DEFAULT).length());
+
+        Log.d(Protocols.class.getName(), "Mac Encrypt: " +
+                Base64.encodeToString(mac, Base64.DEFAULT) + ":" +
+        Base64.encodeToString(mac, Base64.DEFAULT).length());
+        return Bytes.concat(cipherText, mac) ;
     }
 
-    public static byte[] DECRYPT(byte[] mk, byte[] cipherText, byte[] associated_data) {
-        return null;
+    public static byte[] DECRYPT(byte[] mk, byte[] cipherText, byte[] associated_data) throws Throwable {
+        cipherText = verifyCipherText(mk, cipherText, associated_data);
+
+        byte[] hkdfOutput = getCipherMacParameters(mk);
+        byte[] key = new byte[32];
+        System.arraycopy(hkdfOutput, 0, key, 0, 32);
+
+        return SecurityAES.decryptAES256CBC(cipherText, key);
     }
 
     public static Headers HEADER(KeyPair dhPair, int PN, int N) {
@@ -102,29 +127,49 @@ public class Protocols {
         return mac;
     }
 
-    private static byte[] verifyCipherText(byte[] mk, byte[] cipherText, byte[] AD) throws GeneralSecurityException, InvalidProtocolBufferException {
+    private static byte[] verifyCipherText(byte[] mk, byte[] cipherText, byte[] AD) throws Exception {
         byte[] hkdfOutput = getCipherMacParameters(mk);
         byte[] key = new byte[32];
         byte[] authenticationKey = new byte[32];
         byte[] iv = new byte[16];
 
-        System.arraycopy(hkdfOutput, 0, key, 0, 32);
         System.arraycopy(hkdfOutput, 32, authenticationKey, 0, 32);
-        System.arraycopy(hkdfOutput, 64, iv, 0, 16);
 
         byte[] macValue = new byte[SHA256_DIGEST_LEN];
         System.arraycopy(cipherText, cipherText.length - SHA256_DIGEST_LEN,
                 macValue, 0, SHA256_DIGEST_LEN);
 
+        Log.d(Protocols.class.getName(), "AD Encrypt verify: " +
+                Base64.encodeToString(AD, Base64.DEFAULT) +
+                ":" + Base64.encodeToString(AD, Base64.DEFAULT).length());
+
+        Log.d(Protocols.class.getName(), "AuthenticationKey Encrypt verify: " +
+                Base64.encodeToString(authenticationKey, Base64.DEFAULT) +
+                ":" + Base64.encodeToString(authenticationKey, Base64.DEFAULT).length());
+
+        Log.d(Protocols.class.getName(), "Mac verify expected: " +
+                Base64.encodeToString(macValue, Base64.DEFAULT) + ":" +
+                Base64.encodeToString(macValue, Base64.DEFAULT).length());
+
         byte[] extractedCipherText = new byte[cipherText.length - SHA256_DIGEST_LEN];
         System.arraycopy(cipherText, 0, extractedCipherText,
                 0, extractedCipherText.length);
 
-        Mac reconstructedMac = buildVerificationHash(authenticationKey, AD, extractedCipherText);
-        if(Arrays.equals(macValue, reconstructedMac.doFinal())) {
+        Log.d(Protocols.class.getName(), "CipherText verify: " +
+                Base64.encodeToString(extractedCipherText, Base64.DEFAULT) + ":" +
+        Base64.encodeToString(extractedCipherText, Base64.DEFAULT).length());
+
+        byte[] reconstructedMac =
+                buildVerificationHash(authenticationKey, AD, extractedCipherText)
+                        .doFinal();
+        Log.d(Protocols.class.getName(), "Mac verify derived: " +
+                Base64.encodeToString(reconstructedMac, Base64.DEFAULT) + ":" +
+        Base64.encodeToString(reconstructedMac, Base64.DEFAULT).length());
+
+        if(Arrays.equals(macValue, reconstructedMac)) {
             return extractedCipherText;
         }
-        return null;
+        throw new Exception("Cipher signature verification failed");
     }
 }
 

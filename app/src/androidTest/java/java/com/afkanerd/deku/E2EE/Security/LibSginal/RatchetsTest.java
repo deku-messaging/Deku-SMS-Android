@@ -90,10 +90,8 @@ public class RatchetsTest {
 
         byte[] decryptedPlainText = ratchetBob.ratchetDecrypt(
                 context, bobKeyPairForAliceKeystoreAlias, stateBob,
-                encryptPayloadAlice.header, encryptPayloadAlice.cipherText, AD);
-        Log.d(Ratchets.class.getName(), "state PN: " + stateBob.PN);
-        Log.d(Ratchets.class.getName(), "state Ns: " + stateBob.Ns);
-        Log.d(Ratchets.class.getName(), "state Nr: " + stateBob.Nr);
+                encryptPayloadAlice.header, encryptPayloadAlice.cipherText,
+                Protocols.CONCAT(AD, encryptPayloadAlice.header));
         expectedStateBob.PN = 0;
         expectedStateBob.Ns = 0;
         expectedStateBob.Nr = 1;

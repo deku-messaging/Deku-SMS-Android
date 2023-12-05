@@ -40,7 +40,7 @@ public class Ratchets {
     }
 
     public byte[] ratchetDecrypt(Context context, String keystoreAlias, States state, Headers header,
-                                 byte[] cipherText, byte[] AD) throws GeneralSecurityException, IOException, InterruptedException {
+                                 byte[] cipherText, byte[] AD) throws Throwable {
         byte[] plainText = trySkipMessageKeys(header, cipherText, AD);
         if(plainText != null)
             return plainText;
