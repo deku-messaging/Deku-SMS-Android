@@ -18,6 +18,7 @@ import com.afkanerd.deku.E2EE.Security.LibSignal.States;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.afkanerd.deku.E2EE.Security.SecurityHandler;
 
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -87,6 +88,9 @@ public class RatchetsTest {
 
         Headers expectedHeadersAlice = new Headers(stateAlice.DHs, 0, 0);
         assertEquals(expectedHeadersAlice, encryptPayloadAlice.header);
+
+        Log.d(Ratchets.class.getName(), "Payload size: " +
+                Base64.encodeBase64String(encryptPayloadAlice.cipherText).length());
 
         byte[] decryptedPlainText = ratchetBob.ratchetDecrypt(
                 context, bobKeyPairForAliceKeystoreAlias, stateBob,

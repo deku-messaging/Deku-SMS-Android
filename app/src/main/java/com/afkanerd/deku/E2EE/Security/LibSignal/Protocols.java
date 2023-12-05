@@ -76,21 +76,6 @@ public class Protocols {
         byte[] cipherText = SecurityAES.encryptAES256CBC(plainText, key, iv);
         byte[] mac = buildVerificationHash(authenticationKey, associated_data, cipherText).doFinal();
 
-        Log.d(Protocols.class.getName(), "AD Encrypt: " +
-                Base64.encodeToString(associated_data, Base64.DEFAULT) + ":" +
-                Base64.encodeToString(associated_data, Base64.DEFAULT).length());
-
-        Log.d(Protocols.class.getName(), "CipherText Encrypt: " +
-                Base64.encodeToString(cipherText, Base64.DEFAULT) + ":" +
-        Base64.encodeToString(cipherText, Base64.DEFAULT).length());
-
-        Log.d(Protocols.class.getName(), "AuthenticationKey Encrypt: " +
-                Base64.encodeToString(authenticationKey, Base64.DEFAULT) + ":" +
-        Base64.encodeToString(authenticationKey, Base64.DEFAULT).length());
-
-        Log.d(Protocols.class.getName(), "Mac Encrypt: " +
-                Base64.encodeToString(mac, Base64.DEFAULT) + ":" +
-        Base64.encodeToString(mac, Base64.DEFAULT).length());
         return Bytes.concat(cipherText, mac) ;
     }
 
@@ -139,32 +124,13 @@ public class Protocols {
         System.arraycopy(cipherText, cipherText.length - SHA256_DIGEST_LEN,
                 macValue, 0, SHA256_DIGEST_LEN);
 
-        Log.d(Protocols.class.getName(), "AD Encrypt verify: " +
-                Base64.encodeToString(AD, Base64.DEFAULT) +
-                ":" + Base64.encodeToString(AD, Base64.DEFAULT).length());
-
-        Log.d(Protocols.class.getName(), "AuthenticationKey Encrypt verify: " +
-                Base64.encodeToString(authenticationKey, Base64.DEFAULT) +
-                ":" + Base64.encodeToString(authenticationKey, Base64.DEFAULT).length());
-
-        Log.d(Protocols.class.getName(), "Mac verify expected: " +
-                Base64.encodeToString(macValue, Base64.DEFAULT) + ":" +
-                Base64.encodeToString(macValue, Base64.DEFAULT).length());
-
         byte[] extractedCipherText = new byte[cipherText.length - SHA256_DIGEST_LEN];
         System.arraycopy(cipherText, 0, extractedCipherText,
                 0, extractedCipherText.length);
 
-        Log.d(Protocols.class.getName(), "CipherText verify: " +
-                Base64.encodeToString(extractedCipherText, Base64.DEFAULT) + ":" +
-        Base64.encodeToString(extractedCipherText, Base64.DEFAULT).length());
-
         byte[] reconstructedMac =
                 buildVerificationHash(authenticationKey, AD, extractedCipherText)
                         .doFinal();
-        Log.d(Protocols.class.getName(), "Mac verify derived: " +
-                Base64.encodeToString(reconstructedMac, Base64.DEFAULT) + ":" +
-        Base64.encodeToString(reconstructedMac, Base64.DEFAULT).length());
 
         if(Arrays.equals(macValue, reconstructedMac)) {
             return extractedCipherText;
