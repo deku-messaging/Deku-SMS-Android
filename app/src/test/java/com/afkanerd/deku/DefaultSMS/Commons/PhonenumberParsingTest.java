@@ -11,6 +11,11 @@ import org.junit.Test;
 public class PhonenumberParsingTest {
 
     @Test
+    public void checkForValidPhonenumber(){
+        String wrongNumber = "https://example.com/02fkmb";
+    }
+
+    @Test
     public void formatPhoneNumbersNoPlus(){
         String nationalNumber = "612345678";
         String defaultRegion = "237";
@@ -124,4 +129,5 @@ public class PhonenumberParsingTest {
         String formattedOutput = Helpers.getFormatCompleteNumber(fullPhoneNumber, defaultRegion);
         assertEquals(("+" + defaultRegion + nationalNumber), formattedOutput);
     }
+
 }

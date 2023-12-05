@@ -31,6 +31,17 @@ import java.util.Map;
 
 import javax.crypto.Mac;
 
+/**
+ * This implementations are based on the signal protocols specifications.
+ *
+ * This are based on the recommended algorithms and parameters for the encryption
+ * and decryption.
+ *
+ * The goal for this would be to transform it into library which can be used across
+ * other SMS projects.
+ *
+ * <a href="https://signal.org/docs/specifications/doubleratchet/">...</a>
+ */
 public class Protocols {
 
     // TODO
