@@ -132,6 +132,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
+        setSecurePopUpRequest();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -139,7 +141,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     if(threadedConversations != null &&
                             !E2EEHandler.canCommunicateSecurely(getApplicationContext(),
                                     E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0))) {
-                        securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -147,7 +148,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                                     securePopUpRequest.setVisibility(View.GONE);
                                 } else {
                                     securePopUpRequest.setVisibility(View.VISIBLE);
-                                    setSecurePopUpRequest();
                                 }
                             }
                         });

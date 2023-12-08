@@ -33,6 +33,7 @@ import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -52,7 +53,7 @@ import javax.crypto.KeyAgreement;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
-public class SecurityECDH {
+public class SecurityECDH extends SecurityHandler {
     public final static String DEFAULT_ALGORITHM = "ECDH";
 
     public final int DEFAULT_KEY_SIZE = 256;
@@ -132,10 +133,51 @@ public class SecurityECDH {
         return keyFactory.generatePrivate(keySpec);
     }
 
+    public static KeyPair buildKeyPair(PublicKey publicKey, PrivateKey privateKey) {
+        return new KeyPair(publicKey, privateKey);
+    }
+
     public static PrivateKey getPrivateKeyFromKeystore(String keystoreAlias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableKeyException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         return (PrivateKey) keyStore.getKey(keystoreAlias, null);
+    }
+
+    public static byte[] generateSecretKey(KeyPair keyPair, PublicKey publicKey)
+            throws GeneralSecurityException, IOException, InterruptedException {
+        KeyAgreement keyAgreement = KeyAgreement.getInstance(DEFAULT_ALGORITHM);
+        keyAgreement.init(keyPair.getPrivate());
+        keyAgreement.doPhase(publicKey, true);
+        return keyAgreement.generateSecret();
+    }
+
+    public static KeyPair getKeyPairFromKeystore(Context context, String keystoreAlias) throws InterruptedException, UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        final KeyPair[] keyPair = new KeyPair[1];
+        if(Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
+            CustomKeyStoreDao customKeyStoreDao = CustomKeyStore.getDao(context);
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    CustomKeyStore customKeyStore = customKeyStoreDao.find(keystoreAlias);
+                    try {
+                        keyPair[0] = customKeyStore.getKeyPair();
+                    } catch (NoSuchAlgorithmException | InvalidKeySpecException |
+                             UnrecoverableKeyException | KeyStoreException | CertificateException |
+                             IOException | NoSuchPaddingException | IllegalBlockSizeException |
+                             BadPaddingException | InvalidKeyException |
+                             InvalidAlgorithmParameterException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+            thread.start();
+            thread.join();
+        }
+        else {
+            keyPair[0] = getKeyPairFromKeystore(keystoreAlias);
+        }
+
+        return keyPair[0];
     }
 
     public static byte[] generateSecretKey(Context context, String keystoreAlias, PublicKey publicKey)

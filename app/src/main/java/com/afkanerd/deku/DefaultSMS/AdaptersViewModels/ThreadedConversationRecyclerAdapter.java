@@ -12,6 +12,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
 
 import com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsReceivedViewHandler;
@@ -87,6 +88,17 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
         return ThreadedConversationsTemplateViewHolder.getViewType(position, snapshot().getItems());
     }
 
+    public void markThreadRead(ThreadedConversations threadedConversations) {
+        threadedConversations.setIs_read(true);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
+                threadedConversationsDao.update(threadedConversations);
+            }
+        }).start();
+    }
+
     @Override
     public void onBindViewHolder(@NonNull ThreadedConversationsTemplateViewHolder holder, int position) {
         ThreadedConversations threadedConversations = getItem(position);
@@ -117,6 +129,8 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
                 context.startActivity(singleMessageThreadIntent);
+
+                markThreadRead(threadedConversations);
             }
         };
 //

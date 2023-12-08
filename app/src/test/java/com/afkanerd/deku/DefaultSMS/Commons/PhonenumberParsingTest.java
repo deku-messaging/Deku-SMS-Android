@@ -1,27 +1,19 @@
 package com.afkanerd.deku.DefaultSMS.Commons;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import android.content.Intent;
-import android.net.Uri;
-import android.telephony.PhoneNumberUtils;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.ClickableSpan;
-import android.text.style.ForegroundColorSpan;
-import android.view.View;
 
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import org.junit.Test;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+public class PhonenumberParsingTest {
 
-public class HelpersRandomTest {
+    @Test
+    public void checkForValidPhonenumber(){
+        String wrongNumber = "https://example.com/02fkmb";
+    }
 
     @Test
     public void formatPhoneNumbersNoPlus(){
@@ -128,4 +120,14 @@ public class HelpersRandomTest {
         String[] formattedOutput = Helpers.getCountryNationalAndCountryCode(fullPhoneNumber);
         assertArrayEquals(new String[]{defaultRegion, nationalNumber}, formattedOutput);
     }
+
+    @Test
+    public void formatPhoneNumbersAndCountryCodeSpecialCharacterTest() throws NumberParseException {
+        String fullPhoneNumber = "123-456-789";
+        String defaultRegion = "237";
+        String nationalNumber = "123456789";
+        String formattedOutput = Helpers.getFormatCompleteNumber(fullPhoneNumber, defaultRegion);
+        assertEquals(("+" + defaultRegion + nationalNumber), formattedOutput);
+    }
+
 }

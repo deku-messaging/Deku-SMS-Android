@@ -5,7 +5,7 @@
         android:key="encryption_disable"
         android:title="@string/settings_security_category_end_to_end_disable"
         android:summary="@string/settings_security_category_end_to_end_disable_summary"
-        android:defaultValue="false"/>
+        android:defaultValue="true"/>
 
     <SwitchPreference
         android:key="encryption_expiration_duration"
