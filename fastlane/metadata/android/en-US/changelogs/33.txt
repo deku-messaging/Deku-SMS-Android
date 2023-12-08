@@ -1,0 +1,2 @@
+- Request to encrypt conversation turned off by default
+- Removed Plain text tab from Homescreen
