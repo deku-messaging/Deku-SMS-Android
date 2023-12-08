@@ -36,7 +36,7 @@ public class HomepageFragment extends Fragment {
         super.onCreate(savedInstanceState);
         fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_all));
         fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_encrypted));
-        fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_plain));
+//        fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_plain));
 //        fragmentListNames.add(getContext().getString(R.string.homepage_fragment_tab_automated));
     }
 
@@ -98,8 +98,8 @@ public class HomepageFragment extends Fragment {
     public static class HomepageFragmentAdapter extends FragmentStateAdapter {
         public static String[] fragmentList = new String[]{
                 ThreadedConversationsFragment.ALL_MESSAGES_THREAD_FRAGMENT,
-                ThreadedConversationsFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT,
-                ThreadedConversationsFragment.PLAIN_MESSAGES_THREAD_FRAGMENT };
+                ThreadedConversationsFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT};
+//                ThreadedConversationsFragment.PLAIN_MESSAGES_THREAD_FRAGMENT };
         public HomepageFragmentAdapter(Fragment fragment) {
             super(fragment);
 //            fragmentList.add(ThreadedConversationsFragment.AUTOMATED_MESSAGES_THREAD_FRAGMENT);
