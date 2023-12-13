@@ -1,0 +1,2 @@
+- Moved settings around to be more intuitive
+- Moved linked devices to Gateway client
