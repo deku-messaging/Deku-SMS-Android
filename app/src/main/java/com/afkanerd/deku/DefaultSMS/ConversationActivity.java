@@ -149,6 +149,7 @@ public class ConversationActivity extends E2EECompactActivity {
             getMenuInflater().inflate(R.menu.conversations_menu, menu);
             if (isShortCode) {
                 menu.findItem(R.id.conversation_main_menu_call).setVisible(false);
+                menu.findItem(R.id.conversation_main_menu_encrypt_lock).setVisible(false);
             }
         } catch (Exception e) {
             e.printStackTrace();

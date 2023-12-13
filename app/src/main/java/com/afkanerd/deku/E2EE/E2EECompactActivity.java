@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler;
@@ -138,19 +139,24 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             @Override
             public void run() {
                 try {
-                    if(threadedConversations != null &&
-                            !E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                    E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0))) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if(SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
-                                    securePopUpRequest.setVisibility(View.GONE);
-                                } else {
-                                    securePopUpRequest.setVisibility(View.VISIBLE);
+                    if(threadedConversations != null) {
+                        if(Helpers.isShortCode(threadedConversations)) {
+                            securePopUpRequest.setVisibility(View.GONE);
+                        }
+                        else if(!E2EEHandler.canCommunicateSecurely(getApplicationContext(),
+                                E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0))) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
+                                        securePopUpRequest.setVisibility(View.GONE);
+                                    } else {
+                                        securePopUpRequest.setVisibility(View.VISIBLE);
+                                    }
                                 }
-                            }
-                        });
+                            });
+
+                        }
                     }
                 } catch (CertificateException | NumberParseException | NoSuchAlgorithmException |
                          IOException | KeyStoreException e) {
