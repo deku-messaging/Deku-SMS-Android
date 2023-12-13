@@ -471,7 +471,6 @@ public class ConversationActivity extends E2EECompactActivity {
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                Log.d(getLocalClassName(), "Mutable data compose changed: " + s);
                 if(simCount > 1) {
                     findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
                             .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);

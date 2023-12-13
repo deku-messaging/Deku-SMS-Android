@@ -109,7 +109,6 @@ public class NotificationsHandler {
                 .setKey(context.getString(R.string.notification_title_reply_you));
         Person replyPerson = personBuilder.build();
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
-        Log.d(Helpers.class.getName(), "Name: " + contactName + " - " + String.valueOf(contactName == null));
 
         NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person);
 
@@ -186,7 +185,6 @@ public class NotificationsHandler {
         }
 
         for(MessageTrackers messageTracker : newTrackers) {
-            Log.d(NotificationsHandler.class.getName(), "Adding person: " + messageTracker.person.getName());
             messagingStyle.addMessage(new NotificationCompat.MessagingStyle.Message(
                     messageTracker.message, System.currentTimeMillis(),messageTracker.person));
         }

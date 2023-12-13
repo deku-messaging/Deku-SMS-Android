@@ -60,7 +60,10 @@ public class ThreadedConversationsFragment extends Fragment {
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
-        threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter( getContext());
+
+        threadedConversationsViewModel = viewManipulationListener.getViewModel();
+        threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter( getContext(),
+                threadedConversationsViewModel.getThreadedConversationsDao());
 
         viewManipulationListener.setRecyclerViewAdapter(messageType, threadedConversationRecyclerAdapter);
 
@@ -68,8 +71,6 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(threadedConversationRecyclerAdapter);
         messagesThreadRecyclerView.setItemViewCacheSize(500);
-
-        threadedConversationsViewModel = viewManipulationListener.getViewModel();
 
         threadedConversationRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
             @Override
