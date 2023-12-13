@@ -1,7 +1,5 @@
 package com.afkanerd.deku.Router.GatewayServers;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
@@ -19,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -91,15 +90,11 @@ public class GatewayServerListingActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.add_gateway_server) {
+        if (item.getItemId() == R.id.gateway_client_add_manually) {
             Intent addGatewayIntent = new Intent(getApplicationContext(), GatewayServerAddActivity.class);
             startActivity(addGatewayIntent);
+            return true;
         }
         return false;
     }

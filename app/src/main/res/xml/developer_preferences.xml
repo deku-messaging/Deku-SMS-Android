@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        app:key="sms_listening"
+        app:title="@string/settings_SMS_listening_title">
+        <Preference
+            app:icon="@drawable/baseline_route_24"
+            app:key="settings_sms_listening_gateway_clients"
+            app:title="@string/settings_SMS_listening_server"
+            app:summary="@string/settings_SMS_listening_SMSWithoutBorders_summary"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

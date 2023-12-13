@@ -108,15 +108,19 @@
 
     <string name="sms_status_delivered">Delivered</string>
     <string name="sms_status_sent">Sent</string>
-    <string name="sms_status_sending">sending...</string>
+    <string name="sms_status_sending">sending…</string>
     <string name="sms_status_failed">failed, click to retry.</string>
     <string name="sms_sent_date_today">Today </string>
+
+    <string name="settings_advanced_developers_key">settings_advanced_developers_key</string>
 
     <string name="settings_about">About</string>
     <string name="settings_title">Settings</string>
     <string name="settings_security_category_title">Security</string>
+    <string name="settings_advanced_category_title">Advance</string>
+    <string name="settings_developer_category_title">Developers</string>
     <string name="settings_security_category_end_to_end_encryption">Communication Encryption</string>
-    <string name="settings_security_category_end_to_end_encryption_summary">Configure how you encryption work. Where you also go to disable encryption</string>
+    <string name="settings_security_category_end_to_end_encryption_summary">Configure how your encryption works. Where you also go to disable encryption</string>
     <string name="settings_security_category_end_to_end_duration">Allow request for encryption to expire</string>
     <string name="settings_security_category_end_to_end_disable">Disable request to secure messages</string>
     <string name="settings_security_category_end_to_end_disable_summary">Will not affect contacts you are already communicating securely with, but you will not be asked to secure communications with other contacts</string>
@@ -128,6 +132,10 @@
     <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
     <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for routing SMS messages through HTTPS</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
+
+    <string name="gateway_client_add_linked_device_title">Scan QR code</string>
+    <string name="gateway_client_add_manually_title">Add Manually</string>
+
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
     <string name="settings_SMS_routing_type_all_option">All (default)</string>

@@ -49,9 +49,17 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     public final static int SENT_ENCRYPTED_UNREAD_VIEW_TYPE = 7;
     public final static int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
+    ThreadedConversationsDao threadedConversationsDao;
+
     public ThreadedConversationRecyclerAdapter(Context context) {
         super(ThreadedConversations.DIFF_CALLBACK);
         this.context = context;
+    }
+
+    public ThreadedConversationRecyclerAdapter(Context context, ThreadedConversationsDao threadedConversationsDao) {
+        super(ThreadedConversations.DIFF_CALLBACK);
+        this.context = context;
+        this.threadedConversationsDao = threadedConversationsDao;
     }
 
     @NonNull
@@ -89,14 +97,15 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     }
 
     public void markThreadRead(ThreadedConversations threadedConversations) {
-        threadedConversations.setIs_read(true);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
-                threadedConversationsDao.update(threadedConversations);
-            }
-        }).start();
+        if(threadedConversationsDao != null) {
+            threadedConversations.setIs_read(true);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    threadedConversationsDao.update(threadedConversations);
+                }
+            }).start();
+        }
     }
 
     @Override
@@ -126,11 +135,11 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                     }
                 }
 
+//                markThreadRead(threadedConversations);
+
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
                 context.startActivity(singleMessageThreadIntent);
-
-                markThreadRead(threadedConversations);
             }
         };
 //

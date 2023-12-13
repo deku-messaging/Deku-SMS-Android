@@ -41,7 +41,8 @@
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"/>
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity"
-            android:exported="false">
+            android:exported="false"
+            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity">
             <meta-data
                 android:name="com.google.android.gms.vision.DEPENDENCIES"
                 android:value="barcode" />

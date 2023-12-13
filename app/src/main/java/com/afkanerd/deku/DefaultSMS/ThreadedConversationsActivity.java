@@ -194,12 +194,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             startActivity(routingIntent);
             return true;
         }
-        if (item.getItemId() == R.id.conversation_threads_main_menu_devices) {
-            Intent webIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);
-            webIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(webIntent);
-            return true;
-        }
         if (item.getItemId() == R.id.conversation_threads_main_menu_settings) {
             Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
             startActivity(settingsIntent);

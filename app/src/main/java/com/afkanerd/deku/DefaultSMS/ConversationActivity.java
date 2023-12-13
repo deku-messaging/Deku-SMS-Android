@@ -149,16 +149,12 @@ public class ConversationActivity extends E2EECompactActivity {
             getMenuInflater().inflate(R.menu.conversations_menu, menu);
             if (isShortCode) {
                 menu.findItem(R.id.conversation_main_menu_call).setVisible(false);
+                menu.findItem(R.id.conversation_main_menu_encrypt_lock).setVisible(false);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return super.onCreateOptionsMenu(menu);
-    }
-
-    private boolean isSearchActive() {
-        int visibility = findViewById(R.id.conversations_search_results_found).getVisibility();
-        return visibility == View.VISIBLE;
     }
 
     private void resetSearch() {
@@ -446,7 +442,8 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void configureToolbars() {
         setTitle(getAbTitle());
-        getSupportActionBar().setSubtitle(getAbSubTitle());
+        if(!isShortCode)
+            getSupportActionBar().setSubtitle(getAbSubTitle());
 
     }
 
@@ -475,13 +472,12 @@ public class ConversationActivity extends E2EECompactActivity {
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                Log.d(getLocalClassName(), "Mutable data compose changed: " + s);
                 if(simCount > 1) {
                     findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
                             .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-                } else
-                    findViewById(R.id.conversation_send_btn)
-                            .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                }
+                findViewById(R.id.conversation_send_btn)
+                        .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
             }
         });
 

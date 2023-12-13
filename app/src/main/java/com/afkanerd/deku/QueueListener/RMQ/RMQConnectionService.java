@@ -82,6 +82,9 @@ public class RMQConnectionService extends Service {
 
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
+    Conversation conversation;
+    ConversationDao conversationDao;
+
 
     @Override
     public void onCreate() {
@@ -94,6 +97,8 @@ public class RMQConnectionService extends Service {
 
         registerListeners();
 
+        conversation = new Conversation();
+        conversationDao = conversation.getDaoInstance(getApplicationContext());
     }
 
     public int[] getGatewayClientNumbers() {
@@ -242,9 +247,6 @@ public class RMQConnectionService extends Service {
                     String globalMessageKey = jsonObject.getString(RMQConnection.MESSAGE_GLOBAL_MESSAGE_ID_KEY);
                     String sid = jsonObject.getString(RMQConnection.MESSAGE_SID);
 
-                    Log.d(getClass().getName(), "New deliver callback for global id: " + globalMessageKey);
-                    Log.d(getClass().getName(), "Incoming sid found: " + sid);
-
                     Map<Long, Channel> deliveryChannelMap = new HashMap<>();
                     deliveryChannelMap.put(delivery.getEnvelope().getDeliveryTag(), channel);
                     channelList.put(sid, deliveryChannelMap);
@@ -262,7 +264,10 @@ public class RMQConnectionService extends Service {
                     conversation.setAddress(msisdn);
                     conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
+                    long id = conversationDao.insert(conversation);
                     SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, bundle);
+                    conversation.setId(id);
+                    conversationDao.update(conversation);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     channel.basicReject(delivery.getEnvelope().getDeliveryTag(), false);
@@ -275,7 +280,6 @@ public class RMQConnectionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(getClass().getName(), "Request to start service received...");
         Map<String, ?> storedGatewayClients = sharedPreferences.getAll();
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
 

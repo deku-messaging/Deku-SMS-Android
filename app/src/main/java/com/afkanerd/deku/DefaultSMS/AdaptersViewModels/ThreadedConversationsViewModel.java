@@ -168,6 +168,10 @@ public class ThreadedConversationsViewModel extends ViewModel {
         this.threadedConversationsDao = threadedConversationsDao;
     }
 
+    public ThreadedConversationsDao getThreadedConversationsDao(){
+        return this.threadedConversationsDao;
+    }
+
     public void archive(List<Archive> archiveList) {
         new Thread(new Runnable() {
             @Override

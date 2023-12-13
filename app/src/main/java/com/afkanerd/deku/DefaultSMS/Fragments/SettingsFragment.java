@@ -21,25 +21,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
         setPreferencesFromResource(R.xml.settings_preferences, rootKey);
 
-        Preference securityPrivacyPreference = findPreference("security_id_end_to_end_encryption");
+        Preference securityPrivacyPreference = findPreference("settings_security_end_to_end");
         securityPrivacyPreference.setFragment(EndToEndFragments.class.getCanonicalName());
 
-        Preference smsRoutingSMSWithoutBorders = findPreference("settings_sms_routing_gateway_clients");
-        smsRoutingSMSWithoutBorders.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(@NonNull Preference preference) {
-                startActivity(new Intent(getContext(), GatewayServerListingActivity.class));
-                return true;
-            }
-        });
-
-        Preference smsListeningSMSWithoutBorders = findPreference("settings_sms_listening_gateway_clients");
-        smsListeningSMSWithoutBorders.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(@NonNull Preference preference) {
-                startActivity(new Intent(getContext(), GatewayClientListingActivity.class));
-                return true;
-            }
-        });
+        Preference developersPreferences = findPreference(getString(R.string.settings_advanced_developers_key));
+        developersPreferences.setFragment(DevelopersFragment.class.getCanonicalName());
     }
 }
