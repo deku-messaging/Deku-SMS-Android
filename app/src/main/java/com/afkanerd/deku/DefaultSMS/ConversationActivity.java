@@ -157,11 +157,6 @@ public class ConversationActivity extends E2EECompactActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    private boolean isSearchActive() {
-        int visibility = findViewById(R.id.conversations_search_results_found).getVisibility();
-        return visibility == View.VISIBLE;
-    }
-
     private void resetSearch() {
         findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
         conversationsRecyclerAdapter.searchString = null;
@@ -480,9 +475,9 @@ public class ConversationActivity extends E2EECompactActivity {
                 if(simCount > 1) {
                     findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
                             .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-                } else
-                    findViewById(R.id.conversation_send_btn)
-                            .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                }
+                findViewById(R.id.conversation_send_btn)
+                        .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
             }
         });
 
