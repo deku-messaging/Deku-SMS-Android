@@ -1,2 +1,4 @@
 - Moved settings around to be more intuitive
 - Moved linked devices to Gateway client
+- Fixed false request for encryption
+- Removed encryption lock for shortcodes
