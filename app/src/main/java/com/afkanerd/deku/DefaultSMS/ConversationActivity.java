@@ -442,7 +442,8 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void configureToolbars() {
         setTitle(getAbTitle());
-        getSupportActionBar().setSubtitle(getAbSubTitle());
+        if(!isShortCode)
+            getSupportActionBar().setSubtitle(getAbSubTitle());
 
     }
 
