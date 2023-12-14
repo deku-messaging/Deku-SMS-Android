@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="preloaded_fonts" translatable="false">
+        <item>@font/roboto_italic</item>
         <item>@font/roboto_light_italic</item>
         <item>@font/roboto_slab_bold</item>
     </array>

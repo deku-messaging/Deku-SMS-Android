@@ -60,6 +60,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     ThreadedConversationsViewModel threadedConversationsViewModel;
 
     ActionMode actionMode;
+    ThreadedConversationsDao threadedConversationsDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +76,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             finish();
         }
 
-        ThreadedConversationsDao threadedConversationsDao =
-                ThreadedConversations.getDao(getApplicationContext());
+        threadedConversationsDao = ThreadedConversations.getDao(getApplicationContext());
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
@@ -243,7 +243,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             }).start();
         }
 
-        threadedConversationsViewModel.refresh(getApplicationContext(), null);
+//        threadedConversationsViewModel.refresh(getApplicationContext(), null);
     }
 
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {

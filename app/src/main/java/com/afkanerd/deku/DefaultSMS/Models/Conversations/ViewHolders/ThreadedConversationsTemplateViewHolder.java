@@ -10,6 +10,7 @@ import static com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversati
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -85,10 +86,17 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         }
         else this.address.setText(conversation.getAddress());
 
-        String date = Helpers.formatDate(itemView.getContext(),
-                Long.parseLong(conversation.getDate()));
-        this.date.setText(date);
         this.snippet.setText(conversation.getSnippet());
+        if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT) {
+            this.date.setText(itemView.getContext().getString(R.string.thread_conversation_type_draft));
+            this.date.setTextAppearance(R.style.conversation_draft_style);
+            this.snippet.setTextAppearance(R.style.conversation_draft_style);
+        }
+        else {
+            String date = Helpers.formatDate(itemView.getContext(),
+                    Long.parseLong(conversation.getDate()));
+            this.date.setText(date);
+        }
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);
         // TODO: investigate new Avatar first before anything else

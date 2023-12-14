@@ -287,6 +287,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         Conversation conversation = new Conversation();
                         conversation.setMessage_id(messageId);
                         conversation.setText(text);
+                        conversation.setThread_id(threadedConversations.getThread_id());
+                        conversation.setRead(true);
                         conversation.setType(Telephony.Sms.MESSAGE_TYPE_DRAFT);
                         conversation.setDate(String.valueOf(System.currentTimeMillis()));
                         conversation.setAddress(threadedConversations.getAddress());

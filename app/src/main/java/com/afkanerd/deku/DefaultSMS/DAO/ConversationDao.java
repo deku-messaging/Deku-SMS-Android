@@ -18,7 +18,7 @@ import java.util.List;
 @Dao
 public interface ConversationDao {
 
-    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
+    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     PagingSource<Integer, Conversation> get(String thread_id);
 
     @Query("SELECT * FROM Conversation WHERE address =:address ORDER BY date DESC")

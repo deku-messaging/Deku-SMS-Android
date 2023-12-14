@@ -198,7 +198,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
         }).start();
     }
 
-    public void refresh(Context context, final ConversationDao conversationDaoInstance) {
+    public void refresh(Context context, ConversationDao conversationDaoInstance) {
+        Log.d(getClass().getName(), "Refreshing...");
         new Thread(new Runnable() {
             @Override
             public void run() {

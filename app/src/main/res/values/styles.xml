@@ -20,6 +20,11 @@
         <item name="android:textColor">@color/failed_red</item>
     </style>
 
+    <style name="conversation_draft_style">
+        <item name="android:fontFamily">@font/roboto_medium_italic</item>
+        <item name="android:textColor">@color/primary_text_color</item>
+    </style>
+
 </resources>
 
 
