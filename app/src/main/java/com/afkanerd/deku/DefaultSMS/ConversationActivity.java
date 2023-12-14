@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -538,9 +539,25 @@ public class ConversationActivity extends E2EECompactActivity {
         }
     }
 
+    private void shareItem() {
+        Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
+                conversationsRecyclerAdapter.mutableSelectedItems.getValue().entrySet();
+        String text = entry.iterator().next().getValue().getText();
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+        sendIntent.setType("text/plain");
+
+        Intent shareIntent = Intent.createChooser(sendIntent, null);
+        // Only use for components you have control over
+        ComponentName[] excludedComponentNames = {
+                new ComponentName(BuildConfig.APPLICATION_ID, ComposeNewMessageActivity.class.getName())
+        };
+        shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames);
+        startActivity(shareIntent);
+    }
 
     private void copyItem() {
-        // TODO
         Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
                 conversationsRecyclerAdapter.mutableSelectedItems.getValue().entrySet();
         String text = entry.iterator().next().getValue().getText();
@@ -678,6 +695,12 @@ public class ConversationActivity extends E2EECompactActivity {
             int id = item.getItemId();
             if (R.id.conversations_menu_copy == id) {
                 copyItem();
+                if(actionMode != null)
+                    actionMode.finish();
+                return true;
+            }
+            else if (R.id.conversations_menu_share == id) {
+                shareItem();
                 if(actionMode != null)
                     actionMode.finish();
                 return true;

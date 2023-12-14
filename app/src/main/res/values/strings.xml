@@ -237,6 +237,7 @@
     <string name="arhived_no_archived_messages">No Archived Messages</string>
     <string name="conversation_menu_copy">copy</string>
     <string name="conversation_menu_delete">delete</string>
+    <string name="conversation_menu_share">share</string>
     <string name="compose_new_message_to">To</string>
     <string name="compose_new_message_title">New conversation</string>
     <string name="conversation_secure_popup_text">Click to request secure conversation</string>

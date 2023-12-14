@@ -1,0 +1,1 @@
+- option to share message now included
