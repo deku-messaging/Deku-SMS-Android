@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-<!--    <color name="black">#FF000000</color>-->
+    <!--    <color name="black">#FF000000</color>-->
     <color name="black">#191c1e</color>
 <!--    <color name="white">#FFFFFFFF</color>-->
     <color name="white">#dee0e2</color>
@@ -21,9 +20,8 @@
 <!--    <color name="primary_background_color">#fcfcff</color>-->
     <color name="primary_background_color">@color/white</color>
     <color name="primary_background_color_transparent">#FFFFFF</color>
-    <color name="primary_background_color_transparent_secondary">#D2FFFFFF</color>
 
-<!--    <color name="sent_message_color">@color/logo_primary</color>-->
+    <!--    <color name="sent_message_color">@color/logo_primary</color>-->
     <color name="sent_message_color">#d1e5f4</color>
 <!--    <color name="received_message_color">@color/logo_secondary</color>-->
     <color name="received_message_color">#f0f0f3</color>
@@ -31,7 +29,6 @@
 <!--    <color name="sent_message_highlighted_color">#AEB3B9</color>-->
 <!--    <color name="received_message_highlighted_color">@color/logo_primary</color>-->
     <color name="primary_highlight_color">#AEB3B9</color>
-    <color name="primary_warning_background_color">#FD6839</color>
 
     <color name="colorPrimary">@color/logo_primary</color>
     <color name="colorSecondary">@color/logo_third</color>
