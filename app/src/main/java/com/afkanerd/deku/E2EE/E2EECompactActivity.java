@@ -43,7 +43,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     public static String INFORMED_SECURED = "INFORMED_SECURED";
 
     @Override
-    public void sendTextMessage(final String text, int subscriptionId, ThreadedConversations threadedConversations) throws Exception {
+    public void sendTextMessage(final String text, int subscriptionId,
+                                ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
         String keystoreAlias = E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0);
         final String[] transmissionText = {text};
         Thread thread = new Thread(new Runnable() {
@@ -63,7 +64,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         thread.start();
         thread.join();
 
-        super.sendTextMessage(transmissionText[0], subscriptionId, threadedConversations);
+        super.sendTextMessage(transmissionText[0], subscriptionId, threadedConversations, messageId);
     }
 
     @Override

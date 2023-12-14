@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.provider.Telephony;
 import android.util.Log;
 
 import androidx.lifecycle.Lifecycle;
@@ -211,6 +212,31 @@ public class ConversationsViewModel extends ViewModel {
                 conversation.setId(id);
                 conversation.setThread_id(threadId);
                 conversationDao.update(conversation);
+            }
+        }).start();
+    }
+
+    public Conversation fetchDraft() throws InterruptedException {
+        final Conversation[] conversation = {null};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                conversation[0] =
+                        conversationDao.fetchTypedConversation(
+                                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+            }
+        });
+        thread.start();
+        thread.join();
+
+        return conversation[0];
+    }
+
+    public void clearDraft() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                conversationDao.deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
             }
         }).start();
     }

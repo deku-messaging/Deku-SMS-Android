@@ -83,6 +83,9 @@ public class ConversationActivity extends E2EECompactActivity {
 
     Toolbar toolbar;
 
+    private String draftMessageId;
+    private String draftText;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +110,18 @@ public class ConversationActivity extends E2EECompactActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        // Always call the superclass so it can restore the view hierarchy.
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restore state members from saved instance.
+        smsTextView.setText(savedInstanceState.getString(DRAFT_TEXT));
+        draftMessageId = savedInstanceState.getString(DRAFT_ID);
+
+        savedInstanceState.remove(DRAFT_TEXT);
+        savedInstanceState.remove(DRAFT_ID);
     }
 
     private void test() {
@@ -387,7 +402,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 list.add(conversation);
                 conversationsViewModel.deleteItems(getApplicationContext(), list);
                 try {
-                    sendTextMessage(conversation, threadedConversations);
+                    sendTextMessage(conversation, threadedConversations, draftMessageId);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -465,6 +480,33 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     boolean isShortCode = false;
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (draftMessageId != null && !draftText.isEmpty())
+            saveDraft(draftMessageId, draftText, threadedConversations);
+    }
+
+    static final String DRAFT_TEXT = "DRAFT_TEXT";
+    static final String DRAFT_ID = "DRAFT_ID";
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state.
+        savedInstanceState.putString(DRAFT_TEXT, draftText);
+        savedInstanceState.putString(DRAFT_ID, draftMessageId);
+
+        // Always call the superclass so it can save the view hierarchy state.
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    private void emptyDraft(){
+        conversationsViewModel.clearDraft();
+        draftMessageId = null;
+        draftText = null;
+    }
+
     private void configureMessagesTextBox() {
         if (mutableLiveDataComposeMessage.getValue() == null ||
                 mutableLiveDataComposeMessage.getValue().isEmpty())
@@ -473,12 +515,22 @@ public class ConversationActivity extends E2EECompactActivity {
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
+                int visibility = s.isEmpty() ? View.INVISIBLE : View.VISIBLE;
                 if(simCount > 1) {
                     findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
-                            .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                            .setVisibility(visibility);
                 }
-                findViewById(R.id.conversation_send_btn)
-                        .setVisibility(s.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                findViewById(R.id.conversation_send_btn).setVisibility(visibility);
+
+                if(s.isEmpty()) {
+                    if(draftMessageId != null) {
+                        emptyDraft();
+                    }
+                } else {
+                    if(draftMessageId == null)
+                        draftMessageId = String.valueOf(System.currentTimeMillis());
+                    draftText = s;
+                }
             }
         });
 
@@ -499,7 +551,8 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onClick(View v) {
                 try {
                     final String text = smsTextView.getText().toString();
-                    sendTextMessage(text, defaultSubscriptionId.getValue(), threadedConversations);
+                    sendTextMessage(text, defaultSubscriptionId.getValue(),
+                            threadedConversations, draftMessageId);
                     smsTextView.setText(null);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -528,6 +581,25 @@ public class ConversationActivity extends E2EECompactActivity {
         if (getIntent().hasExtra(Conversation.SHARED_SMS_BODY)) {
             smsTextView.setText(getIntent().getStringExtra(Conversation.SHARED_SMS_BODY));
             getIntent().removeExtra(Conversation.SHARED_SMS_BODY);
+        }
+
+        try {
+            checkDrafts();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void checkDrafts() throws InterruptedException {
+        if(draftText != null && draftMessageId != null) {
+            smsTextView.setText(draftText);
+        }
+        else {
+            Conversation conversation = conversationsViewModel.fetchDraft();
+            if (conversation != null) {
+                smsTextView.setText(conversation.getText());
+                draftMessageId = conversation.getMessage_id();
+            }
         }
     }
 
