@@ -24,6 +24,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsView
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
@@ -51,6 +52,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
     protected static final String TAG_NAME = "NATIVE_CONVERSATION_TAG";
     protected static final String UNIQUE_WORK_NAME = "NATIVE_CONVERSATION_TAG_UNIQUE_WORK_NAME";
     protected static final String LOAD_NATIVES = "LOAD_NATIVES";
+
+    protected final static String DRAFT_PRESENT_BROADCAST = "DRAFT_PRESENT_BROADCAST";
 
     Conversation conversation;
     ConversationDao conversationDao;
@@ -150,6 +153,9 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     } else if(viewModel instanceof ThreadedConversationsViewModel) {
                         ((ThreadedConversationsViewModel) viewModel).refresh(context, conversationDao);
                     }
+                } else if(intent.getAction().equals(DRAFT_PRESENT_BROADCAST) &&
+                        viewModel instanceof ThreadedConversationsViewModel) {
+                    ((ThreadedConversationsViewModel) viewModel).refresh(context, conversationDao);
                 } else {
                     String messageId = intent.getStringExtra(Conversation.ID);
                     if(viewModel instanceof ConversationsViewModel && messageId != null) {
@@ -185,6 +191,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
 
         intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT);
+        intentFilter.addAction(DRAFT_PRESENT_BROADCAST);
         intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT);
 
         if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
@@ -298,6 +305,9 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+
+                        Intent intent = new Intent(DRAFT_PRESENT_BROADCAST);
+                        sendBroadcast(intent);
                     }
                 }).start();
             }

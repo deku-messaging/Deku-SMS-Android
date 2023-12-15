@@ -80,6 +80,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
+        setViewModel(threadedConversationsViewModel);
         fragmentManagement();
         configureBroadcastListeners();
     }
@@ -222,13 +223,12 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     protected void onPause() {
         super.onPause();
-        setViewModel(null);
+//        setViewModel(null);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        setViewModel(threadedConversationsViewModel);
 
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -243,7 +243,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             }).start();
         }
 
-//        threadedConversationsViewModel.refresh(getApplicationContext(), null);
+        threadedConversationsViewModel.refresh(getApplicationContext(), null);
     }
 
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {

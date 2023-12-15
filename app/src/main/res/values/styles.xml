@@ -21,7 +21,12 @@
     </style>
 
     <style name="conversation_draft_style">
-        <item name="android:fontFamily">@font/roboto_medium_italic</item>
+        <item name="android:textAppearance">@font/roboto_light_italic</item>
+        <item name="android:textColor">@color/primary_text_color</item>
+    </style>
+
+    <style name="conversation_unread_style">
+        <item name="android:textAppearance">@font/roboto_bold</item>
         <item name="android:textColor">@color/primary_text_color</item>
     </style>
 

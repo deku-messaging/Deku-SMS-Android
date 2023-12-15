@@ -136,36 +136,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         super.onStart();
         securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
         setSecurePopUpRequest();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if(threadedConversations != null) {
-                        if(Helpers.isShortCode(threadedConversations)) {
-                            securePopUpRequest.setVisibility(View.GONE);
-                        }
-                        else if(!E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0))) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if(SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
-                                        securePopUpRequest.setVisibility(View.GONE);
-                                    } else {
-                                        securePopUpRequest.setVisibility(View.VISIBLE);
-                                    }
-                                }
-                            });
-
-                        }
-                    }
-                } catch (CertificateException | NumberParseException | NoSuchAlgorithmException |
-                         IOException | KeyStoreException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }).start();
+        if(!SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext()))
+            securePopUpRequest.setVisibility(View.VISIBLE);
     }
 
     @Override

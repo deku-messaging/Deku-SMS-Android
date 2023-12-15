@@ -87,16 +87,9 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         else this.address.setText(conversation.getAddress());
 
         this.snippet.setText(conversation.getSnippet());
-        if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT) {
-            this.date.setText(itemView.getContext().getString(R.string.thread_conversation_type_draft));
-            this.date.setTextAppearance(R.style.conversation_draft_style);
-            this.snippet.setTextAppearance(R.style.conversation_draft_style);
-        }
-        else {
-            String date = Helpers.formatDate(itemView.getContext(),
-                    Long.parseLong(conversation.getDate()));
-            this.date.setText(date);
-        }
+        String date = Helpers.formatDate(itemView.getContext(),
+                Long.parseLong(conversation.getDate()));
+        this.date.setText(date);
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);
         // TODO: investigate new Avatar first before anything else
@@ -144,14 +137,11 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
     public static class UnreadViewHolderThreadedConversations extends ThreadedConversationsTemplateViewHolder {
         public UnreadViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
-            address.setTypeface(Typeface.DEFAULT_BOLD);
-            address.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
+            address.setTextAppearance(R.style.conversation_unread_style);
 
-            snippet.setTypeface(Typeface.DEFAULT_BOLD);
-            snippet.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
+            snippet.setTextAppearance(R.style.conversation_unread_style);
 
-            date.setTypeface(Typeface.DEFAULT_BOLD);
-            date.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
+            date.setTextAppearance(R.style.conversation_unread_style);
         }
     }
 
@@ -159,7 +149,6 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         public UnreadEncryptedViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
-            snippet.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
         }
     }
 
@@ -167,7 +156,6 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         public ReadEncryptedViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
-            snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
         }
     }
 

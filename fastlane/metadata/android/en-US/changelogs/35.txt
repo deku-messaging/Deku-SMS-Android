@@ -1,1 +1,3 @@
 - option to share message now included
+- draft options added to threads
+- fix issue with request for secure conversation pop

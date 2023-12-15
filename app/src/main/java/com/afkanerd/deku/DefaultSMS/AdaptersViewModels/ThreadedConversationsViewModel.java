@@ -35,7 +35,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
     public LiveData<PagingData<ThreadedConversations>> get(){
-
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
