@@ -186,5 +186,10 @@
     <string name="conversation_secure_popup_request_menu_description">A secure communications request will send an SMS to [contact name]. \n\nThey will need have Deku SMS installed to receive this request.</string>
     <string name="conversation_secure_popup_request_menu_description_subtext">* SMS cost still applies</string>
 
+    <string name="conversation_shortcode_description">Can\'t reply to this short code</string>
+    <string name="conversation_shortcode_action_button">Learn more</string>
+    <string name="conversation_shortcode_learn_more_text">Short codes are local or personalized numbers for sending international SMS messages.\n\nYou can reply to numbers-only short codes, but not to codes with letters and numbers, like \"MSG007\".</string>
+    <string name="conversation_shortcode_learn_more_ok">OK</string>
+
     <string name="thread_conversation_type_draft">Draft</string>
 </resources>

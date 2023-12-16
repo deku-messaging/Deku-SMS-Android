@@ -4,8 +4,10 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -20,6 +22,7 @@ import android.widget.Toast;
 import android.window.OnBackInvokedCallback;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -43,6 +46,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -613,6 +617,30 @@ public class ConversationActivity extends E2EECompactActivity {
             // Cannot reply to message
             ConstraintLayout smsLayout = findViewById(R.id.compose_message_include_layout);
             smsLayout.setVisibility(View.GONE);
+
+            Snackbar shortCodeSnackBar = Snackbar.make(findViewById(R.id.conversation_coordinator_layout),
+                    getString(R.string.conversation_shortcode_description), Snackbar.LENGTH_INDEFINITE);
+
+//            AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext(), R.style.Theme_main);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(getString(R.string.conversation_shortcode_learn_more_text))
+                    .setNegativeButton(getString(R.string.conversation_shortcode_learn_more_ok),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            });
+            AlertDialog dialog = builder.create();
+            View.OnClickListener onClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.show();
+                }
+            };
+            shortCodeSnackBar.setAction(getString(R.string.conversation_shortcode_action_button),
+                    onClickListener);
+            shortCodeSnackBar.show();
         }
     }
 
