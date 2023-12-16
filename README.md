@@ -23,7 +23,7 @@ Deku SMS is being developed as a proof-of-concept for secure SMS messaging, SMS 
 
 The technical functionalities of the app are currently not user friendly, which would be updated with the help of PRs and issues. The reason for the lack of user friendliness is solely based on the app aiming to be as customizable as possible. Users should be able to configure the app to their custom cloud servers without being tied into using specific providers.
 
-Join us [Telegram](https://t.me/deku_sms) for feature release announcements or general SMS and security discussions.
+Join us on [Telegram](https://t.me/deku_sms) for feature release announcements or general SMS and security discussions.
 
 <b>Features</b>
 
