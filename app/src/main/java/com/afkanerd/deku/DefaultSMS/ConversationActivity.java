@@ -616,7 +616,7 @@ public class ConversationActivity extends E2EECompactActivity {
         if(isShortCode) {
             // Cannot reply to message
             ConstraintLayout smsLayout = findViewById(R.id.compose_message_include_layout);
-            smsLayout.setVisibility(View.GONE);
+            smsLayout.setVisibility(View.INVISIBLE);
 
             Snackbar shortCodeSnackBar = Snackbar.make(findViewById(R.id.conversation_coordinator_layout),
                     getString(R.string.conversation_shortcode_description), Snackbar.LENGTH_INDEFINITE);
