@@ -45,6 +45,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
@@ -247,6 +248,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            Objects.requireNonNull(getSupportActionBar()).hide();
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(R.menu.conversations_threads_menu_items_selected, menu);
             return true;
@@ -334,6 +336,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         // Called when the user exits the action mode.
         @Override
         public void onDestroyActionMode(ActionMode mode) {
+            Objects.requireNonNull(getSupportActionBar()).show();
             actionMode = null;
             final ThreadedConversationRecyclerAdapter recyclerAdapter =
                     messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
