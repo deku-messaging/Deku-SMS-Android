@@ -29,15 +29,9 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     ThreadedConversations threadedConversations;
     View securePopUpRequest;
 
-    ConversationsViewModel conversationsViewModel;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
-
-    public void setViewModel(ConversationsViewModel viewModel) {
-        super.setViewModel(viewModel);
-        this.conversationsViewModel = viewModel;
     }
 
     public static String INFORMED_SECURED = "INFORMED_SECURED";

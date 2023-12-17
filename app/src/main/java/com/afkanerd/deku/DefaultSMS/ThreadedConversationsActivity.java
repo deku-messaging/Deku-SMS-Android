@@ -57,8 +57,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     String ITEM_TYPE = "";
 
-    ThreadedConversationsViewModel threadedConversationsViewModel;
-
     ActionMode actionMode;
     ThreadedConversationsDao threadedConversationsDao;
 
@@ -67,7 +65,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations_threads);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.conversation_threads_toolbar);
+        Toolbar myToolbar = findViewById(R.id.conversation_threads_toolbar);
         setSupportActionBar(myToolbar);
         ab = getSupportActionBar();
 
@@ -80,7 +78,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
-        setViewModel(threadedConversationsViewModel);
         fragmentManagement();
         configureBroadcastListeners();
     }

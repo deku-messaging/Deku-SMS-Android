@@ -69,8 +69,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
     ActionMode actionMode;
     ConversationsRecyclerAdapter conversationsRecyclerAdapter;
-
-    ConversationsViewModel conversationsViewModel;
     TextInputEditText smsTextView;
     MutableLiveData<String> mutableLiveDataComposeMessage = new MutableLiveData<>();
 
@@ -109,7 +107,6 @@ public class ConversationActivity extends E2EECompactActivity {
             configureToolbars();
             configureRecyclerView();
             configureMessagesTextBox();
-            setViewModel(conversationsViewModel);
 
             configureLayoutForMessageType();
             configureBroadcastListeners();
@@ -138,7 +135,7 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(this.conversationsViewModel != null) {
+        if(conversationsViewModel != null) {
             conversationsViewModel.updateToRead(getApplicationContext());
             Intent intent = new Intent(DRAFT_PRESENT_BROADCAST);
             sendBroadcast(intent);
