@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Message;
+import android.provider.Telephony;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -704,14 +705,18 @@ public class ConversationActivity extends E2EECompactActivity {
                         getString(R.string.conversation_menu_view_details_type_text):
                         getString(R.string.conversation_menu_view_details_type_data))
                 .append("\n")
-                .append(getString(R.string.conversation_menu_view_details_from))
+                .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
+                        getString(R.string.conversation_menu_view_details_from) :
+                        getString(R.string.conversation_menu_view_details_to))
                 .append(conversation.getAddress())
                 .append("\n")
                 .append(getString(R.string.conversation_menu_view_details_sent))
-                .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())))
-                .append("\n")
-                .append(getString(R.string.conversation_menu_view_details_received))
-                .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
+                .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())));
+        if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ) {
+                detailsBuilder.append("\n")
+                        .append(getString(R.string.conversation_menu_view_details_received))
+                        .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.conversation_menu_view_details_title))
