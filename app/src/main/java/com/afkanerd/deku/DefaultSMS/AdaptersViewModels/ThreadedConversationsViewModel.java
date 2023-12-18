@@ -35,7 +35,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
     public LiveData<PagingData<ThreadedConversations>> get(){
-
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
@@ -198,18 +197,22 @@ public class ThreadedConversationsViewModel extends ViewModel {
         }).start();
     }
 
-    public void refresh(Context context, final ConversationDao conversationDaoInstance) {
+    public void refresh(Context context) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ConversationDao conversationDao = conversationDaoInstance == null ?
-                        Conversation.getDao(context) : conversationDaoInstance;
-                List<Conversation> conversations = conversationDao.getForThreading();
-                List<ThreadedConversations> threadedConversationsList =
-                        ThreadedConversations.buildRaw(context, conversations);
-//                List<ThreadedConversations> all = threadedConversationsDao.getAll();
-//                filterInsert(context, threadedConversationsList, all);
-                threadedConversationsDao.insertAll(threadedConversationsList);
+                try {
+                    Conversation conversation = new Conversation();
+                    ConversationDao conversationDao = conversation.getDaoInstance(context);
+                    List<Conversation> conversations = conversationDao.getForThreading();
+                    List<ThreadedConversations> threadedConversationsList =
+                            ThreadedConversations.buildRaw(context, conversations);
+                    threadedConversationsDao.insertAll(threadedConversationsList);
+
+                    conversation.close();
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }).start();
     }

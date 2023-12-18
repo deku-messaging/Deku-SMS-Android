@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
+import android.graphics.Color;
 import android.provider.Telephony;
 import android.text.Spannable;
 import android.util.Log;
@@ -149,8 +150,9 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
             sentMessage.setText(spannable);
         }
         else
-            Helpers.highlightLinks(sentMessage, text[0],
-                    itemView.getContext().getColor(R.color.primary_background_color));
+//            Helpers.highlightLinks(sentMessage, text[0],
+//                    itemView.getContext().getColor(R.color.primary_text_color));
+            Helpers.highlightLinks(sentMessage, text[0], Color.BLACK);
     }
 
     @Override

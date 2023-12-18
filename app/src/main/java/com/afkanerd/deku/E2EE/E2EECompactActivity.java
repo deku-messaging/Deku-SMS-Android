@@ -29,21 +29,16 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     ThreadedConversations threadedConversations;
     View securePopUpRequest;
 
-    ConversationsViewModel conversationsViewModel;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
-    public void setViewModel(ConversationsViewModel viewModel) {
-        super.setViewModel(viewModel);
-        this.conversationsViewModel = viewModel;
-    }
-
     public static String INFORMED_SECURED = "INFORMED_SECURED";
 
     @Override
-    public void sendTextMessage(final String text, int subscriptionId, ThreadedConversations threadedConversations) throws Exception {
+    public void sendTextMessage(final String text, int subscriptionId,
+                                ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
         String keystoreAlias = E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0);
         final String[] transmissionText = {text};
         Thread thread = new Thread(new Runnable() {
@@ -63,7 +58,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         thread.start();
         thread.join();
 
-        super.sendTextMessage(transmissionText[0], subscriptionId, threadedConversations);
+        super.sendTextMessage(transmissionText[0], subscriptionId, threadedConversations, messageId);
     }
 
     @Override
@@ -135,36 +130,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         super.onStart();
         securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
         setSecurePopUpRequest();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if(threadedConversations != null) {
-                        if(Helpers.isShortCode(threadedConversations)) {
-                            securePopUpRequest.setVisibility(View.GONE);
-                        }
-                        else if(!E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0))) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if(SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
-                                        securePopUpRequest.setVisibility(View.GONE);
-                                    } else {
-                                        securePopUpRequest.setVisibility(View.VISIBLE);
-                                    }
-                                }
-                            });
-
-                        }
-                    }
-                } catch (CertificateException | NumberParseException | NoSuchAlgorithmException |
-                         IOException | KeyStoreException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }).start();
+        if(!SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext()))
+            securePopUpRequest.setVisibility(View.VISIBLE);
     }
 
     @Override

@@ -33,6 +33,7 @@ public class HelpersTest {
         String website6 = "sub.second.website/main/test/site.com";
         String website7 = "sub.second.website/main/test/site.com?page=0";
         String website8 = "https://github.com/simple-login/app/blob/master/docs/api.md#get-apialiasesalias_idcontacts";
+        String website9 = "http://website.com";
 
         String email1 = "email@email.com";
 
@@ -40,19 +41,13 @@ public class HelpersTest {
                 "emails using " + email1 + " This should call " + phoneNumber1 +". Then another website " +
                 "such as " + website2 + " and " + website3 + " and " + website4 + " and " +
                 website5 + " and " + website6 + " and " + website7 + " and " + website8
-                + " and to see about long queries.";
+                + " and to see about long queries. " + website9;
 
-//        String urlPattern = "((mailto:)?[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)" +
-//                "|((\\+?[0-9]{1,3}?)[ \\-]?)?([\\(]{1}[0-9]{3}[\\)])?[ \\-]?[0-9]{3}[ \\-]?[0-9]{4}" +
-//                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*/?";
-//        String urlPattern = "((mailto:)?[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)" +
-//                "|((\\+?[0-9]{1,3}?)[ \\-]?)?([\\(]{1}[0-9]{3}[\\)])?[ \\-]?[0-9]{3}[ \\-]?[0-9]{4}" +
-//                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*(\\?[^ ]*#[^ ]*)/?" +
-//                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*" ;
         String urlPattern = "((mailto:)?[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)" +
                 "|((\\+?[0-9]{1,3}?)[ \\-]?)?([\\(]{1}[0-9]{3}[\\)])?[ \\-]?[0-9]{3}[ \\-]?[0-9]{4}" +
-                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*" +
-                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*(/\\S*)*(\\?[^ ]*#[^ ]*)/?";
+//                "|((https?|ftp|file)://)?[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*(/\\S*)"+
+                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*";
 
 
         SpannableString spannableString = new SpannableString(testString);
@@ -78,6 +73,7 @@ public class HelpersTest {
         isWebsiteCountExpected.add(website6);
         isWebsiteCountExpected.add(website7);
         isWebsiteCountExpected.add(website8);
+        isWebsiteCountExpected.add(website9);
 
         while (matcher.find()) {
             String tmp_url = matcher.group();

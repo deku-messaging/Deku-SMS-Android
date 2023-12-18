@@ -45,6 +45,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.OnViewManipulationListener {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
@@ -57,16 +58,15 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     String ITEM_TYPE = "";
 
-    ThreadedConversationsViewModel threadedConversationsViewModel;
-
     ActionMode actionMode;
+    ThreadedConversationsDao threadedConversationsDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations_threads);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.conversation_threads_toolbar);
+        Toolbar myToolbar = findViewById(R.id.conversation_threads_toolbar);
         setSupportActionBar(myToolbar);
         ab = getSupportActionBar();
 
@@ -75,8 +75,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             finish();
         }
 
-        ThreadedConversationsDao threadedConversationsDao =
-                ThreadedConversations.getDao(getApplicationContext());
+        threadedConversationsDao = ThreadedConversations.getDao(getApplicationContext());
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
@@ -222,13 +221,12 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     protected void onPause() {
         super.onPause();
-        setViewModel(null);
+//        setViewModel(null);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        setViewModel(threadedConversationsViewModel);
 
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -243,13 +241,14 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             }).start();
         }
 
-        threadedConversationsViewModel.refresh(getApplicationContext(), null);
+        threadedConversationsViewModel.refresh(getApplicationContext());
     }
 
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            Objects.requireNonNull(getSupportActionBar()).hide();
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(R.menu.conversations_threads_menu_items_selected, menu);
             return true;
@@ -337,6 +336,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         // Called when the user exits the action mode.
         @Override
         public void onDestroyActionMode(ActionMode mode) {
+            Objects.requireNonNull(getSupportActionBar()).show();
             actionMode = null;
             final ThreadedConversationRecyclerAdapter recyclerAdapter =
                     messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);

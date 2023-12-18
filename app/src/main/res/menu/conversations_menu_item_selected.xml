@@ -5,10 +5,18 @@
         android:id="@+id/conversations_menu_copy"
         android:icon="@drawable/round_content_copy_24"
         android:title="@string/conversation_menu_copy"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/conversations_menu_delete"
         android:icon="@drawable/round_delete_24"
         android:title="@string/conversation_menu_delete"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/conversations_menu_share"
+        android:title="@string/conversation_menu_share"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/conversations_menu_view_details"
+        android:title="@string/conversation_menu_view_details"
+        app:showAsAction="never" />
 </menu>

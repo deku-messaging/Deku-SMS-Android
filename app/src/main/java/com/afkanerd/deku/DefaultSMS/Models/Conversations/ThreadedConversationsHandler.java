@@ -9,7 +9,7 @@ import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 public class ThreadedConversationsHandler {
 
     public static ThreadedConversations get(Context context, ThreadedConversations threadedConversations) throws InterruptedException {
-        ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
+        ThreadedConversationsDao threadedConversationsDao = threadedConversations.getDaoInstance(context);
         final ThreadedConversations[] threadedConversations1 = {threadedConversations};
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -31,6 +31,7 @@ public class ThreadedConversationsHandler {
         });
         thread.start();
         thread.join();
+        threadedConversations.close();
 
         return threadedConversations1[0];
     }

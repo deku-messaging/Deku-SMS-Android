@@ -18,7 +18,7 @@ import java.util.List;
 @Dao
 public interface ConversationDao {
 
-    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
+    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     PagingSource<Integer, Conversation> get(String thread_id);
 
     @Query("SELECT * FROM Conversation WHERE address =:address ORDER BY date DESC")
@@ -33,6 +33,9 @@ public interface ConversationDao {
 
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
     List<Conversation> getComplete();
+
+    @Query("SELECT * FROM Conversation WHERE type = :type ORDER BY date DESC")
+    Conversation fetchTypedConversation(int type);
 
 //    @Query("SELECT * FROM Conversation WHERE body " +
 //            "LIKE '%' || :text || '%' ORDER BY date DESC")
@@ -55,6 +58,9 @@ public interface ConversationDao {
 
     @Query("DELETE FROM Conversation WHERE thread_id = :threadId")
     int delete(String threadId);
+
+    @Query("DELETE FROM Conversation WHERE type = :type")
+    int deleteAllType(int type);
     @Delete
     int delete(Conversation conversation);
 

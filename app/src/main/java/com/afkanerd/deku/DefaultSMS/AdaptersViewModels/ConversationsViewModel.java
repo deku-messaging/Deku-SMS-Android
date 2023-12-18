@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.provider.Telephony;
 import android.util.Log;
 
 import androidx.lifecycle.Lifecycle;
@@ -113,6 +114,19 @@ public class ConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
+    public Conversation fetch(String messageId) throws InterruptedException {
+        final Conversation[] conversation = {new Conversation()};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                conversation[0] = conversationDao.getMessage(messageId);
+            }
+        });
+        thread.start();
+        thread.join();
+        return conversation[0];
+    }
+
     public long insert(Conversation conversation) throws InterruptedException {
         return conversationDao.insert(conversation);
     }
@@ -211,6 +225,33 @@ public class ConversationsViewModel extends ViewModel {
                 conversation.setId(id);
                 conversation.setThread_id(threadId);
                 conversationDao.update(conversation);
+            }
+        }).start();
+    }
+
+    public Conversation fetchDraft(Context context) throws InterruptedException {
+        final Conversation[] conversation = {null};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Conversation conversation1 = new Conversation();
+                conversation[0] =
+                        conversation1.getDaoInstance(context).fetchTypedConversation(
+                                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+                conversation1.close();
+            }
+        });
+        thread.start();
+        thread.join();
+
+        return conversation[0];
+    }
+
+    public void clearDraft() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                conversationDao.deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
             }
         }).start();
     }
