@@ -857,6 +857,8 @@ public class ConversationActivity extends E2EECompactActivity {
             else if (R.id.conversations_menu_view_details == id) {
                 try {
                     viewDetailsPopUp();
+                    if(actionMode != null)
+                        actionMode.finish();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     return false;
