@@ -192,4 +192,5 @@
     <string name="conversation_shortcode_learn_more_ok">OK</string>
 
     <string name="thread_conversation_type_draft">Draft</string>
+    <string name="thread_conversation_timestamp_yesterday">Yesterday</string>
 </resources>

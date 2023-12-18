@@ -195,6 +195,35 @@ public class Helpers {
         return data;
     }
 
+//    public static String formatDateExtended(Context context, long epochTime) {
+//        long currentTime = System.currentTimeMillis();
+//        long diff = currentTime - epochTime;
+//
+//        Date currentDate = new Date(currentTime);
+//        Date targetDate = new Date(epochTime);
+//
+//        SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+//        SimpleDateFormat fullDayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+//        SimpleDateFormat shortDayFormat = new SimpleDateFormat("EEE", Locale.getDefault());
+//        SimpleDateFormat shortMonthDayFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
+//
+////        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
+////            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
+////        }
+//        if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
+//            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
+//        } else if (isSameDay(currentDate, targetDate)) { // today
+//            return timeFormat.format(targetDate);
+//        } else if (isYesterday(currentDate, targetDate)) { // yesterday
+//            return context.getString(R.string.single_message_thread_yesterday) + " • " + timeFormat.format(targetDate);
+//        } else if (isSameWeek(currentDate, targetDate)) { // within the same week
+//            return fullDayFormat.format(targetDate) + " • " + timeFormat.format(targetDate);
+//        } else { // greater than 1 week
+//            return shortDayFormat.format(targetDate) + ", " + shortMonthDayFormat.format(targetDate)
+//                    + " • " + timeFormat.format(targetDate);
+//        }
+//    }
+
     public static String formatDateExtended(Context context, long epochTime) {
         long currentTime = System.currentTimeMillis();
         long diff = currentTime - epochTime;
@@ -207,15 +236,10 @@ public class Helpers {
         SimpleDateFormat shortDayFormat = new SimpleDateFormat("EEE", Locale.getDefault());
         SimpleDateFormat shortMonthDayFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
 
-//        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
-//            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
-//        }
-        if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
-            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
-        } else if (isSameDay(currentDate, targetDate)) { // today
-            return timeFormat.format(targetDate);
-        } else if (isYesterday(currentDate, targetDate)) { // yesterday
+        if (isYesterday(currentDate, targetDate)) { // yesterday
             return context.getString(R.string.single_message_thread_yesterday) + " • " + timeFormat.format(targetDate);
+        } else if (diff < DateUtils.DAY_IN_MILLIS) { // today
+            return timeFormat.format(targetDate);
         } else if (isSameWeek(currentDate, targetDate)) { // within the same week
             return fullDayFormat.format(targetDate) + " • " + timeFormat.format(targetDate);
         } else { // greater than 1 week
@@ -252,20 +276,49 @@ public class Helpers {
         return week1.equals(week2);
     }
 
+//    public static String formatDate(Context context, long epochTime) {
+//        long currentTime = System.currentTimeMillis();
+//        long diff = currentTime - epochTime;
+//
+//        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
+//            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
+//        } else if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
+//            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
+//        } else if (diff < DateUtils.WEEK_IN_MILLIS) { // less than 1 week
+//            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_ABBREV_WEEKDAY);
+//        } else { // greater than 1 week
+//            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_ABBREV_MONTH | DateUtils.FORMAT_SHOW_DATE);
+//        }
+//    }
+
     public static String formatDate(Context context, long epochTime) {
         long currentTime = System.currentTimeMillis();
         long diff = currentTime - epochTime;
 
-        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
-            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
-        } else if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
-            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
-        } else if (diff < DateUtils.WEEK_IN_MILLIS) { // less than 1 week
-            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_ABBREV_WEEKDAY);
-        } else { // greater than 1 week
+        Calendar now = Calendar.getInstance();
+        now.setTimeInMillis(currentTime);
+        Calendar dateCal = Calendar.getInstance();
+        dateCal.setTimeInMillis(epochTime);
+
+        // Check if the date is today
+        if (dateCal.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
+                dateCal.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR)) {
+            // Use relative time or time if less than a day
+            if (diff < DateUtils.HOUR_IN_MILLIS) {
+                return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
+            } else if (diff < DateUtils.DAY_IN_MILLIS) {
+                return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
+            }
+        } else if (dateCal.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR) - 1) {
+            // Show "yesterday" if the date is yesterday
+            return context.getString(R.string.thread_conversation_timestamp_yesterday);
+        } else {
+            // Use standard formatting for other dates
             return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_ABBREV_MONTH | DateUtils.FORMAT_SHOW_DATE);
         }
+        return null;
     }
+
 
     public static String getUserCountry(Context context) {
         String countryCode = null;

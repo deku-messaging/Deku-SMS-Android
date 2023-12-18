@@ -2,3 +2,4 @@
 - draft options added to threads
 - fix issue with request for secure conversation pop
 - added indications for shortcodes
+- fix timestamps on messages
