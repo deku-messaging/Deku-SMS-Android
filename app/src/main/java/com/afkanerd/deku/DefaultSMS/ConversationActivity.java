@@ -16,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -692,6 +693,41 @@ public class ConversationActivity extends E2EECompactActivity {
         }
     }
 
+    private void viewDetailsPopUp() throws InterruptedException {
+        Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
+                conversationsRecyclerAdapter.mutableSelectedItems.getValue().entrySet();
+        String messageId = entry.iterator().next().getValue().getMessage_id();
+        Conversation conversation = conversationsViewModel.fetch(messageId);
+        StringBuilder detailsBuilder = new StringBuilder();
+        detailsBuilder.append(getString(R.string.conversation_menu_view_details_type))
+                .append(!conversation.getText().isEmpty() ?
+                        getString(R.string.conversation_menu_view_details_type_text):
+                        getString(R.string.conversation_menu_view_details_type_data))
+                .append("\n")
+                .append(getString(R.string.conversation_menu_view_details_from))
+                .append(conversation.getAddress())
+                .append("\n")
+                .append(getString(R.string.conversation_menu_view_details_sent))
+                .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())))
+                .append("\n")
+                .append(getString(R.string.conversation_menu_view_details_received))
+                .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.conversation_menu_view_details_title))
+                .setMessage(detailsBuilder);
+
+//        View conversationSecurePopView = View.inflate(getApplicationContext(),
+//                R.layout.conversation_secure_popup_menu, null);
+//        builder.setView(conversationSecurePopView);
+
+//        Button yesButton = conversationSecurePopView.findViewById(R.id.conversation_secure_popup_menu_send);
+//        Button cancelButton = conversationSecurePopView.findViewById(R.id.conversation_secure_popup_menu_cancel);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -815,6 +851,15 @@ public class ConversationActivity extends E2EECompactActivity {
                         actionMode.finish();
                 } catch(Exception e) {
                     e.printStackTrace();
+                }
+                return true;
+            }
+            else if (R.id.conversations_menu_view_details == id) {
+                try {
+                    viewDetailsPopUp();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return false;
                 }
                 return true;
             }

@@ -114,6 +114,19 @@ public class ConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
+    public Conversation fetch(String messageId) throws InterruptedException {
+        final Conversation[] conversation = {new Conversation()};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                conversation[0] = conversationDao.getMessage(messageId);
+            }
+        });
+        thread.start();
+        thread.join();
+        return conversation[0];
+    }
+
     public long insert(Conversation conversation) throws InterruptedException {
         return conversationDao.insert(conversation);
     }

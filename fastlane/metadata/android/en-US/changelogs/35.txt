@@ -3,3 +3,4 @@
 - fix issue with request for secure conversation pop
 - added indications for shortcodes
 - fix timestamps on messages
+- can view the details above a message

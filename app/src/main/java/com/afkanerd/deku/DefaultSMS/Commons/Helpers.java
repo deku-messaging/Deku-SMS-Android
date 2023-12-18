@@ -319,6 +319,16 @@ public class Helpers {
         return null;
     }
 
+    public static String formatLongDate(long epochTime) {
+        // Create a date object from the epoch time
+        Date date = new Date(epochTime);
+
+        // Create a SimpleDateFormat object with the desired format
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd, h:mm a", Locale.getDefault());
+
+        // Format the date and return the string
+        return formatter.format(date);
+    }
 
     public static String getUserCountry(Context context) {
         String countryCode = null;
