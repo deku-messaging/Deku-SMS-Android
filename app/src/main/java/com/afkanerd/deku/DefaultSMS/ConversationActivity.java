@@ -335,10 +335,12 @@ public class ConversationActivity extends E2EECompactActivity {
     boolean firstScrollInitiated = false;
 
     LifecycleOwner lifecycleOwner;
+
+    Conversation conversation = new Conversation();
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
         singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
-        conversationDao = Conversation.getDao(getApplicationContext());
+        conversationDao = conversation.getDaoInstance(getApplicationContext());
 
         lifecycleOwner = this;
 
@@ -496,6 +498,12 @@ public class ConversationActivity extends E2EECompactActivity {
             saveDraft(draftMessageId, draftText, threadedConversations);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        conversation.close();
+    }
+
     static final String DRAFT_TEXT = "DRAFT_TEXT";
     static final String DRAFT_ID = "DRAFT_ID";
 
@@ -603,7 +611,7 @@ public class ConversationActivity extends E2EECompactActivity {
             smsTextView.setText(draftText);
         }
         else {
-            Conversation conversation = conversationsViewModel.fetchDraft();
+            Conversation conversation = conversationsViewModel.fetchDraft(getApplicationContext());
             if (conversation != null) {
                 smsTextView.setText(conversation.getText());
                 draftMessageId = conversation.getMessage_id();

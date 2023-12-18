@@ -241,7 +241,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             }).start();
         }
 
-        threadedConversationsViewModel.refresh(getApplicationContext(), null);
+        threadedConversationsViewModel.refresh(getApplicationContext());
     }
 
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {

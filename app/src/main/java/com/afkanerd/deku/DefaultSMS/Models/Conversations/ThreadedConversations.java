@@ -58,6 +58,22 @@ public class ThreadedConversations {
 
      private String formatted_datetime;
 
+
+     @Ignore
+    Datastore databaseConnector;
+    public ThreadedConversationsDao getDaoInstance(Context context) {
+        databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                        Datastore.databaseName)
+                .addMigrations(new Migrations.Migration8To9())
+                .build();
+        return databaseConnector.threadedConversationsDao();
+    }
+
+    public void close() {
+        if(databaseConnector != null)
+            databaseConnector.close();
+    }
+
     public static ThreadedConversationsDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)

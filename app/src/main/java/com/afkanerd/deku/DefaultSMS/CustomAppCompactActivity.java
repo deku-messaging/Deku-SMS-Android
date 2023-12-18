@@ -151,11 +151,11 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         }).start();
                     }
                     if(threadedConversationsViewModel != null) {
-                        threadedConversationsViewModel.refresh(context, conversationDao);
+                        threadedConversationsViewModel.refresh(context);
                     }
                 } else if(intent.getAction().equals(DRAFT_PRESENT_BROADCAST) &&
                         threadedConversationsViewModel != null) {
-                    threadedConversationsViewModel.refresh(context, conversationDao);
+                    threadedConversationsViewModel.refresh(context);
                 } else {
                     String messageId = intent.getStringExtra(Conversation.ID);
                     if(conversationsViewModel != null && messageId != null) {
@@ -179,7 +179,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         }).start();
                     }
                     if(threadedConversationsViewModel != null) {
-                        threadedConversationsViewModel.refresh(context, conversationDao);
+                        threadedConversationsViewModel.refresh(context);
                     }
                 }
             }

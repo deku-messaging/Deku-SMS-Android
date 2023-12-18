@@ -69,7 +69,8 @@ public class Conversation {
     }
 
     public void close() {
-        databaseConnector.close();
+        if(databaseConnector != null)
+            databaseConnector.close();
     }
 
 

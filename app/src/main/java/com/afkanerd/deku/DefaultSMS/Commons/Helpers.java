@@ -20,6 +20,7 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.TextView;
 
@@ -104,10 +105,19 @@ public class Helpers {
     }
 
     public static boolean isShortCode(ThreadedConversations threadedConversations) {
+        if(threadedConversations.getAddress().length() < 4)
+            return true;
         Pattern pattern = Pattern.compile("[a-zA-Z]");
         Matcher matcher = pattern.matcher(threadedConversations.getAddress());
-        Log.d(Helpers.class.getName(), "Notifying for: " + threadedConversations.getAddress());
         return !PhoneNumberUtils.isWellFormedSmsAddress(threadedConversations.getAddress()) || matcher.find();
+    }
+
+    public static boolean isShortCode(String address) {
+        if(address.length() < 4)
+            return true;
+        Pattern pattern = Pattern.compile("[a-zA-Z]");
+        Matcher matcher = pattern.matcher(address);
+        return matcher.find();
     }
 
     public static String getFormatCompleteNumber(String data, String defaultRegion) {
@@ -405,62 +415,67 @@ public class Helpers {
         if(text == null)
             return;
         // Regular expression to find URLs in the text
-        String urlPattern = "((mailto:)?[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)" +
-                "|((\\+?[0-9]{1,3}?)[ \\-]?)?([\\(]{1}[0-9]{3}[\\)])?[ \\-]?[0-9]{3}[ \\-]?[0-9]{4}" +
-                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*" +
-                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*(/\\S*)*(\\?[^ ]*#[^ ]*)/?";
+//        String urlPattern = "((mailto:)?[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)" +
+//                "|((\\+?[0-9]{1,3}?)[ \\-]?)?([\\(]{1}[0-9]{3}[\\)])?[ \\-]?[0-9]{3}[ \\-]?[0-9]{4}" +
+//                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*" +
+//                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*(/\\S*)*(\\?[^ ]*#[^ ]*)/?";
 
         SpannableString spannableString = new SpannableString(text);
 
-        // Find all URLs in the text
-        Pattern pattern = Pattern.compile(urlPattern);
-        Matcher matcher = pattern.matcher(spannableString);
+        String[] splitString = text.split("\\s");
+        for(int i=0, length =0; i<splitString.length; ++i){
+            final String _string = splitString[i];
+            length += _string.length() + 1; // one for the space removed
 
-        while (matcher.find()) {
-            String tmp_url = matcher.group();
-            if (PhoneNumberUtils.isWellFormedSmsAddress(tmp_url)) {
-                final String tel = tmp_url;
+            final int start = length - _string.length()-1;
+            final int end = length -1;
+
+            if(Patterns.WEB_URL.matcher(_string).matches()) {
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override
                     public void onClick(View widget) {
-                        Uri phoneNumberUri = Uri.parse("tel:" + tel);
-                        Intent dialIntent = new Intent(Intent.ACTION_DIAL, phoneNumberUri);
-                        dialIntent.setFlags(FLAG_ACTIVITY_NEW_TASK);
-                        widget.getContext().startActivity(dialIntent);
+                        Intent intent = new Intent(Intent.ACTION_VIEW,
+                                Uri.parse((_string.startsWith("http://") ||
+                                        _string.startsWith("https://")) ? _string : "https://" + _string));
+                        intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+                        widget.getContext().startActivity(intent);
                     }
                 };
-                spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else if (tmp_url.contains("@")) {
-                final String email = tmp_url;
+                spannableString.setSpan(clickableSpan, start, end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannableString.setSpan(new ForegroundColorSpan(color), start, end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            else if (Patterns.EMAIL_ADDRESS.matcher(_string).matches()) {
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override
                     public void onClick(View widget) {
                         Intent intent = new Intent(Intent.ACTION_SENDTO);
                         intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
-                        intent.setData(Uri.parse("mailto:" + email));
+                        intent.setData(Uri.parse("mailto:" + _string));
                         widget.getContext().startActivity(intent);
                     }
                 };
-                spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else {
-                if (!tmp_url.startsWith("http://") && !tmp_url.startsWith("https://")) {
-                    tmp_url = "http://" + tmp_url;
-                }
-                final String url = tmp_url;
-
+                spannableString.setSpan(clickableSpan, start, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannableString.setSpan(new ForegroundColorSpan(color), start, end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            else if (_string.matches(
+                    "\\(*\\+*[1-9]{0,3}\\)*-*[1-9]{0,3}[-. \\/]*\\(*[2-9]\\d{2}\\)*[-. \\/]*\\d{3}[-. \\/]*\\d{4} *e*x*t*\\.* *\\d{0,4}" +
+                    "|[*#][\\d\\*]*[*#]")) {
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override
                     public void onClick(View widget) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                        intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
-                        widget.getContext().startActivity(intent);
+                        Uri phoneNumberUri = Uri.parse("tel:" + _string);
+                        Intent dialIntent = new Intent(Intent.ACTION_DIAL, phoneNumberUri);
+                        dialIntent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+                        widget.getContext().startActivity(dialIntent);
                     }
                 };
-                spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannableString.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannableString.setSpan(new ForegroundColorSpan(color), start, end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
-
-            spannableString.setSpan(new ForegroundColorSpan(color),
-                    matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
         textView.setMovementMethod(LinkMovementMethod.getInstance());

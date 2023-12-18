@@ -150,7 +150,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         }
         else
             Helpers.highlightLinks(sentMessage, text[0],
-                    itemView.getContext().getColor(R.color.primary_background_color));
+                    itemView.getContext().getColor(R.color.primary_text_color));
     }
 
     @Override

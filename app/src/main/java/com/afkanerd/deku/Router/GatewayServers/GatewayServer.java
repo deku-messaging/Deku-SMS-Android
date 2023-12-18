@@ -2,12 +2,14 @@ package com.afkanerd.deku.Router.GatewayServers;
 
 import android.content.Context;
 
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
@@ -97,6 +99,21 @@ public class GatewayServer {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    @Ignore
+    Datastore databaseConnector;
+    public GatewayServerDAO getDaoInstance(Context context) {
+        databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                        Datastore.databaseName)
+                .enableMultiInstanceInvalidation()
+                .build();
+        return databaseConnector.gatewayServerDAO();
+    }
+
+    public void close() {
+        if(databaseConnector != null)
+            databaseConnector.close();
     }
 
     public static GatewayServerDAO getDao(Context context) {
