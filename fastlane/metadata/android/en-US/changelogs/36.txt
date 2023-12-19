@@ -1,0 +1,1 @@
+- update: removed tabs when no encrypted message is available

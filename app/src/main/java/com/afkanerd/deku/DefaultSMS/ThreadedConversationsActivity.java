@@ -215,7 +215,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     @Override
     public void tabSelected(int position) {
-        this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
+        this.ITEM_TYPE = HomepageFragment.fragmentList.get(position);
     }
 
     @Override
