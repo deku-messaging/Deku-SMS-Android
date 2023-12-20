@@ -719,7 +719,9 @@ public class ConversationActivity extends E2EECompactActivity {
                 .append(conversation.getAddress())
                 .append("\n")
                 .append(getString(R.string.conversation_menu_view_details_sent))
-                .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())));
+                .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
+                        Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())) :
+                        Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
         if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ) {
                 detailsBuilder.append("\n")
                         .append(getString(R.string.conversation_menu_view_details_received))
