@@ -3,11 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
+        app:title="@string/settings_title">
+        <ListPreference
+            app:icon="@drawable/round_language_24"
+            app:defaultValue="@string/language_english_value"
+            app:entries="@array/language_options"
+            app:entryValues="@array/language_values"
+            app:iconSpaceReserved="false"
+            app:key="@string/settings_locale"
+            app:title="@string/settings_locale_description"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
         app:key="settings_sms_security"
         app:title="@string/settings_security_category_title">
         <Preference
             app:icon="@drawable/round_security_24"
-            app:key="settings_security_end_to_end"
+            app:key="@string/settings_security_end_to_end"
             app:summary="@string/settings_security_category_end_to_end_encryption_summary"
             app:title="@string/settings_security_category_end_to_end_encryption" />
     </PreferenceCategory>

@@ -71,6 +71,9 @@
     <string name="sms_status_failed">failed, click to retry.</string>
 
     <string name="settings_advanced_developers_key">settings_advanced_developers_key</string>
+    <string name="settings_security_end_to_end">settings_security_end_to_end</string>
+    <string name="settings_locale">settings_locale</string>
+    <string name="settings_locale_description">Choose language</string>
 
     <string name="settings_about">About</string>
     <string name="settings_title">Settings</string>
@@ -204,4 +207,27 @@
 
     <string name="thread_conversation_type_draft">Draft</string>
     <string name="thread_conversation_timestamp_yesterday">Yesterday</string>
+
+    <!-- settings language -->
+    <string name="language_choose_text">
+        Choose your preferred language
+    </string>
+    <string name="language_english">
+        English
+    </string>
+    <string name="language_french">
+        French
+    </string>
+    <string name="language_farsi">
+        Farsi
+    </string>
+    <string name="language_english_value" translatable="false">
+        en
+    </string>
+    <string name="language_french_value" translatable="false">
+        fr
+    </string>
+    <string name="language_farsi_value" translatable="false">
+        fa
+    </string>
 </resources>
