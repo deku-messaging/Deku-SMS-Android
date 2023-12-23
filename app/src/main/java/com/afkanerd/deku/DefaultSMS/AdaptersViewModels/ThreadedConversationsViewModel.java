@@ -243,7 +243,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                         int dateIndex = cursor.getColumnIndex("date");
                         int threadIdIndex = cursor.getColumnIndex("thread_id");
                         int typeIndex = cursor.getColumnIndex("type");
-//                int isArchivedIndex = cursor.getColumnIndex(Telephony.Threads.ARCHIVED);
+                        int readIndex = cursor.getColumnIndex("read");
 
                         threadedConversations.setAddress(cursor.getString(recipientIdIndex));
                         if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
@@ -255,6 +255,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
                         threadedConversations.setDate(cursor.getString(dateIndex));
                         threadedConversations.setThread_id(cursor.getString(threadIdIndex));
                         threadedConversations.setType(cursor.getInt(typeIndex));
+                        threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
+
                         threadedConversationsList.add(threadedConversations);
                     } while(cursor.moveToNext());
                     cursor.close();

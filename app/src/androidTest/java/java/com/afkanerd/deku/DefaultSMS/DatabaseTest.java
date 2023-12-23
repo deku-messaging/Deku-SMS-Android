@@ -32,7 +32,7 @@ public class DatabaseTest {
                 null
         );
         String[] columnNames = cursor.getColumnNames();
-        Log.d(getClass().getName(), Telephony.Threads.CONTENT_URI.toString());
+        Log.d(getClass().getName(), Arrays.toString(columnNames));
 
         if(cursor.moveToFirst()) {
             do {

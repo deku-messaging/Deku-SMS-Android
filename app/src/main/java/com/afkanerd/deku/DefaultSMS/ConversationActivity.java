@@ -137,8 +137,11 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
+
+        conversationsViewModel.updateToRead(getApplicationContext());
 
         new Thread(new Runnable() {
             @Override
