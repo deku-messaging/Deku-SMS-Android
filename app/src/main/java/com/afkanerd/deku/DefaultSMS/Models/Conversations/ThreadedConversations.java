@@ -58,6 +58,8 @@ public class ThreadedConversations {
 
      private String formatted_datetime;
 
+     @Ignore
+     public final static String nativeSMSContentUrl = Telephony.Threads.CONTENT_URI.toString();
 
      @Ignore
     Datastore databaseConnector;

@@ -95,33 +95,3 @@ public class ConversationPagingSource extends PagingSource<Integer, Conversation
                 LoadResult.Page.COUNT_UNDEFINED);
     }
 }
-
-//public class ConversationPagingSource extends PagingSource<Integer, Conversation> {
-//
-//    ConversationDao conversationDao;
-//    String threadId;
-//
-//    Integer initialKey = 0;
-//    public ConversationPagingSource(ConversationDao conversationDao, String threadId, Integer initialKey) {
-//        this.threadId = threadId;
-//        this.initialKey = initialKey;
-//        this.conversationDao = conversationDao;
-//    }
-//
-//
-//    @Nullable
-//    @Override
-//    public LoadResult<Integer, Conversation> load(@NonNull LoadParams<Integer> loadParams, @NonNull Continuation<? super LoadResult<Integer, Conversation>> continuation) {
-//        return new LoadResult.Page<>(conversationDao.getAllWithOffset(threadId, initialKey),
-//                loadParams.getKey() != null ? loadParams.getKey() + 1 : null,
-//                loadParams.getKey() != null ? loadParams.getKey() - 1 : null,
-//                LoadResult.Page.COUNT_UNDEFINED,
-//                LoadResult.Page.COUNT_UNDEFINED);
-//    }
-//
-//    @Nullable
-//    @Override
-//    public Integer getRefreshKey(@NonNull PagingState<Integer, Conversation> pagingState) {
-//        return null;
-//    }
-//}

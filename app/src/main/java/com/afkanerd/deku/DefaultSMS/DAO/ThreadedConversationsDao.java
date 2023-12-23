@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.DAO;
 
+import android.provider.Telephony;
 import android.util.Base64;
 
 import androidx.lifecycle.LiveData;
@@ -71,6 +72,9 @@ public interface ThreadedConversationsDao {
 
     @Delete
     void delete(List<ThreadedConversations> threadedConversations);
+
+    @Query("DELETE FROM threadedconversations")
+    void deleteAll();
 
     @Update(entity = ThreadedConversations.class)
     void archive(List<Archive> archiveList);

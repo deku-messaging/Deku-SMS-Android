@@ -2,6 +2,8 @@ package com.afkanerd.deku.DefaultSMS.Commons;
 
 import static org.junit.Assert.assertArrayEquals;
 
+import android.database.Cursor;
+
 import com.google.common.primitives.Bytes;
 
 import org.junit.Test;
@@ -18,5 +20,6 @@ public class JavaMethodsTest {
 
         assertArrayEquals(expected, output);
     }
+
 
 }

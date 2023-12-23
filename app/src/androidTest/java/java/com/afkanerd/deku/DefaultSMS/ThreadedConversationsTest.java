@@ -27,11 +27,15 @@ public class ThreadedConversationsTest {
    }
     @Test
     public void testThreadedConversationsBuildMethods() {
-        ThreadedConversationsDao threadedConversationsDao = ThreadedConversations.getDao(context);
+       ThreadedConversations threadedConversation = new ThreadedConversations();
+        ThreadedConversationsDao threadedConversationsDao = threadedConversation.getDaoInstance(context);
         List<ThreadedConversations> threadedConversations = threadedConversationsDao.getAll();
+        threadedConversation.close();
 
-        ConversationDao conversationDao = Conversation.getDao(context);
+        Conversation conversation = new Conversation();
+        ConversationDao conversationDao = conversation.getDaoInstance(context);
         List<Conversation> conversations = conversationDao.getComplete();
+        conversation.close();
 
         assertEquals(conversations.get(0).getText(), threadedConversations.get(0).getSnippet());
     }

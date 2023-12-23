@@ -239,13 +239,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         if(sharedPreferences.getBoolean(LOAD_NATIVES, true) ) {
             sharedPreferences.edit().putBoolean(LOAD_NATIVES, false).apply();
-            threadedConversationsViewModel.loadNatives(getApplicationContext());
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    loadConversationsFromNative(getApplicationContext());
-                }
-            }).start();
+            threadedConversationsViewModel.reset(getApplicationContext());
         }
 
         threadedConversationsViewModel.refresh(getApplicationContext());
@@ -352,16 +346,16 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         }
     };
 
-    private void loadConversationsFromNative(Context context) {
-        Cursor cursor = NativeSMSDB.fetchAll(context);
-        List<Conversation> conversationList = new ArrayList<>();
-        if(cursor.moveToNext()) {
-            do {
-                conversationList.add(Conversation.build(cursor));
-            } while(cursor.moveToNext());
-        }
-        cursor.close();
-        ConversationDao conversationDao = conversation.getDaoInstance(context);
-        conversationDao.insertAll(conversationList);
-    }
+//    private void loadConversationsFromNative(Context context) {
+//        Cursor cursor = NativeSMSDB.fetchAll(context);
+//        List<Conversation> conversationList = new ArrayList<>();
+//        if(cursor.moveToNext()) {
+//            do {
+//                conversationList.add(Conversation.build(cursor));
+//            } while(cursor.moveToNext());
+//        }
+//        cursor.close();
+//        ConversationDao conversationDao = conversation.getDaoInstance(context);
+//        conversationDao.insertAll(conversationList);
+//    }
 }
