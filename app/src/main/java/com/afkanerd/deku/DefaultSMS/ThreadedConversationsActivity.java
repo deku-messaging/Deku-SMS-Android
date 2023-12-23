@@ -280,8 +280,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                             @Override
                             public void run() {
                                 recyclerAdapter.resetAllSelectedItems();
-                                ThreadedConversationsDao threadedConversationsDao =
-                                        threadedConversations.getDaoInstance(getApplicationContext());
 
                                 new Thread(new Runnable() {
                                     @Override

@@ -32,9 +32,11 @@ public class HomepageFragment extends Fragment {
     public HomepageFragment() {
         // Required empty public constructor
     }
-    public static List<String> fragmentList = new ArrayList<>(Arrays.asList(
-            ThreadedConversationsFragment.ALL_MESSAGES_THREAD_FRAGMENT,
-            ThreadedConversationsFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT));
+    public static final List<String> fragmentList = new ArrayList<>(
+            Arrays.asList(ThreadedConversationsFragment.ALL_MESSAGES_THREAD_FRAGMENT,
+                    ThreadedConversationsFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT ));
+
+    static boolean encryptedEnabled = false;
 
 //    @Override
 //    public void onCreate(Bundle savedInstanceState) {
@@ -88,6 +90,7 @@ public class HomepageFragment extends Fragment {
                         }
                     });
                 } else {
+                    encryptedEnabled = true;
                     TabLayout tabLayout = view.findViewById(R.id.tab_layout);
                     tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
                         @Override
@@ -111,7 +114,8 @@ public class HomepageFragment extends Fragment {
                             List<String> fragmentListNames = new ArrayList<>(Arrays.asList(
                                     getContext().getString(R.string.homepage_fragment_tab_all),
                                     getContext().getString(R.string.homepage_fragment_tab_encrypted)));
-                            tab.setText(fragmentListNames.get(position));
+                            tab.setText(position >= fragmentListNames.size() ? fragmentListNames.get(0)
+                                    : fragmentListNames.get(position));
                         }
                     }).attach();
                 }
@@ -141,7 +145,7 @@ public class HomepageFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return fragmentList.size();
+            return encryptedEnabled ? 2 : 1;
         }
     }
 }

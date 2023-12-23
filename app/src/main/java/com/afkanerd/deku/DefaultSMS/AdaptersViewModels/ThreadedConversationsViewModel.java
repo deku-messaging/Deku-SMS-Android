@@ -35,28 +35,30 @@ public class ThreadedConversationsViewModel extends ViewModel {
     int initialLoadSize = 2 * pageSize;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
-    public LiveData<PagingData<ThreadedConversations>> get(Context context){
-        ThreadsPagingSource threadsPagingSource = new ThreadsPagingSource(context);
-        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-        ), ()-> threadsPagingSource);
-        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
-    }
+    ThreadsPagingSource threadsPagingSource;
 
-//    public LiveData<PagingData<ThreadedConversations>> get(){
+//    public LiveData<PagingData<ThreadedConversations>> get(Context context){
+//        threadsPagingSource = new ThreadsPagingSource(context);
 //        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
 //                pageSize,
 //                prefetchDistance,
 //                enablePlaceholder,
 //                initialLoadSize,
 //                maxSize
-//        ), ()-> this.threadedConversationsDao.getAllWithoutArchived());
+//        ), ()-> threadsPagingSource);
 //        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
 //    }
+
+    public LiveData<PagingData<ThreadedConversations>> get(){
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> this.threadedConversationsDao.getAllWithoutArchived());
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
 
     public LiveData<PagingData<ThreadedConversations>> getEncrypted(Context context) throws InterruptedException {
         List<String> address = new ArrayList<>();
@@ -175,8 +177,27 @@ public class ThreadedConversationsViewModel extends ViewModel {
 //        loadNativeThread.setName("load_native_thread");
 //        loadNativeThread.start();
 
-        threadedConversationsDao.deleteAll();
-        refresh(context);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversationsDao.deleteAll();
+                refresh(context);
+
+                Conversation conversation = new Conversation();
+                Cursor cursor = NativeSMSDB.fetchAll(context);
+
+                List<Conversation> conversationList = new ArrayList<>();
+                if(cursor != null && cursor.moveToFirst()) {
+                    do {
+                        conversationList.add(Conversation.build(cursor));
+                    } while(cursor.moveToNext());
+                    cursor.close();
+                }
+
+                ConversationDao conversationDao = conversation.getDaoInstance(context);
+                conversationDao.insertAll(conversationList);
+            }
+        }).start();
     }
 
     public void setThreadedConversationsDao(ThreadedConversationsDao threadedConversationsDao) {
@@ -201,15 +222,15 @@ public class ThreadedConversationsViewModel extends ViewModel {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String[] ids = new String[threadedConversations.size()];
+                List<String> ids = new ArrayList<>();
                 Conversation conversation = new Conversation();
                 ConversationDao conversationDao = conversation.getDaoInstance(context);
-                for(int i=0; i<threadedConversations.size(); ++i) {
-                    ids[i] = threadedConversations.get(i).getThread_id();
-                    conversationDao.delete(threadedConversations.get(i).getThread_id());
-                }
+                for(ThreadedConversations threadedConversation : threadedConversations)
+                    ids.add(threadedConversation.getThread_id());
+
+                conversationDao.deleteAll(ids);
                 threadedConversationsDao.delete(threadedConversations);
-                NativeSMSDB.deleteThreads(context, ids);
+                NativeSMSDB.deleteThreads(context, ids.toArray(new String[0]));
                 conversation.close();
             }
         }).start();

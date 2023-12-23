@@ -115,7 +115,7 @@ public class ThreadedConversationsFragment extends Fragment {
                 break;
             case ALL_MESSAGES_THREAD_FRAGMENT:
             default:
-                threadedConversationsViewModel.get(getContext()).observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.get().observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
