@@ -163,20 +163,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public void reset(Context context) {
-//        Thread loadNativeThread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                Cursor cursor = NativeSMSDB.fetchAll(context);
-//
-//                List<ThreadedConversations> threadedConversations =
-//                        ThreadedConversations.buildRaw(cursor);
-//                List<ThreadedConversations> completeList = threadedConversationsDao.getAll();
-//                filterInsert(context, threadedConversations, completeList);
-//            }
-//        });
-//        loadNativeThread.setName("load_native_thread");
-//        loadNativeThread.start();
-
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -237,56 +223,42 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public void refresh(Context context) {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    Conversation conversation = new Conversation();
-//                    ConversationDao conversationDao = conversation.getDaoInstance(context);
-//                    List<Conversation> conversations = conversationDao.getForThreading();
-//                    List<ThreadedConversations> threadedConversationsList =
-//                            ThreadedConversations.buildRaw(context, conversations);
-//                    threadedConversationsDao.insertAll(threadedConversationsList);
-//
-//                    conversation.close();
-//                }catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
-
-        List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
-        Cursor cursor = context.getContentResolver().query(
-                Telephony.Threads.CONTENT_URI,
-                null,
-                null,
-                null,
-                "date DESC"
-        );
-        if(cursor != null && cursor.moveToFirst()) {
-            do {
-                ThreadedConversations threadedConversations = new ThreadedConversations();
-                int recipientIdIndex = cursor.getColumnIndex("address");
-                int snippetIndex = cursor.getColumnIndex("body");
-                int dateIndex = cursor.getColumnIndex("date");
-                int threadIdIndex = cursor.getColumnIndex("thread_id");
-                int typeIndex = cursor.getColumnIndex("type");
-//                int isArchivedIndex = cursor.getColumnIndex(Telephony.Threads.ARCHIVED);
-
-                threadedConversations.setAddress(cursor.getString(recipientIdIndex));
-                if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
-                    continue;
-                threadedConversations.setSnippet(cursor.getString(snippetIndex));
-                threadedConversations.setDate(cursor.getString(dateIndex));
-                threadedConversations.setThread_id(cursor.getString(threadIdIndex));
-                threadedConversations.setType(cursor.getInt(typeIndex));
-                threadedConversationsList.add(threadedConversations);
-            } while(cursor.moveToNext());
-            cursor.close();
-        }
         new Thread(new Runnable() {
             @Override
             public void run() {
+
+                List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
+                Cursor cursor = context.getContentResolver().query(
+                        Telephony.Threads.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        "date DESC"
+                );
+                if(cursor != null && cursor.moveToFirst()) {
+                    do {
+                        ThreadedConversations threadedConversations = new ThreadedConversations();
+                        int recipientIdIndex = cursor.getColumnIndex("address");
+                        int snippetIndex = cursor.getColumnIndex("body");
+                        int dateIndex = cursor.getColumnIndex("date");
+                        int threadIdIndex = cursor.getColumnIndex("thread_id");
+                        int typeIndex = cursor.getColumnIndex("type");
+//                int isArchivedIndex = cursor.getColumnIndex(Telephony.Threads.ARCHIVED);
+
+                        threadedConversations.setAddress(cursor.getString(recipientIdIndex));
+                        if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
+                            continue;
+                        String contactName = Contacts.retrieveContactName(context,
+                                threadedConversations.getAddress());
+                        threadedConversations.setContact_name(contactName);
+                        threadedConversations.setSnippet(cursor.getString(snippetIndex));
+                        threadedConversations.setDate(cursor.getString(dateIndex));
+                        threadedConversations.setThread_id(cursor.getString(threadIdIndex));
+                        threadedConversations.setType(cursor.getInt(typeIndex));
+                        threadedConversationsList.add(threadedConversations);
+                    } while(cursor.moveToNext());
+                    cursor.close();
+                }
                 threadedConversationsDao.insertAll(threadedConversationsList);
             }
         }).start();
