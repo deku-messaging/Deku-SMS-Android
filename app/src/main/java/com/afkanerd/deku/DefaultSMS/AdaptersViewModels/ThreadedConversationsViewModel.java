@@ -186,13 +186,15 @@ public class ThreadedConversationsViewModel extends ViewModel {
             @Override
             public void run() {
                 String[] ids = new String[threadedConversations.size()];
-                ConversationDao conversationDao = Conversation.getDao(context);
+                Conversation conversation = new Conversation();
+                ConversationDao conversationDao = conversation.getDaoInstance(context);
                 for(int i=0; i<threadedConversations.size(); ++i) {
                     ids[i] = threadedConversations.get(i).getThread_id();
                     conversationDao.delete(threadedConversations.get(i).getThread_id());
                 }
                 threadedConversationsDao.delete(threadedConversations);
                 NativeSMSDB.deleteThreads(context, ids);
+                conversation.close();
             }
         }).start();
     }

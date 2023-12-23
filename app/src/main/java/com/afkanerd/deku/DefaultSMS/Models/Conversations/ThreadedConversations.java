@@ -74,16 +74,6 @@ public class ThreadedConversations {
             databaseConnector.close();
     }
 
-    public static ThreadedConversationsDao getDao(Context context) {
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .build();
-        ThreadedConversationsDao threadedConversationsDao =  databaseConnector.threadedConversationsDao();
-        databaseConnector.close();
-        return threadedConversationsDao;
-    }
-
     public static ThreadedConversations build(Context context, Conversation conversation) {
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setAddress(conversation.getAddress());

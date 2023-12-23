@@ -60,6 +60,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     ActionMode actionMode;
     ThreadedConversationsDao threadedConversationsDao;
+    ThreadedConversations threadedConversations = new ThreadedConversations();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,12 +76,18 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             finish();
         }
 
-        threadedConversationsDao = ThreadedConversations.getDao(getApplicationContext());
+        threadedConversationsDao = threadedConversations.getDaoInstance(getApplicationContext());
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
         fragmentManagement();
         configureBroadcastListeners();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        conversation.close();
     }
 
     private void fragmentManagement() {
@@ -266,25 +273,25 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             if(recyclerAdapter != null) {
                 if(item.getItemId() == R.id.conversations_threads_main_menu_delete) {
                     if(recyclerAdapter.selectedItems != null && recyclerAdapter.selectedItems.getValue() != null) {
-                        List<ThreadedConversations> threadedConversations = new ArrayList<>();
+                        List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
                         List<String> ids = new ArrayList<>();
                         for (ThreadedConversationsTemplateViewHolder viewHolder :
                                 recyclerAdapter.selectedItems.getValue().values()) {
                             ThreadedConversations threadedConversation = new ThreadedConversations();
                             threadedConversation.setThread_id(viewHolder.id);
-                            threadedConversations.add(threadedConversation);
+                            threadedConversationsList.add(threadedConversation);
                             ids.add(threadedConversation.getThread_id());
                         }
                         Runnable runnable = new Runnable() {
                             @Override
                             public void run() {
                                 recyclerAdapter.resetAllSelectedItems();
+                                ThreadedConversationsDao threadedConversationsDao =
+                                        threadedConversations.getDaoInstance(getApplicationContext());
 
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        ThreadedConversationsDao threadedConversationsDao =
-                                                ThreadedConversations.getDao(getApplicationContext());
                                         List<ThreadedConversations> foundList =
                                                 threadedConversationsDao.find(ids);
                                         for(ThreadedConversations threadedConversation :
@@ -305,7 +312,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                                             }
                                         }
                                         threadedConversationsViewModel.delete(getApplicationContext(),
-                                                threadedConversations);
+                                                threadedConversationsList);
                                     }
                                 }).start();
                             }
@@ -354,7 +361,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             } while(cursor.moveToNext());
         }
         cursor.close();
-        ConversationDao conversationDao = Conversation.getDao(context);
+        ConversationDao conversationDao = conversation.getDaoInstance(context);
         conversationDao.insertAll(conversationList);
     }
 }

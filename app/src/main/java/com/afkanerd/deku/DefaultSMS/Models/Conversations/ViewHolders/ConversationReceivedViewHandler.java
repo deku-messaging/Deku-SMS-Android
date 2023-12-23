@@ -40,7 +40,6 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
     LinearLayoutCompat.LayoutParams layoutParams;
 
-    ConversationDao conversationDao;
 
     public ConversationReceivedViewHandler(@NonNull View itemView) {
         super(itemView);
@@ -52,8 +51,6 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
         layoutParams.bottomMargin = Helpers.dpToPixel(16);
         linearLayoutCompat.setLayoutParams(layoutParams);
-
-        conversationDao = Conversation.getDao(itemView.getContext());
     }
 
     @Override
@@ -203,6 +200,8 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                                                     Conversation.buildForDataTransmission(conversation,
                                                             transmissionRequest);
 
+                                            ConversationDao conversationDao =
+                                                    conversation.getDaoInstance(itemView.getContext());
                                             long id = conversationDao.insert(transmitConversation);
                                             SMSDatabaseWrapper.send_data(itemView.getContext(),
                                                     transmitConversation);
