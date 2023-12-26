@@ -4,11 +4,14 @@ import static androidx.core.content.ContextCompat.getSystemService;
 
 import android.app.LocaleManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.LocaleList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -41,10 +44,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 String languageLocale = (String) newValue;
 //                LocaleList currentAppLocales = getContext().getSystemService(LocaleManager.class)
 //                        .getApplicationLocales();
-
-                getContext().getSystemService(LocaleManager.class)
-                        .setApplicationLocales(
-                                new LocaleList(Locale.forLanguageTag(languageLocale)));
+                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2) {
+                    getContext().getSystemService(LocaleManager.class)
+                            .setApplicationLocales(
+                                    new LocaleList(Locale.forLanguageTag(languageLocale)));
+                }
+                else {
+                    LocaleListCompat appLocale = LocaleListCompat.forLanguageTags(languageLocale);
+                    AppCompatDelegate.setApplicationLocales(appLocale);
+                }
                 return true;
             }
         });
