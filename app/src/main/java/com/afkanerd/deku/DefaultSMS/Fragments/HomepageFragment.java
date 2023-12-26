@@ -83,12 +83,14 @@ public class HomepageFragment extends Fragment {
                 ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
                         conversationsThreadsEncryption.getDaoInstance(getContext());
                 if(conversationsThreadsEncryptionDao.getAll().size() < 1) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            view.findViewById(R.id.tab_layout).setVisibility(View.GONE);
-                        }
-                    });
+                    if(getActivity() != null) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                view.findViewById(R.id.tab_layout).setVisibility(View.GONE);
+                            }
+                        });
+                    }
                 } else {
                     encryptedEnabled = true;
                     TabLayout tabLayout = view.findViewById(R.id.tab_layout);
