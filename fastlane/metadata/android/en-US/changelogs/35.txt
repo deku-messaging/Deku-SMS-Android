@@ -1,0 +1,8 @@
+- option to share message now included
+- draft options added to threads
+- fix issue with request for secure conversation pop
+- added indications for shortcodes
+- fix timestamps on messages
+- can view the details above a message
+- fixed some urls and msisdn recognition issues
+- updated db instances to be more stable

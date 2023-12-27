@@ -58,6 +58,22 @@ public class ThreadedConversations {
 
      private String formatted_datetime;
 
+
+     @Ignore
+    Datastore databaseConnector;
+    public ThreadedConversationsDao getDaoInstance(Context context) {
+        databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                        Datastore.databaseName)
+                .addMigrations(new Migrations.Migration8To9())
+                .build();
+        return databaseConnector.threadedConversationsDao();
+    }
+
+    public void close() {
+        if(databaseConnector != null)
+            databaseConnector.close();
+    }
+
     public static ThreadedConversationsDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
@@ -228,7 +244,14 @@ public class ThreadedConversations {
             this.setAvatar_color(Helpers.generateColor(this.contact_name));
         } else {
             this.setAvatar_initials(null);
-            this.setAvatar_color(Helpers.generateColor(this.getAddress()));
+            try {
+                if (this.getAddress() != null && !this.getAddress().isEmpty())
+                    this.setAvatar_color(Helpers.generateColor(this.getAddress()));
+                else
+                    this.setAvatar_color(Helpers.getRandomColor());
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -33,53 +33,14 @@
     <string name="new_gateway_client_port">Port: <i>default 5672</i></string>
     <string name="homepage_menu_archived">Archived</string>
     <string name="homepage_menu_routed">Message Forwarding</string>
-    <string name="homepage_menu_web">Linked devices</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">SMS routing Gateways</string>
     <string name="gateway_client_listing_toolbar_title">SMS listening Gateways</string>
     <string name="add_new_gateway_server_toolbar_title">Add Gateway</string>
 
-    <string name="route_state">Routing URL</string>
-
-    <string name="send_sms_activity_user_not_secure">
-        Your communications with [insert name] is not secure.\nWould you like to send a request to begin a secure conversation with [insert name]?
-    </string>
-    <string name="send_sms_activity_user_not_secure_pending">
-        Your request to [insert name] is still pending their approval.\nWould you like to send another request to begin a secure conversation?
-    </string>
-    <string name="send_sms_activity_user_not_secure_no_agreed">
-        [insert name] has requested to secure this conversation.\nWould you like to respond to them?
-    </string>
-    <string name="send_sms_activity_user_not_secure_agree">
-        [insert name] has agreed to secure this conversation.\nClick confirm to begin encrypting your outgoing messages.
-    </string>
-
-    <string name="send_sms_activity_user_not_secure_yes">
-        Request
-    </string>
-    <string name="send_sms_activity_user_not_secure_pending_yes">
-        Resend
-    </string>
-
-    <string name="send_sms_activity_user_not_secure_yes_agree">
-        Agree
-    </string>
-
-    <string name="send_sms_activity_user_not_encrypted">
-        Not secured
-    </string>
-
-    <string name="send_sms_activity_user_encrypted">
-        Secured
-    </string>
-
     <string name="notifications_reply_label">Reply</string>
     <string name="notifications_mark_as_read_label">Mark as read</string>
-
-    <string name="notification_title_new_photo">
-        Photo
-    </string>
 
     <string name="notification_title_new_key">
         Secure communication request
@@ -98,8 +59,6 @@
     </string>
 
     <string name="search_nothing_found">Nothing found</string>
-    <string name="search_title">Search</string>
-    <string name="lengthy_sms_sample">SMS: Short, simple, and still going strong. An essential part of our digital lives for quick messages and notifications.</string>
 
     <string name="default_check_text">To use Deku SMS, make it your default SMS app</string>
     <string name="default_check_btn_text">Set default SMS app</string>
@@ -108,15 +67,18 @@
 
     <string name="sms_status_delivered">Delivered</string>
     <string name="sms_status_sent">Sent</string>
-    <string name="sms_status_sending">sending...</string>
+    <string name="sms_status_sending">sending…</string>
     <string name="sms_status_failed">failed, click to retry.</string>
-    <string name="sms_sent_date_today">Today </string>
+
+    <string name="settings_advanced_developers_key">settings_advanced_developers_key</string>
 
     <string name="settings_about">About</string>
     <string name="settings_title">Settings</string>
     <string name="settings_security_category_title">Security</string>
+    <string name="settings_advanced_category_title">Advance</string>
+    <string name="settings_developer_category_title">Developers</string>
     <string name="settings_security_category_end_to_end_encryption">Communication Encryption</string>
-    <string name="settings_security_category_end_to_end_encryption_summary">Configure how you encryption work. Where you also go to disable encryption</string>
+    <string name="settings_security_category_end_to_end_encryption_summary">Configure how your encryption works. Where you also go to disable encryption</string>
     <string name="settings_security_category_end_to_end_duration">Allow request for encryption to expire</string>
     <string name="settings_security_category_end_to_end_disable">Disable request to secure messages</string>
     <string name="settings_security_category_end_to_end_disable_summary">Will not affect contacts you are already communicating securely with, but you will not be asked to secure communications with other contacts</string>
@@ -124,10 +86,12 @@
 
     <string name="settings_SMS_routing_title">Forwarded History</string>
     <string name="settings_SMS_listening_title">SMS listening</string>
-    <string name="settings_SMS_routing_custom_server">Configure SMS routing Gateways</string>
     <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
-    <string name="settings_SMS_routing_SMSWithoutBorders_summary">Configurations for routing SMS messages through HTTPS</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
+
+    <string name="gateway_client_add_linked_device_title">Scan QR code</string>
+    <string name="gateway_client_add_manually_title">Add Manually</string>
+
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
     <string name="settings_SMS_routing_type_all_option">All (default)</string>
@@ -169,12 +133,7 @@
     <string name="gateway_client_reconnecting_description">Gateway clients reconnecting…</string>
 
     <string name="homepage_fragment_tab_all">All</string>
-    <string name="homepage_fragment_tab_plain">Plain</string>
     <string name="homepage_fragment_tab_encrypted">Encrypted</string>
-
-    <string name="send_message_error_no_text_provided">Make sure Address and Text are provided.</string>
-    <string name="send_message_generic_error">Something went wrong, check log stack</string>
-    <string name="default_subscription_id_changed">Default subscription ID changed to </string>
 
     <string name="messages_thread_delete_confirmation_title">Delete Confirmation</string>
     <string name="messages_thread_delete_confirmation_text">Proceed with deleting threads.</string>
@@ -183,27 +142,12 @@
 
     <string name="single_message_thread_yesterday">Yesterday</string>
 
-    <string name="deku_websocket_running">Deku Web running</string>
-    <string name="deku_websocket_running_description">You are connected to Deku web on the browser</string>
-
-    <string name="security_key_new_request_notification">Requesting to secure communication</string>
-    <string name="security_key_new_agreed_notification">Has agreed to secure communication</string>
     <string name="sim_chooser_layout_text">Send message via</string>
 
-    <string name="linked_devices_new_gateway_client_added">New Gateway Client Added!</string>
-    <string name="linked_devices_new_gateway_server_added">New Gateway Server Added!</string>
+    <string name="linked_devices_scan_qr_code_title">Linked devices QR code</string>
     <string name="message_threads_menu_delete">delete</string>
     <string name="message_threads_menu_cancel">cancel</string>
     <string name="messages_threads_menu_archive">archive</string>
-    <string name="title_activity_about">AboutActivity</string>
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
-    <string name="welcome">"Welcome !"</string>
-    <string name="invalid_username">Not a valid username</string>
-    <string name="invalid_password">Password must be >5 characters</string>
-    <string name="login_failed">"Login failed"</string>
 
     <string name="about_deku">About</string>
     <string name="about_deku_motto">Open source SMS done right</string>
@@ -220,28 +164,44 @@
     <string name="conversations_menu_search_title">Search</string>
 
     <string name="conversations_search_results_found">results founds</string>
-    <string name="threading_conversations_natives_loaded">Began importing SMS messages!</string>
 
     <string name="conversation_copied">Copied!</string>
     <string name="router_list_gateways">View Gateway servers</string>
     <string name="router_add_gateways">Add Gateway servers</string>
-    <string name="arhived_no_archived_messages">No Archived Messages</string>
+    <string name="archived_no_archived_messages">No Archived Messages</string>
     <string name="conversation_menu_copy">copy</string>
     <string name="conversation_menu_delete">delete</string>
+    <string name="conversation_menu_share">share</string>
+
+    <string name="conversation_menu_view_details">View details</string>
+    <string name="conversation_menu_view_details_title">Message details</string>
+    <string name="conversation_menu_view_details_type">Type:\u00A0</string>
+    <string name="conversation_menu_view_details_type_text">Text message</string>
+    <string name="conversation_menu_view_details_type_data">Data message</string>
+    <string name="conversation_menu_view_details_from">From:\u00A0</string>
+    <string name="conversation_menu_view_details_to">To:\u00A0</string>
+    <string name="conversation_menu_view_details_sent">Sent:\u00A0</string>
+    <string name="conversation_menu_view_details_received">Received:\u00A0</string>
+
     <string name="compose_new_message_to">To</string>
     <string name="compose_new_message_title">New conversation</string>
     <string name="conversation_secure_popup_text">Click to request secure conversation</string>
 
     <string name="conversation_threads_secured_content">Secured Content</string>
-    <string name="conversation_key_title_request">Secure Requested</string>
     <string name="conversation_key_title_requested">Secure Requested</string>
     <string name="conversation_key_title_agree">Click to Agree to secure this Communication</string>
-    <string name="conversation_key_title_agreed">Secure request Agreed!</string>
-    <string name="conversation_inform_user_now_secured_toast">Secure communications is a go!</string>
 
     <string name="conversation_secure_popup_request_menu_yes">Send</string>
     <string name="conversation_secure_popup_request_menu_cancel">Cancel</string>
     <string name="conversation_secure_popup_request_menu_title">Secure Conversation Request</string>
     <string name="conversation_secure_popup_request_menu_description">A secure communications request will send an SMS to [contact name]. \n\nThey will need have Deku SMS installed to receive this request.</string>
     <string name="conversation_secure_popup_request_menu_description_subtext">* SMS cost still applies</string>
+
+    <string name="conversation_shortcode_description">Can\'t reply to this short code</string>
+    <string name="conversation_shortcode_action_button">Learn more</string>
+    <string name="conversation_shortcode_learn_more_text">Short codes are local or personalized numbers for sending international SMS messages.\n\nYou can reply to numbers-only short codes, but not to codes with letters and numbers, like \"MSG007\".</string>
+    <string name="conversation_shortcode_learn_more_ok">OK</string>
+
+    <string name="thread_conversation_type_draft">Draft</string>
+    <string name="thread_conversation_timestamp_yesterday">Yesterday</string>
 </resources>

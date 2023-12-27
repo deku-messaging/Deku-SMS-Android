@@ -1,9 +1,13 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import android.graphics.Typeface;
+import android.provider.Telephony;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.R;
 
 public class ThreadedConversationsSentViewHandler {
     public static class SentViewHolderReadThreadedConversations extends ThreadedConversationsTemplateViewHolder.ReadViewHolderThreadedConversations {
@@ -11,13 +15,24 @@ public class ThreadedConversationsSentViewHandler {
             super(itemView);
             youLabel.setVisibility(View.VISIBLE);
         }
+
+        @Override
+        public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener, View.OnLongClickListener onLongClickListener) {
+            super.bind(conversation, onClickListener, onLongClickListener);
+            if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT) {
+                this.date.setText(itemView.getContext().getString(R.string.thread_conversation_type_draft));
+                this.date.setTextAppearance(R.style.conversation_draft_style);
+                this.snippet.setTextAppearance(R.style.conversation_draft_style);
+                this.youLabel.setTextAppearance(R.style.conversation_draft_style);
+            }
+        }
     }
 
     public static class SentViewHolderUnreadThreadedConversations extends ThreadedConversationsTemplateViewHolder.UnreadViewHolderThreadedConversations {
         public SentViewHolderUnreadThreadedConversations(@NonNull View itemView) {
             super(itemView);
             youLabel.setVisibility(View.VISIBLE);
-            youLabel.setTypeface(Typeface.DEFAULT_BOLD);
+            this.youLabel.setTextAppearance(R.style.conversation_unread_style);
         }
     }
 
@@ -25,7 +40,7 @@ public class ThreadedConversationsSentViewHandler {
         public SentViewHolderEncryptedUnreadThreadedConversations(@NonNull View itemView) {
             super(itemView);
             youLabel.setVisibility(View.VISIBLE);
-            youLabel.setTypeface(Typeface.DEFAULT_BOLD);
+            this.youLabel.setTextAppearance(R.style.conversation_unread_style);
         }
     }
 

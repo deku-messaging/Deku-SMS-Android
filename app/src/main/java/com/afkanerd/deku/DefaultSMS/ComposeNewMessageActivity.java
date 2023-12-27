@@ -32,9 +32,10 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose_new_message);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.compose_new_message_toolbar);
+        Toolbar myToolbar = findViewById(R.id.compose_new_message_toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getString(R.string.compose_new_message_title));
 
         contactsViewModel = new ViewModelProvider(this).get(
                 ContactsViewModel.class);

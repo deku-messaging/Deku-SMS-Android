@@ -1,7 +1,5 @@
 package com.afkanerd.deku.Router.GatewayServers;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
@@ -19,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -28,10 +27,17 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
     SharedPreferences sharedPreferences;
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_servers_listing_activitiy);
+
+        toolbar = findViewById(R.id.gateway_servers_listing_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getString(R.string.gateway_server_listing_toolbar_title));
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
@@ -84,15 +90,11 @@ public class GatewayServerListingActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.add_gateway_server) {
+        if (item.getItemId() == R.id.gateway_client_add_manually) {
             Intent addGatewayIntent = new Intent(getApplicationContext(), GatewayServerAddActivity.class);
             startActivity(addGatewayIntent);
+            return true;
         }
         return false;
     }

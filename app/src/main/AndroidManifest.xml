@@ -41,7 +41,8 @@
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"/>
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity"
-            android:exported="false">
+            android:exported="false"
+            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity">
             <meta-data
                 android:name="com.google.android.gms.vision.DEPENDENCIES"
                 android:value="barcode" />
@@ -53,22 +54,18 @@
         <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
             android:exported="false"
-            android:label="@string/add_new_gateway_server_toolbar_title"
             android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity"
             android:exported="false"
-            android:label="@string/gateway_client_listing_toolbar_title"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.SettingsActivity" />
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.SettingsActivity"
             android:exported="false"
-            android:label="@string/settings_title"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity" />
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.ComposeNewMessageActivity"
             android:exported="true"
-            android:label="@string/compose_new_message_title"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
             android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
@@ -82,7 +79,6 @@
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity"
             android:exported="false"
-            android:label="@string/archived_messages_toolbar_title"
             android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity" />
         <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
@@ -105,9 +101,8 @@
             android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity" />
         <activity
             android:name="com.afkanerd.deku.Router.Router.RouterActivity"
-            android:label="@string/settings_SMS_routing_title"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity" />
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity" />
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity"
             android:exported="false"

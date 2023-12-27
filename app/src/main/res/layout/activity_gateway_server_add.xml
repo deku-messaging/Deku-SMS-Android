@@ -7,6 +7,14 @@
     android:layout_height="match_parent"
     tools:context="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/gateway_server_add_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/new_gateway_client_url_input_layout"
         style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.Dense"
@@ -16,7 +24,7 @@
         android:hint="@string/new_gateway_server_url"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_toolbar"
         app:startIconDrawable="@drawable/baseline_add_link_24">
 
         <com.google.android.material.textfield.TextInputEditText

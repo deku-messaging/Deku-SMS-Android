@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <group
-        android:id="@+id/conversations_threads_main_menu"
-        android:visible="true">
+    <group android:visible="true">
         <item
             android:id="@+id/conversation_threads_main_menu_search"
             android:icon="@drawable/ic_outline_search_24"
@@ -17,11 +15,6 @@
             android:id="@+id/conversation_threads_main_menu_routed"
             android:theme="@style/Theme.main"
             android:title="@string/homepage_menu_routed" />
-
-        <item
-            android:id="@+id/conversation_threads_main_menu_devices"
-            android:theme="@style/Theme.main"
-            android:title="@string/homepage_menu_web" />
 
         <item
             android:id="@+id/conversation_threads_main_menu_settings"

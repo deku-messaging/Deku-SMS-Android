@@ -15,9 +15,11 @@ import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -88,6 +90,16 @@ public class CustomKeyStore {
         byte[] decodedPrivateKey = Base64.decode(this.privateKey, Base64.DEFAULT);
         byte[] privateKey = SecurityRSA.decrypt(keystorePrivateKey, decodedPrivateKey);
         return SecurityECDH.buildPrivateKey(privateKey);
+    }
+
+    public KeyPair getKeyPair() throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
+        PrivateKey keystorePrivateKey = SecurityECDH.getPrivateKeyFromKeystore(this.keystoreAlias);
+        byte[] decodedPrivateKey = Base64.decode(this.privateKey, Base64.DEFAULT);
+        byte[] privateKey = SecurityRSA.decrypt(keystorePrivateKey, decodedPrivateKey);
+
+        PublicKey x509PublicKey = SecurityECDH.buildPublicKey(Base64.decode(publicKey, Base64.DEFAULT));
+        PrivateKey x509PrivateKey = SecurityECDH.buildPrivateKey(privateKey);
+        return SecurityECDH.buildKeyPair(x509PublicKey, x509PrivateKey);
     }
 
     public static CustomKeyStoreDao getDao(Context context) {

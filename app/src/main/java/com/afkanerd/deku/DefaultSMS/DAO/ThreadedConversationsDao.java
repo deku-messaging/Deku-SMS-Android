@@ -50,7 +50,7 @@ public interface ThreadedConversationsDao {
 
     @Query("SELECT Conversation.* FROM Conversation, ThreadedConversations WHERE text " +
             "LIKE '%' || :search_string || '%' AND Conversation.thread_id = ThreadedConversations.thread_id " +
-            "GROUP BY Conversation.thread_id ORDER BY date DESC")
+            "GROUP BY ThreadedConversations.thread_id ORDER BY date DESC")
     List<Conversation> find(String search_string );
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND text " +

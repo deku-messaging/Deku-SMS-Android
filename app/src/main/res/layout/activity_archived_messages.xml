@@ -38,7 +38,7 @@
         android:id="@+id/messages_archived_no_messages"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/arhived_no_archived_messages"
+        android:text="@string/archived_no_archived_messages"
         app:layout_constraintBottom_toBottomOf="@+id/constraintLayout5"
         app:layout_constraintEnd_toEndOf="@+id/constraintLayout5"
         app:layout_constraintStart_toStartOf="@+id/constraintLayout5"

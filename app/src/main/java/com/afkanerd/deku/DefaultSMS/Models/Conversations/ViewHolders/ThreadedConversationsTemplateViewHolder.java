@@ -10,6 +10,8 @@ import static com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversati
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.provider.Telephony;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -63,26 +65,31 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         this.id = String.valueOf(conversation.getThread_id());
 
         if(conversation.getAvatar_initials() != null) {
+            this.contactAvatar.setVisibility(View.GONE);
+            this.contactInitials.setVisibility(View.VISIBLE);
             this.contactInitials.setAvatarInitials(conversation.getAvatar_initials());
             this.contactInitials.setAvatarInitialsBackgroundColor(conversation.getAvatar_color());
-            this.contactAvatar.setVisibility(View.GONE);
         }
         else {
-            Drawable drawable = contactAvatar.getDrawable();
-            if(drawable != null) {
-                drawable.setColorFilter(conversation.getAvatar_color(), PorterDuff.Mode.SRC_IN);
-                contactAvatar.setImageDrawable(drawable);
-            }
+            this.contactAvatar.setVisibility(View.VISIBLE);
             this.contactInitials.setVisibility(View.GONE);
+            Drawable drawable = contactAvatar.getDrawable();
+            if (drawable == null) {
+                drawable = itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24);
+            }
+            if(drawable != null)
+                drawable.setColorFilter(conversation.getAvatar_color(), PorterDuff.Mode.SRC_IN);
+            contactAvatar.setImageDrawable(drawable);
         }
         if(conversation.getContact_name() != null) {
             this.address.setText(conversation.getContact_name());
-        } else this.address.setText(conversation.getAddress());
+        }
+        else this.address.setText(conversation.getAddress());
 
+        this.snippet.setText(conversation.getSnippet());
         String date = Helpers.formatDate(itemView.getContext(),
                 Long.parseLong(conversation.getDate()));
         this.date.setText(date);
-        this.snippet.setText(conversation.getSnippet());
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);
         // TODO: investigate new Avatar first before anything else
@@ -130,14 +137,11 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
     public static class UnreadViewHolderThreadedConversations extends ThreadedConversationsTemplateViewHolder {
         public UnreadViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
-            address.setTypeface(Typeface.DEFAULT_BOLD);
-            address.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
+            address.setTextAppearance(R.style.conversation_unread_style);
 
-            snippet.setTypeface(Typeface.DEFAULT_BOLD);
-            snippet.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
+            snippet.setTextAppearance(R.style.conversation_unread_style);
 
-            date.setTypeface(Typeface.DEFAULT_BOLD);
-            date.setTextColor(itemView.getContext().getColor(R.color.primary_text_color));
+            date.setTextAppearance(R.style.conversation_unread_style);
         }
     }
 
@@ -145,7 +149,6 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         public UnreadEncryptedViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
-            snippet.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD_ITALIC));
         }
     }
 
@@ -153,7 +156,6 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         public ReadEncryptedViewHolderThreadedConversations(@NonNull View itemView) {
             super(itemView);
             snippet.setText(R.string.messages_thread_encrypted_content);
-            snippet.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
         }
     }
 

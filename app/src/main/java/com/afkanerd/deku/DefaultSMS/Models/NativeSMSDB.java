@@ -372,13 +372,13 @@ public class NativeSMSDB {
 
             for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                 address = currentSMS.getDisplayOriginatingAddress();
-                if(BuildConfig.DEBUG) {
-                    Log.d(NativeSMSDB.class.getName(), "Incoming Display address: " + address);
-                    Log.d(NativeSMSDB.class.getName(), "Incoming Originating address: " + currentSMS.getOriginatingAddress());
-                    Log.d(NativeSMSDB.class.getName(), "Incoming sent date: " + currentSMS.getTimestampMillis());
-                    Log.d(NativeSMSDB.class.getName(), "Incoming is reply: " + currentSMS.isReplyPathPresent());
-                    Log.d(NativeSMSDB.class.getName(), "Incoming is status reply: " + currentSMS.isStatusReportMessage());
-                }
+//                if(BuildConfig.DEBUG) {
+//                    Log.d(NativeSMSDB.class.getName(), "Incoming Display address: " + address);
+//                    Log.d(NativeSMSDB.class.getName(), "Incoming Originating address: " + currentSMS.getOriginatingAddress());
+//                    Log.d(NativeSMSDB.class.getName(), "Incoming sent date: " + currentSMS.getTimestampMillis());
+//                    Log.d(NativeSMSDB.class.getName(), "Incoming is reply: " + currentSMS.isReplyPathPresent());
+//                    Log.d(NativeSMSDB.class.getName(), "Incoming is status reply: " + currentSMS.isStatusReportMessage());
+//                }
 
                 String text_message = currentSMS.getDisplayMessageBody();
 

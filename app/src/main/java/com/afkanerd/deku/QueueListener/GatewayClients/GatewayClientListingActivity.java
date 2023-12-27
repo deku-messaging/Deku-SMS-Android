@@ -1,6 +1,5 @@
 package com.afkanerd.deku.QueueListener.GatewayClients;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
@@ -19,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -51,12 +51,20 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
     SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_listing);
 
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+
+        toolbar = findViewById(R.id.gateway_client_listing_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        getSupportActionBar().setTitle(getString(R.string.gateway_client_listing_toolbar_title));
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         RecyclerView recyclerView = findViewById(R.id.gateway_client_listing_recycler_view);
@@ -125,11 +133,15 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
-            case R.id.add_gateway_server:
-                Intent addGatewayIntent = new Intent(getApplicationContext(), GatewayClientAddActivity.class);
-                startActivity(addGatewayIntent);
-                break;
+        if (item.getItemId() == R.id.gateway_client_add_manually) {
+            Intent addGatewayIntent = new Intent(getApplicationContext(), GatewayClientAddActivity.class);
+            startActivity(addGatewayIntent);
+            return true;
+        }
+        else if (item.getItemId() == R.id.gateway_client_linked_device_add) {
+            Intent addGatewayIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);
+            startActivity(addGatewayIntent);
+            return true;
         }
         return false;
     }

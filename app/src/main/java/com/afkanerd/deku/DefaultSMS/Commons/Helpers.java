@@ -20,6 +20,7 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.TextView;
 
@@ -104,15 +105,26 @@ public class Helpers {
     }
 
     public static boolean isShortCode(ThreadedConversations threadedConversations) {
+        if(threadedConversations.getAddress().length() < 4)
+            return true;
         Pattern pattern = Pattern.compile("[a-zA-Z]");
         Matcher matcher = pattern.matcher(threadedConversations.getAddress());
-        Log.d(Helpers.class.getName(), "Notifying for: " + threadedConversations.getAddress());
         return !PhoneNumberUtils.isWellFormedSmsAddress(threadedConversations.getAddress()) || matcher.find();
+    }
+
+    public static boolean isShortCode(String address) {
+        if(address.length() < 4)
+            return true;
+        Pattern pattern = Pattern.compile("[a-zA-Z]");
+        Matcher matcher = pattern.matcher(address);
+        return matcher.find();
     }
 
     public static String getFormatCompleteNumber(String data, String defaultRegion) {
         data = data.replaceAll("%2B", "+")
-                .replaceAll("%20", "");
+                .replaceAll("-", "")
+                .replaceAll("%20", "")
+                .replaceAll(" ", "");
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         String outputNumber = data;
         try {
@@ -193,6 +205,35 @@ public class Helpers {
         return data;
     }
 
+//    public static String formatDateExtended(Context context, long epochTime) {
+//        long currentTime = System.currentTimeMillis();
+//        long diff = currentTime - epochTime;
+//
+//        Date currentDate = new Date(currentTime);
+//        Date targetDate = new Date(epochTime);
+//
+//        SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+//        SimpleDateFormat fullDayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+//        SimpleDateFormat shortDayFormat = new SimpleDateFormat("EEE", Locale.getDefault());
+//        SimpleDateFormat shortMonthDayFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
+//
+////        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
+////            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
+////        }
+//        if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
+//            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
+//        } else if (isSameDay(currentDate, targetDate)) { // today
+//            return timeFormat.format(targetDate);
+//        } else if (isYesterday(currentDate, targetDate)) { // yesterday
+//            return context.getString(R.string.single_message_thread_yesterday) + " • " + timeFormat.format(targetDate);
+//        } else if (isSameWeek(currentDate, targetDate)) { // within the same week
+//            return fullDayFormat.format(targetDate) + " • " + timeFormat.format(targetDate);
+//        } else { // greater than 1 week
+//            return shortDayFormat.format(targetDate) + ", " + shortMonthDayFormat.format(targetDate)
+//                    + " • " + timeFormat.format(targetDate);
+//        }
+//    }
+
     public static String formatDateExtended(Context context, long epochTime) {
         long currentTime = System.currentTimeMillis();
         long diff = currentTime - epochTime;
@@ -205,15 +246,10 @@ public class Helpers {
         SimpleDateFormat shortDayFormat = new SimpleDateFormat("EEE", Locale.getDefault());
         SimpleDateFormat shortMonthDayFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
 
-//        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
-//            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
-//        }
-        if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
-            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
-        } else if (isSameDay(currentDate, targetDate)) { // today
-            return timeFormat.format(targetDate);
-        } else if (isYesterday(currentDate, targetDate)) { // yesterday
+        if (isYesterday(currentDate, targetDate)) { // yesterday
             return context.getString(R.string.single_message_thread_yesterday) + " • " + timeFormat.format(targetDate);
+        } else if (diff < DateUtils.DAY_IN_MILLIS) { // today
+            return timeFormat.format(targetDate);
         } else if (isSameWeek(currentDate, targetDate)) { // within the same week
             return fullDayFormat.format(targetDate) + " • " + timeFormat.format(targetDate);
         } else { // greater than 1 week
@@ -250,19 +286,58 @@ public class Helpers {
         return week1.equals(week2);
     }
 
+//    public static String formatDate(Context context, long epochTime) {
+//        long currentTime = System.currentTimeMillis();
+//        long diff = currentTime - epochTime;
+//
+//        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
+//            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
+//        } else if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
+//            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
+//        } else if (diff < DateUtils.WEEK_IN_MILLIS) { // less than 1 week
+//            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_ABBREV_WEEKDAY);
+//        } else { // greater than 1 week
+//            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_ABBREV_MONTH | DateUtils.FORMAT_SHOW_DATE);
+//        }
+//    }
+
     public static String formatDate(Context context, long epochTime) {
         long currentTime = System.currentTimeMillis();
         long diff = currentTime - epochTime;
 
-        if (diff < DateUtils.HOUR_IN_MILLIS) { // less than 1 hour
-            return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
-        } else if (diff < DateUtils.DAY_IN_MILLIS) { // less than 1 day
-            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
-        } else if (diff < DateUtils.WEEK_IN_MILLIS) { // less than 1 week
-            return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_ABBREV_WEEKDAY);
-        } else { // greater than 1 week
+        Calendar now = Calendar.getInstance();
+        now.setTimeInMillis(currentTime);
+        Calendar dateCal = Calendar.getInstance();
+        dateCal.setTimeInMillis(epochTime);
+
+        // Check if the date is today
+        if (dateCal.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
+                dateCal.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR)) {
+            // Use relative time or time if less than a day
+            if (diff < DateUtils.HOUR_IN_MILLIS) {
+                return DateUtils.getRelativeTimeSpanString(epochTime, currentTime, DateUtils.MINUTE_IN_MILLIS).toString();
+            } else if (diff < DateUtils.DAY_IN_MILLIS) {
+                return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_SHOW_TIME);
+            }
+        } else if (dateCal.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR) - 1) {
+            // Show "yesterday" if the date is yesterday
+            return context.getString(R.string.thread_conversation_timestamp_yesterday);
+        } else {
+            // Use standard formatting for other dates
             return DateUtils.formatDateTime(context, epochTime, DateUtils.FORMAT_ABBREV_MONTH | DateUtils.FORMAT_SHOW_DATE);
         }
+        return null;
+    }
+
+    public static String formatLongDate(long epochTime) {
+        // Create a date object from the epoch time
+        Date date = new Date(epochTime);
+
+        // Create a SimpleDateFormat object with the desired format
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd, h:mm a", Locale.getDefault());
+
+        // Format the date and return the string
+        return formatter.format(date);
     }
 
     public static String getUserCountry(Context context) {
@@ -340,64 +415,67 @@ public class Helpers {
         if(text == null)
             return;
         // Regular expression to find URLs in the text
-//        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|(\\+\\d{1,3})\\d+";
-//        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|\\b\\+?\\d+\\b|\\b\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
-//        String urlPattern = "(https?://)?(www\\.)?[\\w\\d\\-]+(\\.[\\w\\d\\-]+)+([/?#]\\S*)?|\\+\\b\\d+\\b|\\b\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
-//        String urlPattern = "(?i)\\b((?:https?://|www\\d{0,3}[.]|[a-z0-9\\-]+[.](?:[a-z]{2,}|xn\\-\\-[a-z0-9\\-]+))(?::\\d{2,5})?(?:/[\\S]*)?)";
-//        String urlPattern = "(?i)(?:(?:https?://|www\\d{0,3}[.]|[a-z0-9\\-]+[.](?:[a-z]{2,}|xn\\-\\-[a-z0-9\\-]+))(?::\\d{2,5})?(?:/[\\S]*)?)|\\+\\d+|\\b\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*|\\b\\d{1,3}[-.\\s]\\d{1,3}[-.\\s]\\d{2,8}(?:[-.\\s]\\d{1,4})?";
-        String urlPattern = "(?i)(?:(?:https?://|www\\d{0,3}[.]|[a-z0-9\\-]+[.](?:[a-z]{2,}|xn\\-\\-[a-z0-9\\-]+))(?::\\d{2,5})?(?:/[\\S]*)?)|\\+\\d+|\\b\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*|\\b\\d{1,3}[-.\\s]\\d{1,3}[-.\\s]\\d{2,8}(?:[-.\\s]\\d{1,4})?";
+//        String urlPattern = "((mailto:)?[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+)" +
+//                "|((\\+?[0-9]{1,3}?)[ \\-]?)?([\\(]{1}[0-9]{3}[\\)])?[ \\-]?[0-9]{3}[ \\-]?[0-9]{4}" +
+//                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*" +
+//                "|(https?://)?([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}(/[\\w\\.-]+)*(/\\S*)*(\\?[^ ]*#[^ ]*)/?";
 
         SpannableString spannableString = new SpannableString(text);
 
-        // Find all URLs in the text
-        Pattern pattern = Pattern.compile(urlPattern);
-        Matcher matcher = pattern.matcher(spannableString);
+        String[] splitString = text.split("\\s");
+        for(int i=0, length =0; i<splitString.length; ++i){
+            final String _string = splitString[i];
+            length += _string.length() + 1; // one for the space removed
 
-        while (matcher.find()) {
-            String tmp_url = matcher.group();
-            if (PhoneNumberUtils.isWellFormedSmsAddress(tmp_url)) {
-                final String tel = tmp_url;
+            final int start = length - _string.length()-1;
+            final int end = length -1;
+
+            if(Patterns.WEB_URL.matcher(_string).matches()) {
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override
                     public void onClick(View widget) {
-                        Uri phoneNumberUri = Uri.parse("tel:" + tel);
-                        Intent dialIntent = new Intent(Intent.ACTION_DIAL, phoneNumberUri);
-                        dialIntent.setFlags(FLAG_ACTIVITY_NEW_TASK);
-                        widget.getContext().startActivity(dialIntent);
+                        Intent intent = new Intent(Intent.ACTION_VIEW,
+                                Uri.parse((_string.startsWith("http://") ||
+                                        _string.startsWith("https://")) ? _string : "https://" + _string));
+                        intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+                        widget.getContext().startActivity(intent);
                     }
                 };
-                spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else if (tmp_url.contains("@")) {
-                final String email = tmp_url;
+                spannableString.setSpan(clickableSpan, start, end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannableString.setSpan(new ForegroundColorSpan(color), start, end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            else if (Patterns.EMAIL_ADDRESS.matcher(_string).matches()) {
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override
                     public void onClick(View widget) {
                         Intent intent = new Intent(Intent.ACTION_SENDTO);
                         intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
-                        intent.setData(Uri.parse("mailto:" + email));
+                        intent.setData(Uri.parse("mailto:" + _string));
                         widget.getContext().startActivity(intent);
                     }
                 };
-                spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else {
-                if (!tmp_url.startsWith("http://") && !tmp_url.startsWith("https://")) {
-                    tmp_url = "http://" + tmp_url;
-                }
-                final String url = tmp_url;
-
+                spannableString.setSpan(clickableSpan, start, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannableString.setSpan(new ForegroundColorSpan(color), start, end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            else if (_string.matches(
+                    "\\(*\\+*[1-9]{0,3}\\)*-*[1-9]{0,3}[-. \\/]*\\(*[2-9]\\d{2}\\)*[-. \\/]*\\d{3}[-. \\/]*\\d{4} *e*x*t*\\.* *\\d{0,4}" +
+                    "|[*#][\\d\\*]*[*#]")) {
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override
                     public void onClick(View widget) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                        intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
-                        widget.getContext().startActivity(intent);
+                        Uri phoneNumberUri = Uri.parse("tel:" + _string);
+                        Intent dialIntent = new Intent(Intent.ACTION_DIAL, phoneNumberUri);
+                        dialIntent.setFlags(FLAG_ACTIVITY_NEW_TASK);
+                        widget.getContext().startActivity(dialIntent);
                     }
                 };
-                spannableString.setSpan(clickableSpan, matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannableString.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannableString.setSpan(new ForegroundColorSpan(color), start, end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
-
-            spannableString.setSpan(new ForegroundColorSpan(color),
-                    matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
         textView.setMovementMethod(LinkMovementMethod.getInstance());

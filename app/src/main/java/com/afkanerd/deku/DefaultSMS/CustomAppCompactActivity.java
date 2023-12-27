@@ -24,6 +24,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsView
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
@@ -48,12 +49,18 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
     BroadcastReceiver dataSentBroadcastIntent;
     BroadcastReceiver dataDeliveredBroadcastIntent;
 
-    public static final String TAG_NAME = "NATIVE_CONVERSATION_TAG";
-    public static final String UNIQUE_WORK_NAME = "NATIVE_CONVERSATION_TAG_UNIQUE_WORK_NAME";
-    public static final String LOAD_NATIVES = "LOAD_NATIVES";
+    protected static final String TAG_NAME = "NATIVE_CONVERSATION_TAG";
+    protected static final String UNIQUE_WORK_NAME = "NATIVE_CONVERSATION_TAG_UNIQUE_WORK_NAME";
+    protected static final String LOAD_NATIVES = "LOAD_NATIVES";
+
+    protected final static String DRAFT_PRESENT_BROADCAST = "DRAFT_PRESENT_BROADCAST";
+
+    protected ConversationsViewModel conversationsViewModel;
 
     Conversation conversation;
     ConversationDao conversationDao;
+
+    protected ThreadedConversationsViewModel threadedConversationsViewModel;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,14 +77,14 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         conversationDao = conversation.getDaoInstance(getApplicationContext());
 //        new Thread(new Runnable() {
 //            @Override
-//            public void run() {
+//            protected void run() {
 //                SharedPreferences sharedPreferences =
 //                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 //                if(sharedPreferences.getBoolean(LOAD_NATIVES, true)) {
 //                    loadConversationsNativesBg();
 //                    runOnUiThread(new Runnable() {
 //                        @Override
-//                        public void run() {
+//                        protected void run() {
 //                            Toast.makeText(getApplicationContext(),
 //                                    getString(R.string.threading_conversations_natives_loaded), Toast.LENGTH_LONG).show();
 //                        }
@@ -114,12 +121,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         return myPackageName.equals(defaultPackage);
     }
 
-    ViewModel viewModel;
-    public void setViewModel(ViewModel viewModel) {
-        this.viewModel = viewModel;
-    }
-
-    public void configureBroadcastListeners() {
+    protected void configureBroadcastListeners() {
 
         generateUpdateEventsBroadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -128,7 +130,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION) ||
                 intent.getAction().equals(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION))) {
                     String messageId = intent.getStringExtra(Conversation.ID);
-                    if(viewModel instanceof ConversationsViewModel) {
+                    if(conversationsViewModel != null) {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -144,15 +146,19 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                          NoSuchAlgorithmException | NumberParseException e) {
                                     e.printStackTrace();
                                 }
-                                ((ConversationsViewModel) viewModel).update(conversation);
+                                conversationsViewModel.update(conversation);
                             }
                         }).start();
-                    } else if(viewModel instanceof ThreadedConversationsViewModel) {
-                        ((ThreadedConversationsViewModel) viewModel).refresh(context, conversationDao);
                     }
+                    if(threadedConversationsViewModel != null) {
+                        threadedConversationsViewModel.refresh(context);
+                    }
+                } else if(intent.getAction().equals(DRAFT_PRESENT_BROADCAST) &&
+                        threadedConversationsViewModel != null) {
+                    threadedConversationsViewModel.refresh(context);
                 } else {
                     String messageId = intent.getStringExtra(Conversation.ID);
-                    if(viewModel instanceof ConversationsViewModel && messageId != null) {
+                    if(conversationsViewModel != null && messageId != null) {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -168,12 +174,12 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                          NoSuchAlgorithmException | NumberParseException e) {
                                     e.printStackTrace();
                                 }
-                                ((ConversationsViewModel) viewModel).update(conversation);
+                                conversationsViewModel.update(conversation);
                             }
                         }).start();
                     }
-                    else if(viewModel instanceof ThreadedConversationsViewModel) {
-                        ((ThreadedConversationsViewModel) viewModel).refresh(context, conversationDao);
+                    if(threadedConversationsViewModel != null) {
+                        threadedConversationsViewModel.refresh(context);
                     }
                 }
             }
@@ -185,6 +191,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
 
         intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT);
+        intentFilter.addAction(DRAFT_PRESENT_BROADCAST);
         intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT);
 
         if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
@@ -193,7 +200,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             registerReceiver(generateUpdateEventsBroadcastReceiver, intentFilter);
     }
 
-    public void informSecured(boolean secured) { }
+    protected void informSecured(boolean secured) { }
 
     private void cancelAllNotifications(int id) {
         NotificationManagerCompat notificationManager =
@@ -201,12 +208,11 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         notificationManager.cancel(id);
     }
 
-    public void sendDataMessage(ThreadedConversations threadedConversations) {
+    protected void sendDataMessage(ThreadedConversations threadedConversations) {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                ConversationsViewModel conversationsViewModel = (ConversationsViewModel) viewModel;
                 try {
                     byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
                             threadedConversations.getAddress());
@@ -236,16 +242,18 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         thread.start();
     }
 
-    public void sendTextMessage(Conversation conversation, ThreadedConversations threadedConversations) throws Exception {
+    protected void sendTextMessage(Conversation conversation,
+                                   ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
         sendTextMessage(conversation.getText(),
                 conversation.getSubscription_id(),
-                threadedConversations);
+                threadedConversations, messageId);
     }
 
-    public void sendTextMessage(String text, int subscriptionId,
-                                ThreadedConversations threadedConversations) throws Exception {
+    protected void sendTextMessage(final String text, int subscriptionId,
+                                ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
         if(text != null) {
-            final String messageId = String.valueOf(System.currentTimeMillis());
+            if(messageId == null)
+                messageId = String.valueOf(System.currentTimeMillis());
             Conversation conversation = new Conversation();
             conversation.setMessage_id(messageId);
             conversation.setText(text);
@@ -255,8 +263,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             conversation.setAddress(threadedConversations.getAddress());
             conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-            if(viewModel instanceof ConversationsViewModel) {
-                ConversationsViewModel conversationsViewModel = (ConversationsViewModel) viewModel;
+            if(conversationsViewModel != null) {
+                final String _messageId = messageId;
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -264,7 +272,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                             long id = conversationsViewModel.insert(conversation);
                             SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, null);
                             conversationsViewModel.updateThreadId(conversation.getThread_id(),
-                                    messageId, id);
+                                    _messageId, id);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -274,8 +282,37 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         }
     }
 
+    protected void saveDraft(final String messageId, final String text, ThreadedConversations threadedConversations) {
+        if(text != null) {
+            if(conversationsViewModel != null) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Conversation conversation = new Conversation();
+                        conversation.setMessage_id(messageId);
+                        conversation.setText(text);
+                        conversation.setThread_id(threadedConversations.getThread_id());
+                        conversation.setRead(true);
+                        conversation.setType(Telephony.Sms.MESSAGE_TYPE_DRAFT);
+                        conversation.setDate(String.valueOf(System.currentTimeMillis()));
+                        conversation.setAddress(threadedConversations.getAddress());
+                        conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+                        try {
+                            conversationsViewModel.insert(conversation);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        Intent intent = new Intent(DRAFT_PRESENT_BROADCAST);
+                        sendBroadcast(intent);
+                    }
+                }).start();
+            }
+        }
+    }
+
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         if(generateUpdateEventsBroadcastReceiver != null)
             unregisterReceiver(generateUpdateEventsBroadcastReceiver);
@@ -297,7 +334,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         conversation.close();
     }
 
-    public void cancelNotifications(String threadId) {
+    protected void cancelNotifications(String threadId) {
         if (!threadId.isEmpty()) {
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(
                     getApplicationContext());

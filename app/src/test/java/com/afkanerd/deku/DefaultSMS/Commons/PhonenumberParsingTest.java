@@ -8,7 +8,12 @@ import com.google.i18n.phonenumbers.NumberParseException;
 
 import org.junit.Test;
 
-public class HelpersRandomTest {
+public class PhonenumberParsingTest {
+
+    @Test
+    public void checkForValidPhonenumber(){
+        String wrongNumber = "https://example.com/02fkmb";
+    }
 
     @Test
     public void formatPhoneNumbersNoPlus(){
@@ -115,4 +120,14 @@ public class HelpersRandomTest {
         String[] formattedOutput = Helpers.getCountryNationalAndCountryCode(fullPhoneNumber);
         assertArrayEquals(new String[]{defaultRegion, nationalNumber}, formattedOutput);
     }
+
+    @Test
+    public void formatPhoneNumbersAndCountryCodeSpecialCharacterTest() throws NumberParseException {
+        String fullPhoneNumber = "123-456-789";
+        String defaultRegion = "237";
+        String nationalNumber = "123456789";
+        String formattedOutput = Helpers.getFormatCompleteNumber(fullPhoneNumber, defaultRegion);
+        assertEquals(("+" + defaultRegion + nationalNumber), formattedOutput);
+    }
+
 }

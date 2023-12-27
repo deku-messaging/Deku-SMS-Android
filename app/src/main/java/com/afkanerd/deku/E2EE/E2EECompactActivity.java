@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler;
@@ -28,21 +29,16 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     ThreadedConversations threadedConversations;
     View securePopUpRequest;
 
-    ConversationsViewModel conversationsViewModel;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
-    public void setViewModel(ConversationsViewModel viewModel) {
-        super.setViewModel(viewModel);
-        this.conversationsViewModel = viewModel;
-    }
-
     public static String INFORMED_SECURED = "INFORMED_SECURED";
 
     @Override
-    public void sendTextMessage(final String text, int subscriptionId, ThreadedConversations threadedConversations) throws Exception {
+    public void sendTextMessage(final String text, int subscriptionId,
+                                ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
         String keystoreAlias = E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0);
         final String[] transmissionText = {text};
         Thread thread = new Thread(new Runnable() {
@@ -62,7 +58,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         thread.start();
         thread.join();
 
-        super.sendTextMessage(transmissionText[0], subscriptionId, threadedConversations);
+        super.sendTextMessage(transmissionText[0], subscriptionId, threadedConversations, messageId);
     }
 
     @Override
@@ -132,33 +128,10 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if(threadedConversations != null &&
-                            !E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                    E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0))) {
-                        securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if(SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext())) {
-                                    securePopUpRequest.setVisibility(View.GONE);
-                                } else {
-                                    securePopUpRequest.setVisibility(View.VISIBLE);
-                                    setSecurePopUpRequest();
-                                }
-                            }
-                        });
-                    }
-                } catch (CertificateException | NumberParseException | NoSuchAlgorithmException |
-                         IOException | KeyStoreException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }).start();
+        securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
+        setSecurePopUpRequest();
+        if(!SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext()))
+            securePopUpRequest.setVisibility(View.VISIBLE);
     }
 
     @Override
