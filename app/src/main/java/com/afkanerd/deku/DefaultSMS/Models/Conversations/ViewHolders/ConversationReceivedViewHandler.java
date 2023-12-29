@@ -138,6 +138,23 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         receivedMessage.setBackgroundResource(R.drawable.received_messages_drawable);
     }
 
+    @Override
+    public void toggleDetails() {
+        int visibility = this.date.getVisibility() == View.VISIBLE ?
+                View.GONE : View.VISIBLE;
+        this.date.setVisibility(visibility);
+    }
+
+    @Override
+    public void hideDetails() {
+        this.date.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void showDetails() {
+        this.date.setVisibility(View.VISIBLE);
+    }
+
     public static class TimestampConversationReceivedViewHandler extends ConversationReceivedViewHandler {
         public TimestampConversationReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
