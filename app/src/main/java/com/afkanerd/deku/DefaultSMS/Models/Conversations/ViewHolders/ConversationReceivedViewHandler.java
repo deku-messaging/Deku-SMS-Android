@@ -40,7 +40,6 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
     LinearLayoutCompat.LayoutParams layoutParams;
 
-    ConversationDao conversationDao;
 
     public ConversationReceivedViewHandler(@NonNull View itemView) {
         super(itemView);
@@ -52,8 +51,6 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
         layoutParams.bottomMargin = Helpers.dpToPixel(16);
         linearLayoutCompat.setLayoutParams(layoutParams);
-
-        conversationDao = Conversation.getDao(itemView.getContext());
     }
 
     @Override
@@ -141,6 +138,23 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         receivedMessage.setBackgroundResource(R.drawable.received_messages_drawable);
     }
 
+    @Override
+    public void toggleDetails() {
+        int visibility = this.date.getVisibility() == View.VISIBLE ?
+                View.GONE : View.VISIBLE;
+        this.date.setVisibility(visibility);
+    }
+
+    @Override
+    public void hideDetails() {
+        this.date.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void showDetails() {
+        this.date.setVisibility(View.VISIBLE);
+    }
+
     public static class TimestampConversationReceivedViewHandler extends ConversationReceivedViewHandler {
         public TimestampConversationReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
@@ -203,6 +217,8 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                                                     Conversation.buildForDataTransmission(conversation,
                                                             transmissionRequest);
 
+                                            ConversationDao conversationDao =
+                                                    conversation.getDaoInstance(itemView.getContext());
                                             long id = conversationDao.insert(transmitConversation);
                                             SMSDatabaseWrapper.send_data(itemView.getContext(),
                                                     transmitConversation);

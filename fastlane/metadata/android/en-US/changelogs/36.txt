@@ -1,0 +1,6 @@
+- update: removed tabs when no encrypted message is available
+- update: fr translation added
+- update: localization included in settings
+- fix: dates in conversations
+- fix: bug fixes that causes database locks
+- update: more stable conversation thread screens

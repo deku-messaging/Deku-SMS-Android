@@ -60,6 +60,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     ActionMode actionMode;
     ThreadedConversationsDao threadedConversationsDao;
+    ThreadedConversations threadedConversations = new ThreadedConversations();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,12 +76,18 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             finish();
         }
 
-        threadedConversationsDao = ThreadedConversations.getDao(getApplicationContext());
+        threadedConversationsDao = threadedConversations.getDaoInstance(getApplicationContext());
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
         fragmentManagement();
         configureBroadcastListeners();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        conversation.close();
     }
 
     private void fragmentManagement() {
@@ -215,7 +222,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     @Override
     public void tabSelected(int position) {
-        this.ITEM_TYPE = HomepageFragment.HomepageFragmentAdapter.fragmentList[position];
+        this.ITEM_TYPE = HomepageFragment.fragmentList.get(position);
     }
 
     @Override
@@ -232,13 +239,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         if(sharedPreferences.getBoolean(LOAD_NATIVES, true) ) {
             sharedPreferences.edit().putBoolean(LOAD_NATIVES, false).apply();
-            threadedConversationsViewModel.loadNatives(getApplicationContext());
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    loadConversationsFromNative(getApplicationContext());
-                }
-            }).start();
+            threadedConversationsViewModel.reset(getApplicationContext());
         }
 
         threadedConversationsViewModel.refresh(getApplicationContext());
@@ -266,13 +267,13 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             if(recyclerAdapter != null) {
                 if(item.getItemId() == R.id.conversations_threads_main_menu_delete) {
                     if(recyclerAdapter.selectedItems != null && recyclerAdapter.selectedItems.getValue() != null) {
-                        List<ThreadedConversations> threadedConversations = new ArrayList<>();
+                        List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
                         List<String> ids = new ArrayList<>();
                         for (ThreadedConversationsTemplateViewHolder viewHolder :
                                 recyclerAdapter.selectedItems.getValue().values()) {
                             ThreadedConversations threadedConversation = new ThreadedConversations();
                             threadedConversation.setThread_id(viewHolder.id);
-                            threadedConversations.add(threadedConversation);
+                            threadedConversationsList.add(threadedConversation);
                             ids.add(threadedConversation.getThread_id());
                         }
                         Runnable runnable = new Runnable() {
@@ -283,8 +284,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        ThreadedConversationsDao threadedConversationsDao =
-                                                ThreadedConversations.getDao(getApplicationContext());
                                         List<ThreadedConversations> foundList =
                                                 threadedConversationsDao.find(ids);
                                         for(ThreadedConversations threadedConversation :
@@ -305,7 +304,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                                             }
                                         }
                                         threadedConversationsViewModel.delete(getApplicationContext(),
-                                                threadedConversations);
+                                                threadedConversationsList);
                                     }
                                 }).start();
                             }
@@ -345,16 +344,16 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         }
     };
 
-    private void loadConversationsFromNative(Context context) {
-        Cursor cursor = NativeSMSDB.fetchAll(context);
-        List<Conversation> conversationList = new ArrayList<>();
-        if(cursor.moveToNext()) {
-            do {
-                conversationList.add(Conversation.build(cursor));
-            } while(cursor.moveToNext());
-        }
-        cursor.close();
-        ConversationDao conversationDao = Conversation.getDao(context);
-        conversationDao.insertAll(conversationList);
-    }
+//    private void loadConversationsFromNative(Context context) {
+//        Cursor cursor = NativeSMSDB.fetchAll(context);
+//        List<Conversation> conversationList = new ArrayList<>();
+//        if(cursor.moveToNext()) {
+//            do {
+//                conversationList.add(Conversation.build(cursor));
+//            } while(cursor.moveToNext());
+//        }
+//        cursor.close();
+//        ConversationDao conversationDao = conversation.getDaoInstance(context);
+//        conversationDao.insertAll(conversationList);
+//    }
 }

@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Deku SMS</string>
-    <string name="privacy_policy_url">https://smswithoutborders.com/privacy-policy</string>
+    <string name="app_name" translatable="false">Deku SMS</string>
+    <string name="privacy_policy_url" translatable="false">https://smswithoutborders.com/privacy-policy</string>
     <string name="incoming_messages_channel_name">Incoming Messages</string>
     <string name="running_gateway_clients_channel_name">Running Gateway Listeners</string>
     <string name="foreground_service_failed_channel_name">Gateway clients auto-reconnect</string>
@@ -9,17 +9,13 @@
     <string name="running_gateway_clients_channel_description">Alerts when gateway clients are listening.</string>
     <string name="foreground_service_failed_channel_description">Click to reconnect Gateway clients</string>
 
-    <string name="incoming_messages_channel_id">@string/incoming_messages_channel_name</string>
-    <string name="running_gateway_clients_channel_id">@string/running_gateway_clients_channel_name</string>
-    <string name="foreground_service_failed_channel_id">@string/foreground_service_failed_channel_name</string>
+    <string name="incoming_messages_channel_id" translatable="false">@string/incoming_messages_channel_name</string>
+    <string name="running_gateway_clients_channel_id" translatable="false">@string/running_gateway_clients_channel_name</string>
+    <string name="foreground_service_failed_channel_id" translatable="false">@string/foreground_service_failed_channel_name</string>
 
-    <string name="search_messages_text">
-        Search messages
-    </string>
+    <string name="search_messages_text">Search messages</string>
 
-    <string name="no_showable_router_message">
-        No routed message to show!
-    </string>
+    <string name="no_showable_router_message">No routed message to show!</string>
 
     <string name="save_new_gateway_client">Save</string>
     <string name="archived_messages_toolbar_title">Archive</string>
@@ -42,21 +38,13 @@
     <string name="notifications_reply_label">Reply</string>
     <string name="notifications_mark_as_read_label">Mark as read</string>
 
-    <string name="notification_title_new_key">
-        Secure communication request
-    </string>
+    <string name="notification_title_new_key">Secure communication request</string>
 
-    <string name="notification_title_reply_you">
-        You
-    </string>
+    <string name="notification_title_reply_you">You</string>
 
-    <string name="messages_thread_you">
-        You:
-    </string>
+    <string name="messages_thread_you">You:</string>
 
-    <string name="messages_thread_encrypted_content">
-        Secured content
-    </string>
+    <string name="messages_thread_encrypted_content">Secured content</string>
 
     <string name="search_nothing_found">Nothing found</string>
 
@@ -70,7 +58,10 @@
     <string name="sms_status_sending">sending…</string>
     <string name="sms_status_failed">failed, click to retry.</string>
 
-    <string name="settings_advanced_developers_key">settings_advanced_developers_key</string>
+    <string name="settings_advanced_developers_key" translatable="false">settings_advanced_developers_key</string>
+    <string name="settings_security_end_to_end" translatable="false">settings_security_end_to_end</string>
+    <string name="settings_locale" translatable="false">settings_locale</string>
+    <string name="settings_locale_description">Choose language</string>
 
     <string name="settings_about">About</string>
     <string name="settings_title">Settings</string>
@@ -106,11 +97,11 @@
     <string name="settings_gateway_server_data_format_description">Data format</string>
     <string name="settings_gateway_client_virtualhost_description">Virtual Host</string>
     <string name="settings_gateway_client_cannot_be_empty">Cannot be empty!</string>
-    <string name="settings_gateway_client_default_virtualhost">/</string>
-    <string name="settings_gateway_client_default_port">5672</string>
+    <string name="settings_gateway_client_default_virtualhost" translatable="false">/</string>
+    <string name="settings_gateway_client_default_port" translatable="false">5672</string>
 
-    <string name="settings_gateway_client_amqp_protocol">AMQP</string>
-    <string name="settings_gateway_client_amqps_protocol">AMQP/SSL</string>
+    <string name="settings_gateway_client_amqp_protocol" translatable="false">AMQP</string>
+    <string name="settings_gateway_client_amqps_protocol" translatable="false">AMQP/SSL</string>
 
     <string name="gateway_client_project_name">Enter project name - (Exchange)</string>
     <string name="gateway_client_project_binding">Enter project binding - <i>(default project_name.operator_country.operator_name)</i></string>
@@ -152,10 +143,10 @@
     <string name="about_deku">About</string>
     <string name="about_deku_motto">Open source SMS done right</string>
 
-    <string name="about_deku_github_titile">GitHub</string>
+    <string name="about_deku_github_titile" translatable="false">GitHub</string>
     <string name="about_deku_github_description">Deku SMS remains free and open sourced. We believe in giving back to the community that has given us so much. A lot on this app is experimental, but with great experiments comes great findings. Please support us by starring the project on Github and sharing it with your friends.</string>
     <string name="about_deku_github_btn">View on GitHub</string>
-    <string name="about_deku_github_url">https://github.com/deku-messaging/Deku-SMS-Android</string>
+    <string name="about_deku_github_url" translatable="false">https://github.com/deku-messaging/Deku-SMS-Android</string>
 
     <string name="send_message_text_box_hint">Text Message</string>
     <string name="send_message_secured_text_box_hint">Text Message (secured)</string>
@@ -200,8 +191,20 @@
     <string name="conversation_shortcode_description">Can\'t reply to this short code</string>
     <string name="conversation_shortcode_action_button">Learn more</string>
     <string name="conversation_shortcode_learn_more_text">Short codes are local or personalized numbers for sending international SMS messages.\n\nYou can reply to numbers-only short codes, but not to codes with letters and numbers, like \"MSG007\".</string>
-    <string name="conversation_shortcode_learn_more_ok">OK</string>
+    <string name="conversation_shortcode_learn_more_ok" translatable="false">OK</string>
 
     <string name="thread_conversation_type_draft">Draft</string>
     <string name="thread_conversation_timestamp_yesterday">Yesterday</string>
+
+    <!-- settings language -->
+    <string name="language_choose_text">Choose your preferred language</string>
+    <string name="language_english">English</string>
+    <string name="language_french">French</string>
+    <string name="language_farsi">Farsi</string>
+    <string name="language_english_value" translatable="false">en</string>
+    <string name="language_french_value" translatable="false">fr</string>
+    <string name="language_farsi_value" translatable="false">fa</string>
+
+
+    <string name="sample_date" translatable="false">9:26 AM . MTN</string>
 </resources>

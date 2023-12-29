@@ -53,60 +53,58 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 if (reply == null || reply.toString().isEmpty())
                     return;
 
-                new Thread(new Runnable() {
+                Conversation conversation = new Conversation();
+                final String messageId = String.valueOf(System.currentTimeMillis());
+                conversation.setAddress(address);
+                conversation.setSubscription_id(subscriptionId);
+                conversation.setThread_id(threadId);
+                conversation.setText(reply.toString());
+                conversation.setMessage_id(messageId);
+                conversation.setDate(String.valueOf(System.currentTimeMillis()));
+                conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
+                conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_PENDING);
+                ConversationDao conversationDao = conversation.getDaoInstance(context);
+                Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        String messageId = String.valueOf(System.currentTimeMillis());
-                        Conversation conversation = new Conversation();
-                        conversation.setAddress(address);
-                        conversation.setSubscription_id(subscriptionId);
-                        conversation.setThread_id(threadId);
-                        conversation.setText(reply.toString());
-                        conversation.setMessage_id(messageId);
-                        conversation.setDate(String.valueOf(System.currentTimeMillis()));
-                        conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
-                        conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_PENDING);
-                        ConversationDao conversationDao = Conversation.getDao(context);
                         conversationDao.insert(conversation);
-                        try {
-                            SMSDatabaseWrapper.send_text(context, conversation, null);
-
-                            Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
-                            broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
-                            broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
-                            if(intent.getExtras() != null)
-                                broadcastIntent.putExtras(intent.getExtras());
-
-                            context.sendBroadcast(broadcastIntent);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
                     }
-                }).start();
+                });
+                thread.start();
 
-                Cursor cursor = NativeSMSDB.fetchByThreadId(context, threadId);
-                if(cursor.moveToFirst()) {
-                    Conversation conversation = Conversation.build(cursor);
-                    cursor.close();
+                try {
+                    thread.join();
 
+                    SMSDatabaseWrapper.send_text(context, conversation, null);
+                    Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
+                    broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
+                    broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+                    if(intent.getExtras() != null)
+                        broadcastIntent.putExtras(intent.getExtras());
 
-                    NotificationCompat.MessagingStyle messagingStyle =
-                            NotificationsHandler.getMessagingStyle(context, conversation, reply.toString());
-
-                    Intent replyIntent = NotificationsHandler.getReplyIntent(context, conversation);
-                    PendingIntent pendingIntent = NotificationsHandler.getPendingIntent(context, conversation);
-
-                    NotificationCompat.Builder builder =
-                            NotificationsHandler.getNotificationBuilder(context, replyIntent,
-                                    conversation, pendingIntent);
-
-                    builder.setStyle(messagingStyle);
-
-                    NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
-                    notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
+                    context.sendBroadcast(broadcastIntent);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+
+                NotificationCompat.MessagingStyle messagingStyle =
+                        NotificationsHandler.getMessagingStyle(context, conversation, reply.toString());
+
+                Intent replyIntent = NotificationsHandler.getReplyIntent(context, conversation);
+                PendingIntent pendingIntent = NotificationsHandler.getPendingIntent(context, conversation);
+
+                NotificationCompat.Builder builder =
+                        NotificationsHandler.getNotificationBuilder(context, replyIntent,
+                                conversation, pendingIntent);
+
+                builder.setStyle(messagingStyle);
+
+                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+                notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
+                conversation.close();
             }
         }
+
         else if(intent.getAction() != null && intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
             String threadId = intent.getStringExtra(Conversation.THREAD_ID);
             String messageId = intent.getStringExtra(Conversation.ID);

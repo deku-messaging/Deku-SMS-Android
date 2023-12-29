@@ -25,4 +25,8 @@ public abstract class ConversationTemplateViewHandler extends RecyclerView.ViewH
     public abstract View getContainerLayout();
     public abstract void activate();
     public abstract void deactivate();
+
+    public abstract void toggleDetails();
+    public abstract void hideDetails();
+    public abstract void showDetails();
 }

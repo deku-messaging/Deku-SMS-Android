@@ -58,6 +58,8 @@ public class ThreadedConversations {
 
      private String formatted_datetime;
 
+     @Ignore
+     public final static String nativeSMSContentUrl = Telephony.Threads.CONTENT_URI.toString();
 
      @Ignore
     Datastore databaseConnector;
@@ -72,16 +74,6 @@ public class ThreadedConversations {
     public void close() {
         if(databaseConnector != null)
             databaseConnector.close();
-    }
-
-    public static ThreadedConversationsDao getDao(Context context) {
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .build();
-        ThreadedConversationsDao threadedConversationsDao =  databaseConnector.threadedConversationsDao();
-        databaseConnector.close();
-        return threadedConversationsDao;
     }
 
     public static ThreadedConversations build(Context context, Conversation conversation) {

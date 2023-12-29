@@ -3,6 +3,7 @@ package com.afkanerd.deku.E2EE;
 import android.content.Context;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
@@ -55,6 +56,21 @@ public class ConversationsThreadsEncryption {
         this.exchangeDate = exchangeDate;
     }
 
+    @Ignore
+    Datastore databaseConnector;
+    public ConversationsThreadsEncryptionDao getDaoInstance(Context context) {
+        databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                        Datastore.databaseName)
+                .addMigrations(new Migrations.Migration8To9())
+                .enableMultiInstanceInvalidation()
+                .build();
+        return databaseConnector.conversationsThreadsEncryptionDao();
+    }
+
+    public void close() {
+        if(databaseConnector != null)
+            databaseConnector.close();
+    }
 
     public static ConversationsThreadsEncryptionDao getDao(Context context) {
         Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,

@@ -73,18 +73,6 @@ public class Conversation {
             databaseConnector.close();
     }
 
-
-    public static ConversationDao getDao(Context context) {
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .enableMultiInstanceInvalidation()
-                .build();
-        ConversationDao conversationDao =  databaseConnector.conversationDao();
-        databaseConnector.close();
-        return conversationDao;
-    }
-
     public int getError_code() {
         return error_code;
     }
