@@ -22,9 +22,6 @@ android {
     compileSdk 34
     namespace 'com.afkanerd.deku.DefaultSMS'
 
-    def nightlyVersion = Integer.parseInt(versionProperties['nightlyVersion'])
-    def stagingVersion = Integer.parseInt(versionProperties['stagingVersion'])
-    def releaseVersion = Integer.parseInt(versionProperties['releaseVersion'])
     def _versionName = versionProperties['versionName']
     def tagVersion = Integer.parseInt(versionProperties['tagVersion'])
 
@@ -44,7 +41,13 @@ android {
                 arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
             }
         }
+
+        resourceConfigurations += ["en", "fr"]
     }
+
+//    androidResources {
+//        generateLocaleConfig true
+//    }
     sourceSets {
         main {
             jniLibs.srcDirs = ['libs']

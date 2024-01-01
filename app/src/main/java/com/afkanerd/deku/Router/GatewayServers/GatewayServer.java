@@ -116,17 +116,6 @@ public class GatewayServer {
             databaseConnector.close();
     }
 
-    public static GatewayServerDAO getDao(Context context) {
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                Datastore.databaseName)
-                .enableMultiInstanceInvalidation()
-                .build();
-
-        GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
-        databaseConnector.close();
-        return gatewayServerDAO;
-    }
-
     @Override
     public boolean equals(@Nullable Object obj) {
 //        return super.equals(obj);

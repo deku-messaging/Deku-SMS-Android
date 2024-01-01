@@ -40,6 +40,8 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
     SearchViewModel searchViewModel;
     MutableLiveData<String> searchString = new MutableLiveData<>();
 
+    ThreadedConversations threadedConversations = new ThreadedConversations();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,7 +107,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         });
 
         ThreadedConversationsDao threadedConversationsDao =
-                ThreadedConversations.getDao(getApplicationContext());
+                threadedConversations.getDaoInstance(getApplicationContext());
 
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
             searchViewModel.getByThreadId(threadedConversationsDao,
@@ -138,6 +140,11 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        threadedConversations.close();
+    }
 
     public static class CustomContactsCursorAdapter extends CursorAdapter {
 

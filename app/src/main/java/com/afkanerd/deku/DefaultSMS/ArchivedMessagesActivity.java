@@ -39,6 +39,8 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
 
     ActionMode actionMode;
 
+    ThreadedConversations threadedConversations = new ThreadedConversations();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +76,8 @@ public class ArchivedMessagesActivity extends AppCompatActivity {
         });
 
         ThreadedConversationsDao threadedConversationsDao =
-                ThreadedConversations.getDao(getApplicationContext());
+                threadedConversations.getDaoInstance(getApplicationContext());
+
         archivedViewModel.get(threadedConversationsDao).observe(this,
                 new Observer<PagingData<ThreadedConversations>>() {
                     @Override

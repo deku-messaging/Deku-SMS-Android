@@ -170,6 +170,23 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         sentMessage.setBackgroundResource(R.drawable.sent_messages_drawable);
     }
 
+    @Override
+    public void toggleDetails() {
+        int visibility = this.messageStatusLinearLayoutCompact.getVisibility() == View.VISIBLE ?
+                View.GONE : View.VISIBLE;
+        this.messageStatusLinearLayoutCompact.setVisibility(visibility);
+    }
+
+    @Override
+    public void hideDetails() {
+        this.messageStatusLinearLayoutCompact.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void showDetails() {
+        this.messageStatusLinearLayoutCompact.setVisibility(View.VISIBLE);
+    }
+
     public static class TimestampConversationSentViewHandler extends ConversationSentViewHandler {
         public TimestampConversationSentViewHandler(@NonNull View itemView) {
             super(itemView);

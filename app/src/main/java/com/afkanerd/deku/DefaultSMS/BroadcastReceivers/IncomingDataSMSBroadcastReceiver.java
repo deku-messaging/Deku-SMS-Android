@@ -74,7 +74,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     conversation.setDate(dateSent);
                     conversation.setDate(date);
 
-                    new Thread(new Runnable() {
+                    ConversationDao conversationDao = conversation.getDaoInstance(context);
+                    Thread thread = new Thread(new Runnable() {
                         @Override
                         public void run() {
                             if(isValidKey) {
@@ -87,7 +88,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                                 }
                             }
 
-                            ConversationDao conversationDao = Conversation.getDao(context);
                             conversationDao.insert(conversation);
 
                             NotificationsHandler.sendIncomingTextMessageNotification(context,
@@ -97,11 +97,13 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             broadcastIntent.putExtra(Conversation.ID, messageId);
                             broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
                             context.sendBroadcast(broadcastIntent);
-
                         }
-                    }).start();
+                    });
+                    thread.start();
+                    thread.join();
+                    conversation.close();
 
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
             }

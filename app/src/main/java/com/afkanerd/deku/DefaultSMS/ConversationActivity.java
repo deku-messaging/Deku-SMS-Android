@@ -137,14 +137,11 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(conversationsViewModel != null) {
-            conversationsViewModel.updateToRead(getApplicationContext());
-            Intent intent = new Intent(DRAFT_PRESENT_BROADCAST);
-            sendBroadcast(intent);
-        }
 
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
+
+        conversationsViewModel.updateToRead(getApplicationContext());
 
         new Thread(new Runnable() {
             @Override
@@ -719,7 +716,9 @@ public class ConversationActivity extends E2EECompactActivity {
                 .append(conversation.getAddress())
                 .append("\n")
                 .append(getString(R.string.conversation_menu_view_details_sent))
-                .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())));
+                .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
+                        Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())) :
+                        Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
         if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ) {
                 detailsBuilder.append("\n")
                         .append(getString(R.string.conversation_menu_view_details_received))

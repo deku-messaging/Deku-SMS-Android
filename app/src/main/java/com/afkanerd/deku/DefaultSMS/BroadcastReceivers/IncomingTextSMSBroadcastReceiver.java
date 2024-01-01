@@ -233,6 +233,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             }).start();
         }
 
+        globalConversation.close();
+
     }
 
 
