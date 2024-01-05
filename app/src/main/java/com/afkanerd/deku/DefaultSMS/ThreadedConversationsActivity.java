@@ -9,31 +9,25 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -290,7 +284,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                                                 foundList) {
                                             try {
                                                 String keystoreAlias =
-                                                        E2EEHandler.getKeyStoreAlias(
+                                                        E2EEHandler.deriveKeystoreAlias(
                                                                 threadedConversation.getAddress(),
                                                                 0);
                                                 E2EEHandler.removeFromKeystore(

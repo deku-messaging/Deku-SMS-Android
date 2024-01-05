@@ -13,14 +13,12 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
-import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 //import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -115,7 +113,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);
 
         if(isValidKey) {
-            String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
+            String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
             byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
 
             E2EEHandler.insertNewPeerPublicKey(context, extractedTransmissionKey, keystoreAlias);

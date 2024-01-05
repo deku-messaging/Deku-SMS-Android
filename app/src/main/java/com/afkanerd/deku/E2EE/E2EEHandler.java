@@ -6,11 +6,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
-import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
-import com.afkanerd.deku.E2EE.Security.SecurityAES;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.afkanerd.deku.E2EE.Security.SecurityHandler;
+import com.afkanerd.deku.E2EE.Security.EncryptionHandlers;
 import com.google.common.primitives.Bytes;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -21,20 +17,15 @@ import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.Security;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
-import java.util.List;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 public class E2EEHandler {
 
-    static {
-        Security.addProvider(new org.spongycastle.jce.provider.BouncyCastleProvider());
-    }
-    public static String getKeyStoreAlias(String address, int sessionNumber) throws NumberParseException {
+    public static String deriveKeystoreAlias(String address, int sessionNumber) throws NumberParseException {
         String[] addressDetails = Helpers.getCountryNationalAndCountryCode(address);
         String keystoreAliasRequirements = addressDetails[0] + addressDetails[1] + "_" + sessionNumber;
         return Base64.encodeToString(keystoreAliasRequirements.getBytes(), Base64.NO_WRAP);
@@ -69,7 +60,8 @@ public class E2EEHandler {
 
     public static PublicKey createNewKeyPair(Context context, String keystoreAlias)
             throws GeneralSecurityException, InterruptedException, IOException {
-        return SecurityECDH.generateKeyPair(context, keystoreAlias);
+        PublicKey publicKey = SecurityECDH.generateKeyPair(context, keystoreAlias);
+        storeInCustomKeyStore(context, keystoreAlias, keyPair);
     }
 
     public static int removeFromKeystore(Context context, String keystoreAlias) throws KeyStoreException,
@@ -85,8 +77,8 @@ public class E2EEHandler {
     }
 
     public static boolean isValidDekuPublicKey(byte[] dekuPublicKey) {
-        byte[] start = SecurityHandler.dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8);
-        byte[] end = SecurityHandler.dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8);
+        byte[] start = EncryptionHandlers.dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8);
+        byte[] end = EncryptionHandlers.dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8);
 
         int indexStart = Bytes.indexOf(dekuPublicKey, start);
         int indexEnd = Bytes.indexOf(dekuPublicKey, end);
@@ -108,10 +100,10 @@ public class E2EEHandler {
 
     public static boolean isValidDekuText(String text) {
         try {
-            String encodedText = text.substring(SecurityHandler.dekuTextStartPrefix.length(),
-                    (text.length() - SecurityHandler.dekuTextEndPrefix.length()));
-            return text.startsWith(SecurityHandler.dekuTextStartPrefix) &&
-                    text.endsWith(SecurityHandler.dekuTextEndPrefix) &&
+            String encodedText = text.substring(EncryptionHandlers.dekuTextStartPrefix.length(),
+                    (text.length() - EncryptionHandlers.dekuTextEndPrefix.length()));
+            return text.startsWith(EncryptionHandlers.dekuTextStartPrefix) &&
+                    text.endsWith(EncryptionHandlers.dekuTextEndPrefix) &&
                     Helpers.isBase64Encoded(encodedText);
         } catch(Exception e) {
             e.printStackTrace();
@@ -120,13 +112,13 @@ public class E2EEHandler {
     }
 
     public static byte[] buildDekuPublicKey(byte[] data) {
-//        return SecurityHandler.convertPublicKeyToPEMFormat(data);
-        return SecurityHandler.convertPublicKeyToDekuFormat(data);
+//        return EncryptionHandlers.convertPublicKeyToPEMFormat(data);
+        return EncryptionHandlers.convertPublicKeyToDekuFormat(data);
     }
 
     public static byte[] extractTransmissionKey(byte[] data) {
-        byte[] start = SecurityHandler.dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8);
-        byte[] end = SecurityHandler.dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8);
+        byte[] start = EncryptionHandlers.dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8);
+        byte[] end = EncryptionHandlers.dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8);
 
         byte[] transmissionKey = new byte[data.length - (start.length + end.length)];
         System.arraycopy(data, start.length, transmissionKey, 0, transmissionKey.length);
@@ -135,7 +127,7 @@ public class E2EEHandler {
 
     public static byte[] buildForEncryptionRequest(Context context, String address) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
         int session = 0;
-        String keystoreAlias = getKeyStoreAlias(address, session);
+        String keystoreAlias = deriveKeystoreAlias(address, session);
         PublicKey publicKey = createNewKeyPair(context, keystoreAlias);
         return buildDekuPublicKey(publicKey.getEncoded());
     }
@@ -192,26 +184,16 @@ public class E2EEHandler {
     }
 
     public static String buildTransmissionText(byte[] data) {
-        return SecurityHandler.convertTextToDekuFormat(data);
+        return EncryptionHandlers.convertTextToDekuFormat(data);
     }
 
     public static byte[] extractTransmissionText(String text) {
-        String encodedText = text.substring(SecurityHandler.dekuTextStartPrefix.length(),
-                (text.length() - SecurityHandler.dekuTextEndPrefix.length()));
+        String encodedText = text.substring(EncryptionHandlers.dekuTextStartPrefix.length(),
+                (text.length() - EncryptionHandlers.dekuTextEndPrefix.length()));
 
         return Base64.decode(encodedText, Base64.DEFAULT);
     }
 
-    public static void clearAll(Context context) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
-        CustomKeyStoreDao customKeyStoreDao = CustomKeyStore.getDao(context);
-        List<CustomKeyStore> customKeyStore = customKeyStoreDao.getAll();
-
-        for(CustomKeyStore customKeyStore1 : customKeyStore) {
-            removeFromEncryptionDatabase(context, customKeyStore1.getKeystoreAlias());
-        }
-
-        SecurityECDH.removeAllFromKeystore(context);
-    }
 
     public final static int REQUEST_KEY = 0;
     public final static int AGREEMENT_KEY = 1;

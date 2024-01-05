@@ -15,14 +15,12 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -47,13 +45,13 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void getKeyStoreAliasTest() throws NumberParseException {
-        String outputKeystoreAlias = E2EEHandler.getKeyStoreAlias(address, sessionNumber);
+        String outputKeystoreAlias = E2EEHandler.deriveKeystoreAlias(address, sessionNumber);
         assertEquals(keystoreAlias, outputKeystoreAlias);
     }
 
     @Test
     public void getAddressFromKeystore() throws NumberParseException {
-        String keystoreAlias = E2EEHandler.getKeyStoreAlias(address, 0);
+        String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
         String derivedAddress = E2EEHandler.getAddressFromKeystore(keystoreAlias);
 
         assertEquals(address, derivedAddress);
@@ -120,7 +118,7 @@ public class ConversationsThreadsEncryptionTest {
         // bob received alice's key
         assertTrue(E2EEHandler.isValidDekuPublicKey(aliceTransmissionKey));
         byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
-        String aliceKeystoreAlias = E2EEHandler.getKeyStoreAlias(aliceAddress, 0);
+        String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
         assertEquals(E2EEHandler.REQUEST_KEY,
                 E2EEHandler.getKeyType(context, aliceKeystoreAlias, null));
         E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey,
@@ -131,7 +129,7 @@ public class ConversationsThreadsEncryptionTest {
         // alice received bob's key
         assertTrue(E2EEHandler.isValidDekuPublicKey(bobTransmissionKey));
         byte[] bobExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(bobTransmissionKey);
-        String bobKeystoreAlias = E2EEHandler.getKeyStoreAlias(bobAddress, 0);
+        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
         assertEquals(E2EEHandler.AGREEMENT_KEY,
                 E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey));
         E2EEHandler.insertNewPeerPublicKey(context, bobExtractedTransmissionKey, bobKeystoreAlias);

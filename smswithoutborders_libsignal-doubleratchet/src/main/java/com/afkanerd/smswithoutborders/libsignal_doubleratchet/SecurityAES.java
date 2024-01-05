@@ -1,4 +1,4 @@
-package com.afkanerd.deku.E2EE.Security;
+package com.afkanerd.smswithoutborders.libsignal_doubleratchet;
 
 import com.google.common.primitives.Bytes;
 

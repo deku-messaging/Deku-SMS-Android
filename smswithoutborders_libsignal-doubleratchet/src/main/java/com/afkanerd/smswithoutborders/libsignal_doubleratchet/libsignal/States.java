@@ -1,11 +1,10 @@
-package com.afkanerd.deku.E2EE.Security.LibSignal;
+package com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal;
 
 import androidx.annotation.Nullable;
 
-import org.spongycastle.util.Arrays;
-
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -32,7 +31,7 @@ public class States {
             States state = (States) obj;
             return (
                     (state.DHr != null && this.DHr != null &&
-                            Arrays.areEqual(state.DHr.getEncoded(), this.DHr.getEncoded()))
+                            Arrays.equals(state.DHr.getEncoded(), this.DHr.getEncoded()))
                     || Objects.equals(state.DHr, this.DHr)) &&
                     state.MKSKIPPED.equals(this.MKSKIPPED) &&
                     state.Ns == this.Ns &&

@@ -10,8 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler;
@@ -20,9 +18,6 @@ import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 
 public class E2EECompactActivity extends CustomAppCompactActivity {
 
@@ -39,7 +34,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     public void sendTextMessage(final String text, int subscriptionId,
                                 ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
-        String keystoreAlias = E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0);
+        String keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
         final String[] transmissionText = {text};
         Thread thread = new Thread(new Runnable() {
             @Override

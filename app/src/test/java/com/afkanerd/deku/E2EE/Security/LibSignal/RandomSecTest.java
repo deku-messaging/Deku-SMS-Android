@@ -5,16 +5,13 @@ import static org.junit.Assert.assertEquals;
 
 import android.util.Base64;
 
-import com.afkanerd.deku.E2EE.Security.SecurityHandler;
-import com.google.common.primitives.Bytes;
+import com.afkanerd.deku.E2EE.Security.EncryptionHandlers;
 import com.google.crypto.tink.shaded.protobuf.InvalidProtocolBufferException;
 import com.google.crypto.tink.subtle.Hkdf;
 
 import org.junit.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.Security;
 
 import javax.crypto.Mac;
 
@@ -53,7 +50,7 @@ public class RandomSecTest {
         int num = 2;
 
         byte[] info = "kdf_ck".getBytes();
-        byte[][] hkdfOutput = SecurityHandler.HKDF(algo, ikm, salt, info, len, num);
+        byte[][] hkdfOutput = EncryptionHandlers.HKDF(algo, ikm, salt, info, len, num);
 
         byte[][] expectedOut = new byte[num][len];
         expectedOut[0] = com.google.crypto.tink.subtle.Base64.decode(
@@ -66,7 +63,7 @@ public class RandomSecTest {
     @Test
     public void HMACTest() throws GeneralSecurityException, InvalidProtocolBufferException {
         String helloWorldB64Digest = "Dei+5df5xdIJ+Mb6vtDqhMs/yhJE6O04B5phtZmoTEc=";
-        Mac mac = SecurityHandler.HMAC("hello world".getBytes());
+        Mac mac = EncryptionHandlers.HMAC("hello world".getBytes());
         byte[] macOutput = mac.doFinal();
 
         String output = java.util.Base64.getEncoder().encodeToString(macOutput);
@@ -74,7 +71,7 @@ public class RandomSecTest {
 
         String helloWorldB64DigestWithUpdate1 = "0J0pwZbLRrifdO0NSkg+ih613V5eK8cO5GGQwkfkEl4=";
         String helloWorldB64DigestWithUpdate2 = "bHujacd1S7gcfJw7ypJhcvtFuKgyopCGJNX5GMxpfPc=";
-        mac = SecurityHandler.HMAC("hello world".getBytes());
+        mac = EncryptionHandlers.HMAC("hello world".getBytes());
         byte[] macOutput1 = mac.doFinal(new byte[]{0x01});
         byte[] macOutput2 = mac.doFinal(new byte[]{0x02});
 

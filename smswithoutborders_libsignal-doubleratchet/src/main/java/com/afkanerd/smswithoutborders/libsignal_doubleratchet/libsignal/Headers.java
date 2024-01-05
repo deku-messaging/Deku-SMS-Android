@@ -1,14 +1,12 @@
-package com.afkanerd.deku.E2EE.Security.LibSignal;
+package com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal;
 
 import androidx.annotation.Nullable;
 
 import com.google.common.primitives.Bytes;
 
-import org.spongycastle.util.Arrays;
-
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.Objects;
+import java.util.Arrays;
 
 public class Headers {
 
@@ -26,7 +24,7 @@ public class Headers {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof Headers) {
             Headers header = (Headers) obj;
-            return Arrays.areEqual(header.dh.getEncoded(), this.dh.getEncoded()) &&
+            return Arrays.equals(header.dh.getEncoded(), this.dh.getEncoded()) &&
                     header.PN == this.PN &&
                     header.N == this.N;
         }

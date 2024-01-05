@@ -8,47 +8,24 @@ package com.afkanerd.deku.E2EE.Security;
 //import org.bouncycastle.operator.OperatorCreationException;
 //import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
-import android.os.Build;
 import android.util.Base64;
 
 import com.google.common.primitives.Bytes;
-import com.google.crypto.tink.KeyTemplate;
-import com.google.crypto.tink.KeyTemplates;
-import com.google.crypto.tink.KeysetHandle;
-import com.google.crypto.tink.mac.HmacParameters;
-import com.google.crypto.tink.mac.MacConfig;
-import com.google.crypto.tink.proto.HashType;
-import com.google.crypto.tink.proto.HmacKeyFormat;
-import com.google.crypto.tink.proto.HmacKeyFormatOrBuilder;
-import com.google.crypto.tink.proto.HmacParams;
-import com.google.crypto.tink.proto.HmacParamsOrBuilder;
-import com.google.crypto.tink.shaded.protobuf.InvalidProtocolBufferException;
-import com.google.crypto.tink.subtle.Hkdf;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.AlgorithmParameters;
-import java.security.GeneralSecurityException;
-import java.security.Key;
 import java.security.KeyFactory;
-import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
-import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
-public class SecurityHandler {
+public class EncryptionHandlers {
 
 
 //    public final static String ENCRYPTED_WATERMARK = "\u007F";
@@ -108,15 +85,15 @@ public class SecurityHandler {
 
 
     public static String putEncryptedMessageWaterMark(String text) {
-        return SecurityHandler.dekuTextStartPrefix
+        return EncryptionHandlers.dekuTextStartPrefix
                 + text
-                + SecurityHandler.dekuTextEndPrefix;
+                + EncryptionHandlers.dekuTextEndPrefix;
     }
 
     public static String removeEncryptedMessageWaterMark(String text) {
-        int lastWaterMark = text.lastIndexOf(SecurityHandler.dekuTextEndPrefix);
+        int lastWaterMark = text.lastIndexOf(EncryptionHandlers.dekuTextEndPrefix);
 
-        return text.substring(SecurityHandler.dekuTextStartPrefix.length(), lastWaterMark);
+        return text.substring(EncryptionHandlers.dekuTextStartPrefix.length(), lastWaterMark);
     }
 
     public static String removeKeyWaterMark(String text) {
@@ -125,9 +102,9 @@ public class SecurityHandler {
     }
 
     public static boolean containersWaterMark(String text) {
-        return text.indexOf(SecurityHandler.dekuTextStartPrefix) == 0 &&
-                text.indexOf(SecurityHandler.dekuTextEndPrefix) ==
-                        text.length() - SecurityHandler.dekuTextEndPrefix.length();
+        return text.indexOf(EncryptionHandlers.dekuTextStartPrefix) == 0 &&
+                text.indexOf(EncryptionHandlers.dekuTextEndPrefix) ==
+                        text.length() - EncryptionHandlers.dekuTextEndPrefix.length();
     }
 
     public static boolean isKeyExchange(String body) {
@@ -160,8 +137,6 @@ public class SecurityHandler {
 
     public final static String dekuHeaderStartPrefix = "HDEKU{";
     public final static String dekuHeaderEndPrefix = "}UKEDH";
-    public final static String pemStartPrefix = "-----BEGIN PUBLIC KEY-----\n";
-    public final static String pemEndPrefix = "\n-----END PUBLIC KEY-----";
 
     public final static String dekuTextStartPrefix = "TDEKU{";
     public final static String dekuTextEndPrefix = "}UKEDT";
@@ -173,58 +148,9 @@ public class SecurityHandler {
     }
 
     public static byte[] convertPublicKeyToDekuFormat(byte[] data) {
-//        byte[] encodedString = new byte[data.length +
-//                dekuHeaderStartPrefix.length() +
-//                dekuHeaderEndPrefix.length()];
-
-//        System.arraycopy(dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8), 0,
-//                encodedString, 0, dekuHeaderStartPrefix.length());
-//
-//        System.arraycopy(data, 0, encodedString, dekuHeaderStartPrefix.length(), data.length);
-//
-//        System.arraycopy(dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8), 0,
-//                encodedString, dekuHeaderStartPrefix.length() + data.length,
-//                dekuHeaderEndPrefix.length());
-
         return Bytes.concat(dekuHeaderStartPrefix.getBytes(StandardCharsets.UTF_8),
                 data, dekuHeaderEndPrefix.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static String convertPublicKeyToPEMFormat(byte[] publicKey) {
-        return pemStartPrefix
-                + Base64.encodeToString(publicKey, Base64.DEFAULT) +
-                pemEndPrefix;
-    }
 
-    protected static KeyPair getKeyPairFromKeystore(String keystoreAlias) throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException, UnrecoverableEntryException {
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-
-        KeyStore.Entry entry = keyStore.getEntry(keystoreAlias, null);
-        if (entry instanceof KeyStore.PrivateKeyEntry) {
-            PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
-            PublicKey publicKey = keyStore.getCertificate(keystoreAlias).getPublicKey();
-            return new KeyPair(publicKey, privateKey);
-        }
-        return null;
-    }
-
-    public static byte[][] HKDF(String algo, byte[] ikm, byte[] salt, byte[] info, int len, int num) throws GeneralSecurityException {
-        if (num < 1)
-            num = 1;
-        byte[] output = Hkdf.computeHkdf(algo, ikm, salt, info, len * num);
-        byte[][] outputs = new byte[num][len];
-        for (int i = 0; i < num; ++i) {
-            System.arraycopy(output, i * len, outputs[i], 0, len);
-        }
-        return outputs;
-    }
-
-    public static Mac HMAC(byte[] data) throws InvalidProtocolBufferException, GeneralSecurityException {
-        String algorithm = "HmacSHA256";
-        Mac hmacSHA256 = Mac.getInstance(algorithm);
-        SecretKey key = new SecretKeySpec(data, algorithm);
-        hmacSHA256.init(key);
-        return hmacSHA256;
-    }
 }

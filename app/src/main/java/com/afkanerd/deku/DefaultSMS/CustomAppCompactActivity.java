@@ -1,39 +1,27 @@
 package com.afkanerd.deku.DefaultSMS;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
-import android.util.Log;
-import android.view.MenuItem;
-import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.lifecycle.ViewModel;
-import androidx.preference.PreferenceManager;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
@@ -138,7 +126,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                 conversation.setRead(true);
                                 try {
                                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                            E2EEHandler.getKeyStoreAlias(
+                                            E2EEHandler.deriveKeystoreAlias(
                                                     conversation.getAddress(), 0))) {
                                         informSecured(true);
                                     }
@@ -166,7 +154,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                 conversation.setRead(true);
                                 try {
                                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                            E2EEHandler.getKeyStoreAlias( conversation.getAddress(),
+                                            E2EEHandler.deriveKeystoreAlias( conversation.getAddress(),
                                                     0))) {
                                         informSecured(true);
                                     }

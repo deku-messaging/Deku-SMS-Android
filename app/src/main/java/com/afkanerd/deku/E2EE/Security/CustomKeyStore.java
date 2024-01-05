@@ -2,7 +2,6 @@ package com.afkanerd.deku.E2EE.Security;
 
 import android.content.Context;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.room.Entity;
 import androidx.room.Index;
@@ -27,8 +26,6 @@ import java.security.spec.InvalidKeySpecException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 @Entity(indices = {@Index(value={"keystoreAlias"}, unique=true)})
 public class CustomKeyStore {

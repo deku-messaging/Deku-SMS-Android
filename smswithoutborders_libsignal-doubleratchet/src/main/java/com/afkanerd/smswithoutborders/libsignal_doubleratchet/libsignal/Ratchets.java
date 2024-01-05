@@ -1,21 +1,17 @@
-package com.afkanerd.deku.E2EE.Security.LibSignal;
+package com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal;
 
 import android.content.Context;
-import android.util.Log;
-
-import com.google.crypto.tink.shaded.protobuf.InvalidProtocolBufferException;
-
-import org.spongycastle.util.Arrays;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Arrays;
 
 public class Ratchets {
-    public void ratchetInitAlice(Context context, String keystoreAlias,
-                                 States state, byte[] SK, PublicKey dhPublicKeyBob) throws GeneralSecurityException, IOException, InterruptedException {
-        state.DHs = Protocols.GENERATE_DH(context, keystoreAlias);
+    public void ratchetInitAlice(String keystoreAlias, States state, byte[] SK,
+                                 PublicKey dhPublicKeyBob) throws GeneralSecurityException, IOException, InterruptedException {
+        state.DHs = Protocols.GENERATE_DH(keystoreAlias);
         state.DHr = dhPublicKeyBob;
         byte[][] kdfRkOutput = Protocols.KDF_RK(SK,
                 Protocols.DH(state.DHs, state.DHr));
@@ -39,16 +35,16 @@ public class Ratchets {
         return new EncryptPayload(header, cipherText);
     }
 
-    public byte[] ratchetDecrypt(Context context, String keystoreAlias, States state, Headers header,
+    public byte[] ratchetDecrypt(String keystoreAlias, States state, Headers header,
                                  byte[] cipherText, byte[] AD) throws Throwable {
         byte[] plainText = trySkipMessageKeys(header, cipherText, AD);
         if(plainText != null)
             return plainText;
 
         if(state.DHr == null ||
-                !Arrays.areEqual(header.dh.getEncoded(), state.DHr.getEncoded())) {
+                !Arrays.equals(header.dh.getEncoded(), state.DHr.getEncoded())) {
             skipMessageKeys(state, header.PN);
-            DHRatchet(context, keystoreAlias, state, header);
+            DHRatchet(keystoreAlias, state, header);
         }
         byte[][] kdfCkOutput = Protocols.KDF_CK(state.CKr);
         state.CKr = kdfCkOutput[0];
@@ -57,7 +53,7 @@ public class Ratchets {
         return Protocols.DECRYPT(mk, cipherText, AD);
     }
 
-    private void DHRatchet(Context context, String keystoreAlias,
+    private void DHRatchet(String keystoreAlias,
                            States state, Headers header) throws GeneralSecurityException, IOException, InterruptedException {
         state.PN = state.Ns;
         state.Ns = 0;
@@ -68,7 +64,7 @@ public class Ratchets {
         state.RK = kdfRkOutput[0];
         state.CKr = kdfRkOutput[1];
 
-        state.DHs = Protocols.GENERATE_DH(context, keystoreAlias);
+        state.DHs = Protocols.GENERATE_DH(keystoreAlias);
 
         kdfRkOutput = Protocols.KDF_RK(state.RK, Protocols.DH(state.DHs, state.DHr));
         state.RK = kdfRkOutput[0];

@@ -1,4 +1,4 @@
-package com.afkanerd.deku.E2EE.Security;
+package com.afkanerd.smswithoutborders.libsignal_doubleratchet;
 
 import android.security.keystore.KeyProperties;
 

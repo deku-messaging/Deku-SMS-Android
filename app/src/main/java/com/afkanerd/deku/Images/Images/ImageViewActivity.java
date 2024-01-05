@@ -28,7 +28,7 @@ import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.afkanerd.deku.E2EE.Security.SecurityHandler;
+import com.afkanerd.deku.E2EE.Security.EncryptionHandlers;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -275,7 +275,7 @@ public class ImageViewActivity extends AppCompatActivity {
             String secretKeyB64 = securityECDH.securelyFetchSecretKey(address);
             c = SecurityAES.encrypt_256_cbc(c, Base64.decode(secretKeyB64, Base64.DEFAULT), null);
             content = Base64.encodeToString(c, Base64.DEFAULT);
-            c = SecurityHandler.putEncryptedMessageWaterMark(content)
+            c = EncryptionHandlers.putEncryptedMessageWaterMark(content)
                     .getBytes(StandardCharsets.UTF_8);
             Log.d(getLocalClassName(), "Original no compression: " + c.length);
 //            c = compress(c);

@@ -1,4 +1,4 @@
-package java.com.afkanerd.deku.E2EE.Security.LibSginal;
+package com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal;
 
 
 import static org.junit.Assert.assertArrayEquals;
@@ -10,15 +10,10 @@ import android.util.Log;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.afkanerd.deku.E2EE.E2EEHandler;
-import com.afkanerd.deku.E2EE.Security.LibSignal.Headers;
-import com.afkanerd.deku.E2EE.Security.LibSignal.Protocols;
-import com.afkanerd.deku.E2EE.Security.LibSignal.Ratchets;
-import com.afkanerd.deku.E2EE.Security.LibSignal.States;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.afkanerd.deku.E2EE.Security.SecurityHandler;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.CryptoHelpers;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityECDH;
 
-import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,25 +21,28 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Base64;
 
 @RunWith(AndroidJUnit4.class)
 public class RatchetsTest {
 
     Context context;
     PublicKey dhPublicKeyBob;
+    KeyPair bobKeyPair;
 
     byte[] SK;
-    String bobKeyPairForAliceKeystoreAlias = "alice_session_0";
 
     public RatchetsTest() throws GeneralSecurityException, IOException, InterruptedException {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
         // starting constants
-        E2EEHandler.clearAll(context);
-//        SK = SecurityHandler.generateRandomBytes(32);
+        KeystoreHelpers.removeAllFromKeystore(context);
+
         SK = "115e74367d62f97538324202c0a3a4a2a77f6f79b597873875012a95152020f3".getBytes();
 
-        dhPublicKeyBob = E2EEHandler.createNewKeyPair(context, bobKeyPairForAliceKeystoreAlias);
+        String keystoreAliasBob = "bobsKeystoreAlias";
+        bobKeyPair = SecurityECDH.generateKeyPair(keystoreAliasBob).first;
+        dhPublicKeyBob = bobKeyPair.getPublic();
     }
 
     @Test
@@ -52,23 +50,17 @@ public class RatchetsTest {
         Ratchets ratchetAlice = new Ratchets(), ratchetBob = new Ratchets();
         States stateAlice = new States(), stateBob = new States();
 
-        String aliceKeyPairForBobKeystoreAlias = "bob_session_0";
-        E2EEHandler.createNewKeyPair(context, aliceKeyPairForBobKeystoreAlias);
-        KeyPair aliceKeyPair = E2EEHandler.getKeyPairFromKeystore(context,
-                aliceKeyPairForBobKeystoreAlias);
+        String keystoreAliasAlice = "bob_session_0";
+        ratchetAlice.ratchetInitAlice(keystoreAliasAlice, stateAlice, SK, dhPublicKeyBob);
 
-        ratchetAlice.ratchetInitAlice(context, aliceKeyPairForBobKeystoreAlias,
-                stateAlice, SK, dhPublicKeyBob);
-
-        KeyPair bobKeyPair = E2EEHandler.getKeyPairFromKeystore(context,
-                bobKeyPairForAliceKeystoreAlias);
+        String keystoreAliasBob = "alice_session_0";
         ratchetBob.ratchetInitBob(stateBob, SK, bobKeyPair);
 
         // assertions
         States expectedStateAlice = new States(), expectedStateBob = new States();
 
         // alice params
-        expectedStateAlice.DHs = aliceKeyPair;
+        expectedStateAlice.DHs = SecurityECDH.generateKeyPair(keystoreAliasAlice).first;
         expectedStateAlice.DHr = dhPublicKeyBob;
 
         // bob params
@@ -78,8 +70,8 @@ public class RatchetsTest {
         assertEquals(expectedStateAlice, stateAlice);
         assertEquals(expectedStateBob, stateBob);
 
-        final byte[] plainText = SecurityHandler.generateRandomBytes(130);
-        final byte[] AD = SecurityHandler.generateRandomBytes(16);
+        final byte[] plainText = CryptoHelpers.generateRandomBytes(130);
+        final byte[] AD = CryptoHelpers.generateRandomBytes(16);
         Ratchets.EncryptPayload encryptPayloadAlice =
                 ratchetAlice.ratchetEncrypt(stateAlice, plainText, AD);
 
@@ -89,11 +81,7 @@ public class RatchetsTest {
         Headers expectedHeadersAlice = new Headers(stateAlice.DHs, 0, 0);
         assertEquals(expectedHeadersAlice, encryptPayloadAlice.header);
 
-        Log.d(Ratchets.class.getName(), "Payload size: " +
-                Base64.encodeBase64String(encryptPayloadAlice.cipherText).length());
-
-        byte[] decryptedPlainText = ratchetBob.ratchetDecrypt(
-                context, bobKeyPairForAliceKeystoreAlias, stateBob,
+        byte[] decryptedPlainText = ratchetBob.ratchetDecrypt(keystoreAliasBob, stateBob,
                 encryptPayloadAlice.header, encryptPayloadAlice.cipherText,
                 Protocols.CONCAT(AD, encryptPayloadAlice.header));
         expectedStateBob.PN = 0;

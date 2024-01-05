@@ -1,4 +1,4 @@
-package java.com.afkanerd.deku.E2EE.Security;
+package com.afkanerd.smswithoutborders.libsignal_doubleratchet;
 
 
 import static org.junit.Assert.assertArrayEquals;
@@ -9,15 +9,9 @@ import android.security.keystore.KeyProperties;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.afkanerd.deku.E2EE.Security.SecurityAES;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.afkanerd.deku.E2EE.Security.SecurityHandler;
-import com.afkanerd.deku.E2EE.Security.SecurityRSA;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -29,7 +23,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 @RunWith(AndroidJUnit4.class)
 public class SecurityRSATest {
