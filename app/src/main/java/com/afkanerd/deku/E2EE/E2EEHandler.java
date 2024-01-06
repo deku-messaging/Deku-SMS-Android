@@ -1,25 +1,42 @@
 package com.afkanerd.deku.E2EE;
 
 
+import static com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers.storeInCustomKeyStore;
+
 import android.content.Context;
+import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
+import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
 import com.afkanerd.deku.E2EE.Security.EncryptionHandlers;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityECDH;
 import com.google.common.primitives.Bytes;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.UnrecoverableEntryException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -37,18 +54,12 @@ public class E2EEHandler {
         return "+" + decodedAlias.split("_")[0];
     }
 
-    public static KeyPair getKeyPairFromKeystore(Context context, String keystoreAlias) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
-        return SecurityECDH.getKeyPairFromKeystore(context, keystoreAlias);
-    }
-
-    public static boolean isAvailableInKeystore(String keystoreAlias) throws KeyStoreException,
-            CertificateException, IOException, NoSuchAlgorithmException {
+    public static boolean isAvailableInKeystore(String keystoreAlias) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         /*
          * Load the Android KeyStore instance using the
          * AndroidKeyStore provider to list the currently stored entries.
          */
-        SecurityECDH securityECDH = new SecurityECDH();
-        return securityECDH.isAvailableInKeystore(keystoreAlias);
+        return KeystoreHelpers.isAvailableInKeystore(keystoreAlias);
     }
 
     public static boolean canCommunicateSecurely(Context context, String keystoreAlias) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
@@ -60,13 +71,45 @@ public class E2EEHandler {
 
     public static PublicKey createNewKeyPair(Context context, String keystoreAlias)
             throws GeneralSecurityException, InterruptedException, IOException {
-        PublicKey publicKey = SecurityECDH.generateKeyPair(context, keystoreAlias);
-        storeInCustomKeyStore(context, keystoreAlias, keyPair);
+        Pair<KeyPair, byte[]> publicKeyPair = SecurityECDH.generateKeyPair(keystoreAlias);
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            storeInCustomKeystore(context, keystoreAlias, publicKeyPair.first, publicKeyPair.second);
+        }
+        return publicKeyPair.first.getPublic();
     }
 
-    public static int removeFromKeystore(Context context, String keystoreAlias) throws KeyStoreException,
+    private static void storeInCustomKeystore(Context context, String keystoreAlias, KeyPair keyPair,
+                                      byte[] encryptedPrivateKey) throws InterruptedException {
+        CustomKeyStore customKeyStore = new CustomKeyStore();
+        customKeyStore.setPrivateKey(Base64.encodeToString(encryptedPrivateKey, Base64.DEFAULT));
+        customKeyStore.setPublicKey(Base64.encodeToString(keyPair.getPublic().getEncoded(),
+                Base64.DEFAULT));
+        customKeyStore.setKeystoreAlias(keystoreAlias);
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
+                Log.d(getClass().getName(), "Number inserted: " + customKeyStoreDao.insert(customKeyStore));
+                customKeyStore.close();
+            }
+        });
+        thread.start();
+        thread.join();
+    }
+
+    public static void removeFromKeystore(Context context, String keystoreAlias) throws KeyStoreException,
             CertificateException, IOException, NoSuchAlgorithmException, InterruptedException {
-        return SecurityECDH.removeFromKeystore(context, keystoreAlias);
+        KeystoreHelpers.removeFromKeystore(context, keystoreAlias);
+        CustomKeyStore customKeyStore = new CustomKeyStore();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
+                customKeyStoreDao.delete(keystoreAlias);
+                customKeyStore.close();
+            }
+        }).start();
     }
 
     public static int removeFromEncryptionDatabase(Context context, String keystoreAlias) throws KeyStoreException,
@@ -155,15 +198,39 @@ public class E2EEHandler {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
 
-        Log.d(E2EEHandler.class.getName(), "Encryption pub key: " +
-                conversationsThreadsEncryption.getPublicKey());
         PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
                 conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
-        byte[] _secretKey = SecurityECDH.generateSecretKey(context, keystoreAlias, publicKey);
-        Log.d(E2EEHandler.class.getName(), "Encrypt sharedsecret: " +
-                Base64.encodeToString(_secretKey, Base64.DEFAULT));
-        SecretKey secretKey = new SecretKeySpec(_secretKey, "AES");
-        return SecurityAES.encryptAESGCM(text.getBytes(StandardCharsets.UTF_8), secretKey);
+
+        final KeyPair[] keyPair = new KeyPair[1];
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    CustomKeyStore customKeyStore = new CustomKeyStore();
+                    CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
+                    CustomKeyStore customKeyStore1 = customKeyStoreDao.find(keystoreAlias);
+                    try {
+                        keyPair[0] = customKeyStore1.getKeyPair();
+                    } catch (UnrecoverableKeyException | InvalidKeySpecException |
+                             InvalidKeyException | BadPaddingException | IllegalBlockSizeException |
+                             NoSuchPaddingException | InvalidAlgorithmParameterException |
+                             NoSuchAlgorithmException | IOException | KeyStoreException |
+                             CertificateException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
+            thread.join();
+        } else {
+            keyPair[0] = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias);
+        }
+        if(keyPair[0] != null) {
+            byte[] _secretKey = SecurityECDH.generateSecretKey(keyPair[0], publicKey);
+            SecretKey secretKey = new SecretKeySpec(_secretKey, "AES");
+            return SecurityAES.encryptAESGCM(text.getBytes(StandardCharsets.UTF_8), secretKey);
+        }
+        return null;
     }
 
     public static byte[] decryptText(Context context, String keystoreAlias, byte[] text) throws GeneralSecurityException, IOException, InterruptedException {
@@ -172,15 +239,39 @@ public class E2EEHandler {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
 
-        Log.d(E2EEHandler.class.getName(), "Decryption pub key: " +
-                conversationsThreadsEncryption.getPublicKey());
         PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
                 conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
-        byte[] _secretKey = SecurityECDH.generateSecretKey(context, keystoreAlias, publicKey);
-        SecretKey secretKey = new SecretKeySpec(_secretKey, "AES");
-        Log.d(E2EEHandler.class.getName(), "Decrypt sharedsecret: " +
-                Base64.encodeToString(_secretKey, Base64.DEFAULT));
-        return SecurityAES.decryptAESGCM(text, secretKey);
+
+        final KeyPair[] keyPair = new KeyPair[1];
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    CustomKeyStore customKeyStore = new CustomKeyStore();
+                    CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
+                    CustomKeyStore customKeyStore1 = customKeyStoreDao.find(keystoreAlias);
+                    try {
+                        keyPair[0] = customKeyStore1.getKeyPair();
+                    } catch (UnrecoverableKeyException | InvalidKeySpecException |
+                             InvalidKeyException | BadPaddingException | IllegalBlockSizeException |
+                             NoSuchPaddingException | InvalidAlgorithmParameterException |
+                             NoSuchAlgorithmException | IOException | KeyStoreException |
+                             CertificateException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
+            thread.join();
+        } else {
+            keyPair[0] = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias);
+        }
+        if(keyPair[0] != null) {
+            byte[] _secretKey = SecurityECDH.generateSecretKey(keyPair[0], publicKey);
+            SecretKey secretKey = new SecretKeySpec(_secretKey, "AES");
+            return SecurityAES.decryptAESGCM(text, secretKey);
+        }
+        return null;
     }
 
     public static String buildTransmissionText(byte[] data) {
@@ -198,8 +289,7 @@ public class E2EEHandler {
     public final static int REQUEST_KEY = 0;
     public final static int AGREEMENT_KEY = 1;
     public final static int IGNORE_KEY = 2;
-    public static int getKeyType(Context context, String keystoreAlias, byte[] publicKey)
-            throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+    public static int getKeyType(Context context, String keystoreAlias, byte[] publicKey) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         if(isAvailableInKeystore(keystoreAlias)) {
             ConversationsThreadsEncryption conversationsThreadsEncryption =
                     fetchPeerPublicKey(context, keystoreAlias);
