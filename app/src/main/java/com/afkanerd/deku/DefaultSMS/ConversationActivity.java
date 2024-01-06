@@ -7,28 +7,23 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Message;
 import android.provider.Telephony;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.window.OnBackInvokedCallback;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -141,14 +136,20 @@ public class ConversationActivity extends E2EECompactActivity {
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
 
-        conversationsViewModel.updateToRead(getApplicationContext());
+        try {
+            conversationsViewModel.updateToRead(getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+            startActivity(new Intent(this, ThreadedConversationsActivity.class));
+            finish();
+        }
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                            E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(),
+                            E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(),
                                     0) )) {
                         runOnUiThread(new Runnable() {
                             @Override

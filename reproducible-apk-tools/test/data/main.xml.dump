@@ -1,9 +1,0 @@
-N: android=http://schemas.android.com/apk/res/android (line=2)
-  E: LinearLayout (line=2)
-    A: http://schemas.android.com/apk/res/android:orientation(0x010100c4)=1
-    A: http://schemas.android.com/apk/res/android:layout_width(0x010100f4)=-1
-    A: http://schemas.android.com/apk/res/android:layout_height(0x010100f5)=-1
-      E: TextView (line=7)
-        A: http://schemas.android.com/apk/res/android:layout_width(0x010100f4)=-1
-        A: http://schemas.android.com/apk/res/android:layout_height(0x010100f5)=-2
-        A: http://schemas.android.com/apk/res/android:text(0x0101014f)="Hello World, SDLActivity" (Raw: "Hello World, SDLActivity")

@@ -3,7 +3,6 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 import android.graphics.Color;
 import android.provider.Telephony;
 import android.text.Spannable;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,7 +11,6 @@ import androidx.annotation.NonNull;
 //import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -126,7 +124,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
             @Override
             public void run() {
                 try {
-                    String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
+                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
                     if(E2EEHandler.canCommunicateSecurely(itemView.getContext(), keystoreAlias) &&
                             E2EEHandler.isValidDekuText(text[0])) {
                         byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);

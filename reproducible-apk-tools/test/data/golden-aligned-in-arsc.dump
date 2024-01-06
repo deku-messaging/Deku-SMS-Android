@@ -1,7 +1,0 @@
-Binary APK
-Package name=android.appsecurity.cts.tinyapp id=7f
-  type string id=02 entryCount=1
-    resource 0x7f020000 string/app_name
-      () "Tiny App for CTS"
-      (en-rXA) "[Ţîñý Åþþ ƒöŕ ÇŢŠ one two three]"
-      (ar-rXB) "‏‮Tiny‬‏ ‏‮App‬‏ ‏‮for‬‏ ‏‮CTS‬‏"

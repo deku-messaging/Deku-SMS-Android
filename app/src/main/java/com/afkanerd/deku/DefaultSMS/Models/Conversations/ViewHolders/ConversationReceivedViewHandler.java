@@ -5,11 +5,9 @@ import android.text.Spannable;
 import android.util.Base64;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.LinearLayoutCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
@@ -17,16 +15,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
-import com.google.i18n.phonenumbers.NumberParseException;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -85,7 +75,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             @Override
             public void run() {
                 try {
-                    String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
+                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
                     if(E2EEHandler.canCommunicateSecurely(itemView.getContext(), keystoreAlias) &&
                             E2EEHandler.isValidDekuText(text[0])) {
                         byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
@@ -174,7 +164,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             receivedMessage.setTextAppearance(R.style.key_request_initiated);
 
             try {
-                String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(),
+                String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(),
                         0);
                 byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
                 boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);

@@ -2,15 +2,18 @@ package com.afkanerd.deku.E2EE.Security;
 
 import android.content.Context;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.CryptoHelpers;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityECDH;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityRSA;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -27,8 +30,6 @@ import java.security.spec.InvalidKeySpecException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 @Entity(indices = {@Index(value={"keystoreAlias"}, unique=true)})
 public class CustomKeyStore {
@@ -99,7 +100,23 @@ public class CustomKeyStore {
 
         PublicKey x509PublicKey = SecurityECDH.buildPublicKey(Base64.decode(publicKey, Base64.DEFAULT));
         PrivateKey x509PrivateKey = SecurityECDH.buildPrivateKey(privateKey);
-        return SecurityECDH.buildKeyPair(x509PublicKey, x509PrivateKey);
+        return CryptoHelpers.buildKeyPair(x509PublicKey, x509PrivateKey);
+    }
+
+    @Ignore
+    Datastore databaseConnector;
+
+    public CustomKeyStoreDao getDaoInstance(Context context) {
+        databaseConnector = Room.databaseBuilder(context, Datastore.class,
+                        Datastore.databaseName)
+                .addMigrations(new Migrations.Migration8To9())
+                .build();
+        return databaseConnector.customKeyStoreDao();
+    }
+
+    public void close() {
+        if(databaseConnector != null)
+            databaseConnector.close();
     }
 
     public static CustomKeyStoreDao getDao(Context context) {

@@ -14,15 +14,15 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.afkanerd.deku.E2EE.E2EEHandler;
-import com.afkanerd.deku.E2EE.Security.SecurityAES;
-import com.afkanerd.deku.E2EE.Security.SecurityECDH;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.CryptoHelpers;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -41,19 +41,18 @@ public class ConversationsThreadsEncryptionTest {
 
     public ConversationsThreadsEncryptionTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-
-        E2EEHandler.clearAll(context);
+        KeystoreHelpers.removeAllFromKeystore(context);
     }
 
     @Test
     public void getKeyStoreAliasTest() throws NumberParseException {
-        String outputKeystoreAlias = E2EEHandler.getKeyStoreAlias(address, sessionNumber);
+        String outputKeystoreAlias = E2EEHandler.deriveKeystoreAlias(address, sessionNumber);
         assertEquals(keystoreAlias, outputKeystoreAlias);
     }
 
     @Test
     public void getAddressFromKeystore() throws NumberParseException {
-        String keystoreAlias = E2EEHandler.getKeyStoreAlias(address, 0);
+        String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
         String derivedAddress = E2EEHandler.getAddressFromKeystore(keystoreAlias);
 
         assertEquals(address, derivedAddress);
@@ -64,24 +63,18 @@ public class ConversationsThreadsEncryptionTest {
         E2EEHandler.createNewKeyPair(context, keystoreAlias);
         assertTrue(E2EEHandler.isAvailableInKeystore(keystoreAlias));
 
-        int numberRemoved = E2EEHandler.removeFromKeystore(context, keystoreAlias);
+        E2EEHandler.removeFromKeystore(context, keystoreAlias);
         assertFalse(E2EEHandler.isAvailableInKeystore(keystoreAlias));
-
-        if(Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S )
-            assertEquals(1, numberRemoved);
-        E2EEHandler.clearAll(context);
+        KeystoreHelpers.removeAllFromKeystore(context);
     }
 
     @Test
     public void testSize() throws GeneralSecurityException, IOException, InterruptedException {
         PublicKey publicKey = E2EEHandler.createNewKeyPair(context, keystoreAlias);
-        Log.d(getClass().getName(), "Length: " + publicKey.getEncoded().length);
-        Log.d(getClass().getName(), "Length Encoded: " +
-                Base64.encodeToString(publicKey.getEncoded(), Base64.DEFAULT).length());
         int length = publicKey.getEncoded().length;
 
         assertEquals(91, length);
-        E2EEHandler.clearAll(context);
+        KeystoreHelpers.removeAllFromKeystore(context);
     }
 
     @Test
@@ -93,14 +86,12 @@ public class ConversationsThreadsEncryptionTest {
         SecretKey secretKey = SecurityAES.generateSecretKey(91);
         byte[] invalidPublicKey = E2EEHandler.buildDekuPublicKey(secretKey.getEncoded());
         assertFalse(E2EEHandler.isValidDekuPublicKey(invalidPublicKey));
-        E2EEHandler.clearAll(context);
+        KeystoreHelpers.removeAllFromKeystore(context);
     }
 
     @Test
     public void testBuildForEncryptionRequest() throws GeneralSecurityException, NumberParseException, IOException, InterruptedException {
         byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(context, address);
-        Log.d(getClass().getName(), "Transmission request size: " +
-                transmissionRequest.length);
         assertTrue(E2EEHandler.isValidDekuPublicKey(transmissionRequest));
     }
     @Test
@@ -111,7 +102,7 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void canE2EE() throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
-        E2EEHandler.clearAll(context);
+        KeystoreHelpers.removeAllFromKeystore(context);
         String aliceAddress = "+237612345678";
         String bobAddress = "+237612345670";
 
@@ -120,7 +111,7 @@ public class ConversationsThreadsEncryptionTest {
         // bob received alice's key
         assertTrue(E2EEHandler.isValidDekuPublicKey(aliceTransmissionKey));
         byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
-        String aliceKeystoreAlias = E2EEHandler.getKeyStoreAlias(aliceAddress, 0);
+        String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
         assertEquals(E2EEHandler.REQUEST_KEY,
                 E2EEHandler.getKeyType(context, aliceKeystoreAlias, null));
         E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey,
@@ -131,7 +122,7 @@ public class ConversationsThreadsEncryptionTest {
         // alice received bob's key
         assertTrue(E2EEHandler.isValidDekuPublicKey(bobTransmissionKey));
         byte[] bobExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(bobTransmissionKey);
-        String bobKeystoreAlias = E2EEHandler.getKeyStoreAlias(bobAddress, 0);
+        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
         assertEquals(E2EEHandler.AGREEMENT_KEY,
                 E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey));
         E2EEHandler.insertNewPeerPublicKey(context, bobExtractedTransmissionKey, bobKeystoreAlias);

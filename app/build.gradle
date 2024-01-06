@@ -123,6 +123,7 @@ android {
 }
 
 dependencies {
+    implementation project(':smswithoutborders_libsignal-doubleratchet')
     def paging_version = "3.2.1"
 
     testImplementation 'junit:junit:4.13.2'
@@ -183,8 +184,5 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
 
     implementation 'com.budiyev.android:code-scanner:2.1.0'
-
-    implementation 'com.google.crypto.tink:tink-android:1.11.0'
-
 }
 
