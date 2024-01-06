@@ -1,1 +1,0 @@
-../diff-zip-meta.py
