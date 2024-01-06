@@ -1,0 +1,3 @@
+[submodule "smswithoutborders_libsignal-doubleratchet"]
+	path = smswithoutborders_libsignal-doubleratchet
+	url = git@github.com:smswithoutborders/lib_signal_double_ratchet_java.git
