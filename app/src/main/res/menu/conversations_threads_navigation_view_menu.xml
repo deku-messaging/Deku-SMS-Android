@@ -5,6 +5,11 @@
         android:id="@+id/navigation_view_menu_id"
         android:checkableBehavior="single">
         <item
+            android:id="@+id/navigation_view_menu_inbox"
+            android:icon="@drawable/round_inbox_24"
+            android:title="@string/conversations_navigation_view_inbox"/>
+
+        <item
             android:id="@+id/navigation_view_menu_drafts"
             android:icon="@drawable/round_drafts_24"
             android:title="@string/conversations_navigation_view_drafts"/>

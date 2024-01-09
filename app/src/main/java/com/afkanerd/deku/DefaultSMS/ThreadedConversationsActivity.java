@@ -104,13 +104,21 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                fragmentManager.beginTransaction().replace(R.id.view_fragment,
-                                DraftsFragments.class, null, "DRAFT_TAG")
-//                        .setReorderingAllowed(true)
-                        .commit();
-                item.setChecked(true);
-                drawerLayout.close();
-                return true;
+                if(item.getItemId() == R.id.navigation_view_menu_drafts) {
+                    fragmentManager.beginTransaction().replace(R.id.view_fragment,
+                                    DraftsFragments.class, null, "DRAFT_TAG")
+                            .setReorderingAllowed(true)
+                            .commit();
+                    item.setChecked(true);
+                    drawerLayout.close();
+                    return true;
+                } else if(item.getItemId() == R.id.navigation_view_menu_inbox) {
+                    fragmentManagement();
+                    item.setChecked(true);
+                    drawerLayout.close();
+                    return true;
+                }
+                return false;
             }
         });
     }

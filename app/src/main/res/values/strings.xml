@@ -206,4 +206,5 @@
     <string name="sample_date" translatable="false">9:26 AM . MTN</string>
 
     <string name="conversations_navigation_view_drafts">Drafts</string>
+    <string name="conversations_navigation_view_inbox">Inbox</string>
 </resources>
