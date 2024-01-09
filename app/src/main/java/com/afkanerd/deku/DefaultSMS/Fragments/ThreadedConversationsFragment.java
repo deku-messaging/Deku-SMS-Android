@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -55,13 +56,24 @@ public class ThreadedConversationsFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_conversations_threads, container, false);
     }
 
+    public void setLabels(View view, String label, String noContent) {
+        ((TextView) view.findViewById(R.id.conversation_threads_fragment_label))
+                .setText(label);
+        ((TextView) view.findViewById(R.id.homepage_no_message))
+                .setText(noContent);
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Bundle args = getArguments();
-        String messageType = args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
+        String messageType = args == null ? ALL_MESSAGES_THREAD_FRAGMENT :
+                args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
+
+        setLabels(view, getString(R.string.conversations_navigation_view_inbox),
+                getString(R.string.homepage_no_message));
 
         threadedConversationsViewModel = viewManipulationListener.getViewModel();
         threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter( getContext(),
@@ -78,9 +90,9 @@ public class ThreadedConversationsFragment extends Fragment {
             @Override
             public Unit invoke() {
                 if(threadedConversationRecyclerAdapter.getItemCount() < 1)
-                    getView().findViewById(R.id.homepage_no_message).setVisibility(View.VISIBLE);
+                    view.findViewById(R.id.homepage_no_message).setVisibility(View.VISIBLE);
                 else
-                    getView().findViewById(R.id.homepage_no_message).setVisibility(View.GONE);
+                    view.findViewById(R.id.homepage_no_message).setVisibility(View.GONE);
                 return null;
             }
         });

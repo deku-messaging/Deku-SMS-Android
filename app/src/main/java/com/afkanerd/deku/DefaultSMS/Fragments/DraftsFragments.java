@@ -29,5 +29,7 @@ public class DraftsFragments extends ThreadedConversationsFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setLabels(view, getString(R.string.conversations_navigation_view_drafts),
+                getString(R.string.homepage_draft_no_message));
     }
 }

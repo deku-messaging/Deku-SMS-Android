@@ -30,6 +30,7 @@
     <string name="homepage_menu_archived">Archived</string>
     <string name="homepage_menu_routed">Message Forwarding</string>
     <string name="homepage_no_message">Send your first message</string>
+    <string name="homepage_draft_no_message">Nothing in Drafts</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">SMS routing Gateways</string>
     <string name="gateway_client_listing_toolbar_title">SMS listening Gateways</string>
