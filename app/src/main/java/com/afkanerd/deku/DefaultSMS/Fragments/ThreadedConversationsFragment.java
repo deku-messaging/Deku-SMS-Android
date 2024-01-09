@@ -16,7 +16,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -64,6 +66,8 @@ public class ThreadedConversationsFragment extends Fragment {
 
     public static final String AUTOMATED_MESSAGES_THREAD_FRAGMENT = "AUTOMATED_MESSAGES_THREAD_FRAGMENT";
 
+    ActionBar actionBar;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -83,7 +87,8 @@ public class ThreadedConversationsFragment extends Fragment {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            Objects.requireNonNull(requireActivity().getActionBar()).hide();
+//            Objects.requireNonNull(requireActivity().getActionBar()).hide();
+            actionBar.hide();
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(R.menu.conversations_threads_menu_items_selected, menu);
             return true;
@@ -198,7 +203,7 @@ public class ThreadedConversationsFragment extends Fragment {
         // Called when the user exits the action mode.
         @Override
         public void onDestroyActionMode(ActionMode mode) {
-            Objects.requireNonNull(requireActivity().getActionBar()).hide();
+            actionBar.show();
             actionMode = null;
             if(threadedConversationRecyclerAdapter != null)
                 threadedConversationRecyclerAdapter.resetAllSelectedItems();
@@ -227,6 +232,8 @@ public class ThreadedConversationsFragment extends Fragment {
         Bundle args = getArguments();
         String messageType = args == null ? ALL_MESSAGES_THREAD_FRAGMENT :
                 args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
+
+        actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);

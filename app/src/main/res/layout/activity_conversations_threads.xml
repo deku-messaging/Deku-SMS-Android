@@ -33,6 +33,7 @@
                     android:id="@+id/conversation_threads_toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:theme="@style/Theme.main"
                     app:navigationIcon="@drawable/round_menu_24"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
