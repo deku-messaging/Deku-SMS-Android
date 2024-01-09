@@ -30,7 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ThreadedConversationsViewModel extends ViewModel {
-    ThreadedConversationsDao threadedConversationsDao;
+
+    public ThreadedConversationsDao threadedConversationsDao;
     int pageSize = 20;
     int prefetchDistance = 3 * pageSize;
     boolean enablePlaceholder = false;
@@ -41,18 +42,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
     MutableLiveData<Integer> draftsCount = new MutableLiveData<>();
 
     ThreadsPagingSource threadsPagingSource;
-
-//    public LiveData<PagingData<ThreadedConversations>> get(Context context){
-//        threadsPagingSource = new ThreadsPagingSource(context);
-//        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
-//                pageSize,
-//                prefetchDistance,
-//                enablePlaceholder,
-//                initialLoadSize,
-//                maxSize
-//        ), ()-> threadsPagingSource);
-//        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
-//    }
 
     public LiveData<PagingData<ThreadedConversations>> getDrafts(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
@@ -202,14 +191,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
             }
         }).start();
-    }
-
-    public void setThreadedConversationsDao(ThreadedConversationsDao threadedConversationsDao) {
-        this.threadedConversationsDao = threadedConversationsDao;
-    }
-
-    public ThreadedConversationsDao getThreadedConversationsDao(){
-        return this.threadedConversationsDao;
     }
 
     public void archive(List<Archive> archiveList) {

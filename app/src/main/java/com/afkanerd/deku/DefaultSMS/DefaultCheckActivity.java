@@ -102,7 +102,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
                 SharedPreferences sharedPreferences =
                         PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 sharedPreferences.edit()
-                        .putBoolean(CustomAppCompactActivity.LOAD_NATIVES, true)
+                        .putBoolean(getString(R.string.configs_load_natives), true)
                         .apply();
                 startActivity(new Intent(this, ThreadedConversationsActivity.class));
             }

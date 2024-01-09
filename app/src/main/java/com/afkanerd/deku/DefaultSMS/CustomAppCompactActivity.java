@@ -41,7 +41,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
     protected static final String TAG_NAME = "NATIVE_CONVERSATION_TAG";
     protected static final String UNIQUE_WORK_NAME = "NATIVE_CONVERSATION_TAG_UNIQUE_WORK_NAME";
-    protected static final String LOAD_NATIVES = "LOAD_NATIVES";
 
     protected final static String DRAFT_PRESENT_BROADCAST = "DRAFT_PRESENT_BROADCAST";
 
@@ -217,8 +216,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
                     long id = conversationsViewModel.insert(conversation);
                     SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
-                    conversationsViewModel.updateThreadId(conversation.getThread_id(),
-                            messageId, id);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

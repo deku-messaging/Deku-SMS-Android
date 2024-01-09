@@ -208,4 +208,6 @@
 
     <string name="conversations_navigation_view_drafts">Drafts</string>
     <string name="conversations_navigation_view_inbox">Inbox</string>
+
+    <string name="configs_load_natives" translatable="false">LOAD NATIVES</string>
 </resources>

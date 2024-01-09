@@ -3,7 +3,6 @@ package com.afkanerd.deku.DefaultSMS;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
@@ -28,7 +27,6 @@ import com.afkanerd.deku.DefaultSMS.Fragments.DraftsFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.Fragments.HomepageFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
@@ -47,7 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.OnViewManipulationListener {
+public class ThreadedConversationsActivity extends CustomAppCompactActivity {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
     FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -57,8 +55,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     String ITEM_TYPE = "";
 
-    ActionMode actionMode;
-    ThreadedConversationsDao threadedConversationsDao;
     ThreadedConversations threadedConversations = new ThreadedConversations();
 
     MaterialToolbar toolbar;
@@ -79,10 +75,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
             finish();
         }
 
-        threadedConversationsDao = threadedConversations.getDaoInstance(getApplicationContext());
-        threadedConversationsViewModel = new ViewModelProvider(this).get(
-                ThreadedConversationsViewModel.class);
-        threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
         fragmentManagement();
         configureBroadcastListeners();
         configureNavigationBar();
@@ -139,34 +131,11 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     private void fragmentManagement() {
         fragmentManager.beginTransaction().replace(R.id.view_fragment,
-                        HomepageFragment.class, null, "HOMEPAGE_TAG")
+                        ThreadedConversationsFragment.class, null, "HOMEPAGE_TAG")
                 .setReorderingAllowed(true)
                 .commit();
     }
 
-    private void showAlert(Runnable runnable) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.messages_thread_delete_confirmation_title));
-        builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
-
-        builder.setPositiveButton(getString(R.string.messages_thread_delete_confirmation_yes),
-                new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                runnable.run();
-            }
-        });
-
-        builder.setNegativeButton(getString(R.string.messages_thread_delete_confirmation_cancel),
-                new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-            }
-        });
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
 
     private boolean checkIsDefaultApp() {
         final String myPackageName = getPackageName();
@@ -190,39 +159,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.conversations_threads_menu, menu);
         return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public ThreadedConversationsViewModel getViewModel() {
-        return threadedConversationsViewModel;
-    }
-
-    @Override
-    public void setRecyclerViewAdapter(String itemType, ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter) {
-        this.ITEM_TYPE = itemType;
-        this.messagesThreadRecyclerAdapterHashMap.put(itemType, threadedConversationRecyclerAdapter);
-
-        this.messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE).selectedItems.observe(this,
-                new Observer<HashMap<Long, ThreadedConversationsTemplateViewHolder>>() {
-            @Override
-            public void onChanged(HashMap<Long, ThreadedConversationsTemplateViewHolder>
-                                          threadedConversationsTemplateViewHolders) {
-                if(threadedConversationsTemplateViewHolders == null ||
-                        threadedConversationsTemplateViewHolders.isEmpty()) {
-                    if(actionMode != null) {
-                        actionMode.finish();
-                    }
-                    return;
-                }
-                else if(actionMode == null) {
-                    actionMode = startActionMode(actionModeCallback);
-                }
-                if(actionMode != null)
-                    actionMode
-                            .setTitle(String.valueOf(threadedConversationsTemplateViewHolders.size()));
-
-            }
-        });
     }
 
     @Override
@@ -262,17 +198,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     @Override
-    public void tabUnselected(int position) {
-        if(actionMode != null)
-            actionMode.finish();
-    }
-
-    @Override
-    public void tabSelected(int position) {
-        this.ITEM_TYPE = HomepageFragment.fragmentList.get(position);
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
 //        setViewModel(null);
@@ -282,125 +207,5 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     protected void onResume() {
         super.onResume();
 
-        SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        if(sharedPreferences.getBoolean(LOAD_NATIVES, true) ) {
-            sharedPreferences.edit().putBoolean(LOAD_NATIVES, false).apply();
-            threadedConversationsViewModel.reset(getApplicationContext());
-        }
-
-        threadedConversationsViewModel.refresh(getApplicationContext());
     }
-
-    private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
-
-        @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            Objects.requireNonNull(getSupportActionBar()).hide();
-            MenuInflater inflater = mode.getMenuInflater();
-            inflater.inflate(R.menu.conversations_threads_menu_items_selected, menu);
-            return true;
-        }
-
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false; // Return false if nothing is done.
-        }
-
-        @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            final ThreadedConversationRecyclerAdapter recyclerAdapter =
-                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
-            if(recyclerAdapter != null) {
-                if(item.getItemId() == R.id.conversations_threads_main_menu_delete) {
-                    if(recyclerAdapter.selectedItems != null && recyclerAdapter.selectedItems.getValue() != null) {
-                        List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
-                        List<String> ids = new ArrayList<>();
-                        for (ThreadedConversationsTemplateViewHolder viewHolder :
-                                recyclerAdapter.selectedItems.getValue().values()) {
-                            ThreadedConversations threadedConversation = new ThreadedConversations();
-                            threadedConversation.setThread_id(viewHolder.id);
-                            threadedConversationsList.add(threadedConversation);
-                            ids.add(threadedConversation.getThread_id());
-                        }
-                        Runnable runnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                recyclerAdapter.resetAllSelectedItems();
-
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        List<ThreadedConversations> foundList =
-                                                threadedConversationsDao.find(ids);
-                                        for(ThreadedConversations threadedConversation :
-                                                foundList) {
-                                            try {
-                                                String keystoreAlias =
-                                                        E2EEHandler.deriveKeystoreAlias(
-                                                                threadedConversation.getAddress(),
-                                                                0);
-                                                E2EEHandler.removeFromKeystore(
-                                                        getApplicationContext(), keystoreAlias);
-                                                E2EEHandler.removeFromEncryptionDatabase(
-                                                        getApplicationContext(), keystoreAlias);
-                                            } catch (KeyStoreException | NumberParseException |
-                                                     InterruptedException | NoSuchAlgorithmException | IOException |
-                                                     CertificateException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                        threadedConversationsViewModel.delete(getApplicationContext(),
-                                                threadedConversationsList);
-                                    }
-                                }).start();
-                            }
-                        };
-                        showAlert(runnable);
-                    }
-                    return true;
-                }
-
-                if(item.getItemId() == R.id.conversations_threads_main_menu_archive) {
-                    List<Archive> archiveList = new ArrayList<>();
-                    for(ThreadedConversationsTemplateViewHolder templateViewHolder :
-                            recyclerAdapter.selectedItems.getValue().values()) {
-                        Archive archive = new Archive();
-                        archive.thread_id = templateViewHolder.id;
-                        archive.is_archived = true;
-                        archiveList.add(archive);
-                    }
-                    threadedConversationsViewModel.archive(archiveList);
-                    recyclerAdapter.resetAllSelectedItems();
-                    return true;
-                }
-
-            }
-            return false;
-        }
-
-        // Called when the user exits the action mode.
-        @Override
-        public void onDestroyActionMode(ActionMode mode) {
-            Objects.requireNonNull(getSupportActionBar()).show();
-            actionMode = null;
-            final ThreadedConversationRecyclerAdapter recyclerAdapter =
-                    messagesThreadRecyclerAdapterHashMap.get(ITEM_TYPE);
-            if(recyclerAdapter != null)
-                recyclerAdapter.resetAllSelectedItems();
-        }
-    };
-
-//    private void loadConversationsFromNative(Context context) {
-//        Cursor cursor = NativeSMSDB.fetchAll(context);
-//        List<Conversation> conversationList = new ArrayList<>();
-//        if(cursor.moveToNext()) {
-//            do {
-//                conversationList.add(Conversation.build(cursor));
-//            } while(cursor.moveToNext());
-//        }
-//        cursor.close();
-//        ConversationDao conversationDao = conversation.getDaoInstance(context);
-//        conversationDao.insertAll(conversationList);
-//    }
 }

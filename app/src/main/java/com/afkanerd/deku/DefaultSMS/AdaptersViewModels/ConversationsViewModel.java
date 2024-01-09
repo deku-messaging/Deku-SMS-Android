@@ -187,6 +187,9 @@ public class ConversationsViewModel extends ViewModel {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    Conversation conversation1 = new Conversation();
+                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
+
                     NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
                     List<Conversation> conversations = conversationDao.getAll(threadId);
                     List<Conversation> updateList = new ArrayList<>();
@@ -197,6 +200,7 @@ public class ConversationsViewModel extends ViewModel {
                         }
                     }
                     conversationDao.update(updateList);
+                    conversation1.close();
                 }
             }).start();
         }
@@ -206,26 +210,16 @@ public class ConversationsViewModel extends ViewModel {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                Conversation conversation1 = new Conversation();
+                ConversationDao conversationDao = conversation1.getDaoInstance(context);
+
                 conversationDao.delete(conversations);
                 String[] ids = new String[conversations.size()];
                 for(int i=0;i<conversations.size(); ++i)
                     ids[i] = conversations.get(i).getMessage_id();
-                Log.d(getClass().getName(), "Pre-delete: " + Arrays.toString(ids));
                 int deletedCount = NativeSMSDB.deleteMultipleMessages(context, ids);
-                Log.d(getClass().getName(), "Deleted: " + deletedCount + ":" + Arrays.toString(ids) + ":" + conversations.size());
-            }
-        }).start();
-    }
 
-    public void updateThreadId(String threadId, String messageId, long id) {
-        this.threadId = threadId;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Conversation conversation = conversationDao.getMessage(messageId);
-                conversation.setId(id);
-                conversation.setThread_id(threadId);
-                conversationDao.update(conversation);
+                conversation1.close();
             }
         }).start();
     }
@@ -252,9 +246,12 @@ public class ConversationsViewModel extends ViewModel {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                Conversation conversation1 = new Conversation();
+                ConversationDao conversationDao = conversation1.getDaoInstance(context);
                 conversationDao.deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT,
                         threadId);
                 SMSDatabaseWrapper.deleteDraft(context, threadId);
+                conversation1.close();
             }
         }).start();
     }
