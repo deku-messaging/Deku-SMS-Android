@@ -1,9 +1,11 @@
 package com.afkanerd.deku.DefaultSMS;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -19,8 +21,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Fragments.DraftsFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
@@ -30,6 +34,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.Router.RouterActivity;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.navigation.NavigationView;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
@@ -45,7 +51,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
     FragmentManager fragmentManager = getSupportFragmentManager();
 
-    Toolbar toolbar;
     ActionBar ab;
 
     HashMap<String, ThreadedConversationRecyclerAdapter> messagesThreadRecyclerAdapterHashMap = new HashMap<>();
@@ -56,13 +61,14 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     ThreadedConversationsDao threadedConversationsDao;
     ThreadedConversations threadedConversations = new ThreadedConversations();
 
+    MaterialToolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversations_threads);
 
-        Toolbar myToolbar = findViewById(R.id.conversation_threads_toolbar);
-        setSupportActionBar(myToolbar);
+        toolbar = findViewById(R.id.conversation_threads_toolbar);
+        setSupportActionBar(toolbar);
         ab = getSupportActionBar();
 
         if(!checkIsDefaultApp()) {
@@ -76,6 +82,37 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         threadedConversationsViewModel.setThreadedConversationsDao(threadedConversationsDao);
         fragmentManagement();
         configureBroadcastListeners();
+        configureNavigationBar();
+    }
+
+    public void configureNavigationBar() {
+        NavigationView navigationView = findViewById(R.id.conversations_threads_navigation_view);
+        View view = getLayoutInflater().inflate(R.layout.header_navigation_drawer, null);
+        TextView textView = view.findViewById(R.id.conversations_threads_navigation_view_version_number);
+        textView.setText(BuildConfig.VERSION_NAME);
+
+        navigationView.addHeaderView(view);
+
+        DrawerLayout drawerLayout = findViewById(R.id.conversations_drawer);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.open();
+            }
+        });
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                fragmentManager.beginTransaction().replace(R.id.view_fragment,
+                                DraftsFragments.class, null, "DRAFT_TAG")
+//                        .setReorderingAllowed(true)
+                        .commit();
+                item.setChecked(true);
+                drawerLayout.close();
+                return true;
+            }
+        });
     }
 
     @Override

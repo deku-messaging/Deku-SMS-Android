@@ -23,6 +23,7 @@ import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 
 import java.sql.Ref;
 import java.util.ArrayList;
@@ -237,7 +238,7 @@ public class ConversationsViewModel extends ViewModel {
                 Conversation conversation1 = new Conversation();
                 conversation[0] =
                         conversation1.getDaoInstance(context).fetchTypedConversation(
-                                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+                                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
                 conversation1.close();
             }
         });
@@ -247,11 +248,13 @@ public class ConversationsViewModel extends ViewModel {
         return conversation[0];
     }
 
-    public void clearDraft() {
+    public void clearDraft(Context context) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                conversationDao.deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+                conversationDao.deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT,
+                        threadId);
+                SMSDatabaseWrapper.deleteDraft(context, threadId);
             }
         }).start();
     }

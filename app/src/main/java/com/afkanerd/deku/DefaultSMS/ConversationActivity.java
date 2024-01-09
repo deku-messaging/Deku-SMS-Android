@@ -492,8 +492,13 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (draftMessageId != null && !draftText.isEmpty())
-            saveDraft(draftMessageId, draftText, threadedConversations);
+        if (draftMessageId != null && !draftText.isEmpty()) {
+            try {
+                saveDraft(draftMessageId, draftText, threadedConversations);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -516,7 +521,7 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void emptyDraft(){
-        conversationsViewModel.clearDraft();
+        conversationsViewModel.clearDraft(getApplicationContext());
         draftMessageId = null;
         draftText = null;
     }

@@ -77,6 +77,30 @@ public class NativeSMSDB {
                         TextUtils.join(",", Collections.nCopies(threadIds.length, "?")) + ")", threadIds);
     }
 
+    protected static int deleteMessage(Context context, String messageId) {
+        try {
+            return context.getContentResolver().delete(
+                    Telephony.Sms.CONTENT_URI,
+                    Telephony.Sms._ID + " = ?", new String[]{messageId});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    protected static int deleteType(Context context, String type, String threadId) {
+        try {
+            return context.getContentResolver().delete(
+                    Telephony.Sms.CONTENT_URI,
+                    Telephony.TextBasedSmsColumns.THREAD_ID + " = ? AND " +
+                            Telephony.TextBasedSmsColumns.TYPE + " = ?",
+                    new String[]{threadId, type});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
     /*
      * Places which require playing with Native SMS DB
      * Outgoing:
@@ -252,6 +276,27 @@ public class NativeSMSDB {
             } catch (Exception e) {
                 throw e;
             }
+        }
+
+        protected static String[] register_drafts(Context context, String messageId,
+                                                 String destinationAddress, String text, int subscriptionId) {
+            ContentValues contentValues = new ContentValues();
+
+            contentValues.put(Telephony.Sms._ID, messageId);
+            contentValues.put(Telephony.TextBasedSmsColumns.TYPE,
+                    Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+            contentValues.put(Telephony.TextBasedSmsColumns.STATUS,
+                    Telephony.TextBasedSmsColumns.STATUS_PENDING);
+            contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
+            contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
+            contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
+            contentValues.put(Telephony.TextBasedSmsColumns.DATE_SENT,
+                    String.valueOf(System.currentTimeMillis()));
+
+            Uri uri = context.getContentResolver().insert(
+                    Telephony.Sms.CONTENT_URI,
+                    contentValues);
+            return parseNewIncomingUriForThreadInformation(context, uri);
         }
 
         public static String[] register_failed(Context context, String messageId, int errorCode) {

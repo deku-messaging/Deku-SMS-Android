@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
@@ -16,6 +17,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsView
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
@@ -270,23 +272,32 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         }
     }
 
-    protected void saveDraft(final String messageId, final String text, ThreadedConversations threadedConversations) {
+    protected void saveDraft(final String messageId, final String text, ThreadedConversations threadedConversations) throws InterruptedException {
         if(text != null) {
             if(conversationsViewModel != null) {
-                new Thread(new Runnable() {
+                Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         Conversation conversation = new Conversation();
                         conversation.setMessage_id(messageId);
                         conversation.setText(text);
-                        conversation.setThread_id(threadedConversations.getThread_id());
                         conversation.setRead(true);
                         conversation.setType(Telephony.Sms.MESSAGE_TYPE_DRAFT);
                         conversation.setDate(String.valueOf(System.currentTimeMillis()));
                         conversation.setAddress(threadedConversations.getAddress());
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
                         try {
+                            String threadId = SMSDatabaseWrapper.saveDraft(getApplicationContext(),
+                                    conversation);
+                            conversation.setThread_id(threadId);
                             conversationsViewModel.insert(conversation);
+
+                            ThreadedConversations tc =
+                                    ThreadedConversations.build(getApplicationContext(), conversation);
+                            ThreadedConversationsDao threadedConversationsDao =
+                                    tc.getDaoInstance(getApplicationContext());
+                            threadedConversationsDao.insert(tc);
+                            tc.close();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -294,7 +305,9 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         Intent intent = new Intent(DRAFT_PRESENT_BROADCAST);
                         sendBroadcast(intent);
                     }
-                }).start();
+                });
+                thread.start();
+                thread.join();
             }
         }
     }

@@ -40,4 +40,17 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
 
         conversation.setThread_id(nativeOutputs[NativeSMSDB.THREAD_ID]);
     }
+
+    public static String saveDraft(Context context, Conversation conversation) {
+
+        String[] outputs = NativeSMSDB.Outgoing.register_drafts(context, conversation.getMessage_id(),
+                conversation.getAddress(), conversation.getText(), conversation.getSubscription_id());
+
+        return outputs[NativeSMSDB.THREAD_ID];
+    }
+
+    public static void deleteDraft(Context context, String threadId) {
+        NativeSMSDB.deleteType(context, String.valueOf(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT),
+                threadId);
+    }
 }

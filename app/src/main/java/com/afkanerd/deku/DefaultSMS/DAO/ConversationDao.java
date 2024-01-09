@@ -37,8 +37,8 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
     List<Conversation> getComplete();
 
-    @Query("SELECT * FROM Conversation WHERE type = :type ORDER BY date DESC")
-    Conversation fetchTypedConversation(int type);
+    @Query("SELECT * FROM Conversation WHERE type = :type AND thread_id = :threadId ORDER BY date DESC")
+    Conversation fetchTypedConversation(int type, String threadId);
 
 //    @Query("SELECT * FROM Conversation WHERE body " +
 //            "LIKE '%' || :text || '%' ORDER BY date DESC")
@@ -67,6 +67,9 @@ public interface ConversationDao {
 
     @Query("DELETE FROM Conversation WHERE type = :type")
     int deleteAllType(int type);
+
+    @Query("DELETE FROM Conversation WHERE type = :type AND thread_id = :thread_id")
+    int deleteAllType(int type, String thread_id);
     @Delete
     int delete(Conversation conversation);
 

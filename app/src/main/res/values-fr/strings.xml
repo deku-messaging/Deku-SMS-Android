@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Deku SMS</string>
     <string name="incoming_messages_channel_name">Messages entrants</string>
     <string name="running_gateway_clients_channel_name">Exécution de passerelles SMS</string>
     <string name="foreground_service_failed_channel_name">Les clients de la passerelle SMS se reconnectent automatiquement</string>
@@ -136,8 +135,7 @@
     <string name="conversation_shortcode_learn_more_text">Les codes courts sont des numéros locaux ou personnalisés permettant d\'envoyer des SMS internationaux.\n\nVous pouvez répondre aux codes courts contenant uniquement des chiffres, mais pas aux codes contenant des lettres et des chiffres, comme « MSG007 ».</string>
     <string name="thread_conversation_type_draft">Brouillon</string>
     <string name="thread_conversation_timestamp_yesterday">Hier</string>
-    <string name="language_choose_text">Choisissez votre langue préférée</string>
     <string name="language_english">Anglaise</string>
     <string name="language_french">Français</string>
-    <string name="language_farsi">Farsi</string>
+    <string name="conversations_navigation_view_drafts">Brouillons</string>
 </resources>
