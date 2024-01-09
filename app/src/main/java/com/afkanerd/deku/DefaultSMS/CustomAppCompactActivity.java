@@ -47,9 +47,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
     protected ConversationsViewModel conversationsViewModel;
 
-    Conversation conversation;
-    ConversationDao conversationDao;
-
     protected ThreadedConversationsViewModel threadedConversationsViewModel;
 
     @Override
@@ -63,8 +60,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
         loadConversationsNativesBg();
         startServices();
-        conversation = new Conversation();
-        conversationDao = conversation.getDaoInstance(getApplicationContext());
 //        new Thread(new Runnable() {
 //            @Override
 //            protected void run() {
@@ -124,7 +119,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                Conversation conversation = conversationDao.getMessage(messageId);
+                                Conversation conversation = conversationsViewModel
+                                        .conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
                                 try {
                                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
@@ -152,7 +148,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                Conversation conversation = conversationDao.getMessage(messageId);
+                                Conversation conversation = conversationsViewModel
+                                        .conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
                                 try {
                                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
@@ -333,7 +330,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
         if(dataDeliveredBroadcastIntent != null)
             unregisterReceiver(dataDeliveredBroadcastIntent);
-        conversation.close();
     }
 
     protected void cancelNotifications(String threadId) {

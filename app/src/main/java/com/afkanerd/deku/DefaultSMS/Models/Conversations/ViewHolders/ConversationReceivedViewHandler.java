@@ -76,11 +76,12 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                 @Override
                 public void run() {
                     try {
-                        String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
-                        if (E2EEHandler.canCommunicateSecurely(itemView.getContext(), keystoreAlias) &&
-                                E2EEHandler.isValidDekuText(text[0])) {
+                        if (text[0] != null && E2EEHandler.isValidDekuText(text[0])) {
+                            String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
+                                    conversation.getAddress(), 0);
                             byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
-                            text[0] = new String(E2EEHandler.decryptText(itemView.getContext(), keystoreAlias, extractedText));
+                            text[0] = new String(E2EEHandler.decryptText(itemView.getContext(),
+                                    keystoreAlias, extractedText));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -88,11 +89,11 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                 }
             });
             thread.start();
-//            try {
-//                thread.join();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
+            try {
+                thread.join();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         if(searchString != null && !searchString.isEmpty() && text[0] != null) {

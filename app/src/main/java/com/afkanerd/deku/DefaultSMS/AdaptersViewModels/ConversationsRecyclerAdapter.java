@@ -71,10 +71,21 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         this.context = context;
         this.mutableSelectedItems = new MutableLiveData<>();
 
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
+                    secured = E2EEHandler.canCommunicateSecurely(context, keystoreAlias);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
         try {
-            String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
-            secured = E2EEHandler.canCommunicateSecurely(context, keystoreAlias);
-        } catch (Exception e) {
+            thread.join();
+        }catch (Exception e) {
             e.printStackTrace();
         }
     }

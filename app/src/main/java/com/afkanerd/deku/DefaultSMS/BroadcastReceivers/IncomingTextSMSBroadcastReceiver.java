@@ -50,20 +50,13 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     - How is matched to users stored without country code?
      */
 
-    Conversation globalConversation;
-    ConversationDao conversationDao;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
-        globalConversation = new Conversation();
-        conversationDao = globalConversation.getDaoInstance(context);
-
-        Log.d(getClass().getName(), "Broadcast sms received: " + intent.getAction());
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
-                Log.d(getClass().getName(), "Yes incoming sms message");
                 try {
                     final String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_text(context, intent);
                     if(regIncomingOutput != null) {
@@ -88,8 +81,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                                 conversation.setDate(date);
                                 conversation.setDate_sent(dateSent);
 
-                                conversationDao.insert(conversation);
-                                globalConversation.close();
+                                conversation.getDaoInstance(context).insert(conversation);
+                                conversation.close();
 
                                 Intent broadcastIntent = new Intent(SMS_DELIVER_ACTION);
                                 broadcastIntent.putExtra(Conversation.ID, messageId);
@@ -119,6 +112,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
+                    Conversation conversation1 = new Conversation();
+                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
                     Conversation conversation = conversationDao.getMessage(id);
 
                     if(conversation == null)
@@ -136,7 +131,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         }
                     }
                     conversationDao.update(conversation);
-                    globalConversation.close();
+                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -154,7 +149,10 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
+                    Conversation conversation1 = new Conversation();
+                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
                     Conversation conversation = conversationDao.getMessage(id);
+
                     if (getResultCode() == Activity.RESULT_OK) {
                         NativeSMSDB.Outgoing.register_delivered(context, id);
                         conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
@@ -165,7 +163,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                                     + getResultCode());
                     }
                     conversationDao.update(conversation);
-                    globalConversation.close();
+                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -184,7 +182,10 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
+                    Conversation conversation1 = new Conversation();
+                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
                     Conversation conversation = conversationDao.getMessage(id);
+
                     if (getResultCode() == Activity.RESULT_OK) {
                         conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_NONE);
                     } else {
@@ -195,7 +196,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                                     + getResultCode());
                     }
                     conversationDao.update(conversation);
-                    globalConversation.close();
+                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -210,7 +211,10 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
+                    Conversation conversation1 = new Conversation();
+                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
                     Conversation conversation = conversationDao.getMessage(id);
+
                     if (getResultCode() == Activity.RESULT_OK) {
                         conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
                     } else {
@@ -221,8 +225,9 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                             Log.d(getClass().getName(), "Broadcast received Failed to deliver: "
                                     + getResultCode());
                     }
+
                     conversationDao.update(conversation);
-                    globalConversation.close();
+                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -232,9 +237,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 }
             }).start();
         }
-
-        globalConversation.close();
-
     }
 
 

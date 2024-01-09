@@ -135,7 +135,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     public void onDestroy() {
         super.onDestroy();
-        conversation.close();
     }
 
     private void fragmentManagement() {
