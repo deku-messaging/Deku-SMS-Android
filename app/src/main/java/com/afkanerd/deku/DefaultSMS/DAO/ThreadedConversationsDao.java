@@ -37,8 +37,9 @@ public interface ThreadedConversationsDao {
             "Conversation.text as snippet, " +
             "Conversation.thread_id, " +
             "Conversation.date, Conversation.type, Conversation.read, " +
-            "0 as msg_count, ThreadedConversations.is_archived, ThreadedConversations.is_blocked, " +
-            "ThreadedConversations.is_read, ThreadedConversations.is_shortcode " +
+            "ThreadedConversations.msg_count, ThreadedConversations.is_archived, " +
+            "ThreadedConversations.is_blocked, ThreadedConversations.is_read, " +
+            "ThreadedConversations.is_shortcode, ThreadedConversations.contact_name " +
             "FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")

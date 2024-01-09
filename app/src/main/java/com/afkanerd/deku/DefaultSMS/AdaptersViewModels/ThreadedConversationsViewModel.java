@@ -256,21 +256,20 @@ public class ThreadedConversationsViewModel extends ViewModel {
                             continue;
                         threadedConversations.setThread_id(cursor.getString(threadIdIndex));
                         if(threadIds.contains(threadedConversations.getThread_id())) {
-                            threadedConversations.setSnippet(threadedDraftsList.get(threadIds
-                                            .indexOf(threadedConversations.getThread_id()))
-                                    .getSnippet());
-                            threadedConversations.setType(threadedDraftsList.get(threadIds
-                                            .indexOf(threadedConversations.getThread_id()))
-                                    .getType());
+                            ThreadedConversations tc = threadedDraftsList.get(
+                                    threadIds.indexOf(threadedConversations.getThread_id()));
+                            threadedConversations.setSnippet(tc.getSnippet());
+                            threadedConversations.setType(tc.getType());
+                            threadedConversations.setDate(tc.getDate());
                         }
                         else {
                             threadedConversations.setSnippet(cursor.getString(snippetIndex));
                             threadedConversations.setType(cursor.getInt(typeIndex));
+                            threadedConversations.setDate(cursor.getString(dateIndex));
                         }
                         String contactName = Contacts.retrieveContactName(context,
                                 threadedConversations.getAddress());
                         threadedConversations.setContact_name(contactName);
-                        threadedConversations.setDate(cursor.getString(dateIndex));
                         threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
 
                         threadedConversationsList.add(threadedConversations);
