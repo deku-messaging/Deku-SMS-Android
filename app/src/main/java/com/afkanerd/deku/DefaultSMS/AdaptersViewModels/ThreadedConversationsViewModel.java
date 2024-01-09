@@ -6,6 +6,7 @@ import android.provider.Telephony;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
@@ -35,6 +36,9 @@ public class ThreadedConversationsViewModel extends ViewModel {
     boolean enablePlaceholder = false;
     int initialLoadSize = 2 * pageSize;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
+
+    MutableLiveData<Integer> inboxCount = new MutableLiveData<>();
+    MutableLiveData<Integer> draftsCount = new MutableLiveData<>();
 
     ThreadsPagingSource threadsPagingSource;
 
@@ -293,6 +297,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     cursor.close();
                 }
                 threadedConversationsDao.insertAll(threadedConversationsList);
+                inboxCount.postValue(threadedConversationsList.size());
+                draftsCount.postValue(threadIds.size());
             }
         }).start();
     }

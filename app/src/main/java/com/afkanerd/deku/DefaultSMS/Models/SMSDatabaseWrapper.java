@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
 
@@ -38,15 +39,15 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
                 transmissionAddress, conversation.getText(),
                 conversation.getSubscription_id(), bundle);
 
-        conversation.setThread_id(nativeOutputs[NativeSMSDB.THREAD_ID]);
+//        conversation.setThread_id(nativeOutputs[NativeSMSDB.THREAD_ID]);
     }
 
-    public static String saveDraft(Context context, Conversation conversation) {
-
+    public static void saveDraft(Context context, Conversation conversation) {
+        Log.d(SMSDatabaseWrapper.class.getName(), "Saving draft: " + conversation.getText());
         String[] outputs = NativeSMSDB.Outgoing.register_drafts(context, conversation.getMessage_id(),
                 conversation.getAddress(), conversation.getText(), conversation.getSubscription_id());
 
-        return outputs[NativeSMSDB.THREAD_ID];
+//        return outputs[NativeSMSDB.THREAD_ID];
     }
 
     public static void deleteDraft(Context context, String threadId) {

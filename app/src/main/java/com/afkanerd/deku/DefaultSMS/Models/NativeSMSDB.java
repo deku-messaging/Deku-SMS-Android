@@ -131,12 +131,12 @@ public class NativeSMSDB {
                 null,
                 null,
                 null);
+        Log.d(NativeSMSDB.class.getName(), "Parsing draft information: " + cursor.getCount());
 
         if (cursor.moveToFirst()) {
             String threadId = cursor.getString(
                     cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID));
-            String messageId = cursor.getString(
-                    cursor.getColumnIndexOrThrow(Telephony.Sms._ID));
+            String messageId = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms._ID));
             cursor.close();
             return new String[]{threadId, messageId};
         }
@@ -296,6 +296,7 @@ public class NativeSMSDB {
             Uri uri = context.getContentResolver().insert(
                     Telephony.Sms.CONTENT_URI,
                     contentValues);
+            Log.d(NativeSMSDB.class.getName(), "Saving native drafts: " + uri.toString());
             return parseNewIncomingUriForThreadInformation(context, uri);
         }
 

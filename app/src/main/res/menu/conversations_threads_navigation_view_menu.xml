@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <group
         android:id="@+id/navigation_view_menu_id"
         android:checkableBehavior="single">
         <item
             android:id="@+id/navigation_view_menu_inbox"
+            android:checked="true"
             android:icon="@drawable/round_inbox_24"
-            android:title="@string/conversations_navigation_view_inbox"/>
+            android:title="@string/conversations_navigation_view_inbox" />
 
         <item
             android:id="@+id/navigation_view_menu_drafts"
             android:icon="@drawable/round_drafts_24"
-            android:title="@string/conversations_navigation_view_drafts"/>
+            android:title="@string/conversations_navigation_view_drafts" />
     </group>
 
 </menu>

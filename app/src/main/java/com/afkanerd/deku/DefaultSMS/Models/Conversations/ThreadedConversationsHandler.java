@@ -3,35 +3,34 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.provider.Telephony;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 
 public class ThreadedConversationsHandler {
+
+    public static ThreadedConversations get(Context context, String address) {
+        long threadId = Telephony.Threads.getOrCreateThreadId(context, address);
+        ThreadedConversations threadedConversations = new ThreadedConversations();
+        threadedConversations.setAddress(address);
+        threadedConversations.setThread_id(String.valueOf(threadId));
+        return threadedConversations;
+    }
 
     public static ThreadedConversations get(Context context, ThreadedConversations threadedConversations) throws InterruptedException {
         final ThreadedConversations[] threadedConversations1 = {threadedConversations};
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                ThreadedConversationsDao threadedConversationsDao = threadedConversations.getDaoInstance(context);
-                if(threadedConversations.getThread_id() != null &&
-                        !threadedConversations.getThread_id().isEmpty())
-                    threadedConversations1[0] =
-                            threadedConversationsDao.get(threadedConversations.getThread_id());
-                else if(threadedConversations.getAddress() != null &&
-                        !threadedConversations.getAddress().isEmpty()) {
-//                    threadedConversations1[0] =
-//                            threadedConversationsDao.getByAddress(threadedConversations.getAddress());
-                    ThreadedConversations threadedConversation =
-                            threadedConversationsDao.getByAddress(threadedConversations.getAddress());
-                    if(threadedConversation != null )
-                        threadedConversations1[0] = threadedConversation;
-                }
+                ThreadedConversationsDao threadedConversationsDao =
+                        threadedConversations.getDaoInstance(context);
+                threadedConversations1[0] = threadedConversationsDao
+                        .get(threadedConversations.getThread_id());
+                threadedConversations.close();
             }
         });
         thread.start();
         thread.join();
-        threadedConversations.close();
 
         return threadedConversations1[0];
     }

@@ -237,7 +237,7 @@ public class ConversationActivity extends E2EECompactActivity {
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setAddress(getIntent().getStringExtra(Conversation.ADDRESS));
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
-                    threadedConversations);
+                    getIntent().getStringExtra(Conversation.ADDRESS));
         }
 
         final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
@@ -289,7 +289,8 @@ public class ConversationActivity extends E2EECompactActivity {
         linearLayoutManager.setReverseLayout(true);
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 
-        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext());
+        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
+                threadedConversations.getAddress());
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);

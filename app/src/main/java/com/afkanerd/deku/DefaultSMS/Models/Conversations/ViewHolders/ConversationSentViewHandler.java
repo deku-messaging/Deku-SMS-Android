@@ -78,7 +78,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         return this.id;
     }
 
-    public void bind(Conversation conversation, String searchString) {
+    public void bind(Conversation conversation, String searchString, boolean secured) {
         this.id = conversation.getId();
         this.message_id = conversation.getMessage_id();
 
@@ -120,26 +120,27 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         sentMessageStatus.setText(statusMessage);
 
         final String[] text = {conversation.getText()};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
-                    if(E2EEHandler.canCommunicateSecurely(itemView.getContext(), keystoreAlias) &&
-                            E2EEHandler.isValidDekuText(text[0])) {
-                        byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
-                        text[0] = new String(E2EEHandler.decryptText(itemView.getContext(), keystoreAlias, extractedText));
+        if(secured) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (E2EEHandler.isValidDekuText(text[0])) {
+                            String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
+                            byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
+                            text[0] = new String(E2EEHandler.decryptText(itemView.getContext(), keystoreAlias, extractedText));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
-            }
-        });
-        thread.start();
-        try {
-            thread.join();
-        } catch(Exception e) {
-            e.printStackTrace();
+            });
+            thread.start();
+            //        try {
+            //            thread.join();
+            //        } catch(Exception e) {
+            //            e.printStackTrace();
+            //        }
         }
 
         if(searchString != null && !searchString.isEmpty() && text[0] != null) {
@@ -206,8 +207,8 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         }
 
         @Override
-        public void bind(Conversation conversation, String searchString) {
-            super.bind(conversation, searchString);
+        public void bind(Conversation conversation, String searchString, boolean secured) {
+            super.bind(conversation, searchString, secured);
             sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title_requested));
             sentMessage.setTextAppearance(R.style.key_request_initiated);
         }

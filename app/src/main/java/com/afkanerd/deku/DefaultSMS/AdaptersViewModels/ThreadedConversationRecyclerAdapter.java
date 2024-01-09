@@ -20,6 +20,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedCon
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 
 
 import java.util.HashMap;

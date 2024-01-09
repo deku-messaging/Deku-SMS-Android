@@ -22,6 +22,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.Conversatio
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationSentViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -63,10 +64,19 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     ConversationSentViewHandler lastSentItem;
     ConversationReceivedViewHandler lastReceivedItem;
 
-    public ConversationsRecyclerAdapter(Context context) throws GeneralSecurityException, IOException {
+    boolean secured = false;
+
+    public ConversationsRecyclerAdapter(Context context, String address) throws GeneralSecurityException, IOException {
         super(Conversation.DIFF_CALLBACK);
         this.context = context;
         this.mutableSelectedItems = new MutableLiveData<>();
+
+        try {
+            String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
+            secured = E2EEHandler.canCommunicateSecurely(context, keystoreAlias);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @NonNull
@@ -159,7 +169,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         if(holder instanceof ConversationReceivedViewHandler) {
             ConversationReceivedViewHandler conversationReceivedViewHandler = (ConversationReceivedViewHandler) holder;
-            conversationReceivedViewHandler.bind(conversation, searchString);
+            conversationReceivedViewHandler.bind(conversation, searchString, secured);
             if(holder.getAbsoluteAdapterPosition() == 0) {
                 if(lastReceivedItem != null)
                     lastReceivedItem.hideDetails();
@@ -170,7 +180,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         else if(holder instanceof ConversationSentViewHandler){
             ConversationSentViewHandler conversationSentViewHandler = (ConversationSentViewHandler) holder;
-            conversationSentViewHandler.bind(conversation, searchString);
+            conversationSentViewHandler.bind(conversation, searchString, secured);
             if(holder.getAbsoluteAdapterPosition() == 0 ) {
                 if(lastSentItem != null)
                     lastSentItem.hideDetails();

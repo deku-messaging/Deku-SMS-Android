@@ -62,6 +62,9 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     ThreadedConversations threadedConversations = new ThreadedConversations();
 
     MaterialToolbar toolbar;
+
+    NavigationView navigationView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,12 +89,18 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     public void configureNavigationBar() {
-        NavigationView navigationView = findViewById(R.id.conversations_threads_navigation_view);
+        navigationView = findViewById(R.id.conversations_threads_navigation_view);
         View view = getLayoutInflater().inflate(R.layout.header_navigation_drawer, null);
         TextView textView = view.findViewById(R.id.conversations_threads_navigation_view_version_number);
         textView.setText(BuildConfig.VERSION_NAME);
 
         navigationView.addHeaderView(view);
+
+        MenuItem draftMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_drafts);
+        MenuItem inboxMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_inbox);
+
+        String inboxTitle = "0";
+
 
         DrawerLayout drawerLayout = findViewById(R.id.conversations_drawer);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {

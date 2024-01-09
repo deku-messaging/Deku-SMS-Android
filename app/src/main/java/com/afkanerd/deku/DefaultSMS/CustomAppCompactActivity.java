@@ -247,6 +247,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             Conversation conversation = new Conversation();
             conversation.setMessage_id(messageId);
             conversation.setText(text);
+            conversation.setThread_id(threadedConversations.getThread_id());
             conversation.setSubscription_id(subscriptionId);
             conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
             conversation.setDate(String.valueOf(System.currentTimeMillis()));
@@ -259,10 +260,10 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     @Override
                     public void run() {
                         try {
-                            long id = conversationsViewModel.insert(conversation);
+                            conversationsViewModel.insert(conversation);
                             SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, null);
-                            conversationsViewModel.updateThreadId(conversation.getThread_id(),
-                                    _messageId, id);
+//                            conversationsViewModel.updateThreadId(conversation.getThread_id(),
+//                                    _messageId, id);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -280,6 +281,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     public void run() {
                         Conversation conversation = new Conversation();
                         conversation.setMessage_id(messageId);
+                        conversation.setThread_id(threadedConversations.getThread_id());
                         conversation.setText(text);
                         conversation.setRead(true);
                         conversation.setType(Telephony.Sms.MESSAGE_TYPE_DRAFT);
@@ -287,9 +289,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         conversation.setAddress(threadedConversations.getAddress());
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
                         try {
-                            String threadId = SMSDatabaseWrapper.saveDraft(getApplicationContext(),
-                                    conversation);
-                            conversation.setThread_id(threadId);
                             conversationsViewModel.insert(conversation);
 
                             ThreadedConversations tc =
@@ -298,6 +297,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                     tc.getDaoInstance(getApplicationContext());
                             threadedConversationsDao.insert(tc);
                             tc.close();
+
+                            SMSDatabaseWrapper.saveDraft(getApplicationContext(), conversation);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
