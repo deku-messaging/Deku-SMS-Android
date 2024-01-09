@@ -99,10 +99,10 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
 
     public void markThreadRead(ThreadedConversations threadedConversations) {
         if(threadedConversationsDao != null) {
-            threadedConversations.setIs_read(true);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    threadedConversations.setIs_read(true);
                     threadedConversationsDao.update(threadedConversations);
                 }
             }).start();
@@ -136,7 +136,7 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                     }
                 }
 
-//                markThreadRead(threadedConversations);
+                markThreadRead(threadedConversations);
 
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);

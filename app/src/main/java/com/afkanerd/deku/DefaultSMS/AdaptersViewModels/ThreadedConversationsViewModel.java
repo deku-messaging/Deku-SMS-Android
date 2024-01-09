@@ -249,7 +249,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                         int dateIndex = cursor.getColumnIndex("date");
                         int threadIdIndex = cursor.getColumnIndex("thread_id");
                         int typeIndex = cursor.getColumnIndex("type");
-                        int readIndex = cursor.getColumnIndex("read");
+//                        int readIndex = cursor.getColumnIndex("read");
 
                         threadedConversations.setAddress(cursor.getString(recipientIdIndex));
                         if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
@@ -270,7 +270,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                         String contactName = Contacts.retrieveContactName(context,
                                 threadedConversations.getAddress());
                         threadedConversations.setContact_name(contactName);
-                        threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
+//                        threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
 
                         threadedConversationsList.add(threadedConversations);
                     } while(cursor.moveToNext());

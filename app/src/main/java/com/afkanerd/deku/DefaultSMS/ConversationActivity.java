@@ -136,14 +136,6 @@ public class ConversationActivity extends E2EECompactActivity {
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
 
-        try {
-            conversationsViewModel.updateToRead(getApplicationContext());
-        } catch (Exception e) {
-            e.printStackTrace();
-            startActivity(new Intent(this, ThreadedConversationsActivity.class));
-            finish();
-        }
-
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -499,6 +491,11 @@ public class ConversationActivity extends E2EECompactActivity {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+        try {
+            conversationsViewModel.updateToRead(getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
