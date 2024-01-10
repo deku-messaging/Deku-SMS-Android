@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Fragments.DraftsFragments;
+import com.afkanerd.deku.DefaultSMS.Fragments.EncryptionFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
@@ -99,15 +100,18 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
         MenuItem draftMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_drafts);
         MenuItem inboxMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_inbox);
+        MenuItem encryptedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_encrypted);
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 // 0 = inbox
                 // 1 = drafts
+                // 2 = encryption
                 int[] counts = getThreadedConversationsViewModel().getCount();
                 inboxMenuItem.setTitle(inboxMenuItem.getTitle() + "\t(" + counts[0] + ")");
                 draftMenuItem.setTitle(draftMenuItem.getTitle() + "\t(" + counts[1] + ")");
+                encryptedMenuItem.setTitle(encryptedMenuItem.getTitle() + "\t(" + counts[2] + ")");
             }
         });
         thread.setName("conAc_nav_bar_configs");
@@ -124,15 +128,22 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if(item.getItemId() == R.id.navigation_view_menu_drafts) {
+                if(item.getItemId() == R.id.navigation_view_menu_inbox) {
+                    fragmentManagement();
+                    drawerLayout.close();
+                    return true;
+                } else if(item.getItemId() == R.id.navigation_view_menu_drafts) {
                     fragmentManager.beginTransaction().replace(R.id.view_fragment,
                                     DraftsFragments.class, null, "DRAFT_TAG")
                             .setReorderingAllowed(true)
                             .commit();
                     drawerLayout.close();
                     return true;
-                } else if(item.getItemId() == R.id.navigation_view_menu_inbox) {
-                    fragmentManagement();
+                } else if(item.getItemId() == R.id.navigation_view_menu_encrypted) {
+                    fragmentManager.beginTransaction().replace(R.id.view_fragment,
+                                    EncryptionFragments.class, null, "ENCRYPTED_TAG")
+                            .setReorderingAllowed(true)
+                            .commit();
                     drawerLayout.close();
                     return true;
                 }

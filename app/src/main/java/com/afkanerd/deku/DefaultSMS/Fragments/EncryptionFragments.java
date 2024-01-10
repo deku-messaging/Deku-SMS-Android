@@ -2,20 +2,16 @@ package com.afkanerd.deku.DefaultSMS.Fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 
 import com.afkanerd.deku.DefaultSMS.R;
-import com.google.android.material.navigation.NavigationView;
 
-public class DraftsFragments extends ThreadedConversationsFragment {
-    public DraftsFragments() {
+public class EncryptionFragments extends ThreadedConversationsFragment {
+    public EncryptionFragments() {
 
     }
 
@@ -23,16 +19,15 @@ public class DraftsFragments extends ThreadedConversationsFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Bundle bundle = new Bundle();
-        bundle.putString(ThreadedConversationsFragment.MESSAGES_THREAD_FRAGMENT_TYPE, DRAFTS_MESSAGE_TYPES);
+        bundle.putString(ThreadedConversationsFragment.MESSAGES_THREAD_FRAGMENT_TYPE, ENCRYPTED_MESSAGES_THREAD_FRAGMENT);
         super.setArguments(bundle);
         return super.onCreateView(inflater, container, savedInstanceState);
-//        return inflater.inflate(R.layout.fragment_homepage, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setLabels(view, getString(R.string.conversations_navigation_view_drafts),
-                getString(R.string.homepage_draft_no_message));
+        setLabels(view, getString(R.string.conversations_navigation_view_encryption),
+                getString(R.string.homepage_encryption_no_message));
     }
 }

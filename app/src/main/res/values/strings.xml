@@ -31,6 +31,7 @@
     <string name="homepage_menu_routed">Message Forwarding</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="homepage_draft_no_message">Nothing in Drafts</string>
+    <string name="homepage_encryption_no_message">No Encrypted Communications contacts</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
     <string name="gateway_server_listing_toolbar_title">SMS routing Gateways</string>
     <string name="gateway_client_listing_toolbar_title">SMS listening Gateways</string>
@@ -207,6 +208,7 @@
     <string name="sample_date" translatable="false">9:26 AM . MTN</string>
 
     <string name="conversations_navigation_view_drafts">Drafts</string>
+    <string name="conversations_navigation_view_encryption">Encrypted</string>
     <string name="conversations_navigation_view_folders_label">Folders</string>
     <string name="conversations_navigation_view_inbox">Inbox</string>
 

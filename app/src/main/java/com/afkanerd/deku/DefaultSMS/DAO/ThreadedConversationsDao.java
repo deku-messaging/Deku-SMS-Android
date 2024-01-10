@@ -33,6 +33,13 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getAllWithoutArchived();
 
+    @Query("SELECT COUNT(ThreadedConversations.thread_id) FROM ThreadedConversations WHERE " +
+            "is_archived = 0 AND is_read = 0 ORDER BY date DESC")
+    int getAllUnreadWithoutArchivedCount();
+
+    @Query("SELECT COUNT(ConversationsThreadsEncryption.id) FROM ConversationsThreadsEncryption")
+    int getAllEncryptedCount();
+
     @Query("SELECT Conversation.address, " +
             "Conversation.text as snippet, " +
             "Conversation.thread_id, " +
@@ -55,6 +62,12 @@ public interface ThreadedConversationsDao {
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
     List<ThreadedConversations> getThreadedDraftsList(int type);
+
+    @Query("SELECT COUNT(ThreadedConversations.thread_id) " +
+            "FROM Conversation, ThreadedConversations WHERE " +
+            "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
+            "ORDER BY Conversation.date DESC")
+    int getThreadedDraftsListCount(int type);
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")
     ThreadedConversations get(String thread_id);

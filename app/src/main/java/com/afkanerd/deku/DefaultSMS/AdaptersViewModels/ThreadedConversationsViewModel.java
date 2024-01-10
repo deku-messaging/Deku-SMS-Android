@@ -287,8 +287,10 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public int[] getCount() {
-        List<ThreadedConversations> threadedDraftsList = threadedConversationsDao
-                .getThreadedDraftsList( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
-        return new int[]{0, threadedDraftsList.size()};
+        int unreadInboxCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
+        int draftsListCount = threadedConversationsDao
+                .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+        int encryptedCount = threadedConversationsDao.getAllEncryptedCount();
+        return new int[]{unreadInboxCount, draftsListCount, encryptedCount};
     }
 }
