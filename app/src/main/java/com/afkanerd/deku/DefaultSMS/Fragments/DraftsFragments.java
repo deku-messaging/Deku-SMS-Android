@@ -2,6 +2,8 @@ package com.afkanerd.deku.DefaultSMS.Fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -10,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.afkanerd.deku.DefaultSMS.R;
+import com.google.android.material.navigation.NavigationView;
 
 public class DraftsFragments extends ThreadedConversationsFragment {
     public DraftsFragments() {
@@ -31,5 +34,14 @@ public class DraftsFragments extends ThreadedConversationsFragment {
         super.onViewCreated(view, savedInstanceState);
         setLabels(view, getString(R.string.conversations_navigation_view_drafts),
                 getString(R.string.homepage_draft_no_message));
+
+//        NavigationView navigationView =
+//                getActivity().findViewById(R.id.conversations_threads_navigation_view);
+//        Menu menu = navigationView.getMenu();
+//        for(int i=0;i<menu.size(); ++i) {
+//            MenuItem menuItem = menu.getItem(i);
+//            if(menuItem.isCheckable() && menuItem.getItemId() != R.id.navigation_view_menu_drafts )
+//                menuItem.setChecked(false);
+//        }
     }
 }

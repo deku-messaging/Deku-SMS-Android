@@ -14,4 +14,6 @@
 
     <color name="colorPrimary">@color/logo_third</color>
     <color name="colorSecondary">@color/logo_secondary</color>
+
+    <color name="colorNavBar">@color/black</color>
 </resources>

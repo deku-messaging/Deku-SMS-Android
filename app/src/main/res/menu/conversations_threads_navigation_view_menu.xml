@@ -5,16 +5,32 @@
     <group
         android:id="@+id/navigation_view_menu_id"
         android:checkableBehavior="single">
+
         <item
-            android:id="@+id/navigation_view_menu_inbox"
             android:checked="true"
+            android:id="@+id/navigation_view_menu_inbox"
             android:icon="@drawable/round_inbox_24"
             android:title="@string/conversations_navigation_view_inbox" />
 
         <item
-            android:id="@+id/navigation_view_menu_drafts"
-            android:icon="@drawable/round_drafts_24"
-            android:title="@string/conversations_navigation_view_drafts" />
+            android:id="@+id/navigation_view_menu_id_folders"
+            android:title="@string/conversations_navigation_view_folders_label">
+            <menu>
+                <group
+                    android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/navigation_view_menu_drafts"
+                        android:icon="@drawable/twotone_folder_24"
+                        android:title="@string/conversations_navigation_view_drafts" />
+
+                    <item
+                        android:id="@+id/navigation_view_menu_encrypted"
+                        android:icon="@drawable/twotone_folder_24"
+                        android:title="@string/homepage_fragment_tab_encrypted" />
+                </group>
+            </menu>
+        </item>
+
     </group>
 
 </menu>

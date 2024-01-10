@@ -207,6 +207,7 @@
     <string name="sample_date" translatable="false">9:26 AM . MTN</string>
 
     <string name="conversations_navigation_view_drafts">Drafts</string>
+    <string name="conversations_navigation_view_folders_label">Folders</string>
     <string name="conversations_navigation_view_inbox">Inbox</string>
 
     <string name="configs_load_natives" translatable="false">LOAD NATIVES</string>

@@ -100,8 +100,18 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         MenuItem draftMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_drafts);
         MenuItem inboxMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_inbox);
 
-        String inboxTitle = "0";
-
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // 0 = inbox
+                // 1 = drafts
+                int[] counts = getThreadedConversationsViewModel().getCount();
+                inboxMenuItem.setTitle(inboxMenuItem.getTitle() + "\t(" + counts[0] + ")");
+                draftMenuItem.setTitle(draftMenuItem.getTitle() + "\t(" + counts[1] + ")");
+            }
+        });
+        thread.setName("conAc_nav_bar_configs");
+        thread.start();
 
         DrawerLayout drawerLayout = findViewById(R.id.conversations_drawer);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -119,12 +129,10 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                                     DraftsFragments.class, null, "DRAFT_TAG")
                             .setReorderingAllowed(true)
                             .commit();
-                    item.setChecked(true);
                     drawerLayout.close();
                     return true;
                 } else if(item.getItemId() == R.id.navigation_view_menu_inbox) {
                     fragmentManagement();
-                    item.setChecked(true);
                     drawerLayout.close();
                     return true;
                 }

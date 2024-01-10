@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:theme="@style/Theme.main"
-    android:windowTranslucentStatus="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ThreadedConversationsActivity">
@@ -23,22 +22,8 @@
             android:layout_height="match_parent"
             android:fitsSystemWindows="true">
 
-            <com.google.android.material.appbar.AppBarLayout
-                style="@style/Widget.MaterialComponents.AppBarLayout.PrimarySurface"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fitsSystemWindows="true">
-
-                <com.google.android.material.appbar.MaterialToolbar
-                    android:id="@+id/conversation_threads_toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:theme="@style/Theme.main"
-                    app:navigationIcon="@drawable/round_menu_24"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-            </com.google.android.material.appbar.AppBarLayout>
+            <include
+                layout="@layout/conversation_threads_toolbar"/>
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/conversations_threads_constraint_layout"

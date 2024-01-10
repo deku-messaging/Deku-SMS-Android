@@ -285,4 +285,10 @@ public class ThreadedConversationsViewModel extends ViewModel {
             }
         }).start();
     }
+
+    public int[] getCount() {
+        List<ThreadedConversations> threadedDraftsList = threadedConversationsDao
+                .getThreadedDraftsList( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+        return new int[]{0, threadedDraftsList.size()};
+    }
 }

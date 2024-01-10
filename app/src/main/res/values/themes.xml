@@ -2,6 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme.main" parent="Theme.AppTheme">
 <!--        <item name="android:actionBarStyle">@style/MyActionBarTheme</item>-->
+
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorSecondary">@color/colorSecondary</item>
     </style>

@@ -140,4 +140,5 @@
     <string name="conversations_navigation_view_drafts">Brouillons</string>
     <string name="conversations_navigation_view_inbox">Boîte de réception</string>
     <string name="homepage_draft_no_message">Rien dans les brouillons</string>
+    <string name="conversations_navigation_view_folders_label">Dossiers</string>
 </resources>
