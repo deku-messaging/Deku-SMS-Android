@@ -55,6 +55,17 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
+    public LiveData<PagingData<ThreadedConversations>> getUnread(){
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> this.threadedConversationsDao.getAllUnreadWithoutArchived());
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
     public LiveData<PagingData<ThreadedConversations>> get(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -280,17 +291,23 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     cursor.close();
                 }
                 threadedConversationsDao.insertAll(threadedConversationsList);
-                inboxCount.postValue(threadedConversationsList.size());
-                draftsCount.postValue(threadIds.size());
+                getCount();
             }
         }).start();
     }
 
-    public int[] getCount() {
+    public MutableLiveData<List<Integer>> folderMetrics = new MutableLiveData<>();
+    private void getCount() {
         int unreadInboxCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
         int draftsListCount = threadedConversationsDao
                 .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
         int encryptedCount = threadedConversationsDao.getAllEncryptedCount();
-        return new int[]{unreadInboxCount, draftsListCount, encryptedCount};
+        int unreadCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
+        List<Integer> list = new ArrayList<>();
+        list.add(unreadInboxCount);
+        list.add(draftsListCount);
+        list.add(encryptedCount);
+        list.add(unreadCount);
+        folderMetrics.postValue(list);
     }
 }

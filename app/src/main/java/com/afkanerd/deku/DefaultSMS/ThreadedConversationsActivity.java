@@ -28,6 +28,7 @@ import com.afkanerd.deku.DefaultSMS.Fragments.EncryptionFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
+import com.afkanerd.deku.DefaultSMS.Fragments.UnreadFragments;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
@@ -101,21 +102,21 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         MenuItem draftMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_drafts);
         MenuItem inboxMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_inbox);
         MenuItem encryptedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_encrypted);
+        MenuItem unreadMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_unread);
 
-        Thread thread = new Thread(new Runnable() {
+        threadedConversationsViewModel.folderMetrics.observe(this, new Observer<List<Integer>>() {
             @Override
-            public void run() {
-                // 0 = inbox
-                // 1 = drafts
-                // 2 = encryption
-                int[] counts = getThreadedConversationsViewModel().getCount();
-                inboxMenuItem.setTitle(inboxMenuItem.getTitle() + "\t(" + counts[0] + ")");
-                draftMenuItem.setTitle(draftMenuItem.getTitle() + "\t(" + counts[1] + ")");
-                encryptedMenuItem.setTitle(encryptedMenuItem.getTitle() + "\t(" + counts[2] + ")");
+            public void onChanged(List<Integer> integers) {
+//                inboxMenuItem.setTitle(getString(R.string.conversations_navigation_view_inbox)
+//                        + "(" + integers.get(0) + ")");
+                draftMenuItem.setTitle(getString(R.string.conversations_navigation_view_drafts)
+                        + "(" + integers.get(1) + ")");
+                encryptedMenuItem.setTitle(getString(R.string.homepage_fragment_tab_encrypted)
+                        + "(" + integers.get(2) + ")");
+                unreadMenuItem.setTitle(getString(R.string.conversations_navigation_view_unread)
+                        + "(" + integers.get(3) + ")");
             }
         });
-        thread.setName("conAc_nav_bar_configs");
-        thread.start();
 
         DrawerLayout drawerLayout = findViewById(R.id.conversations_drawer);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -142,6 +143,13 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 } else if(item.getItemId() == R.id.navigation_view_menu_encrypted) {
                     fragmentManager.beginTransaction().replace(R.id.view_fragment,
                                     EncryptionFragments.class, null, "ENCRYPTED_TAG")
+                            .setReorderingAllowed(true)
+                            .commit();
+                    drawerLayout.close();
+                    return true;
+                } else if(item.getItemId() == R.id.navigation_view_menu_unread) {
+                    fragmentManager.beginTransaction().replace(R.id.view_fragment,
+                                    UnreadFragments.class, null, "UNREAD_TAG")
                             .setReorderingAllowed(true)
                             .commit();
                     drawerLayout.close();

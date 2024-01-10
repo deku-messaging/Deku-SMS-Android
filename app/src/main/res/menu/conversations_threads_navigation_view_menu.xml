@@ -19,6 +19,10 @@
                 <group
                     android:checkableBehavior="single">
                     <item
+                        android:id="@+id/navigation_view_menu_unread"
+                        android:icon="@drawable/twotone_folder_24"
+                        android:title="@string/conversations_navigation_view_unread" />
+                    <item
                         android:id="@+id/navigation_view_menu_drafts"
                         android:icon="@drawable/twotone_folder_24"
                         android:title="@string/conversations_navigation_view_drafts" />

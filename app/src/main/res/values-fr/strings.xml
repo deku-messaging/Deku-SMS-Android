@@ -143,4 +143,6 @@
     <string name="homepage_draft_no_message">Rien dans les brouillons</string>
     <string name="conversations_navigation_view_folders_label">Dossiers</string>
     <string name="homepage_encryption_no_message">Aucun contact de communication crypté</string>
+    <string name="conversations_navigation_view_unread">Non lu</string>
+    <string name="homepage_unread_no_message">Aucun message non lu</string>
 </resources>

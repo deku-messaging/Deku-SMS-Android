@@ -63,6 +63,7 @@ public class ThreadedConversationsFragment extends Fragment {
     public static final String ENCRYPTED_MESSAGES_THREAD_FRAGMENT = "ENCRYPTED_MESSAGES_THREAD_FRAGMENT";
 
     public static final String DRAFTS_MESSAGE_TYPES = "DRAFTS_MESSAGE_TYPES";
+    public static final String UNREAD_MESSAGE_TYPES = "UNREAD_MESSAGE_TYPES";
 
     public static final String AUTOMATED_MESSAGES_THREAD_FRAGMENT = "AUTOMATED_MESSAGES_THREAD_FRAGMENT";
 
@@ -305,19 +306,15 @@ public class ThreadedConversationsFragment extends Fragment {
                     e.printStackTrace();
                 }
                 break;
-            case PLAIN_MESSAGES_THREAD_FRAGMENT:
-                try {
-                    threadedConversationsViewModel.getNotEncrypted(getContext()).observe(getViewLifecycleOwner(),
-                            new Observer<PagingData<ThreadedConversations>>() {
-                                @Override
-                                public void onChanged(PagingData<ThreadedConversations> smsList) {
-                                    threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                    view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
-                                }
-                            });
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            case UNREAD_MESSAGE_TYPES:
+                threadedConversationsViewModel.getUnread().observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
                 break;
             case DRAFTS_MESSAGE_TYPES:
                 threadedConversationsViewModel.getDrafts().observe(getViewLifecycleOwner(),
