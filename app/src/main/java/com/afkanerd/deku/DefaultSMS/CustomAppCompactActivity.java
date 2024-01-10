@@ -56,47 +56,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             startActivity(new Intent(this, DefaultCheckActivity.class));
             finish();
         }
-
-        loadConversationsNativesBg();
-        startServices();
-//        new Thread(new Runnable() {
-//            @Override
-//            protected void run() {
-//                SharedPreferences sharedPreferences =
-//                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//                if(sharedPreferences.getBoolean(LOAD_NATIVES, true)) {
-//                    loadConversationsNativesBg();
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        protected void run() {
-//                            Toast.makeText(getApplicationContext(),
-//                                    getString(R.string.threading_conversations_natives_loaded), Toast.LENGTH_LONG).show();
-//                        }
-//                    });
-//                }
-//            }
-//        }).start();
-    }
-
-    private void loadConversationsNativesBg() {
-//        Constraints constraints = new Constraints.Builder()
-//                .build();
-//        OneTimeWorkRequest routeMessageWorkRequest =
-//                new OneTimeWorkRequest.Builder(ConversationWorkManager.class)
-//                .setConstraints(constraints)
-//                .setBackoffCriteria(
-//                        BackoffPolicy.LINEAR,
-//                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-//                        TimeUnit.MILLISECONDS
-//                )
-//                .addTag(TAG_NAME)
-//                .build();
-//
-//        WorkManager workManager = WorkManager.getInstance(getApplicationContext());
-//        workManager.enqueueUniqueWork(
-//                UNIQUE_WORK_NAME,
-//                ExistingWorkPolicy.KEEP,
-//                routeMessageWorkRequest);
     }
     private boolean _checkIsDefaultApp() {
         final String myPackageName = getPackageName();
@@ -138,10 +97,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     if(threadedConversationsViewModel != null) {
                         threadedConversationsViewModel.refresh(context);
                     }
-                } else if(intent.getAction().equals(DRAFT_PRESENT_BROADCAST) &&
-                        threadedConversationsViewModel != null) {
-                    threadedConversationsViewModel.refresh(context);
-                } else {
+                }  else {
                     String messageId = intent.getStringExtra(Conversation.ID);
                     if(conversationsViewModel != null && messageId != null) {
                         new Thread(new Runnable() {
@@ -338,16 +294,5 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
     }
 
 
-    private void startServices() {
-        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        try {
-            gatewayClientHandler.startServices();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            gatewayClientHandler.close();
-        }
-
-    }
 
 }

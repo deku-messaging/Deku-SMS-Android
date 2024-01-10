@@ -249,7 +249,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                         int dateIndex = cursor.getColumnIndex("date");
                         int threadIdIndex = cursor.getColumnIndex("thread_id");
                         int typeIndex = cursor.getColumnIndex("type");
-//                        int readIndex = cursor.getColumnIndex("read");
+                        int readIndex = cursor.getColumnIndex("read");
 
                         threadedConversations.setAddress(cursor.getString(recipientIdIndex));
                         if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
@@ -259,8 +259,11 @@ public class ThreadedConversationsViewModel extends ViewModel {
                             ThreadedConversations tc = threadedDraftsList.get(
                                     threadIds.indexOf(threadedConversations.getThread_id()));
                             threadedConversations.setSnippet(tc.getSnippet());
-                            threadedConversations.setType(tc.getType());
-                            threadedConversations.setDate(tc.getDate());
+                            threadedConversations.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+                            threadedConversations.setDate(
+                                    Long.parseLong(tc.getDate()) >
+                                            Long.parseLong(cursor.getString(dateIndex)) ?
+                                            tc.getDate() : cursor.getString(dateIndex));
                         }
                         else {
                             threadedConversations.setSnippet(cursor.getString(snippetIndex));
@@ -270,7 +273,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                         String contactName = Contacts.retrieveContactName(context,
                                 threadedConversations.getAddress());
                         threadedConversations.setContact_name(contactName);
-//                        threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
+                        threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
 
                         threadedConversationsList.add(threadedConversations);
                     } while(cursor.moveToNext());

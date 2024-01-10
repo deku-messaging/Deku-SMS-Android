@@ -12,8 +12,10 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.Room;
+import androidx.room.RoomDatabase;
 
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 
 @Entity
 public class GatewayServer {
@@ -107,6 +109,7 @@ public class GatewayServer {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .enableMultiInstanceInvalidation()
+                .addMigrations(new Migrations.Migration8To9())
                 .build();
         return databaseConnector.gatewayServerDAO();
     }

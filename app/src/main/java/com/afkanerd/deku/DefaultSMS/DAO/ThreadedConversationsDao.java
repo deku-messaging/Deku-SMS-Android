@@ -84,7 +84,7 @@ public interface ThreadedConversationsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(ThreadedConversations threadedConversations);
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> insertAll(List<ThreadedConversations> threadedConversationsList);
 
     @Update

@@ -68,6 +68,12 @@ public class ThreadedConversationsFragment extends Fragment {
 
     ActionBar actionBar;
 
+    public interface ViewModelsInterface {
+        ThreadedConversationsViewModel getThreadedConversationsViewModel();
+    }
+
+    private ViewModelsInterface viewModelsInterface;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -227,6 +233,8 @@ public class ThreadedConversationsFragment extends Fragment {
         }
     }
 
+    ThreadedConversationsDao threadedConversationsDao;
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Bundle args = getArguments();
@@ -240,12 +248,11 @@ public class ThreadedConversationsFragment extends Fragment {
 
         setLabels(view, getString(R.string.conversations_navigation_view_inbox), getString(R.string.homepage_no_message));
 
-        threadedConversationsViewModel = new ViewModelProvider(this).get(
-                ThreadedConversationsViewModel.class);
-        threadedConversationsViewModel.threadedConversationsDao =
-                threadedConversations.getDaoInstance(getContext());
+        viewModelsInterface = (ViewModelsInterface) view.getContext();
+        threadedConversationsViewModel = viewModelsInterface.getThreadedConversationsViewModel();
+
         threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter( getContext(),
-                threadedConversationsViewModel.threadedConversationsDao);
+                threadedConversationsDao);
         threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<HashMap<Long, ThreadedConversationsTemplateViewHolder>>() {
             @Override
@@ -269,7 +276,7 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(threadedConversationRecyclerAdapter);
-        messagesThreadRecyclerView.setItemViewCacheSize(500);
+//        messagesThreadRecyclerView.setItemViewCacheSize(500);
 
         threadedConversationRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
             @Override
@@ -334,4 +341,5 @@ public class ThreadedConversationsFragment extends Fragment {
                         });
         }
     }
+
 }

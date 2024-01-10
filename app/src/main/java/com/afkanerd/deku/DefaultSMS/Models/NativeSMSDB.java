@@ -23,6 +23,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.annotation.Native;
 import java.util.Collections;
 
 public class NativeSMSDB {
@@ -384,19 +385,16 @@ public class NativeSMSDB {
     public static class Incoming {
 
         public static int update_read(Context context, int read, String thread_id, String messageId) {
+            Log.d(NativeSMSDB.class.getName(), "Native says: " + thread_id);
             ContentValues contentValues = new ContentValues();
-            contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
+            contentValues.put(Telephony.Threads.READ, read);
 
             try {
-                int numberUpdated = context.getContentResolver().update(
+                return context.getContentResolver().update(
                         Telephony.Sms.CONTENT_URI,
                         contentValues,
                         "thread_id=?",
                         new String[]{thread_id});
-
-                if(messageId != null)
-                    broadcastStateChanged(context, messageId);
-                return numberUpdated;
             } catch (Exception e) {
                 e.printStackTrace();
             }

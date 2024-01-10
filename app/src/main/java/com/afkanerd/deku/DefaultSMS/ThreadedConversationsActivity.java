@@ -45,7 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class ThreadedConversationsActivity extends CustomAppCompactActivity {
+public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.ViewModelsInterface {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
     FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -61,6 +61,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity {
 
     NavigationView navigationView;
 
+    ThreadedConversationsDao threadedConversationsDao;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +76,13 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity {
             startActivity(new Intent(this, DefaultCheckActivity.class));
             finish();
         }
+
+        threadedConversationsDao = threadedConversations.getDaoInstance(getApplicationContext());
+
+        threadedConversationsViewModel = new ViewModelProvider(this).get(
+                ThreadedConversationsViewModel.class);
+        threadedConversationsViewModel.threadedConversationsDao = threadedConversationsDao;
+
 
         fragmentManagement();
         configureBroadcastListeners();
@@ -122,11 +131,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity {
                 return false;
             }
         });
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
     }
 
     private void fragmentManagement() {
@@ -207,5 +211,16 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity {
     protected void onResume() {
         super.onResume();
 
+    }
+
+    @Override
+    public ThreadedConversationsViewModel getThreadedConversationsViewModel() {
+        return threadedConversationsViewModel;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        threadedConversations.close();
     }
 }

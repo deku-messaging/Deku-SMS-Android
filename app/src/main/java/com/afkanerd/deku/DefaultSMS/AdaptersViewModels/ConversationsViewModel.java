@@ -190,7 +190,6 @@ public class ConversationsViewModel extends ViewModel {
                     Conversation conversation1 = new Conversation();
                     ConversationDao conversationDao = conversation1.getDaoInstance(context);
 
-                    NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
                     List<Conversation> conversations = conversationDao.getAll(threadId);
                     List<Conversation> updateList = new ArrayList<>();
                     for(Conversation conversation : conversations) {

@@ -41,6 +41,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.snackbar.Snackbar;
@@ -132,11 +133,10 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
 
-        new Thread(new Runnable() {
+        Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -154,7 +154,19 @@ public class ConversationActivity extends E2EECompactActivity {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        thread1.setName("convAc_check_enc");
+        thread1.start();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NativeSMSDB.Incoming.update_read(getApplicationContext(), 1,
+                        threadedConversations.getThread_id(), null);
+            }
+        });
+        thread.setName("convAc_update_read");
+        thread.start();
     }
 
     @Override
@@ -483,8 +495,8 @@ public class ConversationActivity extends E2EECompactActivity {
     boolean isShortCode = false;
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onPause() {
+        super.onPause();
         if (draftMessageId != null && !draftText.isEmpty()) {
             try {
                 saveDraft(draftMessageId, draftText, threadedConversations);
@@ -492,11 +504,14 @@ public class ConversationActivity extends E2EECompactActivity {
                 e.printStackTrace();
             }
         }
+
+
         try {
             conversationsViewModel.updateToRead(getApplicationContext());
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     @Override

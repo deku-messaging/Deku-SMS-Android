@@ -97,18 +97,6 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
         return ThreadedConversationsTemplateViewHolder.getViewType(position, snapshot().getItems());
     }
 
-    public void markThreadRead(ThreadedConversations threadedConversations) {
-        if(threadedConversationsDao != null) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    threadedConversations.setIs_read(true);
-                    threadedConversationsDao.update(threadedConversations);
-                }
-            }).start();
-        }
-    }
-
     @Override
     public void onBindViewHolder(@NonNull ThreadedConversationsTemplateViewHolder holder, int position) {
         ThreadedConversations threadedConversations = getItem(position);
@@ -135,8 +123,6 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                         return;
                     }
                 }
-
-                markThreadRead(threadedConversations);
 
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
