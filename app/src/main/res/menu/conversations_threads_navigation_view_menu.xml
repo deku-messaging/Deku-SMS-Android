@@ -13,6 +13,11 @@
             android:title="@string/conversations_navigation_view_inbox" />
 
         <item
+            android:id="@+id/navigation_view_menu_archive"
+            android:icon="@drawable/round_archive_24"
+            android:title="@string/homepage_menu_archived" />
+
+        <item
             android:id="@+id/navigation_view_menu_id_folders"
             android:title="@string/conversations_navigation_view_folders_label">
             <menu>

@@ -99,8 +99,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
         navigationView.addHeaderView(view);
 
-        MenuItem draftMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_drafts);
         MenuItem inboxMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_inbox);
+        MenuItem draftMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_drafts);
         MenuItem encryptedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_encrypted);
         MenuItem unreadMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_unread);
 
@@ -111,8 +111,10 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 //                        + "(" + integers.get(0) + ")");
                 draftMenuItem.setTitle(getString(R.string.conversations_navigation_view_drafts)
                         + "(" + integers.get(1) + ")");
+
                 encryptedMenuItem.setTitle(getString(R.string.homepage_fragment_tab_encrypted)
                         + "(" + integers.get(2) + ")");
+
                 unreadMenuItem.setTitle(getString(R.string.conversations_navigation_view_unread)
                         + "(" + integers.get(3) + ")");
             }
@@ -147,11 +149,17 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                             .commit();
                     drawerLayout.close();
                     return true;
-                } else if(item.getItemId() == R.id.navigation_view_menu_unread) {
+                }
+                else if(item.getItemId() == R.id.navigation_view_menu_unread) {
                     fragmentManager.beginTransaction().replace(R.id.view_fragment,
                                     UnreadFragments.class, null, "UNREAD_TAG")
                             .setReorderingAllowed(true)
                             .commit();
+                    drawerLayout.close();
+                    return true;
+                }
+                else if(item.getItemId() == R.id.navigation_view_menu_archive) {
+                    startActivity(new Intent(getApplicationContext(), ArchivedMessagesActivity.class));
                     drawerLayout.close();
                     return true;
                 }
