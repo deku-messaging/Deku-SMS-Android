@@ -42,6 +42,11 @@ public interface ThreadedConversationsDao {
             "is_archived = 0 AND read = 0")
     int getAllUnreadWithoutArchivedCount();
 
+    @Query("SELECT COUNT(Conversation.id) FROM Conversation, ThreadedConversations WHERE " +
+            "Conversation.thread_id = ThreadedConversations.thread_id AND " +
+            "is_archived = 0 AND read = 0 AND ThreadedConversations.thread_id IN(:ids)")
+    int getAllUnreadWithoutArchivedCount(List<String> ids);
+
     @Query("SELECT COUNT(ConversationsThreadsEncryption.id) FROM ConversationsThreadsEncryption")
     int getAllEncryptedCount();
 
@@ -92,10 +97,22 @@ public interface ThreadedConversationsDao {
     @Query("UPDATE Conversation SET read = :read")
     int updateAllReadConversation(int read);
 
+    @Query("UPDATE ThreadedConversations SET is_read = :read WHERE thread_id IN(:ids)")
+    int updateAllRead(int read, List<String> ids);
+
+    @Query("UPDATE Conversation SET read = :read WHERE thread_id IN(:ids)")
+    int updateAllReadConversation(int read, List<String> ids);
+
     @Transaction
     default void updateRead(int read) {
         updateAllRead(read);
         updateAllReadConversation(read);
+    }
+
+    @Transaction
+    default void updateRead(int read, List<String> ids) {
+        updateAllRead(read, ids);
+        updateAllReadConversation(read, ids);
     }
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")

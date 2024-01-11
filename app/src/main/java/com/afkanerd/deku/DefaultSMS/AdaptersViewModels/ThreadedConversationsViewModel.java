@@ -340,6 +340,56 @@ public class ThreadedConversationsViewModel extends ViewModel {
         }).start();
     }
 
+    public boolean hasUnread(List<String> ids) {
+        final boolean[] unreads = {false};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                unreads[0] = threadedConversationsDao.getAllUnreadWithoutArchivedCount(ids) > 0;
+            }
+        });
+        thread.start();
+        try {
+            thread.join();
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return unreads[0];
+    }
+
+    public void markUnRead(Context context, List<String> threadIds) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NativeSMSDB.Incoming.update_all_read(context, 0, threadIds.toArray(new String[0]));
+                threadedConversationsDao.updateRead(0, threadIds);
+                refresh(context);
+            }
+        }).start();
+    }
+
+    public void markRead(Context context, List<String> threadIds) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NativeSMSDB.Incoming.update_all_read(context, 1, threadIds.toArray(new String[0]));
+                threadedConversationsDao.updateRead(1, threadIds);
+                refresh(context);
+            }
+        }).start();
+    }
+
+    public void markAllUnRead(Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NativeSMSDB.Incoming.update_all_read(context, 0);
+                threadedConversationsDao.updateRead(0);
+                refresh(context);
+            }
+        }).start();
+    }
+
     public void markAllRead(Context context) {
         new Thread(new Runnable() {
             @Override

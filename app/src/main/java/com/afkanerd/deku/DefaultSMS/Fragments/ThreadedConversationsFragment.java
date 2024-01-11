@@ -105,6 +105,21 @@ public class ThreadedConversationsFragment extends Fragment {
             actionBar.hide();
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(actionModeMenu, menu);
+
+            List<String> threadsIds = new ArrayList<>();
+            for(ThreadedConversationsTemplateViewHolder
+                    threadedConversationsTemplateViewHolder :
+                    threadedConversationRecyclerAdapter.selectedItems.getValue().values())
+                threadsIds.add(threadedConversationsTemplateViewHolder.id);
+            boolean hasUnread = threadedConversationsViewModel.hasUnread(threadsIds);
+            if(hasUnread) {
+                menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(true);
+                menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(false);
+            }
+            else {
+                menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(false);
+                menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(true);
+            }
             return true;
         }
 
@@ -229,6 +244,34 @@ public class ThreadedConversationsFragment extends Fragment {
                     threadedConversationsViewModel.unarchive(archiveList);
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
                     return true;
+                }
+
+                else if(item.getItemId() == R.id.conversations_threads_main_menu_mark_all_unread) {
+                    if(threadedConversationRecyclerAdapter.selectedItems != null &&
+                            threadedConversationRecyclerAdapter.selectedItems.getValue() != null) {
+                        List<String> threadIds = new ArrayList<>();
+                        for (ThreadedConversationsTemplateViewHolder viewHolder :
+                                threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                            threadIds.add(viewHolder.id);
+                        }
+                        threadedConversationsViewModel.markUnRead(getContext(), threadIds);
+                        threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                        return true;
+                    }
+                }
+
+                else if(item.getItemId() == R.id.conversations_threads_main_menu_mark_all_read) {
+                    if(threadedConversationRecyclerAdapter.selectedItems != null &&
+                            threadedConversationRecyclerAdapter.selectedItems.getValue() != null) {
+                        List<String> threadIds = new ArrayList<>();
+                        for (ThreadedConversationsTemplateViewHolder viewHolder :
+                                threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                            threadIds.add(viewHolder.id);
+                        }
+                        threadedConversationsViewModel.markRead(getContext(), threadIds);
+                        threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                        return true;
+                    }
                 }
 
             }

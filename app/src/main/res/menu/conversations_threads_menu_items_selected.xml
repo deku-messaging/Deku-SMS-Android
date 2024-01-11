@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tool="http://schemas.android.com/tools">
     <item
         android:id="@+id/conversations_threads_main_menu_delete"
         android:icon="@drawable/round_delete_24"
@@ -11,4 +12,14 @@
         android:icon="@drawable/round_archive_24"
         android:title="@string/messages_threads_menu_archive"
         app:showAsAction="always" />
+    <item
+        android:visible="false"
+        tool:visible="true"
+        android:id="@+id/conversations_threads_main_menu_mark_all_unread"
+        android:title="@string/homepage_menu_clear_mark_unread"/>
+    <item
+        android:visible="false"
+        tool:visible="true"
+        android:id="@+id/conversations_threads_main_menu_mark_all_read"
+        android:title="@string/homepage_menu_clear_mark_read"/>
 </menu>

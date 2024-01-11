@@ -393,6 +393,24 @@ public class NativeSMSDB {
 
     public static class Incoming {
 
+        public static int update_all_read(Context context, int read, String[] threadId) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Telephony.Sms.READ, read);
+
+            try {
+                return context.getContentResolver().update(
+                        Telephony.Sms.CONTENT_URI,
+                        contentValues,
+                        "thread_id in (" + TextUtils.join(",",
+                                Collections.nCopies(threadId.length, "?")) + ")",
+                        threadId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return 0;
+        }
+
         public static int update_all_read(Context context, int read) {
             ContentValues contentValues = new ContentValues();
             contentValues.put(Telephony.Sms.READ, read);

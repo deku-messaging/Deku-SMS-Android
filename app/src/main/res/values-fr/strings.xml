@@ -150,4 +150,6 @@
     <string name="conversation_menu_unarchive">Désarchiver</string>
     <string name="homepage_menu_clear_draft">Effacer tous les brouillons</string>
     <string name="homepage_menu_clear_mark_all_read">Tout marquer comme lu</string>
+    <string name="homepage_menu_clear_mark_unread">Marquer comme non lu</string>
+    <string name="homepage_menu_clear_mark_read">Marquer comme lu</string>
 </resources>
