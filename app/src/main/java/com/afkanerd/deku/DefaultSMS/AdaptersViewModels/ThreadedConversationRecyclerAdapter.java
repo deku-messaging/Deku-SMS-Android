@@ -106,8 +106,9 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
             public void onClick(View view) {
                 HashMap<Long, ThreadedConversationsTemplateViewHolder> _selectedItems = selectedItems.getValue();
                 if(_selectedItems != null) {
-                    if(_selectedItems.containsKey(holder)) {
-                        ThreadedConversationsTemplateViewHolder templateViewHolder = _selectedItems.remove(holder);
+                    if(_selectedItems.containsKey(Long.parseLong(holder.id))) {
+                        ThreadedConversationsTemplateViewHolder templateViewHolder =
+                                _selectedItems.remove(Long.parseLong(holder.id));
                         selectedItems.setValue(_selectedItems);
                         if(templateViewHolder != null)
                             templateViewHolder.unHighlight();
