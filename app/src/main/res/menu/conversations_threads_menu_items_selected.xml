@@ -6,20 +6,22 @@
         android:id="@+id/conversations_threads_main_menu_delete"
         android:icon="@drawable/round_delete_24"
         android:title="@string/message_threads_menu_delete"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/conversations_threads_main_menu_archive"
         android:icon="@drawable/round_archive_24"
         android:title="@string/messages_threads_menu_archive"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
     <item
         android:visible="false"
         tool:visible="true"
+        app:showAsAction="never"
         android:id="@+id/conversations_threads_main_menu_mark_all_unread"
         android:title="@string/homepage_menu_clear_mark_unread"/>
     <item
         android:visible="false"
         tool:visible="true"
+        app:showAsAction="never"
         android:id="@+id/conversations_threads_main_menu_mark_all_read"
         android:title="@string/homepage_menu_clear_mark_read"/>
 </menu>
