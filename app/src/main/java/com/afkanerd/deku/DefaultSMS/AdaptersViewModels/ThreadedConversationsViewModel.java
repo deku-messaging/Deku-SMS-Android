@@ -21,6 +21,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
@@ -328,6 +329,18 @@ public class ThreadedConversationsViewModel extends ViewModel {
             @Override
             public void run() {
                 threadedConversationsDao.unarchive(archiveList);
+            }
+        }).start();
+    }
+
+    public void clearDrafts(Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SMSDatabaseWrapper.deleteAllDraft(context);
+                threadedConversationsDao
+                        .clearDrafts(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+                refresh(context);
             }
         }).start();
     }

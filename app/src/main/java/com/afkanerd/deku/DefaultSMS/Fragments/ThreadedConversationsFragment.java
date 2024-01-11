@@ -33,6 +33,7 @@ import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.SettingsActivity;
@@ -227,6 +228,7 @@ public class ThreadedConversationsFragment extends Fragment {
                         }
                     threadedConversationsViewModel.unarchive(archiveList);
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
                 }
 
             }
@@ -407,6 +409,16 @@ public class ThreadedConversationsFragment extends Fragment {
             startActivity(aboutIntent);
             return true;
         }
+        if(item.getItemId() == R.id.conversation_threads_main_menu_clear_drafts) {
+            try {
+                threadedConversationsViewModel.clearDrafts(getContext());
+            } catch(Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+
         return false;
     }
 

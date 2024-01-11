@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.Fragments;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +25,11 @@ public class DraftsFragments extends ThreadedConversationsFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Bundle bundle = new Bundle();
         bundle.putString(ThreadedConversationsFragment.MESSAGES_THREAD_FRAGMENT_TYPE, DRAFTS_MESSAGE_TYPES);
+
         super.setArguments(bundle);
+        defaultMenu = R.menu.drafts_menu;
+
         return super.onCreateView(inflater, container, savedInstanceState);
-//        return inflater.inflate(R.layout.fragment_homepage, container, false);
     }
 
     @Override

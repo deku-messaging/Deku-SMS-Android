@@ -3,19 +3,11 @@ package com.afkanerd.deku.DefaultSMS.Models;
 import android.content.Context;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.telephony.SmsManager;
 import android.util.Base64;
 import android.util.Log;
 
-import androidx.lifecycle.ViewModel;
-
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
 
@@ -46,7 +38,12 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
     }
 
     public static void deleteDraft(Context context, String threadId) {
-        NativeSMSDB.deleteType(context, String.valueOf(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT),
-                threadId);
+        NativeSMSDB.deleteTypeForThread(context,
+                String.valueOf(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT), threadId);
+    }
+
+    public static void deleteAllDraft(Context context) {
+        NativeSMSDB.deleteAllType(context,
+                String.valueOf(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT));
     }
 }

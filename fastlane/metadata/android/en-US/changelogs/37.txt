@@ -3,3 +3,4 @@
 - fix: issue with loading initial messages
 - update: added navbar to conversations thread screen
 - update: removed encryption requirements settings because no need for popup encryption message request
+- update: can clear all drafts

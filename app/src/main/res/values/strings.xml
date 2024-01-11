@@ -29,6 +29,7 @@
     <string name="new_gateway_client_port">Port: <i>default 5672</i></string>
     <string name="homepage_menu_archived">Archived</string>
     <string name="homepage_menu_routed">Message Forwarding</string>
+    <string name="homepage_menu_clear_draft">Clear all drafts</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="homepage_draft_no_message">Nothing in Drafts</string>
     <string name="homepage_archive_no_message">Nothing in Archives</string>
@@ -166,6 +167,7 @@
     <string name="archived_no_archived_messages">No Archived Messages</string>
     <string name="conversation_menu_copy">copy</string>
     <string name="conversation_menu_delete">delete</string>
+    <string name="conversation_menu_unarchive">unarchive</string>
     <string name="conversation_menu_share">share</string>
 
     <string name="conversation_menu_view_details">View details</string>

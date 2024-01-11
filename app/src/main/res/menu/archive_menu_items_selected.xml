@@ -4,11 +4,11 @@
     <item
         android:id="@+id/archive_delete"
         android:icon="@drawable/round_delete_24"
-        android:title="delete"
+        android:title="@string/conversation_menu_delete"
         app:showAsAction="always" />
     <item
         android:id="@+id/archive_unarchive"
         android:icon="@drawable/baseline_unarchive_24"
-        android:title="unarchive"
+        android:title="@string/conversation_menu_unarchive"
         app:showAsAction="always" />
 </menu>

@@ -46,10 +46,4 @@ public class ArchivedFragments extends ThreadedConversationsFragment {
         setLabels(view, getString(R.string.conversations_navigation_view_archived),
                 getString(R.string.homepage_archive_no_message));
     }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.archive_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
 }

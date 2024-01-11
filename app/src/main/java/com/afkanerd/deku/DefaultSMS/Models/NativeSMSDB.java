@@ -18,12 +18,10 @@ import androidx.annotation.NonNull;
 
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.annotation.Native;
 import java.util.Collections;
 
 public class NativeSMSDB {
@@ -89,13 +87,25 @@ public class NativeSMSDB {
         return -1;
     }
 
-    protected static int deleteType(Context context, String type, String threadId) {
+    protected static int deleteTypeForThread(Context context, String type, String threadId) {
         try {
             return context.getContentResolver().delete(
                     Telephony.Sms.CONTENT_URI,
                     Telephony.TextBasedSmsColumns.THREAD_ID + " = ? AND " +
                             Telephony.TextBasedSmsColumns.TYPE + " = ?",
                     new String[]{threadId, type});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    protected static int deleteAllType(Context context, String type) {
+        try {
+            return context.getContentResolver().delete(
+                    Telephony.Sms.CONTENT_URI,
+                    Telephony.TextBasedSmsColumns.TYPE + " = ?",
+                    new String[]{type});
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -297,7 +307,6 @@ public class NativeSMSDB {
             Uri uri = context.getContentResolver().insert(
                     Telephony.Sms.CONTENT_URI,
                     contentValues);
-            Log.d(NativeSMSDB.class.getName(), "Saving native drafts: " + uri.toString());
             return parseNewIncomingUriForThreadInformation(context, uri);
         }
 

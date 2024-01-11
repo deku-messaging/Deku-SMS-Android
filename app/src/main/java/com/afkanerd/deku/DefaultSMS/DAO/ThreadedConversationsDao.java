@@ -7,6 +7,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
@@ -72,6 +73,18 @@ public interface ThreadedConversationsDao {
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
     int getThreadedDraftsListCount(int type);
+
+    @Query("DELETE FROM ThreadedConversations WHERE ThreadedConversations.type = :type")
+    int deleteForType(int type);
+
+    @Query("DELETE FROM Conversation WHERE Conversation.type = :type")
+    int clearConversationType(int type);
+
+    @Transaction
+    default void clearDrafts(int type) {
+        clearConversationType(type);
+        deleteForType(type);
+    }
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")
     ThreadedConversations get(String thread_id);
