@@ -2,3 +2,4 @@
 - fix: issues with drafts now showing in home screen
 - fix: issue with loading initial messages
 - update: added navbar to conversations thread screen
+- update: removed encryption requirements settings because no need for popup encryption message request

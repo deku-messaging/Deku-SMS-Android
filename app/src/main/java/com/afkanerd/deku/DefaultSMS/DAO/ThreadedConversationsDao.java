@@ -30,6 +30,9 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 1 ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getArchived();
 
+    @Query("SELECT ThreadedConversations.thread_id FROM ThreadedConversations WHERE is_archived = 1")
+    List<String> getArchivedList();
+
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getAllWithoutArchived();
 

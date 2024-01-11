@@ -62,6 +62,7 @@ public class ThreadedConversationsFragment extends Fragment {
     public static final String PLAIN_MESSAGES_THREAD_FRAGMENT = "PLAIN_MESSAGES_THREAD_FRAGMENT";
     public static final String ENCRYPTED_MESSAGES_THREAD_FRAGMENT = "ENCRYPTED_MESSAGES_THREAD_FRAGMENT";
 
+    public static final String ARCHIVED_MESSAGE_TYPES = "ARCHIVED_MESSAGE_TYPES";
     public static final String DRAFTS_MESSAGE_TYPES = "DRAFTS_MESSAGE_TYPES";
     public static final String UNREAD_MESSAGE_TYPES = "UNREAD_MESSAGE_TYPES";
 
@@ -308,6 +309,16 @@ public class ThreadedConversationsFragment extends Fragment {
                 break;
             case UNREAD_MESSAGE_TYPES:
                 threadedConversationsViewModel.getUnread().observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
+                break;
+            case ARCHIVED_MESSAGE_TYPES:
+                threadedConversationsViewModel.getArchived().observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {

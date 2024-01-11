@@ -31,6 +31,7 @@
     <string name="homepage_menu_routed">Message Forwarding</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="homepage_draft_no_message">Nothing in Drafts</string>
+    <string name="homepage_archive_no_message">Nothing in Archives</string>
     <string name="homepage_unread_no_message">No unread message</string>
     <string name="homepage_encryption_no_message">No Encrypted Communications contacts</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
@@ -209,6 +210,7 @@
     <string name="sample_date" translatable="false">9:26 AM . MTN</string>
 
     <string name="conversations_navigation_view_drafts">Drafts</string>
+    <string name="conversations_navigation_view_archived">Archived</string>
     <string name="conversations_navigation_view_unread">Unread</string>
     <string name="conversations_navigation_view_encryption">Encrypted</string>
     <string name="conversations_navigation_view_folders_label">Folders</string>

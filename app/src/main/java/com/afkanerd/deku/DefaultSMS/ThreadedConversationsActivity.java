@@ -23,6 +23,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Fragments.ArchivedFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.DraftsFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.EncryptionFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
@@ -159,7 +160,10 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                     return true;
                 }
                 else if(item.getItemId() == R.id.navigation_view_menu_archive) {
-                    startActivity(new Intent(getApplicationContext(), ArchivedMessagesActivity.class));
+                    fragmentManager.beginTransaction().replace(R.id.view_fragment,
+                                    ArchivedFragments.class, null, "ARCHIVED_TAG")
+                            .setReorderingAllowed(true)
+                            .commit();
                     drawerLayout.close();
                     return true;
                 }

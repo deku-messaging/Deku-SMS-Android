@@ -21,6 +21,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
@@ -43,6 +44,16 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
     ThreadsPagingSource threadsPagingSource;
 
+    public LiveData<PagingData<ThreadedConversations>> getArchived(){
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> this.threadedConversationsDao.getArchived());
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
     public LiveData<PagingData<ThreadedConversations>> getDrafts(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -197,7 +208,11 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 ConversationDao conversationDao = conversation.getDaoInstance(context);
                 conversationDao.insertAll(conversationList);
 
-                threadedConversationsDao.deleteAll();
+                ThreadedConversations threadedConversations = new ThreadedConversations();
+                ThreadedConversationsDao threadedConversationsDao1 =
+                        threadedConversations.getDaoInstance(context);
+                threadedConversationsDao1.deleteAll();
+                threadedConversations.close();
                 refresh(context);
 
             }
@@ -248,10 +263,19 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 List<ThreadedConversations> threadedDraftsList =
                         threadedConversationsDao.getThreadedDraftsList(
                                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+
+                List<String> archivedThreads = threadedConversationsDao.getArchivedList();
+
                 List<String> threadIds = new ArrayList<>();
                 for(ThreadedConversations threadedConversations : threadedDraftsList)
                     threadIds.add(threadedConversations.getThread_id());
 
+                /*
+                [date, rr, sub, subject, ct_t, read_status, reply_path_present, body, type, msg_box,
+                thread_id, sub_cs, resp_st, retr_st, text_only, locked, exp, m_id, retr_txt_cs, st,
+                date_sent, read, ct_cls, m_size, rpt_a, address, sub_id, pri, tr_id, resp_txt, ct_l,
+                m_cls, d_rpt, v, person, service_center, error_code, _id, m_type, status]
+                 */
                 if(cursor != null && cursor.moveToFirst()) {
                     do {
                         ThreadedConversations threadedConversations = new ThreadedConversations();
@@ -281,6 +305,9 @@ public class ThreadedConversationsViewModel extends ViewModel {
                             threadedConversations.setType(cursor.getInt(typeIndex));
                             threadedConversations.setDate(cursor.getString(dateIndex));
                         }
+                        threadedConversations.setIs_archived(
+                                archivedThreads.contains(threadedConversations.getThread_id()));
+
                         String contactName = Contacts.retrieveContactName(context,
                                 threadedConversations.getAddress());
                         threadedConversations.setContact_name(contactName);
