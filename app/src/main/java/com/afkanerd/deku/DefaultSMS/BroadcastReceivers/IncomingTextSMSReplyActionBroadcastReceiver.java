@@ -108,12 +108,18 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
         else if(intent.getAction() != null && intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
             String threadId = intent.getStringExtra(Conversation.THREAD_ID);
             String messageId = intent.getStringExtra(Conversation.ID);
-            Log.d(getClass().getName(), "Got this from mark: " + messageId);
-            Log.d(getClass().getName(), "Got this from thread mark: " + threadId);
             try {
-                NativeSMSDB.Incoming.update_read(context, 1, threadId, messageId);
+                NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
                 notificationManager.cancel(Integer.parseInt(threadId));
+
+                Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
+                broadcastIntent.putExtra(Conversation.ID, messageId);
+                broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
+                if(intent.getExtras() != null)
+                    broadcastIntent.putExtras(intent.getExtras());
+
+                context.sendBroadcast(broadcastIntent);
             } catch(Exception e) {
                 e.printStackTrace();
             }

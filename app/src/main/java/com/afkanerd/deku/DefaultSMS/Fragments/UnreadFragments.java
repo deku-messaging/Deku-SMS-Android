@@ -22,6 +22,8 @@ public class UnreadFragments extends  ThreadedConversationsFragment {
         bundle.putString(ThreadedConversationsFragment.MESSAGES_THREAD_FRAGMENT_TYPE,
                 UNREAD_MESSAGE_TYPES);
         super.setArguments(bundle);
+        defaultMenu = R.menu.read_menu;
+
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 

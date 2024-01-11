@@ -163,6 +163,7 @@ public class ConversationActivity extends E2EECompactActivity {
             public void run() {
                 NativeSMSDB.Incoming.update_read(getApplicationContext(), 1,
                         threadedConversations.getThread_id(), null);
+                conversationsViewModel.updateToRead(getApplicationContext());
             }
         });
         thread.setName("convAc_update_read");
@@ -506,11 +507,6 @@ public class ConversationActivity extends E2EECompactActivity {
         }
 
 
-        try {
-            conversationsViewModel.updateToRead(getApplicationContext());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
     }
 

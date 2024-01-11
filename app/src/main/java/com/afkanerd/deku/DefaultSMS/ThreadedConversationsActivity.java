@@ -111,13 +111,13 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 //                inboxMenuItem.setTitle(getString(R.string.conversations_navigation_view_inbox)
 //                        + "(" + integers.get(0) + ")");
                 draftMenuItem.setTitle(getString(R.string.conversations_navigation_view_drafts)
-                        + "(" + integers.get(1) + ")");
+                        + "(" + integers.get(0) + ")");
 
                 encryptedMenuItem.setTitle(getString(R.string.homepage_fragment_tab_encrypted)
-                        + "(" + integers.get(2) + ")");
+                        + "(" + integers.get(1) + ")");
 
                 unreadMenuItem.setTitle(getString(R.string.conversations_navigation_view_unread)
-                        + "(" + integers.get(3) + ")");
+                        + "(" + integers.get(2) + ")");
             }
         });
 

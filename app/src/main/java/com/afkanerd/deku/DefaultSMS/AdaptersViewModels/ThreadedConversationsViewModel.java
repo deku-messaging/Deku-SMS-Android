@@ -40,11 +40,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
     int initialLoadSize = 2 * pageSize;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
-    MutableLiveData<Integer> inboxCount = new MutableLiveData<>();
-    MutableLiveData<Integer> draftsCount = new MutableLiveData<>();
-
-    ThreadsPagingSource threadsPagingSource;
-
     public LiveData<PagingData<ThreadedConversations>> getArchived(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -345,15 +340,24 @@ public class ThreadedConversationsViewModel extends ViewModel {
         }).start();
     }
 
+    public void markAllRead(Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NativeSMSDB.Incoming.update_all_read(context, 1);
+                threadedConversationsDao.updateRead(1);
+                refresh(context);
+            }
+        }).start();
+    }
+
     public MutableLiveData<List<Integer>> folderMetrics = new MutableLiveData<>();
     private void getCount() {
-        int unreadInboxCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
         int draftsListCount = threadedConversationsDao
                 .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
         int encryptedCount = threadedConversationsDao.getAllEncryptedCount();
         int unreadCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
         List<Integer> list = new ArrayList<>();
-        list.add(unreadInboxCount);
         list.add(draftsListCount);
         list.add(encryptedCount);
         list.add(unreadCount);

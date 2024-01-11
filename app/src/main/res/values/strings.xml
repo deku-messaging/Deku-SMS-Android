@@ -30,6 +30,7 @@
     <string name="homepage_menu_archived">Archived</string>
     <string name="homepage_menu_routed">Message Forwarding</string>
     <string name="homepage_menu_clear_draft">Clear all drafts</string>
+    <string name="homepage_menu_clear_mark_all_read">Mark all Read</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="homepage_draft_no_message">Nothing in Drafts</string>
     <string name="homepage_archive_no_message">Nothing in Archives</string>

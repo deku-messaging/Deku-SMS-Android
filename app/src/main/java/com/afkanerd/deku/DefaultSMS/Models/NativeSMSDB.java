@@ -393,17 +393,35 @@ public class NativeSMSDB {
 
     public static class Incoming {
 
-        public static int update_read(Context context, int read, String thread_id, String messageId) {
-            Log.d(NativeSMSDB.class.getName(), "Native says: " + thread_id);
+        public static int update_all_read(Context context, int read) {
             ContentValues contentValues = new ContentValues();
-            contentValues.put(Telephony.Threads.READ, read);
+            contentValues.put(Telephony.Sms.READ, read);
 
             try {
                 return context.getContentResolver().update(
                         Telephony.Sms.CONTENT_URI,
                         contentValues,
+                        null,
+                        null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return 0;
+        }
+
+        public static int update_read(Context context, int read, String thread_id, String messageId) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Telephony.Sms.READ, read);
+
+            try {
+                int updated = context.getContentResolver().update(
+                        Telephony.Sms.CONTENT_URI,
+                        contentValues,
                         "thread_id=?",
                         new String[]{thread_id});
+                Log.d(NativeSMSDB.class.getName(), "Updated to read: " + updated);
+                return updated;
             } catch (Exception e) {
                 e.printStackTrace();
             }

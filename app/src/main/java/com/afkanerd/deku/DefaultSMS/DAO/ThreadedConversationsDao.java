@@ -34,12 +34,12 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getAllWithoutArchived();
 
-    @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_read = 1 ORDER BY date DESC")
+    @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_read = 0 ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getAllUnreadWithoutArchived();
 
     @Query("SELECT COUNT(Conversation.id) FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.thread_id = ThreadedConversations.thread_id AND " +
-            "is_archived = 0 AND is_read = 0")
+            "is_archived = 0 AND read = 0")
     int getAllUnreadWithoutArchivedCount();
 
     @Query("SELECT COUNT(ConversationsThreadsEncryption.id) FROM ConversationsThreadsEncryption")
@@ -84,6 +84,18 @@ public interface ThreadedConversationsDao {
     default void clearDrafts(int type) {
         clearConversationType(type);
         deleteForType(type);
+    }
+
+    @Query("UPDATE ThreadedConversations SET is_read = :read")
+    int updateAllRead(int read);
+
+    @Query("UPDATE Conversation SET read = :read")
+    int updateAllReadConversation(int read);
+
+    @Transaction
+    default void updateRead(int read) {
+        updateAllRead(read);
+        updateAllReadConversation(read);
     }
 
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")

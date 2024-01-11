@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/conversation_threads_main_menu_mark_all_read"
+        android:theme="@style/Theme.main"
+        android:title="@string/homepage_menu_clear_mark_all_read" />
+</menu>

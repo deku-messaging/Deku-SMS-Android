@@ -418,6 +418,15 @@ public class ThreadedConversationsFragment extends Fragment {
             }
             return true;
         }
+        if(item.getItemId() == R.id.conversation_threads_main_menu_mark_all_read) {
+            try {
+                threadedConversationsViewModel.markAllRead(getContext());
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
 
         return false;
     }

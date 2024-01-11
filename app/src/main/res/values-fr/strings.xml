@@ -149,4 +149,5 @@
     <string name="homepage_archive_no_message">Rien dans les archives</string>
     <string name="conversation_menu_unarchive">Désarchiver</string>
     <string name="homepage_menu_clear_draft">Effacer tous les brouillons</string>
+    <string name="homepage_menu_clear_mark_all_read">Tout marquer comme lu</string>
 </resources>
