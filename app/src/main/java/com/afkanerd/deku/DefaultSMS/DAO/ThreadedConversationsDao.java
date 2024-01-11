@@ -1,8 +1,5 @@
 package com.afkanerd.deku.DefaultSMS.DAO;
 
-import android.provider.Telephony;
-import android.util.Base64;
-
 import androidx.lifecycle.LiveData;
 import androidx.paging.PagingSource;
 import androidx.room.Dao;
@@ -89,13 +86,13 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE address NOT IN(:addresses)")
     PagingSource<Integer, ThreadedConversations> getNotInAddress(List<String> addresses);
 
-    @Query("SELECT * FROM ThreadedConversations WHERE thread_id IN (:threadedConversationsList)")
-    List<ThreadedConversations> find(List<String> threadedConversationsList);
+    @Query("SELECT address FROM ThreadedConversations WHERE thread_id IN (:threadedConversationsList)")
+    List<String> findAddresses(List<String> threadedConversationsList);
 
     @Query("SELECT Conversation.* FROM Conversation, ThreadedConversations WHERE text " +
             "LIKE '%' || :search_string || '%' AND Conversation.thread_id = ThreadedConversations.thread_id " +
             "GROUP BY ThreadedConversations.thread_id ORDER BY date DESC")
-    List<Conversation> find(String search_string );
+    List<Conversation> findAddresses(String search_string );
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND text " +
             "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")

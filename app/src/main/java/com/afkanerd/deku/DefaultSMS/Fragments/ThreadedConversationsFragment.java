@@ -1,7 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Fragments;
 
-import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,12 +21,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.paging.PagingData;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.afkanerd.deku.DefaultSMS.AboutActivity;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
@@ -34,7 +34,10 @@ import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
+import com.afkanerd.deku.DefaultSMS.SettingsActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
@@ -91,14 +94,16 @@ public class ThreadedConversationsFragment extends Fragment {
     }
 
     ActionMode actionMode;
+
+    protected int defaultMenu = R.menu.conversations_threads_menu;
+    protected int actionModeMenu = R.menu.conversations_threads_menu_items_selected;
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-//            Objects.requireNonNull(requireActivity().getActionBar()).hide();
             actionBar.hide();
             MenuInflater inflater = mode.getMenuInflater();
-            inflater.inflate(R.menu.conversations_threads_menu_items_selected, menu);
+            inflater.inflate(actionModeMenu, menu);
             return true;
         }
 
@@ -112,7 +117,6 @@ public class ThreadedConversationsFragment extends Fragment {
             return new Runnable() {
                 @Override
                 public void run() {
-                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
 
                     new Thread(new Runnable() {
                         @Override
@@ -120,15 +124,20 @@ public class ThreadedConversationsFragment extends Fragment {
                             ThreadedConversations threadedConversations = new ThreadedConversations();
                             ThreadedConversationsDao threadedConversationsDao =
                                     threadedConversations.getDaoInstance(getContext());
-                            List<ThreadedConversations> foundList =
-                                    threadedConversationsDao.find(ids);
-                            for(ThreadedConversations threadedConversation :
-                                    foundList) {
+                            List<String> foundList =
+                                    threadedConversationsDao.findAddresses(ids);
+                            threadedConversations.close();
+                            threadedConversationsViewModel.delete(getContext(), threadedConversationsList);
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                                }
+                            });
+                            for(String address : foundList) {
                                 try {
                                     String keystoreAlias =
-                                            E2EEHandler.deriveKeystoreAlias(
-                                                    threadedConversation.getAddress(),
-                                                    0);
+                                            E2EEHandler.deriveKeystoreAlias( address, 0);
                                     E2EEHandler.removeFromKeystore(getContext(), keystoreAlias);
                                     E2EEHandler.removeFromEncryptionDatabase(getContext(),
                                             keystoreAlias);
@@ -139,8 +148,6 @@ public class ThreadedConversationsFragment extends Fragment {
                                     e.printStackTrace();
                                 }
                             }
-                            threadedConversationsViewModel.delete(getContext(),
-                                    threadedConversationsList);
                         }
                     }).start();
                 }
@@ -173,7 +180,8 @@ public class ThreadedConversationsFragment extends Fragment {
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             if(threadedConversationRecyclerAdapter != null) {
-                if(item.getItemId() == R.id.conversations_threads_main_menu_delete) {
+                if(item.getItemId() == R.id.conversations_threads_main_menu_delete ||
+                        item.getItemId() == R.id.archive_delete) {
                     if(threadedConversationRecyclerAdapter.selectedItems != null &&
                             threadedConversationRecyclerAdapter.selectedItems.getValue() != null) {
                         List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
@@ -190,18 +198,35 @@ public class ThreadedConversationsFragment extends Fragment {
                     return true;
                 }
 
-                if(item.getItemId() == R.id.conversations_threads_main_menu_archive) {
+                else if(item.getItemId() == R.id.conversations_threads_main_menu_archive) {
                     List<Archive> archiveList = new ArrayList<>();
-                    for(ThreadedConversationsTemplateViewHolder templateViewHolder :
-                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
-                        Archive archive = new Archive();
-                        archive.thread_id = templateViewHolder.id;
-                        archive.is_archived = true;
-                        archiveList.add(archive);
-                    }
+                    if(threadedConversationRecyclerAdapter.selectedItems != null &&
+                            threadedConversationRecyclerAdapter.selectedItems.getValue() != null)
+                        for(ThreadedConversationsTemplateViewHolder templateViewHolder :
+                                threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                            Archive archive = new Archive();
+                            archive.thread_id = templateViewHolder.id;
+                            archive.is_archived = true;
+                            archiveList.add(archive);
+                        }
                     threadedConversationsViewModel.archive(archiveList);
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
                     return true;
+                }
+
+                else if(item.getItemId() == R.id.archive_unarchive) {
+                    List<Archive> archiveList = new ArrayList<>();
+                    if(threadedConversationRecyclerAdapter.selectedItems != null &&
+                            threadedConversationRecyclerAdapter.selectedItems.getValue() != null)
+                        for(ThreadedConversationsTemplateViewHolder viewHolder :
+                                threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                            Archive archive = new Archive();
+                            archive.thread_id = viewHolder.id;
+                            archive.is_archived = false;
+                            archiveList.add(archive);
+                        }
+                    threadedConversationsViewModel.unarchive(archiveList);
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
                 }
 
             }
@@ -239,6 +264,7 @@ public class ThreadedConversationsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         Bundle args = getArguments();
         String messageType = args == null ? ALL_MESSAGES_THREAD_FRAGMENT :
                 args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
@@ -350,4 +376,39 @@ public class ThreadedConversationsFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(defaultMenu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.conversation_threads_main_menu_search) {
+            Intent searchIntent = new Intent(getContext(), SearchMessagesThreadsActivity.class);
+            searchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(searchIntent);
+            return true;
+        }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_routed) {
+            Intent routingIntent = new Intent(getContext(), RouterActivity.class);
+            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(routingIntent);
+            return true;
+        }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_settings) {
+            Intent settingsIntent = new Intent(getContext(), SettingsActivity.class);
+            startActivity(settingsIntent);
+            return true;
+        }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_about) {
+            Intent aboutIntent = new Intent(getContext(), AboutActivity.class);
+            aboutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(aboutIntent);
+            return true;
+        }
+        return false;
+    }
+
 }
+

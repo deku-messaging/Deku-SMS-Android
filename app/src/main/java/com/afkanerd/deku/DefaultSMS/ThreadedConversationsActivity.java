@@ -197,48 +197,12 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         startActivity(intent);
     }
 
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu){
+//        getMenuInflater().inflate(R.menu.conversations_threads_menu, menu);
+//        return super.onCreateOptionsMenu(menu);
+//    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.conversations_threads_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.conversation_threads_main_menu_search) {
-            Intent searchIntent = new Intent(getApplicationContext(),
-                    SearchMessagesThreadsActivity.class);
-            searchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(searchIntent);
-            return true;
-        }
-        if (item.getItemId() == R.id.conversation_threads_main_menu_archived) {
-            Intent archivedIntent = new Intent(getApplicationContext(),
-                    ArchivedMessagesActivity.class);
-            archivedIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(archivedIntent);
-            return true;
-        }
-        if (item.getItemId() == R.id.conversation_threads_main_menu_routed) {
-            Intent routingIntent = new Intent(getApplicationContext(), RouterActivity.class);
-            routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(routingIntent);
-            return true;
-        }
-        if (item.getItemId() == R.id.conversation_threads_main_menu_settings) {
-            Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
-            startActivity(settingsIntent);
-            return true;
-        }
-        if (item.getItemId() == R.id.conversation_threads_main_menu_about) {
-            Intent aboutIntent = new Intent(getApplicationContext(), AboutActivity.class);
-            aboutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(aboutIntent);
-            return true;
-        }
-        return false;
-    }
 
     @Override
     protected void onPause() {

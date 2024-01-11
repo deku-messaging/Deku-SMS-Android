@@ -55,7 +55,7 @@ public class SearchViewModel extends ViewModel {
             public void run() {
                 List<Conversation> conversations = new ArrayList<>();
                 if(threadId == null || threadId.isEmpty())
-                    conversations = threadedConversationsDao.find(input);
+                    conversations = threadedConversationsDao.findAddresses(input);
                 else
                     conversations = threadedConversationsDao.findByThread(input,threadId);
 

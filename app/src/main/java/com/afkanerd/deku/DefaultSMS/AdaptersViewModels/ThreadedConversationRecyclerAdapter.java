@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
 
-import com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
@@ -20,7 +19,6 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedCon
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.E2EE.E2EEHandler;
 
 
 import java.util.HashMap;
@@ -30,7 +28,6 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     Context context;
     Boolean isSearch = false;
     public String searchString = "";
-    ArchivedMessagesActivity archivedMessagesActivity;
 
     public MutableLiveData<HashMap<Long, ThreadedConversationsTemplateViewHolder>> selectedItems = new MutableLiveData<>();
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;

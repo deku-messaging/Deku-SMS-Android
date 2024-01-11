@@ -323,6 +323,15 @@ public class ThreadedConversationsViewModel extends ViewModel {
         }).start();
     }
 
+    public void unarchive(List<Archive> archiveList) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversationsDao.unarchive(archiveList);
+            }
+        }).start();
+    }
+
     public MutableLiveData<List<Integer>> folderMetrics = new MutableLiveData<>();
     private void getCount() {
         int unreadInboxCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
