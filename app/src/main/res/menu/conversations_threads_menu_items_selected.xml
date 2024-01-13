@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tool="http://schemas.android.com/tools">
-    <item
-        android:id="@+id/conversations_threads_main_menu_delete"
-        android:icon="@drawable/round_delete_24"
-        android:title="@string/message_threads_menu_delete"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/conversations_threads_main_menu_archive"
-        android:icon="@drawable/round_archive_24"
-        android:title="@string/messages_threads_menu_archive"
-        app:showAsAction="ifRoom" />
-    <item
-        android:visible="false"
-        tool:visible="true"
-        app:showAsAction="never"
-        android:id="@+id/conversations_threads_main_menu_mark_all_unread"
-        android:title="@string/homepage_menu_clear_mark_unread"/>
-    <item
-        android:visible="false"
-        tool:visible="true"
-        app:showAsAction="never"
-        android:id="@+id/conversations_threads_main_menu_mark_all_read"
-        android:title="@string/homepage_menu_clear_mark_read"/>
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group
+        android:id="@+id/default_conversations_threads_groups">
+        <item
+            android:id="@+id/conversations_threads_main_menu_delete"
+            android:icon="@drawable/round_delete_24"
+            android:title="@string/message_threads_menu_delete"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/conversations_threads_main_menu_archive"
+            android:icon="@drawable/round_archive_24"
+            android:title="@string/messages_threads_menu_archive"
+            app:showAsAction="ifRoom" />
+    </group>
+
+    <group
+        android:id="@+id/conversations_threads_reads_status_menu_group">
+        <item
+            android:id="@+id/conversations_threads_main_menu_mark_all_unread"
+            android:title="@string/homepage_menu_clear_mark_unread"
+            android:visible="false" />
+        <item
+            android:id="@+id/conversations_threads_main_menu_mark_all_read"
+            android:visible="false"
+            android:title="@string/homepage_menu_clear_mark_read"/>
+    </group>
 </menu>
