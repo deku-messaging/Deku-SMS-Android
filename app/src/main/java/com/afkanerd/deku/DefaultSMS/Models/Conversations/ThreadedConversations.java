@@ -22,6 +22,7 @@ import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 @Entity
@@ -289,33 +290,16 @@ public class ThreadedConversations {
         if(obj instanceof ThreadedConversations) {
             ThreadedConversations threadedConversations = (ThreadedConversations) obj;
 
-            if(snippet == null) {
-                //secure content
-                return threadedConversations.thread_id.equals(this.thread_id) &&
-                        threadedConversations.is_archived == this.is_archived &&
-                        threadedConversations.is_blocked == this.is_blocked &&
-                        threadedConversations.is_read == this.is_read &&
-                        threadedConversations.type == this.type &&
-                        threadedConversations.avatar_color == this.avatar_color &&
-                        threadedConversations.msg_count == this.msg_count &&
-                        threadedConversations.address.equals(this.address) &&
-                        threadedConversations.date.equals(this.date);
-            }
-            try {
-                return threadedConversations.thread_id.equals(this.thread_id) &&
-                        threadedConversations.is_archived == this.is_archived &&
-                        threadedConversations.is_blocked == this.is_blocked &&
-                        threadedConversations.is_read == this.is_read &&
-                        threadedConversations.type == this.type &&
-                        threadedConversations.avatar_color == this.avatar_color &&
-                        threadedConversations.msg_count == this.msg_count &&
-                        threadedConversations.address.equals(this.address) &&
-                        threadedConversations.date.equals(this.date) &&
-                        threadedConversations.snippet.equals(this.snippet);
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-
+            return Objects.equals(threadedConversations.thread_id, this.thread_id) &&
+                    threadedConversations.is_archived == this.is_archived &&
+                    threadedConversations.is_blocked == this.is_blocked &&
+                    threadedConversations.is_read == this.is_read &&
+                    threadedConversations.type == this.type &&
+                    threadedConversations.msg_count == this.msg_count &&
+                    Objects.equals(threadedConversations.date, this.date) &&
+                    Objects.equals(threadedConversations.address, this.address) &&
+                    Objects.equals(threadedConversations.contact_name, this.contact_name) &&
+                    Objects.equals(threadedConversations.snippet, this.snippet);
         }
         return false;
     }

@@ -247,7 +247,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
+                List<ThreadedConversations> newThreadedConversationsList = new ArrayList<>();
                 Cursor cursor = context.getContentResolver().query(
                         Telephony.Threads.CONTENT_URI,
                         null,
@@ -262,9 +262,9 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
                 List<String> archivedThreads = threadedConversationsDao.getArchivedList();
 
-                List<String> threadIds = new ArrayList<>();
+                List<String> threadsIdsInDrafts = new ArrayList<>();
                 for(ThreadedConversations threadedConversations : threadedDraftsList)
-                    threadIds.add(threadedConversations.getThread_id());
+                    threadsIdsInDrafts.add(threadedConversations.getThread_id());
 
                 /*
                 [date, rr, sub, subject, ct_t, read_status, reply_path_present, body, type, msg_box,
@@ -272,6 +272,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 date_sent, read, ct_cls, m_size, rpt_a, address, sub_id, pri, tr_id, resp_txt, ct_l,
                 m_cls, d_rpt, v, person, service_center, error_code, _id, m_type, status]
                  */
+                List<ThreadedConversations> threadedConversationsList =
+                        threadedConversationsDao.getAll();
                 if(cursor != null && cursor.moveToFirst()) {
                     do {
                         ThreadedConversations threadedConversations = new ThreadedConversations();
@@ -282,13 +284,15 @@ public class ThreadedConversationsViewModel extends ViewModel {
                         int typeIndex = cursor.getColumnIndex("type");
                         int readIndex = cursor.getColumnIndex("read");
 
+                        threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
+
                         threadedConversations.setAddress(cursor.getString(recipientIdIndex));
                         if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
                             continue;
                         threadedConversations.setThread_id(cursor.getString(threadIdIndex));
-                        if(threadIds.contains(threadedConversations.getThread_id())) {
+                        if(threadsIdsInDrafts.contains(threadedConversations.getThread_id())) {
                             ThreadedConversations tc = threadedDraftsList.get(
-                                    threadIds.indexOf(threadedConversations.getThread_id()));
+                                    threadsIdsInDrafts.indexOf(threadedConversations.getThread_id()));
                             threadedConversations.setSnippet(tc.getSnippet());
                             threadedConversations.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
                             threadedConversations.setDate(
@@ -301,19 +305,26 @@ public class ThreadedConversationsViewModel extends ViewModel {
                             threadedConversations.setType(cursor.getInt(typeIndex));
                             threadedConversations.setDate(cursor.getString(dateIndex));
                         }
+
                         threadedConversations.setIs_archived(
                                 archivedThreads.contains(threadedConversations.getThread_id()));
 
                         String contactName = Contacts.retrieveContactName(context,
                                 threadedConversations.getAddress());
                         threadedConversations.setContact_name(contactName);
-                        threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
 
-                        threadedConversationsList.add(threadedConversations);
+                        /**
+                         * Check things that change first
+                         * - Read status
+                         * - Drafts
+                         */
+                        if(!threadedConversationsList.contains(threadedConversations)) {
+                            newThreadedConversationsList.add(threadedConversations);
+                        }
                     } while(cursor.moveToNext());
                     cursor.close();
                 }
-                threadedConversationsDao.insertAll(threadedConversationsList);
+                threadedConversationsDao.insertAll(newThreadedConversationsList);
                 getCount();
             }
         }).start();

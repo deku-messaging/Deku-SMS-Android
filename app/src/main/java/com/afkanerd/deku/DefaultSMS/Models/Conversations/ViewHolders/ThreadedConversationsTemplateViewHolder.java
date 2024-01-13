@@ -65,10 +65,11 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         this.id = String.valueOf(conversation.getThread_id());
 
         int contactColor = Helpers.getColor(itemView.getContext(), id);
-        if(conversation.getAvatar_initials() != null) {
+        if(conversation.getContact_name() != null && !conversation.getContact_name().isEmpty()) {
             this.contactAvatar.setVisibility(View.GONE);
             this.contactInitials.setVisibility(View.VISIBLE);
-            this.contactInitials.setAvatarInitials(conversation.getAvatar_initials());
+            this.contactInitials.setAvatarInitials(conversation.getContact_name().contains(" ") ?
+                    conversation.getContact_name() : conversation.getContact_name().substring(0, 1));
             this.contactInitials.setAvatarInitialsBackgroundColor(contactColor);
         }
         else {
