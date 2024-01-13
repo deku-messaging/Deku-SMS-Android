@@ -21,26 +21,27 @@ import java.security.GeneralSecurityException;
 
 public class E2EECompactActivity extends CustomAppCompactActivity {
 
-    ThreadedConversations threadedConversations;
+    protected ThreadedConversations threadedConversations;
     View securePopUpRequest;
+
+    protected boolean canCommunicateSecurely = false;
+    protected String keystoreAlias;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
-    public static String INFORMED_SECURED = "INFORMED_SECURED";
 
     @Override
     public void sendTextMessage(final String text, int subscriptionId,
                                 ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
-        String keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
         final String[] transmissionText = {text};
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias)) {
+                    if(canCommunicateSecurely) {
                         byte[] cipherText = E2EEHandler.encryptText(getApplicationContext(),
                                 keystoreAlias, text);
                         transmissionText[0] = E2EEHandler.buildTransmissionText(cipherText);
@@ -144,5 +145,18 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                    threadedConversations.secured =
+                            E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias);
+                } catch (IOException | GeneralSecurityException | NumberParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
     }
 }

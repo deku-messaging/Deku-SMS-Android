@@ -127,6 +127,8 @@ public class Helpers {
                 .replaceAll("-", "")
                 .replaceAll("%20", "")
                 .replaceAll(" ", "");
+        if(data.length() < 5)
+            return data;
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         String outputNumber = data;
         try {
@@ -136,7 +138,7 @@ public class Helpers {
 
             return "+" + countryCode + nationalNumber;
         } catch(NumberParseException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             if(e.getErrorType() == NumberParseException.ErrorType.INVALID_COUNTRY_CODE) {
                 data = outputNumber.replaceAll("sms[to]*:", "");
                 if (data.startsWith(defaultRegion)) {

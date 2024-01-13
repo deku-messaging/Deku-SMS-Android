@@ -27,6 +27,9 @@ import java.util.Objects;
 
 @Entity
 public class ThreadedConversations {
+
+    @Ignore
+    public boolean secured = false;
     @NonNull
     @PrimaryKey
      private String thread_id;

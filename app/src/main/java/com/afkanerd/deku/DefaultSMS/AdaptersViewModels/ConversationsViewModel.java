@@ -224,21 +224,11 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public Conversation fetchDraft(Context context) throws InterruptedException {
-        final Conversation[] conversation = {null};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Conversation conversation1 = new Conversation();
-                conversation[0] =
-                        conversation1.getDaoInstance(context).fetchTypedConversation(
-                                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
-                conversation1.close();
-            }
-        });
-        thread.start();
-        thread.join();
-
-        return conversation[0];
+        Conversation conversation1 = new Conversation();
+        Conversation conversation = conversation1.getDaoInstance(context).fetchTypedConversation(
+                        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
+        conversation1.close();
+        return conversation;
     }
 
     public void clearDraft(Context context) {

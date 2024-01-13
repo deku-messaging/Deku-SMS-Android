@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
@@ -81,13 +82,7 @@ public class ConversationActivity extends E2EECompactActivity {
     ImageButton backSearchBtn;
     ImageButton forwardSearchBtn;
 
-    ThreadedConversations threadedConversations;
-
     Toolbar toolbar;
-
-    private String draftMessageId;
-    private String draftText;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +114,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
         // Restore state members from saved instance.
         smsTextView.setText(savedInstanceState.getString(DRAFT_TEXT));
-        draftMessageId = savedInstanceState.getString(DRAFT_ID);
 
         savedInstanceState.remove(DRAFT_TEXT);
         savedInstanceState.remove(DRAFT_ID);
@@ -136,27 +130,8 @@ public class ConversationActivity extends E2EECompactActivity {
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
 
-        Thread thread1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                            E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(),
-                                    0) )) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-                            }
-                        });
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        thread1.setName("convAc_check_enc");
-        thread1.start();
+        if(threadedConversations.secured)
+            layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
 
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -295,7 +270,7 @@ public class ConversationActivity extends E2EECompactActivity {
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 
         conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
-                threadedConversations.getAddress());
+                threadedConversations);
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
@@ -416,7 +391,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 list.add(conversation);
                 conversationsViewModel.deleteItems(getApplicationContext(), list);
                 try {
-                    sendTextMessage(conversation, threadedConversations, draftMessageId);
+                    sendTextMessage(conversation, threadedConversations, conversation.getMessage_id());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -498,16 +473,14 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (draftMessageId != null && !draftText.isEmpty()) {
+        if (smsTextView.getText() != null && !smsTextView.getText().toString().isEmpty()) {
             try {
-                saveDraft(draftMessageId, draftText, threadedConversations);
+                saveDraft(String.valueOf(System.currentTimeMillis()),
+                        smsTextView.getText().toString(), threadedConversations);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-
-
-
     }
 
     @Override
@@ -522,8 +495,8 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         // Save the user's current game state.
-        savedInstanceState.putString(DRAFT_TEXT, draftText);
-        savedInstanceState.putString(DRAFT_ID, draftMessageId);
+        savedInstanceState.putString(DRAFT_TEXT, smsTextView.getText().toString());
+        savedInstanceState.putString(DRAFT_ID, String.valueOf(System.currentTimeMillis()));
 
         // Always call the superclass so it can save the view hierarchy state.
         super.onSaveInstanceState(savedInstanceState);
@@ -531,8 +504,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void emptyDraft(){
         conversationsViewModel.clearDraft(getApplicationContext());
-        draftMessageId = null;
-        draftText = null;
     }
 
     private void configureMessagesTextBox() {
@@ -549,16 +520,6 @@ public class ConversationActivity extends E2EECompactActivity {
                             .setVisibility(visibility);
                 }
                 findViewById(R.id.conversation_send_btn).setVisibility(visibility);
-
-                if(s.isEmpty()) {
-                    if(draftMessageId != null) {
-                        emptyDraft();
-                    }
-                } else {
-                    if(draftMessageId == null)
-                        draftMessageId = String.valueOf(System.currentTimeMillis());
-                    draftText = s;
-                }
             }
         });
 
@@ -580,7 +541,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 try {
                     final String text = smsTextView.getText().toString();
                     sendTextMessage(text, defaultSubscriptionId.getValue(),
-                            threadedConversations, draftMessageId);
+                            threadedConversations, String.valueOf(System.currentTimeMillis()));
                     smsTextView.setText(null);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -619,16 +580,28 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void checkDrafts() throws InterruptedException {
-        if(draftText != null && draftMessageId != null) {
-            smsTextView.setText(draftText);
-        }
-        else {
-            Conversation conversation = conversationsViewModel.fetchDraft(getApplicationContext());
-            if (conversation != null) {
-                smsTextView.setText(conversation.getText());
-                draftMessageId = conversation.getMessage_id();
+        if(smsTextView.getText() == null || smsTextView.getText().toString().isEmpty())
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Conversation conversation =
+                            conversationsViewModel.fetchDraft(getApplicationContext());
+                    if (conversation != null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                smsTextView.setText(conversation.getText());
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    emptyDraft();
+                }
             }
-        }
+        }).start();
     }
 
     private void configureLayoutForMessageType() {
