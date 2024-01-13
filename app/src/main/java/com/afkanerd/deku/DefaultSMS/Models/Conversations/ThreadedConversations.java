@@ -231,20 +231,20 @@ public class ThreadedConversations {
 
     public void setContact_name(String contact_name) {
         this.contact_name = contact_name;
-        if(this.contact_name != null && !this.contact_name.isEmpty()) {
-            this.setAvatar_initials(this.contact_name.substring(0, 1));
-            this.setAvatar_color(Helpers.generateColor(this.contact_name));
-        } else {
-            this.setAvatar_initials(null);
-            try {
-                if (this.getAddress() != null && !this.getAddress().isEmpty())
-                    this.setAvatar_color(Helpers.generateColor(this.getAddress()));
-                else
-                    this.setAvatar_color(Helpers.getRandomColor());
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-        }
+//        if(this.contact_name != null && !this.contact_name.isEmpty()) {
+//            this.setAvatar_initials(this.contact_name.substring(0, 1));
+//            this.setAvatar_color(Helpers.generateColor(this.contact_name));
+//        } else {
+//            this.setAvatar_initials(null);
+//            try {
+//                if (this.getAddress() != null && !this.getAddress().isEmpty())
+//                    this.setAvatar_color(Helpers.generateColor(this.getAddress()));
+//                else
+//                    this.setAvatar_color(Helpers.getRandomColor());
+//            } catch(Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
     public String getAvatar_initials() {

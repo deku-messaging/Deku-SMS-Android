@@ -32,4 +32,6 @@
 
     <color name="colorSecondary">@color/logo_primary</color>
     <color name="colorPrimary">@color/logo_third</color>
+
+    <color name="letter_tile_default_color">#cccccc</color>
 </resources>

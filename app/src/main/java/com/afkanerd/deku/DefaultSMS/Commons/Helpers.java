@@ -5,6 +5,7 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import android.telephony.TelephonyManager;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.BackgroundColorSpan;
@@ -354,6 +356,19 @@ public class Helpers {
             }
         }
         return String.valueOf(PhoneNumberUtil.getInstance().getCountryCodeForRegion(countryCode));
+    }
+
+    public static int getColor(Context context, String input) {
+        int sDefaultColor = context.getColor(R.color.letter_tile_default_color);
+        if (TextUtils.isEmpty(input)) {
+            return sDefaultColor;
+        }
+        TypedArray sColors = context.getResources().obtainTypedArray(R.array.letter_tile_colors);
+        // String.hashCode() implementation is not supposed to change across java versions, so
+        // this should guarantee the same email address always maps to the same color.
+        // The email should already have been normalized by the ContactRequest.
+        final int color = Math.abs(input.hashCode()) % sColors.length();
+        return sColors.getColor(color, sDefaultColor);
     }
 
     public static int generateColor(int input) {

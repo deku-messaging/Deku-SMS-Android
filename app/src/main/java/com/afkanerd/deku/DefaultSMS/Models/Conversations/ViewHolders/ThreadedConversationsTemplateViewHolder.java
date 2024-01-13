@@ -64,11 +64,12 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
                      View.OnLongClickListener onLongClickListener) {
         this.id = String.valueOf(conversation.getThread_id());
 
+        int contactColor = Helpers.getColor(itemView.getContext(), id);
         if(conversation.getAvatar_initials() != null) {
             this.contactAvatar.setVisibility(View.GONE);
             this.contactInitials.setVisibility(View.VISIBLE);
             this.contactInitials.setAvatarInitials(conversation.getAvatar_initials());
-            this.contactInitials.setAvatarInitialsBackgroundColor(conversation.getAvatar_color());
+            this.contactInitials.setAvatarInitialsBackgroundColor(contactColor);
         }
         else {
             this.contactAvatar.setVisibility(View.VISIBLE);
@@ -78,7 +79,7 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
                 drawable = itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24);
             }
             if(drawable != null)
-                drawable.setColorFilter(conversation.getAvatar_color(), PorterDuff.Mode.SRC_IN);
+                drawable.setColorFilter(contactColor, PorterDuff.Mode.SRC_IN);
             contactAvatar.setImageDrawable(drawable);
         }
         if(conversation.getContact_name() != null) {
