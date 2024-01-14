@@ -33,8 +33,6 @@ import java.util.List;
 
 public class NotificationsHandler {
 
-
-    @SuppressLint("MissingPermission")
     public static void sendIncomingTextMessageNotification(Context context, Conversation conversation) {
         NotificationCompat.MessagingStyle messagingStyle = getMessagingStyle(context, conversation, null);
 
@@ -59,7 +57,7 @@ public class NotificationsHandler {
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
         Person.Builder personBuilder = new Person.Builder()
                 .setName(contactName == null ? conversation.getAddress() : contactName)
-                .setKey(conversation.getThread_id());
+                .setKey(contactName == null ? conversation.getAddress() : contactName);
         return personBuilder.build();
     }
 
@@ -99,9 +97,8 @@ public class NotificationsHandler {
     }
 
     public static NotificationCompat.MessagingStyle getMessagingStyle(Context context,
-                                                                      Conversation conversation, String reply) {
-
-
+                                                                      Conversation conversation,
+                                                                      String reply) {
         Person person = getPerson(context, conversation);
 
         Person.Builder personBuilder = new Person.Builder()
@@ -110,7 +107,9 @@ public class NotificationsHandler {
         Person replyPerson = personBuilder.build();
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
 
-        NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person);
+        NotificationCompat.MessagingStyle messagingStyle =
+                new NotificationCompat.MessagingStyle(contactName == null ?
+                        conversation.getAddress() : contactName);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         List<StatusBarNotification> notifications = notificationManager.getActiveNotifications();
@@ -188,6 +187,9 @@ public class NotificationsHandler {
             messagingStyle.addMessage(new NotificationCompat.MessagingStyle.Message(
                     messageTracker.message, System.currentTimeMillis(),messageTracker.person));
         }
+
+//        messagingStyle.addMessage(new NotificationCompat.MessagingStyle.Message(
+//                conversation.getText(), System.currentTimeMillis(), person));
 
         return messagingStyle;
     }

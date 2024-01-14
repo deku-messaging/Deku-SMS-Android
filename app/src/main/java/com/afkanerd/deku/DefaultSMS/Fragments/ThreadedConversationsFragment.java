@@ -128,8 +128,7 @@ public class ThreadedConversationsFragment extends Fragment {
             return false; // Return false if nothing is done.
         }
 
-        public Runnable getDeleteRunnable(List<String> ids,
-                                          List<ThreadedConversations> threadedConversationsList) {
+        public Runnable getDeleteRunnable(List<String> ids) {
             return new Runnable() {
                 @Override
                 public void run() {
@@ -143,7 +142,7 @@ public class ThreadedConversationsFragment extends Fragment {
                             List<String> foundList =
                                     threadedConversationsDao.findAddresses(ids);
                             threadedConversations.close();
-                            threadedConversationsViewModel.delete(getContext(), threadedConversationsList);
+                            threadedConversationsViewModel.delete(getContext(), ids);
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -200,16 +199,12 @@ public class ThreadedConversationsFragment extends Fragment {
                         item.getItemId() == R.id.archive_delete) {
                     if(threadedConversationRecyclerAdapter.selectedItems != null &&
                             threadedConversationRecyclerAdapter.selectedItems.getValue() != null) {
-                        List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
                         List<String> ids = new ArrayList<>();
                         for (ThreadedConversationsTemplateViewHolder viewHolder :
                                 threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
-                            ThreadedConversations threadedConversation = new ThreadedConversations();
-                            threadedConversation.setThread_id(viewHolder.id);
-                            threadedConversationsList.add(threadedConversation);
-                            ids.add(threadedConversation.getThread_id());
+                            ids.add(viewHolder.id);
                         }
-                        showAlert(getDeleteRunnable(ids, threadedConversationsList));
+                        showAlert(getDeleteRunnable(ids));
                     }
                     return true;
                 }

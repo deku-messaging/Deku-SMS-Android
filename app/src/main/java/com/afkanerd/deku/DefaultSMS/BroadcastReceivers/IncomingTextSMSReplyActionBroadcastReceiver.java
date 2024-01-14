@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
 import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -98,7 +100,6 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                                 conversation, pendingIntent);
 
                 builder.setStyle(messagingStyle);
-
                 NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
                 notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
                 conversation.close();

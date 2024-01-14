@@ -161,13 +161,14 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
                     final String messageId = String.valueOf(System.currentTimeMillis());
                     Conversation conversation = new Conversation();
+                    conversation.setThread_id(threadedConversations.getThread_id());
+                    conversation.setAddress(threadedConversations.getAddress());
                     conversation.setIs_key(true);
                     conversation.setMessage_id(messageId);
                     conversation.setData(Base64.encodeToString(transmissionRequest, Base64.DEFAULT));
                     conversation.setSubscription_id(subscriptionId);
                     conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
                     conversation.setDate(String.valueOf(System.currentTimeMillis()));
-                    conversation.setAddress(threadedConversations.getAddress());
                     conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
                     long id = conversationsViewModel.insert(conversation);

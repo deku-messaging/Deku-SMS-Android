@@ -89,8 +89,10 @@ public class ThreadedConversationsViewModel extends ViewModel {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                ConversationsThreadsEncryption conversationsThreadsEncryption1 =
+                        new ConversationsThreadsEncryption();
                 ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                        ConversationsThreadsEncryption.getDao(context);
+                        conversationsThreadsEncryption1.getDaoInstance(context);
                 List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
                         conversationsThreadsEncryptionDao.getAll();
 
@@ -120,8 +122,10 @@ public class ThreadedConversationsViewModel extends ViewModel {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                ConversationsThreadsEncryption conversationsThreadsEncryption1 =
+                        new ConversationsThreadsEncryption();
                 ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                        ConversationsThreadsEncryption.getDao(context);
+                        conversationsThreadsEncryption1.getDaoInstance(context);
                 List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
                         conversationsThreadsEncryptionDao.getAll();
 
@@ -153,37 +157,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 threadedConversationsDao.insert(threadedConversations);
             }
         }).start();
-    }
-
-    public void filterInsert(Context context, List<ThreadedConversations> threadedConversations,
-                                              List<ThreadedConversations> completeList) {
-        List<ThreadedConversations> insertList = new ArrayList<>();
-        for(ThreadedConversations threadedConversation : threadedConversations) {
-            String contactName = Contacts.retrieveContactName(context,
-                    threadedConversation.getAddress());
-            threadedConversation.setContact_name(contactName);
-            if(!completeList.contains(threadedConversation)) {
-                insertList.add(threadedConversation);
-            } else {
-                ThreadedConversations oldThread =
-                        completeList.get(completeList.indexOf(threadedConversation));
-                if(oldThread.diffReplace(threadedConversation))
-                    insertList.add(oldThread);
-            }
-        }
-
-        List<ThreadedConversations> deleteList = new ArrayList<>();
-        if(threadedConversations.isEmpty()) {
-            deleteList = completeList;
-        } else {
-            for (ThreadedConversations threadedConversation : completeList) {
-                if (!threadedConversations.contains(threadedConversation)) {
-                    deleteList.add(threadedConversation);
-                }
-            }
-            threadedConversationsDao.insertAll(insertList);
-        }
-        threadedConversationsDao.delete(deleteList);
     }
 
     public void reset(Context context) {
@@ -225,22 +198,13 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
 
-    public void delete(Context context, List<ThreadedConversations> threadedConversations) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<String> ids = new ArrayList<>();
-                Conversation conversation = new Conversation();
-                ConversationDao conversationDao = conversation.getDaoInstance(context);
-                for(ThreadedConversations threadedConversation : threadedConversations)
-                    ids.add(threadedConversation.getThread_id());
-
-                conversationDao.deleteAll(ids);
-                threadedConversationsDao.delete(threadedConversations);
-                NativeSMSDB.deleteThreads(context, ids.toArray(new String[0]));
-                conversation.close();
-            }
-        }).start();
+    public void delete(Context context, List<String> ids) {
+        Conversation conversation = new Conversation();
+        ConversationDao conversationDao = conversation.getDaoInstance(context);
+        conversationDao.deleteAll(ids);
+        threadedConversationsDao.delete(ids);
+        NativeSMSDB.deleteThreads(context, ids.toArray(new String[0]));
+        conversation.close();
     }
 
     public void refresh(Context context) {

@@ -152,8 +152,11 @@ public interface ThreadedConversationsDao {
     @Delete
     void delete(ThreadedConversations threadedConversations);
 
-    @Delete
-    void delete(List<ThreadedConversations> threadedConversations);
+//    @Delete
+//    void delete(List<ThreadedConversations> threadedConversations);
+
+    @Query("DELETE FROM ThreadedConversations WHERE thread_id IN(:ids)")
+    void delete(List<String> ids);
 
     @Query("DELETE FROM threadedconversations")
     void deleteAll();

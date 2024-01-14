@@ -24,7 +24,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     protected ThreadedConversations threadedConversations;
     View securePopUpRequest;
 
-    protected boolean canCommunicateSecurely = false;
     protected String keystoreAlias;
 
     @Override
@@ -41,7 +40,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             @Override
             public void run() {
                 try {
-                    if(canCommunicateSecurely) {
+                    if(threadedConversations.secured) {
                         byte[] cipherText = E2EEHandler.encryptText(getApplicationContext(),
                                 keystoreAlias, text);
                         transmissionText[0] = E2EEHandler.buildTransmissionText(cipherText);

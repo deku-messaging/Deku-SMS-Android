@@ -108,8 +108,8 @@ public class GatewayServer {
     public GatewayServerDAO getDaoInstance(Context context) {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
-                .enableMultiInstanceInvalidation()
                 .addMigrations(new Migrations.Migration8To9())
+                .enableMultiInstanceInvalidation()
                 .build();
         return databaseConnector.gatewayServerDAO();
     }

@@ -71,17 +71,4 @@ public class ConversationsThreadsEncryption {
         if(databaseConnector != null)
             databaseConnector.close();
     }
-
-    public static ConversationsThreadsEncryptionDao getDao(Context context) {
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .enableMultiInstanceInvalidation()
-                .build();
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                databaseConnector.conversationsThreadsEncryptionDao();
-        databaseConnector.close();
-        return conversationsThreadsEncryptionDao;
-    }
-
 }

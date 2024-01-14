@@ -63,8 +63,11 @@ public class E2EEHandler {
     }
 
     public static boolean canCommunicateSecurely(Context context, String keystoreAlias) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
+
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                ConversationsThreadsEncryption.getDao(context);
+                conversationsThreadsEncryption.getDaoInstance(context);
         return isAvailableInKeystore(keystoreAlias) &&
                 conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias) != null;
     }
@@ -114,8 +117,10 @@ public class E2EEHandler {
 
     public static int removeFromEncryptionDatabase(Context context, String keystoreAlias) throws KeyStoreException,
             CertificateException, IOException, NoSuchAlgorithmException, InterruptedException {
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                ConversationsThreadsEncryption.getDao(context);
+                conversationsThreadsEncryption.getDaoInstance(context);
         return conversationsThreadsEncryptionDao.delete(keystoreAlias);
     }
 
@@ -176,27 +181,28 @@ public class E2EEHandler {
     }
 
     public static long insertNewPeerPublicKey(Context context, byte[] publicKey, String keystoreAlias) {
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                ConversationsThreadsEncryption.getDao(context);
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
         conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.DEFAULT));
         conversationsThreadsEncryption.setExchangeDate(System.currentTimeMillis());
         conversationsThreadsEncryption.setKeystoreAlias(keystoreAlias);
-        return conversationsThreadsEncryptionDao.insert(conversationsThreadsEncryption);
+        return conversationsThreadsEncryption.getDaoInstance(context)
+                .insert(conversationsThreadsEncryption);
     }
 
     public static ConversationsThreadsEncryption fetchPeerPublicKey(Context context, String keystoreAlias) {
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                ConversationsThreadsEncryption.getDao(context);
+                conversationsThreadsEncryption.getDaoInstance(context);
         return conversationsThreadsEncryptionDao.fetch(keystoreAlias);
     }
 
     public static byte[] encryptText(Context context, String keystoreAlias, String text) throws GeneralSecurityException, IOException, InterruptedException {
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                ConversationsThreadsEncryption.getDao(context);
         ConversationsThreadsEncryption conversationsThreadsEncryption =
-                conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
+                new ConversationsThreadsEncryption();
+        conversationsThreadsEncryption = conversationsThreadsEncryption.getDaoInstance(context)
+                .findByKeystoreAlias(keystoreAlias);
 
         PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
                 conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
@@ -234,9 +240,11 @@ public class E2EEHandler {
     }
 
     public static byte[] decryptText(Context context, String keystoreAlias, byte[] text) throws GeneralSecurityException, IOException, InterruptedException {
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                ConversationsThreadsEncryption.getDao(context);
         ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                conversationsThreadsEncryption.getDaoInstance(context);
+        conversationsThreadsEncryption =
                 conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
 
         PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
