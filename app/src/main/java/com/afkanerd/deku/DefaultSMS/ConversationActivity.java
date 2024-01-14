@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
@@ -506,20 +507,34 @@ public class ConversationActivity extends E2EECompactActivity {
         conversationsViewModel.clearDraft(getApplicationContext());
     }
 
+    SmsManager smsManager = SmsManager.getDefault();
+    public String getSMSCount(String text) {
+        final List<String> messages = smsManager.divideMessage(text);
+        final int segmentCount = messages.get(messages.size() -1).length();
+        return segmentCount +"/"+messages.size();
+    }
+
     private void configureMessagesTextBox() {
         if (mutableLiveDataComposeMessage.getValue() == null ||
                 mutableLiveDataComposeMessage.getValue().isEmpty())
             findViewById(R.id.conversation_send_btn).setVisibility(View.INVISIBLE);
 
+        TextView counterView = findViewById(R.id.conversation_compose_text_counter);
+        View sendBtn = findViewById(R.id.conversation_send_btn);
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                int visibility = s.isEmpty() ? View.INVISIBLE : View.VISIBLE;
+                int visibility = View.GONE;
+                if(!s.isEmpty()) {
+                    counterView.setText(getSMSCount(s));
+                    visibility = View.VISIBLE;
+                }
                 if(simCount > 1) {
                     findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
                             .setVisibility(visibility);
                 }
-                findViewById(R.id.conversation_send_btn).setVisibility(visibility);
+                sendBtn.setVisibility(visibility);
+                counterView.setVisibility(visibility);
             }
         });
 
@@ -539,10 +554,12 @@ public class ConversationActivity extends E2EECompactActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    final String text = smsTextView.getText().toString();
-                    sendTextMessage(text, defaultSubscriptionId.getValue(),
-                            threadedConversations, String.valueOf(System.currentTimeMillis()));
-                    smsTextView.setText(null);
+                    if(smsTextView.getText() != null && defaultSubscriptionId.getValue() != null) {
+                        final String text = smsTextView.getText().toString();
+                        sendTextMessage(text, defaultSubscriptionId.getValue(),
+                                threadedConversations, String.valueOf(System.currentTimeMillis()));
+                        smsTextView.setText(null);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -581,27 +598,27 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void checkDrafts() throws InterruptedException {
         if(smsTextView.getText() == null || smsTextView.getText().toString().isEmpty())
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Conversation conversation =
-                            conversationsViewModel.fetchDraft(getApplicationContext());
-                    if (conversation != null) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                smsTextView.setText(conversation.getText());
-                            }
-                        });
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Conversation conversation =
+                                conversationsViewModel.fetchDraft(getApplicationContext());
+                        if (conversation != null) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    smsTextView.setText(conversation.getText());
+                                }
+                            });
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } finally {
+                        emptyDraft();
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    emptyDraft();
                 }
-            }
-        }).start();
+            }).start();
     }
 
     private void configureLayoutForMessageType() {
