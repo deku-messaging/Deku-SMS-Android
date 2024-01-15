@@ -18,6 +18,7 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityRSA;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -100,7 +101,8 @@ public class CustomKeyStore {
 
         PublicKey x509PublicKey = SecurityECDH.buildPublicKey(Base64.decode(publicKey, Base64.DEFAULT));
         PrivateKey x509PrivateKey = SecurityECDH.buildPrivateKey(privateKey);
-        return CryptoHelpers.buildKeyPair(x509PublicKey, x509PrivateKey);
+//        return CryptoHelpers.buildKeyPair(x509PublicKey, x509PrivateKey);
+        return new KeyPair(x509PublicKey, x509PrivateKey);
     }
 
     @Ignore

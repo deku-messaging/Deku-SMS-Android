@@ -18,11 +18,23 @@ public class ConversationsThreadsEncryption {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
-    private String publicKey;
-
+    // DHs comes from here
     private String keystoreAlias;
 
+    // DHr comes from here
+    private String publicKey;
+
+    private String states;
+
     private long exchangeDate;
+
+    public void setStates(String states) {
+        this.states = states;
+    }
+
+    public String getStates() {
+        return this.states;
+    }
 
     public String getKeystoreAlias() {
         return keystoreAlias;

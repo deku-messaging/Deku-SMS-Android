@@ -118,4 +118,15 @@ public class Migrations {
         }
     }
 
+    public static class Migration9To10 extends Migration {
+        public Migration9To10() {
+            super(9, 10);
+        }
+
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE ConversationsThreadsEncryption ADD COLUMN states TEXT");
+        }
+    }
+
 }

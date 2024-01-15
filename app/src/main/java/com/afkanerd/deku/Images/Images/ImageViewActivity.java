@@ -28,7 +28,6 @@ import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.E2EE.Security.SecurityAES;
 import com.afkanerd.deku.E2EE.Security.SecurityECDH;
-import com.afkanerd.deku.E2EE.Security.EncryptionHandlers;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

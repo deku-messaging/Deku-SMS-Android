@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 
 import android.util.Base64;
 
-import com.afkanerd.deku.E2EE.Security.EncryptionHandlers;
 import com.google.crypto.tink.shaded.protobuf.InvalidProtocolBufferException;
 import com.google.crypto.tink.subtle.Hkdf;
 

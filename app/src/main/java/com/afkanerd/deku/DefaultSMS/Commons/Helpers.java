@@ -34,6 +34,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 
+import java.security.SecureRandom;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -113,6 +114,15 @@ public class Helpers {
         Pattern pattern = Pattern.compile("[a-zA-Z]");
         Matcher matcher = pattern.matcher(threadedConversations.getAddress());
         return !PhoneNumberUtils.isWellFormedSmsAddress(threadedConversations.getAddress()) || matcher.find();
+    }
+
+    public static byte[] generateRandomBytes(int length) {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new
+
+                byte[length];
+        random.nextBytes(bytes);
+        return bytes;
     }
 
     public static boolean isShortCode(String address) {

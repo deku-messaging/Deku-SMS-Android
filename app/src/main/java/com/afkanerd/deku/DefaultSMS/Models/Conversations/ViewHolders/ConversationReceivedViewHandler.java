@@ -170,7 +170,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                 String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(),
                         0);
                 byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-                boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);
+                boolean isValidKey = E2EEHandler.isValidDefaultPublicKey(data);
 
                 if(isValidKey) {
                     final byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);

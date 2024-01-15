@@ -59,7 +59,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     final String date = regIncomingOutput[NativeSMSDB.DATE];
                     int subscriptionId = Integer.parseInt(strSubscriptionId);
 
-                    boolean isValidKey = E2EEHandler.isValidDekuPublicKey( Base64.decode(data, Base64.DEFAULT));
+                    boolean isValidKey = E2EEHandler.isValidDefaultPublicKey( Base64.decode(data, Base64.DEFAULT));
 
                     Conversation conversation = new Conversation();
                     conversation.setData(data);
@@ -110,7 +110,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
     boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-        boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);
+        boolean isValidKey = E2EEHandler.isValidDefaultPublicKey(data);
 
         if(isValidKey) {
             String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);

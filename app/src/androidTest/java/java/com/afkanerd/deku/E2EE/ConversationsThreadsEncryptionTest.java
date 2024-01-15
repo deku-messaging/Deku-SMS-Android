@@ -6,15 +6,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
-import android.os.Build;
-import android.util.Base64;
-import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.afkanerd.deku.E2EE.E2EEHandler;
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.CryptoHelpers;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -81,18 +77,18 @@ public class ConversationsThreadsEncryptionTest {
     public void testIsValidAgreementPubKey() throws GeneralSecurityException, IOException, InterruptedException {
         PublicKey publicKey = E2EEHandler.createNewKeyPair(context, keystoreAlias);
         byte[] dekuPublicKey = E2EEHandler.buildDekuPublicKey(publicKey.getEncoded());
-        assertTrue(E2EEHandler.isValidDekuPublicKey(dekuPublicKey));
+        assertTrue(E2EEHandler.isValidDefaultPublicKey(dekuPublicKey));
 
         SecretKey secretKey = SecurityAES.generateSecretKey(91);
         byte[] invalidPublicKey = E2EEHandler.buildDekuPublicKey(secretKey.getEncoded());
-        assertFalse(E2EEHandler.isValidDekuPublicKey(invalidPublicKey));
+        assertFalse(E2EEHandler.isValidDefaultPublicKey(invalidPublicKey));
         KeystoreHelpers.removeAllFromKeystore(context);
     }
 
     @Test
     public void testBuildForEncryptionRequest() throws GeneralSecurityException, NumberParseException, IOException, InterruptedException {
         byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(context, address);
-        assertTrue(E2EEHandler.isValidDekuPublicKey(transmissionRequest));
+        assertTrue(E2EEHandler.isValidDefaultPublicKey(transmissionRequest));
     }
     @Test
     public void canBeTransmittedAsData() throws GeneralSecurityException, NumberParseException, IOException, InterruptedException {
@@ -109,7 +105,7 @@ public class ConversationsThreadsEncryptionTest {
         byte[] aliceTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, bobAddress);
 
         // bob received alice's key
-        assertTrue(E2EEHandler.isValidDekuPublicKey(aliceTransmissionKey));
+        assertTrue(E2EEHandler.isValidDefaultPublicKey(aliceTransmissionKey));
         byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
         String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
         assertEquals(E2EEHandler.REQUEST_KEY,
@@ -120,7 +116,7 @@ public class ConversationsThreadsEncryptionTest {
         byte[] bobTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, aliceAddress);
 
         // alice received bob's key
-        assertTrue(E2EEHandler.isValidDekuPublicKey(bobTransmissionKey));
+        assertTrue(E2EEHandler.isValidDefaultPublicKey(bobTransmissionKey));
         byte[] bobExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(bobTransmissionKey);
         String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
         assertEquals(E2EEHandler.AGREEMENT_KEY,
@@ -134,6 +130,14 @@ public class ConversationsThreadsEncryptionTest {
 
         assertTrue(E2EEHandler.canCommunicateSecurely(context, aliceKeystoreAlias));
         assertTrue(E2EEHandler.canCommunicateSecurely(context, bobKeystoreAlias));
+
+        /**
+         * A shared key has been established. There are 2 cases that can happen here:
+         * 1. Either Alice sends the first message, starting and spinning the Ratchet in the process - yes pls
+         * 2. Bob sends a message, since nothing from Alice uses the SK to encrypt.
+         *       - Obscure the key with a KDF and send to Alice.
+         *       - Should rotate the keys after use for some forward secrecy.
+         */
 
         String aliceText = "Hello world!";
         byte[] aliceCipherText = E2EEHandler.encryptText(context, bobKeystoreAlias, aliceText);
