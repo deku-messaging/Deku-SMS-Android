@@ -112,6 +112,7 @@ public class CustomKeyStore {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration8To9())
+                .addMigrations(new Migrations.Migration9To10())
                 .build();
         return databaseConnector.customKeyStoreDao();
     }

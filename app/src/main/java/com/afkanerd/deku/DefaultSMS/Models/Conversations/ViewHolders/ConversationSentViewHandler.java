@@ -125,7 +125,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
                 @Override
                 public void run() {
                     try {
-                        if (text[0] != null && E2EEHandler.isValidDekuText(text[0])) {
+                        if (text[0] != null && E2EEHandler.isValidDefaultText(text[0])) {
                             String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
                                     conversation.getAddress(), 0);
                             byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);

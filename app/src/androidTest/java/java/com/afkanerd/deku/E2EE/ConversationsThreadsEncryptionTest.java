@@ -11,6 +11,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.CryptoHelpers;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -97,7 +98,56 @@ public class ConversationsThreadsEncryptionTest {
     }
 
     @Test
-    public void canE2EE() throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
+    public void canDoubleRatchet() throws Throwable {
+        KeystoreHelpers.removeAllFromKeystore(context);
+        String aliceAddress = "+237612345678";
+        String bobAddress = "+237612345670";
+
+        byte[] aliceTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, bobAddress);
+
+        // bob received alice's key
+        assertTrue(E2EEHandler.isValidDefaultPublicKey(aliceTransmissionKey));
+        byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
+        String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
+        assertEquals(E2EEHandler.REQUEST_KEY,
+                E2EEHandler.getKeyType(context, aliceKeystoreAlias, null));
+        E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey,
+                aliceKeystoreAlias);
+
+        byte[] bobTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, aliceAddress);
+
+        // alice received bob's key
+        assertTrue(E2EEHandler.isValidDefaultPublicKey(bobTransmissionKey));
+        byte[] bobExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(bobTransmissionKey);
+        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
+        assertEquals(E2EEHandler.AGREEMENT_KEY,
+                E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey));
+        E2EEHandler.insertNewAgreementKey(context, bobExtractedTransmissionKey, bobKeystoreAlias);
+        assertEquals(E2EEHandler.IGNORE_KEY,
+                E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey));
+
+        assertTrue(E2EEHandler.isAvailableInKeystore(aliceKeystoreAlias));
+        assertTrue(E2EEHandler.isAvailableInKeystore(bobKeystoreAlias));
+
+        assertTrue(E2EEHandler.canCommunicateSecurely(context, aliceKeystoreAlias));
+        assertTrue(E2EEHandler.canCommunicateSecurely(context, bobKeystoreAlias));
+
+//        String aliceText = "Hello world!";
+        final byte[] aliceText = CryptoHelpers.generateRandomBytes(130);
+        byte[] aliceCipherText = E2EEHandler.encrypt(context, bobKeystoreAlias, aliceText);
+        String aliceTransmissionText = E2EEHandler.buildTransmissionText(aliceCipherText);
+        // ----> alice sends the message
+
+        // <----- bob receives the message
+        assertTrue(E2EEHandler.isValidDefaultText(aliceTransmissionText));
+        byte[] aliceExtractedText = E2EEHandler.extractTransmissionText(aliceTransmissionText);
+
+        byte[] alicePlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, aliceExtractedText);
+        assertArrayEquals(aliceText, alicePlainText);
+    }
+
+    @Test
+    public void canE2EE() throws Exception {
         KeystoreHelpers.removeAllFromKeystore(context);
         String aliceAddress = "+237612345678";
         String bobAddress = "+237612345670";
@@ -131,21 +181,15 @@ public class ConversationsThreadsEncryptionTest {
         assertTrue(E2EEHandler.canCommunicateSecurely(context, aliceKeystoreAlias));
         assertTrue(E2EEHandler.canCommunicateSecurely(context, bobKeystoreAlias));
 
-        /**
-         * A shared key has been established. There are 2 cases that can happen here:
-         * 1. Either Alice sends the first message, starting and spinning the Ratchet in the process - yes pls
-         * 2. Bob sends a message, since nothing from Alice uses the SK to encrypt.
-         *       - Obscure the key with a KDF and send to Alice.
-         *       - Should rotate the keys after use for some forward secrecy.
-         */
 
+//        final byte[] plainText = CryptoHelpers.generateRandomBytes(130);
         String aliceText = "Hello world!";
         byte[] aliceCipherText = E2EEHandler.encryptText(context, bobKeystoreAlias, aliceText);
         String aliceTransmissionText = E2EEHandler.buildTransmissionText(aliceCipherText);
         // ----> alice sends the message
 
         // <----- bob receives the message
-        assertTrue(E2EEHandler.isValidDekuText(aliceTransmissionText));
+        assertTrue(E2EEHandler.isValidDefaultText(aliceTransmissionText));
         byte[] aliceExtractedText = E2EEHandler.extractTransmissionText(aliceTransmissionText);
 
         byte[] alicePlainText = E2EEHandler.decryptText(context, aliceKeystoreAlias, aliceExtractedText);

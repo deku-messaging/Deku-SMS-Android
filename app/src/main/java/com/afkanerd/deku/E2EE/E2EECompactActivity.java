@@ -42,10 +42,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 try {
                     if(threadedConversations.secured) {
                         byte[] cipherText = E2EEHandler.encryptText(getApplicationContext(),
-                                keystoreAlias, text,
-                                E2EEHandler.DONT_CARE_ENOUGH_MESSAGED_FIRST_TYPE);
-                        transmissionText[0] = E2EEHandler.buildTransmissionText(cipherText,
-                                E2EEHandler.DONT_CARE_ENOUGH_MESSAGED_FIRST_TYPE);
+                                keystoreAlias, text);
+                        transmissionText[0] = E2EEHandler.buildTransmissionText(cipherText);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

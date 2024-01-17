@@ -19,6 +19,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 //import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -79,9 +80,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             if(isValidKey) {
                                 try {
                                     processForEncryptionKey(context, conversation);
-                                } catch (NumberParseException | CertificateException |
-                                         KeyStoreException | IOException |
-                                         NoSuchAlgorithmException | InterruptedException e) {
+                                } catch (NumberParseException | IOException | InterruptedException |
+                                         GeneralSecurityException e) {
                                     e.printStackTrace();
                                 }
                             }
@@ -108,7 +108,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
+    boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
         boolean isValidKey = E2EEHandler.isValidDefaultPublicKey(data);
 

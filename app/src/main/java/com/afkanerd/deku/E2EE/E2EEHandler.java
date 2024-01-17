@@ -14,13 +14,10 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityECDH;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Headers;
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Protocols;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States;
 import com.google.common.primitives.Bytes;
 import com.google.i18n.phonenumbers.NumberParseException;
-
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +28,6 @@ import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -56,31 +52,10 @@ public class E2EEHandler {
     public final static String DEFAULT_TEXT_END_PREFIX_SHORTER = "}T";
 
 
-    // ALICE_MESSAGE_FIRST => Headers information
-    public final static String ALICE_TEXT_START_PREFIX = "A{";
-    public final static String ALICE_TEXT_END_PREFIX = "}A";
-
-
-    // BOB_MESSAGE_FIRST => Headers information
-    public final static String BOB_TEXT_START_PREFIX = "B{";
-    public final static String BOB_TEXT_END_PREFIX = "}B";
-
-    public static String convertTextToDekuFormat(byte[] data) {
-        return DEFAULT_TEXT_START_PREFIX
+    public static String convertToDefaultTextFormat(byte[] data) {
+        return DEFAULT_TEXT_START_PREFIX_SHORTER
                 + Base64.encodeToString(data, Base64.DEFAULT) +
-                DEFAULT_TEXT_END_PREFIX;
-    }
-
-    public static String convertTextToAliceFormat(byte[] data) {
-        return ALICE_TEXT_START_PREFIX
-                + Base64.encodeToString(data, Base64.DEFAULT) +
-                ALICE_TEXT_END_PREFIX;
-    }
-
-    public static String convertTextToBobFormat(byte[] data) {
-        return BOB_TEXT_START_PREFIX
-                + Base64.encodeToString(data, Base64.DEFAULT) +
-                BOB_TEXT_END_PREFIX;
+                DEFAULT_TEXT_END_PREFIX_SHORTER;
     }
 
     public static byte[] convertPublicKeyToDekuFormat(byte[] data) {
@@ -212,7 +187,7 @@ public class E2EEHandler {
         return false;
     }
 
-    public static boolean isValidDekuText(String text) {
+    public static boolean isValidDefaultText(String text) {
         try {
             String encodedText = text.substring(DEFAULT_TEXT_START_PREFIX.length(),
                     (text.length() - DEFAULT_TEXT_END_PREFIX.length()));
@@ -253,12 +228,37 @@ public class E2EEHandler {
         return buildDekuPublicKey(publicKey.getEncoded());
     }
 
-    public static long insertNewPeerPublicKey(Context context, byte[] publicKey, String keystoreAlias) {
+    public static long insertNewAgreementKey(Context context, byte[] publicKey, String keystoreAlias) throws GeneralSecurityException, IOException, InterruptedException {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
         conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.DEFAULT));
         conversationsThreadsEncryption.setExchangeDate(System.currentTimeMillis());
         conversationsThreadsEncryption.setKeystoreAlias(keystoreAlias);
+
+        Pair<KeyPair, byte[]> keyPairSecretOutput = SecurityECDH.generateKeyPair(keystoreAlias);
+        States states =
+                Ratchets.ratchetInitAlice(keystoreAlias,
+                        new States(),
+                        keyPairSecretOutput.second,
+                        SecurityECDH.buildPublicKey(publicKey));
+        conversationsThreadsEncryption.setStates(states.getSerializedStates());
+        return conversationsThreadsEncryption.getDaoInstance(context)
+                .insert(conversationsThreadsEncryption);
+    }
+
+    public static long insertNewPeerPublicKey(Context context, byte[] publicKey, String keystoreAlias) throws GeneralSecurityException, IOException, InterruptedException {
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
+        conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.DEFAULT));
+        conversationsThreadsEncryption.setExchangeDate(System.currentTimeMillis());
+        conversationsThreadsEncryption.setKeystoreAlias(keystoreAlias);
+
+        Pair<KeyPair, byte[]> keyPairSecretOutput = SecurityECDH.generateKeyPair(keystoreAlias);
+        States states =
+                Ratchets.ratchetInitBob(new States(),
+                        keyPairSecretOutput.second,
+                        keyPairSecretOutput.first);
+        conversationsThreadsEncryption.setStates(states.getSerializedStates());
         return conversationsThreadsEncryption.getDaoInstance(context)
                 .insert(conversationsThreadsEncryption);
     }
@@ -272,47 +272,26 @@ public class E2EEHandler {
         return conversationsThreadsEncryptionDao.fetch(keystoreAlias);
     }
 
-    public static byte[] encryptText(Context context, String keystoreAlias, String text, int type) throws Exception {
-        if(type == DONT_CARE_ENOUGH_MESSAGED_FIRST_TYPE) {
-            return defaultEncryptText(context, keystoreAlias, text);
-        }
+    public final static int ALICE_MESSAGE_FIRST_TYPE = 0;
+    public final static int BOB_MESSAGE_FIRST_TYPE = 1;
+    public final static int ALICE_AND_BOB_TALKS = 2;
+    public final static int DONT_CARE_ENOUGH_MESSAGED_FIRST_TYPE = 3;
 
-        throw new Exception("Invalid message build type: " + type);
+    public static byte[] encryptText(Context context, String keystoreAlias, String text) throws Exception {
+        return defaultEncryptText(context, keystoreAlias, text);
     }
 
-    protected static byte[] encryptAliceText(Context context, String keystoreAlias, String text) throws Throwable {
+    public static byte[] encrypt(Context context, String keystoreAlias, byte[] data) throws Throwable {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                conversationsThreadsEncryption.getDaoInstance(context);
-        conversationsThreadsEncryption = conversationsThreadsEncryptionDao.fetch(keystoreAlias);
-        States state = new States(conversationsThreadsEncryption.getStates());
-//        byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT);
-
-        // Keystore key should always be left updated else would cause a crash here
-        byte[] AD = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias).getPublic().getEncoded();
-        Pair<Headers, byte[]> cipherContentHeader =
-                Ratchets.ratchetEncrypt(state, text.getBytes(StandardCharsets.UTF_8), AD);
-        return Bytes.concat(cipherContentHeader.first.getSerialized(), cipherContentHeader.second);
-    }
-
-    protected static byte[] encryptBobText(Context context, String keystoreAlias, String text) throws Throwable {
-        ConversationsThreadsEncryption conversationsThreadsEncryption =
-                new ConversationsThreadsEncryption();
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                conversationsThreadsEncryption.getDaoInstance(context);
-        conversationsThreadsEncryption = conversationsThreadsEncryptionDao.fetch(keystoreAlias);
-
-        // Keystore key should always be left updated else would cause a crash here
+        conversationsThreadsEncryption = conversationsThreadsEncryption.getDaoInstance(context)
+                .findByKeystoreAlias(keystoreAlias);
+        String strStates = conversationsThreadsEncryption.getStates();
         KeyPair keyPair = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias);
         byte[] AD = keyPair.getPublic().getEncoded();
-        Pair<byte[], byte[] > kdfOutput = Protocols.KDF_CK(
-                SecurityECDH.generateSecretKey(keyPair, SecurityECDH.buildPublicKey(
-                                Base64.decode(conversationsThreadsEncryption.getPublicKey(),
-                                        Base64.DEFAULT))));
-        byte[] Cks = kdfOutput.first;
-        byte[] mk = kdfOutput.second;
-        return Protocols.ENCRYPT(mk, text.getBytes(StandardCharsets.UTF_8), AD);
+        Pair<Headers, byte[]> cipherPair = Ratchets.ratchetEncrypt(new States(keyPair, strStates),
+                data, AD);
+        return Bytes.concat(cipherPair.first.getSerialized(), cipherPair.second);
     }
 
     protected static byte[] defaultEncryptText(Context context, String keystoreAlias, String text) throws GeneralSecurityException, IOException, InterruptedException {
@@ -356,6 +335,52 @@ public class E2EEHandler {
         return null;
     }
 
+    public static byte[] decrypt(Context context, String keystoreAlias, byte[] cipherText) throws Throwable {
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                conversationsThreadsEncryption.getDaoInstance(context);
+        conversationsThreadsEncryption =
+                conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
+
+        byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT);
+        Headers header = new Headers();
+        cipherText = header.deSerializeHeader(cipherText);
+
+        PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
+                conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
+
+        final KeyPair[] keyPair = new KeyPair[1];
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    CustomKeyStore customKeyStore = new CustomKeyStore();
+                    CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
+                    CustomKeyStore customKeyStore1 = customKeyStoreDao.find(keystoreAlias);
+                    try {
+                        keyPair[0] = customKeyStore1.getKeyPair();
+                    } catch (UnrecoverableKeyException | InvalidKeySpecException |
+                             InvalidKeyException | BadPaddingException | IllegalBlockSizeException |
+                             NoSuchPaddingException | InvalidAlgorithmParameterException |
+                             NoSuchAlgorithmException | IOException | KeyStoreException |
+                             CertificateException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
+            thread.join();
+        } else {
+            keyPair[0] = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias);
+        }
+
+        return Ratchets.ratchetDecrypt(keystoreAlias,
+                new States(keyPair[0], conversationsThreadsEncryption.getStates()),
+                header,
+                cipherText,
+                AD);
+    }
     public static byte[] decryptText(Context context, String keystoreAlias, byte[] text) throws GeneralSecurityException, IOException, InterruptedException {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
@@ -399,28 +424,23 @@ public class E2EEHandler {
         return null;
     }
 
-    public static String buildTransmissionText(byte[] data, int type) throws Exception {
-        if(type == ALICE_MESSAGE_FIRST_TYPE) {
-            return convertTextToAliceFormat(data);
-        } else if(type == BOB_MESSAGE_FIRST_TYPE) {
-            return convertTextToBobFormat(data);
-        } else if(type == DONT_CARE_ENOUGH_MESSAGED_FIRST_TYPE) {
-            return convertTextToDekuFormat(data);
-        }
-
-        throw new Exception("Invalid message build type: " + type);
+    public static String buildTransmissionText(byte[] data) throws Exception {
+        return convertToDefaultTextFormat(data);
     }
 
     public static byte[] extractTransmissionText(String text) {
-        String encodedText = text.substring(DEFAULT_TEXT_START_PREFIX.length(),
-                (text.length() - DEFAULT_TEXT_END_PREFIX.length()));
+        String encodedText;
+        if(text.startsWith(DEFAULT_TEXT_START_PREFIX_SHORTER) &&
+                text.endsWith(DEFAULT_TEXT_END_PREFIX_SHORTER))
+            encodedText = text.substring(DEFAULT_TEXT_START_PREFIX_SHORTER.length(),
+                    (text.length() - DEFAULT_TEXT_END_PREFIX_SHORTER.length()));
+        else
+            encodedText = text.substring(DEFAULT_TEXT_START_PREFIX.length(),
+                    (text.length() - DEFAULT_TEXT_END_PREFIX.length()));
 
         return Base64.decode(encodedText, Base64.DEFAULT);
     }
 
-    public final static int ALICE_MESSAGE_FIRST_TYPE = 0;
-    public final static int BOB_MESSAGE_FIRST_TYPE = 1;
-    public final static int DONT_CARE_ENOUGH_MESSAGED_FIRST_TYPE = 2;
 
     /**
      * ALICE_MESSAGE_FIRST messages contain Header, Ratchet Pubkey and Content
@@ -437,7 +457,7 @@ public class E2EEHandler {
             return ALICE_MESSAGE_FIRST_TYPE;
         } else if(isValidBobText(message)) {
             return BOB_MESSAGE_FIRST_TYPE;
-        } else if(isValidDekuText(message)) {
+        } else if(isValidDefaultText(message)) {
             return DONT_CARE_ENOUGH_MESSAGED_FIRST_TYPE;
         }
         return -1;

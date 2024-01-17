@@ -26,6 +26,7 @@ public class ConversationsThreadsEncryption {
 
     private String states;
 
+    // would most likely use this for backward compatibility
     private long exchangeDate;
 
     public void setStates(String states) {
