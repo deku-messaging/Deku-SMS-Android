@@ -426,12 +426,8 @@ public class Helpers {
             byte[] decodedBytes = Base64.decode(input, Base64.DEFAULT);
 //            String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
 
-//            Log.d(Helpers.class.getName(), "De-Encoded string: " + decodedString);
-
             String reencodedString = Base64.encodeToString(decodedBytes, Base64.DEFAULT)
                             .replaceAll("\\n", "");
-
-            Log.d(Helpers.class.getName(), "Re-Encoded string: " + reencodedString);
 
             return input.replaceAll("\\n", "").equals(reencodedString);
         } catch (Exception e) {

@@ -19,6 +19,8 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States;
 import com.google.common.primitives.Bytes;
 import com.google.i18n.phonenumbers.NumberParseException;
 
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
@@ -28,6 +30,7 @@ import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -114,7 +117,7 @@ public class E2EEHandler {
             @Override
             public void run() {
                 CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
-                Log.d(getClass().getName(), "Number inserted: " + customKeyStoreDao.insert(customKeyStore));
+                customKeyStoreDao.insert(customKeyStore);
                 customKeyStore.close();
             }
         });
@@ -188,11 +191,20 @@ public class E2EEHandler {
     }
 
     public static boolean isValidDefaultText(String text) {
-        try {
-            String encodedText = text.substring(DEFAULT_TEXT_START_PREFIX.length(),
+        String encodedText;
+        if(text.startsWith(DEFAULT_TEXT_START_PREFIX_SHORTER) &&
+                text.endsWith(DEFAULT_TEXT_END_PREFIX_SHORTER))
+            encodedText = text.substring(DEFAULT_TEXT_START_PREFIX_SHORTER.length(),
+                    (text.length() - DEFAULT_TEXT_END_PREFIX_SHORTER.length()));
+        else
+            encodedText = text.substring(DEFAULT_TEXT_START_PREFIX.length(),
                     (text.length() - DEFAULT_TEXT_END_PREFIX.length()));
-            return text.startsWith(DEFAULT_TEXT_START_PREFIX) && text.endsWith(DEFAULT_TEXT_END_PREFIX) &&
-                    Helpers.isBase64Encoded(encodedText);
+
+        if(encodedText == null)
+            return false;
+
+        try {
+            return Helpers.isBase64Encoded(encodedText);
         } catch(Exception e) {
             e.printStackTrace();
             return false;
@@ -207,7 +219,7 @@ public class E2EEHandler {
         return false;
     }
 
-    public static byte[] buildDekuPublicKey(byte[] data) {
+    public static byte[] buildDefaultPublicKey(byte[] data) {
 //        return EncryptionHandlers.convertPublicKeyToPEMFormat(data);
         return convertPublicKeyToDekuFormat(data);
     }
@@ -225,7 +237,12 @@ public class E2EEHandler {
         int session = 0;
         String keystoreAlias = deriveKeystoreAlias(address, session);
         PublicKey publicKey = createNewKeyPair(context, keystoreAlias);
-        return buildDekuPublicKey(publicKey.getEncoded());
+        return buildDefaultPublicKey(publicKey.getEncoded());
+    }
+
+    public static byte[] buildForEncryptionAgreement(Context context, String keystoreAlias) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
+        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
+        return buildDefaultPublicKey(keyPair.getPublic().getEncoded());
     }
 
     public static long insertNewAgreementKey(Context context, byte[] publicKey, String keystoreAlias) throws GeneralSecurityException, IOException, InterruptedException {
@@ -235,18 +252,26 @@ public class E2EEHandler {
         conversationsThreadsEncryption.setExchangeDate(System.currentTimeMillis());
         conversationsThreadsEncryption.setKeystoreAlias(keystoreAlias);
 
-        Pair<KeyPair, byte[]> keyPairSecretOutput = SecurityECDH.generateKeyPair(keystoreAlias);
-        States states =
-                Ratchets.ratchetInitAlice(keystoreAlias,
-                        new States(),
-                        keyPairSecretOutput.second,
-                        SecurityECDH.buildPublicKey(publicKey));
+        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
+        PublicKey publicKey1 = SecurityECDH.buildPublicKey(publicKey);
+        final byte[] SK = SecurityECDH.generateSecretKey(keyPair, publicKey1);
+
+        removeFromKeystore(context, keystoreAlias);
+
+        States states = new States();
+        byte[] output = Ratchets.ratchetInitAlice(keystoreAlias, states, SK,
+                publicKey1);
         conversationsThreadsEncryption.setStates(states.getSerializedStates());
-        return conversationsThreadsEncryption.getDaoInstance(context)
-                .insert(conversationsThreadsEncryption);
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
+            storeInCustomKeystore(context, keystoreAlias, states.DHs, output);
+
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                conversationsThreadsEncryption.getDaoInstance(context);
+        return conversationsThreadsEncryptionDao.insert(conversationsThreadsEncryption);
     }
 
-    public static long insertNewPeerPublicKey(Context context, byte[] publicKey, String keystoreAlias) throws GeneralSecurityException, IOException, InterruptedException {
+    public static long insertNewPeerPublicKey(Context context, byte[] publicKey, String keystoreAlias) throws GeneralSecurityException, IOException, InterruptedException, JSONException {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
         conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.DEFAULT));
@@ -254,10 +279,13 @@ public class E2EEHandler {
         conversationsThreadsEncryption.setKeystoreAlias(keystoreAlias);
 
         Pair<KeyPair, byte[]> keyPairSecretOutput = SecurityECDH.generateKeyPair(keystoreAlias);
-        States states =
-                Ratchets.ratchetInitBob(new States(),
-                        keyPairSecretOutput.second,
-                        keyPairSecretOutput.first);
+        final byte[] SK = SecurityECDH.generateSecretKey(keyPairSecretOutput.first,
+                SecurityECDH.buildPublicKey(publicKey));
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
+            storeInCustomKeystore(context, keystoreAlias, keyPairSecretOutput.first,
+                    keyPairSecretOutput.second);
+        States states = Ratchets.ratchetInitBob(new States(), SK, keyPairSecretOutput.first);
+
         conversationsThreadsEncryption.setStates(states.getSerializedStates());
         return conversationsThreadsEncryption.getDaoInstance(context)
                 .insert(conversationsThreadsEncryption);
@@ -281,14 +309,43 @@ public class E2EEHandler {
         return defaultEncryptText(context, keystoreAlias, text);
     }
 
+    public static KeyPair getKeyPairBasedVersioning(Context context, String keystoreAlias) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
+        final KeyPair[] keyPair = new KeyPair[1];
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    CustomKeyStore customKeyStore = new CustomKeyStore();
+                    CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
+                    customKeyStore = customKeyStoreDao.find(keystoreAlias);
+                    try {
+                        keyPair[0] = customKeyStore.getKeyPair();
+                    } catch (UnrecoverableKeyException | InvalidKeySpecException |
+                             InvalidKeyException | BadPaddingException | IllegalBlockSizeException |
+                             NoSuchPaddingException | InvalidAlgorithmParameterException |
+                             NoSuchAlgorithmException | IOException | KeyStoreException |
+                             CertificateException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
+            thread.join();
+        } else {
+            keyPair[0] = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias);
+        }
+        return keyPair[0];
+    }
+
     public static byte[] encrypt(Context context, String keystoreAlias, byte[] data) throws Throwable {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
         conversationsThreadsEncryption = conversationsThreadsEncryption.getDaoInstance(context)
                 .findByKeystoreAlias(keystoreAlias);
         String strStates = conversationsThreadsEncryption.getStates();
-        KeyPair keyPair = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias);
-        byte[] AD = keyPair.getPublic().getEncoded();
+
+        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
+        byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT);
         Pair<Headers, byte[]> cipherPair = Ratchets.ratchetEncrypt(new States(keyPair, strStates),
                 data, AD);
         return Bytes.concat(cipherPair.first.getSerialized(), cipherPair.second);
@@ -303,32 +360,9 @@ public class E2EEHandler {
         PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
                 conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
 
-        final KeyPair[] keyPair = new KeyPair[1];
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    CustomKeyStore customKeyStore = new CustomKeyStore();
-                    CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
-                    CustomKeyStore customKeyStore1 = customKeyStoreDao.find(keystoreAlias);
-                    try {
-                        keyPair[0] = customKeyStore1.getKeyPair();
-                    } catch (UnrecoverableKeyException | InvalidKeySpecException |
-                             InvalidKeyException | BadPaddingException | IllegalBlockSizeException |
-                             NoSuchPaddingException | InvalidAlgorithmParameterException |
-                             NoSuchAlgorithmException | IOException | KeyStoreException |
-                             CertificateException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            thread.start();
-            thread.join();
-        } else {
-            keyPair[0] = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias);
-        }
-        if(keyPair[0] != null) {
-            byte[] _secretKey = SecurityECDH.generateSecretKey(keyPair[0], publicKey);
+        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
+        if(keyPair != null) {
+            byte[] _secretKey = SecurityECDH.generateSecretKey(keyPair, publicKey);
             SecretKey secretKey = new SecretKeySpec(_secretKey, "AES");
             return SecurityAES.encryptAESGCM(text.getBytes(StandardCharsets.UTF_8), secretKey);
         }
@@ -343,44 +377,20 @@ public class E2EEHandler {
         conversationsThreadsEncryption =
                 conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
 
-        byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT);
         Headers header = new Headers();
-        cipherText = header.deSerializeHeader(cipherText);
+        byte[] outputCipherText = header.deSerializeHeader(cipherText);
+        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
+        byte[] AD = keyPair.getPublic().getEncoded();
+        States states = new States(keyPair, conversationsThreadsEncryption.getStates());
+        byte[] decryptedText = Ratchets.ratchetDecrypt(keystoreAlias, states, header, outputCipherText, AD);
 
-        PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
-                conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
-
-        final KeyPair[] keyPair = new KeyPair[1];
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    CustomKeyStore customKeyStore = new CustomKeyStore();
-                    CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
-                    CustomKeyStore customKeyStore1 = customKeyStoreDao.find(keystoreAlias);
-                    try {
-                        keyPair[0] = customKeyStore1.getKeyPair();
-                    } catch (UnrecoverableKeyException | InvalidKeySpecException |
-                             InvalidKeyException | BadPaddingException | IllegalBlockSizeException |
-                             NoSuchPaddingException | InvalidAlgorithmParameterException |
-                             NoSuchAlgorithmException | IOException | KeyStoreException |
-                             CertificateException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            thread.start();
-            thread.join();
-        } else {
-            keyPair[0] = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias);
-        }
-
-        return Ratchets.ratchetDecrypt(keystoreAlias,
-                new States(keyPair[0], conversationsThreadsEncryption.getStates()),
-                header,
-                cipherText,
-                AD);
+        // TODO: save states information
+//        conversationsThreadsEncryption.setStates(states.getSerializedStates());
+//        conversationsThreadsEncryptionDao.insert(conversationsThreadsEncryption);
+        Log.d(E2EEHandler.class.getName(), states.getSerializedStates());
+        return decryptedText;
     }
+
     public static byte[] decryptText(Context context, String keystoreAlias, byte[] text) throws GeneralSecurityException, IOException, InterruptedException {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
@@ -392,32 +402,9 @@ public class E2EEHandler {
         PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
                 conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
 
-        final KeyPair[] keyPair = new KeyPair[1];
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    CustomKeyStore customKeyStore = new CustomKeyStore();
-                    CustomKeyStoreDao customKeyStoreDao = customKeyStore.getDaoInstance(context);
-                    CustomKeyStore customKeyStore1 = customKeyStoreDao.find(keystoreAlias);
-                    try {
-                        keyPair[0] = customKeyStore1.getKeyPair();
-                    } catch (UnrecoverableKeyException | InvalidKeySpecException |
-                             InvalidKeyException | BadPaddingException | IllegalBlockSizeException |
-                             NoSuchPaddingException | InvalidAlgorithmParameterException |
-                             NoSuchAlgorithmException | IOException | KeyStoreException |
-                             CertificateException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            thread.start();
-            thread.join();
-        } else {
-            keyPair[0] = KeystoreHelpers.getKeyPairFromKeystore(keystoreAlias);
-        }
-        if(keyPair[0] != null) {
-            byte[] _secretKey = SecurityECDH.generateSecretKey(keyPair[0], publicKey);
+        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
+        if(keyPair != null) {
+            byte[] _secretKey = SecurityECDH.generateSecretKey(keyPair, publicKey);
             SecretKey secretKey = new SecretKeySpec(_secretKey, "AES");
             return SecurityAES.decryptAESGCM(text, secretKey);
         }
@@ -428,15 +415,17 @@ public class E2EEHandler {
         return convertToDefaultTextFormat(data);
     }
 
-    public static byte[] extractTransmissionText(String text) {
+    public static byte[] extractTransmissionText(String text) throws Exception {
         String encodedText;
         if(text.startsWith(DEFAULT_TEXT_START_PREFIX_SHORTER) &&
                 text.endsWith(DEFAULT_TEXT_END_PREFIX_SHORTER))
             encodedText = text.substring(DEFAULT_TEXT_START_PREFIX_SHORTER.length(),
                     (text.length() - DEFAULT_TEXT_END_PREFIX_SHORTER.length()));
-        else
+        else if(text.startsWith(DEFAULT_TEXT_START_PREFIX) && text.endsWith(DEFAULT_TEXT_END_PREFIX))
             encodedText = text.substring(DEFAULT_TEXT_START_PREFIX.length(),
                     (text.length() - DEFAULT_TEXT_END_PREFIX.length()));
+        else
+            throw new Exception("Invalid Transmission Text");
 
         return Base64.decode(encodedText, Base64.DEFAULT);
     }

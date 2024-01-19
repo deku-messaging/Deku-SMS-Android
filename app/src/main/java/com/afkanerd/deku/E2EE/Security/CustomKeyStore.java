@@ -2,6 +2,7 @@ package com.afkanerd.deku.E2EE.Security;
 
 import android.content.Context;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.room.Entity;
 import androidx.room.Ignore;

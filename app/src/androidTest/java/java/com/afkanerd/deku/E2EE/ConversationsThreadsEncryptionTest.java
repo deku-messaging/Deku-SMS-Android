@@ -6,10 +6,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.util.Base64;
+import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.CryptoHelpers;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
@@ -21,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -77,11 +82,11 @@ public class ConversationsThreadsEncryptionTest {
     @Test
     public void testIsValidAgreementPubKey() throws GeneralSecurityException, IOException, InterruptedException {
         PublicKey publicKey = E2EEHandler.createNewKeyPair(context, keystoreAlias);
-        byte[] dekuPublicKey = E2EEHandler.buildDekuPublicKey(publicKey.getEncoded());
+        byte[] dekuPublicKey = E2EEHandler.buildDefaultPublicKey(publicKey.getEncoded());
         assertTrue(E2EEHandler.isValidDefaultPublicKey(dekuPublicKey));
 
         SecretKey secretKey = SecurityAES.generateSecretKey(91);
-        byte[] invalidPublicKey = E2EEHandler.buildDekuPublicKey(secretKey.getEncoded());
+        byte[] invalidPublicKey = E2EEHandler.buildDefaultPublicKey(secretKey.getEncoded());
         assertFalse(E2EEHandler.isValidDefaultPublicKey(invalidPublicKey));
         KeystoreHelpers.removeAllFromKeystore(context);
     }
@@ -100,31 +105,31 @@ public class ConversationsThreadsEncryptionTest {
     @Test
     public void canDoubleRatchet() throws Throwable {
         KeystoreHelpers.removeAllFromKeystore(context);
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                conversationsThreadsEncryption.getDaoInstance(context);
         String aliceAddress = "+237612345678";
         String bobAddress = "+237612345670";
+
+        String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
+        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
+
+        E2EEHandler.removeFromKeystore(context, aliceKeystoreAlias);
+        E2EEHandler.removeFromKeystore(context, bobKeystoreAlias);
 
         byte[] aliceTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, bobAddress);
 
         // bob received alice's key
         assertTrue(E2EEHandler.isValidDefaultPublicKey(aliceTransmissionKey));
         byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
-        String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
-        assertEquals(E2EEHandler.REQUEST_KEY,
-                E2EEHandler.getKeyType(context, aliceKeystoreAlias, null));
-        E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey,
-                aliceKeystoreAlias);
-
-        byte[] bobTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, aliceAddress);
+        E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey, aliceKeystoreAlias);
+        byte[] bobTransmissionKey = E2EEHandler.buildForEncryptionAgreement(context, aliceKeystoreAlias);
 
         // alice received bob's key
         assertTrue(E2EEHandler.isValidDefaultPublicKey(bobTransmissionKey));
         byte[] bobExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(bobTransmissionKey);
-        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
-        assertEquals(E2EEHandler.AGREEMENT_KEY,
-                E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey));
         E2EEHandler.insertNewAgreementKey(context, bobExtractedTransmissionKey, bobKeystoreAlias);
-        assertEquals(E2EEHandler.IGNORE_KEY,
-                E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey));
 
         assertTrue(E2EEHandler.isAvailableInKeystore(aliceKeystoreAlias));
         assertTrue(E2EEHandler.isAvailableInKeystore(bobKeystoreAlias));
