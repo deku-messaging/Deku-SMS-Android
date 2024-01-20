@@ -90,17 +90,17 @@ public class CustomKeyStore {
             NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
 
         PrivateKey keystorePrivateKey = SecurityECDH.getPrivateKeyFromKeystore(this.keystoreAlias);
-        byte[] decodedPrivateKey = Base64.decode(this.privateKey, Base64.DEFAULT);
+        byte[] decodedPrivateKey = Base64.decode(this.privateKey, Base64.NO_WRAP);
         byte[] privateKey = SecurityRSA.decrypt(keystorePrivateKey, decodedPrivateKey);
         return SecurityECDH.buildPrivateKey(privateKey);
     }
 
     public KeyPair getKeyPair() throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
         PrivateKey keystorePrivateKey = SecurityECDH.getPrivateKeyFromKeystore(this.keystoreAlias);
-        byte[] decodedPrivateKey = Base64.decode(this.privateKey, Base64.DEFAULT);
+        byte[] decodedPrivateKey = Base64.decode(this.privateKey, Base64.NO_WRAP);
         byte[] privateKey = SecurityRSA.decrypt(keystorePrivateKey, decodedPrivateKey);
 
-        PublicKey x509PublicKey = SecurityECDH.buildPublicKey(Base64.decode(publicKey, Base64.DEFAULT));
+        PublicKey x509PublicKey = SecurityECDH.buildPublicKey(Base64.decode(publicKey, Base64.NO_WRAP));
         PrivateKey x509PrivateKey = SecurityECDH.buildPrivateKey(privateKey);
 //        return CryptoHelpers.buildKeyPair(x509PublicKey, x509PrivateKey);
         return new KeyPair(x509PublicKey, x509PrivateKey);

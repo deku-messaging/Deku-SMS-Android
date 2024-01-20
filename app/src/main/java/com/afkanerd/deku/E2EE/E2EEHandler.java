@@ -57,7 +57,7 @@ public class E2EEHandler {
 
     public static String convertToDefaultTextFormat(byte[] data) {
         return DEFAULT_TEXT_START_PREFIX_SHORTER
-                + Base64.encodeToString(data, Base64.DEFAULT) +
+                + Base64.encodeToString(data, Base64.NO_WRAP) +
                 DEFAULT_TEXT_END_PREFIX_SHORTER;
     }
 
@@ -73,7 +73,7 @@ public class E2EEHandler {
     }
 
     public static String getAddressFromKeystore(String keystoreAlias) {
-        String decodedAlias = new String(Base64.decode(keystoreAlias, Base64.DEFAULT),
+        String decodedAlias = new String(Base64.decode(keystoreAlias, Base64.NO_WRAP),
                 StandardCharsets.UTF_8);
         return "+" + decodedAlias.split("_")[0];
     }
@@ -108,9 +108,9 @@ public class E2EEHandler {
     private static void storeInCustomKeystore(Context context, String keystoreAlias, KeyPair keyPair,
                                       byte[] encryptedPrivateKey) throws InterruptedException {
         CustomKeyStore customKeyStore = new CustomKeyStore();
-        customKeyStore.setPrivateKey(Base64.encodeToString(encryptedPrivateKey, Base64.DEFAULT));
+        customKeyStore.setPrivateKey(Base64.encodeToString(encryptedPrivateKey, Base64.NO_WRAP));
         customKeyStore.setPublicKey(Base64.encodeToString(keyPair.getPublic().getEncoded(),
-                Base64.DEFAULT));
+                Base64.NO_WRAP));
         customKeyStore.setKeystoreAlias(keystoreAlias);
 
         Thread thread = new Thread(new Runnable() {
@@ -245,10 +245,22 @@ public class E2EEHandler {
         return buildDefaultPublicKey(keyPair.getPublic().getEncoded());
     }
 
+    public static long insertNewAgreementKeyDefault(Context context, byte[] publicKey, String keystoreAlias) throws GeneralSecurityException, IOException, InterruptedException {
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
+        conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.NO_WRAP));
+        conversationsThreadsEncryption.setExchangeDate(System.currentTimeMillis());
+        conversationsThreadsEncryption.setKeystoreAlias(keystoreAlias);
+
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                conversationsThreadsEncryption.getDaoInstance(context);
+        return conversationsThreadsEncryptionDao.insert(conversationsThreadsEncryption);
+    }
+
     public static long insertNewAgreementKey(Context context, byte[] publicKey, String keystoreAlias) throws GeneralSecurityException, IOException, InterruptedException {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
-        conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.DEFAULT));
+        conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.NO_WRAP));
         conversationsThreadsEncryption.setExchangeDate(System.currentTimeMillis());
         conversationsThreadsEncryption.setKeystoreAlias(keystoreAlias);
 
@@ -274,7 +286,7 @@ public class E2EEHandler {
     public static long insertNewPeerPublicKey(Context context, byte[] publicKey, String keystoreAlias) throws GeneralSecurityException, IOException, InterruptedException, JSONException {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
-        conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.DEFAULT));
+        conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(publicKey, Base64.NO_WRAP));
         conversationsThreadsEncryption.setExchangeDate(System.currentTimeMillis());
         conversationsThreadsEncryption.setKeystoreAlias(keystoreAlias);
 
@@ -345,7 +357,7 @@ public class E2EEHandler {
         String strStates = conversationsThreadsEncryption.getStates();
 
         KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
-        byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT);
+        byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP);
         Pair<Headers, byte[]> cipherPair = Ratchets.ratchetEncrypt(new States(keyPair, strStates),
                 data, AD);
         return Bytes.concat(cipherPair.first.getSerialized(), cipherPair.second);
@@ -358,7 +370,7 @@ public class E2EEHandler {
                 .findByKeystoreAlias(keystoreAlias);
 
         PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
-                conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
+                conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP));
 
         KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
         if(keyPair != null) {
@@ -400,7 +412,7 @@ public class E2EEHandler {
                 conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
 
         PublicKey publicKey = SecurityECDH.buildPublicKey(Base64.decode(
-                conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
+                conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP));
 
         KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
         if(keyPair != null) {
@@ -427,7 +439,7 @@ public class E2EEHandler {
         else
             throw new Exception("Invalid Transmission Text");
 
-        return Base64.decode(encodedText, Base64.DEFAULT);
+        return Base64.decode(encodedText, Base64.NO_WRAP);
     }
 
 
@@ -452,7 +464,6 @@ public class E2EEHandler {
         return -1;
     }
 
-
     public final static int REQUEST_KEY = 0;
     public final static int AGREEMENT_KEY = 1;
     public final static int IGNORE_KEY = 2;
@@ -464,10 +475,11 @@ public class E2EEHandler {
                 return AGREEMENT_KEY;
             }
             if(conversationsThreadsEncryption.getPublicKey().equals(
-                    Base64.encodeToString(publicKey, Base64.DEFAULT))) {
+                    Base64.encodeToString(publicKey, Base64.NO_WRAP))) {
                 return IGNORE_KEY;
             }
         }
         return REQUEST_KEY;
     }
+
 }

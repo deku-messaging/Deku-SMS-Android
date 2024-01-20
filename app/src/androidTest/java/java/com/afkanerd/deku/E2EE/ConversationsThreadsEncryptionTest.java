@@ -37,10 +37,6 @@ import javax.crypto.SecretKey;
 public class ConversationsThreadsEncryptionTest {
 
     Context context;
-    String address = "+237612345678";
-    int sessionNumber = 0;
-    String keystoreAlias = "MjM3NjEyMzQ1Njc4XzA=";
-
     public ConversationsThreadsEncryptionTest() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         KeystoreHelpers.removeAllFromKeystore(context);
@@ -48,12 +44,16 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void getKeyStoreAliasTest() throws NumberParseException {
+        String address = "+237111111111";
+        int sessionNumber = 0;
+        String keystoreAlias = "MjM3MTExMTExMTExXzA=";
         String outputKeystoreAlias = E2EEHandler.deriveKeystoreAlias(address, sessionNumber);
         assertEquals(keystoreAlias, outputKeystoreAlias);
     }
 
     @Test
     public void getAddressFromKeystore() throws NumberParseException {
+        String address = "+237222222222";
         String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
         String derivedAddress = E2EEHandler.getAddressFromKeystore(keystoreAlias);
 
@@ -62,6 +62,7 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void testCanCreateAndRemoveKeyPair() throws GeneralSecurityException, IOException, InterruptedException {
+        String keystoreAlias = "MjM3NjEyMzQ1Njc4XzA=";
         E2EEHandler.createNewKeyPair(context, keystoreAlias);
         assertTrue(E2EEHandler.isAvailableInKeystore(keystoreAlias));
 
@@ -72,6 +73,7 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void testSize() throws GeneralSecurityException, IOException, InterruptedException {
+        String keystoreAlias = "MjM3NjEyMzQ1Njc4XzA=TS";
         PublicKey publicKey = E2EEHandler.createNewKeyPair(context, keystoreAlias);
         int length = publicKey.getEncoded().length;
 
@@ -81,6 +83,7 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void testIsValidAgreementPubKey() throws GeneralSecurityException, IOException, InterruptedException {
+        String keystoreAlias = "MjM3NjEyMzQ1Njc4XzA=VA";
         PublicKey publicKey = E2EEHandler.createNewKeyPair(context, keystoreAlias);
         byte[] dekuPublicKey = E2EEHandler.buildDefaultPublicKey(publicKey.getEncoded());
         assertTrue(E2EEHandler.isValidDefaultPublicKey(dekuPublicKey));
@@ -93,24 +96,25 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void testBuildForEncryptionRequest() throws GeneralSecurityException, NumberParseException, IOException, InterruptedException {
+        String address = "+237333333333";
         byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(context, address);
         assertTrue(E2EEHandler.isValidDefaultPublicKey(transmissionRequest));
     }
     @Test
     public void canBeTransmittedAsData() throws GeneralSecurityException, NumberParseException, IOException, InterruptedException {
+        String address = "+237444444444";
         byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(context, address);
         assertTrue(transmissionRequest.length < 120);
     }
 
     @Test
     public void canDoubleRatchet() throws Throwable {
-        KeystoreHelpers.removeAllFromKeystore(context);
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
                 conversationsThreadsEncryption.getDaoInstance(context);
-        String aliceAddress = "+237612345678";
-        String bobAddress = "+237612345670";
+        String aliceAddress = "+237555555555";
+        String bobAddress = "+237666666666";
 
         String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
         String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
@@ -153,18 +157,20 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void canE2EE() throws Exception {
-        KeystoreHelpers.removeAllFromKeystore(context);
-        String aliceAddress = "+237612345678";
-        String bobAddress = "+237612345670";
+        String aliceAddress = "+237777777777";
+        String bobAddress = "+237888888888";
+
+        String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
+        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
+
+        E2EEHandler.removeFromKeystore(context, aliceKeystoreAlias);
+        E2EEHandler.removeFromKeystore(context, bobKeystoreAlias);
 
         byte[] aliceTransmissionKey = E2EEHandler.buildForEncryptionRequest(context, bobAddress);
 
         // bob received alice's key
         assertTrue(E2EEHandler.isValidDefaultPublicKey(aliceTransmissionKey));
         byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
-        String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
-        assertEquals(E2EEHandler.REQUEST_KEY,
-                E2EEHandler.getKeyType(context, aliceKeystoreAlias, null));
         E2EEHandler.insertNewPeerPublicKey(context, aliceExtractedTransmissionKey,
                 aliceKeystoreAlias);
 
@@ -173,19 +179,13 @@ public class ConversationsThreadsEncryptionTest {
         // alice received bob's key
         assertTrue(E2EEHandler.isValidDefaultPublicKey(bobTransmissionKey));
         byte[] bobExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(bobTransmissionKey);
-        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
-        assertEquals(E2EEHandler.AGREEMENT_KEY,
-                E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey));
-        E2EEHandler.insertNewPeerPublicKey(context, bobExtractedTransmissionKey, bobKeystoreAlias);
-        assertEquals(E2EEHandler.IGNORE_KEY,
-                E2EEHandler.getKeyType(context, bobKeystoreAlias, bobExtractedTransmissionKey));
+        E2EEHandler.insertNewAgreementKeyDefault(context, bobExtractedTransmissionKey, bobKeystoreAlias);
 
         assertTrue(E2EEHandler.isAvailableInKeystore(aliceKeystoreAlias));
         assertTrue(E2EEHandler.isAvailableInKeystore(bobKeystoreAlias));
 
         assertTrue(E2EEHandler.canCommunicateSecurely(context, aliceKeystoreAlias));
         assertTrue(E2EEHandler.canCommunicateSecurely(context, bobKeystoreAlias));
-
 
 //        final byte[] plainText = CryptoHelpers.generateRandomBytes(130);
         String aliceText = "Hello world!";
