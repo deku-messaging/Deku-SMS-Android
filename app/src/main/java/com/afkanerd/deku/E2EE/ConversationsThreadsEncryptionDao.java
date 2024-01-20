@@ -5,6 +5,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -13,6 +14,9 @@ public interface ConversationsThreadsEncryptionDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insert(ConversationsThreadsEncryption conversationsThreadsEncryption);
+
+    @Update
+    int update(ConversationsThreadsEncryption conversationsThreadsEncryption);
 
     @Query("SELECT * FROM ConversationsThreadsEncryption WHERE keystoreAlias = :keystoreAlias")
     ConversationsThreadsEncryption findByKeystoreAlias(String keystoreAlias);

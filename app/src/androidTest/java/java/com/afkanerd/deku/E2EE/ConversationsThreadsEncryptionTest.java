@@ -150,9 +150,19 @@ public class ConversationsThreadsEncryptionTest {
         // <----- bob receives the message
         assertTrue(E2EEHandler.isValidDefaultText(aliceTransmissionText));
         byte[] aliceExtractedText = E2EEHandler.extractTransmissionText(aliceTransmissionText);
-
         byte[] alicePlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, aliceExtractedText);
         assertArrayEquals(aliceText, alicePlainText);
+
+        // <---- bob sends a message
+        final byte[] bobText = CryptoHelpers.generateRandomBytes(130);
+        byte[] bobCipherText = E2EEHandler.encrypt(context, aliceKeystoreAlias, bobText);
+        String bobTransmissionText = E2EEHandler.buildTransmissionText(bobCipherText);
+
+        // <---- alice receives bob's message
+        assertTrue(E2EEHandler.isValidDefaultText(bobTransmissionText));
+        byte[] bobExtractedText = E2EEHandler.extractTransmissionText(bobTransmissionText);
+        byte[] bobPlainText = E2EEHandler.decrypt(context, bobKeystoreAlias, bobExtractedText);
+        assertArrayEquals(bobText, bobPlainText);
     }
 
     @Test

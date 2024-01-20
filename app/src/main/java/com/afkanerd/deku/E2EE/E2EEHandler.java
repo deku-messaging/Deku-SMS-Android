@@ -7,6 +7,8 @@ import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
 
+import androidx.annotation.NonNull;
+
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
@@ -391,16 +393,27 @@ public class E2EEHandler {
 
         Headers header = new Headers();
         byte[] outputCipherText = header.deSerializeHeader(cipherText);
+
         KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
         byte[] AD = keyPair.getPublic().getEncoded();
         States states = new States(keyPair, conversationsThreadsEncryption.getStates());
-        byte[] decryptedText = Ratchets.ratchetDecrypt(keystoreAlias, states, header, outputCipherText, AD);
+        Pair<byte[], byte[]> decryptedText = Ratchets.ratchetDecrypt(keystoreAlias, states, header,
+                outputCipherText, AD);
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            // TODO: I doubt states.DHs is what I need here, but too many things can't remember all of it
+            storeInCustomKeystore(context, keystoreAlias, states.DHs, decryptedText.second);
+        }
 
         // TODO: save states information
-//        conversationsThreadsEncryption.setStates(states.getSerializedStates());
-//        conversationsThreadsEncryptionDao.insert(conversationsThreadsEncryption);
+        conversationsThreadsEncryption.setExchangeDate(System.currentTimeMillis());
+        conversationsThreadsEncryption.setStates(states.getSerializedStates());
+        conversationsThreadsEncryption.setPublicKey(Base64.encodeToString(states.DHr.getEncoded(),
+                Base64.NO_WRAP));
+        conversationsThreadsEncryptionDao.update(conversationsThreadsEncryption);
         Log.d(E2EEHandler.class.getName(), states.getSerializedStates());
-        return decryptedText;
+
+        return decryptedText.first;
     }
 
     public static byte[] decryptText(Context context, String keystoreAlias, byte[] text) throws GeneralSecurityException, IOException, InterruptedException {
