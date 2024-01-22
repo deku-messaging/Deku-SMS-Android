@@ -49,6 +49,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
@@ -58,8 +60,6 @@ public class ThreadedConversationsFragment extends Fragment {
     ThreadedConversationsViewModel threadedConversationsViewModel;
     ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
-
-    ThreadedConversations threadedConversations = new ThreadedConversations();
 
     public static final String MESSAGES_THREAD_FRAGMENT_TYPE = "MESSAGES_THREAD_FRAGMENT_TYPE";
     public static final String ALL_MESSAGES_THREAD_FRAGMENT = "ALL_MESSAGES_THREAD_FRAGMENT";
@@ -76,9 +76,12 @@ public class ThreadedConversationsFragment extends Fragment {
 
     public interface ViewModelsInterface {
         ThreadedConversationsViewModel getThreadedConversationsViewModel();
+        ExecutorService getExecutorService();
     }
 
     private ViewModelsInterface viewModelsInterface;
+
+    ExecutorService executorService;
 
     @Nullable
     @Override
@@ -111,15 +114,25 @@ public class ThreadedConversationsFragment extends Fragment {
                     threadedConversationsTemplateViewHolder :
                     threadedConversationRecyclerAdapter.selectedItems.getValue().values())
                 threadsIds.add(threadedConversationsTemplateViewHolder.id);
-            boolean hasUnread = threadedConversationsViewModel.hasUnread(threadsIds);
-            if(hasUnread) {
-                menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(true);
-                menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(false);
-            }
-            else {
-                menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(false);
-                menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(true);
-            }
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    boolean hasUnread = threadedConversationsViewModel.hasUnread(threadsIds);
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(hasUnread) {
+                                menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(true);
+                                menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(false);
+                            }
+                            else {
+                                menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(false);
+                                menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(true);
+                            }
+                        }
+                    });
+                }
+            });
             return true;
         }
 
@@ -133,7 +146,7 @@ public class ThreadedConversationsFragment extends Fragment {
                 @Override
                 public void run() {
 
-                    new Thread(new Runnable() {
+                    executorService.execute(new Runnable() {
                         @Override
                         public void run() {
                             ThreadedConversations threadedConversations = new ThreadedConversations();
@@ -164,7 +177,7 @@ public class ThreadedConversationsFragment extends Fragment {
                                 }
                             }
                         }
-                    }).start();
+                    });
                 }
             };
         }
@@ -220,7 +233,12 @@ public class ThreadedConversationsFragment extends Fragment {
                             archive.is_archived = true;
                             archiveList.add(archive);
                         }
-                    threadedConversationsViewModel.archive(archiveList);
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.archive(archiveList);
+                        }
+                    });
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
                     return true;
                 }
@@ -249,7 +267,12 @@ public class ThreadedConversationsFragment extends Fragment {
                                 threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                             threadIds.add(viewHolder.id);
                         }
-                        threadedConversationsViewModel.markUnRead(getContext(), threadIds);
+                        executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                threadedConversationsViewModel.markUnRead(getContext(), threadIds);
+                            }
+                        });
                         threadedConversationRecyclerAdapter.resetAllSelectedItems();
                         return true;
                     }
@@ -263,7 +286,12 @@ public class ThreadedConversationsFragment extends Fragment {
                                 threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                             threadIds.add(viewHolder.id);
                         }
-                        threadedConversationsViewModel.markRead(getContext(), threadIds);
+                        executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                threadedConversationsViewModel.markRead(getContext(), threadIds);
+                            }
+                        });
                         threadedConversationRecyclerAdapter.resetAllSelectedItems();
                         return true;
                     }
@@ -287,23 +315,31 @@ public class ThreadedConversationsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        if(getContext() != null) {
-            SharedPreferences sharedPreferences =
-                    PreferenceManager.getDefaultSharedPreferences(getContext());
-            if(sharedPreferences.getBoolean(getString(R.string.configs_load_natives), true)) {
-                sharedPreferences.edit().putBoolean(getString(R.string.configs_load_natives), false)
-                        .apply();
-                threadedConversationsViewModel.reset(getContext());
-            }
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                if(getContext() != null) {
+                    SharedPreferences sharedPreferences =
+                            PreferenceManager.getDefaultSharedPreferences(getContext());
+                    if(sharedPreferences.getBoolean(getString(R.string.configs_load_natives), true)) {
+                        sharedPreferences.edit().putBoolean(getString(R.string.configs_load_natives), false)
+                                .apply();
+                        threadedConversationsViewModel.reset(getContext());
+                    }
 
-            threadedConversationsViewModel.refresh(getContext());
-        }
+                    threadedConversationsViewModel.refresh(getContext());
+                }
+            }
+        });
     }
 
     ThreadedConversationsDao threadedConversationsDao;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        viewModelsInterface = (ViewModelsInterface) view.getContext();
+        executorService = viewModelsInterface.getExecutorService();
+
         setHasOptionsMenu(true);
         Bundle args = getArguments();
         String messageType = args == null ? ALL_MESSAGES_THREAD_FRAGMENT :
@@ -316,7 +352,6 @@ public class ThreadedConversationsFragment extends Fragment {
 
         setLabels(view, getString(R.string.conversations_navigation_view_inbox), getString(R.string.homepage_no_message));
 
-        viewModelsInterface = (ViewModelsInterface) view.getContext();
         threadedConversationsViewModel = viewModelsInterface.getThreadedConversationsViewModel();
 
         threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter( getContext(),

@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.ViewModelsInterface {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
@@ -219,6 +220,11 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     public ThreadedConversationsViewModel getThreadedConversationsViewModel() {
         return threadedConversationsViewModel;
+    }
+
+    @Override
+    public ExecutorService getExecutorService() {
+        return executorService;
     }
 
     @Override
