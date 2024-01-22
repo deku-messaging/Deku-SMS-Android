@@ -1,6 +1,8 @@
 package com.afkanerd.deku.E2EE;
 
 import android.os.Bundle;
+import android.provider.Telephony;
+import android.util.Base64;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -11,7 +13,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -36,22 +41,20 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     public void sendTextMessage(final String text, int subscriptionId,
                                 ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
         final String[] transmissionText = {text};
-        Thread thread = new Thread(new Runnable() {
+        executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
                     if(threadedConversations.secured) {
-                        byte[] cipherText = E2EEHandler.encryptText(getApplicationContext(),
-                                keystoreAlias, text);
-                        transmissionText[0] = E2EEHandler.buildTransmissionText(cipherText);
+//                        byte[] cipherText = E2EEHandler.encryptText(getApplicationContext(),
+//                                keystoreAlias, text);
+//                        transmissionText[0] = E2EEHandler.buildTransmissionText(cipherText);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
-        thread.start();
-        thread.join();
 
         super.sendTextMessage(transmissionText[0], subscriptionId, threadedConversations, messageId);
     }
@@ -71,6 +74,39 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             }
         });
     }
+
+    protected void sendDataMessage(ThreadedConversations threadedConversations) {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                try {
+                    byte[] transmissionRequest =
+                            E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
+                                    threadedConversations.getAddress()).second;
+
+                    final String messageId = String.valueOf(System.currentTimeMillis());
+                    Conversation conversation = new Conversation();
+                    conversation.setThread_id(threadedConversations.getThread_id());
+                    conversation.setAddress(threadedConversations.getAddress());
+                    conversation.setIs_key(true);
+                    conversation.setMessage_id(messageId);
+                    conversation.setData(Base64.encodeToString(transmissionRequest, Base64.DEFAULT));
+                    conversation.setSubscription_id(subscriptionId);
+                    conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
+                    conversation.setDate(String.valueOf(System.currentTimeMillis()));
+                    conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+
+                    long id = conversationsViewModel.insert(conversation);
+                    SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+    }
+
     private void showSecureRequestPopUpMenu() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.conversation_secure_popup_request_menu_title));
@@ -144,7 +180,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Thread thread = new Thread(new Runnable() {
+        executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -156,6 +192,5 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 }
             }
         });
-        thread.start();
     }
 }

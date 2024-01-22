@@ -53,6 +53,8 @@ import com.google.android.material.textfield.TextInputLayout;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +67,7 @@ import kotlin.jvm.functions.Function0;
 public class ConversationActivity extends E2EECompactActivity {
     public static final String IMAGE_URI = "IMAGE_URI";
     public static final String SEARCH_STRING = "SEARCH_STRING";
+    public static final String SEARCH_INDEX = "SEARCH_INDEX";
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
     ActionMode actionMode;
@@ -75,8 +78,6 @@ public class ConversationActivity extends E2EECompactActivity {
     LinearLayoutManager linearLayoutManager;
     RecyclerView singleMessagesThreadRecyclerView;
 
-
-    String searchString;
 
     MutableLiveData<List<Integer>> searchPositions = new MutableLiveData<>();
 
@@ -134,16 +135,18 @@ public class ConversationActivity extends E2EECompactActivity {
         if(threadedConversations.secured)
             layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
 
-        Thread thread = new Thread(new Runnable() {
+        executorService.execute(new Runnable() {
             @Override
             public void run() {
-                NativeSMSDB.Incoming.update_read(getApplicationContext(), 1,
-                        threadedConversations.getThread_id(), null);
-                conversationsViewModel.updateToRead(getApplicationContext());
+                try {
+                    NativeSMSDB.Incoming.update_read(getApplicationContext(), 1,
+                            threadedConversations.getThread_id(), null);
+                    conversationsViewModel.updateToRead(getApplicationContext());
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
-        thread.setName("convAc_update_read");
-        thread.start();
     }
 
     @Override
@@ -354,9 +357,17 @@ public class ConversationActivity extends E2EECompactActivity {
                 String searching = getIntent().getStringExtra(SEARCH_STRING);
 //                List<Integer> positions = conversationsViewModel.search(searching);
 //                searchPositions.setValue(positions);
-                searchForInput(searching);
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchForInput(searching);
+                    }
+                });
                 configureSearchBox();
-                conversationsViewModel.getSearch(conversationDao, this.threadedConversations.getThread_id(),
+                searchPositions.setValue(new ArrayList<>(
+                        Collections.singletonList(
+                                getIntent().getIntExtra(SEARCH_INDEX, 0))));
+                conversationsViewModel.getSearch(conversationDao, threadedConversations.getThread_id(),
                                 searchPositions.getValue())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
@@ -696,10 +707,10 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void searchForInput(String search){
+        conversationsRecyclerAdapter.searchString = search;
         try {
-            conversationsRecyclerAdapter.searchString = search;
-            searchPositions.setValue(conversationsViewModel.search(search));
-        } catch(Exception e) {
+            searchPositions.postValue(conversationsViewModel.search(search));
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -794,7 +805,12 @@ public class ConversationActivity extends E2EECompactActivity {
                     if(editable != null && editable.length() > 1) {
                         conversationsRecyclerAdapter.searchString = editable.toString();
                         conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
-                        searchForInput(editable.toString());
+                        executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                searchForInput(editable.toString());
+                            }
+                        });
                     }
                     else {
                         conversationsRecyclerAdapter.searchString = null;

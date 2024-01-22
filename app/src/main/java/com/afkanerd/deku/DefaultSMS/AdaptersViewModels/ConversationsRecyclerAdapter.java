@@ -382,8 +382,9 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     }
 
     public void resetSearchItems(List<Integer> positions) {
-        for(Integer position : positions) {
-            notifyItemChanged(position);
-        }
+        if(positions != null)
+            for(Integer position : positions) {
+                notifyItemChanged(position);
+            }
     }
 }

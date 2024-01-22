@@ -38,15 +38,8 @@ public class ConversationsViewModel extends ViewModel {
     int prefetchDistance = 3 * pageSize;
     boolean enablePlaceholder = false;
     int initialLoadSize = pageSize * 2;
-    int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
     public Integer initialKey = null;
-
-    ConversationPagingSource conversationPagingSource;
-
-    LifecycleOwner lifecycleOwner;
-
-    MutableLiveData<PagingData<Conversation>> mutableLiveData;
 
     List<Integer> positions = new ArrayList<>();
     int pointer = 0;
@@ -62,28 +55,23 @@ public class ConversationsViewModel extends ViewModel {
         this.threadId = threadId;
         this.positions = positions;
 
-        initialKey = this.positions.get(pointer);
+//        if(positions != null)
+//            initialKey = this.positions.get(pointer);
 
         pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
                 initialLoadSize
-        ), initialKey, ()-> getNewConversationPagingSource());
+        ), initialKey, this::getNewConversationPagingSource);
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
-
 
     PagingSource<Integer, Conversation> searchPagingSource;
     public PagingSource<Integer, Conversation> getNewConversationPagingSource() {
         searchPagingSource = new ConversationPagingSource(this.conversationDao, threadId,
                 pointer >= this.positions.size()-1 ? null : this.positions.get(++pointer));
         return searchPagingSource;
-    }
-
-    public LiveData<PagingData<Conversation>> invalidateSearch() throws InterruptedException {
-        searchPagingSource.invalidate();
-        return get(conversationDao, threadId);
     }
 
     public LiveData<PagingData<Conversation>> get(ConversationDao conversationDao, String threadId)
@@ -116,16 +104,7 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public Conversation fetch(String messageId) throws InterruptedException {
-        final Conversation[] conversation = {new Conversation()};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                conversation[0] = conversationDao.getMessage(messageId);
-            }
-        });
-        thread.start();
-        thread.join();
-        return conversation[0];
+        return conversationDao.getMessage(messageId);
     }
 
     public long insert(Conversation conversation) throws InterruptedException {
@@ -133,15 +112,7 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public void update(Conversation conversation) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-//                Conversation conversation1 = conversationDao.getMessage(conversation.getMessage_id());
-//                conversation.setId(conversation1.getId());
-                int numberUpdated = conversationDao.update(conversation);
-                Log.d(getClass().getName(), "ROOM updated: " + numberUpdated);
-            }
-        }).start();
+        conversationDao.update(conversation);
     }
 
     public void insertFromNative(Context context, String messageId) throws InterruptedException {
@@ -164,63 +135,46 @@ public class ConversationsViewModel extends ViewModel {
 
     public List<Integer> search(String input) throws InterruptedException {
         List<Integer> positions = new ArrayList<>();
-        Thread searchThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<Conversation> list = conversationDao.getAll(threadId);
+        List<Conversation> list = conversationDao.getAll(threadId);
 
-                for(int i=0;i<list.size();++i) {
-                    if(list.get(i).getText() != null)
-                        if(list.get(i).getText().toLowerCase().contains(input.toLowerCase()))
-                            positions.add(i);
-                }
-            }
-        });
-        searchThread.start();
-        searchThread.join();
+        for(int i=0;i<list.size();++i) {
+            if(list.get(i).getText() != null)
+                if(list.get(i).getText().toLowerCase().contains(input.toLowerCase()))
+                    positions.add(i);
+        }
 
         return positions;
     }
 
     public void updateToRead(Context context) {
         if(threadId != null && !threadId.isEmpty()) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Conversation conversation1 = new Conversation();
-                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
+            Conversation conversation1 = new Conversation();
+            ConversationDao conversationDao = conversation1.getDaoInstance(context);
 
-                    List<Conversation> conversations = conversationDao.getAll(threadId);
-                    List<Conversation> updateList = new ArrayList<>();
-                    for(Conversation conversation : conversations) {
-                        if(!conversation.isRead()) {
-                            conversation.setRead(true);
-                            updateList.add(conversation);
-                        }
-                    }
-                    conversationDao.update(updateList);
-                    conversation1.close();
+            List<Conversation> conversations = conversationDao.getAll(threadId);
+            List<Conversation> updateList = new ArrayList<>();
+            for(Conversation conversation : conversations) {
+                if(!conversation.isRead()) {
+                    conversation.setRead(true);
+                    updateList.add(conversation);
                 }
-            }).start();
+            }
+            conversationDao.update(updateList);
+            conversation1.close();
         }
     }
 
     public void deleteItems(Context context, List<Conversation> conversations) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Conversation conversation1 = new Conversation();
-                ConversationDao conversationDao = conversation1.getDaoInstance(context);
+        Conversation conversation1 = new Conversation();
+        ConversationDao conversationDao = conversation1.getDaoInstance(context);
 
-                conversationDao.delete(conversations);
-                String[] ids = new String[conversations.size()];
-                for(int i=0;i<conversations.size(); ++i)
-                    ids[i] = conversations.get(i).getMessage_id();
-                int deletedCount = NativeSMSDB.deleteMultipleMessages(context, ids);
+        conversationDao.delete(conversations);
+        String[] ids = new String[conversations.size()];
+        for(int i=0;i<conversations.size(); ++i)
+            ids[i] = conversations.get(i).getMessage_id();
+        NativeSMSDB.deleteMultipleMessages(context, ids);
 
-                conversation1.close();
-            }
-        }).start();
+        conversation1.close();
     }
 
     public Conversation fetchDraft(Context context) throws InterruptedException {
@@ -232,16 +186,11 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public void clearDraft(Context context) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Conversation conversation1 = new Conversation();
-                ConversationDao conversationDao = conversation1.getDaoInstance(context);
-                conversationDao.deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT,
-                        threadId);
-                SMSDatabaseWrapper.deleteDraft(context, threadId);
-                conversation1.close();
-            }
-        }).start();
+        Conversation conversation1 = new Conversation();
+        ConversationDao conversationDao = conversation1.getDaoInstance(context);
+        conversationDao.deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT,
+                threadId);
+        SMSDatabaseWrapper.deleteDraft(context, threadId);
+        conversation1.close();
     }
 }

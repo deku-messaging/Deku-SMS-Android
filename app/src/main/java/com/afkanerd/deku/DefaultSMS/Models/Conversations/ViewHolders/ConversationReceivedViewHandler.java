@@ -80,8 +80,8 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                             String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
                                     conversation.getAddress(), 0);
                             byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
-                            text[0] = new String(E2EEHandler.decryptText(itemView.getContext(),
-                                    keystoreAlias, extractedText));
+//                            text[0] = new String(E2EEHandler.decryptText(itemView.getContext(),
+//                                    keystoreAlias, extractedText));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -203,8 +203,10 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
                                             if (E2EEHandler.canCommunicateSecurely(itemView.getContext(), keystoreAlias))
                                                 return;
 
-                                            byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(
-                                                    itemView.getContext(), conversation.getAddress());
+                                            byte[] transmissionRequest =
+                                                    E2EEHandler.buildForEncryptionRequest(
+                                                            itemView.getContext(),
+                                                            conversation.getAddress()).second;
 
                                             Conversation transmitConversation =
                                                     Conversation.buildForDataTransmission(conversation,

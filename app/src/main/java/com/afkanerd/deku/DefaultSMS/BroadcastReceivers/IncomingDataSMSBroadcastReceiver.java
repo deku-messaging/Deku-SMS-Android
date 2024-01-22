@@ -118,7 +118,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
             String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
             byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
 
-            E2EEHandler.insertNewPeerPublicKey(context, extractedTransmissionKey, keystoreAlias);
+            E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
 
 //            if(E2EEHandler.getKeyType(context, keystoreAlias, extractedTransmissionKey) ==
 //                    E2EEHandler.AGREEMENT_KEY) {

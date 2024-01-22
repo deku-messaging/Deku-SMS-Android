@@ -18,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -95,10 +96,12 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             @Override
             public void onChanged(String s) {
                 try {
-                    if(s == null || s.isEmpty())
+                    if(s == null || s.isEmpty()) {
                         searchConversationRecyclerAdapter.searchString = null;
-                    else
+                    }
+                    else {
                         searchConversationRecyclerAdapter.searchString = s;
+                    }
                     searchViewModel.search(getApplicationContext(), s);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -112,29 +115,32 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
             searchViewModel.getByThreadId(threadedConversationsDao,
                             getIntent().getStringExtra(Conversation.THREAD_ID)).observe(this,
-                    new Observer<List<ThreadedConversations>>() {
+                    new Observer<Pair<List<ThreadedConversations>,Integer>>() {
                         @Override
-                        public void onChanged(List<ThreadedConversations> smsList) {
-                            if(!searchString.getValue().isEmpty() && smsList.isEmpty())
+                        public void onChanged(Pair<List<ThreadedConversations>,Integer> smsList) {
+                            if(searchString.getValue() != null &&
+                                    !searchString.getValue().isEmpty() && smsList.first.isEmpty())
                                 findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
                             else {
                                 findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
                             }
-                            searchConversationRecyclerAdapter.mDiffer.submitList(smsList);
+                            searchConversationRecyclerAdapter.mDiffer.submitList(smsList.first);
+                            searchConversationRecyclerAdapter.searchIndex = smsList.second;
                         }
                     });
         }
         else {
             searchViewModel.get(threadedConversationsDao).observe(this,
-                    new Observer<List<ThreadedConversations>>() {
+                    new Observer<Pair<List<ThreadedConversations>,Integer>>() {
                         @Override
-                        public void onChanged(List<ThreadedConversations> smsList) {
-                            if (smsList != null && smsList.isEmpty())
+                        public void onChanged(Pair<List<ThreadedConversations>,Integer> smsList) {
+                            if (smsList != null && smsList.first.isEmpty())
                                 findViewById(R.id.search_nothing_found).setVisibility(View.VISIBLE);
                             else {
                                 findViewById(R.id.search_nothing_found).setVisibility(View.GONE);
                             }
-                            searchConversationRecyclerAdapter.mDiffer.submitList(smsList);
+                            searchConversationRecyclerAdapter.mDiffer.submitList(smsList.first);
+                            searchConversationRecyclerAdapter.searchIndex = smsList.second;
                         }
                     });
         }
