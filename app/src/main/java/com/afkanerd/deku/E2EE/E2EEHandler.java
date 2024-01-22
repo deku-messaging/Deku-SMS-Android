@@ -431,4 +431,15 @@ public class E2EEHandler {
         return REQUEST_KEY;
     }
 
+    public static void clear(Context context, String keystoreAlias) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
+        removeFromKeystore(context, keystoreAlias);
+        removeFromKeystore(context, getKeystoreForRatchets(keystoreAlias));
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                new ConversationsThreadsEncryption();
+        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                conversationsThreadsEncryption.getDaoInstance(context);
+        conversationsThreadsEncryptionDao.delete(keystoreAlias);
+        conversationsThreadsEncryptionDao.delete(getKeystoreForRatchets(keystoreAlias));
+    }
+
 }

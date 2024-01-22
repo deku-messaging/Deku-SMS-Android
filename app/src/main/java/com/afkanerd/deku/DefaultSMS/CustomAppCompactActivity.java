@@ -84,6 +84,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                 Conversation conversation = conversationsViewModel
                                         .conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
+                                conversationsViewModel.update(conversation);
                                 try {
                                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
                                             E2EEHandler.deriveKeystoreAlias(
@@ -94,12 +95,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                          NoSuchAlgorithmException | NumberParseException e) {
                                     e.printStackTrace();
                                 }
-                                conversationsViewModel.update(conversation);
                             }
                         });
-                    }
-                    if(threadedConversationsViewModel != null) {
-                        threadedConversationsViewModel.refresh(context);
                     }
                 }  else {
                     String messageId = intent.getStringExtra(Conversation.ID);
@@ -110,6 +107,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                 Conversation conversation = conversationsViewModel
                                         .conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
+                                conversationsViewModel.update(conversation);
                                 try {
                                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
                                             E2EEHandler.deriveKeystoreAlias( conversation.getAddress(),
@@ -120,13 +118,17 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                          NoSuchAlgorithmException | NumberParseException e) {
                                     e.printStackTrace();
                                 }
-                                conversationsViewModel.update(conversation);
                             }
                         });
                     }
-                    if(threadedConversationsViewModel != null) {
-                        threadedConversationsViewModel.refresh(context);
-                    }
+                }
+                if(threadedConversationsViewModel != null) {
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.refresh(context);
+                        }
+                    });
                 }
             }
         };
