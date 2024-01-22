@@ -355,8 +355,6 @@ public class ConversationActivity extends E2EECompactActivity {
                 conversationsViewModel.threadId = threadedConversations.getThread_id();
                 findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
                 String searching = getIntent().getStringExtra(SEARCH_STRING);
-//                List<Integer> positions = conversationsViewModel.search(searching);
-//                searchPositions.setValue(positions);
                 executorService.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -372,7 +370,13 @@ public class ConversationActivity extends E2EECompactActivity {
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
                             public void onChanged(PagingData<Conversation> conversationPagingData) {
-                                conversationsRecyclerAdapter.submitData(getLifecycle(), conversationPagingData);
+                                executorService.execute(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        conversationsRecyclerAdapter.submitData(getLifecycle(),
+                                                conversationPagingData);
+                                    }
+                                });
                             }
                         });
             }
@@ -382,15 +386,12 @@ public class ConversationActivity extends E2EECompactActivity {
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
                             public void onChanged(PagingData<Conversation> smsList) {
-                                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
-                            }
-                        });
-            } else if(this.threadedConversations.getAddress()!= null && !this.threadedConversations.getAddress().isEmpty()) {
-                conversationsViewModel.getByAddress(conversationDao, this.threadedConversations.getAddress())
-                        .observe(this, new Observer<PagingData<Conversation>>() {
-                            @Override
-                            public void onChanged(PagingData<Conversation> smsList) {
-                                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                executorService.execute(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                    }
+                                });
                             }
                         });
             }

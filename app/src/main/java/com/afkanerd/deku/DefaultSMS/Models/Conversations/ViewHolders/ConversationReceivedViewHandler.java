@@ -72,26 +72,15 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
         final String[] text = {conversation.getText()};
         if(secured) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if (text[0] != null && E2EEHandler.isValidDefaultText(text[0])) {
-                            String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
-                                    conversation.getAddress(), 0);
-                            byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
-//                            text[0] = new String(E2EEHandler.decryptText(itemView.getContext(),
-//                                    keystoreAlias, extractedText));
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            thread.start();
             try {
-                thread.join();
-            } catch (Exception e) {
+                if (text[0] != null && E2EEHandler.isValidDefaultText(text[0])) {
+                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
+                            conversation.getAddress(), 0);
+                    byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
+                    text[0] = new String(E2EEHandler.decrypt(itemView.getContext(),
+                            keystoreAlias, extractedText));
+                }
+            } catch (Throwable e) {
                 e.printStackTrace();
             }
         }
