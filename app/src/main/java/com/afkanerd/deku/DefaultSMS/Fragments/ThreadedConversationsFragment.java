@@ -114,25 +114,28 @@ public class ThreadedConversationsFragment extends Fragment {
                     threadedConversationsTemplateViewHolder :
                     threadedConversationRecyclerAdapter.selectedItems.getValue().values())
                 threadsIds.add(threadedConversationsTemplateViewHolder.id);
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    boolean hasUnread = threadedConversationsViewModel.hasUnread(threadsIds);
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(hasUnread) {
-                                menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(true);
-                                menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(false);
+
+            if(menu.findItem(R.id.conversations_threads_main_menu_mark_all_read) != null &&
+            menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread) != null)
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean hasUnread = threadedConversationsViewModel.hasUnread(threadsIds);
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(hasUnread) {
+                                    menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(true);
+                                    menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(false);
+                                }
+                                else {
+                                    menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(false);
+                                    menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(true);
+                                }
                             }
-                            else {
-                                menu.findItem(R.id.conversations_threads_main_menu_mark_all_read).setVisible(false);
-                                menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread).setVisible(true);
-                            }
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
             return true;
         }
 
@@ -254,7 +257,12 @@ public class ThreadedConversationsFragment extends Fragment {
                             archive.is_archived = false;
                             archiveList.add(archive);
                         }
-                    threadedConversationsViewModel.unarchive(archiveList);
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.unarchive(archiveList);
+                        }
+                    });
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
                     return true;
                 }
@@ -483,12 +491,16 @@ public class ThreadedConversationsFragment extends Fragment {
             return true;
         }
         if(item.getItemId() == R.id.conversation_threads_main_menu_clear_drafts) {
-            try {
-                threadedConversationsViewModel.clearDrafts(getContext());
-            } catch(Exception e) {
-                e.printStackTrace();
-                return false;
-            }
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        threadedConversationsViewModel.clearDrafts(getContext());
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
             return true;
         }
         if(item.getItemId() == R.id.conversation_threads_main_menu_mark_all_read) {
