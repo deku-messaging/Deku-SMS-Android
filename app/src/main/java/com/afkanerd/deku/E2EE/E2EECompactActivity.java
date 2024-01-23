@@ -197,8 +197,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         super.onStart();
         securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
         setSecurePopUpRequest();
-        if(!SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext()))
-            securePopUpRequest.setVisibility(View.VISIBLE);
+//        if(!SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext()))
+//            securePopUpRequest.setVisibility(View.VISIBLE);
     }
 
     @Override
