@@ -9,7 +9,6 @@
     <string name="search_messages_text">Rechercher des messages</string>
     <string name="no_showable_router_message">Aucun message routé à afficher !</string>
     <string name="save_new_gateway_client">Enregistrer</string>
-    <string name="archived_messages_toolbar_title">Archive</string>
     <string name="new_gateway_server_url">Entrez l\'URL - par ex. https://example.com:8080/api/</string>
     <string name="new_gateway_server_tag">La balise Enter serait utilisée pour identifier cet appareil <i>(facultatif)</i></string>
     <string name="new_gateway_client_url">Entrez l\'URL - par ex. example.com <i>(ne pas inclure le protocole)</i></string>
@@ -42,11 +41,8 @@
     <string name="settings_locale_description">Choisissez la langue</string>
     <string name="settings_about">À propos</string>
     <string name="settings_title">Paramètres</string>
-    <string name="settings_security_category_title">Sécurité</string>
     <string name="settings_advanced_category_title">Avance</string>
     <string name="settings_developer_category_title">Développeuses</string>
-    <string name="settings_security_category_end_to_end_encryption">Cryptage des communications</string>
-    <string name="settings_security_category_end_to_end_encryption_summary">Configurez le fonctionnement de votre cryptage. Où aller également pour désactiver le cryptage</string>
     <string name="settings_security_category_end_to_end_duration">Autoriser l\'expiration de la demande de chiffrement</string>
     <string name="settings_security_category_end_to_end_disable">Désactiver la demande de sécurisation des messages</string>
     <string name="settings_security_category_end_to_end_disable_summary">N\'affectera pas les contacts avec lesquels vous communiquez déjà en toute sécurité, mais il ne vous sera pas demandé de sécuriser les communications avec d\'autres contacts.</string>
@@ -81,7 +77,6 @@
     <string name="gateway_client_running_title">SMS Gateway Client: Node Running</string>
     <string name="gateway_client_running_description">Clients passerelle SMS connectés</string>
     <string name="gateway_client_reconnecting_description">Les clients de la passerelle SMS se reconnectent…</string>
-    <string name="homepage_fragment_tab_all">Toute</string>
     <string name="homepage_fragment_tab_encrypted">Crypté</string>
     <string name="messages_thread_delete_confirmation_title">Confirmation de suppression</string>
     <string name="messages_thread_delete_confirmation_text">Procédez à la suppression des fils de discussion.</string>
@@ -106,7 +101,6 @@
     <string name="conversation_copied">Copié!</string>
     <string name="router_list_gateways">Afficher les serveurs de passerelle</string>
     <string name="router_add_gateways">Ajouter des serveurs de passerelle</string>
-    <string name="archived_no_archived_messages">Aucun message archivé</string>
     <string name="conversation_menu_copy">copie</string>
     <string name="conversation_menu_delete">supprimer</string>
     <string name="conversation_menu_share">partager</string>
@@ -124,7 +118,6 @@
     <string name="conversation_secure_popup_text">Cliquez pour demander une conversation sécurisée</string>
     <string name="conversation_threads_secured_content">Contenu sécurisé</string>
     <string name="conversation_key_title_requested">Sécurisé demandé</string>
-    <string name="conversation_key_title_agree">Cliquez pour accepter pour sécuriser cette communication</string>
     <string name="conversation_secure_popup_request_menu_yes">Envoyer</string>
     <string name="conversation_secure_popup_request_menu_cancel">Annuler</string>
     <string name="conversation_secure_popup_request_menu_title">Demande de conversation sécurisée</string>

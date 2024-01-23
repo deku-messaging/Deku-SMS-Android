@@ -33,21 +33,5 @@
     </array>
     <!-- Darker versions of letter_tile_colors, two shades darker. These colors are used
         for settings secondary activity colors. -->
-    <array name="letter_tile_colors_dark">
-        <item>#C53929</item>
-        <item>#C2185B</item>
-        <item>#7B1FA2</item>
-        <item>#512DA8</item>
-        <item>#303F9F</item>
-        <item>#3367D6</item>
-        <item>#0277BD</item>
-        <item>#006064</item>
-        <item>#00796B</item>
-        <item>#0B8043</item>
-        <item>#33691E</item>
-        <item>#E65100</item>
-        <item>#E64A19</item>
-        <item>#424242</item>
-    </array>
 
 </resources>

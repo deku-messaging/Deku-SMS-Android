@@ -2,9 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <group
-        android:id="@+id/navigation_view_menu_id"
-        android:checkableBehavior="single">
+    <group android:checkableBehavior="single">
 
         <item
             android:checked="true"
@@ -17,9 +15,7 @@
             android:icon="@drawable/round_archive_24"
             android:title="@string/homepage_menu_archived" />
 
-        <item
-            android:id="@+id/navigation_view_menu_id_folders"
-            android:title="@string/conversations_navigation_view_folders_label">
+        <item android:title="@string/conversations_navigation_view_folders_label">
             <menu>
                 <group
                     android:checkableBehavior="single">

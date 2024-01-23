@@ -26,7 +26,6 @@
                 layout="@layout/conversation_threads_toolbar"/>
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/conversations_threads_constraint_layout"
                 android:layout_width="match_parent"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 android:layout_height="match_parent">

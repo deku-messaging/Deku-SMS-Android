@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <group
-        android:id="@+id/default_conversations_threads_groups">
+    <group>
         <item
             android:id="@+id/conversations_threads_main_menu_delete"
             android:icon="@drawable/round_delete_24"
@@ -15,8 +14,7 @@
             app:showAsAction="ifRoom" />
     </group>
 
-    <group
-        android:id="@+id/conversations_threads_reads_status_menu_group">
+    <group>
         <item
             android:id="@+id/conversations_threads_main_menu_mark_all_unread"
             android:title="@string/homepage_menu_clear_mark_unread"
