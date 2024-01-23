@@ -365,33 +365,24 @@ public class ConversationActivity extends E2EECompactActivity {
                 searchPositions.setValue(new ArrayList<>(
                         Collections.singletonList(
                                 getIntent().getIntExtra(SEARCH_INDEX, 0))));
-                conversationsViewModel.getSearch(conversationDao, threadedConversations.getThread_id(),
-                                searchPositions.getValue())
+                conversationsViewModel.getSearch(getApplicationContext(), conversationDao,
+                                threadedConversations.getThread_id(), searchPositions.getValue())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
                             public void onChanged(PagingData<Conversation> conversationPagingData) {
-                                executorService.execute(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        conversationsRecyclerAdapter.submitData(getLifecycle(),
-                                                conversationPagingData);
-                                    }
-                                });
+                                conversationsRecyclerAdapter.submitData(getLifecycle(),
+                                        conversationPagingData);
                             }
                         });
             }
             else if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {
-                conversationsViewModel.get(conversationDao, this.threadedConversations.getThread_id())
+                conversationsViewModel.get(getApplicationContext(), conversationDao,
+                                this.threadedConversations.getThread_id())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
                             public void onChanged(PagingData<Conversation> smsList) {
-                                executorService.execute(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                    }
-                                });
+                                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
                             }
                         });
             }
@@ -402,12 +393,17 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onChanged(Conversation conversation) {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
-                conversationsViewModel.deleteItems(getApplicationContext(), list);
-                try {
-                    sendTextMessage(conversation, threadedConversations, conversation.getMessage_id());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        conversationsViewModel.deleteItems(getApplicationContext(), list);
+                        try {
+                            sendTextMessage(conversation, threadedConversations, conversation.getMessage_id());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         });
 
@@ -569,7 +565,8 @@ public class ConversationActivity extends E2EECompactActivity {
                     if(smsTextView.getText() != null && defaultSubscriptionId.getValue() != null) {
                         final String text = smsTextView.getText().toString();
                         sendTextMessage(text, defaultSubscriptionId.getValue(),
-                                threadedConversations, String.valueOf(System.currentTimeMillis()));
+                                threadedConversations, String.valueOf(System.currentTimeMillis()),
+                                null);
                         smsTextView.setText(null);
                     }
                 } catch (Exception e) {

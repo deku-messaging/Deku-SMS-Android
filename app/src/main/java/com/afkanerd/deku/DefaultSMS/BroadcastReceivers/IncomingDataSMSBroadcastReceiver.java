@@ -45,10 +45,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
          * Important note: either image or dump it
          */
 
-        Log.d(getClass().getName(), "Broadcast data received: " + intent.getAction());
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
-            Log.d(getClass().getName(), "Yes new data received");
             if (getResultCode() == Activity.RESULT_OK) {
                 try {
                     String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_data(context, intent);

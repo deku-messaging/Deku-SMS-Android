@@ -11,6 +11,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -22,6 +23,9 @@ public interface ConversationDao {
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     PagingSource<Integer, Conversation> get(String thread_id);
+
+    @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
+    List<Conversation> getDefault(String thread_id);
 
 
     @Query("SELECT * FROM Conversation WHERE address =:address ORDER BY date DESC")

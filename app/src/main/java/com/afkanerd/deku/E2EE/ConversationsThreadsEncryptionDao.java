@@ -12,7 +12,7 @@ import java.util.List;
 @Dao
 public interface ConversationsThreadsEncryptionDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(ConversationsThreadsEncryption conversationsThreadsEncryption);
 
     @Update

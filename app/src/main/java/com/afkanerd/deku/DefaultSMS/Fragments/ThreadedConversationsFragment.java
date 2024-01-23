@@ -169,9 +169,10 @@ public class ThreadedConversationsFragment extends Fragment {
                                 try {
                                     String keystoreAlias =
                                             E2EEHandler.deriveKeystoreAlias( address, 0);
-                                    E2EEHandler.removeFromKeystore(getContext(), keystoreAlias);
-                                    E2EEHandler.removeFromEncryptionDatabase(getContext(),
-                                            keystoreAlias);
+//                                    E2EEHandler.removeFromKeystore(getContext(), keystoreAlias);
+//                                    E2EEHandler.removeFromEncryptionDatabase(getContext(),
+//                                            keystoreAlias);
+                                    E2EEHandler.clear(getContext(), keystoreAlias);
                                 } catch (KeyStoreException | NumberParseException |
                                          InterruptedException |
                                          NoSuchAlgorithmException | IOException |

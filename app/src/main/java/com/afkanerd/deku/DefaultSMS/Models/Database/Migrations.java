@@ -126,6 +126,7 @@ public class Migrations {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE ConversationsThreadsEncryption ADD COLUMN states TEXT");
+            database.execSQL("ALTER TABLE ConversationsThreadsEncryption ADD COLUMN _mk TEXT");
         }
     }
 

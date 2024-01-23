@@ -160,11 +160,12 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                    ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
         sendTextMessage(conversation.getText(),
                 conversation.getSubscription_id(),
-                threadedConversations, messageId);
+                threadedConversations, messageId, null);
     }
 
     protected void sendTextMessage(final String text, int subscriptionId,
-                                ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
+                                ThreadedConversations threadedConversations, String messageId,
+                                   byte[] _mk) throws NumberParseException, InterruptedException {
         if(text != null) {
             if(messageId == null)
                 messageId = String.valueOf(System.currentTimeMillis());
@@ -177,9 +178,11 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             conversation.setDate(String.valueOf(System.currentTimeMillis()));
             conversation.setAddress(threadedConversations.getAddress());
             conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+            // TODO: should encrypt this before storing
+            if(_mk != null)
+                conversation.set_mk(Base64.encodeToString(_mk, Base64.NO_WRAP));
 
             if(conversationsViewModel != null) {
-                final String _messageId = messageId;
                 executorService.execute(new Runnable() {
                     @Override
                     public void run() {

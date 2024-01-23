@@ -20,6 +20,7 @@ import com.afkanerd.deku.E2EE.E2EEHandler;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.concurrent.ExecutorService;
 
 public class ConversationReceivedViewHandler extends ConversationTemplateViewHandler {
     TextView receivedMessage;
@@ -63,35 +64,21 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         return this.id;
     }
 
-    public void bind(Conversation conversation, String searchString, boolean secured) {
+    public void bind(Conversation conversation, String searchString) {
         this.id = conversation.getId();
         this.message_id = conversation.getMessage_id();
         String timestamp = Helpers.formatDateExtended(itemView.getContext(), Long.parseLong(conversation.getDate()));
         DateFormat dateFormat = new SimpleDateFormat("h:mm a");
         String txDate = dateFormat.format(new Date(Long.parseLong(conversation.getDate())));
 
-        final String[] text = {conversation.getText()};
-        if(secured) {
-            try {
-                if (text[0] != null && E2EEHandler.isValidDefaultText(text[0])) {
-                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
-                            conversation.getAddress(), 0);
-                    byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
-                    text[0] = new String(E2EEHandler.decrypt(itemView.getContext(),
-                            keystoreAlias, extractedText));
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
-
-        if(searchString != null && !searchString.isEmpty() && text[0] != null) {
+        final String text = conversation.getText();
+        if(searchString != null && !searchString.isEmpty() && text != null) {
             Spannable spannable = Helpers.highlightSubstringYellow(itemView.getContext(),
-                    text[0], searchString, false);
+                    text, searchString, false);
             receivedMessage.setText(spannable);
         }
         else
-            Helpers.highlightLinks(receivedMessage, text[0],
+            Helpers.highlightLinks(receivedMessage, text,
                     itemView.getContext().getColor(R.color.primary_text_color));
 
         if(conversation.getSubscription_id() > 0) {
@@ -151,79 +138,11 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         }
 
         @Override
-        public void bind(Conversation conversation, String searchString, boolean secured) {
-            super.bind(conversation, searchString, secured);
+        public void bind(Conversation conversation, String searchString) {
+            super.bind(conversation, searchString);
             receivedMessage.setTextAppearance(R.style.key_request_initiated);
-
-            try {
-                String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(),
-                        0);
-                byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-                boolean isValidKey = E2EEHandler.isValidDefaultPublicKey(data);
-
-                if(isValidKey) {
-                    final byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
-                    final int[] keyType = {-1};
-                    Thread thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                keyType[0] = E2EEHandler.getKeyType(itemView.getContext(), keystoreAlias,
-                                        extractedTransmissionKey);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                    thread.start();
-                    thread.join();
-
-                    if (keyType[0] == E2EEHandler.REQUEST_KEY ) {
-                        receivedMessage.setText(
-                                itemView.getContext().getString(R.string.conversation_key_title_agree));
-
-                        receivedMessage.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            if (E2EEHandler.canCommunicateSecurely(itemView.getContext(), keystoreAlias))
-                                                return;
-
-                                            byte[] transmissionRequest =
-                                                    E2EEHandler.buildForEncryptionRequest(
-                                                            itemView.getContext(),
-                                                            conversation.getAddress()).second;
-
-                                            Conversation transmitConversation =
-                                                    Conversation.buildForDataTransmission(conversation,
-                                                            transmissionRequest);
-
-                                            ConversationDao conversationDao =
-                                                    conversation.getDaoInstance(itemView.getContext());
-                                            long id = conversationDao.insert(transmitConversation);
-                                            SMSDatabaseWrapper.send_data(itemView.getContext(),
-                                                    transmitConversation);
-
-                                            transmitConversation.setId(id);
-                                            conversationDao.update(transmitConversation);
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }).start();
-                            }
-                        });
-
-                    } else receivedMessage.setText(
-                            itemView.getContext().getString(R.string.conversation_threads_secured_content));
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            receivedMessage.setText(
+                    itemView.getContext().getString(R.string.conversation_threads_secured_content));
         }
     }
     public static class TimestampKeyReceivedViewHandler extends KeyReceivedViewHandler {

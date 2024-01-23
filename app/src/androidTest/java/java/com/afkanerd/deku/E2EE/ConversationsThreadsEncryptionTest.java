@@ -96,13 +96,13 @@ public class ConversationsThreadsEncryptionTest {
     }
 
     @Test
-    public void testBuildForEncryptionRequest() throws GeneralSecurityException, NumberParseException, IOException, InterruptedException {
+    public void testBuildForEncryptionRequest() throws Exception {
         String address = "+237333333333";
         byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(context, address).second;
         assertTrue(E2EEHandler.isValidDefaultPublicKey(transmissionRequest));
     }
     @Test
-    public void canBeTransmittedAsData() throws GeneralSecurityException, NumberParseException, IOException, InterruptedException {
+    public void canBeTransmittedAsData() throws Exception {
         String address = "+237444444444";
         byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(context, address).second;
         assertTrue(transmissionRequest.length < 120);
@@ -119,13 +119,14 @@ public class ConversationsThreadsEncryptionTest {
 
         // Initial request
         String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
-        Pair<String, byte[]> keystorePairAlice = E2EEHandler.buildForEncryptionRequest(context, bobAddress);
+        Pair<String, byte[]> keystorePairAlice = E2EEHandler.buildForEncryptionRequest(context,
+                bobAddress);
 //        String aliceKeystoreAlias = keystorePairAlice.first;
         byte[] aliceTransmissionKey = keystorePairAlice.second;
 
         // bob received alice's key
-        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
         assertTrue(E2EEHandler.isValidDefaultPublicKey(aliceTransmissionKey));
+        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
         byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
         E2EEHandler.insertNewAgreementKeyDefault(context, aliceExtractedTransmissionKey, bobKeystoreAlias);
 
@@ -147,57 +148,69 @@ public class ConversationsThreadsEncryptionTest {
 
         // ----> alice sends the message
          byte[] aliceText = CryptoHelpers.generateRandomBytes(130);
-        byte[] aliceCipherText = E2EEHandler.encrypt(context, aliceKeystoreAlias, aliceText);
-        String aliceTransmissionText = E2EEHandler.buildTransmissionText(aliceCipherText);
+        byte[][] aliceCipherText = E2EEHandler.encrypt(context, aliceKeystoreAlias, aliceText);
+        String aliceTransmissionText = E2EEHandler.buildTransmissionText(aliceCipherText[0]);
 
         // <----- bob receives the message
         assertTrue(E2EEHandler.isValidDefaultText(aliceTransmissionText));
         byte[] aliceExtractedText = E2EEHandler.extractTransmissionText(aliceTransmissionText);
-        byte[] alicePlainText = E2EEHandler.decrypt(context, bobKeystoreAlias, aliceExtractedText);
+        byte[] alicePlainText = E2EEHandler.decrypt(context, bobKeystoreAlias, aliceExtractedText,
+                null, null);
         assertArrayEquals(aliceText, alicePlainText);
+
 
         // <---- bob sends a message
          byte[] bobText = CryptoHelpers.generateRandomBytes(130);
-        byte[] bobCipherText = E2EEHandler.encrypt(context, bobKeystoreAlias, bobText);
-        String bobTransmissionText = E2EEHandler.buildTransmissionText(bobCipherText);
+        byte[][] bobCipherText = E2EEHandler.encrypt(context, bobKeystoreAlias, bobText);
+        String bobTransmissionText = E2EEHandler.buildTransmissionText(bobCipherText[0]);
+
+        // <----- bob receives the message again - as would be on mobile devices
+        aliceExtractedText = E2EEHandler.extractTransmissionText(aliceTransmissionText);
+        alicePlainText = E2EEHandler.decrypt(context, bobKeystoreAlias, aliceExtractedText,
+                aliceCipherText[1], null);
+        assertArrayEquals(aliceText, alicePlainText);
 
         // <---- alice receives bob's message
         assertTrue(E2EEHandler.isValidDefaultText(bobTransmissionText));
         byte[] bobExtractedText = E2EEHandler.extractTransmissionText(bobTransmissionText);
-        byte[] bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText);
+        byte[] bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText,
+                null, null);
         assertArrayEquals(bobText, bobPlainText);
 
         // <---- bob sends a message
         bobText = CryptoHelpers.generateRandomBytes(130);
         bobCipherText = E2EEHandler.encrypt(context, bobKeystoreAlias, bobText);
-        bobTransmissionText = E2EEHandler.buildTransmissionText(bobCipherText);
+        bobTransmissionText = E2EEHandler.buildTransmissionText(bobCipherText[0]);
 
         // <---- then bob sends another
         byte[] bobText1 = CryptoHelpers.generateRandomBytes(130);
-        byte[] bobCipherText1 = E2EEHandler.encrypt(context, bobKeystoreAlias, bobText1);
-        String bobTransmissionText1 = E2EEHandler.buildTransmissionText(bobCipherText1);
+        byte[][] bobCipherText1 = E2EEHandler.encrypt(context, bobKeystoreAlias, bobText1);
+        String bobTransmissionText1 = E2EEHandler.buildTransmissionText(bobCipherText1[0]);
 
         // ----> alice sends the message
         aliceText = CryptoHelpers.generateRandomBytes(130);
         aliceCipherText = E2EEHandler.encrypt(context, aliceKeystoreAlias, aliceText);
-        aliceTransmissionText = E2EEHandler.buildTransmissionText(aliceCipherText);
+        aliceTransmissionText = E2EEHandler.buildTransmissionText(aliceCipherText[0]);
 
         // <----- bob receives the message
         assertTrue(E2EEHandler.isValidDefaultText(aliceTransmissionText));
         aliceExtractedText = E2EEHandler.extractTransmissionText(aliceTransmissionText);
-        alicePlainText = E2EEHandler.decrypt(context, bobKeystoreAlias, aliceExtractedText);
+        alicePlainText = E2EEHandler.decrypt(context, bobKeystoreAlias, aliceExtractedText,
+                null, null);
         assertArrayEquals(aliceText, alicePlainText);
 
         // <---- alice receives bob's message - this message is out of order
         assertTrue(E2EEHandler.isValidDefaultText(bobTransmissionText1));
         bobExtractedText = E2EEHandler.extractTransmissionText(bobTransmissionText1);
-        bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText);
+        bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText,
+                null, null);
         assertArrayEquals(bobText1, bobPlainText);
 
         // <---- alice receives bob's message
         assertTrue(E2EEHandler.isValidDefaultText(bobTransmissionText));
         bobExtractedText = E2EEHandler.extractTransmissionText(bobTransmissionText);
-        bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText);
+        bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText,
+                null, null);
         assertArrayEquals(bobText, bobPlainText);
     }
 }

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation, ConversationTemplateViewHandler> {
     public MutableLiveData<HashMap<Long, ConversationTemplateViewHandler>> mutableSelectedItems;
@@ -67,7 +68,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
     ThreadedConversations threadedConversations;
 
-    public ConversationsRecyclerAdapter(Context context, ThreadedConversations threadedConversations) throws GeneralSecurityException, IOException {
+    public ConversationsRecyclerAdapter(Context context,
+                                        ThreadedConversations threadedConversations) {
         super(Conversation.DIFF_CALLBACK);
         this.context = context;
         this.mutableSelectedItems = new MutableLiveData<>();
@@ -182,7 +184,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         if(holder instanceof ConversationReceivedViewHandler) {
             ConversationReceivedViewHandler conversationReceivedViewHandler = (ConversationReceivedViewHandler) holder;
-            conversationReceivedViewHandler.bind(conversation, searchString, threadedConversations.secured);
+            conversationReceivedViewHandler.bind(conversation, searchString);
             if(holder.getAbsoluteAdapterPosition() == 0) {
                 if(lastReceivedItem != null)
                     lastReceivedItem.hideDetails();
@@ -193,7 +195,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         else if(holder instanceof ConversationSentViewHandler){
             ConversationSentViewHandler conversationSentViewHandler = (ConversationSentViewHandler) holder;
-            conversationSentViewHandler.bind(conversation, searchString, threadedConversations.secured);
+            conversationSentViewHandler.bind(conversation, searchString);
             if(holder.getAbsoluteAdapterPosition() == 0 ) {
                 if(lastSentItem != null)
                     lastSentItem.hideDetails();

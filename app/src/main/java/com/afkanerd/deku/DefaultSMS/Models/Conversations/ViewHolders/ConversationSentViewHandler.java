@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 import android.graphics.Color;
 import android.provider.Telephony;
 import android.text.Spannable;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -80,7 +81,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         return this.id;
     }
 
-    public void bind(Conversation conversation, String searchString, boolean secured) {
+    public void bind(Conversation conversation, String searchString) {
         this.id = conversation.getId();
         this.message_id = conversation.getMessage_id();
 
@@ -122,20 +123,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         sentMessageStatus.setText(statusMessage);
 
         final String[] text = {conversation.getText()};
-        if(secured) {
-            try {
-                if (text[0] != null && E2EEHandler.isValidDefaultText(text[0])) {
-                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
-                            conversation.getAddress(), 0);
-                    byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
-                    text[0] = new String(E2EEHandler.decrypt(itemView.getContext(), keystoreAlias,
-                            extractedText));
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
-
         if(searchString != null && !searchString.isEmpty() && text[0] != null) {
             Spannable spannable = Helpers.highlightSubstringYellow(itemView.getContext(),
                     text[0], searchString, true);
@@ -200,8 +187,8 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         }
 
         @Override
-        public void bind(Conversation conversation, String searchString, boolean secured) {
-            super.bind(conversation, searchString, secured);
+        public void bind(Conversation conversation, String searchString) {
+            super.bind(conversation, searchString);
             sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title_requested));
             sentMessage.setTextAppearance(R.style.key_request_initiated);
         }

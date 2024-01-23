@@ -39,6 +39,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 
 import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -69,9 +70,9 @@ public class E2EEHandler {
                 data, DEFAULT_HEADER_END_PREFIX.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static String deriveKeystoreAlias(String address, int sessionNumber) throws NumberParseException {
+    public static String deriveKeystoreAlias(String address, int mode) throws NumberParseException {
         String[] addressDetails = Helpers.getCountryNationalAndCountryCode(address);
-        String keystoreAliasRequirements = addressDetails[0] + addressDetails[1] + "_" + sessionNumber;
+        String keystoreAliasRequirements = addressDetails[0] + addressDetails[1] + "_" + mode;
         return Base64.encodeToString(keystoreAliasRequirements.getBytes(), Base64.NO_WRAP);
     }
 
@@ -195,16 +196,21 @@ public class E2EEHandler {
 
     public static boolean isValidDefaultText(String text) {
         String encodedText;
-        if(text.startsWith(DEFAULT_TEXT_START_PREFIX_SHORTER) &&
+        if(text == null)
+            return false;
+        if(text.length() > (DEFAULT_TEXT_START_PREFIX_SHORTER.length() +
+                DEFAULT_TEXT_END_PREFIX_SHORTER.length()) &&
+                text.startsWith(DEFAULT_TEXT_START_PREFIX_SHORTER) &&
                 text.endsWith(DEFAULT_TEXT_END_PREFIX_SHORTER))
             encodedText = text.substring(DEFAULT_TEXT_START_PREFIX_SHORTER.length(),
                     (text.length() - DEFAULT_TEXT_END_PREFIX_SHORTER.length()));
-        else
+        else if(text.length() > (DEFAULT_TEXT_START_PREFIX.length() +
+                DEFAULT_TEXT_END_PREFIX.length()) &&
+                text.startsWith(DEFAULT_TEXT_START_PREFIX) &&
+                text.endsWith(DEFAULT_TEXT_END_PREFIX))
             encodedText = text.substring(DEFAULT_TEXT_START_PREFIX.length(),
                     (text.length() - DEFAULT_TEXT_END_PREFIX.length()));
-
-        if(encodedText == null)
-            return false;
+        else return false;
 
         try {
             return Helpers.isBase64Encoded(encodedText);
@@ -238,7 +244,7 @@ public class E2EEHandler {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static Pair<String, byte[]> buildForEncryptionRequest(Context context, String address) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException {
+    public static Pair<String, byte[]> buildForEncryptionRequest(Context context, String address) throws Exception {
         int session = 0;
         String keystoreAlias = deriveKeystoreAlias(address, session);
         PublicKey publicKey = createNewKeyPair(context, keystoreAlias);
@@ -310,7 +316,7 @@ public class E2EEHandler {
         return keystoreAlias + "-ratchet-sessions";
     }
 
-    public static byte[] encrypt(Context context, final String keystoreAlias, byte[] data) throws Throwable {
+    public static byte[][] encrypt(Context context, final String keystoreAlias, byte[] data) throws Throwable {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
@@ -342,15 +348,17 @@ public class E2EEHandler {
         }
 
         byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP);
-        Pair<Headers, byte[]> cipherPair = Ratchets.ratchetEncrypt(states, data, AD);
+        Pair<Headers, byte[][]> cipherPair = Ratchets.ratchetEncrypt(states, data, AD);
 
         conversationsThreadsEncryption.setStates(states.getSerializedStates());
         conversationsThreadsEncryptionDao.update(conversationsThreadsEncryption);
 
-        return Bytes.concat(cipherPair.first.getSerialized(), cipherPair.second);
+        return new byte[][]{Bytes.concat(cipherPair.first.getSerialized(), cipherPair.second[0]),
+                cipherPair.second[1]};
     }
 
-    public static byte[] decrypt(Context context, final String keystoreAlias, final byte[] cipherText) throws Throwable {
+    public static byte[] decrypt(Context context, final String keystoreAlias,
+                                 final byte[] cipherText, byte[] mk, byte[] _AD) throws Throwable {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 new ConversationsThreadsEncryption();
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
@@ -379,16 +387,18 @@ public class E2EEHandler {
             states = new States(keyPair, conversationsThreadsEncryption.getStates());
         }
 
-        byte[] AD = getKeyPairBasedVersioning(context, keystoreAlias).getPublic().getEncoded();
-        Pair<byte[], byte[]> decryptedText = Ratchets.ratchetDecrypt(keystoreAliasRatchet, states, header,
-                outputCipherText, AD);
+        byte[] AD = _AD == null ?
+                getKeyPairBasedVersioning(context, keystoreAlias).getPublic().getEncoded() : _AD;
+        Pair<byte[], byte[]> decryptedText = Ratchets.ratchetDecrypt(keystoreAliasRatchet, states,
+                header, outputCipherText, AD, mk);
 
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S && decryptedText.second != null) {
-            storeInCustomKeystore(context, keystoreAliasRatchet, states.DHs, decryptedText.second);
+        if(mk == null) {
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S && decryptedText.second != null) {
+                storeInCustomKeystore(context, keystoreAliasRatchet, states.DHs, decryptedText.second);
+            }
+            conversationsThreadsEncryption.setStates(states.getSerializedStates());
+            conversationsThreadsEncryptionDao.update(conversationsThreadsEncryption);
         }
-
-        conversationsThreadsEncryption.setStates(states.getSerializedStates());
-        conversationsThreadsEncryptionDao.update(conversationsThreadsEncryption);
 
         return decryptedText.first;
     }

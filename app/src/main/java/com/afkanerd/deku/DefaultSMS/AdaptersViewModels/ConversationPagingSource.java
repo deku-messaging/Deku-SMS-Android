@@ -1,16 +1,21 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
+import android.content.Context;
+import android.provider.Telephony;
+import android.util.Base64;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.paging.Pager;
-import androidx.paging.PagingConfig;
 import androidx.paging.PagingSource;
 import androidx.paging.PagingState;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
+import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,14 +28,16 @@ public class ConversationPagingSource extends PagingSource<Integer, Conversation
     String threadId;
     ConversationDao conversationDao;
 
-    Integer initialkey;
+    Integer initialKey;
 
-    public ConversationPagingSource(ConversationDao conversationDao, String threadId,
+    Context context;
+
+    public ConversationPagingSource(Context context, ConversationDao conversationDao, String threadId,
                                     Integer initialKey) {
         this.conversationDao = conversationDao;
         this.threadId = threadId;
-        this.initialkey = initialKey;
-        Log.d(getClass().getName(), "Initialized with key: " + initialKey);
+        this.initialKey = initialKey;
+        this.context = context;
     }
 
     @Nullable
@@ -44,11 +51,11 @@ public class ConversationPagingSource extends PagingSource<Integer, Conversation
         //  * both prevKey and nextKey are null -> anchorPage is the
         //    initial page, so return null.
 //        Integer anchorPosition = state.getAnchorPosition();
-        Integer anchorPosition = initialkey;
-        Log.d(getClass().getName(), "Loading with key: " + initialkey);
-//        return initialkey;
+        Integer anchorPosition = initialKey;
         if (anchorPosition == null) {
-            return null;
+            anchorPosition = state.getAnchorPosition();
+            if(anchorPosition == null)
+                return null;
         }
 
         LoadResult.Page<Integer, Conversation> anchorPage = state.closestPageToPosition(anchorPosition);
@@ -78,7 +85,48 @@ public class ConversationPagingSource extends PagingSource<Integer, Conversation
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                list[0] = conversationDao.getAll(threadId);
+                list[0] = conversationDao.getDefault(threadId);
+                /**
+                 * Decrypt encrypted messages using their key
+                 */
+                String address = "";
+                if(list[0].size() > 0)
+                    address = list[0].get(0).getAddress();
+                for(int i=0;i<list[0].size(); ++i) {
+                    try {
+                        if ((list[0].get(i).getType() ==
+                                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT  ||
+                                list[0].get(i).getType() ==
+                                        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED ) &&
+                                E2EEHandler.isValidDefaultText(list[0].get(i).getText())) {
+                            try {
+                                byte[] cipherText =
+                                        E2EEHandler.extractTransmissionText(list[0].get(i).getText());
+                                byte[] mk = Base64.decode(list[0].get(i).get_mk(), Base64.NO_WRAP);
+
+                                String keystoreAlias = E2EEHandler.deriveKeystoreAlias( address,
+                                        0);
+
+                                ConversationsThreadsEncryption conversationsThreadsEncryption =
+                                        new ConversationsThreadsEncryption();
+                                ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+                                        conversationsThreadsEncryption.getDaoInstance(context);
+                                conversationsThreadsEncryption =
+                                        conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
+
+                                byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(),
+                                        Base64.NO_WRAP);
+
+                                list[0].get(i).setText(new String(E2EEHandler.decrypt(context,
+                                        keystoreAlias, cipherText, mk, AD)));
+                            } catch (Throwable e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
         thread.start();
@@ -90,7 +138,6 @@ public class ConversationPagingSource extends PagingSource<Integer, Conversation
         return new LoadResult.Page<>(list[0],
                 null,
                 null,
-//                loadParams.getKey() != null ? loadParams.getKey() + 1 : null,
                 LoadResult.Page.COUNT_UNDEFINED,
                 LoadResult.Page.COUNT_UNDEFINED);
     }

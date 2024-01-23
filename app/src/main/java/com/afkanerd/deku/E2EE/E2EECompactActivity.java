@@ -3,6 +3,7 @@ package com.afkanerd.deku.E2EE;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
+import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -45,19 +47,33 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
     boolean isEncrypted = false;
 
+    /**
+     *
+     * @param text
+     * @param subscriptionId
+     * @param threadedConversations
+     * @param messageId
+     * @param _mk
+     * @throws NumberParseException
+     * @throws InterruptedException
+     */
     @Override
     public void sendTextMessage(final String text, int subscriptionId,
-                                ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
+                                ThreadedConversations threadedConversations, String messageId,
+                                final byte[] _mk) throws NumberParseException, InterruptedException {
         if(threadedConversations.secured && !isEncrypted) {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        byte[] cipherText = E2EEHandler.encrypt(getApplicationContext(),
+                        Log.d(getClass().getName(), "Keystore alias:" + keystoreAlias);
+                        Log.d(getClass().getName(), "- Text:" + text);
+                        byte[][] cipherText = E2EEHandler.encrypt(getApplicationContext(),
                                 keystoreAlias, text.getBytes(StandardCharsets.UTF_8));
-                        String text = E2EEHandler.buildTransmissionText(cipherText);
+                        String text = E2EEHandler.buildTransmissionText(cipherText[0]);
                         isEncrypted = true;
-                        sendTextMessage(text, subscriptionId, threadedConversations, messageId);
+                        sendTextMessage(text, subscriptionId, threadedConversations, messageId,
+                                cipherText[1]);
                     } catch (Throwable e) {
                         e.printStackTrace();
                     }
@@ -65,8 +81,11 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             });
         }
         else {
+            Log.d(Ratchets.class.getName(), "Storing mk: " +
+                    Base64.encodeToString(_mk, Base64.NO_WRAP));
+            Log.d(Ratchets.class.getName(), "Storing ciphertext: " + text);
             isEncrypted = false;
-            super.sendTextMessage(text, subscriptionId, threadedConversations, messageId);
+            super.sendTextMessage(text, subscriptionId, threadedConversations, messageId, _mk);
         }
     }
 
@@ -87,15 +106,15 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     }
 
     protected void sendDataMessage(ThreadedConversations threadedConversations) {
+        final int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
         executorService.execute(new Runnable() {
             @Override
             public void run() {
-                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
                 try {
-                    E2EEHandler.clear(getApplicationContext(),
-                            E2EEHandler.deriveKeystoreAlias(
-                                    threadedConversations.getAddress(),
-                                    0));
+//                    E2EEHandler.clear(getApplicationContext(),
+//                            E2EEHandler.deriveKeystoreAlias(
+//                                    threadedConversations.getAddress(),
+//                                    0));
 
                     Pair<String,  byte[]> transmissionRequestKeyPair =
                             E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
@@ -205,8 +224,13 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     threadedConversations.secured =
                             E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias);
                     if(threadedConversations.secured) {
-                        TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
-                        layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
+                                layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                            }
+                        });
                     }
                 } catch (IOException | GeneralSecurityException | NumberParseException e) {
                     e.printStackTrace();

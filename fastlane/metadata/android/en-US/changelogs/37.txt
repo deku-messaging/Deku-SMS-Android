@@ -7,3 +7,4 @@
 - fix: broken highlighting for threads
 - update: message counter added
 - fix: auto suggestions for notifications
+- update: forward secrecry now available using Signal's double ratchet

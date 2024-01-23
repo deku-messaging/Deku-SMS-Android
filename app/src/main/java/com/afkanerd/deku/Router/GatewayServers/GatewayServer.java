@@ -109,15 +109,16 @@ public class GatewayServer {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration8To9())
+                .addMigrations(new Migrations.Migration9To10())
                 .enableMultiInstanceInvalidation()
                 .build();
         return databaseConnector.gatewayServerDAO();
     }
 
-    public void close() {
-        if(databaseConnector != null)
-            databaseConnector.close();
-    }
+//    public void close() {
+//        if(databaseConnector != null)
+//            databaseConnector.close();
+//    }
 
     @Override
     public boolean equals(@Nullable Object obj) {
