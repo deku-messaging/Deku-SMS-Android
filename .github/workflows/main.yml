@@ -21,7 +21,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.merged }}" == true && ("${{ github.event.pull_request.base.ref }}" == "staging") ]]; then
-              cd /root/apk-reproduce && \
+              cd /root/apk-reproduce/Deku-SMS-Android/ci && \
               ./ci_cd.sh ${{ github.event.pull_request.base.ref }}
             else
               echo "PR is not merged into '${{ github.event.pull_request.base.ref }}'. Workflow will not run."
