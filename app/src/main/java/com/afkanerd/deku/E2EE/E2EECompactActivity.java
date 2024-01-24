@@ -66,8 +66,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 @Override
                 public void run() {
                     try {
-                        Log.d(getClass().getName(), "Keystore alias:" + keystoreAlias);
-                        Log.d(getClass().getName(), "- Text:" + text);
                         byte[][] cipherText = E2EEHandler.encrypt(getApplicationContext(),
                                 keystoreAlias, text.getBytes(StandardCharsets.UTF_8));
                         String text = E2EEHandler.buildTransmissionText(cipherText[0]);
@@ -81,9 +79,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             });
         }
         else {
-            Log.d(Ratchets.class.getName(), "Storing mk: " +
-                    Base64.encodeToString(_mk, Base64.NO_WRAP));
-            Log.d(Ratchets.class.getName(), "Storing ciphertext: " + text);
             isEncrypted = false;
             super.sendTextMessage(text, subscriptionId, threadedConversations, messageId, _mk);
         }
