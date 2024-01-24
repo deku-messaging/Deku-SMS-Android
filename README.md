@@ -54,6 +54,9 @@ However not yet sure what happens when you continue communicating encrypted with
 
 All messages are currently being stored in the default SMS inbox (including encrypted messages). Users switching between SMS apps would still maintain their inbox as it is. Upcoming features would remove encrypted messages to custom database if users intends.
 
+Note to developers: There is a race condition right after the first keys have been exchanged. Anyone can be Alice, but they'd be an issue of both are Alice because Service providers decide to not deliver the message from the true Alice on time; because SMS :(
+
+
 ## <a name="cloud_forward"></a> Forward incoming messages to cloud
 Forward incoming SMS messages to custom url. The messages remain in queue till the device has an active connection. The messages remain queue if server status codes is in range `5xx`. The device also provides visibility into the messages being forwarded into the cloud.
 
