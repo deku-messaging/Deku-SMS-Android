@@ -100,7 +100,7 @@ commit-check: _commit-check clean
 	@echo "Done"
 
 
-check-diffoscope: ks.passwd
+check-diffoscope: 
 	@echo "Building apk output: ${APP_1}"
 	@docker build -t ${docker_apk_image} --target apk-builder .
 	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) ${docker_apk_image} && \
