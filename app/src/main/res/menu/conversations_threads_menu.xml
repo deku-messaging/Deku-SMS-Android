@@ -5,17 +5,12 @@
         <item
             android:id="@+id/conversation_threads_main_menu_search"
             android:icon="@drawable/ic_outline_search_24"
-            android:title="@string/message_threads_menu_delete"
+            android:title="@string/conversations_menu_search_title"
             app:showAsAction="ifRoom" />
-        <item
-            android:id="@+id/conversation_threads_main_menu_archived"
-            android:theme="@style/Theme.main"
-            android:title="@string/homepage_menu_archived"/>
         <item
             android:id="@+id/conversation_threads_main_menu_routed"
             android:theme="@style/Theme.main"
             android:title="@string/homepage_menu_routed" />
-
         <item
             android:id="@+id/conversation_threads_main_menu_settings"
             android:theme="@style/Theme.main"

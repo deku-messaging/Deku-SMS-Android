@@ -1,64 +1,87 @@
 package com.afkanerd.deku.E2EE;
 
 import android.os.Bundle;
+import android.provider.Telephony;
+import android.util.Base64;
+import android.util.Log;
+import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 
 public class E2EECompactActivity extends CustomAppCompactActivity {
 
-    ThreadedConversations threadedConversations;
+    protected ThreadedConversations threadedConversations;
     View securePopUpRequest;
+
+    protected String keystoreAlias;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
-    public static String INFORMED_SECURED = "INFORMED_SECURED";
+    boolean isEncrypted = false;
 
+    /**
+     *
+     * @param text
+     * @param subscriptionId
+     * @param threadedConversations
+     * @param messageId
+     * @param _mk
+     * @throws NumberParseException
+     * @throws InterruptedException
+     */
     @Override
     public void sendTextMessage(final String text, int subscriptionId,
-                                ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
-        String keystoreAlias = E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(), 0);
-        final String[] transmissionText = {text};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias)) {
-                        byte[] cipherText = E2EEHandler.encryptText(getApplicationContext(),
-                                keystoreAlias, text);
-                        transmissionText[0] = E2EEHandler.buildTransmissionText(cipherText);
+                                ThreadedConversations threadedConversations, String messageId,
+                                final byte[] _mk) throws NumberParseException, InterruptedException {
+        if(threadedConversations.secured && !isEncrypted) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        byte[][] cipherText = E2EEHandler.encrypt(getApplicationContext(),
+                                keystoreAlias, text.getBytes(StandardCharsets.UTF_8));
+                        String text = E2EEHandler.buildTransmissionText(cipherText[0]);
+                        isEncrypted = true;
+                        sendTextMessage(text, subscriptionId, threadedConversations, messageId,
+                                cipherText[1]);
+                    } catch (Throwable e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException | GeneralSecurityException | InterruptedException e) {
-                    e.printStackTrace();
                 }
-            }
-        });
-        thread.start();
-        thread.join();
-
-        super.sendTextMessage(transmissionText[0], subscriptionId, threadedConversations, messageId);
+            });
+        }
+        else {
+            isEncrypted = false;
+            super.sendTextMessage(text, subscriptionId, threadedConversations, messageId, _mk);
+        }
     }
 
     @Override
@@ -66,16 +89,55 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                threadedConversations.secured = secured;
                 if(secured && securePopUpRequest != null) {
                     securePopUpRequest.setVisibility(View.GONE);
-//                    Toast.makeText(getApplicationContext(),
-//                            getString(R.string.conversation_inform_user_now_secured_toast),
-//                            Toast.LENGTH_LONG).show();
+                    TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
+                    layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
                 }
 
             }
         });
     }
+
+    protected void sendDataMessage(ThreadedConversations threadedConversations) {
+        final int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+//                    E2EEHandler.clear(getApplicationContext(),
+//                            E2EEHandler.deriveKeystoreAlias(
+//                                    threadedConversations.getAddress(),
+//                                    0));
+
+                    Pair<String,  byte[]> transmissionRequestKeyPair =
+                            E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
+                                    threadedConversations.getAddress());
+
+                    final String messageId = String.valueOf(System.currentTimeMillis());
+                    Conversation conversation = new Conversation();
+                    conversation.setThread_id(threadedConversations.getThread_id());
+                    conversation.setAddress(threadedConversations.getAddress());
+                    conversation.setIs_key(true);
+                    conversation.setMessage_id(messageId);
+                    conversation.setData(Base64.encodeToString(transmissionRequestKeyPair.second,
+                            Base64.DEFAULT));
+                    conversation.setSubscription_id(subscriptionId);
+                    conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
+                    conversation.setDate(String.valueOf(System.currentTimeMillis()));
+                    conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+
+                    long id = conversationsViewModel.insert(conversation);
+                    SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+    }
+
     private void showSecureRequestPopUpMenu() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.conversation_secure_popup_request_menu_title));
@@ -130,8 +192,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         super.onStart();
         securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
         setSecurePopUpRequest();
-        if(!SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext()))
-            securePopUpRequest.setVisibility(View.VISIBLE);
+//        if(!SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext()))
+//            securePopUpRequest.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -149,5 +211,26 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                    threadedConversations.secured =
+                            E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias);
+                    if(threadedConversations.secured) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
+                                layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                            }
+                        });
+                    }
+                } catch (IOException | GeneralSecurityException | NumberParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

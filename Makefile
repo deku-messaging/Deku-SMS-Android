@@ -1,4 +1,5 @@
-pass=$$(cat $(jks_pass))
+# pass=$$(cat $(jks_pass))
+pass=$(jks_pass)
 branch_name=$$(git symbolic-ref HEAD)
 
 branch=$$(git symbolic-ref HEAD | cut -d "/" -f 3)
@@ -99,7 +100,7 @@ commit-check: _commit-check clean
 	@echo "Done"
 
 
-check-diffoscope: ks.passwd
+check-diffoscope: 
 	@echo "Building apk output: ${APP_1}"
 	@docker build -t ${docker_apk_image} --target apk-builder .
 	@docker run --name ${CONTAINER_NAME} -e PASS=$(pass) ${docker_apk_image} && \

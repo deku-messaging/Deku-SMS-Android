@@ -18,11 +18,24 @@ public class ConversationsThreadsEncryption {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
-    private String publicKey;
-
+    // DHs comes from here
     private String keystoreAlias;
 
+    // DHr comes from here
+    private String publicKey;
+
+    private String states;
+
+    // would most likely use this for backward compatibility
     private long exchangeDate;
+
+    public void setStates(String states) {
+        this.states = states;
+    }
+
+    public String getStates() {
+        return this.states;
+    }
 
     public String getKeystoreAlias() {
         return keystoreAlias;
@@ -71,17 +84,4 @@ public class ConversationsThreadsEncryption {
         if(databaseConnector != null)
             databaseConnector.close();
     }
-
-    public static ConversationsThreadsEncryptionDao getDao(Context context) {
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .enableMultiInstanceInvalidation()
-                .build();
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                databaseConnector.conversationsThreadsEncryptionDao();
-        databaseConnector.close();
-        return conversationsThreadsEncryptionDao;
-    }
-
 }

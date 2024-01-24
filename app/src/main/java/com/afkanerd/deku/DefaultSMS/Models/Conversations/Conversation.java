@@ -17,6 +17,7 @@ import androidx.room.Room;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.google.gson.annotations.Expose;
 
 @Entity(indices = {@Index(value={"message_id"}, unique=true)})
 public class Conversation {
@@ -55,6 +56,18 @@ public class Conversation {
     public String text;
 
     public String data;
+
+    // To stop gson from serializing this
+    @Expose(serialize = false, deserialize = false)
+    private String _mk;
+
+    public String get_mk() {
+        return _mk;
+    }
+
+    public void set_mk(String _mk) {
+        this._mk = _mk;
+    }
 
     @Ignore
     private Datastore databaseConnector;

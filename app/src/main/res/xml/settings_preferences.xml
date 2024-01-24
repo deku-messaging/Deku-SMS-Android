@@ -15,15 +15,15 @@
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
-    <PreferenceCategory
-        app:key="settings_sms_security"
-        app:title="@string/settings_security_category_title">
-        <Preference
-            app:icon="@drawable/round_security_24"
-            app:key="@string/settings_security_end_to_end"
-            app:summary="@string/settings_security_category_end_to_end_encryption_summary"
-            app:title="@string/settings_security_category_end_to_end_encryption" />
-    </PreferenceCategory>
+<!--    <PreferenceCategory-->
+<!--        app:key="settings_sms_security"-->
+<!--        app:title="@string/settings_security_category_title">-->
+<!--        <Preference-->
+<!--            app:icon="@drawable/round_security_24"-->
+<!--            app:key="@string/settings_security_end_to_end"-->
+<!--            app:summary="@string/settings_security_category_end_to_end_encryption_summary"-->
+<!--            app:title="@string/settings_security_category_end_to_end_encryption" />-->
+<!--    </PreferenceCategory>-->
 
     <PreferenceCategory
         app:title="@string/settings_advanced_category_title">

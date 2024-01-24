@@ -1,23 +1,16 @@
 package com.afkanerd.deku.DefaultSMS;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
-import android.view.MenuItem;
-import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.lifecycle.ViewModel;
-import androidx.preference.PreferenceManager;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
@@ -27,19 +20,18 @@ import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CustomAppCompactActivity extends DualSIMConversationActivity {
     BroadcastReceiver generateUpdateEventsBroadcastReceiver;
@@ -51,16 +43,14 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
     protected static final String TAG_NAME = "NATIVE_CONVERSATION_TAG";
     protected static final String UNIQUE_WORK_NAME = "NATIVE_CONVERSATION_TAG_UNIQUE_WORK_NAME";
-    protected static final String LOAD_NATIVES = "LOAD_NATIVES";
 
     protected final static String DRAFT_PRESENT_BROADCAST = "DRAFT_PRESENT_BROADCAST";
 
     protected ConversationsViewModel conversationsViewModel;
 
-    Conversation conversation;
-    ConversationDao conversationDao;
-
     protected ThreadedConversationsViewModel threadedConversationsViewModel;
+
+    protected ExecutorService executorService = Executors.newFixedThreadPool(4);
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,49 +60,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             startActivity(new Intent(this, DefaultCheckActivity.class));
             finish();
         }
-
-        loadConversationsNativesBg();
-        startServices();
-        conversation = new Conversation();
-        conversationDao = conversation.getDaoInstance(getApplicationContext());
-//        new Thread(new Runnable() {
-//            @Override
-//            protected void run() {
-//                SharedPreferences sharedPreferences =
-//                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//                if(sharedPreferences.getBoolean(LOAD_NATIVES, true)) {
-//                    loadConversationsNativesBg();
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        protected void run() {
-//                            Toast.makeText(getApplicationContext(),
-//                                    getString(R.string.threading_conversations_natives_loaded), Toast.LENGTH_LONG).show();
-//                        }
-//                    });
-//                }
-//            }
-//        }).start();
-    }
-
-    private void loadConversationsNativesBg() {
-//        Constraints constraints = new Constraints.Builder()
-//                .build();
-//        OneTimeWorkRequest routeMessageWorkRequest =
-//                new OneTimeWorkRequest.Builder(ConversationWorkManager.class)
-//                .setConstraints(constraints)
-//                .setBackoffCriteria(
-//                        BackoffPolicy.LINEAR,
-//                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-//                        TimeUnit.MILLISECONDS
-//                )
-//                .addTag(TAG_NAME)
-//                .build();
-//
-//        WorkManager workManager = WorkManager.getInstance(getApplicationContext());
-//        workManager.enqueueUniqueWork(
-//                UNIQUE_WORK_NAME,
-//                ExistingWorkPolicy.KEEP,
-//                routeMessageWorkRequest);
     }
     private boolean _checkIsDefaultApp() {
         final String myPackageName = getPackageName();
@@ -131,14 +78,16 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                 intent.getAction().equals(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION))) {
                     String messageId = intent.getStringExtra(Conversation.ID);
                     if(conversationsViewModel != null) {
-                        new Thread(new Runnable() {
+                        executorService.execute(new Runnable() {
                             @Override
                             public void run() {
-                                Conversation conversation = conversationDao.getMessage(messageId);
+                                Conversation conversation = conversationsViewModel
+                                        .conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
+                                conversationsViewModel.update(conversation);
                                 try {
                                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                            E2EEHandler.getKeyStoreAlias(
+                                            E2EEHandler.deriveKeystoreAlias(
                                                     conversation.getAddress(), 0))) {
                                         informSecured(true);
                                     }
@@ -146,27 +95,22 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                          NoSuchAlgorithmException | NumberParseException e) {
                                     e.printStackTrace();
                                 }
-                                conversationsViewModel.update(conversation);
                             }
-                        }).start();
+                        });
                     }
-                    if(threadedConversationsViewModel != null) {
-                        threadedConversationsViewModel.refresh(context);
-                    }
-                } else if(intent.getAction().equals(DRAFT_PRESENT_BROADCAST) &&
-                        threadedConversationsViewModel != null) {
-                    threadedConversationsViewModel.refresh(context);
-                } else {
+                }  else {
                     String messageId = intent.getStringExtra(Conversation.ID);
                     if(conversationsViewModel != null && messageId != null) {
-                        new Thread(new Runnable() {
+                        executorService.execute(new Runnable() {
                             @Override
                             public void run() {
-                                Conversation conversation = conversationDao.getMessage(messageId);
+                                Conversation conversation = conversationsViewModel
+                                        .conversationDao.getMessage(messageId);
                                 conversation.setRead(true);
+                                conversationsViewModel.update(conversation);
                                 try {
                                     if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                            E2EEHandler.getKeyStoreAlias( conversation.getAddress(),
+                                            E2EEHandler.deriveKeystoreAlias( conversation.getAddress(),
                                                     0))) {
                                         informSecured(true);
                                     }
@@ -174,13 +118,17 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                          NoSuchAlgorithmException | NumberParseException e) {
                                     e.printStackTrace();
                                 }
-                                conversationsViewModel.update(conversation);
                             }
-                        }).start();
+                        });
                     }
-                    if(threadedConversationsViewModel != null) {
-                        threadedConversationsViewModel.refresh(context);
-                    }
+                }
+                if(threadedConversationsViewModel != null) {
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.refresh(context);
+                        }
+                    });
                 }
             }
         };
@@ -208,90 +156,60 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         notificationManager.cancel(id);
     }
 
-    protected void sendDataMessage(ThreadedConversations threadedConversations) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-                try {
-                    byte[] transmissionRequest = E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
-                            threadedConversations.getAddress());
-
-                    final String messageId = String.valueOf(System.currentTimeMillis());
-                    Conversation conversation = new Conversation();
-                    conversation.setIs_key(true);
-                    conversation.setMessage_id(messageId);
-                    conversation.setData(Base64.encodeToString(transmissionRequest, Base64.DEFAULT));
-                    conversation.setSubscription_id(subscriptionId);
-                    conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
-                    conversation.setDate(String.valueOf(System.currentTimeMillis()));
-                    conversation.setAddress(threadedConversations.getAddress());
-                    conversation.setStatus(Telephony.Sms.STATUS_PENDING);
-
-                    long id = conversationsViewModel.insert(conversation);
-                    SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
-                    conversationsViewModel.updateThreadId(conversation.getThread_id(),
-                            messageId, id);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        thread.setName("sec_coms_request");
-        thread.start();
-    }
-
     protected void sendTextMessage(Conversation conversation,
                                    ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
         sendTextMessage(conversation.getText(),
                 conversation.getSubscription_id(),
-                threadedConversations, messageId);
+                threadedConversations, messageId, null);
     }
 
     protected void sendTextMessage(final String text, int subscriptionId,
-                                ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
+                                ThreadedConversations threadedConversations, String messageId,
+                                   byte[] _mk) throws NumberParseException, InterruptedException {
         if(text != null) {
             if(messageId == null)
                 messageId = String.valueOf(System.currentTimeMillis());
             Conversation conversation = new Conversation();
             conversation.setMessage_id(messageId);
             conversation.setText(text);
+            conversation.setThread_id(threadedConversations.getThread_id());
             conversation.setSubscription_id(subscriptionId);
             conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
             conversation.setDate(String.valueOf(System.currentTimeMillis()));
             conversation.setAddress(threadedConversations.getAddress());
             conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+            // TODO: should encrypt this before storing
+            if(_mk != null)
+                conversation.set_mk(Base64.encodeToString(_mk, Base64.NO_WRAP));
 
             if(conversationsViewModel != null) {
-                final String _messageId = messageId;
-                new Thread(new Runnable() {
+                executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            long id = conversationsViewModel.insert(conversation);
+                            conversationsViewModel.insert(conversation);
                             SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, null);
-                            conversationsViewModel.updateThreadId(conversation.getThread_id(),
-                                    _messageId, id);
+//                            conversationsViewModel.updateThreadId(conversation.getThread_id(),
+//                                    _messageId, id);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
-                }).start();
+                });
             }
         }
     }
 
-    protected void saveDraft(final String messageId, final String text, ThreadedConversations threadedConversations) {
+    protected void saveDraft(final String messageId, final String text, ThreadedConversations threadedConversations) throws InterruptedException {
         if(text != null) {
             if(conversationsViewModel != null) {
-                new Thread(new Runnable() {
+                executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         Conversation conversation = new Conversation();
                         conversation.setMessage_id(messageId);
-                        conversation.setText(text);
                         conversation.setThread_id(threadedConversations.getThread_id());
+                        conversation.setText(text);
                         conversation.setRead(true);
                         conversation.setType(Telephony.Sms.MESSAGE_TYPE_DRAFT);
                         conversation.setDate(String.valueOf(System.currentTimeMillis()));
@@ -299,6 +217,15 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
                         try {
                             conversationsViewModel.insert(conversation);
+
+                            ThreadedConversations tc =
+                                    ThreadedConversations.build(getApplicationContext(), conversation);
+                            ThreadedConversationsDao threadedConversationsDao =
+                                    tc.getDaoInstance(getApplicationContext());
+                            threadedConversationsDao.insert(tc);
+                            tc.close();
+
+                            SMSDatabaseWrapper.saveDraft(getApplicationContext(), conversation);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -306,7 +233,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         Intent intent = new Intent(DRAFT_PRESENT_BROADCAST);
                         sendBroadcast(intent);
                     }
-                }).start();
+                });
             }
         }
     }
@@ -331,7 +258,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
         if(dataDeliveredBroadcastIntent != null)
             unregisterReceiver(dataDeliveredBroadcastIntent);
-        conversation.close();
     }
 
     protected void cancelNotifications(String threadId) {
@@ -343,16 +269,5 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
     }
 
 
-    private void startServices() {
-        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        try {
-            gatewayClientHandler.startServices();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            gatewayClientHandler.close();
-        }
-
-    }
 
 }

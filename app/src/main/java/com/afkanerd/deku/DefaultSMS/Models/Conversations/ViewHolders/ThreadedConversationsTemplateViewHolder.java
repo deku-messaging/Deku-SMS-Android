@@ -64,11 +64,13 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
                      View.OnLongClickListener onLongClickListener) {
         this.id = String.valueOf(conversation.getThread_id());
 
-        if(conversation.getAvatar_initials() != null) {
+        int contactColor = Helpers.getColor(itemView.getContext(), id);
+        if(conversation.getContact_name() != null && !conversation.getContact_name().isEmpty()) {
             this.contactAvatar.setVisibility(View.GONE);
             this.contactInitials.setVisibility(View.VISIBLE);
-            this.contactInitials.setAvatarInitials(conversation.getAvatar_initials());
-            this.contactInitials.setAvatarInitialsBackgroundColor(conversation.getAvatar_color());
+            this.contactInitials.setAvatarInitials(conversation.getContact_name().contains(" ") ?
+                    conversation.getContact_name() : conversation.getContact_name().substring(0, 1));
+            this.contactInitials.setAvatarInitialsBackgroundColor(contactColor);
         }
         else {
             this.contactAvatar.setVisibility(View.VISIBLE);
@@ -78,7 +80,7 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
                 drawable = itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24);
             }
             if(drawable != null)
-                drawable.setColorFilter(conversation.getAvatar_color(), PorterDuff.Mode.SRC_IN);
+                drawable.setColorFilter(contactColor, PorterDuff.Mode.SRC_IN);
             contactAvatar.setImageDrawable(drawable);
         }
         if(conversation.getContact_name() != null) {
@@ -103,7 +105,7 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         String snippet = threadedConversations.getSnippet();
         int type = threadedConversations.getType();
 
-//        if(SecurityHandler.containersWaterMark(snippet) || SecurityHandler.isKeyExchange(snippet)) {
+//        if(EncryptionHandlers.containersWaterMark(snippet) || EncryptionHandlers.isKeyExchange(snippet)) {
 //            if(!threadedConversations.isIs_read()) {
 //                return type == MESSAGE_TYPE_INBOX ?
 //                        RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE : SENT_ENCRYPTED_UNREAD_VIEW_TYPE;

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "a7243d435a22453d6ceda42a29dc00b0",
+    "identityHash": "dfcf5ddc2652eebd8550a45ab60d36cf",
     "entities": [
       {
         "tableName": "ThreadedConversations",
@@ -222,7 +222,7 @@
       },
       {
         "tableName": "ConversationsThreadsEncryption",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `publicKey` TEXT, `keystoreAlias` TEXT, `exchangeDate` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `keystoreAlias` TEXT, `publicKey` TEXT, `states` TEXT, `exchangeDate` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -231,14 +231,20 @@
             "notNull": true
           },
           {
+            "fieldPath": "keystoreAlias",
+            "columnName": "keystoreAlias",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "publicKey",
             "columnName": "publicKey",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "keystoreAlias",
-            "columnName": "keystoreAlias",
+            "fieldPath": "states",
+            "columnName": "states",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -508,7 +514,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a7243d435a22453d6ceda42a29dc00b0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dfcf5ddc2652eebd8550a45ab60d36cf')"
     ]
   }
 }

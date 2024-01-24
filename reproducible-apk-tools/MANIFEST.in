@@ -1,4 +1,0 @@
-global-include *.typed
-include LICENSE.GPLv3
-include Makefile
-include changelog.txt

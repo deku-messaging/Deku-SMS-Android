@@ -3,14 +3,22 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.Telephony;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.paging.PagingSource;
 import androidx.paging.PagingState;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
 
+import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +68,6 @@ public class ThreadsPagingSource extends PagingSource<Integer, ThreadedConversat
     @Nullable
     @Override
     public Object load(@NonNull LoadParams<Integer> loadParams, @NonNull Continuation<? super LoadResult<Integer, ThreadedConversations>> continuation) {
-        List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(
                 Telephony.Threads.CONTENT_URI,
                 null,
@@ -68,31 +75,68 @@ public class ThreadsPagingSource extends PagingSource<Integer, ThreadedConversat
                 null,
                 "date DESC"
         );
-        if(cursor != null && cursor.moveToFirst()) {
-            do {
-                ThreadedConversations threadedConversations = new ThreadedConversations();
-                int recipientIdIndex = cursor.getColumnIndex("address");
-                int snippetIndex = cursor.getColumnIndex("body");
-                int dateIndex = cursor.getColumnIndex("date");
-                int threadIdIndex = cursor.getColumnIndex("thread_id");
-                int typeIndex = cursor.getColumnIndex("type");
-//                int isArchivedIndex = cursor.getColumnIndex(Telephony.Threads.ARCHIVED);
 
-                threadedConversations.setAddress(cursor.getString(recipientIdIndex));
-                if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
-                    continue;
-                String contactName = Contacts.retrieveContactName(context,
-                        threadedConversations.getAddress());
-                threadedConversations.setContact_name(contactName);
-                threadedConversations.setSnippet(cursor.getString(snippetIndex));
-                threadedConversations.setDate(cursor.getString(dateIndex));
-                threadedConversations.setThread_id(cursor.getString(threadIdIndex));
-                threadedConversations.setType(cursor.getInt(typeIndex));
-//                threadedConversations.setIs_archived(cursor.getInt(isArchivedIndex)==1);
-                threadedConversationsList.add(threadedConversations);
-            } while(cursor.moveToNext());
-            cursor.close();
+
+        List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ThreadedConversations tc = new ThreadedConversations();
+                ThreadedConversationsDao threadedConversationsDao = tc.getDaoInstance(context);
+                List<ThreadedConversations> threadedDraftsList =
+                        threadedConversationsDao.getThreadedDraftsList(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+                tc.close();
+                List<String> threadIds = new ArrayList<>();
+                for(ThreadedConversations threadedConversations : threadedDraftsList)
+                    threadIds.add(threadedConversations.getThread_id());
+                Log.d(getClass().getName(), "# drafts: " + threadedDraftsList.size());
+
+                if(cursor != null && cursor.moveToFirst()) {
+                    do {
+                        int recipientIdIndex = cursor.getColumnIndex("address");
+                        int snippetIndex = cursor.getColumnIndex("body");
+                        int dateIndex = cursor.getColumnIndex("date");
+                        int threadIdIndex = cursor.getColumnIndex("thread_id");
+                        int typeIndex = cursor.getColumnIndex("type");
+                        int readIndex = cursor.getColumnIndex("read");
+
+                        ThreadedConversations threadedConversations = new ThreadedConversations();
+                        threadedConversations.setAddress(cursor.getString(recipientIdIndex));
+                        if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
+                            continue;
+                        threadedConversations.setThread_id(cursor.getString(threadIdIndex));
+                        if(threadIds.contains(threadedConversations.getThread_id())) {
+                            threadedConversations.setSnippet(threadedDraftsList.get(threadIds
+                                            .indexOf(threadedConversations.getThread_id()))
+                                    .getSnippet());
+                            threadedConversations.setType(threadedDraftsList.get(threadIds
+                                            .indexOf(threadedConversations.getThread_id()))
+                                    .getType());
+                        }
+                        else {
+                            threadedConversations.setSnippet(cursor.getString(snippetIndex));
+                            threadedConversations.setType(cursor.getInt(typeIndex));
+                        }
+                        String contactName = Contacts.retrieveContactName(context,
+                                threadedConversations.getAddress());
+                        threadedConversations.setContact_name(contactName);
+                        threadedConversations.setDate(cursor.getString(dateIndex));
+                        threadedConversations.setType(cursor.getInt(typeIndex));
+                        threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
+                        threadedConversationsList.add(threadedConversations);
+                    } while(cursor.moveToNext());
+                }
+            }
+        });
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        if(cursor != null)
+            cursor.close();
 
         return new LoadResult.Page<>(threadedConversationsList,
                 null,

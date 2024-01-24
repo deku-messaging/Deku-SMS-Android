@@ -21,6 +21,7 @@ import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
@@ -85,12 +86,25 @@ public class DefaultCheckActivity extends AppCompatActivity {
         final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
 
         if (myPackageName.equals(defaultPackage)) {
-            if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                createNotificationChannel();
-            }
-            startActivity(new Intent(this, ThreadedConversationsActivity.class));
-            finish();
+            startUserActivities();
         }
+    }
+
+    private void startUserActivities() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    createNotificationChannel();
+                }
+                startServices();
+                finish();
+            }
+        }).start();
+
+        Intent intent = new Intent(this, ThreadedConversationsActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     @Override
@@ -102,12 +116,11 @@ public class DefaultCheckActivity extends AppCompatActivity {
                 SharedPreferences sharedPreferences =
                         PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 sharedPreferences.edit()
-                        .putBoolean(CustomAppCompactActivity.LOAD_NATIVES, true)
+                        .putBoolean(getString(R.string.configs_load_natives), true)
                         .apply();
-                startActivity(new Intent(this, ThreadedConversationsActivity.class));
+                startUserActivities();
             }
         }
-        finish();
     }
 
     ArrayList<String> notificationsChannelIds = new ArrayList<>();
@@ -198,6 +211,18 @@ public class DefaultCheckActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         checkIsDefaultApp();
+    }
+
+    private void startServices() {
+        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+        try {
+            gatewayClientHandler.startServices();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            gatewayClientHandler.close();
+        }
+
     }
 
 }

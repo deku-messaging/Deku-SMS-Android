@@ -1,0 +1,6 @@
+[submodule "smswithoutborders_libsignal-doubleratchet"]
+	path = smswithoutborders_libsignal-doubleratchet
+	url = https://github.com/smswithoutborders/lib_signal_double_ratchet_java.git
+[submodule "reproducible-apk-tools"]
+	path = reproducible-apk-tools
+	url = https://github.com/obfusk/reproducible-apk-tools.git

@@ -5,14 +5,17 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.telephony.PhoneNumberUtils;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.BackgroundColorSpan;
@@ -31,6 +34,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 
+import java.security.SecureRandom;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -112,6 +116,15 @@ public class Helpers {
         return !PhoneNumberUtils.isWellFormedSmsAddress(threadedConversations.getAddress()) || matcher.find();
     }
 
+    public static byte[] generateRandomBytes(int length) {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new
+
+                byte[length];
+        random.nextBytes(bytes);
+        return bytes;
+    }
+
     public static boolean isShortCode(String address) {
         if(address.length() < 4)
             return true;
@@ -125,6 +138,8 @@ public class Helpers {
                 .replaceAll("-", "")
                 .replaceAll("%20", "")
                 .replaceAll(" ", "");
+        if(data.length() < 5)
+            return data;
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         String outputNumber = data;
         try {
@@ -134,7 +149,7 @@ public class Helpers {
 
             return "+" + countryCode + nationalNumber;
         } catch(NumberParseException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             if(e.getErrorType() == NumberParseException.ErrorType.INVALID_COUNTRY_CODE) {
                 data = outputNumber.replaceAll("sms[to]*:", "");
                 if (data.startsWith(defaultRegion)) {
@@ -356,6 +371,19 @@ public class Helpers {
         return String.valueOf(PhoneNumberUtil.getInstance().getCountryCodeForRegion(countryCode));
     }
 
+    public static int getColor(Context context, String input) {
+        int sDefaultColor = context.getColor(R.color.letter_tile_default_color);
+        if (TextUtils.isEmpty(input)) {
+            return sDefaultColor;
+        }
+        TypedArray sColors = context.getResources().obtainTypedArray(R.array.letter_tile_colors);
+        // String.hashCode() implementation is not supposed to change across java versions, so
+        // this should guarantee the same email address always maps to the same color.
+        // The email should already have been normalized by the ContactRequest.
+        final int color = Math.abs(input.hashCode()) % sColors.length();
+        return sColors.getColor(color, sDefaultColor);
+    }
+
     public static int generateColor(int input) {
         int hue;
         int saturation = 100;
@@ -398,12 +426,8 @@ public class Helpers {
             byte[] decodedBytes = Base64.decode(input, Base64.DEFAULT);
 //            String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
 
-//            Log.d(Helpers.class.getName(), "De-Encoded string: " + decodedString);
-
             String reencodedString = Base64.encodeToString(decodedBytes, Base64.DEFAULT)
                             .replaceAll("\\n", "");
-
-            Log.d(Helpers.class.getName(), "Re-Encoded string: " + reencodedString);
 
             return input.replaceAll("\\n", "").equals(reencodedString);
         } catch (Exception e) {

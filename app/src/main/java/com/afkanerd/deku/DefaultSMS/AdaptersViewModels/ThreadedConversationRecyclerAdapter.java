@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
 
-import com.afkanerd.deku.DefaultSMS.ArchivedMessagesActivity;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
@@ -29,7 +28,6 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     Context context;
     Boolean isSearch = false;
     public String searchString = "";
-    ArchivedMessagesActivity archivedMessagesActivity;
 
     public MutableLiveData<HashMap<Long, ThreadedConversationsTemplateViewHolder>> selectedItems = new MutableLiveData<>();
     final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
@@ -96,18 +94,6 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
         return ThreadedConversationsTemplateViewHolder.getViewType(position, snapshot().getItems());
     }
 
-    public void markThreadRead(ThreadedConversations threadedConversations) {
-        if(threadedConversationsDao != null) {
-            threadedConversations.setIs_read(true);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    threadedConversationsDao.update(threadedConversations);
-                }
-            }).start();
-        }
-    }
-
     @Override
     public void onBindViewHolder(@NonNull ThreadedConversationsTemplateViewHolder holder, int position) {
         ThreadedConversations threadedConversations = getItem(position);
@@ -120,8 +106,9 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
             public void onClick(View view) {
                 HashMap<Long, ThreadedConversationsTemplateViewHolder> _selectedItems = selectedItems.getValue();
                 if(_selectedItems != null) {
-                    if(_selectedItems.containsKey(holder)) {
-                        ThreadedConversationsTemplateViewHolder templateViewHolder = _selectedItems.remove(holder);
+                    if(_selectedItems.containsKey(Long.parseLong(holder.id))) {
+                        ThreadedConversationsTemplateViewHolder templateViewHolder =
+                                _selectedItems.remove(Long.parseLong(holder.id));
                         selectedItems.setValue(_selectedItems);
                         if(templateViewHolder != null)
                             templateViewHolder.unHighlight();
@@ -134,8 +121,6 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                         return;
                     }
                 }
-
-//                markThreadRead(threadedConversations);
 
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);

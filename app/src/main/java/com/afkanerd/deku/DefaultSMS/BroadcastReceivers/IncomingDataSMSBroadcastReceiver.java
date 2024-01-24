@@ -13,11 +13,12 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
-import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 //import org.bouncycastle.operator.OperatorCreationException;
+
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -44,10 +45,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
          * Important note: either image or dump it
          */
 
-        Log.d(getClass().getName(), "Broadcast data received: " + intent.getAction());
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
-            Log.d(getClass().getName(), "Yes new data received");
             if (getResultCode() == Activity.RESULT_OK) {
                 try {
                     String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_data(context, intent);
@@ -61,7 +60,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     final String date = regIncomingOutput[NativeSMSDB.DATE];
                     int subscriptionId = Integer.parseInt(strSubscriptionId);
 
-                    boolean isValidKey = E2EEHandler.isValidDekuPublicKey( Base64.decode(data, Base64.DEFAULT));
+                    boolean isValidKey = E2EEHandler.isValidDefaultPublicKey( Base64.decode(data, Base64.DEFAULT));
 
                     Conversation conversation = new Conversation();
                     conversation.setData(data);
@@ -81,9 +80,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             if(isValidKey) {
                                 try {
                                     processForEncryptionKey(context, conversation);
-                                } catch (NumberParseException | CertificateException |
-                                         KeyStoreException | IOException |
-                                         NoSuchAlgorithmException | InterruptedException e) {
+                                } catch (NumberParseException | IOException | InterruptedException |
+                                         GeneralSecurityException | JSONException e) {
                                     e.printStackTrace();
                                 }
                             }
@@ -110,15 +108,15 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
+    boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException, JSONException {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-        boolean isValidKey = E2EEHandler.isValidDekuPublicKey(data);
+        boolean isValidKey = E2EEHandler.isValidDefaultPublicKey(data);
 
         if(isValidKey) {
-            String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
+            String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
             byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
 
-            E2EEHandler.insertNewPeerPublicKey(context, extractedTransmissionKey, keystoreAlias);
+            E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
 
 //            if(E2EEHandler.getKeyType(context, keystoreAlias, extractedTransmissionKey) ==
 //                    E2EEHandler.AGREEMENT_KEY) {
