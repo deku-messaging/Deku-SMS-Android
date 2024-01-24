@@ -22,10 +22,14 @@ import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 @Entity
 public class ThreadedConversations {
+
+    @Ignore
+    public boolean secured = false;
     @NonNull
     @PrimaryKey
      private String thread_id;
@@ -67,6 +71,7 @@ public class ThreadedConversations {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration8To9())
+                .addMigrations(new Migrations.Migration9To10())
                 .build();
         return databaseConnector.threadedConversationsDao();
     }
@@ -231,20 +236,20 @@ public class ThreadedConversations {
 
     public void setContact_name(String contact_name) {
         this.contact_name = contact_name;
-        if(this.contact_name != null && !this.contact_name.isEmpty()) {
-            this.setAvatar_initials(this.contact_name.substring(0, 1));
-            this.setAvatar_color(Helpers.generateColor(this.contact_name));
-        } else {
-            this.setAvatar_initials(null);
-            try {
-                if (this.getAddress() != null && !this.getAddress().isEmpty())
-                    this.setAvatar_color(Helpers.generateColor(this.getAddress()));
-                else
-                    this.setAvatar_color(Helpers.getRandomColor());
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-        }
+//        if(this.contact_name != null && !this.contact_name.isEmpty()) {
+//            this.setAvatar_initials(this.contact_name.substring(0, 1));
+//            this.setAvatar_color(Helpers.generateColor(this.contact_name));
+//        } else {
+//            this.setAvatar_initials(null);
+//            try {
+//                if (this.getAddress() != null && !this.getAddress().isEmpty())
+//                    this.setAvatar_color(Helpers.generateColor(this.getAddress()));
+//                else
+//                    this.setAvatar_color(Helpers.getRandomColor());
+//            } catch(Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
     public String getAvatar_initials() {
@@ -289,33 +294,16 @@ public class ThreadedConversations {
         if(obj instanceof ThreadedConversations) {
             ThreadedConversations threadedConversations = (ThreadedConversations) obj;
 
-            if(snippet == null) {
-                //secure content
-                return threadedConversations.thread_id.equals(this.thread_id) &&
-                        threadedConversations.is_archived == this.is_archived &&
-                        threadedConversations.is_blocked == this.is_blocked &&
-                        threadedConversations.is_read == this.is_read &&
-                        threadedConversations.type == this.type &&
-                        threadedConversations.avatar_color == this.avatar_color &&
-                        threadedConversations.msg_count == this.msg_count &&
-                        threadedConversations.address.equals(this.address) &&
-                        threadedConversations.date.equals(this.date);
-            }
-            try {
-                return threadedConversations.thread_id.equals(this.thread_id) &&
-                        threadedConversations.is_archived == this.is_archived &&
-                        threadedConversations.is_blocked == this.is_blocked &&
-                        threadedConversations.is_read == this.is_read &&
-                        threadedConversations.type == this.type &&
-                        threadedConversations.avatar_color == this.avatar_color &&
-                        threadedConversations.msg_count == this.msg_count &&
-                        threadedConversations.address.equals(this.address) &&
-                        threadedConversations.date.equals(this.date) &&
-                        threadedConversations.snippet.equals(this.snippet);
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-
+            return Objects.equals(threadedConversations.thread_id, this.thread_id) &&
+                    threadedConversations.is_archived == this.is_archived &&
+                    threadedConversations.is_blocked == this.is_blocked &&
+                    threadedConversations.is_read == this.is_read &&
+                    threadedConversations.type == this.type &&
+                    threadedConversations.msg_count == this.msg_count &&
+                    Objects.equals(threadedConversations.date, this.date) &&
+                    Objects.equals(threadedConversations.address, this.address) &&
+                    Objects.equals(threadedConversations.contact_name, this.contact_name) &&
+                    Objects.equals(threadedConversations.snippet, this.snippet);
         }
         return false;
     }

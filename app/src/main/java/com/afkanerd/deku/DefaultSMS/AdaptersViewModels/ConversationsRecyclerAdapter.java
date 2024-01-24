@@ -18,10 +18,12 @@ import androidx.paging.PagingDataAdapter;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationReceivedViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationSentViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation, ConversationTemplateViewHandler> {
     public MutableLiveData<HashMap<Long, ConversationTemplateViewHandler>> mutableSelectedItems;
@@ -63,10 +66,32 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     ConversationSentViewHandler lastSentItem;
     ConversationReceivedViewHandler lastReceivedItem;
 
-    public ConversationsRecyclerAdapter(Context context) throws GeneralSecurityException, IOException {
+    ThreadedConversations threadedConversations;
+
+    public ConversationsRecyclerAdapter(Context context,
+                                        ThreadedConversations threadedConversations) {
         super(Conversation.DIFF_CALLBACK);
         this.context = context;
         this.mutableSelectedItems = new MutableLiveData<>();
+        this.threadedConversations = threadedConversations;
+
+//        Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
+//                    secured = E2EEHandler.canCommunicateSecurely(context, keystoreAlias);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
+//        thread.start();
+//        try {
+//            thread.join();
+//        }catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     @NonNull
@@ -359,8 +384,9 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     }
 
     public void resetSearchItems(List<Integer> positions) {
-        for(Integer position : positions) {
-            notifyItemChanged(position);
-        }
+        if(positions != null)
+            for(Integer position : positions) {
+                notifyItemChanged(position);
+            }
     }
 }

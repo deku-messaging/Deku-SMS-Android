@@ -18,7 +18,6 @@ import androidx.annotation.NonNull;
 
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
@@ -77,6 +76,42 @@ public class NativeSMSDB {
                         TextUtils.join(",", Collections.nCopies(threadIds.length, "?")) + ")", threadIds);
     }
 
+    protected static int deleteMessage(Context context, String messageId) {
+        try {
+            return context.getContentResolver().delete(
+                    Telephony.Sms.CONTENT_URI,
+                    Telephony.Sms._ID + " = ?", new String[]{messageId});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    protected static int deleteTypeForThread(Context context, String type, String threadId) {
+        try {
+            return context.getContentResolver().delete(
+                    Telephony.Sms.CONTENT_URI,
+                    Telephony.TextBasedSmsColumns.THREAD_ID + " = ? AND " +
+                            Telephony.TextBasedSmsColumns.TYPE + " = ?",
+                    new String[]{threadId, type});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    protected static int deleteAllType(Context context, String type) {
+        try {
+            return context.getContentResolver().delete(
+                    Telephony.Sms.CONTENT_URI,
+                    Telephony.TextBasedSmsColumns.TYPE + " = ?",
+                    new String[]{type});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
     /*
      * Places which require playing with Native SMS DB
      * Outgoing:
@@ -107,12 +142,12 @@ public class NativeSMSDB {
                 null,
                 null,
                 null);
+        Log.d(NativeSMSDB.class.getName(), "Parsing draft information: " + cursor.getCount());
 
         if (cursor.moveToFirst()) {
             String threadId = cursor.getString(
                     cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID));
-            String messageId = cursor.getString(
-                    cursor.getColumnIndexOrThrow(Telephony.Sms._ID));
+            String messageId = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms._ID));
             cursor.close();
             return new String[]{threadId, messageId};
         }
@@ -254,6 +289,27 @@ public class NativeSMSDB {
             }
         }
 
+        protected static String[] register_drafts(Context context, String messageId,
+                                                 String destinationAddress, String text, int subscriptionId) {
+            ContentValues contentValues = new ContentValues();
+
+            contentValues.put(Telephony.Sms._ID, messageId);
+            contentValues.put(Telephony.TextBasedSmsColumns.TYPE,
+                    Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+            contentValues.put(Telephony.TextBasedSmsColumns.STATUS,
+                    Telephony.TextBasedSmsColumns.STATUS_PENDING);
+            contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
+            contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, destinationAddress);
+            contentValues.put(Telephony.TextBasedSmsColumns.BODY, text);
+            contentValues.put(Telephony.TextBasedSmsColumns.DATE_SENT,
+                    String.valueOf(System.currentTimeMillis()));
+
+            Uri uri = context.getContentResolver().insert(
+                    Telephony.Sms.CONTENT_URI,
+                    contentValues);
+            return parseNewIncomingUriForThreadInformation(context, uri);
+        }
+
         public static String[] register_failed(Context context, String messageId, int errorCode) {
             int numberChanged =
                     update_status(context, Telephony.TextBasedSmsColumns.STATUS_FAILED,
@@ -337,20 +393,53 @@ public class NativeSMSDB {
 
     public static class Incoming {
 
-        public static int update_read(Context context, int read, String thread_id, String messageId) {
+        public static int update_all_read(Context context, int read, String[] threadId) {
             ContentValues contentValues = new ContentValues();
-            contentValues.put(Telephony.TextBasedSmsColumns.READ, read);
+            contentValues.put(Telephony.Sms.READ, read);
 
             try {
-                int numberUpdated = context.getContentResolver().update(
+                return context.getContentResolver().update(
+                        Telephony.Sms.CONTENT_URI,
+                        contentValues,
+                        "thread_id in (" + TextUtils.join(",",
+                                Collections.nCopies(threadId.length, "?")) + ")",
+                        threadId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return 0;
+        }
+
+        public static int update_all_read(Context context, int read) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Telephony.Sms.READ, read);
+
+            try {
+                return context.getContentResolver().update(
+                        Telephony.Sms.CONTENT_URI,
+                        contentValues,
+                        null,
+                        null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return 0;
+        }
+
+        public static int update_read(Context context, int read, String thread_id, String messageId) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Telephony.Sms.READ, read);
+
+            try {
+                int updated = context.getContentResolver().update(
                         Telephony.Sms.CONTENT_URI,
                         contentValues,
                         "thread_id=?",
                         new String[]{thread_id});
-
-                if(messageId != null)
-                    broadcastStateChanged(context, messageId);
-                return numberUpdated;
+                Log.d(NativeSMSDB.class.getName(), "Updated to read: " + updated);
+                return updated;
             } catch (Exception e) {
                 e.printStackTrace();
             }

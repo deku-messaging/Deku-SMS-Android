@@ -30,6 +30,8 @@
 <!--    <color name="received_message_highlighted_color">@color/logo_primary</color>-->
     <color name="primary_highlight_color">#AEB3B9</color>
 
-    <color name="colorPrimary">@color/logo_primary</color>
-    <color name="colorSecondary">@color/logo_third</color>
+    <color name="colorSecondary">@color/logo_primary</color>
+    <color name="colorPrimary">@color/logo_third</color>
+
+    <color name="letter_tile_default_color">#cccccc</color>
 </resources>

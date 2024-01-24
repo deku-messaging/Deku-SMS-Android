@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
 import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -98,7 +100,6 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                                 conversation, pendingIntent);
 
                 builder.setStyle(messagingStyle);
-
                 NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
                 notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
                 conversation.close();
@@ -108,12 +109,18 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
         else if(intent.getAction() != null && intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
             String threadId = intent.getStringExtra(Conversation.THREAD_ID);
             String messageId = intent.getStringExtra(Conversation.ID);
-            Log.d(getClass().getName(), "Got this from mark: " + messageId);
-            Log.d(getClass().getName(), "Got this from thread mark: " + threadId);
             try {
-                NativeSMSDB.Incoming.update_read(context, 1, threadId, messageId);
+                NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
                 notificationManager.cancel(Integer.parseInt(threadId));
+
+                Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
+                broadcastIntent.putExtra(Conversation.ID, messageId);
+                broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
+                if(intent.getExtras() != null)
+                    broadcastIntent.putExtras(intent.getExtras());
+
+                context.sendBroadcast(broadcastIntent);
             } catch(Exception e) {
                 e.printStackTrace();
             }

@@ -1,0 +1,11 @@
+- update: new icon
+- update: updated UI to hold drafts messages
+- fix: issues with drafts now showing in home screen
+- fix: issue with loading initial messages
+- update: added navbar to conversations thread screen
+- update: removed encryption requirements settings because no need for popup encryption message request
+- update: can clear all drafts
+- fix: broken highlighting for threads
+- update: message counter added
+- fix: auto suggestions for notifications
+- update: forward secrecry now available using Signal's double ratchet

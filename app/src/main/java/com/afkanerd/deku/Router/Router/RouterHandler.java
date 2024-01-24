@@ -38,6 +38,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -47,6 +49,8 @@ public class RouterHandler {
     public static int WORK_NAME = 1;
     public static int ROUTING_URL = 2;
     public static int ROUTING_ID = 3;
+
+    protected static ExecutorService executorService = Executors.newFixedThreadPool(4);
 
     public static void routeJsonMessages(Context context, String jsonStringBody, String gatewayServerUrl)
             throws ExecutionException, InterruptedException, TimeoutException, JSONException {
@@ -85,13 +89,12 @@ public class RouterHandler {
 
         boolean isBase64 = Helpers.isBase64Encoded(routerItem.getText());
 
-        new Thread(new Runnable() {
+        executorService.execute(new Runnable() {
             @Override
             public void run() {
                 GatewayServer gatewayServer = new GatewayServer();
                 GatewayServerDAO gatewayServerDAO = gatewayServer.getDaoInstance(context);
                 List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
-                gatewayServer.close();
 
                 for (GatewayServer gatewayServer1 : gatewayServerList) {
                     if(gatewayServer1.getFormat() != null &&
@@ -131,7 +134,7 @@ public class RouterHandler {
                     }
                 }
             }
-        }).start();
+        });
     }
 
     private static String getTagForMessages(String messageId) {

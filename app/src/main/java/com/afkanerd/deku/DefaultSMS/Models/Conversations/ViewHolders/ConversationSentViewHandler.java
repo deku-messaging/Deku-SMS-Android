@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 //import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -23,6 +22,8 @@ import com.afkanerd.deku.E2EE.E2EEHandler;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 public class ConversationSentViewHandler extends ConversationTemplateViewHandler {
 
@@ -122,28 +123,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         sentMessageStatus.setText(statusMessage);
 
         final String[] text = {conversation.getText()};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String keystoreAlias = E2EEHandler.getKeyStoreAlias(conversation.getAddress(), 0);
-                    if(E2EEHandler.canCommunicateSecurely(itemView.getContext(), keystoreAlias) &&
-                            E2EEHandler.isValidDekuText(text[0])) {
-                        byte[] extractedText = E2EEHandler.extractTransmissionText(text[0]);
-                        text[0] = new String(E2EEHandler.decryptText(itemView.getContext(), keystoreAlias, extractedText));
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        thread.start();
-        try {
-            thread.join();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-
         if(searchString != null && !searchString.isEmpty() && text[0] != null) {
             Spannable spannable = Helpers.highlightSubstringYellow(itemView.getContext(),
                     text[0], searchString, true);

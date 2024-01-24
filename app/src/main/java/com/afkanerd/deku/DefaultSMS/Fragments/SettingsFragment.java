@@ -31,8 +31,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
         setPreferencesFromResource(R.xml.settings_preferences, rootKey);
 
-        Preference securityPrivacyPreference = findPreference(getString(R.string.settings_security_end_to_end));
-        securityPrivacyPreference.setFragment(EndToEndFragments.class.getCanonicalName());
+//        Preference securityPrivacyPreference = findPreference(getString(R.string.settings_security_end_to_end));
+//        securityPrivacyPreference.setFragment(EndToEndFragments.class.getCanonicalName());
 
         Preference developersPreferences = findPreference(getString(R.string.settings_advanced_developers_key));
         developersPreferences.setFragment(DevelopersFragment.class.getCanonicalName());

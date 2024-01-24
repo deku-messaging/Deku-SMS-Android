@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import android.content.Context;
+import android.util.Pair;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -16,14 +17,13 @@ import java.util.List;
 
 public class SearchViewModel extends ViewModel {
 
-    MutableLiveData<List<ThreadedConversations>> liveData;
+    MutableLiveData<Pair<List<ThreadedConversations>, Integer>> liveData;
 
     ThreadedConversationsDao threadedConversationsDao;
-    ConversationDao conversationDao;
 
     String threadId;
 
-    public LiveData<List<ThreadedConversations>> get(ThreadedConversationsDao threadedConversationsDao){
+    public LiveData<Pair<List<ThreadedConversations>,Integer>> get(ThreadedConversationsDao threadedConversationsDao){
         this.threadedConversationsDao = threadedConversationsDao;
         if(this.liveData == null) {
             liveData = new MutableLiveData<>();
@@ -31,7 +31,7 @@ public class SearchViewModel extends ViewModel {
         return liveData;
     }
 
-    public LiveData<List<ThreadedConversations>> getByThreadId(
+    public LiveData<Pair<List<ThreadedConversations>,Integer>> getByThreadId(
             ThreadedConversationsDao threadedConversationsDao, String threadId){
         this.threadedConversationsDao = threadedConversationsDao;
         if(this.liveData == null) {
@@ -41,27 +41,26 @@ public class SearchViewModel extends ViewModel {
         return liveData;
     }
 
-    public LiveData<List<ThreadedConversations>> get(ConversationDao conversationDao){
-        this.conversationDao = conversationDao;
-        if(this.liveData == null) {
-            liveData = new MutableLiveData<>();
-        }
-        return liveData;
-    }
-
     public void search(Context context, String input) throws InterruptedException {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 List<Conversation> conversations = new ArrayList<>();
+                Integer index = null;
                 if(threadId == null || threadId.isEmpty())
-                    conversations = threadedConversationsDao.find(input);
-                else
-                    conversations = threadedConversationsDao.findByThread(input,threadId);
+                    conversations = threadedConversationsDao.findAddresses(input);
+                else {
+                    conversations = threadedConversationsDao.findByThread(input, threadId);
+                    ConversationDao conversationDao = new Conversation().getDaoInstance(context);
+                    List<Conversation> conversationList = conversationDao.getAll(threadId);
+                    if(!conversationList.isEmpty()) {
+                        index = conversationList.indexOf(conversationList.get(0));
+                    }
+                }
 
                 List<ThreadedConversations> threadedConversations =
                         ThreadedConversations.buildRaw(context, conversations);
-                liveData.postValue(threadedConversations);
+                liveData.postValue(new Pair<>(threadedConversations, index));
             }
         });
         thread.start();

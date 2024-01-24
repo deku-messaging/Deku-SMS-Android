@@ -14,6 +14,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 
 public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyclerAdapter {
+
+    public Integer searchIndex;
     public final AsyncListDiffer<ThreadedConversations> mDiffer =
             new AsyncListDiffer(this, ThreadedConversations.DIFF_CALLBACK);
     public SearchConversationRecyclerAdapter(Context context) {
@@ -44,6 +46,7 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
                 Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
                 singleMessageThreadIntent.putExtra(ConversationActivity.SEARCH_STRING, searchString);
+                singleMessageThreadIntent.putExtra(ConversationActivity.SEARCH_INDEX, searchIndex);
                 singleMessageThreadIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(singleMessageThreadIntent);
             }

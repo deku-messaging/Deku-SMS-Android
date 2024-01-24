@@ -1,1 +1,0 @@
-../dump-arsc.py

@@ -34,7 +34,7 @@
             android:layout_height="match_parent"
             android:background="@drawable/sent_messages_drawable"
             tools:text="@string/settings_add_gateway_server_protocol_meta_description"
-            android:paddingStart="8dp"
+            android:paddingStart="12dp"
             android:paddingTop="8dp"
             android:paddingEnd="8dp"
             android:paddingBottom="8dp"

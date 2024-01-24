@@ -10,8 +10,8 @@ public class SecurityAESRandomTest {
 
     @Test
     public void canEncryptDecryptAES256CBC() throws Throwable {
-        byte[] plainText = SecurityHandler.generateRandomBytes(140);
-        byte[] sharedSecret = SecurityHandler.generateRandomBytes(32);
+        byte[] plainText = EncryptionHandlers.generateRandomBytes(140);
+        byte[] sharedSecret = EncryptionHandlers.generateRandomBytes(32);
 
         byte[] cipherText = SecurityAES.encryptAES256CBC(plainText, sharedSecret, null);
         byte[] plain = SecurityAES.decryptAES256CBC(cipherText, sharedSecret);
@@ -21,8 +21,8 @@ public class SecurityAESRandomTest {
 
     @Test
     public void canEncryptDecryptAESGCM() throws Throwable {
-        byte[] plainText = SecurityHandler.generateRandomBytes(140);
-        byte[] sharedSecret = SecurityHandler.generateRandomBytes(32);
+        byte[] plainText = EncryptionHandlers.generateRandomBytes(140);
+        byte[] sharedSecret = EncryptionHandlers.generateRandomBytes(32);
 
         byte[] cipherText = SecurityAES.encryptAESGCM(plainText,
                 new SecretKeySpec(sharedSecret, "AES"));

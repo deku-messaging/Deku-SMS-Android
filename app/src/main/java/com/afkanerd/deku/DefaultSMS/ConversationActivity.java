@@ -7,28 +7,25 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Message;
 import android.provider.Telephony;
+import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.window.OnBackInvokedCallback;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -46,6 +43,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.snackbar.Snackbar;
@@ -55,6 +53,8 @@ import com.google.android.material.textfield.TextInputLayout;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +67,7 @@ import kotlin.jvm.functions.Function0;
 public class ConversationActivity extends E2EECompactActivity {
     public static final String IMAGE_URI = "IMAGE_URI";
     public static final String SEARCH_STRING = "SEARCH_STRING";
+    public static final String SEARCH_INDEX = "SEARCH_INDEX";
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
     ActionMode actionMode;
@@ -78,20 +79,12 @@ public class ConversationActivity extends E2EECompactActivity {
     RecyclerView singleMessagesThreadRecyclerView;
 
 
-    String searchString;
-
     MutableLiveData<List<Integer>> searchPositions = new MutableLiveData<>();
 
     ImageButton backSearchBtn;
     ImageButton forwardSearchBtn;
 
-    ThreadedConversations threadedConversations;
-
     Toolbar toolbar;
-
-    private String draftMessageId;
-    private String draftText;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,7 +116,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
         // Restore state members from saved instance.
         smsTextView.setText(savedInstanceState.getString(DRAFT_TEXT));
-        draftMessageId = savedInstanceState.getString(DRAFT_ID);
 
         savedInstanceState.remove(DRAFT_TEXT);
         savedInstanceState.remove(DRAFT_ID);
@@ -137,31 +129,24 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
 
-        conversationsViewModel.updateToRead(getApplicationContext());
+        if(threadedConversations.secured)
+            layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
 
-        new Thread(new Runnable() {
+        executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                            E2EEHandler.getKeyStoreAlias(threadedConversations.getAddress(),
-                                    0) )) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-                            }
-                        });
-                    }
-                } catch (Exception e) {
+                    NativeSMSDB.Incoming.update_read(getApplicationContext(), 1,
+                            threadedConversations.getThread_id(), null);
+                    conversationsViewModel.updateToRead(getApplicationContext());
+                }catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
     }
 
     @Override
@@ -236,7 +221,7 @@ public class ConversationActivity extends E2EECompactActivity {
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setAddress(getIntent().getStringExtra(Conversation.ADDRESS));
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
-                    threadedConversations);
+                    getIntent().getStringExtra(Conversation.ADDRESS));
         }
 
         final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
@@ -288,7 +273,8 @@ public class ConversationActivity extends E2EECompactActivity {
         linearLayoutManager.setReverseLayout(true);
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 
-        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext());
+        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
+                threadedConversations);
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
@@ -369,30 +355,30 @@ public class ConversationActivity extends E2EECompactActivity {
                 conversationsViewModel.threadId = threadedConversations.getThread_id();
                 findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
                 String searching = getIntent().getStringExtra(SEARCH_STRING);
-//                List<Integer> positions = conversationsViewModel.search(searching);
-//                searchPositions.setValue(positions);
-                searchForInput(searching);
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchForInput(searching);
+                    }
+                });
                 configureSearchBox();
-                conversationsViewModel.getSearch(conversationDao, this.threadedConversations.getThread_id(),
-                                searchPositions.getValue())
+                searchPositions.setValue(new ArrayList<>(
+                        Collections.singletonList(
+                                getIntent().getIntExtra(SEARCH_INDEX, 0))));
+                conversationsViewModel.getSearch(getApplicationContext(), conversationDao,
+                                threadedConversations.getThread_id(), searchPositions.getValue())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
                             public void onChanged(PagingData<Conversation> conversationPagingData) {
-                                conversationsRecyclerAdapter.submitData(getLifecycle(), conversationPagingData);
+                                conversationsRecyclerAdapter.submitData(getLifecycle(),
+                                        conversationPagingData);
                             }
                         });
             }
             else if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {
-                conversationsViewModel.get(conversationDao, this.threadedConversations.getThread_id())
-                        .observe(this, new Observer<PagingData<Conversation>>() {
-                            @Override
-                            public void onChanged(PagingData<Conversation> smsList) {
-                                conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
-                            }
-                        });
-            } else if(this.threadedConversations.getAddress()!= null && !this.threadedConversations.getAddress().isEmpty()) {
-                conversationsViewModel.getByAddress(conversationDao, this.threadedConversations.getAddress())
+                conversationsViewModel.get(getApplicationContext(), conversationDao,
+                                this.threadedConversations.getThread_id())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
                             public void onChanged(PagingData<Conversation> smsList) {
@@ -407,12 +393,17 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onChanged(Conversation conversation) {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
-                conversationsViewModel.deleteItems(getApplicationContext(), list);
-                try {
-                    sendTextMessage(conversation, threadedConversations, draftMessageId);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        conversationsViewModel.deleteItems(getApplicationContext(), list);
+                        try {
+                            sendTextMessage(conversation, threadedConversations, conversation.getMessage_id());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         });
 
@@ -489,10 +480,16 @@ public class ConversationActivity extends E2EECompactActivity {
     boolean isShortCode = false;
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        if (draftMessageId != null && !draftText.isEmpty())
-            saveDraft(draftMessageId, draftText, threadedConversations);
+    protected void onPause() {
+        super.onPause();
+        if (smsTextView.getText() != null && !smsTextView.getText().toString().isEmpty()) {
+            try {
+                saveDraft(String.valueOf(System.currentTimeMillis()),
+                        smsTextView.getText().toString(), threadedConversations);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -507,17 +504,22 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         // Save the user's current game state.
-        savedInstanceState.putString(DRAFT_TEXT, draftText);
-        savedInstanceState.putString(DRAFT_ID, draftMessageId);
+        savedInstanceState.putString(DRAFT_TEXT, smsTextView.getText().toString());
+        savedInstanceState.putString(DRAFT_ID, String.valueOf(System.currentTimeMillis()));
 
         // Always call the superclass so it can save the view hierarchy state.
         super.onSaveInstanceState(savedInstanceState);
     }
 
     private void emptyDraft(){
-        conversationsViewModel.clearDraft();
-        draftMessageId = null;
-        draftText = null;
+        conversationsViewModel.clearDraft(getApplicationContext());
+    }
+
+    SmsManager smsManager = SmsManager.getDefault();
+    public String getSMSCount(String text) {
+        final List<String> messages = smsManager.divideMessage(text);
+        final int segmentCount = messages.get(messages.size() -1).length();
+        return segmentCount +"/"+messages.size();
     }
 
     private void configureMessagesTextBox() {
@@ -525,25 +527,22 @@ public class ConversationActivity extends E2EECompactActivity {
                 mutableLiveDataComposeMessage.getValue().isEmpty())
             findViewById(R.id.conversation_send_btn).setVisibility(View.INVISIBLE);
 
+        TextView counterView = findViewById(R.id.conversation_compose_text_counter);
+        View sendBtn = findViewById(R.id.conversation_send_btn);
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                int visibility = s.isEmpty() ? View.INVISIBLE : View.VISIBLE;
+                int visibility = View.GONE;
+                if(!s.isEmpty()) {
+                    counterView.setText(getSMSCount(s));
+                    visibility = View.VISIBLE;
+                }
                 if(simCount > 1) {
                     findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
                             .setVisibility(visibility);
                 }
-                findViewById(R.id.conversation_send_btn).setVisibility(visibility);
-
-                if(s.isEmpty()) {
-                    if(draftMessageId != null) {
-                        emptyDraft();
-                    }
-                } else {
-                    if(draftMessageId == null)
-                        draftMessageId = String.valueOf(System.currentTimeMillis());
-                    draftText = s;
-                }
+                sendBtn.setVisibility(visibility);
+                counterView.setVisibility(visibility);
             }
         });
 
@@ -563,10 +562,13 @@ public class ConversationActivity extends E2EECompactActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    final String text = smsTextView.getText().toString();
-                    sendTextMessage(text, defaultSubscriptionId.getValue(),
-                            threadedConversations, draftMessageId);
-                    smsTextView.setText(null);
+                    if(smsTextView.getText() != null && defaultSubscriptionId.getValue() != null) {
+                        final String text = smsTextView.getText().toString();
+                        sendTextMessage(text, defaultSubscriptionId.getValue(),
+                                threadedConversations, String.valueOf(System.currentTimeMillis()),
+                                null);
+                        smsTextView.setText(null);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -604,16 +606,28 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void checkDrafts() throws InterruptedException {
-        if(draftText != null && draftMessageId != null) {
-            smsTextView.setText(draftText);
-        }
-        else {
-            Conversation conversation = conversationsViewModel.fetchDraft(getApplicationContext());
-            if (conversation != null) {
-                smsTextView.setText(conversation.getText());
-                draftMessageId = conversation.getMessage_id();
-            }
-        }
+        if(smsTextView.getText() == null || smsTextView.getText().toString().isEmpty())
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Conversation conversation =
+                                conversationsViewModel.fetchDraft(getApplicationContext());
+                        if (conversation != null) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    smsTextView.setText(conversation.getText());
+                                }
+                            });
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } finally {
+                        emptyDraft();
+                    }
+                }
+            }).start();
     }
 
     private void configureLayoutForMessageType() {
@@ -691,10 +705,10 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void searchForInput(String search){
+        conversationsRecyclerAdapter.searchString = search;
         try {
-            conversationsRecyclerAdapter.searchString = search;
-            searchPositions.setValue(conversationsViewModel.search(search));
-        } catch(Exception e) {
+            searchPositions.postValue(conversationsViewModel.search(search));
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -789,7 +803,12 @@ public class ConversationActivity extends E2EECompactActivity {
                     if(editable != null && editable.length() > 1) {
                         conversationsRecyclerAdapter.searchString = editable.toString();
                         conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
-                        searchForInput(editable.toString());
+                        executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                searchForInput(editable.toString());
+                            }
+                        });
                     }
                     else {
                         conversationsRecyclerAdapter.searchString = null;

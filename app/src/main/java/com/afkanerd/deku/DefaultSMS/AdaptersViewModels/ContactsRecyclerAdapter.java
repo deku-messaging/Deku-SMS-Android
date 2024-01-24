@@ -73,7 +73,8 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
         }
 
         public void bind(Contacts contacts, final String sharedConversation) {
-            final int color = Helpers.generateColor(contacts.contactName);
+//            final int color = Helpers.generateColor(contacts.contactName);
+            int color = Helpers.getColor(itemView.getContext(), contacts.number);
             address.setText(contacts.contactName);
             contactInitials.setAvatarInitials(contacts.contactName.substring(0, 1));
             contactInitials.setAvatarInitialsBackgroundColor(color);

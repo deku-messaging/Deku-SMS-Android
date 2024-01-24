@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group android:checkableBehavior="single">
+
+        <item
+            android:checked="true"
+            android:id="@+id/navigation_view_menu_inbox"
+            android:icon="@drawable/round_inbox_24"
+            android:title="@string/conversations_navigation_view_inbox" />
+
+        <item
+            android:id="@+id/navigation_view_menu_archive"
+            android:icon="@drawable/round_archive_24"
+            android:title="@string/homepage_menu_archived" />
+
+        <item android:title="@string/conversations_navigation_view_folders_label">
+            <menu>
+                <group
+                    android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/navigation_view_menu_unread"
+                        android:icon="@drawable/twotone_folder_24"
+                        android:title="@string/conversations_navigation_view_unread" />
+                    <item
+                        android:id="@+id/navigation_view_menu_drafts"
+                        android:icon="@drawable/twotone_folder_24"
+                        android:title="@string/conversations_navigation_view_drafts" />
+
+                    <item
+                        android:id="@+id/navigation_view_menu_encrypted"
+                        android:icon="@drawable/twotone_folder_24"
+                        android:title="@string/homepage_fragment_tab_encrypted" />
+                </group>
+            </menu>
+        </item>
+
+    </group>
+
+</menu>
