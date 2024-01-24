@@ -25,6 +25,8 @@ The technical functionalities of the app are currently not user friendly, which 
 
 Join us on [Telegram](https://t.me/deku_sms) for feature release announcements or general SMS and security discussions.
 
+Credits to the new logo goes to: [Erenye4g3r](https://github.com/Erenye4g3r)
+
 <b>Features</b>
 
 [End-to-End encryption](#e2e_encryption)
