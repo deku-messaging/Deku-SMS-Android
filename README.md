@@ -59,6 +59,24 @@ Forward incoming SMS messages to custom url. The messages remain in queue till t
 The content being forwarded to your cloud look like:
 
 ```json
+ {
+"id": "long()",
+"message_id":"str",
+"thread_id":"str",
+"date":"str",
+"date_sent":"str",
+"type":"int()",
+"num_segments":"int()",
+"subscription_id":"int()",
+"status":"int()",
+"error_code":"int()",
+"read":"int()",
+"is_encrypted":"int()",
+"formatted_date":"str",
+"address":"str",
+"text":"str",
+"data":"str"
+}
 ```
 
 ## <a name="sms_gateway"></a> Android phone as SMS Gateway
