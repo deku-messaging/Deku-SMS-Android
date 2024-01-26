@@ -308,6 +308,21 @@ public class ThreadedConversationsFragment extends Fragment {
                         return true;
                     }
                 }
+                else if(item.getItemId() == R.id.blocked_main_menu_unblock) {
+                    List<String> threadIds = new ArrayList<>();
+                    for (ThreadedConversationsTemplateViewHolder viewHolder :
+                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                        threadIds.add(viewHolder.id);
+                    }
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.unblock(getContext(), threadIds);
+                        }
+                    });
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
             }
             return false;
         }

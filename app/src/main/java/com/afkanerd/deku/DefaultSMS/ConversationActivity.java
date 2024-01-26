@@ -689,6 +689,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 contentValues);
         TelecomManager telecomManager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
         startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
+        finish();
     }
 
 

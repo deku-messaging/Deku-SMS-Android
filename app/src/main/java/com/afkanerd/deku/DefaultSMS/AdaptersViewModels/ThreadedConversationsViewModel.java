@@ -1,9 +1,12 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
+import android.telecom.TelecomManager;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -294,6 +297,20 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
     public void unarchive(List<Archive> archiveList) {
         threadedConversationsDao.unarchive(archiveList);
+    }
+
+    public void unblock(Context context, List<String> threadIds) {
+        List<ThreadedConversations> threadedConversationsList = threadedConversationsDao
+                .getList(threadIds);
+        ContentValues contentValues = new ContentValues();
+        for(ThreadedConversations threadedConversations : threadedConversationsList) {
+            contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
+                    threadedConversations.getAddress());
+        }
+        Uri uri = context.getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+                contentValues);
+        context.getContentResolver().delete(uri, null, null);
+        refresh(context);
     }
 
     public void clearDrafts(Context context) {

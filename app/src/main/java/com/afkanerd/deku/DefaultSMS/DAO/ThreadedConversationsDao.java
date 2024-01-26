@@ -129,6 +129,9 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")
     ThreadedConversations get(String thread_id);
 
+    @Query("SELECT * FROM ThreadedConversations WHERE thread_id IN (:threadIds)")
+    List<ThreadedConversations> getList(List<String> threadIds);
+
     @Query("SELECT * FROM ThreadedConversations WHERE address =:address")
     ThreadedConversations getByAddress(String address);
 

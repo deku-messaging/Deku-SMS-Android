@@ -149,4 +149,5 @@
     <string name="homepage_blocked_no_message">Aucun contact bloqué</string>
     <string name="conversations_navigation_view_blocked">Bloquée</string>
     <string name="conversations_menu_unblock_manager">Gestionnaire bloqué</string>
+    <string name="conversations_menu_unblock">Débloquer</string>
 </resources>
