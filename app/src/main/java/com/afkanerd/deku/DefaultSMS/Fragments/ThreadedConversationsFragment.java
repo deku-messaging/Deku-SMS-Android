@@ -1,9 +1,14 @@
 package com.afkanerd.deku.DefaultSMS.Fragments;
 
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.BlockedNumberContract;
+import android.telecom.TelecomManager;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -170,9 +175,6 @@ public class ThreadedConversationsFragment extends Fragment {
                                 try {
                                     String keystoreAlias =
                                             E2EEHandler.deriveKeystoreAlias( address, 0);
-//                                    E2EEHandler.removeFromKeystore(getContext(), keystoreAlias);
-//                                    E2EEHandler.removeFromEncryptionDatabase(getContext(),
-//                                            keystoreAlias);
                                     E2EEHandler.clear(getContext(), keystoreAlias);
                                 } catch (KeyStoreException | NumberParseException |
                                          InterruptedException |
@@ -306,7 +308,6 @@ public class ThreadedConversationsFragment extends Fragment {
                         return true;
                     }
                 }
-
             }
             return false;
         }
@@ -521,6 +522,16 @@ public class ThreadedConversationsFragment extends Fragment {
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
+            }
+            return true;
+        }
+        else if(item.getItemId() == R.id.blocked_main_menu_unblock_manager_id) {
+            try {
+                TelecomManager telecomManager = (TelecomManager) getContext()
+                        .getSystemService(Context.TELECOM_SERVICE);
+                startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
+            } catch(Exception e) {
+                e.printStackTrace();
             }
             return true;
         }

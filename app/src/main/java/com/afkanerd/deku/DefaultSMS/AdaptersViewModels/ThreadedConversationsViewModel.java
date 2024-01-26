@@ -2,6 +2,7 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
 import android.util.Log;
 
@@ -210,6 +211,17 @@ public class ThreadedConversationsViewModel extends ViewModel {
                         Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
 
         List<String> archivedThreads = threadedConversationsDao.getArchivedList();
+//        List<String> blockedThreads = threadedConversationsDao.getBlockedList();
+        List<String> blockedAddresses = new ArrayList<>();
+        Cursor blockedCursor = Contacts.getBlocked(context);
+        if(blockedCursor.moveToFirst()) {
+            do {
+                int addressIndex = blockedCursor.getColumnIndex(
+                        BlockedNumberContract.BlockedNumbers.COLUMN_E164_NUMBER);
+                String address = blockedCursor.getString(addressIndex);
+                blockedAddresses.add(address);
+            } while(blockedCursor.moveToNext());
+        }
 
         List<String> threadsIdsInDrafts = new ArrayList<>();
         for(ThreadedConversations threadedConversations : threadedDraftsList)
@@ -253,6 +265,9 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     threadedConversations.setSnippet(cursor.getString(snippetIndex));
                     threadedConversations.setType(cursor.getInt(typeIndex));
                     threadedConversations.setDate(cursor.getString(dateIndex));
+                }
+                if(blockedAddresses.contains(threadedConversations.getAddress())) {
+                    threadedConversations.setIs_blocked(true);
                 }
 
                 threadedConversations.setIs_archived(

@@ -26,21 +26,12 @@ import java.util.HashMap;
 public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<ThreadedConversations, ThreadedConversationsTemplateViewHolder> {
 
     Context context;
-    Boolean isSearch = false;
     public String searchString = "";
 
     public MutableLiveData<HashMap<Long, ThreadedConversationsTemplateViewHolder>> selectedItems = new MutableLiveData<>();
-    final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
-    final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
-    final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
-    final int MESSAGE_TYPE_OUTBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
-    final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
-    final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
-
     public final static int RECEIVED_VIEW_TYPE = 1;
     public final static int RECEIVED_UNREAD_VIEW_TYPE = 2;
     public final static int RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE = 3;
-    public final static int RECEIVED_ENCRYPTED_VIEW_TYPE = 4;
 
     public final static int SENT_VIEW_TYPE = 5;
     public final static int SENT_UNREAD_VIEW_TYPE = 6;

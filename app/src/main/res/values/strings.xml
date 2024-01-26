@@ -155,6 +155,7 @@
     <string name="send_message_secured_text_box_hint">Text Message (secured)</string>
     <string name="conversations_menu_call_title">Call</string>
     <string name="conversations_menu_encrypt_title">Encrypt</string>
+    <string name="conversations_menu_unblock_manager">Blocked Manager</string>
     <string name="conversations_menu_search_title">Search</string>
 
     <string name="conversations_search_results_found">results founds</string>
