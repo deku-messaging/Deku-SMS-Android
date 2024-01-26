@@ -62,6 +62,17 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
+    public LiveData<PagingData<ThreadedConversations>> getBlocked(){
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> this.threadedConversationsDao.getBlocked());
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
     public LiveData<PagingData<ThreadedConversations>> getUnread(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -310,10 +321,12 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
         int encryptedCount = threadedConversationsDao.getAllEncryptedCount();
         int unreadCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
+        int blockedCount = threadedConversationsDao.getAllBlocked();
         List<Integer> list = new ArrayList<>();
         list.add(draftsListCount);
         list.add(encryptedCount);
         list.add(unreadCount);
+        list.add(blockedCount);
         folderMetrics.postValue(list);
     }
 }

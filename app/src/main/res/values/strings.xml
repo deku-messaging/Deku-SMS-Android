@@ -35,6 +35,7 @@
     <string name="homepage_no_message">Send your first message</string>
     <string name="homepage_draft_no_message">Nothing in Drafts</string>
     <string name="homepage_archive_no_message">Nothing in Archives</string>
+    <string name="homepage_blocked_no_message">No blocked contacts</string>
     <string name="homepage_unread_no_message">No unread message</string>
     <string name="homepage_encryption_no_message">No Encrypted Communications contacts</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
@@ -164,7 +165,8 @@
     <string name="conversation_menu_copy">copy</string>
     <string name="conversation_menu_delete">delete</string>
     <string name="conversation_menu_unarchive">unarchive</string>
-    <string name="conversation_menu_share">share</string>
+    <string name="conversation_menu_share">Share</string>
+    <string name="conversation_menu_block">Block</string>
 
     <string name="conversation_menu_view_details">View details</string>
     <string name="conversation_menu_view_details_title">Message details</string>
@@ -210,6 +212,7 @@
     <string name="conversations_navigation_view_archived">Archived</string>
     <string name="conversations_navigation_view_unread">Unread</string>
     <string name="conversations_navigation_view_encryption">Encrypted</string>
+    <string name="conversations_navigation_view_blocked">Blocked</string>
     <string name="conversations_navigation_view_folders_label">Folders</string>
     <string name="conversations_navigation_view_inbox">Inbox</string>
 

@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Fragments.ArchivedFragments;
+import com.afkanerd.deku.DefaultSMS.Fragments.BlockedFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.DraftsFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.EncryptionFragments;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
@@ -110,6 +111,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         MenuItem draftMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_drafts);
         MenuItem encryptedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_encrypted);
         MenuItem unreadMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_unread);
+        MenuItem blockedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_blocked);
 
         threadedConversationsViewModel.folderMetrics.observe(this, new Observer<List<Integer>>() {
             @Override
@@ -124,6 +126,9 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
                 unreadMenuItem.setTitle(getString(R.string.conversations_navigation_view_unread)
                         + "(" + integers.get(2) + ")");
+
+                blockedMenuItem.setTitle(getString(R.string.conversations_navigation_view_blocked)
+                        + "(" + integers.get(3) + ")");
             }
         });
 
@@ -168,6 +173,14 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 else if(item.getItemId() == R.id.navigation_view_menu_archive) {
                     fragmentManager.beginTransaction().replace(R.id.view_fragment,
                                     ArchivedFragments.class, null, "ARCHIVED_TAG")
+                            .setReorderingAllowed(true)
+                            .commit();
+                    drawerLayout.close();
+                    return true;
+                }
+                else if(item.getItemId() == R.id.navigation_view_menu_blocked) {
+                    fragmentManager.beginTransaction().replace(R.id.view_fragment,
+                                    BlockedFragments.class, null, "BLOCKED_TAG")
                             .setReorderingAllowed(true)
                             .commit();
                     drawerLayout.close();

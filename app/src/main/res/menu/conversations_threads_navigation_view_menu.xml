@@ -32,6 +32,11 @@
                         android:id="@+id/navigation_view_menu_encrypted"
                         android:icon="@drawable/twotone_folder_24"
                         android:title="@string/homepage_fragment_tab_encrypted" />
+
+                    <item
+                        android:id="@+id/navigation_view_menu_blocked"
+                        android:icon="@drawable/twotone_folder_24"
+                        android:title="@string/conversation_menu_block" />
                 </group>
             </menu>
         </item>

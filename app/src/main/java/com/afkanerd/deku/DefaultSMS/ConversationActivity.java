@@ -3,11 +3,15 @@ package com.afkanerd.deku.DefaultSMS;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
+import android.telecom.TelecomManager;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -180,6 +184,12 @@ public class ConversationActivity extends E2EECompactActivity {
             Intent intent = new Intent(getApplicationContext(), SearchMessagesThreadsActivity.class);
             intent.putExtra(Conversation.THREAD_ID, threadedConversations.getThread_id());
             startActivity(intent);
+        }
+        else if (R.id.conversations_menu_block == item.getItemId()) {
+            blockContact();
+            if(actionMode != null)
+                actionMode.finish();
+            return true;
         }
 //        if(isSearchActive()) {
 //            resetSearch();
@@ -661,6 +671,26 @@ public class ConversationActivity extends E2EECompactActivity {
             shortCodeSnackBar.show();
         }
     }
+
+    private void blockContact() {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversations.setIs_blocked(true);
+                new ThreadedConversations().getDaoInstance(getApplicationContext())
+                        .update(threadedConversations);
+            }
+        });
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
+                threadedConversations.getAddress());
+        Uri uri = getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+                contentValues);
+        TelecomManager telecomManager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
+        startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
+    }
+
 
     private void shareItem() {
         Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =

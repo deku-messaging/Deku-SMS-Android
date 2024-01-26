@@ -28,6 +28,9 @@ public interface ThreadedConversationsDao {
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 1 ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getArchived();
 
+    @Query("SELECT * FROM ThreadedConversations WHERE is_blocked = 1 ORDER BY date DESC")
+    PagingSource<Integer, ThreadedConversations> getBlocked();
+
     @Query("SELECT ThreadedConversations.thread_id FROM ThreadedConversations WHERE is_archived = 1")
     List<String> getArchivedList();
 
@@ -49,6 +52,10 @@ public interface ThreadedConversationsDao {
 
     @Query("SELECT COUNT(ConversationsThreadsEncryption.id) FROM ConversationsThreadsEncryption")
     int getAllEncryptedCount();
+
+    @Query("SELECT COUNT(ThreadedConversations.thread_id) FROM ThreadedConversations " +
+            "WHERE is_blocked = 1")
+    int getAllBlocked();
 
     @Query("SELECT Conversation.address, " +
             "Conversation.text as snippet, " +
