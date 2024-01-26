@@ -21,3 +21,4 @@ keystore.properties
 ks.passwd
 venv/*
 /release.properties
+*.sw*
