@@ -209,22 +209,23 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 "date DESC"
         );
 
+
         List<ThreadedConversations> threadedDraftsList =
                 threadedConversationsDao.getThreadedDraftsList(
                         Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
 
         List<String> archivedThreads = threadedConversationsDao.getArchivedList();
 //        List<String> blockedThreads = threadedConversationsDao.getBlockedList();
-        List<String> blockedAddresses = new ArrayList<>();
-        Cursor blockedCursor = Contacts.getBlocked(context);
-        if(blockedCursor.moveToFirst()) {
-            do {
-                int addressIndex = blockedCursor.getColumnIndex(
-                        BlockedNumberContract.BlockedNumbers.COLUMN_E164_NUMBER);
-                String address = blockedCursor.getString(addressIndex);
-                blockedAddresses.add(address);
-            } while(blockedCursor.moveToNext());
-        }
+//        List<String> blockedAddresses = new ArrayList<>();
+//        Cursor blockedCursor = Contacts.getBlocked(context);
+//        if(blockedCursor.moveToFirst()) {
+//            do {
+//                int addressIndex = blockedCursor.getColumnIndex(
+//                        BlockedNumberContract.BlockedNumbers.COLUMN_E164_NUMBER);
+//                String address = blockedCursor.getString(addressIndex);
+//                blockedAddresses.add(address);
+//            } while(blockedCursor.moveToNext());
+//        }
 
         List<String> threadsIdsInDrafts = new ArrayList<>();
         for(ThreadedConversations threadedConversations : threadedDraftsList)
@@ -269,9 +270,11 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     threadedConversations.setType(cursor.getInt(typeIndex));
                     threadedConversations.setDate(cursor.getString(dateIndex));
                 }
-                if(blockedAddresses.contains(threadedConversations.getAddress())) {
+//                if(blockedAddresses.contains(threadedConversations.getAddress())) {
+//                    threadedConversations.setIs_blocked(true);
+//                }
+                if(BlockedNumberContract.isBlocked(context, threadedConversations.getAddress()))
                     threadedConversations.setIs_blocked(true);
-                }
 
                 threadedConversations.setIs_archived(
                         archivedThreads.contains(threadedConversations.getThread_id()));
@@ -302,14 +305,15 @@ public class ThreadedConversationsViewModel extends ViewModel {
     public void unblock(Context context, List<String> threadIds) {
         List<ThreadedConversations> threadedConversationsList = threadedConversationsDao
                 .getList(threadIds);
-        ContentValues contentValues = new ContentValues();
+//        ContentValues contentValues = new ContentValues();
         for(ThreadedConversations threadedConversations : threadedConversationsList) {
-            contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
-                    threadedConversations.getAddress());
+//            contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
+//                    threadedConversations.getAddress());
+            BlockedNumberContract.unblock(context, threadedConversations.getAddress());
         }
-        Uri uri = context.getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
-                contentValues);
-        context.getContentResolver().delete(uri, null, null);
+//        Uri uri = context.getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+//                contentValues);
+//        context.getContentResolver().delete(uri, null, null);
         refresh(context);
     }
 
