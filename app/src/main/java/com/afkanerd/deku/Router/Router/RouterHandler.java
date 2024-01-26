@@ -89,11 +89,11 @@ public class RouterHandler {
 
         boolean isBase64 = Helpers.isBase64Encoded(routerItem.getText());
 
+        GatewayServer gatewayServer = new GatewayServer();
+        GatewayServerDAO gatewayServerDAO = gatewayServer.getDaoInstance(context);
         executorService.execute(new Runnable() {
             @Override
             public void run() {
-                GatewayServer gatewayServer = new GatewayServer();
-                GatewayServerDAO gatewayServerDAO = gatewayServer.getDaoInstance(context);
                 List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
 
                 for (GatewayServer gatewayServer1 : gatewayServerList) {
