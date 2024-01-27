@@ -36,7 +36,7 @@ Credits to the new logo goes to: [Erenye4g3r](https://github.com/Erenye4g3r)
 [Ability to use mobile phone as an SMS Gateway to send messages from the cloud](#sms_gateway)
 
 ## <a name="e2e_encryption"></a> End to End Encryption
-Deku SMS supports end to end encryption for users. For the feature to work, both users need to be using Deku SMS as their default SMS app. This is because there are protocols in Deku SMS that won't be available in other SMS apps; custom message headers and channels for sending messages. 
+Deku SMS supports end to end encryption (with Perfect Forward Secrecry - PFS) for users. For the feature to work, both users need to be using Deku SMS as their default SMS app. This is because there are protocols in Deku SMS that won't be available in other SMS apps; custom message headers and channels for sending messages. 
 
 Don't worry if you send an request to someone who does not use the App, there's a great chance they won't see it; Deku SMS uses data channels (does not require an internet connection) for sending secure requests and most SMS apps would dump messages coming in from that channel (especially on iPhones). If the user does not have Deku SMS and an SMS app made by someone weird enough to encode byte data from data channels they won't see the request.
 
