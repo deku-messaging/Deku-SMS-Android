@@ -4,6 +4,7 @@ import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragme
 import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment.BLOCKED_MESSAGE_TYPES;
 import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment.DRAFTS_MESSAGE_TYPES;
 import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment.ENCRYPTED_MESSAGES_THREAD_FRAGMENT;
+import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment.MUTED_MESSAGE_TYPE;
 import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment.UNREAD_MESSAGE_TYPES;
 
 import androidx.annotation.NonNull;
@@ -97,6 +98,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         MenuItem encryptedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_encrypted);
         MenuItem unreadMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_unread);
         MenuItem blockedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_blocked);
+        MenuItem mutedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_muted);
 
         threadedConversationsViewModel.folderMetrics.observe(this, new Observer<List<Integer>>() {
             @Override
@@ -114,6 +116,9 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
                 blockedMenuItem.setTitle(getString(R.string.conversations_navigation_view_blocked)
                         + "(" + integers.get(3) + ")");
+
+                mutedMenuItem.setTitle(getString(R.string.conversation_menu_muted_label)
+                        + "(" + integers.get(4) + ")");
             }
         });
 
@@ -170,6 +175,13 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                     noContent = getString(R.string.homepage_blocked_no_message);
                     defaultMenu = R.menu.blocked_conversations;
                     actionModeMenu = R.menu.blocked_conversations_items_selected;
+                }
+                else if(item.getItemId() == R.id.navigation_view_menu_muted) {
+                    messageType = MUTED_MESSAGE_TYPE;
+                    label = getString(R.string.conversation_menu_muted_label);
+                    noContent = getString(R.string.homepage_muted_no_muted);
+                    defaultMenu = R.menu.muted_menu;
+                    actionModeMenu = R.menu.muted_menu_items_selected;
                 }
                 else return false;
 

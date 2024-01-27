@@ -36,12 +36,14 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyc
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.SettingsActivity;
+import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -83,6 +85,7 @@ public class ThreadedConversationsFragment extends Fragment {
 
     public static final String ARCHIVED_MESSAGE_TYPES = "ARCHIVED_MESSAGE_TYPES";
     public static final String BLOCKED_MESSAGE_TYPES = "BLOCKED_MESSAGE_TYPES";
+    public static final String MUTED_MESSAGE_TYPE = "MUTED_MESSAGE_TYPE";
     public static final String DRAFTS_MESSAGE_TYPES = "DRAFTS_MESSAGE_TYPES";
     public static final String UNREAD_MESSAGE_TYPES = "UNREAD_MESSAGE_TYPES";
 
@@ -333,6 +336,16 @@ public class ThreadedConversationsFragment extends Fragment {
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
                     return true;
                 }
+                else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_selected) {
+                    List<String> threadIds = new ArrayList<>();
+                    for (ThreadedConversationsTemplateViewHolder viewHolder :
+                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                        threadIds.add(viewHolder.id);
+                    }
+                    threadedConversationsViewModel.unMute(getContext(), threadIds);
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
             }
             return false;
         }
@@ -492,6 +505,16 @@ public class ThreadedConversationsFragment extends Fragment {
                             }
                         });
                 break;
+            case MUTED_MESSAGE_TYPE:
+                threadedConversationsViewModel.getMuted(getContext()).observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
+                break;
             case ALL_MESSAGES_THREAD_FRAGMENT:
             default:
                 threadedConversationsViewModel.get().observe(getViewLifecycleOwner(),
@@ -558,14 +581,10 @@ public class ThreadedConversationsFragment extends Fragment {
             }
             return true;
         }
-        else if(item.getItemId() == R.id.blocked_main_menu_unblock_manager_id) {
-            try {
-                TelecomManager telecomManager = (TelecomManager) getContext()
-                        .getSystemService(Context.TELECOM_SERVICE);
-                startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
+        else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_all) {
+            Contacts.unMuteAll(getContext());
+            startActivity(new Intent(getContext(), ThreadedConversationsActivity.class));
+            getActivity().finish();
             return true;
         }
 

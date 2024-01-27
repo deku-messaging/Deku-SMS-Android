@@ -16,6 +16,7 @@ import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
+import androidx.paging.PagingSource;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
@@ -34,6 +35,7 @@ import com.afkanerd.deku.E2EE.E2EEHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class ThreadedConversationsViewModel extends ViewModel {
 
@@ -74,6 +76,28 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 initialLoadSize,
                 maxSize
         ), ()-> this.threadedConversationsDao.getBlocked());
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    PagingSource<Integer, ThreadedConversations> mutedPagingSource;
+    public LiveData<PagingData<ThreadedConversations>> getMuted(Context context){
+        List<String> mutedNumber = new ArrayList<>();
+        for(String number: Contacts.getMuted(context)) {
+            try {
+                mutedNumber.add(number);
+                mutedNumber.add(Helpers.getCountryNationalAndCountryCode(number)[1]);
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+        mutedPagingSource = this.threadedConversationsDao.getByAddress(mutedNumber);
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> mutedPagingSource);
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
@@ -295,7 +319,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
             cursor.close();
         }
         threadedConversationsDao.insertAll(newThreadedConversationsList);
-        getCount();
+        getCount(context);
     }
 
     public void unarchive(List<Archive> archiveList) {
@@ -352,17 +376,24 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public MutableLiveData<List<Integer>> folderMetrics = new MutableLiveData<>();
-    private void getCount() {
+    private void getCount(Context context) {
         int draftsListCount = threadedConversationsDao
                 .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
         int encryptedCount = threadedConversationsDao.getAllEncryptedCount();
         int unreadCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
         int blockedCount = threadedConversationsDao.getAllBlocked();
+        int mutedCount = Contacts.getMuted(context).size();
         List<Integer> list = new ArrayList<>();
         list.add(draftsListCount);
         list.add(encryptedCount);
         list.add(unreadCount);
         list.add(blockedCount);
+        list.add(mutedCount);
         folderMetrics.postValue(list);
+    }
+
+    public void unMute(Context context, List<String> threadIds) {
+        for(String id : threadIds) Contacts.unmute(context, id);
+        refresh(context);
     }
 }

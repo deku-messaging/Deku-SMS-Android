@@ -184,12 +184,24 @@ public class Contacts {
                 .contains(address);
     }
 
-    public static void unmute(Context context, String address) {
+    public static boolean unmute(Context context, String address) {
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(context);
         Set<String> addresses = sharedPreferences.getStringSet(MUTED_ADDRESSES, new HashSet<>());
         Set<String> newBlocked = new HashSet<>(addresses);
         newBlocked.remove(address);
-        sharedPreferences.edit().putStringSet(MUTED_ADDRESSES, newBlocked).apply();
+        return sharedPreferences.edit().putStringSet(MUTED_ADDRESSES, newBlocked).commit();
+    }
+
+    public static Set<String> getMuted(Context context) {
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.getStringSet(MUTED_ADDRESSES, new HashSet<>());
+    }
+
+    public static void unMuteAll(Context context) {
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        sharedPreferences.edit().remove(MUTED_ADDRESSES).apply();
     }
 }

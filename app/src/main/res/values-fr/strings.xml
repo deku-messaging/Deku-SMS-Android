@@ -151,8 +151,11 @@
     <string name="conversations_menu_unblock_manager">Gestionnaire bloqué</string>
     <string name="conversations_menu_unblock">Débloquer</string>
     <string name="conversations_menu_block_toast">Contact bloqué avec succès</string>
-    <string name="conversation_menu_mute">Muette</string>
+    <string name="conversation_menu_mute">Muets</string>
     <string name="conversation_menu_muted">Le contact est désormais désactivé !</string>
     <string name="conversation_menu_unmute">Unmute</string>
     <string name="conversation_menu_unmuted">Le contact est désormais réactivé !</string>
+    <string name="conversation_menu_muted_label">Messages masqués</string>
+    <string name="homepage_muted_no_muted">Aucun contact mis en sourdine</string>
+    <string name="homepage_menu_unmute_all">Réactiver tout le son</string>
 </resources>

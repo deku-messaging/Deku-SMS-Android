@@ -30,12 +30,14 @@
     <string name="homepage_menu_routed">Message Forwarding</string>
     <string name="homepage_menu_clear_draft">Clear all drafts</string>
     <string name="homepage_menu_clear_mark_all_read">Mark all Read</string>
+    <string name="homepage_menu_unmute_all">Unmute all</string>
     <string name="homepage_menu_clear_mark_unread">Mark as unread</string>
     <string name="homepage_menu_clear_mark_read">Mark as read</string>
     <string name="homepage_no_message">Send your first message</string>
     <string name="homepage_draft_no_message">Nothing in Drafts</string>
     <string name="homepage_archive_no_message">Nothing in Archives</string>
     <string name="homepage_blocked_no_message">No blocked contacts</string>
+    <string name="homepage_muted_no_muted">No Muted contacts</string>
     <string name="homepage_unread_no_message">No unread message</string>
     <string name="homepage_encryption_no_message">No Encrypted Communications contacts</string>
     <string name="no_gateway_server_added">No Gateway server Added</string>
@@ -171,6 +173,7 @@
     <string name="conversation_menu_share">Share</string>
     <string name="conversation_menu_block">Block</string>
     <string name="conversation_menu_mute">Mute</string>
+    <string name="conversation_menu_muted_label">Muted</string>
     <string name="conversation_menu_unmute">Unmute</string>
     <string name="conversation_menu_muted">Contact is now muted!</string>
     <string name="conversation_menu_unmuted">Contact is now unmuted!</string>
