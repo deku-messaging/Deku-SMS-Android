@@ -38,6 +38,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
@@ -232,7 +233,12 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     protected void onResume() {
         super.onResume();
-
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+               startServices();
+            }
+        });
     }
 
     @Override
@@ -321,6 +327,18 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 createNotificationChannel();
             }
         });
+    }
+
+    private void startServices() {
+        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+        try {
+            gatewayClientHandler.startServices();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            gatewayClientHandler.close();
+        }
+
     }
 
 }

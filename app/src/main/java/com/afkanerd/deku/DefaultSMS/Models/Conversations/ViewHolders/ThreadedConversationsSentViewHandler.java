@@ -18,8 +18,9 @@ public class ThreadedConversationsSentViewHandler {
         }
 
         @Override
-        public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener, View.OnLongClickListener onLongClickListener) {
-            super.bind(conversation, onClickListener, onLongClickListener);
+        public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener,
+                         View.OnLongClickListener onLongClickListener, String defaultRegion) {
+            super.bind(conversation, onClickListener, onLongClickListener, defaultRegion);
             if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT) {
                 this.date.setText(itemView.getContext().getString(R.string.thread_conversation_type_draft));
                 this.date.setTextAppearance(R.style.conversation_draft_style);
@@ -37,8 +38,9 @@ public class ThreadedConversationsSentViewHandler {
         }
 
         @Override
-        public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener, View.OnLongClickListener onLongClickListener) {
-            super.bind(conversation, onClickListener, onLongClickListener);
+        public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener,
+                         View.OnLongClickListener onLongClickListener, String defaultRegion) {
+            super.bind(conversation, onClickListener, onLongClickListener, defaultRegion);
             if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT) {
                 this.date.setText(itemView.getContext().getString(R.string.thread_conversation_type_draft));
                 this.date.setTextAppearance(R.style.conversation_draft_style);

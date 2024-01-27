@@ -21,6 +21,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.card.MaterialCardView;
@@ -38,6 +39,7 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
     public TextView date;
     public AvatarView contactInitials;
     public ImageView contactAvatar;
+    public ImageView muteAvatar;
     public TextView youLabel;
 
     public ConstraintLayout layout;
@@ -58,10 +60,11 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         contactInitials = itemView.findViewById(R.id.messages_threads_contact_initials);
         materialCardView = itemView.findViewById(R.id.messages_threads_cardview);
         contactAvatar = itemView.findViewById(R.id.messages_threads_contact_photo);
+        muteAvatar = itemView.findViewById(R.id.messages_threads_mute_icon);
     }
 
     public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener,
-                     View.OnLongClickListener onLongClickListener) {
+                     View.OnLongClickListener onLongClickListener, String defaultRegion) {
         this.id = String.valueOf(conversation.getThread_id());
 
         int contactColor = Helpers.getColor(itemView.getContext(), id);
@@ -94,6 +97,11 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         this.date.setText(date);
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);
+
+        String e16Address = Helpers.getFormatCompleteNumber(conversation.getAddress(), defaultRegion);
+        if(Contacts.isMuted(itemView.getContext(), e16Address))
+            this.muteAvatar.setVisibility(View.VISIBLE);
+
         // TODO: investigate new Avatar first before anything else
 //        this.contactInitials.setPlaceholder(itemView.getContext().getDrawable(R.drawable.round_person_24));
     }

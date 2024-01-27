@@ -157,6 +157,7 @@
     <string name="conversations_menu_encrypt_title">Encrypt</string>
     <string name="conversations_menu_unblock_manager">Blocked Manager</string>
     <string name="conversations_menu_unblock">Unblock</string>
+    <string name="conversations_menu_block_toast">Contact blocked succcessfully</string>
     <string name="conversations_menu_search_title">Search</string>
 
     <string name="conversations_search_results_found">results founds</string>
@@ -169,6 +170,10 @@
     <string name="conversation_menu_unarchive">unarchive</string>
     <string name="conversation_menu_share">Share</string>
     <string name="conversation_menu_block">Block</string>
+    <string name="conversation_menu_mute">Mute</string>
+    <string name="conversation_menu_unmute">Unmute</string>
+    <string name="conversation_menu_muted">Contact is now muted!</string>
+    <string name="conversation_menu_unmuted">Contact is now unmuted!</string>
 
     <string name="conversation_menu_view_details">View details</string>
     <string name="conversation_menu_view_details_title">Message details</string>

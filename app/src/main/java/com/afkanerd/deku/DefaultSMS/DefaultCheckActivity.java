@@ -81,15 +81,6 @@ public class DefaultCheckActivity extends AppCompatActivity {
         }
     }
 
-    private void checkIsDefaultApp() {
-        final String myPackageName = getPackageName();
-        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
-
-        if (myPackageName.equals(defaultPackage)) {
-            startUserActivities();
-        }
-    }
-
     private void startUserActivities() {
         Intent intent = new Intent(this, ThreadedConversationsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -117,24 +108,6 @@ public class DefaultCheckActivity extends AppCompatActivity {
         int check = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
 
         return (check == PackageManager.PERMISSION_GRANTED);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        checkIsDefaultApp();
-    }
-
-    private void startServices() {
-        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        try {
-            gatewayClientHandler.startServices();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            gatewayClientHandler.close();
-        }
-
     }
 
 }

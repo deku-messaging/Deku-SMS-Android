@@ -164,6 +164,10 @@ public class ConversationActivity extends E2EECompactActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if(Contacts.isMuted(getApplicationContext(), threadedConversations.getAddress())) {
+            menu.findItem(R.id.conversations_menu_unmute).setVisible(true);
+            menu.findItem(R.id.conversations_menu_mute).setVisible(false);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -191,10 +195,26 @@ public class ConversationActivity extends E2EECompactActivity {
                 actionMode.finish();
             return true;
         }
-//        if(isSearchActive()) {
-//            resetSearch();
-//            return true;
-//        }
+        else if (R.id.conversations_menu_mute == item.getItemId()) {
+            Contacts.mute(getApplicationContext(), threadedConversations.getAddress());
+            invalidateMenu();
+            configureToolbars();
+            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_muted),
+                    Toast.LENGTH_SHORT).show();
+            if(actionMode != null)
+                actionMode.finish();
+            return true;
+        }
+        else if (R.id.conversations_menu_unmute == item.getItemId()) {
+            Contacts.unmute(getApplicationContext(), threadedConversations.getAddress());
+            invalidateMenu();
+            configureToolbars();
+            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_unmuted),
+                    Toast.LENGTH_SHORT).show();
+            if(actionMode != null)
+                actionMode.finish();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -482,9 +502,12 @@ public class ConversationActivity extends E2EECompactActivity {
                 this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
     }
     private String getAbSubTitle() {
-        return this.threadedConversations != null &&
-                this.threadedConversations.getAddress() != null ?
-                this.threadedConversations.getAddress(): "";
+//        return this.threadedConversations != null &&
+//                this.threadedConversations.getAddress() != null ?
+//                this.threadedConversations.getAddress(): "";
+        if(Contacts.isMuted(getApplicationContext(), threadedConversations.getAddress()))
+            return getString(R.string.conversation_menu_mute);
+        return "";
     }
 
     boolean isShortCode = false;
@@ -687,6 +710,9 @@ public class ConversationActivity extends E2EECompactActivity {
                 threadedConversations.getAddress());
         Uri uri = getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
                 contentValues);
+
+        Toast.makeText(getApplicationContext(), getString(R.string.conversations_menu_block_toast),
+                Toast.LENGTH_SHORT).show();
         TelecomManager telecomManager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
         startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
         finish();

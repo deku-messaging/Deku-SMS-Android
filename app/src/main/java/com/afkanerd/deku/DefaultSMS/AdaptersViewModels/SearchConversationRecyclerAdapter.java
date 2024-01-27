@@ -8,6 +8,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.AsyncListDiffer;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.ConversationActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
@@ -58,6 +59,7 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
             }
         };
 
-        holder.bind(threadedConversations, onClickListener, onLongClickListener);
+        String defaultRegion = Helpers.getUserCountry(context);
+        holder.bind(threadedConversations, onClickListener, onLongClickListener, defaultRegion);
     }
 }

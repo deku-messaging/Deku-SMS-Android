@@ -9,6 +9,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
@@ -25,6 +26,8 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
@@ -39,6 +42,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     public static String DATA_UPDATED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".DATA_UPDATED_BROADCAST_INTENT";
 
+    ExecutorService executorService = Executors.newFixedThreadPool(4);
     @Override
     public void onReceive(Context context, Intent intent) {
         /**
@@ -74,9 +78,11 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     conversation.setDate(date);
 
                     ConversationDao conversationDao = conversation.getDaoInstance(context);
-                    Thread thread = new Thread(new Runnable() {
+                    executorService.execute(new Runnable() {
                         @Override
                         public void run() {
+                            conversationDao.insert(conversation);
+
                             if(isValidKey) {
                                 try {
                                     processForEncryptionKey(context, conversation);
@@ -86,43 +92,29 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                                 }
                             }
 
-                            conversationDao.insert(conversation);
-
-                            NotificationsHandler.sendIncomingTextMessageNotification(context,
-                                    conversation);
-
                             Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
                             broadcastIntent.putExtra(Conversation.ID, messageId);
                             broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
                             context.sendBroadcast(broadcastIntent);
+
+                            if(!Contacts.isMuted(context, address))
+                                NotificationsHandler.sendIncomingTextMessageNotification(context,
+                                        conversation);
                         }
                     });
-                    thread.start();
-                    thread.join();
-                    conversation.close();
 
-                } catch (IOException | InterruptedException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
     }
 
-    boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException, JSONException {
+    void processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException, JSONException {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-        boolean isValidKey = E2EEHandler.isValidDefaultPublicKey(data);
+        String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
+        byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
 
-        if(isValidKey) {
-            String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
-            byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
-
-            E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
-
-//            if(E2EEHandler.getKeyType(context, keystoreAlias, extractedTransmissionKey) ==
-//                    E2EEHandler.AGREEMENT_KEY) {
-//                E2EEHandler.insertNewPeerPublicKey(context, extractedTransmissionKey, keystoreAlias);
-//            }
-        }
-        return isValidKey;
+        E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
     }
 }

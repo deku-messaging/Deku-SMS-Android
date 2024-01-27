@@ -150,4 +150,9 @@
     <string name="conversations_navigation_view_blocked">Bloquée</string>
     <string name="conversations_menu_unblock_manager">Gestionnaire bloqué</string>
     <string name="conversations_menu_unblock">Débloquer</string>
+    <string name="conversations_menu_block_toast">Contact bloqué avec succès</string>
+    <string name="conversation_menu_mute">Muette</string>
+    <string name="conversation_menu_muted">Le contact est désormais désactivé !</string>
+    <string name="conversation_menu_unmute">Unmute</string>
+    <string name="conversation_menu_unmuted">Le contact est désormais réactivé !</string>
 </resources>

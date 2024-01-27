@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
@@ -131,7 +132,8 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
             }
         };
 
-        holder.bind(threadedConversations, onClickListener, onLongClickListener);
+        String defaultRegion = Helpers.getUserCountry(context);
+        holder.bind(threadedConversations, onClickListener, onLongClickListener, defaultRegion);
    }
 
     public void resetAllSelectedItems() {
