@@ -99,7 +99,8 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         this.materialCardView.setOnLongClickListener(onLongClickListener);
 
         String e16Address = Helpers.getFormatCompleteNumber(conversation.getAddress(), defaultRegion);
-        if(Contacts.isMuted(itemView.getContext(), e16Address))
+        if(Contacts.isMuted(itemView.getContext(), e16Address) ||
+                Contacts.isMuted(itemView.getContext(), conversation.getAddress()))
             this.muteAvatar.setVisibility(View.VISIBLE);
 
         // TODO: investigate new Avatar first before anything else

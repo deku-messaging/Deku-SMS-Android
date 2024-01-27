@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -336,13 +337,20 @@ public class ThreadedConversationsFragment extends Fragment {
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
                     return true;
                 }
-                else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_selected) {
+                else if(item.getItemId() == R.id.conversations_threads_main_menu_mute) {
                     List<String> threadIds = new ArrayList<>();
                     for (ThreadedConversationsTemplateViewHolder viewHolder :
                             threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                         threadIds.add(viewHolder.id);
                     }
-                    threadedConversationsViewModel.unMute(getContext(), threadIds);
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.mute(getContext(), threadIds);
+                            threadedConversationsViewModel.getCount(getContext());
+                            threadedConversationRecyclerAdapter.notifyDataSetChanged();
+                        }
+                    });
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
                     return true;
                 }
@@ -398,6 +406,7 @@ public class ThreadedConversationsFragment extends Fragment {
             setLabels(view, args.getString(MESSAGES_THREAD_FRAGMENT_LABEL),
                     args.getString(MESSAGES_THREAD_FRAGMENT_NO_CONTENT));
             defaultMenu = args.getInt(MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU);
+            actionModeMenu = args.getInt(MESSAGES_THREAD_FRAGMENT_DEFAULT_ACTION_MODE_MENU);
         } else {
             messageType = ALL_MESSAGES_THREAD_FRAGMENT;
             setLabels(view, getString(R.string.conversations_navigation_view_inbox), getString(R.string.homepage_no_message));

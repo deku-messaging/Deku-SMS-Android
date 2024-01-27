@@ -376,7 +376,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public MutableLiveData<List<Integer>> folderMetrics = new MutableLiveData<>();
-    private void getCount(Context context) {
+    public void getCount(Context context) {
         int draftsListCount = threadedConversationsDao
                 .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
         int encryptedCount = threadedConversationsDao.getAllEncryptedCount();
@@ -395,5 +395,13 @@ public class ThreadedConversationsViewModel extends ViewModel {
     public void unMute(Context context, List<String> threadIds) {
         for(String id : threadIds) Contacts.unmute(context, id);
         refresh(context);
+    }
+
+    public void mute(Context context, List<String> threadIds) {
+        List<ThreadedConversations> threadedConversationsList =
+                threadedConversationsDao.getList(threadIds);
+        for(ThreadedConversations threadedConversations : threadedConversationsList) {
+            Contacts.mute(context, threadedConversations.getAddress());
+        }
     }
 }
