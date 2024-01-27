@@ -27,7 +27,7 @@ Join us on [Telegram](https://t.me/deku_sms) for feature release announcements o
 
 Credits to the new logo goes to: [Erenye4g3r](https://github.com/Erenye4g3r)
 
-[<img src="https://opencollective.com/webpack/donate/button@2x.png?color=blue" width="300">]("https://opencollective.com/webpack/donate")
+[<img src="https://opencollective.com/webpack/donate/button@2x.png?color=blue" width="300">]("https://opencollective.com/dekusms")
 
 <b>Features</b>
 
