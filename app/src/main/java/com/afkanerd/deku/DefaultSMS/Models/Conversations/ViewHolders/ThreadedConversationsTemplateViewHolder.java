@@ -102,6 +102,8 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         if(Contacts.isMuted(itemView.getContext(), e16Address) ||
                 Contacts.isMuted(itemView.getContext(), conversation.getAddress()))
             this.muteAvatar.setVisibility(View.VISIBLE);
+        else
+            this.muteAvatar.setVisibility(View.GONE);
 
         // TODO: investigate new Avatar first before anything else
 //        this.contactInitials.setPlaceholder(itemView.getContext().getDrawable(R.drawable.round_person_24));

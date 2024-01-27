@@ -105,16 +105,10 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
                                 String defaultRegion = Helpers.getUserCountry(context);
                                 String e16Address = Helpers.getFormatCompleteNumber(address, defaultRegion);
-                                if(!Contacts.isMuted(context, e16Address))
+                                if(!Contacts.isMuted(context, e16Address) &&
+                                        !Contacts.isMuted(context, address))
                                     NotificationsHandler.sendIncomingTextMessageNotification(context,
                                             conversation);
-                            }
-                        });
-
-                        executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-//                                handleEncryption(text);
                                 router_activities(messageId);
                             }
                         });
