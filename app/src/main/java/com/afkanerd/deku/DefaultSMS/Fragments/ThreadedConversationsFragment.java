@@ -348,7 +348,28 @@ public class ThreadedConversationsFragment extends Fragment {
                         public void run() {
                             threadedConversationsViewModel.mute(getContext(), threadIds);
                             threadedConversationsViewModel.getCount(getContext());
-                            threadedConversationRecyclerAdapter.notifyDataSetChanged();
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    threadedConversationRecyclerAdapter.notifyDataSetChanged();
+                                }
+                            });
+                        }
+                    });
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
+                else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_selected) {
+                    List<String> threadIds = new ArrayList<>();
+                    for (ThreadedConversationsTemplateViewHolder viewHolder :
+                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                        threadIds.add(viewHolder.id);
+                    }
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.unMute(getContext(), threadIds);
+                            threadedConversationsViewModel.getCount(getContext());
                         }
                     });
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();

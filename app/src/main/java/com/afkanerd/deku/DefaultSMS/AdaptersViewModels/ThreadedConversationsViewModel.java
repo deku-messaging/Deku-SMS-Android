@@ -79,8 +79,19 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    PagingSource<Integer, ThreadedConversations> mutedPagingSource;
     public LiveData<PagingData<ThreadedConversations>> getMuted(Context context){
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> getMutedPagingSource(context));
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    PagingSource<Integer, ThreadedConversations> mutedPagingSource;
+    private PagingSource<Integer, ThreadedConversations> getMutedPagingSource(Context context){
         List<String> mutedNumber = new ArrayList<>();
         for(String number: Contacts.getMuted(context)) {
             try {
@@ -90,15 +101,9 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 e.printStackTrace();
             }
         }
+
         mutedPagingSource = this.threadedConversationsDao.getByAddress(mutedNumber);
-        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-        ), ()-> mutedPagingSource);
-        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+        return mutedPagingSource;
     }
 
     public LiveData<PagingData<ThreadedConversations>> getUnread(){
@@ -393,8 +398,12 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public void unMute(Context context, List<String> threadIds) {
-        for(String id : threadIds) Contacts.unmute(context, id);
-        refresh(context);
+        List<ThreadedConversations> threadedConversationsList =
+                threadedConversationsDao.getList(threadIds);
+        for(ThreadedConversations threadedConversations : threadedConversationsList) {
+            Contacts.unmute(context, threadedConversations.getAddress());
+        }
+        mutedPagingSource.invalidate();
     }
 
     public void mute(Context context, List<String> threadIds) {
