@@ -66,6 +66,16 @@ public class ThreadedConversationsFragment extends Fragment {
     ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
+    public static final String MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU =
+            "MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU";
+
+    public static final String MESSAGES_THREAD_FRAGMENT_DEFAULT_ACTION_MODE_MENU =
+            "MESSAGES_THREAD_FRAGMENT_DEFAULT_ACTION_MODE_MENU";
+    public static final String MESSAGES_THREAD_FRAGMENT_LABEL =
+            "MESSAGES_THREAD_FRAGMENT_LABEL";
+    public static final String MESSAGES_THREAD_FRAGMENT_NO_CONTENT =
+            "MESSAGES_THREAD_FRAGMENT_NO_CONTENT";
+
     public static final String MESSAGES_THREAD_FRAGMENT_TYPE = "MESSAGES_THREAD_FRAGMENT_TYPE";
     public static final String ALL_MESSAGES_THREAD_FRAGMENT = "ALL_MESSAGES_THREAD_FRAGMENT";
     public static final String PLAIN_MESSAGES_THREAD_FRAGMENT = "PLAIN_MESSAGES_THREAD_FRAGMENT";
@@ -368,15 +378,23 @@ public class ThreadedConversationsFragment extends Fragment {
 
         setHasOptionsMenu(true);
         Bundle args = getArguments();
-        String messageType = args == null ? ALL_MESSAGES_THREAD_FRAGMENT :
-                args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
+
+        String messageType;
+        if(args != null) {
+            messageType = args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
+            setLabels(view, args.getString(MESSAGES_THREAD_FRAGMENT_LABEL),
+                    args.getString(MESSAGES_THREAD_FRAGMENT_NO_CONTENT));
+            defaultMenu = args.getInt(MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU);
+        } else {
+            messageType = ALL_MESSAGES_THREAD_FRAGMENT;
+            setLabels(view, getString(R.string.conversations_navigation_view_inbox), getString(R.string.homepage_no_message));
+        }
 
         actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
 
-        setLabels(view, getString(R.string.conversations_navigation_view_inbox), getString(R.string.homepage_no_message));
 
         threadedConversationsViewModel = viewModelsInterface.getThreadedConversationsViewModel();
 
