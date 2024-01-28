@@ -260,6 +260,23 @@ public class NotificationsHandler {
 
             builder.addAction(replyAction);
         }
+        else if(conversation.getThread_id() != null){
+            Intent muteIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
+            muteIntent.putExtra(Conversation.ADDRESS, conversation.getAddress());
+            muteIntent.putExtra(Conversation.ID, conversation.getMessage_id());
+            muteIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+            muteIntent.setAction(IncomingTextSMSReplyActionBroadcastReceiver.MUTE_BROADCAST_INTENT);
+
+            PendingIntent mutePendingIntent =
+                    PendingIntent.getBroadcast(context, Integer.parseInt(conversation.getThread_id()),
+                            muteIntent, PendingIntent.FLAG_MUTABLE);
+
+            NotificationCompat.Action muteAction = new NotificationCompat.Action.Builder(null,
+                    context.getString(R.string.conversation_menu_mute), mutePendingIntent)
+                    .build();
+
+            builder.addAction(muteAction);
+        }
 
         return builder;
     }
