@@ -1,0 +1,2 @@
+- update: blocking added
+- update: added option to mute messages

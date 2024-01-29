@@ -141,7 +141,6 @@ public class ThreadsPagingSource extends PagingSource<Integer, ThreadedConversat
         return new LoadResult.Page<>(threadedConversationsList,
                 null,
                 null,
-//                loadParams.getKey() != null ? loadParams.getKey() + 1 : null,
                 LoadResult.Page.COUNT_UNDEFINED,
                 LoadResult.Page.COUNT_UNDEFINED);
     }

@@ -3,11 +3,15 @@ package com.afkanerd.deku.DefaultSMS;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
+import android.telecom.TelecomManager;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -160,6 +164,10 @@ public class ConversationActivity extends E2EECompactActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if(Contacts.isMuted(getApplicationContext(), threadedConversations.getAddress())) {
+            menu.findItem(R.id.conversations_menu_unmute).setVisible(true);
+            menu.findItem(R.id.conversations_menu_mute).setVisible(false);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -181,10 +189,32 @@ public class ConversationActivity extends E2EECompactActivity {
             intent.putExtra(Conversation.THREAD_ID, threadedConversations.getThread_id());
             startActivity(intent);
         }
-//        if(isSearchActive()) {
-//            resetSearch();
-//            return true;
-//        }
+        else if (R.id.conversations_menu_block == item.getItemId()) {
+            blockContact();
+            if(actionMode != null)
+                actionMode.finish();
+            return true;
+        }
+        else if (R.id.conversations_menu_mute == item.getItemId()) {
+            Contacts.mute(getApplicationContext(), threadedConversations.getAddress());
+            invalidateMenu();
+            configureToolbars();
+            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_muted),
+                    Toast.LENGTH_SHORT).show();
+            if(actionMode != null)
+                actionMode.finish();
+            return true;
+        }
+        else if (R.id.conversations_menu_unmute == item.getItemId()) {
+            Contacts.unmute(getApplicationContext(), threadedConversations.getAddress());
+            invalidateMenu();
+            configureToolbars();
+            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_unmuted),
+                    Toast.LENGTH_SHORT).show();
+            if(actionMode != null)
+                actionMode.finish();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -472,9 +502,12 @@ public class ConversationActivity extends E2EECompactActivity {
                 this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
     }
     private String getAbSubTitle() {
-        return this.threadedConversations != null &&
-                this.threadedConversations.getAddress() != null ?
-                this.threadedConversations.getAddress(): "";
+//        return this.threadedConversations != null &&
+//                this.threadedConversations.getAddress() != null ?
+//                this.threadedConversations.getAddress(): "";
+        if(Contacts.isMuted(getApplicationContext(), threadedConversations.getAddress()))
+            return getString(R.string.conversation_menu_mute);
+        return "";
     }
 
     boolean isShortCode = false;
@@ -662,6 +695,30 @@ public class ConversationActivity extends E2EECompactActivity {
         }
     }
 
+    private void blockContact() {
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversations.setIs_blocked(true);
+                new ThreadedConversations().getDaoInstance(getApplicationContext())
+                        .update(threadedConversations);
+            }
+        });
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
+                threadedConversations.getAddress());
+        Uri uri = getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+                contentValues);
+
+        Toast.makeText(getApplicationContext(), getString(R.string.conversations_menu_block_toast),
+                Toast.LENGTH_SHORT).show();
+        TelecomManager telecomManager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
+        startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
+        finish();
+    }
+
+
     private void shareItem() {
         Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
                 conversationsRecyclerAdapter.mutableSelectedItems.getValue().entrySet();
@@ -717,41 +774,49 @@ public class ConversationActivity extends E2EECompactActivity {
         Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
                 conversationsRecyclerAdapter.mutableSelectedItems.getValue().entrySet();
         String messageId = entry.iterator().next().getValue().getMessage_id();
-        Conversation conversation = conversationsViewModel.fetch(messageId);
-        StringBuilder detailsBuilder = new StringBuilder();
-        detailsBuilder.append(getString(R.string.conversation_menu_view_details_type))
-                .append(!conversation.getText().isEmpty() ?
-                        getString(R.string.conversation_menu_view_details_type_text):
-                        getString(R.string.conversation_menu_view_details_type_data))
-                .append("\n")
-                .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
-                        getString(R.string.conversation_menu_view_details_from) :
-                        getString(R.string.conversation_menu_view_details_to))
-                .append(conversation.getAddress())
-                .append("\n")
-                .append(getString(R.string.conversation_menu_view_details_sent))
-                .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
-                        Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())) :
-                        Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
-        if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ) {
-                detailsBuilder.append("\n")
-                        .append(getString(R.string.conversation_menu_view_details_received))
-                        .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
-        }
 
+        StringBuilder detailsBuilder = new StringBuilder();
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.conversation_menu_view_details_title))
                 .setMessage(detailsBuilder);
 
-//        View conversationSecurePopView = View.inflate(getApplicationContext(),
-//                R.layout.conversation_secure_popup_menu, null);
-//        builder.setView(conversationSecurePopView);
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Conversation conversation = conversationsViewModel.fetch(messageId);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            detailsBuilder.append(getString(R.string.conversation_menu_view_details_type))
+                                    .append(!conversation.getText().isEmpty() ?
+                                            getString(R.string.conversation_menu_view_details_type_text):
+                                            getString(R.string.conversation_menu_view_details_type_data))
+                                    .append("\n")
+                                    .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
+                                            getString(R.string.conversation_menu_view_details_from) :
+                                            getString(R.string.conversation_menu_view_details_to))
+                                    .append(conversation.getAddress())
+                                    .append("\n")
+                                    .append(getString(R.string.conversation_menu_view_details_sent))
+                                    .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
+                                            Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())) :
+                                            Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
+                            if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ) {
+                                detailsBuilder.append("\n")
+                                        .append(getString(R.string.conversation_menu_view_details_received))
+                                        .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
+                            }
 
-//        Button yesButton = conversationSecurePopView.findViewById(R.id.conversation_secure_popup_menu_send);
-//        Button cancelButton = conversationSecurePopView.findViewById(R.id.conversation_secure_popup_menu_cancel);
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override

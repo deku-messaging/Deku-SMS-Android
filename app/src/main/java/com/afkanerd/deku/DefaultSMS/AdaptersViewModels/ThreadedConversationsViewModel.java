@@ -1,8 +1,12 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
+import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
+import android.telecom.TelecomManager;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -12,6 +16,7 @@ import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
+import androidx.paging.PagingSource;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
@@ -30,6 +35,7 @@ import com.afkanerd.deku.E2EE.E2EEHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class ThreadedConversationsViewModel extends ViewModel {
 
@@ -60,6 +66,44 @@ public class ThreadedConversationsViewModel extends ViewModel {
         ), ()-> this.threadedConversationsDao.getThreadedDrafts(
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    public LiveData<PagingData<ThreadedConversations>> getBlocked(){
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> this.threadedConversationsDao.getBlocked());
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    public LiveData<PagingData<ThreadedConversations>> getMuted(Context context){
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> getMutedPagingSource(context));
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    PagingSource<Integer, ThreadedConversations> mutedPagingSource;
+    private PagingSource<Integer, ThreadedConversations> getMutedPagingSource(Context context){
+        List<String> mutedNumber = new ArrayList<>();
+        for(String number: Contacts.getMuted(context)) {
+            try {
+                mutedNumber.add(number);
+                mutedNumber.add(Helpers.getCountryNationalAndCountryCode(number)[1]);
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        mutedPagingSource = this.threadedConversationsDao.getByAddress(mutedNumber);
+        return mutedPagingSource;
     }
 
     public LiveData<PagingData<ThreadedConversations>> getUnread(){
@@ -194,11 +238,23 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 "date DESC"
         );
 
+
         List<ThreadedConversations> threadedDraftsList =
                 threadedConversationsDao.getThreadedDraftsList(
                         Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
 
         List<String> archivedThreads = threadedConversationsDao.getArchivedList();
+//        List<String> blockedThreads = threadedConversationsDao.getBlockedList();
+//        List<String> blockedAddresses = new ArrayList<>();
+//        Cursor blockedCursor = Contacts.getBlocked(context);
+//        if(blockedCursor.moveToFirst()) {
+//            do {
+//                int addressIndex = blockedCursor.getColumnIndex(
+//                        BlockedNumberContract.BlockedNumbers.COLUMN_E164_NUMBER);
+//                String address = blockedCursor.getString(addressIndex);
+//                blockedAddresses.add(address);
+//            } while(blockedCursor.moveToNext());
+//        }
 
         List<String> threadsIdsInDrafts = new ArrayList<>();
         for(ThreadedConversations threadedConversations : threadedDraftsList)
@@ -243,6 +299,11 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     threadedConversations.setType(cursor.getInt(typeIndex));
                     threadedConversations.setDate(cursor.getString(dateIndex));
                 }
+//                if(blockedAddresses.contains(threadedConversations.getAddress())) {
+//                    threadedConversations.setIs_blocked(true);
+//                }
+                if(BlockedNumberContract.isBlocked(context, threadedConversations.getAddress()))
+                    threadedConversations.setIs_blocked(true);
 
                 threadedConversations.setIs_archived(
                         archivedThreads.contains(threadedConversations.getThread_id()));
@@ -263,11 +324,26 @@ public class ThreadedConversationsViewModel extends ViewModel {
             cursor.close();
         }
         threadedConversationsDao.insertAll(newThreadedConversationsList);
-        getCount();
+        getCount(context);
     }
 
     public void unarchive(List<Archive> archiveList) {
         threadedConversationsDao.unarchive(archiveList);
+    }
+
+    public void unblock(Context context, List<String> threadIds) {
+        List<ThreadedConversations> threadedConversationsList = threadedConversationsDao
+                .getList(threadIds);
+//        ContentValues contentValues = new ContentValues();
+        for(ThreadedConversations threadedConversations : threadedConversationsList) {
+//            contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
+//                    threadedConversations.getAddress());
+            BlockedNumberContract.unblock(context, threadedConversations.getAddress());
+        }
+//        Uri uri = context.getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+//                contentValues);
+//        context.getContentResolver().delete(uri, null, null);
+        refresh(context);
     }
 
     public void clearDrafts(Context context) {
@@ -305,15 +381,36 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public MutableLiveData<List<Integer>> folderMetrics = new MutableLiveData<>();
-    private void getCount() {
+    public void getCount(Context context) {
         int draftsListCount = threadedConversationsDao
                 .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
         int encryptedCount = threadedConversationsDao.getAllEncryptedCount();
         int unreadCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
+        int blockedCount = threadedConversationsDao.getAllBlocked();
+        int mutedCount = Contacts.getMuted(context).size();
         List<Integer> list = new ArrayList<>();
         list.add(draftsListCount);
         list.add(encryptedCount);
         list.add(unreadCount);
+        list.add(blockedCount);
+        list.add(mutedCount);
         folderMetrics.postValue(list);
+    }
+
+    public void unMute(Context context, List<String> threadIds) {
+        List<ThreadedConversations> threadedConversationsList =
+                threadedConversationsDao.getList(threadIds);
+        for(ThreadedConversations threadedConversations : threadedConversationsList) {
+            Contacts.unmute(context, threadedConversations.getAddress());
+        }
+        mutedPagingSource.invalidate();
+    }
+
+    public void mute(Context context, List<String> threadIds) {
+        List<ThreadedConversations> threadedConversationsList =
+                threadedConversationsDao.getList(threadIds);
+        for(ThreadedConversations threadedConversations : threadedConversationsList) {
+            Contacts.mute(context, threadedConversations.getAddress());
+        }
     }
 }

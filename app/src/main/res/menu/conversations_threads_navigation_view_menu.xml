@@ -27,11 +27,18 @@
                         android:id="@+id/navigation_view_menu_drafts"
                         android:icon="@drawable/twotone_folder_24"
                         android:title="@string/conversations_navigation_view_drafts" />
-
                     <item
                         android:id="@+id/navigation_view_menu_encrypted"
                         android:icon="@drawable/twotone_folder_24"
                         android:title="@string/homepage_fragment_tab_encrypted" />
+                    <item
+                        android:id="@+id/navigation_view_menu_blocked"
+                        android:icon="@drawable/twotone_folder_24"
+                        android:title="@string/conversation_menu_block" />
+                    <item
+                        android:id="@+id/navigation_view_menu_muted"
+                        android:icon="@drawable/twotone_folder_24"
+                        android:title="@string/conversation_menu_muted_label" />
                 </group>
             </menu>
         </item>

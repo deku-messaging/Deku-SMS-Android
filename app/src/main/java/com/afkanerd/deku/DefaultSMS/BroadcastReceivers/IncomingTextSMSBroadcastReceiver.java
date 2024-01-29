@@ -13,7 +13,9 @@ import android.provider.Telephony;
 import android.util.Log;
 
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
@@ -100,15 +102,13 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                                 broadcastIntent.putExtra(Conversation.ID, messageId);
                                 context.sendBroadcast(broadcastIntent);
 
-                                NotificationsHandler.sendIncomingTextMessageNotification(context,
-                                        conversation);
-                            }
-                        });
 
-                        executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-//                                handleEncryption(text);
+                                String defaultRegion = Helpers.getUserCountry(context);
+                                String e16Address = Helpers.getFormatCompleteNumber(address, defaultRegion);
+                                if(!Contacts.isMuted(context, e16Address) &&
+                                        !Contacts.isMuted(context, address))
+                                    NotificationsHandler.sendIncomingTextMessageNotification(context,
+                                            conversation);
                                 router_activities(messageId);
                             }
                         });
@@ -264,8 +264,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
             if(cursor.moveToFirst()) {
                 RouterItem routerItem = new RouterItem(cursor);
-                cursor.close();
                 RouterHandler.route(context, routerItem);
+                cursor.close();
             }
         } catch (Exception e) {
             e.printStackTrace();

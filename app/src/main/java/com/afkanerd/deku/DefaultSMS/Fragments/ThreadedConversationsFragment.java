@@ -1,9 +1,14 @@
 package com.afkanerd.deku.DefaultSMS.Fragments;
 
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.BlockedNumberContract;
+import android.telecom.TelecomManager;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -13,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,12 +37,14 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyc
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.SettingsActivity;
+import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -61,12 +69,24 @@ public class ThreadedConversationsFragment extends Fragment {
     ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
+    public static final String MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU =
+            "MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU";
+
+    public static final String MESSAGES_THREAD_FRAGMENT_DEFAULT_ACTION_MODE_MENU =
+            "MESSAGES_THREAD_FRAGMENT_DEFAULT_ACTION_MODE_MENU";
+    public static final String MESSAGES_THREAD_FRAGMENT_LABEL =
+            "MESSAGES_THREAD_FRAGMENT_LABEL";
+    public static final String MESSAGES_THREAD_FRAGMENT_NO_CONTENT =
+            "MESSAGES_THREAD_FRAGMENT_NO_CONTENT";
+
     public static final String MESSAGES_THREAD_FRAGMENT_TYPE = "MESSAGES_THREAD_FRAGMENT_TYPE";
     public static final String ALL_MESSAGES_THREAD_FRAGMENT = "ALL_MESSAGES_THREAD_FRAGMENT";
     public static final String PLAIN_MESSAGES_THREAD_FRAGMENT = "PLAIN_MESSAGES_THREAD_FRAGMENT";
     public static final String ENCRYPTED_MESSAGES_THREAD_FRAGMENT = "ENCRYPTED_MESSAGES_THREAD_FRAGMENT";
 
     public static final String ARCHIVED_MESSAGE_TYPES = "ARCHIVED_MESSAGE_TYPES";
+    public static final String BLOCKED_MESSAGE_TYPES = "BLOCKED_MESSAGE_TYPES";
+    public static final String MUTED_MESSAGE_TYPE = "MUTED_MESSAGE_TYPE";
     public static final String DRAFTS_MESSAGE_TYPES = "DRAFTS_MESSAGE_TYPES";
     public static final String UNREAD_MESSAGE_TYPES = "UNREAD_MESSAGE_TYPES";
 
@@ -169,9 +189,6 @@ public class ThreadedConversationsFragment extends Fragment {
                                 try {
                                     String keystoreAlias =
                                             E2EEHandler.deriveKeystoreAlias( address, 0);
-//                                    E2EEHandler.removeFromKeystore(getContext(), keystoreAlias);
-//                                    E2EEHandler.removeFromEncryptionDatabase(getContext(),
-//                                            keystoreAlias);
                                     E2EEHandler.clear(getContext(), keystoreAlias);
                                 } catch (KeyStoreException | NumberParseException |
                                          InterruptedException |
@@ -305,7 +322,59 @@ public class ThreadedConversationsFragment extends Fragment {
                         return true;
                     }
                 }
-
+                else if(item.getItemId() == R.id.blocked_main_menu_unblock) {
+                    List<String> threadIds = new ArrayList<>();
+                    for (ThreadedConversationsTemplateViewHolder viewHolder :
+                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                        threadIds.add(viewHolder.id);
+                    }
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.unblock(getContext(), threadIds);
+                        }
+                    });
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
+                else if(item.getItemId() == R.id.conversations_threads_main_menu_mute) {
+                    List<String> threadIds = new ArrayList<>();
+                    for (ThreadedConversationsTemplateViewHolder viewHolder :
+                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                        threadIds.add(viewHolder.id);
+                    }
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.mute(getContext(), threadIds);
+                            threadedConversationsViewModel.getCount(getContext());
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    threadedConversationRecyclerAdapter.notifyDataSetChanged();
+                                }
+                            });
+                        }
+                    });
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
+                else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_selected) {
+                    List<String> threadIds = new ArrayList<>();
+                    for (ThreadedConversationsTemplateViewHolder viewHolder :
+                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                        threadIds.add(viewHolder.id);
+                    }
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.unMute(getContext(), threadIds);
+                            threadedConversationsViewModel.getCount(getContext());
+                        }
+                    });
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
             }
             return false;
         }
@@ -351,15 +420,24 @@ public class ThreadedConversationsFragment extends Fragment {
 
         setHasOptionsMenu(true);
         Bundle args = getArguments();
-        String messageType = args == null ? ALL_MESSAGES_THREAD_FRAGMENT :
-                args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
+
+        String messageType;
+        if(args != null) {
+            messageType = args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
+            setLabels(view, args.getString(MESSAGES_THREAD_FRAGMENT_LABEL),
+                    args.getString(MESSAGES_THREAD_FRAGMENT_NO_CONTENT));
+            defaultMenu = args.getInt(MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU);
+            actionModeMenu = args.getInt(MESSAGES_THREAD_FRAGMENT_DEFAULT_ACTION_MODE_MENU);
+        } else {
+            messageType = ALL_MESSAGES_THREAD_FRAGMENT;
+            setLabels(view, getString(R.string.conversations_navigation_view_inbox), getString(R.string.homepage_no_message));
+        }
 
         actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
 
-        setLabels(view, getString(R.string.conversations_navigation_view_inbox), getString(R.string.homepage_no_message));
 
         threadedConversationsViewModel = viewModelsInterface.getThreadedConversationsViewModel();
 
@@ -447,6 +525,26 @@ public class ThreadedConversationsFragment extends Fragment {
                             }
                         });
                 break;
+            case BLOCKED_MESSAGE_TYPES:
+                threadedConversationsViewModel.getBlocked().observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
+                break;
+            case MUTED_MESSAGE_TYPE:
+                threadedConversationsViewModel.getMuted(getContext()).observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
+                break;
             case ALL_MESSAGES_THREAD_FRAGMENT:
             default:
                 threadedConversationsViewModel.get().observe(getViewLifecycleOwner(),
@@ -511,6 +609,12 @@ public class ThreadedConversationsFragment extends Fragment {
                 e.printStackTrace();
                 return false;
             }
+            return true;
+        }
+        else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_all) {
+            Contacts.unMuteAll(getContext());
+            startActivity(new Intent(getContext(), ThreadedConversationsActivity.class));
+            getActivity().finish();
             return true;
         }
 
