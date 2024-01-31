@@ -12,6 +12,10 @@
             android:theme="@style/Theme.main"
             android:title="@string/homepage_menu_routed" />
         <item
+            android:id="@+id/conversations_menu_export"
+            android:title="@string/conversation_menu_export"
+            app:showAsAction="never" />
+        <item
             android:id="@+id/conversation_threads_main_menu_settings"
             android:theme="@style/Theme.main"
             android:title="@string/settings_title" />
