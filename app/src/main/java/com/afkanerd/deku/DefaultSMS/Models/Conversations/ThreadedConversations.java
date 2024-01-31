@@ -62,6 +62,17 @@ public class ThreadedConversations {
 
      private String formatted_datetime;
 
+    public boolean isIs_mute() {
+        return is_mute;
+    }
+
+    public void setIs_mute(boolean is_mute) {
+        this.is_mute = is_mute;
+    }
+
+    @Ignore
+     private boolean is_mute = false;
+
      @Ignore
      public final static String nativeSMSContentUrl = Telephony.Threads.CONTENT_URI.toString();
 
@@ -300,6 +311,7 @@ public class ThreadedConversations {
                     threadedConversations.is_read == this.is_read &&
                     threadedConversations.type == this.type &&
                     threadedConversations.msg_count == this.msg_count &&
+                    threadedConversations.is_mute == this.is_mute &&
                     Objects.equals(threadedConversations.date, this.date) &&
                     Objects.equals(threadedConversations.address, this.address) &&
                     Objects.equals(threadedConversations.contact_name, this.contact_name) &&

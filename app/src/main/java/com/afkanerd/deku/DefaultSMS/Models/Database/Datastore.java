@@ -1,6 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models.Database;
 
 import androidx.annotation.NonNull;
+import androidx.room.AutoMigration;
 import androidx.room.Database;
 import androidx.room.DatabaseConfiguration;
 import androidx.room.InvalidationTracker;
@@ -28,8 +29,15 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 //@Database(entities = {GatewayServer.class, Archive.class, GatewayClient.class,
 //        ThreadedConversations.class, Conversation.class}, version = 9)
 
-@Database(entities = {ThreadedConversations.class, CustomKeyStore.class, Archive.class, GatewayServer.class,
-        ConversationsThreadsEncryption.class, Conversation.class, GatewayClient.class}, version = 10)
+@Database(entities = {
+        ThreadedConversations.class,
+        CustomKeyStore.class,
+        Archive.class,
+        GatewayServer.class,
+        ConversationsThreadsEncryption.class,
+        Conversation.class,
+        GatewayClient.class},
+        version = 10, autoMigrations = {@AutoMigration(from = 9, to = 10)})
 public abstract class Datastore extends RoomDatabase {
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
 

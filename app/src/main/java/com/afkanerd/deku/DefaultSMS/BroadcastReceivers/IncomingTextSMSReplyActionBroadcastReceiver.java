@@ -21,6 +21,7 @@ import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
@@ -32,6 +33,7 @@ import com.afkanerd.deku.DefaultSMS.R;
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
     public static String REPLY_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".REPLY_BROADCAST_ACTION";
     public static String MARK_AS_READ_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".MARK_AS_READ_BROADCAST_ACTION";
+    public static String MUTE_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".MUTE_BROADCAST_ACTION";
 
     public static String REPLY_ADDRESS = "REPLY_ADDRESS";
     public static String REPLY_THREAD_ID = "REPLY_THREAD_ID";
@@ -111,19 +113,37 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
             String messageId = intent.getStringExtra(Conversation.ID);
             try {
                 NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
-                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-                notificationManager.cancel(Integer.parseInt(threadId));
 
                 Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                 broadcastIntent.putExtra(Conversation.ID, messageId);
                 broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
                 if(intent.getExtras() != null)
                     broadcastIntent.putExtras(intent.getExtras());
-
                 context.sendBroadcast(broadcastIntent);
+
+                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+                notificationManager.cancel(Integer.parseInt(threadId));
             } catch(Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        else if(intent.getAction() != null && intent.getAction().equals(MUTE_BROADCAST_INTENT)) {
+            String address = intent.getStringExtra(Conversation.ADDRESS);
+            String threadId = intent.getStringExtra(Conversation.THREAD_ID);
+            String messageId = intent.getStringExtra(Conversation.ID);
+            Contacts.mute(context, address);
+
+            Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
+            broadcastIntent.putExtra(Conversation.ID, messageId);
+            broadcastIntent.putExtra(Conversation.ADDRESS, address);
+            broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
+            if(intent.getExtras() != null)
+                broadcastIntent.putExtras(intent.getExtras());
+            context.sendBroadcast(broadcastIntent);
+
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+            notificationManager.cancel(Integer.parseInt(threadId));
         }
     }
 }

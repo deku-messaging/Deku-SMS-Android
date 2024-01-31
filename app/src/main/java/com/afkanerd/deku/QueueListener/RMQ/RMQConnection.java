@@ -82,7 +82,8 @@ public class RMQConnection {
      * @param deliverCallback
      * @throws IOException
      */
-    public void createQueue(String exchangeName, String bindingKey1, String bindingKey2, DeliverCallback deliverCallback, DeliverCallback deliverCallback2) throws IOException {
+    public void createQueue(String exchangeName, String bindingKey1, String bindingKey2,
+                            DeliverCallback deliverCallback, DeliverCallback deliverCallback2) throws IOException {
         this.queueName = bindingKey1.replaceAll("\\.", "_");
         this.deliverCallback = deliverCallback;
 

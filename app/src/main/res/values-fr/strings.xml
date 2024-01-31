@@ -158,4 +158,6 @@
     <string name="conversation_menu_muted_label">Messages masqués</string>
     <string name="homepage_muted_no_muted">Aucun contact mis en sourdine</string>
     <string name="homepage_menu_unmute_all">Réactiver tout le son</string>
+    <string name="conversation_menu_export">Exporter</string>
+    <string name="conversations_exported_complete">Exportation terminée</string>
 </resources>

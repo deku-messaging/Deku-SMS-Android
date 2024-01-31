@@ -31,6 +31,8 @@ import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -126,6 +128,17 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 maxSize
         ), ()-> this.threadedConversationsDao.getAllWithoutArchived());
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    public String getAllExport(Context context) {
+        ConversationDao conversationDao = new Conversation().getDaoInstance(context);
+        List<Conversation> conversations = conversationDao.getComplete();
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setPrettyPrinting().serializeNulls();
+
+        Gson gson = gsonBuilder.create();
+        return gson.toJson(conversations);
     }
 
     public LiveData<PagingData<ThreadedConversations>> getEncrypted(Context context) throws InterruptedException {

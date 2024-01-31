@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.Fragments;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -7,7 +8,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.provider.BlockedNumberContract;
+import android.provider.DocumentsContract;
 import android.telecom.TelecomManager;
 import android.util.Log;
 import android.view.ActionMode;
@@ -49,6 +52,8 @@ import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.i18n.phonenumbers.NumberParseException;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -558,6 +563,68 @@ public class ThreadedConversationsFragment extends Fragment {
         }
     }
 
+    private static final int CREATE_FILE = 777;
+    public void exportInbox() {
+        // Request code for creating a PDF document.
+
+        String filename = "deku_sms_backup_" + System.currentTimeMillis() + ".json";
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, filename);
+
+        // Optionally, specify a URI for the directory that should be opened in
+        // the system file picker when your app creates the document.
+//        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri);
+
+        startActivityForResult(intent, CREATE_FILE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode,
+                                 Intent resultData) {
+        if (requestCode == CREATE_FILE && resultCode == Activity.RESULT_OK) {
+            // The result data contains a URI for the document or directory that
+            // the user selected.
+            if (resultData != null) {
+                Uri uri = resultData.getData();
+                // Perform operations on the document using its URI.
+
+                if(uri == null)
+                    return;
+
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            ParcelFileDescriptor pfd = requireActivity().getContentResolver().
+                                    openFileDescriptor(uri, "w");
+                            FileOutputStream fileOutputStream =
+                                    new FileOutputStream(pfd.getFileDescriptor());
+                            fileOutputStream.write(threadedConversationsViewModel
+                                    .getAllExport(getContext())
+                                    .getBytes());
+                            // Let the document provider know you're done by closing the stream.
+                            fileOutputStream.close();
+                            pfd.close();
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getContext(),
+                                            getString(R.string.conversations_exported_complete),
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(defaultMenu, menu);
@@ -615,6 +682,10 @@ public class ThreadedConversationsFragment extends Fragment {
             Contacts.unMuteAll(getContext());
             startActivity(new Intent(getContext(), ThreadedConversationsActivity.class));
             getActivity().finish();
+            return true;
+        }
+        else if(item.getItemId() == R.id.conversations_menu_export) {
+            exportInbox();
             return true;
         }
 
