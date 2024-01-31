@@ -9,6 +9,8 @@ import androidx.room.PrimaryKey;
 
 import com.afkanerd.deku.DefaultSMS.R;
 
+import java.util.Objects;
+
 @Entity
 public class GatewayClient {
     public GatewayClient() {}
@@ -181,12 +183,12 @@ public class GatewayClient {
         if(obj instanceof GatewayClient) {
             GatewayClient gatewayClient = (GatewayClient) obj;
             return gatewayClient.id == this.id &&
-                    gatewayClient.hostUrl.equals(this.hostUrl) &&
-                    gatewayClient.protocol.equals(this.protocol) &&
+                    Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
+                    Objects.equals(gatewayClient.protocol, this.protocol) &&
                     gatewayClient.port == this.port &&
-                    gatewayClient.projectBinding.equals(this.projectBinding) &&
-                    gatewayClient.projectName.equals(this.projectName) &&
-                    gatewayClient.connectionStatus.equals(this.connectionStatus) &&
+                    Objects.equals(gatewayClient.projectBinding, this.projectBinding) &&
+                    Objects.equals(gatewayClient.projectName, this.projectName) &&
+                    Objects.equals(gatewayClient.connectionStatus, this.connectionStatus) &&
                     gatewayClient.date == this.date;
         }
         return false;

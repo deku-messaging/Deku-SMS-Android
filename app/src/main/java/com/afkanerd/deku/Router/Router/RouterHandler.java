@@ -92,49 +92,44 @@ public class RouterHandler {
         GatewayServer gatewayServer = new GatewayServer();
         GatewayServerDAO gatewayServerDAO = gatewayServer.getDaoInstance(context);
         List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
 
-                for (GatewayServer gatewayServer1 : gatewayServerList) {
-                    if(gatewayServer1.getFormat() != null &&
-                            gatewayServer1.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
-                        continue;
+        for (GatewayServer gatewayServer1 : gatewayServerList) {
+            if(gatewayServer1.getFormat() != null &&
+                    gatewayServer1.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
+                continue;
 
-                    routerItem.tag = gatewayServer1.getTag();
-                    final String jsonStringBody = gson.toJson(routerItem);
+            routerItem.tag = gatewayServer1.getTag();
+            final String jsonStringBody = gson.toJson(routerItem);
 
-                    try {
-                        OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(RouterWorkManager.class)
-                                .setConstraints(constraints)
-                                .setBackoffCriteria(
-                                        BackoffPolicy.LINEAR,
-                                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                                        TimeUnit.MILLISECONDS
-                                )
-                                .addTag(TAG_NAME)
-                                .addTag(getTagForMessages(routerItem.getMessage_id()))
-                                .addTag(getTagForGatewayServers(gatewayServer1.getURL()))
-                                .setInputData(
-                                        new Data.Builder()
-                                                .putString(RouterWorkManager.SMS_JSON_OBJECT, jsonStringBody)
-                                                .putString(RouterWorkManager.SMS_JSON_ROUTING_URL, gatewayServer1.getURL())
-                                                .build()
-                                )
-                                .build();
+            try {
+                OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(RouterWorkManager.class)
+                        .setConstraints(constraints)
+                        .setBackoffCriteria(
+                                BackoffPolicy.LINEAR,
+                                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                                TimeUnit.MILLISECONDS
+                        )
+                        .addTag(TAG_NAME)
+                        .addTag(getTagForMessages(routerItem.getMessage_id()))
+                        .addTag(getTagForGatewayServers(gatewayServer1.getURL()))
+                        .setInputData(
+                                new Data.Builder()
+                                        .putString(RouterWorkManager.SMS_JSON_OBJECT, jsonStringBody)
+                                        .putString(RouterWorkManager.SMS_JSON_ROUTING_URL, gatewayServer1.getURL())
+                                        .build()
+                        )
+                        .build();
 
-                        String uniqueWorkName = routerItem.getMessage_id() + ":" + gatewayServer1.getURL();
-                        WorkManager workManager = WorkManager.getInstance(context);
-                        workManager.enqueueUniqueWork(
-                                uniqueWorkName,
-                                ExistingWorkPolicy.KEEP,
-                                routeMessageWorkRequest);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                String uniqueWorkName = routerItem.getMessage_id() + ":" + gatewayServer1.getURL();
+                WorkManager workManager = WorkManager.getInstance(context);
+                workManager.enqueueUniqueWork(
+                        uniqueWorkName,
+                        ExistingWorkPolicy.KEEP,
+                        routeMessageWorkRequest);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        });
+        }
     }
 
     private static String getTagForMessages(String messageId) {

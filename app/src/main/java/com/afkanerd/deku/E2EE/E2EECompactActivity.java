@@ -211,26 +211,28 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
-                    threadedConversations.secured =
-                            E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias);
-                    if(threadedConversations.secured) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
-                                layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-                            }
-                        });
+        if(threadedConversations != null) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                        threadedConversations.secured =
+                                E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias);
+                        if(threadedConversations.secured) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
+                                    layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                                }
+                            });
+                        }
+                    } catch (IOException | GeneralSecurityException | NumberParseException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException | GeneralSecurityException | NumberParseException e) {
-                    e.printStackTrace();
                 }
-            }
-        });
+            });
+        }
     }
 }
