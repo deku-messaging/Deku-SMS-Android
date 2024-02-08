@@ -19,6 +19,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.view.MenuItem;
@@ -334,12 +335,14 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     private void configureNotifications(){
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                createNotificationChannel();
-            }
-        });
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    createNotificationChannel();
+                }
+            });
+        }
     }
 
     private void startServices() {
