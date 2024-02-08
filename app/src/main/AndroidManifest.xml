@@ -116,7 +116,7 @@
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity">
+            android:parentActivityName="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity">
 
             <!-- <intent-filter> -->
             <!-- <action android:name="android.intent.action.SEARCH"/> -->
@@ -128,13 +128,7 @@
         </activity>
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity"
-            android:exported="true" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false" />
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.ConversationActivity"
             android:excludeFromRecents="true"
@@ -164,7 +158,12 @@
         </activity>
         <activity
             android:name="com.afkanerd.deku.DefaultSMS.DefaultCheckActivity"
-            android:exported="false">
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <receiver

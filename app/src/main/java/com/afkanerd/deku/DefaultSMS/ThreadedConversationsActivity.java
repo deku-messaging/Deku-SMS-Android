@@ -67,11 +67,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         setSupportActionBar(toolbar);
         ab = getSupportActionBar();
 
-        if(!checkIsDefaultApp()) {
-            startActivity(new Intent(this, DefaultCheckActivity.class));
-            finish();
-        }
-
         threadedConversationsDao = threadedConversations.getDaoInstance(getApplicationContext());
 
         threadedConversationsViewModel = new ViewModelProvider(this).get(
@@ -213,13 +208,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 .commit();
     }
 
-
-    private boolean checkIsDefaultApp() {
-        final String myPackageName = getPackageName();
-        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
-
-        return myPackageName.equals(defaultPackage);
-    }
 
     private void cancelAllNotifications() {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());

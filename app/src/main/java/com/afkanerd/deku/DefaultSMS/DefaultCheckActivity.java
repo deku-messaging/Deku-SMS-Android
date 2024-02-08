@@ -44,6 +44,18 @@ public class DefaultCheckActivity extends AppCompatActivity {
                 makeDefault(v);
             }
         });
+
+        if(checkIsDefaultApp()) {
+            startUserActivities();
+        }
+
+    }
+
+    private boolean checkIsDefaultApp() {
+        final String myPackageName = getPackageName();
+        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
+
+        return myPackageName.equals(defaultPackage);
     }
 
 //    public void quicktest() {
@@ -83,7 +95,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
 
     private void startUserActivities() {
         Intent intent = new Intent(this, ThreadedConversationsActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
     }

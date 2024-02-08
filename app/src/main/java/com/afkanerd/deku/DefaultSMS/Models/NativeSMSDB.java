@@ -534,25 +534,16 @@ public class NativeSMSDB {
             long dateSent = 0;
             long date = System.currentTimeMillis();
 
-//            String[] OA_DA = SMSPduLevel.extractOAandDA(pdu);
-//
-//            Log.d(NativeSMSDB.class.getName(), "OA: " + OA_DA[0]);
-//            Log.d(NativeSMSDB.class.getName(), "DA: " + OA_DA[1]);
-
             for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-//                address = currentSMS.getDisplayOriginatingAddress();
                 address = currentSMS.getOriginatingAddress();
 
                 dataBodyBuffer.write(currentSMS.getUserData());
                 dateSent = currentSMS.getTimestampMillis();
-
-                String[] OA_DA = SMSPduLevel.extractOAandDA(currentSMS.getPdu());
             }
 
             String body = Base64.encodeToString(dataBodyBuffer.toByteArray(), Base64.DEFAULT);
             contentValues.put(Telephony.Sms._ID, System.currentTimeMillis());
             contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address);
-//            contentValues.put(Telephony.TextBasedSmsColumns.BODY, body);
             contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
             contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 
