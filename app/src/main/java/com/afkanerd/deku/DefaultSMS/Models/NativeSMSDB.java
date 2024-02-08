@@ -22,7 +22,9 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 
 public class NativeSMSDB {
     public static String ID = "ID";
@@ -505,13 +507,26 @@ public class NativeSMSDB {
             return null;
         }
 
-
         public static String[] register_incoming_data(Context context, Intent intent) throws IOException {
-            long messageId = System.currentTimeMillis();
+            /*
+             * Bundle: [
+             * android.telephony.extra.SUBSCRIPTION_INDEX,
+             * messageId,
+             * format,
+             * android.telephony.extra.SLOT_INDEX,
+             * pdus,
+             * phone,
+             * subscription
+             * ]
+             */
             ContentValues contentValues = new ContentValues();
 
             Bundle bundle = intent.getExtras();
             int subscriptionId = bundle.getInt("subscription", -1);
+
+            Set<String> keySet = bundle.keySet();
+            Log.d(NativeSMSDB.class.getName(), "Bundle: " + Arrays.toString(keySet.toArray()));
+            Log.d(NativeSMSDB.class.getName(), "Format: " + bundle.getString("format"));
 
             String address = "";
             ByteArrayOutputStream dataBodyBuffer = new ByteArrayOutputStream();
@@ -520,14 +535,15 @@ public class NativeSMSDB {
             long date = System.currentTimeMillis();
 
             for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                address = currentSMS.getDisplayOriginatingAddress();
+//                address = currentSMS.getDisplayOriginatingAddress();
+                address = currentSMS.getOriginatingAddress();
 
                 dataBodyBuffer.write(currentSMS.getUserData());
                 dateSent = currentSMS.getTimestampMillis();
             }
 
             String body = Base64.encodeToString(dataBodyBuffer.toByteArray(), Base64.DEFAULT);
-            contentValues.put(Telephony.Sms._ID, messageId);
+            contentValues.put(Telephony.Sms._ID, System.currentTimeMillis());
             contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address);
 //            contentValues.put(Telephony.TextBasedSmsColumns.BODY, body);
             contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);

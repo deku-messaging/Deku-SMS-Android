@@ -157,7 +157,8 @@ public class RMQConnectionService extends Service {
                    consumerExecutorService.execute(new Runnable() {
                        @Override
                        public void run() {
-                           GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(context);
+                           GatewayClientHandler gatewayClientHandler =
+                                   new GatewayClientHandler(getApplicationContext());
                            try {
                                GatewayClient gatewayClient = gatewayClientHandler.fetch(Integer.parseInt(key));
                                connectGatewayClient(gatewayClient);
