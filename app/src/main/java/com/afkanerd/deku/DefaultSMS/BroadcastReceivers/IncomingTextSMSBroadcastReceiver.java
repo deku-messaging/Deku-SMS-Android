@@ -146,7 +146,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         }
                     }
                     conversationDao.update(conversation);
-                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -177,7 +176,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setError_code(getResultCode());
                     }
                     conversationDao.update(conversation);
-                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -209,7 +207,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                     }
                     conversationDao.update(conversation);
-                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -238,7 +235,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     }
 
                     conversationDao.update(conversation);
-                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());

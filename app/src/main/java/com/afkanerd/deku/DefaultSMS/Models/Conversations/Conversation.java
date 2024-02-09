@@ -76,14 +76,10 @@ public class Conversation {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration8To9())
+                .addMigrations(new Migrations.Migration9To10())
                 .enableMultiInstanceInvalidation()
                 .build();
         return databaseConnector.conversationDao();
-    }
-
-    public void close() {
-        if(databaseConnector != null)
-            databaseConnector.close();
     }
 
     public int getError_code() {

@@ -472,7 +472,6 @@ public class RMQConnectionService extends Service {
                         .setContentIntent(pendingIntent)
                         .build();
 
-
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, notification,
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
