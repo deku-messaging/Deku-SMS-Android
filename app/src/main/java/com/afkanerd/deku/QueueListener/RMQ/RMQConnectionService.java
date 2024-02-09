@@ -150,7 +150,7 @@ public class RMQConnectionService extends Service {
                    } else if(connectionList.get(Long.parseLong(key)) != null &&
                            sharedPreferences.contains(key) ){
                        int[] states = getGatewayClientNumbers();
-                       createForegroundNotification(getApplicationContext(), states[0], states[1]);
+                       createForegroundNotification(states[0], states[1]);
                    }
                }
                else {
@@ -401,7 +401,7 @@ public class RMQConnectionService extends Service {
                     e.printStackTrace();
                     // TODO: send a notification indicating this, with options to retry the connection
                     int[] states = getGatewayClientNumbers();
-                    createForegroundNotification(getApplicationContext(), states[0], states[1]);
+                    createForegroundNotification(states[0], states[1]);
                 }
             }
         });
@@ -418,7 +418,7 @@ public class RMQConnectionService extends Service {
                 }
                 else {
                     int[] states = getGatewayClientNumbers();
-                    createForegroundNotification(getApplicationContext(), states[0], states[1]);
+                    createForegroundNotification(states[0], states[1]);
                 }
             }
         } catch (IOException e) {
@@ -441,7 +441,7 @@ public class RMQConnectionService extends Service {
         return null;
     }
 
-    public void createForegroundNotification(Context context, int runningGatewayClientCount, int reconnecting) {
+    public void createForegroundNotification(int runningGatewayClientCount, int reconnecting) {
 //        Intent notificationIntent = new Intent(context, GatewayClientListingActivity.class);
 //        if(context == null) {
 //            context = getApplicationContext();
@@ -463,7 +463,8 @@ public class RMQConnectionService extends Service {
         Notification notification =
                 new NotificationCompat.Builder(getApplicationContext(),
                         getString(R.string.running_gateway_clients_channel_id))
-                        .setContentTitle(context.getString(R.string.gateway_client_running_title))
+                        .setContentTitle(getApplicationContext()
+                                .getString(R.string.gateway_client_running_title))
                         .setSmallIcon(R.drawable.ic_stat_name)
                         .setPriority(NotificationCompat.DEFAULT_ALL)
                         .setSilent(true)
