@@ -72,7 +72,7 @@ public class Conversation {
     @Ignore
     private Datastore databaseConnector;
 
-    public ConversationDao getDaoInstance(Context context) {
+    public synchronized ConversationDao getDaoInstance(Context context) {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration8To9())

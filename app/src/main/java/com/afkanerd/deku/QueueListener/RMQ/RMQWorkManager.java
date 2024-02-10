@@ -36,7 +36,9 @@ public class RMQWorkManager extends Worker {
         if(!sharedPreferences.getAll().isEmpty()) {
             try {
                 getApplicationContext().startForegroundService(intent);
-                new RMQConnectionService().createForegroundNotification(0,
+                RMQConnectionService rmqConnectionService =
+                        new RMQConnectionService(getApplicationContext());
+                rmqConnectionService.createForegroundNotification(0,
                         sharedPreferences.getAll().size());
             } catch (Exception e) {
                 e.printStackTrace();

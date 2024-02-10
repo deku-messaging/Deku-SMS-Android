@@ -29,10 +29,8 @@ import java.util.concurrent.TimeUnit;
 public class GatewayClientHandler {
 
     Datastore databaseConnector;
-    Context context;
 
     public GatewayClientHandler(Context context) {
-        this.context = context;
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration4To5())
@@ -119,30 +117,7 @@ public class GatewayClientHandler {
         return gatewayClientList[0];
     }
 
-    public Intent getIntent(int id) throws InterruptedException {
-        GatewayClient gatewayClient = fetch(id);
-        return getIntent(gatewayClient);
-    }
-
-    public Intent getIntent(GatewayClient gatewayClient) throws InterruptedException {
-        Intent intent = new Intent(context, RMQConnectionService.class);
-        intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, gatewayClient.getId());
-        intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME, gatewayClient.getUsername());
-        intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_PASSWORD, gatewayClient.getPassword());
-        intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_HOST, gatewayClient.getHostUrl());
-        intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_PORT, gatewayClient.getPort());
-        intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_VIRTUAL_HOST, gatewayClient.getVirtualHost());
-        intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_FRIENDLY_NAME, gatewayClient.getFriendlyConnectionName());
-
-        return intent;
-    }
-
-    public void close() {
-        databaseConnector.close();
-    }
-
-
-    public void startServices() throws InterruptedException {
+    public void startServices(Context context) throws InterruptedException {
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .setRequiresBatteryNotLow(true)
@@ -211,7 +186,7 @@ public class GatewayClientHandler {
 
     public static void startListening(Context context, GatewayClient gatewayClient) throws InterruptedException {
         GatewayClientHandler.setListening(context, gatewayClient);
-        new GatewayClientHandler(context).startServices();
+        new GatewayClientHandler(context).startServices(context);
     }
 
 }

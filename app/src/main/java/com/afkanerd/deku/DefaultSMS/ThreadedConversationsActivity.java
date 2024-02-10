@@ -336,13 +336,10 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     private void startServices() {
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
         try {
-            gatewayClientHandler.startServices();
+            gatewayClientHandler.startServices(getApplicationContext());
         } catch (InterruptedException e) {
             e.printStackTrace();
-        } finally {
-            gatewayClientHandler.close();
         }
-
     }
 
 }

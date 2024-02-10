@@ -87,14 +87,8 @@ public class RMQConnectionService extends Service {
     Conversation conversation;
     ConversationDao conversationDao;
 
-    Context context;
     public RMQConnectionService(Context context) {
-        try {
-            this.context = getApplicationContext() == null ? context : getApplicationContext();
-        } catch(NullPointerException e) {
-            this.context = context;
-        }
-        attachBaseContext(this.context);
+        attachBaseContext(context);
     }
 
     public RMQConnectionService(){}
@@ -315,7 +309,6 @@ public class RMQConnectionService extends Service {
                 }
             }
         }
-        gatewayClientHandler.close();
         return START_STICKY;
     }
 
@@ -473,7 +466,7 @@ public class RMQConnectionService extends Service {
                         .setContentIntent(pendingIntent)
                         .build();
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(NOTIFICATION_ID, notification,
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
         }

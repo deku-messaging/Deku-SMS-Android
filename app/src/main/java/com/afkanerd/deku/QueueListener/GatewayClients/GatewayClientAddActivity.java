@@ -69,7 +69,6 @@ public class GatewayClientAddActivity extends AppCompatActivity {
             friendlyName.setText(gatewayClient.getFriendlyConnectionName());
             virtualHost.setText(gatewayClient.getVirtualHost());
             port.setText(String.valueOf(gatewayClient.getPort()));
-            gatewayClientHandler.close();
         }
     }
 
@@ -131,7 +130,6 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         else {
             gatewayClientHandler.add(gatewayClient);
         }
-        gatewayClientHandler.close();
 
         Intent intent = new Intent(this, GatewayClientListingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
