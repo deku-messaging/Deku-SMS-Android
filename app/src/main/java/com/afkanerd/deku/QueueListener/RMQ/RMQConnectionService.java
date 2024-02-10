@@ -376,10 +376,10 @@ public class RMQConnectionService extends Service {
                                 subscriptionInfo.getSubscriptionId());
                         DeliverCallback deliverCallback2 = null;
 
-                        boolean dualQueue = subscriptionInfoList.size() > 1 &&  gatewayClient.getProjectBinding2() != null
-                                && !gatewayClient.getProjectBinding2().isEmpty();
+                        boolean dualQueue = subscriptionInfoList.size() > 1 &&
+                                gatewayClient.getProjectBinding2() != null &&
+                                !gatewayClient.getProjectBinding2().isEmpty();
                         if(dualQueue) {
-                            Log.d(getClass().getName(), "Yes I am dual!");
                             subscriptionInfo = subscriptionInfoList.get(1);
                             deliverCallback2 = getDeliverCallback(rmqConnection.getChannel2(),
                                     subscriptionInfo.getSubscriptionId());
