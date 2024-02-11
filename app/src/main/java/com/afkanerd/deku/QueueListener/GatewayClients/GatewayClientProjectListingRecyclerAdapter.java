@@ -2,6 +2,7 @@ package com.afkanerd.deku.QueueListener.GatewayClients;
 
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient.DIFF_CALLBACK;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,9 +30,19 @@ public class GatewayClientProjectListingRecyclerAdapter extends RecyclerView.Ada
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.projectNameTextView.setText(mDiffer.getCurrentList().get(position).name);
-        holder.projectBinding1TextView.setText(mDiffer.getCurrentList().get(position).binding1Name);
-        holder.projectBinding2TextView.setText(mDiffer.getCurrentList().get(position).binding2Name);
+        GatewayClientProjects gatewayClientProjects = mDiffer.getCurrentList().get(position);
+        holder.projectNameTextView.setText(gatewayClientProjects.name);
+        holder.projectBinding1TextView.setText(gatewayClientProjects.binding1Name);
+        holder.projectBinding2TextView.setText(gatewayClientProjects.binding2Name);
+
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(holder.itemView.getContext(), GatewayClientCustomizationActivity.class);
+                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, gatewayClientProjects.gatewayClientId);
+                holder.itemView.getContext().startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -46,7 +57,7 @@ public class GatewayClientProjectListingRecyclerAdapter extends RecyclerView.Ada
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
 
-            cardView = itemView.findViewById(R.id.gateway_client_card);
+            cardView = itemView.findViewById(R.id.gateway_client_project_listing_card );
             projectNameTextView =
                     itemView.findViewById(R.id.gateway_client_project_listing_project_name);
 

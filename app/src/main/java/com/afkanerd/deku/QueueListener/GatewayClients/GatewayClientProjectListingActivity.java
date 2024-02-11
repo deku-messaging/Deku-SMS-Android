@@ -7,13 +7,18 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
 
 public class GatewayClientProjectListingActivity extends AppCompatActivity {
+
+    long id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +31,7 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
 
         String username = getIntent().getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME);
         String host = getIntent().getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_HOST);
-        long id = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+        id = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
 
         getSupportActionBar().setTitle(username);
         getSupportActionBar().setSubtitle(host);
@@ -50,5 +55,23 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
                 gatewayClientProjectListingRecyclerAdapter.mDiffer.submitList(gatewayClients);
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.gateway_client_project_listing_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.gateway_client_project_add) {
+            Intent intent = new Intent(getApplicationContext(), GatewayClientCustomizationActivity.class);
+            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id);
+            startActivity(intent);
+            return true;
+        }
+        return false;
     }
 }

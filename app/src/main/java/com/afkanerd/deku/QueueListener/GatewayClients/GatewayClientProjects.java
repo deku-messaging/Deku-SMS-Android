@@ -8,6 +8,8 @@ import java.util.Objects;
 
 public class GatewayClientProjects {
 
+    public long gatewayClientId;
+
     public String name;
     public String binding1Name;
     public String binding2Name;
@@ -17,9 +19,11 @@ public class GatewayClientProjects {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof GatewayClientProjects) {
             GatewayClientProjects gatewayClientProjects = (GatewayClientProjects) obj;
+
             return Objects.equals(gatewayClientProjects.name, this.name) &&
                     Objects.equals(gatewayClientProjects.binding1Name, this.binding1Name) &&
-                    Objects.equals(gatewayClientProjects.binding2Name, this.binding2Name);
+                    Objects.equals(gatewayClientProjects.binding2Name, this.binding2Name) &&
+                    gatewayClientProjects.gatewayClientId == this.gatewayClientId;
         }
         return false;
     }

@@ -73,10 +73,6 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent intent = new Intent(context, GatewayClientCustomizationActivity.class);
-//                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, gatewayClient.getId());
-//                context.startActivity(intent);
-
                 Intent intent = new Intent(holder.itemView.getContext(), GatewayClientProjectListingActivity.class);
                 intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, gatewayClient.getId());
                 intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME,

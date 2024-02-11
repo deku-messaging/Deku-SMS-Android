@@ -5,6 +5,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 import androidx.room.Update;
 
 import java.util.List;
@@ -18,8 +19,14 @@ public interface GatewayClientDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(GatewayClient gatewayClient);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insert(List<GatewayClient> gatewayClients);
+
     @Delete
     int delete(GatewayClient gatewayClient);
+
+    @Delete
+    void delete(List<GatewayClient> gatewayClients);
 
     @Query("SELECT * FROM GatewayClient WHERE id=:id")
     GatewayClient fetch(long id);
@@ -29,4 +36,10 @@ public interface GatewayClientDAO {
 
     @Update
     void update(GatewayClient gatewayClient);
+
+//    @Transaction
+//    default void repentance(List<GatewayClient> sinFulGatewayClients, List<GatewayClient> afreshGatewayClient) {
+//        delete(sinFulGatewayClients);
+//        insert(afreshGatewayClient);
+//    }
 }
