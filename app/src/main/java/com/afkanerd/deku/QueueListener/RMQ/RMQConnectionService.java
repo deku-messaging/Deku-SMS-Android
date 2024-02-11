@@ -1,5 +1,7 @@
 package com.afkanerd.deku.QueueListener.RMQ;
 
+import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT;
+import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
 import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
@@ -28,8 +30,10 @@ import androidx.core.app.NotificationCompat;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
+import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.afkanerd.deku.Router.Router.RouterHandler;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
@@ -169,77 +173,60 @@ public class RMQConnectionService extends Service {
 
     private void handleBroadcast() {
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT);
-        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT);
+        intentFilter.addAction(SMS_SENT_BROADCAST_INTENT);
 
         messageStateChangedBroadcast = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, @NonNull Intent intent) {
                 // TODO: in case this intent comes back but the internet connection broke to send back acknowledgement
                 // TODO: should store pending confirmations in a place
-                Log.d(getClass().getName(), "Got request for RMQ broadcast!");
 
                 if (intent.getAction() != null &&
                         intentFilter.hasAction(intent.getAction())) {
+
+                    Log.d(getClass().getName(), "Got request for RMQ broadcast!");
                     RouterItem smsStatusReport = new RouterItem();
 
                     if(intent.hasExtra(RMQConnection.MESSAGE_SID)) {
-                        Log.d(getClass().getName(), "RMQ Sid found!");
                         String messageSid = intent.getStringExtra(RMQConnection.MESSAGE_SID);
-                        if (intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT)) {
-                            Map<Long, Channel> deliveryChannel = channelList.get(messageSid);
-                            final Long deliveryTag = deliveryChannel.keySet().iterator().next();
-                            Channel channel = deliveryChannel.get(deliveryTag);
 
-                            smsStatusReport.sid = messageSid;
-                            if(getResultCode() == Activity.RESULT_OK) {
-                                if (channel != null && channel.isOpen()) {
-                                    consumerExecutorService.execute(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            try {
-                                                channel.basicAck(deliveryTag, false);
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    });
-                                }
-                                smsStatusReport.reportedStatus = SMS_STATUS_SENT;
-                            } else {
-                                if (channel != null && channel.isOpen()) {
-                                    consumerExecutorService.execute(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            try {
-                                                channel.basicReject(deliveryTag, true);
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    });
-                                    smsStatusReport.reportedStatus = SMS_STATUS_FAILED;
-                                }
-                            }
+                        Map<Long, Channel> deliveryChannel = channelList.get(messageSid);
 
-                        }
-                        else if (intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT)) {
-                            smsStatusReport.sid = messageSid;
-                            smsStatusReport.reportedStatus = SMS_STATUS_DELIVERED;
-                        }
+                        final Long deliveryTag = deliveryChannel.keySet().iterator().next();
 
+                        Channel channel = deliveryChannel.get(deliveryTag);
+                        smsStatusReport.sid = messageSid;
+
+                        final String id = intent.getStringExtra(NativeSMSDB.ID);
                         consumerExecutorService.execute(new Runnable() {
                             @Override
                             public void run() {
-                                try {
-                                    RouterHandler.route(context, smsStatusReport);
-                                }catch (Exception e) {
-                                    e.printStackTrace();
+                                if (channel != null && channel.isOpen()) {
+                                    try {
+                                        if(intent.getAction().equals(SMS_SENT_BROADCAST_INTENT)) {
+                                            if(getResultCode() == Activity.RESULT_OK) {
+//                                                channel.basicAck(deliveryTag, false);
+                                                channel.basicAck(deliveryTag, true);
+                                                smsStatusReport.reportedStatus = SMS_STATUS_SENT;
+                                            } else {
+                                                channel.basicReject(deliveryTag, true);
+                                                smsStatusReport.reportedStatus = SMS_STATUS_FAILED;
+                                            }
+                                        }
+//                                        try {
+//                                            GatewayServerHandler gatewayServerHandler =
+//                                                    new GatewayServerHandler(context);
+//                                            RouterHandler.route(context, smsStatusReport, gatewayServerHandler);
+//                                        }catch (Exception e) {
+//                                            e.printStackTrace();
+//                                        }
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                         });
                     }
-                    else Log.d(getClass().getName(), "Sid not found!");
                 }
             }
         };
@@ -312,6 +299,61 @@ public class RMQConnectionService extends Service {
         return START_STICKY;
     }
 
+    public void startConnection(ConnectionFactory factory, GatewayClient gatewayClient) throws IOException, TimeoutException {
+        Log.d(getClass().getName(), "Staring new connection...");
+        RMQConnection rmqConnection = new RMQConnection();
+
+        RMQMonitor rmqMonitor = new RMQMonitor(getApplicationContext(),
+                gatewayClient.getId(),
+                rmqConnection);
+        connectionList.put(gatewayClient.getId(), rmqMonitor);
+
+        rmqMonitor.setConnected(DELAY_TIMEOUT);
+        Log.d(getClass().getName(), "Attempting to make connection...");
+        Connection connection = factory.newConnection(consumerExecutorService,
+                gatewayClient.getFriendlyConnectionName());
+        Log.d(getClass().getName(), "Connection made..");
+
+        rmqMonitor.setConnected(0L);
+        connection.addShutdownListener(new ShutdownListener() {
+            @Override
+            public void shutdownCompleted(ShutdownSignalException cause) {
+                Log.d(getClass().getName(), "Connection shutdown cause: " + cause.toString());
+                try {
+                    startConnection(factory, gatewayClient);
+                } catch (IOException | TimeoutException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        rmqMonitor.getRmqConnection().setConnection(connection);
+
+        List<SubscriptionInfo> subscriptionInfoList = SIMHandler
+                .getSimCardInformation(getApplicationContext());
+
+        if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
+            SubscriptionInfo subscriptionInfo = subscriptionInfoList.get(0);
+            DeliverCallback deliverCallback1 = getDeliverCallback(rmqConnection.getChannel1(),
+                    subscriptionInfo.getSubscriptionId());
+            DeliverCallback deliverCallback2 = null;
+
+            boolean dualQueue = subscriptionInfoList.size() > 1 &&
+                    gatewayClient.getProjectBinding2() != null &&
+                    !gatewayClient.getProjectBinding2().isEmpty();
+            if(dualQueue) {
+                subscriptionInfo = subscriptionInfoList.get(1);
+                deliverCallback2 = getDeliverCallback(rmqConnection.getChannel2(),
+                        subscriptionInfo.getSubscriptionId());
+            }
+
+            rmqConnection.createQueue(gatewayClient.getProjectName(),
+                    gatewayClient.getProjectBinding(), gatewayClient.getProjectBinding2(),
+                    deliverCallback1, deliverCallback2);
+            rmqConnection.consume();
+        }
+    }
+
     public void connectGatewayClient(GatewayClient gatewayClient) throws InterruptedException {
         Log.d(getClass().getName(), "Starting new service connection...");
         int[] states = getGatewayClientNumbers();
@@ -332,67 +374,21 @@ public class RMQConnectionService extends Service {
         factory.setHost(gatewayClient.getHostUrl());
         factory.setPort(gatewayClient.getPort());
         factory.setConnectionTimeout(15000);
+//        factory.setAutomaticRecoveryEnabled(true);
         factory.setExceptionHandler(new DefaultExceptionHandler());
 
         consumerExecutorService.execute(new Runnable() {
             @Override
             public void run() {
+                /**
+                 * Avoid risk of :ForegroundServiceDidNotStartInTimeException
+                 * - Put RMQ connection in list before connecting which could take a while
+                 */
+
                 try {
-                    /**
-                     * Avoid risk of :ForegroundServiceDidNotStartInTimeException
-                     * - Put RMQ connection in list before connecting which could take a while
-                     */
-
-                    RMQConnection rmqConnection = new RMQConnection();
-
-                    RMQMonitor rmqMonitor = new RMQMonitor(getApplicationContext(),
-                            gatewayClient.getId(),
-                            rmqConnection);
-                    connectionList.put(gatewayClient.getId(), rmqMonitor);
-
-                    rmqMonitor.setConnected(DELAY_TIMEOUT);
-                    Log.d(getClass().getName(), "Attempting to make connection...");
-
-                    Connection connection = factory.newConnection(consumerExecutorService,
-                            gatewayClient.getFriendlyConnectionName());
-                    Log.d(getClass().getName(), "Connection made..");
-
-                    rmqMonitor.setConnected(0L);
-                    connection.addShutdownListener(new ShutdownListener() {
-                        @Override
-                        public void shutdownCompleted(ShutdownSignalException cause) {
-                            Log.d(getClass().getName(), "Connection shutdown cause: " + cause.toString());
-                        }
-                    });
-
-                    rmqMonitor.getRmqConnection().setConnection(connection);
-
-                    List<SubscriptionInfo> subscriptionInfoList = SIMHandler
-                            .getSimCardInformation(getApplicationContext());
-
-                    if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
-                        SubscriptionInfo subscriptionInfo = subscriptionInfoList.get(0);
-                        DeliverCallback deliverCallback1 = getDeliverCallback(rmqConnection.getChannel1(),
-                                subscriptionInfo.getSubscriptionId());
-                        DeliverCallback deliverCallback2 = null;
-
-                        boolean dualQueue = subscriptionInfoList.size() > 1 &&
-                                gatewayClient.getProjectBinding2() != null &&
-                                !gatewayClient.getProjectBinding2().isEmpty();
-                        if(dualQueue) {
-                            subscriptionInfo = subscriptionInfoList.get(1);
-                            deliverCallback2 = getDeliverCallback(rmqConnection.getChannel2(),
-                                    subscriptionInfo.getSubscriptionId());
-                        }
-
-                        rmqConnection.createQueue(gatewayClient.getProjectName(),
-                                gatewayClient.getProjectBinding(), gatewayClient.getProjectBinding2(),
-                                deliverCallback1, deliverCallback2);
-                        rmqConnection.consume();
-                    }
+                    startConnection(factory, gatewayClient);
                 } catch (IOException | TimeoutException e) {
                     e.printStackTrace();
-                    // TODO: send a notification indicating this, with options to retry the connection
                     int[] states = getGatewayClientNumbers();
                     createForegroundNotification(states[0], states[1]);
                 }

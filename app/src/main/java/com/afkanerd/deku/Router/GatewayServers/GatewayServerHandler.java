@@ -21,6 +21,10 @@ public class GatewayServerHandler {
                  .addMigrations(new Migrations.Migration4To5())
                 .addMigrations(new Migrations.Migration5To6())
                  .addMigrations(new Migrations.Migration6To7())
+                 .addMigrations(new Migrations.Migration7To8())
+                 .addMigrations(new Migrations.Migration8To9())
+                 .addMigrations(new Migrations.Migration9To10())
+                 .enableMultiInstanceInvalidation()
                 .build();
     }
 
@@ -38,7 +42,8 @@ public class GatewayServerHandler {
 
         return liveData[0];
     }
-    public List<GatewayServer> getAll() throws InterruptedException {
+
+    public synchronized List<GatewayServer> getAll() throws InterruptedException {
         final List<GatewayServer>[] gatewayServerList = new List[]{new ArrayList<>()};
         Thread thread = new Thread(new Runnable() {
             @Override

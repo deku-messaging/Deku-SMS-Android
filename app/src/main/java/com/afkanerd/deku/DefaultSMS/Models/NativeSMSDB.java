@@ -136,6 +136,8 @@ public class NativeSMSDB {
      */
 
     private static String[] parseNewIncomingUriForThreadInformation(Context context, Uri uri) {
+        if(uri == null)
+            return null;
         Cursor cursor = context.getContentResolver().query(
                 uri,
                 new String[]{
@@ -144,8 +146,6 @@ public class NativeSMSDB {
                 null,
                 null,
                 null);
-        Log.d(NativeSMSDB.class.getName(), "Parsing draft information: " + cursor.getCount());
-
         if (cursor.moveToFirst()) {
             String threadId = cursor.getString(
                     cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID));

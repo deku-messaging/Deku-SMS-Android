@@ -303,8 +303,7 @@ public class ConversationActivity extends E2EECompactActivity {
         linearLayoutManager.setReverseLayout(true);
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 
-        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
-                threadedConversations);
+        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(threadedConversations);
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);

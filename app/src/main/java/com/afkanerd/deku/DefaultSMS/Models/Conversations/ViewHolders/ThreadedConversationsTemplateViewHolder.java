@@ -46,7 +46,7 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
 
     public MaterialCardView materialCardView;
 
-    View itemView;
+    public View itemView;
 
     public ThreadedConversationsTemplateViewHolder(@NonNull View itemView) {
         super(itemView);

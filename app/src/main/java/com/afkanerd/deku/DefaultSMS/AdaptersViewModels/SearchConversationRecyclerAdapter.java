@@ -19,8 +19,8 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
     public Integer searchIndex;
     public final AsyncListDiffer<ThreadedConversations> mDiffer =
             new AsyncListDiffer(this, ThreadedConversations.DIFF_CALLBACK);
-    public SearchConversationRecyclerAdapter(Context context) {
-        super(context);
+    public SearchConversationRecyclerAdapter() {
+        super();
     }
 
     @Override
@@ -44,12 +44,12 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
+                Intent singleMessageThreadIntent = new Intent(holder.itemView.getContext(), ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
                 singleMessageThreadIntent.putExtra(ConversationActivity.SEARCH_STRING, searchString);
                 singleMessageThreadIntent.putExtra(ConversationActivity.SEARCH_INDEX, searchIndex);
                 singleMessageThreadIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(singleMessageThreadIntent);
+                holder.itemView.getContext().startActivity(singleMessageThreadIntent);
             }
         };
         View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
@@ -59,7 +59,7 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
             }
         };
 
-        String defaultRegion = Helpers.getUserCountry(context);
+        String defaultRegion = Helpers.getUserCountry(holder.itemView.getContext());
         holder.bind(threadedConversations, onClickListener, onLongClickListener, defaultRegion);
     }
 }

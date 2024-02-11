@@ -160,4 +160,5 @@
     <string name="homepage_menu_unmute_all">Réactiver tout le son</string>
     <string name="conversation_menu_export">Exporter</string>
     <string name="conversations_exported_complete">Exportation terminée</string>
+    <string name="gateway_client_project_listing_project_name_title">Nom du projet</string>
 </resources>

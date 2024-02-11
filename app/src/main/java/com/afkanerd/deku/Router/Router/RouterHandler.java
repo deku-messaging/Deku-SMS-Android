@@ -17,6 +17,7 @@ import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -78,7 +79,8 @@ public class RouterHandler {
 
     }
 
-    public static void route(Context context, RouterItem routerItem) {
+    public static void route(Context context, RouterItem routerItem,
+                             GatewayServerHandler gatewayServerHandler) throws InterruptedException {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setPrettyPrinting().serializeNulls();
         Gson gson = gsonBuilder.create();
@@ -89,9 +91,10 @@ public class RouterHandler {
 
         boolean isBase64 = Helpers.isBase64Encoded(routerItem.getText());
 
-        GatewayServer gatewayServer = new GatewayServer();
-        GatewayServerDAO gatewayServerDAO = gatewayServer.getDaoInstance(context);
-        List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
+//        GatewayServer gatewayServer = new GatewayServer();
+//        GatewayServerDAO gatewayServerDAO = gatewayServer.getDaoInstance(context);
+//        List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
+        List<GatewayServer> gatewayServerList = gatewayServerHandler.getAll();
 
         for (GatewayServer gatewayServer1 : gatewayServerList) {
             if(gatewayServer1.getFormat() != null &&

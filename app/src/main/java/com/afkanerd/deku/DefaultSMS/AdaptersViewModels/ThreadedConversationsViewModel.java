@@ -336,7 +336,12 @@ public class ThreadedConversationsViewModel extends ViewModel {
             cursor.close();
         }
         threadedConversationsDao.insertAll(newThreadedConversationsList);
+//        insertAll(threadedConversationsList);
         getCount(context);
+    }
+
+    synchronized void insertAll(List<ThreadedConversations> threadedConversations) {
+        threadedConversationsDao.insertAll(threadedConversations);
     }
 
     public void unarchive(List<Archive> archiveList) {

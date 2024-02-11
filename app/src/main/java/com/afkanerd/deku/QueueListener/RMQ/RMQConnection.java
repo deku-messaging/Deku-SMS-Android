@@ -60,6 +60,7 @@ public class RMQConnection {
 
         int prefetchCount = 1;
         this.channel1.basicQos(prefetchCount);
+
         this.channel2.basicQos(prefetchCount);
     }
 
@@ -90,14 +91,10 @@ public class RMQConnection {
         ShutdownListener shutdownListener = new ShutdownListener() {
             @Override
             public void shutdownCompleted(ShutdownSignalException cause) {
-                Log.d(getClass().getName(), "CHannel shutdown listener called: " + cause.toString());
+                Log.d(getClass().getName(), "Channel shutdown listener called: " + cause.toString());
                 if(connection.isOpen()) {
-                    try {
-                        // Hopefully this triggers the reconnect mechanisms
-                        connection.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    // Hopefully this triggers the reconnect mechanisms
+                    connection.abort();
                 }
             }
         };
@@ -148,8 +145,10 @@ public class RMQConnection {
          * 5. We can translate this into managing multiple service providers
          */
         this.channel1.basicConsume(this.queueName, autoAck, deliverCallback, consumerTag -> {});
-        if(this.queueName2 != null)
-            this.channel2.basicConsume(this.queueName2, autoAck, deliverCallback2, consumerTag -> {});
+        if(this.queueName2 != null) {
+            this.channel2.basicConsume(this.queueName2, autoAck, deliverCallback2, consumerTag -> {
+            });
+        }
     }
 
 //    public void consume1() throws IOException {

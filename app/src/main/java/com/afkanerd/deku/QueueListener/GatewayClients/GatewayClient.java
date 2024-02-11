@@ -178,6 +178,19 @@ public class GatewayClient {
     }
 
 
+    public boolean same(@Nullable Object obj) {
+        if(obj instanceof GatewayClient) {
+            GatewayClient gatewayClient = (GatewayClient) obj;
+            return Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
+                    Objects.equals(gatewayClient.protocol, this.protocol) &&
+                    gatewayClient.port == this.port &&
+                    Objects.equals(gatewayClient.projectBinding, this.projectBinding) &&
+                    Objects.equals(gatewayClient.projectName, this.projectName) &&
+                    Objects.equals(gatewayClient.connectionStatus, this.connectionStatus);
+        }
+        return false;
+    }
+
     public boolean equals(@Nullable Object obj) {
 //        return super.equals(obj);
         if(obj instanceof GatewayClient) {
@@ -193,6 +206,7 @@ public class GatewayClient {
         }
         return false;
     }
+
     public static final DiffUtil.ItemCallback<GatewayClient> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<GatewayClient>() {
                 @Override
