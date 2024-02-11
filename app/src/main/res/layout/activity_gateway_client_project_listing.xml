@@ -26,4 +26,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gateway_client_project_listing_toolbar" />
 
+    <TextView
+        android:id="@+id/gateway_client_project_listing_no_projects"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gateway_client_project_listing_toolbar"
+        android:text="@string/gateway_client_project_listing_no_projects_added" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -160,8 +160,7 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
             return;
         }
 
-
-        if(getIntent().getBooleanExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, true)) {
+        if(getIntent().getBooleanExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, false)) {
             GatewayClient gatewayClient1 = new GatewayClient();
             gatewayClient1.setHostUrl(gatewayClient.getHostUrl());
             gatewayClient1.setUsername(gatewayClient.getUsername());
@@ -202,15 +201,6 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.gateway_client_delete) {
-            try {
-                deleteGatewayClient();
-                return true;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return true;
-        }
         if(item.getItemId() == R.id.gateway_client_connect) {
             try {
                 GatewayClientHandler.startListening(getApplicationContext(), gatewayClient);
@@ -221,33 +211,11 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
             return true;
         }
         if(item.getItemId() == R.id.gateway_client_disconnect) {
-            stopListening();
+            sharedPreferences.edit().remove(String.valueOf(gatewayClient.getId()))
+                    .apply();
             return true;
         }
-        if(item.getItemId() == R.id.gateway_client_edit ) {
-                editGatewayClient();
-                return true;
-        }
         return false;
-    }
-
-    private void editGatewayClient() {
-        Intent intent = new Intent(this, GatewayClientAddActivity.class);
-        intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
-
-        startActivity(intent);
-    }
-
-    public void stopListening() {
-        sharedPreferences.edit().remove(String.valueOf(gatewayClient.getId()))
-                .apply();
-    }
-
-    private void deleteGatewayClient() throws InterruptedException {
-        stopListening();
-        gatewayClientHandler.delete(gatewayClient);
-        startActivity(new Intent(this, GatewayClientListingActivity.class));
-        finish();
     }
 
     @Override

@@ -57,6 +57,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +119,7 @@ public class RMQConnectionService extends Service {
         int reconnecting = 0;
 
         for(String _key : keys.keySet()) {
+            Log.d(getClass().getName(), "Shared_pref checking key: " + _key);
             if (sharedPreferences.getBoolean(_key, false))
                 ++running;
             else
@@ -125,6 +127,7 @@ public class RMQConnectionService extends Service {
         }
 
         return new int[]{running, reconnecting};
+//        return new int[]{0, 0};
     }
 
    private void registerListeners() {
@@ -151,7 +154,7 @@ public class RMQConnectionService extends Service {
                        createForegroundNotification(states[0], states[1]);
                    }
                }
-               else {
+               else if(sharedPreferences.contains(key)){
                    consumerExecutorService.execute(new Runnable() {
                        @Override
                        public void run() {
@@ -286,11 +289,17 @@ public class RMQConnectionService extends Service {
         Map<String, ?> storedGatewayClients = sharedPreferences.getAll();
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
 
+        List<GatewayClient> connectedGatewayClients = new ArrayList<>();
         for (String gatewayClientIds : storedGatewayClients.keySet()) {
             if(!connectionList.containsKey(Long.parseLong(gatewayClientIds))) {
                 try {
                     GatewayClient gatewayClient = gatewayClientHandler.fetch(Long.parseLong(gatewayClientIds));
-                    connectGatewayClient(gatewayClient);
+                    if(gatewayClient != null && !connectedGatewayClients.contains(gatewayClient)) {
+                        connectGatewayClient(gatewayClient);
+                        connectedGatewayClients.add(gatewayClient);
+                    } else {
+                        sharedPreferences.edit().remove(gatewayClientIds).commit();
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

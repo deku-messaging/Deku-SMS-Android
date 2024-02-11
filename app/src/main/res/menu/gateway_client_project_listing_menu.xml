@@ -7,5 +7,13 @@
         android:icon="@drawable/round_add_circle_outline_24"
         android:title="@string/gateway_client_customization_activate"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/gateway_client_edit"
+        android:title="@string/gateway_client_customization_edit"
+        app:showAsAction="collapseActionView" />
+    <item
+        android:id="@+id/gateway_client_delete"
+        android:title="@string/gateway_client_customization_delete"
+        app:showAsAction="collapseActionView" />
 
 </menu>

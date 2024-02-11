@@ -1,5 +1,8 @@
 package com.afkanerd.deku.QueueListener.GatewayClients;
 
+import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
+import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
@@ -7,10 +10,13 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.R;
 
@@ -53,6 +59,10 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
             @Override
             public void onChanged(List<GatewayClientProjects> gatewayClients) {
                 gatewayClientProjectListingRecyclerAdapter.mDiffer.submitList(gatewayClients);
+                if(gatewayClients == null || gatewayClients.isEmpty())
+                    findViewById(R.id.gateway_client_project_listing_no_projects).setVisibility(View.VISIBLE);
+                else
+                    findViewById(R.id.gateway_client_project_listing_no_projects).setVisibility(View.GONE);
             }
         });
     }
@@ -73,6 +83,34 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
+        if(item.getItemId() == R.id.gateway_client_edit ) {
+            Intent intent = new Intent(this, GatewayClientAddActivity.class);
+            intent.putExtra(GATEWAY_CLIENT_ID, id);
+
+            startActivity(intent);
+            return true;
+        }
+        if(item.getItemId() == R.id.gateway_client_delete) {
+            try {
+                SharedPreferences sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+                sharedPreferences.edit().remove(String.valueOf(id))
+                        .apply();
+                GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+                GatewayClient gatewayClient = gatewayClientHandler.fetch(id);
+                for(GatewayClient gatewayClient1 : gatewayClientHandler.fetchAll())
+                    if(gatewayClient1.equals(gatewayClient))
+                        gatewayClientHandler.delete(gatewayClient1);
+                startActivity(new Intent(this, GatewayClientListingActivity.class));
+                finish();
+                return true;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+
         return false;
+    }
+    public void stopListening() {
     }
 }

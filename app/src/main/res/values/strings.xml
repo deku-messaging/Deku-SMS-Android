@@ -230,4 +230,5 @@
     <string name="configs_load_natives" translatable="false">LOAD NATIVES</string>
     <string name="conversations_exported_complete">Export Complete!</string>
     <string name="gateway_client_project_listing_project_name_title">Project name</string>
+    <string name="gateway_client_project_listing_no_projects_added">No Projects added</string>
 </resources>
