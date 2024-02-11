@@ -183,10 +183,8 @@ public class GatewayClient {
             GatewayClient gatewayClient = (GatewayClient) obj;
             return Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
                     Objects.equals(gatewayClient.protocol, this.protocol) &&
-                    gatewayClient.port == this.port &&
-                    Objects.equals(gatewayClient.projectBinding, this.projectBinding) &&
-                    Objects.equals(gatewayClient.projectName, this.projectName) &&
-                    Objects.equals(gatewayClient.connectionStatus, this.connectionStatus);
+                    Objects.equals(gatewayClient.virtualHost, this.virtualHost) &&
+                    gatewayClient.port == this.port;
         }
         return false;
     }
