@@ -93,17 +93,20 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         long gatewayId = getIntent().getLongExtra(GATEWAY_CLIENT_ID, -1);
         gatewayClient = gatewayClientHandler.fetch(gatewayId);
 
-        if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty())
-            projectName.setText(gatewayClient.getProjectName());
+        if(!getIntent().getBooleanExtra(
+                GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, false)) {
+            if (gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty())
+                projectName.setText(gatewayClient.getProjectName());
 
-        if(gatewayClient.getProjectBinding() != null && !gatewayClient.getProjectBinding().isEmpty())
-            projectBinding.setText(gatewayClient.getProjectBinding());
+            if (gatewayClient.getProjectBinding() != null && !gatewayClient.getProjectBinding().isEmpty())
+                projectBinding.setText(gatewayClient.getProjectBinding());
 
-        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
-        if(simcards.size() > 1) {
-            findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint).setVisibility(View.VISIBLE);
-            if(gatewayClient.getProjectBinding2() != null && !gatewayClient.getProjectBinding2().isEmpty())
-                projectBinding2.setText(gatewayClient.getProjectBinding2());
+            List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
+            if (simcards.size() > 1) {
+                findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint).setVisibility(View.VISIBLE);
+                if (gatewayClient.getProjectBinding2() != null && !gatewayClient.getProjectBinding2().isEmpty())
+                    projectBinding2.setText(gatewayClient.getProjectBinding2());
+            }
         }
 
         projectName.addTextChangedListener(new TextWatcher() {

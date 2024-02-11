@@ -28,6 +28,7 @@ import java.util.List;
 public class GatewayClientListingActivity extends AppCompatActivity {
 
     public static String GATEWAY_CLIENT_ID = "GATEWAY_CLIENT_ID";
+    public static String GATEWAY_CLIENT_ID_NEW = "GATEWAY_CLIENT_ID_NEW";
     public static String GATEWAY_CLIENT_USERNAME = "GATEWAY_CLIENT_USERNAME";
     public static String GATEWAY_CLIENT_PASSWORD = "GATEWAY_CLIENT_PASSWORD";
     public static String GATEWAY_CLIENT_VIRTUAL_HOST = "GATEWAY_CLIENT_VIRTUAL_HOST";

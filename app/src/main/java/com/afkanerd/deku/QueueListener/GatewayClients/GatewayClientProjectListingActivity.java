@@ -69,6 +69,7 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
         if(item.getItemId() == R.id.gateway_client_project_add) {
             Intent intent = new Intent(getApplicationContext(), GatewayClientCustomizationActivity.class);
             intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id);
+            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, true);
             startActivity(intent);
             return true;
         }
