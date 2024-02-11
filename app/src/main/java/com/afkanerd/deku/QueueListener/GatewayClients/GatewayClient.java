@@ -193,14 +193,18 @@ public class GatewayClient {
 //        return super.equals(obj);
         if(obj instanceof GatewayClient) {
             GatewayClient gatewayClient = (GatewayClient) obj;
-            return gatewayClient.id == this.id &&
-                    Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
+//            return gatewayClient.id == this.id &&
+//                    Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
+//                    Objects.equals(gatewayClient.protocol, this.protocol) &&
+//                    gatewayClient.port == this.port &&
+//                    Objects.equals(gatewayClient.projectBinding, this.projectBinding) &&
+//                    Objects.equals(gatewayClient.projectName, this.projectName) &&
+//                    Objects.equals(gatewayClient.connectionStatus, this.connectionStatus) &&
+//                    gatewayClient.date == this.date;
+            return Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
                     Objects.equals(gatewayClient.protocol, this.protocol) &&
-                    gatewayClient.port == this.port &&
-                    Objects.equals(gatewayClient.projectBinding, this.projectBinding) &&
-                    Objects.equals(gatewayClient.projectName, this.projectName) &&
-                    Objects.equals(gatewayClient.connectionStatus, this.connectionStatus) &&
-                    gatewayClient.date == this.date;
+                    Objects.equals(gatewayClient.virtualHost, this.virtualHost) &&
+                    gatewayClient.port == this.port;
         }
         return false;
     }

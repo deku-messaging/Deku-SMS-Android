@@ -76,9 +76,6 @@ public class GatewayClientHandler {
             @Override
             public void run() {
                 GatewayClientDAO gatewayClientDAO = databaseConnector.gatewayClientDAO();
-//                gatewayClientDAO.updateProjectNameAndProjectBinding(
-//                        gatewayClient.getProjectName(), gatewayClient.getProjectBinding(),
-//                        gatewayClient.getId());
                 gatewayClientDAO.update(gatewayClient);
             }
         });

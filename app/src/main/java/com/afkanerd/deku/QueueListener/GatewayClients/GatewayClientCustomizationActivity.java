@@ -47,7 +47,9 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
         try {
             getGatewayClient();
-            getSupportActionBar().setTitle(gatewayClient.getHostUrl());
+            getSupportActionBar().setTitle(gatewayClient == null ?
+                    getString(R.string.add_new_gateway_server_toolbar_title) :
+                    gatewayClient.getHostUrl());
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -89,12 +91,12 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         TextInputEditText projectBinding2 = findViewById(R.id.new_gateway_client_project_binding_sim_2);
 
         gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-
         long gatewayId = getIntent().getLongExtra(GATEWAY_CLIENT_ID, -1);
         gatewayClient = gatewayClientHandler.fetch(gatewayId);
 
         if(!getIntent().getBooleanExtra(
                 GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, false)) {
+
             if (gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty())
                 projectName.setText(gatewayClient.getProjectName());
 
@@ -158,13 +160,30 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
             return;
         }
 
-        gatewayClient.setProjectName(projectName.getText().toString());
-        gatewayClient.setProjectBinding(projectBinding.getText().toString());
 
-        if(projectBinding2.getVisibility() == View.VISIBLE && projectBinding2.getText() != null)
-            gatewayClient.setProjectBinding2(projectBinding2.getText().toString());
+        if(getIntent().getBooleanExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, true)) {
+            GatewayClient gatewayClient1 = new GatewayClient();
+            gatewayClient1.setHostUrl(gatewayClient.getHostUrl());
+            gatewayClient1.setUsername(gatewayClient.getUsername());
+            gatewayClient1.setPassword(gatewayClient.getPassword());
+            gatewayClient1.setPort(gatewayClient.getPort());
+            gatewayClient1.setFriendlyConnectionName(gatewayClient.getFriendlyConnectionName());
+            gatewayClient1.setVirtualHost(gatewayClient.getVirtualHost());
+            gatewayClient1.setProjectName(projectName.getText().toString());
+            gatewayClient1.setProjectBinding(projectBinding.getText().toString());
 
-        gatewayClientHandler.update(gatewayClient);
+            if(projectBinding2.getVisibility() == View.VISIBLE && projectBinding2.getText() != null)
+                gatewayClient1.setProjectBinding2(projectBinding2.getText().toString());
+            gatewayClientHandler.add(gatewayClient1);
+        }
+        else {
+            gatewayClient.setProjectName(projectName.getText().toString());
+            gatewayClient.setProjectBinding(projectBinding.getText().toString());
+
+            if(projectBinding2.getVisibility() == View.VISIBLE && projectBinding2.getText() != null)
+                gatewayClient.setProjectBinding2(projectBinding2.getText().toString());
+            gatewayClientHandler.update(gatewayClient);
+        }
 
         Intent intent = new Intent(this, GatewayClientListingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -183,30 +202,29 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
-            case R.id.gateway_client_delete:
-                try {
-                    deleteGatewayClient();
-                    return true;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                break;
-
-            case R.id.gateway_client_connect:
-                try {
-                    GatewayClientHandler.startListening(getApplicationContext(), gatewayClient);
-                    return true;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                break;
-
-            case R.id.gateway_client_disconnect:
-                stopListening();
+        if(item.getItemId() == R.id.gateway_client_delete) {
+            try {
+                deleteGatewayClient();
                 return true;
-
-            case R.id.gateway_client_edit:
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+        if(item.getItemId() == R.id.gateway_client_connect) {
+            try {
+                GatewayClientHandler.startListening(getApplicationContext(), gatewayClient);
+                return true;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+        if(item.getItemId() == R.id.gateway_client_disconnect) {
+            stopListening();
+            return true;
+        }
+        if(item.getItemId() == R.id.gateway_client_edit ) {
                 editGatewayClient();
                 return true;
         }
