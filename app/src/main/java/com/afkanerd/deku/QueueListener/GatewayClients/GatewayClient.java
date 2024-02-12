@@ -9,6 +9,9 @@ import androidx.room.PrimaryKey;
 
 import com.afkanerd.deku.DefaultSMS.R;
 
+import org.apache.commons.codec.digest.MurmurHash3;
+
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 @Entity
@@ -177,6 +180,10 @@ public class GatewayClient {
         this.protocol = protocol;
     }
 
+    public long[] getHashcode() {
+        String hashValues = protocol + hostUrl + port + virtualHost + username + password;
+        return MurmurHash3.hash128(hashValues.getBytes(StandardCharsets.UTF_8));
+    }
 
     public boolean same(@Nullable Object obj) {
         if(obj instanceof GatewayClient) {

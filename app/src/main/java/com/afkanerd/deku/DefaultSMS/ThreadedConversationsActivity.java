@@ -14,6 +14,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.room.Room;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -31,6 +32,8 @@ import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
@@ -235,13 +238,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     protected void onResume() {
         super.onResume();
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-               startServices();
-            }
-        });
     }
+
 
     @Override
     public ThreadedConversationsViewModel getThreadedConversationsViewModel() {
@@ -330,15 +328,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                     createNotificationChannel();
                 }
             });
-        }
-    }
-
-    private void startServices() {
-        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        try {
-            gatewayClientHandler.startServices(getApplicationContext());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 

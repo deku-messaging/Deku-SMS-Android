@@ -3,6 +3,7 @@ package com.afkanerd.deku.QueueListener.GatewayClients;
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient.DIFF_CALLBACK;
 
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,7 @@ public class GatewayClientProjectListingRecyclerAdapter extends RecyclerView.Ada
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         GatewayClientProjects gatewayClientProjects = mDiffer.getCurrentList().get(position);
+        Log.d(getClass().getName(), "Binding object: " + gatewayClientProjects.name);
         holder.projectNameTextView.setText(gatewayClientProjects.name);
         holder.projectBinding1TextView.setText(gatewayClientProjects.binding1Name);
         holder.projectBinding2TextView.setText(gatewayClientProjects.binding2Name);
@@ -67,5 +69,10 @@ public class GatewayClientProjectListingRecyclerAdapter extends RecyclerView.Ada
             projectBinding2TextView =
                     itemView.findViewById(R.id.gateway_client_project_listing_project_binding2);
         }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return super.getItemViewType(position);
     }
 }

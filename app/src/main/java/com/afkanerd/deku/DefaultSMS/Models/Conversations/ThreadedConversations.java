@@ -18,6 +18,7 @@ import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.ArrayList;
@@ -74,22 +75,16 @@ public class ThreadedConversations {
      private boolean is_mute = false;
 
      @Ignore
-     public final static String nativeSMSContentUrl = Telephony.Threads.CONTENT_URI.toString();
-
-     @Ignore
     Datastore databaseConnector;
     public ThreadedConversationsDao getDaoInstance(Context context) {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .addMigrations(new Migrations.Migration9To10())
-                .build();
+                        Datastore.databaseName).build();
         return databaseConnector.threadedConversationsDao();
     }
 
     public void close() {
-        if(databaseConnector != null)
-            databaseConnector.close();
+//        if(databaseConnector != null)
+//            databaseConnector.close();
     }
 
     public static ThreadedConversations build(Context context, Conversation conversation) {

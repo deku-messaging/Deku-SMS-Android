@@ -3,11 +3,16 @@ package com.afkanerd.deku.QueueListener.GatewayClients;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
 import java.util.Objects;
 
+@Entity
 public class GatewayClientProjects {
 
+    @PrimaryKey(autoGenerate = true)
+    public long id;
     public long gatewayClientId;
 
     public String name;
@@ -20,7 +25,8 @@ public class GatewayClientProjects {
         if(obj instanceof GatewayClientProjects) {
             GatewayClientProjects gatewayClientProjects = (GatewayClientProjects) obj;
 
-            return Objects.equals(gatewayClientProjects.name, this.name) &&
+            return gatewayClientProjects.id == this.id &&
+                    Objects.equals(gatewayClientProjects.name, this.name) &&
                     Objects.equals(gatewayClientProjects.binding1Name, this.binding1Name) &&
                     Objects.equals(gatewayClientProjects.binding2Name, this.binding2Name) &&
                     gatewayClientProjects.gatewayClientId == this.gatewayClientId;
@@ -33,7 +39,7 @@ public class GatewayClientProjects {
                 @Override
                 public boolean areItemsTheSame(@NonNull GatewayClientProjects oldItem,
                                                @NonNull GatewayClientProjects newItem) {
-                    return oldItem.name.equals(newItem.name);
+                    return oldItem.id == newItem.id;
                 }
 
                 @Override

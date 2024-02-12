@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -63,6 +64,7 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
                     findViewById(R.id.gateway_client_project_listing_no_projects).setVisibility(View.VISIBLE);
                 else
                     findViewById(R.id.gateway_client_project_listing_no_projects).setVisibility(View.GONE);
+                Log.d(getClass().getName(), "Submitting binding: " + gatewayClients.size());
             }
         });
     }

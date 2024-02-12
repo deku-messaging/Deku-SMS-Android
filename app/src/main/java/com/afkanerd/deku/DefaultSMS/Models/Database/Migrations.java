@@ -1,8 +1,15 @@
 package com.afkanerd.deku.DefaultSMS.Models.Database;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
+
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects;
 
 public class Migrations {
     // Define the migration class
@@ -127,6 +134,21 @@ public class Migrations {
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE ConversationsThreadsEncryption ADD COLUMN states TEXT");
             database.execSQL("ALTER TABLE ConversationsThreadsEncryption ADD COLUMN _mk TEXT");
+        }
+    }
+
+    public static class Migration10To11 extends Migration {
+        public Migration10To11(Context context) {
+            super(10, 11);
+            SharedPreferences sharedPreferences =
+                    context.getSharedPreferences(GatewayClientHandler.MIGRATIONS, Context.MODE_PRIVATE);
+            if(!sharedPreferences.contains(GatewayClientHandler.MIGRATIONS_TO_11))
+                context.getSharedPreferences(GatewayClientHandler.MIGRATIONS, Context.MODE_PRIVATE)
+                        .edit().putBoolean(GatewayClientHandler.MIGRATIONS_TO_11, true).commit();
+        }
+
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
         }
     }
 

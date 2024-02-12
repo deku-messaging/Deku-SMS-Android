@@ -28,6 +28,9 @@ public interface GatewayClientDAO {
     @Delete
     void delete(List<GatewayClient> gatewayClients);
 
+    @Query("DELETE FROM GatewayClient")
+    void deleteAll();
+
     @Query("SELECT * FROM GatewayClient WHERE id=:id")
     GatewayClient fetch(long id);
 

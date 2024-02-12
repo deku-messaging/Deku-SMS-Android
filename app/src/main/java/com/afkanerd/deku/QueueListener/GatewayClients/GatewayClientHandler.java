@@ -14,6 +14,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
@@ -23,7 +24,11 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class GatewayClientHandler {
@@ -32,12 +37,8 @@ public class GatewayClientHandler {
 
     public GatewayClientHandler(Context context) {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration4To5())
-                .addMigrations(new Migrations.Migration5To6())
-                .addMigrations(new Migrations.Migration6To7())
-                .addMigrations(new Migrations.Migration7To8())
-                .addMigrations(new Migrations.Migration9To10())
+                Datastore.databaseName)
+                .enableMultiInstanceInvalidation()
                 .build();
     }
 
@@ -114,7 +115,56 @@ public class GatewayClientHandler {
         return gatewayClientList[0];
     }
 
+    private void setMigrationsTo11() {
+        try {
+            SemaphoreManager.acquireSemaphore();
+            GatewayClientDAO gatewayClientDAO = databaseConnector.gatewayClientDAO();
+            Map<Long, Set<GatewayClientProjects>> gatewayClientMaps = new HashMap<>();
+            List<GatewayClient> gatewayClientList = new ArrayList<>();
+            for(GatewayClient gatewayClient : gatewayClientDAO.getAll()) {
+                GatewayClientProjects gatewayClientProjects1 = new GatewayClientProjects();
+                gatewayClientProjects1.name = gatewayClient.getProjectName();
+                gatewayClientProjects1.binding1Name = gatewayClient.getProjectBinding();
+                gatewayClientProjects1.binding2Name = gatewayClient.getProjectBinding2();
+                gatewayClientProjects1.gatewayClientId = gatewayClient.getHashcode()[0];
+
+                if(!gatewayClientMaps.containsKey(gatewayClient.getHashcode()[0]) ||
+                        gatewayClientMaps.get(gatewayClient.getHashcode()[0]) == null) {
+                    gatewayClientMaps.put(gatewayClient.getHashcode()[0], new HashSet<>());
+                    gatewayClient.setId(gatewayClient.getHashcode()[0]);
+                    gatewayClientList.add(gatewayClient);
+                }
+                gatewayClientMaps.get(gatewayClient.getHashcode()[0]).add(gatewayClientProjects1);
+            }
+
+            gatewayClientDAO.deleteAll();
+            gatewayClientDAO.insert(gatewayClientList);
+
+            List<GatewayClientProjects> projectsList = new ArrayList<>();
+            for(Set<GatewayClientProjects> gatewayClientProjects : gatewayClientMaps.values())
+                projectsList.addAll(gatewayClientProjects);
+
+            databaseConnector.gatewayClientProjectDao().insert(projectsList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                SemaphoreManager.releaseSemaphore();
+            } catch (InterruptedException e ) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public final static String MIGRATIONS = "MIGRATIONS";
+    public final static String MIGRATIONS_TO_11 = "MIGRATIONS_TO_11";
     public void startServices(Context context) throws InterruptedException {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(MIGRATIONS, Context.MODE_PRIVATE);
+        if(sharedPreferences.getBoolean(MIGRATIONS_TO_11, false)) {
+            setMigrationsTo11();
+            sharedPreferences.edit().putBoolean(MIGRATIONS_TO_11, false).apply();
+        }
+
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .setRequiresBatteryNotLow(true)
@@ -141,8 +191,8 @@ public class GatewayClientHandler {
     }
 
     public static String getConnectionStatus(Context context, String gatewayClientId) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS,
-                Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences(
+                GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
 
         if(sharedPreferences.contains(gatewayClientId)) {
             if(sharedPreferences.getBoolean(gatewayClientId, false)) {

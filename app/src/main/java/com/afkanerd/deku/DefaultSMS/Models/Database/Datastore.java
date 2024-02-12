@@ -1,5 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models.Database;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.room.AutoMigration;
 import androidx.room.Database;
@@ -19,6 +21,8 @@ import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientDAO;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectDao;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
 //import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
@@ -34,16 +38,20 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         CustomKeyStore.class,
         Archive.class,
         GatewayServer.class,
+        GatewayClientProjects.class,
         ConversationsThreadsEncryption.class,
         Conversation.class,
         GatewayClient.class},
-        version = 10, autoMigrations = {@AutoMigration(from = 9, to = 10)})
+        version = 11, autoMigrations = {@AutoMigration(from = 10, to = 11)})
 public abstract class Datastore extends RoomDatabase {
+    public static Datastore datastore;
+
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
 
     public abstract GatewayServerDAO gatewayServerDAO();
 
     public abstract GatewayClientDAO gatewayClientDAO();
+    public abstract GatewayClientProjectDao gatewayClientProjectDao();
 
     public abstract ThreadedConversationsDao threadedConversationsDao();
 

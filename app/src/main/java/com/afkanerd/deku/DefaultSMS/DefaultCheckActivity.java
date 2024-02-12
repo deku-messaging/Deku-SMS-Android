@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
+import androidx.room.Room;
 
 import android.Manifest;
 import android.app.Activity;
@@ -21,6 +22,8 @@ import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.button.MaterialButton;
 
@@ -92,8 +95,36 @@ public class DefaultCheckActivity extends AppCompatActivity {
             startActivity(intent);
         }
     }
+    private void startServices() {
+        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+        try {
+            gatewayClientHandler.startServices(getApplicationContext());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    public void startMigrations() {
+        Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                        Datastore.databaseName)
+                .addMigrations(new Migrations.Migration4To5())
+                .addMigrations(new Migrations.Migration5To6())
+                .addMigrations(new Migrations.Migration6To7())
+                .addMigrations(new Migrations.Migration7To8())
+                .addMigrations(new Migrations.Migration9To10())
+                .addMigrations(new Migrations.Migration10To11(getApplicationContext()))
+                .build().close();
+    }
+
 
     private void startUserActivities() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                startMigrations();
+                startServices();
+            }
+        }).start();
+
         Intent intent = new Intent(this, ThreadedConversationsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
