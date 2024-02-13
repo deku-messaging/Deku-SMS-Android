@@ -12,16 +12,24 @@ import android.database.Cursor;
 import android.provider.Telephony;
 import android.util.Log;
 
+import androidx.room.Room;
+
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.afkanerd.deku.Router.Router.RouterItem;
 import com.afkanerd.deku.Router.Router.RouterHandler;
+
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -124,10 +132,9 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
-                    Conversation conversation1 = new Conversation();
-                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
-                    Conversation conversation = conversationDao.getMessage(id);
 
+                    Conversation conversation = ConversationHandler.acquireDatabase(context)
+                            .conversationDao().getMessage(id);
                     if(conversation == null)
                         return;
 
@@ -145,12 +152,13 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                             e.printStackTrace();
                         }
                     }
-                    conversationDao.update(conversation);
-                    conversation1.close();
+                    ConversationHandler.acquireDatabase(context)
+                            .conversationDao().update(conversation);
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
                     broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+
                     if(intent.getExtras() != null)
                         broadcastIntent.putExtras(intent.getExtras());
 
@@ -163,9 +171,11 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
-                    Conversation conversation1 = new Conversation();
-                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
-                    Conversation conversation = conversationDao.getMessage(id);
+
+                    Conversation conversation = ConversationHandler.acquireDatabase(context)
+                            .conversationDao().getMessage(id);
+                    if(conversation == null)
+                        return;
 
                     if (getResultCode() == Activity.RESULT_OK) {
                         NativeSMSDB.Outgoing.register_delivered(context, id);
@@ -176,8 +186,9 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                         conversation.setError_code(getResultCode());
                     }
-                    conversationDao.update(conversation);
-                    conversation1.close();
+
+                    ConversationHandler.acquireDatabase(context)
+                            .conversationDao().update(conversation);
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -209,7 +220,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                     }
                     conversationDao.update(conversation);
-                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -238,7 +248,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     }
 
                     conversationDao.update(conversation);
-                    conversation1.close();
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -263,8 +272,9 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         try {
             Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
             if(cursor.moveToFirst()) {
+                GatewayServerHandler gatewayServerHandler = new GatewayServerHandler(context);
                 RouterItem routerItem = new RouterItem(cursor);
-                RouterHandler.route(context, routerItem);
+                RouterHandler.route(context, routerItem, gatewayServerHandler);
                 cursor.close();
             }
         } catch (Exception e) {

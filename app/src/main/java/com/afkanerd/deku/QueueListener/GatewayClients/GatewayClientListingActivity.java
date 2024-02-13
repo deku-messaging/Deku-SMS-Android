@@ -20,7 +20,6 @@ import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -28,6 +27,7 @@ import java.util.List;
 public class GatewayClientListingActivity extends AppCompatActivity {
 
     public static String GATEWAY_CLIENT_ID = "GATEWAY_CLIENT_ID";
+    public static String GATEWAY_CLIENT_ID_NEW = "GATEWAY_CLIENT_ID_NEW";
     public static String GATEWAY_CLIENT_USERNAME = "GATEWAY_CLIENT_USERNAME";
     public static String GATEWAY_CLIENT_PASSWORD = "GATEWAY_CLIENT_PASSWORD";
     public static String GATEWAY_CLIENT_VIRTUAL_HOST = "GATEWAY_CLIENT_VIRTUAL_HOST";
@@ -82,7 +82,6 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
         databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
                 Datastore.databaseName)
-                .addMigrations(new Migrations.Migration5To6())
                 .build();
 
         gatewayClientDAO = databaseConnector.gatewayClientDAO();
@@ -127,7 +126,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.gateway_client_add_menu, menu);
+        getMenuInflater().inflate(R.menu.gateway_client_listing_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 

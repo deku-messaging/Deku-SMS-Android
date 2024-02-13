@@ -106,8 +106,6 @@ public class GatewayServer {
     @Ignore
     Datastore databaseConnector;
     public GatewayServerDAO getDaoInstance(Context context) {
-        if(databaseConnector != null && databaseConnector.isOpen())
-            databaseConnector.close();
         databaseConnector = Room.databaseBuilder(context, Datastore.class,
                         Datastore.databaseName)
                 .addMigrations(new Migrations.Migration8To9())

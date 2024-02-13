@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/gateway_client_project_add"
+        android:icon="@drawable/round_add_circle_outline_24"
+        android:title="@string/gateway_client_add_manually_title"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/gateway_client_project_connect"
+        android:title="@string/gateway_client_customization_activate"
+        android:visible="false"
+        app:showAsAction="collapseActionView" />
+
+    <item
+        android:id="@+id/gateway_client_project_disconnect"
+        android:title="@string/gateway_client_customization_deactivate"
+        android:visible="false"
+        app:showAsAction="collapseActionView" />
+
+    <item
+        android:id="@+id/gateway_client_edit"
+        android:title="@string/gateway_client_customization_edit"
+        app:showAsAction="collapseActionView" />
+<!--    <item-->
+<!--        android:id="@+id/gateway_client_delete"-->
+<!--        android:title="@string/gateway_client_customization_delete"-->
+<!--        app:showAsAction="collapseActionView" />-->
+
+</menu>

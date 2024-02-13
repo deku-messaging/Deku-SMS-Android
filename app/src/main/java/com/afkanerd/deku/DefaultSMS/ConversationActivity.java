@@ -303,8 +303,7 @@ public class ConversationActivity extends E2EECompactActivity {
         linearLayoutManager.setReverseLayout(true);
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 
-        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
-                threadedConversations);
+        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(threadedConversations);
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
@@ -528,7 +527,6 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        conversation.close();
     }
 
     static final String DRAFT_TEXT = "DRAFT_TEXT";
@@ -645,7 +643,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 public void run() {
                     try {
                         Conversation conversation =
-                                conversationsViewModel.fetchDraft(getApplicationContext());
+                                conversationsViewModel.fetchDraft();
                         if (conversation != null) {
                             runOnUiThread(new Runnable() {
                                 @Override

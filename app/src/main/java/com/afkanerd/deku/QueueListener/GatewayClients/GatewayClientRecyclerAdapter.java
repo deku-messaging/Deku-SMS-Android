@@ -30,12 +30,10 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
 
     List<ActivityManager.RunningServiceInfo> runningServiceInfoList = new ArrayList<>();
 
-    Context context;
     public static final String ADAPTER_POSITION = "ADAPTER_POSITION";
 
     SharedPreferences sharedPreferences;
     public GatewayClientRecyclerAdapter(Context context) {
-        this.context = context;
         runningServiceInfoList = ServiceHandler.getRunningService(context);
         sharedPreferences = context.getSharedPreferences(
                 GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
@@ -44,7 +42,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(this.context);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view = inflater.inflate(R.layout.gateway_client_listing_layout, parent, false);
         return new ViewHolder(view);
     }
@@ -63,7 +61,7 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         holder.username.setText(gatewayClient.getUsername());
         holder.connectionStatus.setText(gatewayClient.getConnectionStatus());
 
-        String date = Helpers.formatDate(context, gatewayClient.getDate());
+        String date = Helpers.formatDate(holder.itemView.getContext(), gatewayClient.getDate());
         holder.date.setText(date);
 
         if(gatewayClient.getFriendlyConnectionName() == null ||
@@ -75,9 +73,13 @@ public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayCl
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, GatewayClientCustomizationActivity.class);
+                Intent intent = new Intent(holder.itemView.getContext(), GatewayClientProjectListingActivity.class);
                 intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, gatewayClient.getId());
-                context.startActivity(intent);
+                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME,
+                        gatewayClient.getUsername());
+                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_HOST,
+                        gatewayClient.getHostUrl());
+                holder.itemView.getContext().startActivity(intent);
             }
         });
     }

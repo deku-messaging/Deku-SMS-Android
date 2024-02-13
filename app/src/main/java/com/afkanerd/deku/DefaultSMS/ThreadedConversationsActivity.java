@@ -14,11 +14,13 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.room.Room;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.view.MenuItem;
@@ -30,6 +32,8 @@ import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
@@ -65,11 +69,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         toolbar = findViewById(R.id.conversation_threads_toolbar);
         setSupportActionBar(toolbar);
         ab = getSupportActionBar();
-
-        if(!checkIsDefaultApp()) {
-            startActivity(new Intent(this, DefaultCheckActivity.class));
-            finish();
-        }
 
         threadedConversationsDao = threadedConversations.getDaoInstance(getApplicationContext());
 
@@ -213,13 +212,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
 
-    private boolean checkIsDefaultApp() {
-        final String myPackageName = getPackageName();
-        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
-
-        return myPackageName.equals(defaultPackage);
-    }
-
     private void cancelAllNotifications() {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
         notificationManager.cancelAll();
@@ -246,13 +238,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @Override
     protected void onResume() {
         super.onResume();
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-               startServices();
-            }
-        });
     }
+
 
     @Override
     public ThreadedConversationsViewModel getThreadedConversationsViewModel() {
@@ -334,24 +321,14 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     private void configureNotifications(){
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                createNotificationChannel();
-            }
-        });
-    }
-
-    private void startServices() {
-        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        try {
-            gatewayClientHandler.startServices();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            gatewayClientHandler.close();
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    createNotificationChannel();
+                }
+            });
         }
-
     }
 
 }

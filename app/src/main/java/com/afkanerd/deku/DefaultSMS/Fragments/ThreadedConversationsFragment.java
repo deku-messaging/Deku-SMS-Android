@@ -446,7 +446,7 @@ public class ThreadedConversationsFragment extends Fragment {
 
         threadedConversationsViewModel = viewModelsInterface.getThreadedConversationsViewModel();
 
-        threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter( getContext(),
+        threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter(
                 threadedConversationsDao);
         threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<HashMap<Long, ThreadedConversationsTemplateViewHolder>>() {

@@ -25,6 +25,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
@@ -120,14 +121,26 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public LiveData<PagingData<ThreadedConversations>> get(){
-        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-        ), ()-> this.threadedConversationsDao.getAllWithoutArchived());
-        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+        try {
+            SemaphoreManager.acquireSemaphore();
+            Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+            ), ()-> this.threadedConversationsDao.getAllWithoutArchived());
+            return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+        } catch(Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                SemaphoreManager.releaseSemaphore();
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     public String getAllExport(Context context) {
@@ -238,7 +251,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
         conversationDao.deleteAll(ids);
         threadedConversationsDao.delete(ids);
         NativeSMSDB.deleteThreads(context, ids.toArray(new String[0]));
-        conversation.close();
     }
 
     public void refresh(Context context) {
@@ -337,7 +349,12 @@ public class ThreadedConversationsViewModel extends ViewModel {
             cursor.close();
         }
         threadedConversationsDao.insertAll(newThreadedConversationsList);
+//        insertAll(threadedConversationsList);
         getCount(context);
+    }
+
+    synchronized void insertAll(List<ThreadedConversations> threadedConversations) {
+        threadedConversationsDao.insertAll(threadedConversations);
     }
 
     public void unarchive(List<Archive> archiveList) {

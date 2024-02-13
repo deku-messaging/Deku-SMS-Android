@@ -25,8 +25,6 @@ import com.afkanerd.deku.DefaultSMS.R;
 import java.util.HashMap;
 
 public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<ThreadedConversations, ThreadedConversationsTemplateViewHolder> {
-
-    Context context;
     public String searchString = "";
 
     public MutableLiveData<HashMap<Long, ThreadedConversationsTemplateViewHolder>> selectedItems = new MutableLiveData<>();
@@ -41,21 +39,19 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
 
     ThreadedConversationsDao threadedConversationsDao;
 
-    public ThreadedConversationRecyclerAdapter(Context context) {
+    public ThreadedConversationRecyclerAdapter() {
         super(ThreadedConversations.DIFF_CALLBACK);
-        this.context = context;
     }
 
-    public ThreadedConversationRecyclerAdapter(Context context, ThreadedConversationsDao threadedConversationsDao) {
+    public ThreadedConversationRecyclerAdapter(ThreadedConversationsDao threadedConversationsDao) {
         super(ThreadedConversations.DIFF_CALLBACK);
-        this.context = context;
         this.threadedConversationsDao = threadedConversationsDao;
     }
 
     @NonNull
     @Override
     public ThreadedConversationsTemplateViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(this.context);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
         View view = inflater.inflate(R.layout.conversations_threads_layout, parent, false);
 //        View view = viewCacheExtension.getViewForPositionAndType(parent, 0, viewType);
@@ -114,9 +110,9 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                     }
                 }
 
-                Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
+                Intent singleMessageThreadIntent = new Intent(holder.itemView.getContext(), ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
-                context.startActivity(singleMessageThreadIntent);
+                holder.itemView.getContext().startActivity(singleMessageThreadIntent);
             }
         };
 //
@@ -132,7 +128,7 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
             }
         };
 
-        String defaultRegion = Helpers.getUserCountry(context);
+        String defaultRegion = Helpers.getUserCountry(holder.itemView.getContext());
         holder.bind(threadedConversations, onClickListener, onLongClickListener, defaultRegion);
    }
 

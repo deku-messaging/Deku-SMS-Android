@@ -126,6 +126,9 @@ public interface ThreadedConversationsDao {
         updateAllReadConversation(read, ids);
     }
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    List<Long> insertAll(List<ThreadedConversations> threadedConversationsList);
+
     @Query("SELECT * FROM ThreadedConversations WHERE thread_id =:thread_id")
     ThreadedConversations get(String thread_id);
 
@@ -157,8 +160,6 @@ public interface ThreadedConversationsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(ThreadedConversations threadedConversations);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    List<Long> insertAll(List<ThreadedConversations> threadedConversationsList);
 
     @Update
     int update(ThreadedConversations threadedConversations);

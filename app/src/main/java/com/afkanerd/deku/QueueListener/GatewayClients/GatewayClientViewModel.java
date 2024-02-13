@@ -6,6 +6,7 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GatewayClientViewModel extends ViewModel {
@@ -30,17 +31,33 @@ public class GatewayClientViewModel extends ViewModel {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                List<GatewayClient> gatewayClients = gatewayClientDAO.getAll();
-                Log.d(getClass().getName(), "Number of items: " + gatewayClients.size());
-
-                if(gatewayClients != null)
-                    for(GatewayClient gatewayClient : gatewayClients)
-                        gatewayClient.setConnectionStatus(
-                                GatewayClientHandler.getConnectionStatus(context,
-                                        String.valueOf(gatewayClient.getId())));
+                List<GatewayClient> gatewayClients = normalizeGatewayClients(gatewayClientDAO.getAll());
+                for(GatewayClient gatewayClient : gatewayClients)
+                    gatewayClient.setConnectionStatus(
+                            GatewayClientHandler.getConnectionStatus(context,
+                                    String.valueOf(gatewayClient.getId())));
 
                 gatewayClientList.postValue(gatewayClients);
             }
         }).start();
     }
+
+    private List<GatewayClient> normalizeGatewayClients(List<GatewayClient> gatewayClients) {
+        List<GatewayClient> filteredGatewayClients = new ArrayList<>();
+        for(GatewayClient gatewayClient : gatewayClients) {
+            boolean contained = false;
+            for(GatewayClient gatewayClient1 : filteredGatewayClients) {
+                if(gatewayClient1.same(gatewayClient)) {
+                    contained = true;
+                    break;
+                }
+            }
+            if(!contained) {
+                filteredGatewayClients.add(gatewayClient);
+            }
+        }
+
+        return filteredGatewayClients;
+    }
+
 }

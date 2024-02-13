@@ -104,7 +104,6 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 builder.setStyle(messagingStyle);
                 NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
                 notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
-                conversation.close();
             }
         }
 

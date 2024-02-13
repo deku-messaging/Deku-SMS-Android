@@ -20,24 +20,25 @@ import com.afkanerd.deku.DefaultSMS.R;
 
 public class RMQWorkManager extends Worker {
     final int NOTIFICATION_ID = 12345;
-    Context context;
 
     SharedPreferences sharedPreferences;
 
     public RMQWorkManager(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
-        this.context = context;
-        sharedPreferences = context.getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
     }
 
     @NonNull
     @Override
     public Result doWork() {
         Intent intent = new Intent(getApplicationContext(), RMQConnectionService.class);
+        sharedPreferences = getApplicationContext()
+                .getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
         if(!sharedPreferences.getAll().isEmpty()) {
             try {
-                context.startForegroundService(intent);
-                new RMQConnectionService(context).createForegroundNotification(context, 0,
+                getApplicationContext().startForegroundService(intent);
+                RMQConnectionService rmqConnectionService =
+                        new RMQConnectionService(getApplicationContext());
+                rmqConnectionService.createForegroundNotification(0,
                         sharedPreferences.getAll().size());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -58,16 +59,19 @@ public class RMQWorkManager extends Worker {
 
         Notification notification =
                 new NotificationCompat.Builder(getApplicationContext(),
-                        context.getString(R.string.foreground_service_failed_channel_id))
-                        .setContentTitle(context.getString(R.string.foreground_service_failed_channel_name))
+                        getApplicationContext().getString(R.string.foreground_service_failed_channel_id))
+                        .setContentTitle(getApplicationContext()
+                                .getString(R.string.foreground_service_failed_channel_name))
                         .setSmallIcon(R.drawable.ic_stat_name)
                         .setPriority(NotificationCompat.DEFAULT_ALL)
                         .setAutoCancel(true)
-                        .setContentText(context.getString(R.string.foreground_service_failed_channel_description))
+                        .setContentText(getApplicationContext()
+                                .getString(R.string.foreground_service_failed_channel_description))
                         .setContentIntent(pendingIntent)
                         .build();
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        NotificationManagerCompat notificationManager =
+                NotificationManagerCompat.from(getApplicationContext());
         notificationManager.notify(NOTIFICATION_ID, notification);
     }
 

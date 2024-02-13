@@ -35,7 +35,6 @@ public class ThreadedConversationsTest {
         Conversation conversation = new Conversation();
         ConversationDao conversationDao = conversation.getDaoInstance(context);
         List<Conversation> conversations = conversationDao.getComplete();
-        conversation.close();
 
         assertEquals(conversations.get(0).getText(), threadedConversations.get(0).getSnippet());
     }

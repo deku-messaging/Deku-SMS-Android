@@ -55,7 +55,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         SearchConversationRecyclerAdapter searchConversationRecyclerAdapter =
-                new SearchConversationRecyclerAdapter(getApplicationContext());
+                new SearchConversationRecyclerAdapter();
 
         CustomContactsCursorAdapter customContactsCursorAdapter = new CustomContactsCursorAdapter(getApplicationContext(),
                 Contacts.filterContacts(getApplicationContext(), ""), 0);

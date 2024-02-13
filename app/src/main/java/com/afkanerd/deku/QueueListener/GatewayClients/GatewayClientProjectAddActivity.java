@@ -3,10 +3,10 @@ package com.afkanerd.deku.QueueListener.GatewayClients;
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.room.Room;
 
 import android.content.Context;
 import android.content.Intent;
@@ -20,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.button.MaterialButton;
@@ -27,8 +28,9 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
 
-public class GatewayClientCustomizationActivity extends AppCompatActivity {
+public class GatewayClientProjectAddActivity extends AppCompatActivity {
 
+    public static final String GATEWAY_CLIENT_PROJECT_ID = "GATEWAY_CLIENT_PROJECT_ID";
     GatewayClient gatewayClient;
     GatewayClientHandler gatewayClientHandler;
 
@@ -36,6 +38,8 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
     SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
     Toolbar toolbar;
+
+    Datastore databaseConnector;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,9 +49,14 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        databaseConnector = Room.databaseBuilder(getApplicationContext(),
+                Datastore.class, Datastore.databaseName).build();
+
         try {
             getGatewayClient();
-            getSupportActionBar().setTitle(gatewayClient.getHostUrl());
+            getSupportActionBar().setTitle(gatewayClient == null ?
+                    getString(R.string.add_new_gateway_server_toolbar_title) :
+                    gatewayClient.getHostUrl());
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -83,27 +92,43 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    long id = -1;
     private void getGatewayClient() throws InterruptedException {
         TextInputEditText projectName = findViewById(R.id.new_gateway_client_project_name);
         TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding_sim_1);
         TextInputEditText projectBinding2 = findViewById(R.id.new_gateway_client_project_binding_sim_2);
 
         gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-
         long gatewayId = getIntent().getLongExtra(GATEWAY_CLIENT_ID, -1);
         gatewayClient = gatewayClientHandler.fetch(gatewayId);
 
-        if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty())
-            projectName.setText(gatewayClient.getProjectName());
+        if(getIntent().hasExtra(GATEWAY_CLIENT_PROJECT_ID)) {
+            id = getIntent().getLongExtra(GATEWAY_CLIENT_PROJECT_ID, -1);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    GatewayClientProjects gatewayClientProjects =
+                            databaseConnector.gatewayClientProjectDao().fetch(id);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            projectName.setText(gatewayClientProjects.name);
+                            projectBinding.setText(gatewayClientProjects.binding1Name);
+                        }
+                    });
 
-        if(gatewayClient.getProjectBinding() != null && !gatewayClient.getProjectBinding().isEmpty())
-            projectBinding.setText(gatewayClient.getProjectBinding());
-
-        List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
-        if(simcards.size() > 1) {
-            findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint).setVisibility(View.VISIBLE);
-            if(gatewayClient.getProjectBinding2() != null && !gatewayClient.getProjectBinding2().isEmpty())
-                projectBinding2.setText(gatewayClient.getProjectBinding2());
+                    List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
+                    if (simcards.size() > 1) {
+                        findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint).setVisibility(View.VISIBLE);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                projectBinding2.setText(gatewayClientProjects.binding2Name);
+                            }
+                        });
+                    }
+                }
+            }).start();
         }
 
         projectName.addTextChangedListener(new TextWatcher() {
@@ -155,13 +180,34 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
             return;
         }
 
-        gatewayClient.setProjectName(projectName.getText().toString());
-        gatewayClient.setProjectBinding(projectBinding.getText().toString());
+        if(id == -1) {
+            GatewayClientProjects gatewayClientProjects = new GatewayClientProjects();
+            gatewayClientProjects.name = projectName.getText().toString();
+            gatewayClientProjects.binding1Name = projectBinding.getText().toString();
+            gatewayClientProjects.binding2Name = projectBinding2.getText().toString();
+            gatewayClientProjects.gatewayClientId = gatewayClient.getId();
 
-        if(projectBinding2.getVisibility() == View.VISIBLE && projectBinding2.getText() != null)
-            gatewayClient.setProjectBinding2(projectBinding2.getText().toString());
-
-        gatewayClientHandler.update(gatewayClient);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    databaseConnector.gatewayClientProjectDao().insert(gatewayClientProjects);
+                }
+            }).start();
+        }
+        else {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    GatewayClientProjects gatewayClientProjects =
+                            databaseConnector.gatewayClientProjectDao().fetch(id);
+                    gatewayClientProjects.name = projectName.getText().toString();
+                    gatewayClientProjects.binding1Name = projectBinding.getText().toString();
+                    gatewayClientProjects.binding2Name = projectBinding2.getText().toString();
+                    gatewayClientProjects.gatewayClientId = gatewayClient.getId();
+                    databaseConnector.gatewayClientProjectDao().update(gatewayClientProjects);
+                }
+            }).start();
+        }
 
         Intent intent = new Intent(this, GatewayClientListingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -171,68 +217,13 @@ public class GatewayClientCustomizationActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        boolean connected = sharedPreferences.contains(String.valueOf(gatewayClient.getId()));
         getMenuInflater().inflate(R.menu.gateway_client_customization_menu, menu);
-        menu.findItem(R.id.gateway_client_connect).setVisible(!connected);
-        menu.findItem(R.id.gateway_client_disconnect).setVisible(connected);
         return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
-            case R.id.gateway_client_delete:
-                try {
-                    deleteGatewayClient();
-                    return true;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                break;
-
-            case R.id.gateway_client_connect:
-                try {
-                    GatewayClientHandler.startListening(getApplicationContext(), gatewayClient);
-                    return true;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                break;
-
-            case R.id.gateway_client_disconnect:
-                stopListening();
-                return true;
-
-            case R.id.gateway_client_edit:
-                editGatewayClient();
-                return true;
-        }
-        return false;
-    }
-
-    private void editGatewayClient() {
-        Intent intent = new Intent(this, GatewayClientAddActivity.class);
-        intent.putExtra(GATEWAY_CLIENT_ID, gatewayClient.getId());
-
-        startActivity(intent);
-    }
-
-    public void stopListening() {
-        sharedPreferences.edit().remove(String.valueOf(gatewayClient.getId()))
-                .apply();
-    }
-
-    private void deleteGatewayClient() throws InterruptedException {
-        stopListening();
-        gatewayClientHandler.delete(gatewayClient);
-        startActivity(new Intent(this, GatewayClientListingActivity.class));
-        finish();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        gatewayClientHandler.close();
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
     }
 }

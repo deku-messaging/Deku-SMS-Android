@@ -61,17 +61,13 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
     public String searchString;
 
-    Context context;
-
     ConversationSentViewHandler lastSentItem;
     ConversationReceivedViewHandler lastReceivedItem;
 
     ThreadedConversations threadedConversations;
 
-    public ConversationsRecyclerAdapter(Context context,
-                                        ThreadedConversations threadedConversations) {
+    public ConversationsRecyclerAdapter(ThreadedConversations threadedConversations) {
         super(Conversation.DIFF_CALLBACK);
-        this.context = context;
         this.mutableSelectedItems = new MutableLiveData<>();
         this.threadedConversations = threadedConversations;
 
@@ -98,7 +94,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     @Override
     public ConversationTemplateViewHandler onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns#MESSAGE_TYPE_OUTBOX
-        LayoutInflater inflater = LayoutInflater.from(this.context);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         ConversationTemplateViewHandler returnView;
 
         switch(viewType) {

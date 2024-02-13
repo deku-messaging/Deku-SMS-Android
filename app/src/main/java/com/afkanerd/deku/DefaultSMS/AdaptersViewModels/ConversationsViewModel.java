@@ -118,15 +118,6 @@ public class ConversationsViewModel extends ViewModel {
         cursor.close();
     }
 
-    public void updateFromNative(Context context, String messageId ) {
-        Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
-        if(cursor.moveToFirst()) {
-            Conversation conversation1 = Conversation.build(cursor);
-            cursor.close();
-            update(conversation1);
-        }
-    }
-
     public List<Integer> search(String input) throws InterruptedException {
         List<Integer> positions = new ArrayList<>();
         List<Conversation> list = conversationDao.getAll(threadId);
@@ -142,9 +133,6 @@ public class ConversationsViewModel extends ViewModel {
 
     public void updateToRead(Context context) {
         if(threadId != null && !threadId.isEmpty()) {
-            Conversation conversation1 = new Conversation();
-            ConversationDao conversationDao = conversation1.getDaoInstance(context);
-
             List<Conversation> conversations = conversationDao.getAll(threadId);
             List<Conversation> updateList = new ArrayList<>();
             for(Conversation conversation : conversations) {
@@ -154,7 +142,6 @@ public class ConversationsViewModel extends ViewModel {
                 }
             }
             conversationDao.update(updateList);
-            conversation1.close();
         }
     }
 
@@ -168,23 +155,15 @@ public class ConversationsViewModel extends ViewModel {
             ids[i] = conversations.get(i).getMessage_id();
         NativeSMSDB.deleteMultipleMessages(context, ids);
 
-        conversation1.close();
     }
 
-    public Conversation fetchDraft(Context context) throws InterruptedException {
-        Conversation conversation1 = new Conversation();
-        Conversation conversation = conversation1.getDaoInstance(context).fetchTypedConversation(
-                        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
-        conversation1.close();
-        return conversation;
+    public Conversation fetchDraft() throws InterruptedException {
+        return conversationDao.fetchTypedConversation(
+                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
     }
 
     public void clearDraft(Context context) {
-        Conversation conversation1 = new Conversation();
-        ConversationDao conversationDao = conversation1.getDaoInstance(context);
-        conversationDao.deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT,
-                threadId);
+        conversationDao.deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
         SMSDatabaseWrapper.deleteDraft(context, threadId);
-        conversation1.close();
     }
 }
