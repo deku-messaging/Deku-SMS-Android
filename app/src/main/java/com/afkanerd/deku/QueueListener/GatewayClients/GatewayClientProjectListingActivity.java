@@ -79,7 +79,7 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.gateway_client_project_add) {
-            Intent intent = new Intent(getApplicationContext(), GatewayClientCustomizationActivity.class);
+            Intent intent = new Intent(getApplicationContext(), GatewayClientProjectAddActivity.class);
             intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id);
             intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, true);
             startActivity(intent);
@@ -92,25 +92,6 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
-        if(item.getItemId() == R.id.gateway_client_delete) {
-            try {
-                SharedPreferences sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
-                sharedPreferences.edit().remove(String.valueOf(id))
-                        .apply();
-                GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-                GatewayClient gatewayClient = gatewayClientHandler.fetch(id);
-                for(GatewayClient gatewayClient1 : gatewayClientHandler.fetchAll())
-                    if(gatewayClient1.equals(gatewayClient))
-                        gatewayClientHandler.delete(gatewayClient1);
-                startActivity(new Intent(this, GatewayClientListingActivity.class));
-                finish();
-                return true;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return true;
-        }
-
         return false;
     }
     public void stopListening() {

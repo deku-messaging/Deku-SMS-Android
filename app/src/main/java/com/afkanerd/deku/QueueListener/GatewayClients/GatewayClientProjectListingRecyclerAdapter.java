@@ -1,7 +1,5 @@
 package com.afkanerd.deku.QueueListener.GatewayClients;
 
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient.DIFF_CALLBACK;
-
 import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -40,8 +38,11 @@ public class GatewayClientProjectListingRecyclerAdapter extends RecyclerView.Ada
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(holder.itemView.getContext(), GatewayClientCustomizationActivity.class);
-                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, gatewayClientProjects.gatewayClientId);
+                Intent intent = new Intent(holder.itemView.getContext(), GatewayClientProjectAddActivity.class);
+                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID,
+                        gatewayClientProjects.gatewayClientId);
+                intent.putExtra(GatewayClientProjectAddActivity.GATEWAY_CLIENT_PROJECT_ID,
+                        gatewayClientProjects.id);
                 holder.itemView.getContext().startActivity(intent);
             }
         });

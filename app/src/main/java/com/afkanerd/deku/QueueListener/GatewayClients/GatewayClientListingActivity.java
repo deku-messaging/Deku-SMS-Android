@@ -20,7 +20,6 @@ import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -83,7 +82,6 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
         databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
                 Datastore.databaseName)
-                .addMigrations(new Migrations.Migration5To6())
                 .build();
 
         gatewayClientDAO = databaseConnector.gatewayClientDAO();
@@ -128,7 +126,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.gateway_client_add_menu, menu);
+        getMenuInflater().inflate(R.menu.gateway_client_listing_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 

@@ -1,11 +1,17 @@
 package com.afkanerd.deku.QueueListener.GatewayClients;
 
+import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioGroup;
 
@@ -49,10 +55,11 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         });
     }
 
+    long id = -1;
     public void editGatewayClient() throws InterruptedException {
-        long gatewayClientId = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+        id = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
 
-        if(gatewayClientId != -1 ) {
+        if(id != -1 ) {
             TextInputEditText url = findViewById(R.id.new_gateway_client_url_input);
             TextInputEditText username = findViewById(R.id.new_gateway_client_username);
             TextInputEditText password = findViewById(R.id.new_gateway_password);
@@ -61,7 +68,7 @@ public class GatewayClientAddActivity extends AppCompatActivity {
             TextInputEditText port = findViewById(R.id.new_gateway_client_port);
 
             GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-            GatewayClient gatewayClient = gatewayClientHandler.fetch(gatewayClientId);
+            GatewayClient gatewayClient = gatewayClientHandler.fetch(id);
 
             url.setText(gatewayClient.getHostUrl());
             username.setText(gatewayClient.getUsername());
@@ -136,4 +143,40 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if(id != -1)
+            getMenuInflater().inflate(R.menu.gateway_server_add_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.gateway_client_delete) {
+            SharedPreferences sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+            sharedPreferences.edit().remove(String.valueOf(id))
+                    .apply();
+
+            GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+//                GatewayClient gatewayClient = gatewayClientHandler.fetch(id);
+//                gatewayClientHandler.delete(gatewayClient);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    GatewayClient gatewayClient = gatewayClientHandler.databaseConnector
+                            .gatewayClientDAO().fetch(id);
+                    gatewayClientHandler.databaseConnector.gatewayClientDAO()
+                            .delete(gatewayClient);
+                    gatewayClientHandler.databaseConnector.gatewayClientProjectDao()
+                            .deleteGatewayClientId(id);
+                }
+            }).start();
+
+            startActivity(new Intent(this, GatewayClientListingActivity.class));
+            finish();
+            return true;
+        }
+        return false;
+    }
 }

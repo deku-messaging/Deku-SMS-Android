@@ -17,7 +17,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -85,7 +84,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.gateway_client_add_menu, menu);
+        getMenuInflater().inflate(R.menu.gateway_client_listing_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
