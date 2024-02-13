@@ -33,6 +33,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectDao;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.afkanerd.deku.Router.Router.RouterHandler;
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
@@ -328,11 +330,12 @@ public class RMQConnectionService extends Service {
             @Override
             public void shutdownCompleted(ShutdownSignalException cause) {
                 Log.d(getClass().getName(), "Connection shutdown cause: " + cause.toString());
-                try {
-                    startConnection(factory, gatewayClient);
-                } catch (IOException | TimeoutException e) {
-                    e.printStackTrace();
-                }
+                if(!cause.isInitiatedByApplication())
+                    try {
+                        startConnection(factory, gatewayClient);
+                    } catch (IOException | TimeoutException e) {
+                        e.printStackTrace();
+                    }
             }
         });
 
@@ -341,26 +344,33 @@ public class RMQConnectionService extends Service {
         List<SubscriptionInfo> subscriptionInfoList = SIMHandler
                 .getSimCardInformation(getApplicationContext());
 
-        if(gatewayClient.getProjectName() != null && !gatewayClient.getProjectName().isEmpty()) {
-            SubscriptionInfo subscriptionInfo = subscriptionInfoList.get(0);
-            DeliverCallback deliverCallback1 = getDeliverCallback(rmqConnection.getChannel1(),
-                    subscriptionInfo.getSubscriptionId());
-            DeliverCallback deliverCallback2 = null;
+        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+        GatewayClientProjectDao gatewayClientProjectDao =
+                gatewayClientHandler.databaseConnector.gatewayClientProjectDao();
 
+        List<GatewayClientProjects> gatewayClientProjectsList =
+                gatewayClientProjectDao.fetchGatewayClientIdList(gatewayClient.getId());
+
+        SubscriptionInfo subscriptionInfo = subscriptionInfoList.get(0);
+        DeliverCallback deliverCallback1 = getDeliverCallback(rmqConnection.getChannel1(),
+                subscriptionInfo.getSubscriptionId());
+        DeliverCallback deliverCallback2 = null;
+        for(GatewayClientProjects gatewayClientProjects : gatewayClientProjectsList) {
             boolean dualQueue = subscriptionInfoList.size() > 1 &&
-                    gatewayClient.getProjectBinding2() != null &&
-                    !gatewayClient.getProjectBinding2().isEmpty();
+                    gatewayClientProjects.binding2Name != null &&
+                    !gatewayClientProjects.binding2Name.isEmpty();
             if(dualQueue) {
                 subscriptionInfo = subscriptionInfoList.get(1);
                 deliverCallback2 = getDeliverCallback(rmqConnection.getChannel2(),
                         subscriptionInfo.getSubscriptionId());
             }
 
-            rmqConnection.createQueue(gatewayClient.getProjectName(),
-                    gatewayClient.getProjectBinding(), gatewayClient.getProjectBinding2(),
+            rmqConnection.createQueue(gatewayClientProjects.name,
+                    gatewayClientProjects.binding1Name, gatewayClientProjects.binding2Name,
                     deliverCallback1, deliverCallback2);
             rmqConnection.consume();
         }
+
     }
 
     public void connectGatewayClient(GatewayClient gatewayClient) throws InterruptedException {

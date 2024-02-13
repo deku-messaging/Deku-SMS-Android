@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 public class GatewayClientHandler {
 
-    Datastore databaseConnector;
+    public Datastore databaseConnector;
 
     public GatewayClientHandler(Context context) {
         databaseConnector = Room.databaseBuilder(context, Datastore.class,

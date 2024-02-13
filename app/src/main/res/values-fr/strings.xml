@@ -162,4 +162,5 @@
     <string name="conversations_exported_complete">Exportation terminée</string>
     <string name="gateway_client_project_listing_project_name_title">Nom du projet</string>
     <string name="gateway_client_project_listing_no_projects_added">Aucun projet ajouté</string>
+    <string name="gateway_client_project_activate_all">Activer tout</string>
 </resources>

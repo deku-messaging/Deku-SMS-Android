@@ -217,30 +217,8 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        boolean connected = sharedPreferences.contains(String.valueOf(gatewayClient.getId()));
         getMenuInflater().inflate(R.menu.gateway_client_customization_menu, menu);
-        menu.findItem(R.id.gateway_client_project_connect).setVisible(!connected);
-        menu.findItem(R.id.gateway_client_project_disconnect).setVisible(connected);
         return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.gateway_client_project_connect) {
-            try {
-                GatewayClientHandler.startListening(getApplicationContext(), gatewayClient);
-                return true;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return true;
-        }
-        if(item.getItemId() == R.id.gateway_client_project_disconnect) {
-            sharedPreferences.edit().remove(String.valueOf(gatewayClient.getId()))
-                    .apply();
-            return true;
-        }
-        return false;
     }
 
     @Override

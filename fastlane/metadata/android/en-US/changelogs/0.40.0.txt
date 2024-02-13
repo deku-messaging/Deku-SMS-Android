@@ -1,1 +1,2 @@
 - update: fixed broken issues with RMQ connections
+- update: once add GatewayClients and use that for all instances

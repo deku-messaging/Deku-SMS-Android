@@ -26,6 +26,7 @@ import java.util.List;
 public class GatewayClientProjectListingActivity extends AppCompatActivity {
 
     long id;
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +40,7 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
         String username = getIntent().getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME);
         String host = getIntent().getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_HOST);
         id = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
 
         getSupportActionBar().setTitle(username);
         getSupportActionBar().setSubtitle(host);
@@ -64,7 +66,6 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
                     findViewById(R.id.gateway_client_project_listing_no_projects).setVisibility(View.VISIBLE);
                 else
                     findViewById(R.id.gateway_client_project_listing_no_projects).setVisibility(View.GONE);
-                Log.d(getClass().getName(), "Submitting binding: " + gatewayClients.size());
             }
         });
     }
@@ -72,6 +73,9 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.gateway_client_project_listing_menu, menu);
+        boolean connected = sharedPreferences.contains(String.valueOf(id));
+        menu.findItem(R.id.gateway_client_project_connect).setVisible(!connected);
+        menu.findItem(R.id.gateway_client_project_disconnect).setVisible(connected);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -92,8 +96,30 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
+        if(item.getItemId() == R.id.gateway_client_project_connect) {
+            GatewayClientHandler gatewayClientHandler =
+                    new GatewayClientHandler(getApplicationContext());
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    GatewayClient gatewayClient =
+                            gatewayClientHandler.databaseConnector.gatewayClientDAO().fetch(id);
+                    try {
+                        GatewayClientHandler.startListening(getApplicationContext(), gatewayClient);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            return true;
+        }
+        if(item.getItemId() == R.id.gateway_client_project_disconnect) {
+            sharedPreferences.edit().remove(String.valueOf(id))
+                    .apply();
+            finish();
+            return true;
+        }
         return false;
     }
-    public void stopListening() {
-    }
+
 }

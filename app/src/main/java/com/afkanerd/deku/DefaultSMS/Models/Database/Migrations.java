@@ -1,5 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.Models.Database;
 
+import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -144,7 +146,12 @@ public class Migrations {
                     context.getSharedPreferences(GatewayClientHandler.MIGRATIONS, Context.MODE_PRIVATE);
             if(!sharedPreferences.contains(GatewayClientHandler.MIGRATIONS_TO_11))
                 context.getSharedPreferences(GatewayClientHandler.MIGRATIONS, Context.MODE_PRIVATE)
-                        .edit().putBoolean(GatewayClientHandler.MIGRATIONS_TO_11, true).commit();
+                        .edit().putBoolean(GatewayClientHandler.MIGRATIONS_TO_11, true).apply();
+            sharedPreferences =
+                    context.getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+            for(String key : sharedPreferences.getAll().keySet()) {
+                sharedPreferences.edit().remove(key).apply();
+            }
         }
 
         @Override

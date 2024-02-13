@@ -24,6 +24,9 @@ public interface GatewayClientProjectDao {
     @Query("SELECT * FROM GatewayClientProjects WHERE gatewayClientId = :gatewayClientId")
     LiveData<List<GatewayClientProjects>> fetchGatewayClientId(long gatewayClientId);
 
+    @Query("SELECT * FROM GatewayClientProjects WHERE gatewayClientId = :gatewayClientId")
+   List<GatewayClientProjects> fetchGatewayClientIdList(long gatewayClientId);
+
     @Update
     void update(GatewayClientProjects gatewayClientProjects);
 

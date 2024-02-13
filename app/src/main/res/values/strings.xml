@@ -88,6 +88,7 @@
 
     <string name="gateway_client_add_linked_device_title">Scan QR code</string>
     <string name="gateway_client_add_manually_title">Add Manually</string>
+    <string name="gateway_client_project_activate_all">Activate All</string>
 
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
