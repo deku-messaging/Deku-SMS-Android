@@ -327,11 +327,9 @@ public class NativeSMSDB {
         }
 
         public static String[] register_sent(Context context, String messageId) {
-            Log.d(NativeSMSDB.class.getName(), "Registered sent message");
             int numberChanged =
                     update_status(context, Telephony.TextBasedSmsColumns.STATUS_NONE,
                             messageId, -1);
-            Log.d(NativeSMSDB.class.getName(), "Registered sent message update: " + numberChanged);
             return broadcastStateChanged(context, String.valueOf(messageId));
         }
 
@@ -440,7 +438,6 @@ public class NativeSMSDB {
                         contentValues,
                         "thread_id=?",
                         new String[]{thread_id});
-                Log.d(NativeSMSDB.class.getName(), "Updated to read: " + updated);
                 return updated;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -490,7 +487,6 @@ public class NativeSMSDB {
                 Uri uri = context.getContentResolver().insert(
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
-                Log.d(NativeSMSDB.class.getName(), "URI: " + uri.toString());
                 String[] broadcastOutputs = parseNewIncomingUriForThreadInformation(context, uri);
                 String[] returnString = new String[7];
                 returnString[THREAD_ID] = broadcastOutputs[THREAD_ID];
@@ -525,9 +521,6 @@ public class NativeSMSDB {
             int subscriptionId = bundle.getInt("subscription", -1);
 
             Set<String> keySet = bundle.keySet();
-            Log.d(NativeSMSDB.class.getName(), "Bundle: " + Arrays.toString(keySet.toArray()));
-            Log.d(NativeSMSDB.class.getName(), "Format: " + bundle.getString("format"));
-
             String address = "";
             ByteArrayOutputStream dataBodyBuffer = new ByteArrayOutputStream();
 

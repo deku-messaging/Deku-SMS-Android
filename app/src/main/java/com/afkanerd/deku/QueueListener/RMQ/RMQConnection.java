@@ -21,21 +21,19 @@ public class RMQConnection {
     public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "id";
     public static final String MESSAGE_SID = "sid";
 
-    private String queueName, queueName2;
+    public Connection connection;
 
-    private Connection connection;
+//    private Channel channel1;
+//    private Channel channel2;
 
-    private Channel channel1;
-
-    public Channel getChannel2() {
-        return channel2;
-    }
-
-    public void setChannel2(Channel channel2) {
-        this.channel2 = channel2;
-    }
-
-    private Channel channel2;
+//    public Channel getChannel2() {
+//        return channel2;
+//    }
+//
+//    public void setChannel2(Channel channel2) {
+//        this.channel2 = channel2;
+//    }
+//
 
     private boolean reconnecting = false;
 
@@ -43,7 +41,7 @@ public class RMQConnection {
         this.reconnecting = reconnecting;
     }
 
-    private DeliverCallback deliverCallback, deliverCallback2;
+//    private DeliverCallback deliverCallback, deliverCallback2;
 
     public RMQConnection(Connection connection) throws IOException {
         this.setConnection(connection);
@@ -52,16 +50,30 @@ public class RMQConnection {
     public RMQConnection(){
     }
 
-    public void setConnection(Connection connection) throws IOException {
-        this.connection = connection;
-
-        this.channel1 = this.connection.createChannel();
-        this.channel2 = this.connection.createChannel();
+    public Channel[] getChannels() throws IOException {
+        Channel channel1 = this.connection.createChannel();
+        Channel channel2 = this.connection.createChannel();
 
         int prefetchCount = 1;
-        this.channel1.basicQos(prefetchCount);
+        channel1.basicQos(prefetchCount);
+        channel2.basicQos(prefetchCount);
 
-        this.channel2.basicQos(prefetchCount);
+        return new Channel[]{channel1, channel2};
+    }
+
+    public Channel[] setConnection(Connection connection) throws IOException {
+        this.connection = connection;
+
+        Channel channel1 = this.connection.createChannel();
+        channel1.basicRecover(true);
+        Channel channel2 = this.connection.createChannel();
+        channel2.basicRecover(true);
+
+        int prefetchCount = 1;
+        channel1.basicQos(prefetchCount);
+        channel2.basicQos(prefetchCount);
+
+        return new Channel[]{channel1, channel2};
     }
 
     public void close() throws IOException {
@@ -73,44 +85,28 @@ public class RMQConnection {
         return connection;
     }
 
-    public Channel getChannel1() {
-        return channel1;
-    }
-
     /**
      *
      * @param exchangeName
      * @param deliverCallback
      * @throws IOException
      */
-    public void createQueue(String exchangeName, String bindingKey1, String bindingKey2,
-                            DeliverCallback deliverCallback, DeliverCallback deliverCallback2) throws IOException {
-        this.queueName = bindingKey1.replaceAll("\\.", "_");
-        this.deliverCallback = deliverCallback;
+    public String[] createQueue(String exchangeName, String bindingKey1, String bindingKey2,
+                                Channel[] channels) throws IOException {
+        String queueName = bindingKey1.replaceAll("\\.", "_");
+        String queueName2 = null;
 
-        ShutdownListener shutdownListener = new ShutdownListener() {
-            @Override
-            public void shutdownCompleted(ShutdownSignalException cause) {
-                Log.d(getClass().getName(), "Channel shutdown listener called: " + cause.toString());
-                if(connection.isOpen()) {
-                    // Hopefully this triggers the reconnect mechanisms
-                    connection.abort();
-                }
-            }
-        };
+        channels[0].queueDeclare(queueName, durable, exclusive, autoDelete, null);
+        channels[0].queueBind(queueName, exchangeName, bindingKey1);
 
-        this.channel1.queueDeclare(queueName, durable, exclusive, autoDelete, null);
-        this.channel1.queueBind(queueName, exchangeName, bindingKey1);
-        this.channel1.addShutdownListener(shutdownListener);
+        if (bindingKey2 != null && channels.length > 1) {
+            queueName2 = bindingKey2.replaceAll("\\.", "_");
 
-        if (bindingKey2 != null && deliverCallback2 != null) {
-            this.queueName2 = bindingKey2.replaceAll("\\.", "_");
-            this.deliverCallback2 = deliverCallback2;
-
-            this.channel2.queueDeclare(queueName2, durable, exclusive, autoDelete, null);
-            this.channel2.queueBind(queueName2, exchangeName, bindingKey2);
-            this.channel2.addShutdownListener(shutdownListener);
+            channels[1].queueDeclare(queueName2, durable, exclusive, autoDelete, null);
+            channels[1].queueBind(queueName2, exchangeName, bindingKey2);
         }
+
+        return new String[]{queueName, queueName2};
     }
 
 //    public void createQueue1(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
@@ -135,7 +131,8 @@ public class RMQConnection {
 //        this.channel2.queueBind(queueName2, exchangeName, bindingKey);
 //    }
 
-    public void consume() throws IOException {
+    public String[] consume(Channel[] channels, String queueName, String queueName2,
+                        DeliverCallback deliverCallback, DeliverCallback deliverCallback2) throws IOException {
         /**
          * - Binding information dumb:
          * 1. .usd. = <anything>.usd.</anything>
@@ -144,11 +141,30 @@ public class RMQConnection {
          * 4. Can all be used in combination with each
          * 5. We can translate this into managing multiple service providers
          */
-        this.channel1.basicConsume(this.queueName, autoAck, deliverCallback, consumerTag -> {});
-        if(this.queueName2 != null) {
-            this.channel2.basicConsume(this.queueName2, autoAck, deliverCallback2, consumerTag -> {
-            });
+
+//        ShutdownListener shutdownListener2 = new ShutdownListener() {
+//            @Override
+//            public void shutdownCompleted(ShutdownSignalException cause) {
+//                Log.d(getClass().getName(), "Channel shutdown listener called: " + cause.toString());
+//                if(!cause.isInitiatedByApplication() && connection.isOpen()) {
+//                    try {
+//                        channels[1].basicConsume(queueName2, autoAck, deliverCallback, consumerTag -> {});
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        };
+        String[] consumerTags = new String[2];
+        consumerTags[0] =
+                channels[0].basicConsume(queueName, autoAck, deliverCallback, consumerTag -> {});
+
+        if(queueName2 != null && !queueName2.isEmpty()) {
+            consumerTags[1] =
+                    channels[1].basicConsume(queueName2, autoAck, deliverCallback2, consumerTag -> { });
         }
+
+        return consumerTags;
     }
 
 //    public void consume1() throws IOException {

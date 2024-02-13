@@ -144,13 +144,14 @@ public class Migrations {
             super(10, 11);
             SharedPreferences sharedPreferences =
                     context.getSharedPreferences(GatewayClientHandler.MIGRATIONS, Context.MODE_PRIVATE);
-            if(!sharedPreferences.contains(GatewayClientHandler.MIGRATIONS_TO_11))
+            if(!sharedPreferences.contains(GatewayClientHandler.MIGRATIONS_TO_11)) {
                 context.getSharedPreferences(GatewayClientHandler.MIGRATIONS, Context.MODE_PRIVATE)
                         .edit().putBoolean(GatewayClientHandler.MIGRATIONS_TO_11, true).apply();
-            sharedPreferences =
-                    context.getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
-            for(String key : sharedPreferences.getAll().keySet()) {
-                sharedPreferences.edit().remove(key).apply();
+                sharedPreferences =
+                        context.getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+                for(String key : sharedPreferences.getAll().keySet()) {
+                    sharedPreferences.edit().remove(key).apply();
+                }
             }
         }
 
