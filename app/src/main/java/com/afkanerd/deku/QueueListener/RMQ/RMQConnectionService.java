@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Telephony;
+import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.util.Log;
 import android.util.Pair;
@@ -32,6 +33,7 @@ import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastR
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectDao;
@@ -66,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 
 public class RMQConnectionService extends Service {
@@ -228,21 +231,24 @@ public class RMQConnectionService extends Service {
 //                                                                consumerTag);
 //                                                return;
 //                                            }
-                                            if(!channelList.containsKey(Long.parseLong(messageId)))
-                                                return;
-                                            if(getResultCode() == Activity.RESULT_OK) {
+//                                            if(!channelList.containsKey(Long.parseLong(messageId)))
+//                                                return;
+                                            if(!channelList.containsKey(Long.parseLong(messageId))
+                                                    || getResultCode() == Activity.RESULT_OK) {
 //                                                channel.basicAck(deliveryTag, false);
                                                 Log.i(getClass().getName(), "Confirming message sent");
                                                 channel.basicAck(deliveryTag.getEnvelope().getDeliveryTag(), false);
                                                 smsStatusReport.reportedStatus = SMS_STATUS_SENT;
+//                                                channelList.remove(Long.parseLong(messageId));
                                             } else {
                                                 Log.e(getClass().getName(),
-                                                        "Failed to send sms: " + messageId);
-                                                channel.basicNack(deliveryTag.getEnvelope().getDeliveryTag(),
-                                                        false, true);
+                                                        "Failed to send sms: " + messageId + ":" + getResultCode());
+//                                                channel.basicNack(deliveryTag.getEnvelope().getDeliveryTag(),
+//                                                        false, true);
+                                                channel.basicReject(deliveryTag.getEnvelope().getDeliveryTag(),
+                                                        true);
                                                 smsStatusReport.reportedStatus = SMS_STATUS_FAILED;
                                             }
-                                            channelList.remove(Long.parseLong(messageId));
                                         }
 //                                        try {
 //                                            GatewayServerHandler gatewayServerHandler =
@@ -283,6 +289,7 @@ public class RMQConnectionService extends Service {
                 Bundle bundle = new Bundle();
                 bundle.putString(RMQConnection.MESSAGE_SID, sid);
 
+                SemaphoreManager.acquireSemaphore();
                 long messageId = System.currentTimeMillis();
                 long threadId = Telephony.Threads.getOrCreateThreadId(getApplicationContext(), msisdn);
                 Conversation conversation = new Conversation();
@@ -297,18 +304,26 @@ public class RMQConnectionService extends Service {
 
                 conversationDao.insert(conversation);
                 Log.d(getClass().getName(), "channel open: " + channel.isOpen());
-                Log.d(getClass().getName(), "Sending RMQ SMS: " + conversation.getText() + ":"
+                Log.d(getClass().getName(), "Sending RMQ SMS: " + subscriptionId + ":"
                         + conversation.getAddress());
-                SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, bundle);
 
                 Pair<String, Delivery> consumerTagDelivery = new Pair<>(consumerTag, delivery);
                 channelList.put(messageId, new Pair<>(consumerTagDelivery, channel));
+                SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, bundle);
+//                Thread.sleep(1000);
             } catch (JSONException e) {
                 e.printStackTrace();
                 if(channel != null && channel.isOpen())
                     channel.basicReject(delivery.getEnvelope().getDeliveryTag(), false);
             } catch(Exception e) {
                 e.printStackTrace();
+                channel.basicReject(delivery.getEnvelope().getDeliveryTag(), true);
+            } finally {
+                try {
+                    SemaphoreManager.releaseSemaphore();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         };
     }
@@ -339,7 +354,10 @@ public class RMQConnectionService extends Service {
 
     public void startConnection(ConnectionFactory factory, GatewayClient gatewayClient) throws IOException, TimeoutException {
         Log.d(getClass().getName(), "Staring new connection...");
-        RMQConnection rmqConnection = new RMQConnection();
+        Connection connection = factory.newConnection(consumerExecutorService,
+                gatewayClient.getFriendlyConnectionName());
+
+        RMQConnection rmqConnection = new RMQConnection(connection);
 
         RMQMonitor rmqMonitor = new RMQMonitor(getApplicationContext(),
                 gatewayClient.getId(),
@@ -347,73 +365,48 @@ public class RMQConnectionService extends Service {
         connectionList.put(gatewayClient.getId(), rmqMonitor);
 
         rmqMonitor.setConnected(DELAY_TIMEOUT);
-        Log.d(getClass().getName(), "Attempting to make connection...");
-        Connection connection = factory.newConnection(consumerExecutorService,
-                gatewayClient.getFriendlyConnectionName());
-        Log.d(getClass().getName(), "Connection made..");
-
         rmqMonitor.setConnected(0L);
         connection.addShutdownListener(new ShutdownListener() {
             @Override
             public void shutdownCompleted(ShutdownSignalException cause) {
                 Log.d(getClass().getName(), "Connection shutdown cause: " + cause.toString());
 //                if(!cause.isInitiatedByApplication())
-                if(sharedPreferences.getBoolean(String.valueOf(gatewayClient.getId()), false))
-                    try {
-                        consumerTagChannels = new HashMap<>();
-                        connectionList.remove(gatewayClient.getId());
-                        startConnection(factory, gatewayClient);
-                    } catch (IOException | TimeoutException e) {
-                        e.printStackTrace();
-                    }
+                if(sharedPreferences.getBoolean(String.valueOf(gatewayClient.getId()), false)) {
+//                        consumerTagChannels = new HashMap<>();
+//                    connectionList.remove(gatewayClient.getId());
+//                        startConnection(factory, gatewayClient);
+                    connectionList.get(gatewayClient.getId()).setConnected(DELAY_TIMEOUT);
+//                        return DELAY_TIMEOUT;
+                }
             }
         });
-
-        List<SubscriptionInfo> subscriptionInfoList = SIMHandler
-                .getSimCardInformation(getApplicationContext());
 
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
         GatewayClientProjectDao gatewayClientProjectDao =
                 gatewayClientHandler.databaseConnector.gatewayClientProjectDao();
 
+        List<SubscriptionInfo> subscriptionInfoList = SIMHandler
+                .getSimCardInformation(getApplicationContext());
+
         List<GatewayClientProjects> gatewayClientProjectsList =
                 gatewayClientProjectDao.fetchGatewayClientIdList(gatewayClient.getId());
+        for(int j=0;j<subscriptionInfoList.size();++j) {
+            Channel channel = rmqConnection.createChannel();
+            DeliverCallback deliverCallback = getDeliverCallback(channel,
+                    subscriptionInfoList.get(j).getSubscriptionId());
 
-        SubscriptionInfo subscriptionInfo = subscriptionInfoList.get(0);
-
-        rmqMonitor.getRmqConnection().connection = connection;
-        for(GatewayClientProjects gatewayClientProjects : gatewayClientProjectsList) {
-//            Channel[] channels = rmqMonitor.getRmqConnection().setConnection(connection);
-            Channel[] channels = rmqMonitor.getRmqConnection().getChannels();
-            boolean dualQueue = subscriptionInfoList.size() > 1 &&
-                    gatewayClientProjects.binding2Name != null &&
-                    !gatewayClientProjects.binding2Name.isEmpty();
-
-            DeliverCallback deliverCallback1 =
-                    getDeliverCallback(channels[0], subscriptionInfo.getSubscriptionId());
-            DeliverCallback deliverCallback2 = null;
-
-            if(dualQueue) {
-                subscriptionInfo = subscriptionInfoList.get(1);
-                deliverCallback2 = getDeliverCallback(channels[1], subscriptionInfo.getSubscriptionId());
+            for(int i=0;i<gatewayClientProjectsList.size(); ++i) {
+                GatewayClientProjects gatewayClientProjects = gatewayClientProjectsList.get(i);
+                String bindingName = j > 0 ? gatewayClientProjects.binding2Name :
+                        gatewayClientProjects.binding1Name;
+                String queue = rmqConnection.createQueue(gatewayClientProjects.name, bindingName,
+                        channel);
+                String consumerTags = rmqConnection.consume(channel, queue, deliverCallback);
+//                consumerTagChannels.put(consumerTags, channel);
+//                CustomChannelShutdownListener customChannelShutdownListener =
+//                        new CustomChannelShutdownListener(consumerTags, channel);
+//                channel.addShutdownListener(customChannelShutdownListener);
             }
-
-            String[] queues = rmqConnection.createQueue(gatewayClientProjects.name,
-                    gatewayClientProjects.binding1Name, gatewayClientProjects.binding2Name, channels);
-
-            String[] consumerTags =
-                    rmqConnection.consume(channels, queues[0], queues[1], deliverCallback1,
-                            deliverCallback2);
-            consumerTagChannels.put(consumerTags[0], channels[0]);
-            consumerTagChannels.put(consumerTags[1], channels[1]);
-
-            CustomChannelShutdownListener customChannelShutdownListener =
-                    new CustomChannelShutdownListener(consumerTags[0], channels[0]);
-            CustomChannelShutdownListener customChannelShutdownListener1 =
-                    new CustomChannelShutdownListener(consumerTags[1], channels[1]);
-
-            channels[0].addShutdownListener(customChannelShutdownListener);
-            channels[1].addShutdownListener(customChannelShutdownListener1);
         }
     }
     Map<String, Channel> consumerTagChannels = new HashMap<>();
@@ -424,13 +417,13 @@ public class RMQConnectionService extends Service {
 
         ConnectionFactory factory = new ConnectionFactory();
 
-        factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
-            @Override
-            public long getDelay(int recoveryAttempts) {
-                connectionList.get(gatewayClient.getId()).setConnected(DELAY_TIMEOUT);
-                return DELAY_TIMEOUT;
-            }
-        });
+//        factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
+//            @Override
+//            public long getDelay(int recoveryAttempts) {
+//                connectionList.get(gatewayClient.getId()).setConnected(DELAY_TIMEOUT);
+//                return DELAY_TIMEOUT;
+//            }
+//        });
 
         factory.setUsername(gatewayClient.getUsername());
         factory.setPassword(gatewayClient.getPassword());
@@ -438,7 +431,7 @@ public class RMQConnectionService extends Service {
         factory.setHost(gatewayClient.getHostUrl());
         factory.setPort(gatewayClient.getPort());
         factory.setConnectionTimeout(15000);
-        factory.setAutomaticRecoveryEnabled(true);
+//        factory.setAutomaticRecoveryEnabled(true);
         factory.setExceptionHandler(new DefaultExceptionHandler());
 
         consumerExecutorService.execute(new Runnable() {

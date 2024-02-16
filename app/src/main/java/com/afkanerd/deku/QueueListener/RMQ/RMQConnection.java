@@ -7,8 +7,11 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
+import com.rabbitmq.client.impl.ChannelN;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RMQConnection {
     final boolean autoDelete = false;
@@ -44,38 +47,46 @@ public class RMQConnection {
 //    private DeliverCallback deliverCallback, deliverCallback2;
 
     public RMQConnection(Connection connection) throws IOException {
-        this.setConnection(connection);
+        this.connection = connection;
     }
 
     public RMQConnection(){
     }
 
-    public Channel[] getChannels() throws IOException {
-        Channel channel1 = this.connection.createChannel();
-        Channel channel2 = this.connection.createChannel();
+//    public Channel[] getChannels() throws IOException {
+//        Channel channel1 = this.connection.createChannel();
+//        Channel channel2 = this.connection.createChannel();
+//
+//        int prefetchCount = 1;
+//        channel1.basicQos(prefetchCount);
+//        channel2.basicQos(prefetchCount);
+//
+//        return new Channel[]{channel1, channel2};
+//    }
 
+//    public Channel[] setConnection(Connection connection) throws IOException {
+//        this.connection = connection;
+//
+//        Channel channel1 = this.connection.createChannel();
+//        channel1.basicRecover(true);
+//        Channel channel2 = this.connection.createChannel();
+//        channel2.basicRecover(true);
+//
+//        int prefetchCount = 1;
+//        channel1.basicQos(prefetchCount);
+//        channel2.basicQos(prefetchCount);
+//
+//        return new Channel[]{channel1, channel2};
+//    }
+
+    List<Channel> channelList = new ArrayList<>();
+    public Channel createChannel() throws IOException {
         int prefetchCount = 1;
-        channel1.basicQos(prefetchCount);
-        channel2.basicQos(prefetchCount);
-
-        return new Channel[]{channel1, channel2};
+        Channel channel = this.connection.createChannel();
+        channel.basicQos(prefetchCount);
+        channelList.add(channel);
+        return channelList.get(channelList.size() -1);
     }
-
-    public Channel[] setConnection(Connection connection) throws IOException {
-        this.connection = connection;
-
-        Channel channel1 = this.connection.createChannel();
-        channel1.basicRecover(true);
-        Channel channel2 = this.connection.createChannel();
-        channel2.basicRecover(true);
-
-        int prefetchCount = 1;
-        channel1.basicQos(prefetchCount);
-        channel2.basicQos(prefetchCount);
-
-        return new Channel[]{channel1, channel2};
-    }
-
     public void close() throws IOException {
         if(connection != null)
             connection.close();
@@ -85,28 +96,13 @@ public class RMQConnection {
         return connection;
     }
 
-    /**
-     *
-     * @param exchangeName
-     * @param deliverCallback
-     * @throws IOException
-     */
-    public String[] createQueue(String exchangeName, String bindingKey1, String bindingKey2,
-                                Channel[] channels) throws IOException {
-        String queueName = bindingKey1.replaceAll("\\.", "_");
-        String queueName2 = null;
+    public String createQueue(String exchangeName, String bindingKey, Channel channel) throws IOException {
+        final String queueName = bindingKey.replaceAll("\\.", "_");
 
-        channels[0].queueDeclare(queueName, durable, exclusive, autoDelete, null);
-        channels[0].queueBind(queueName, exchangeName, bindingKey1);
+        channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
+        channel.queueBind(queueName, exchangeName, bindingKey);
 
-        if (bindingKey2 != null && channels.length > 1) {
-            queueName2 = bindingKey2.replaceAll("\\.", "_");
-
-            channels[1].queueDeclare(queueName2, durable, exclusive, autoDelete, null);
-            channels[1].queueBind(queueName2, exchangeName, bindingKey2);
-        }
-
-        return new String[]{queueName, queueName2};
+        return queueName;
     }
 
 //    public void createQueue1(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
@@ -131,8 +127,7 @@ public class RMQConnection {
 //        this.channel2.queueBind(queueName2, exchangeName, bindingKey);
 //    }
 
-    public String[] consume(Channel[] channels, String queueName, String queueName2,
-                        DeliverCallback deliverCallback, DeliverCallback deliverCallback2) throws IOException {
+    public String consume(Channel channel, String queueName, DeliverCallback deliverCallback) throws IOException {
         /**
          * - Binding information dumb:
          * 1. .usd. = <anything>.usd.</anything>
@@ -155,16 +150,7 @@ public class RMQConnection {
 //                }
 //            }
 //        };
-        String[] consumerTags = new String[2];
-        consumerTags[0] =
-                channels[0].basicConsume(queueName, autoAck, deliverCallback, consumerTag -> {});
-
-        if(queueName2 != null && !queueName2.isEmpty()) {
-            consumerTags[1] =
-                    channels[1].basicConsume(queueName2, autoAck, deliverCallback2, consumerTag -> { });
-        }
-
-        return consumerTags;
+        return channel.basicConsume(queueName, autoAck, deliverCallback, consumerTag -> {});
     }
 
 //    public void consume1() throws IOException {

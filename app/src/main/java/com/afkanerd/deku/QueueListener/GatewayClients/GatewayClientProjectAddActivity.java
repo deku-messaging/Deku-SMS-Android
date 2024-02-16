@@ -117,12 +117,12 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
                         }
                     });
 
-                    List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
-                    if (simcards.size() > 1) {
-                        findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint).setVisibility(View.VISIBLE);
+                    if (SIMHandler.isDualSim(getApplicationContext())) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint)
+                                        .setVisibility(View.VISIBLE);
                                 projectBinding2.setText(gatewayClientProjects.binding2Name);
                             }
                         });

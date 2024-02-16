@@ -1,0 +1,3 @@
+- update: fix issue with dualsim in pixel devices
+
+- update: fix broken RMQ connections and reduce channel and connection loads

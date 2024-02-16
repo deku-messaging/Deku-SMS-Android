@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -22,7 +23,6 @@ import java.util.List;
 public class DualSIMConversationActivity extends AppCompatActivity {
 
     protected MutableLiveData<Integer> defaultSubscriptionId = new MutableLiveData<>();
-    protected int simCount = 0;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,36 +36,34 @@ public class DualSIMConversationActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceState);
         sendImageButton = findViewById(R.id.conversation_send_btn);
         currentSimcardTextView = findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
-        simCount = SIMHandler.getActiveSimcardCount(getApplicationContext());
+        final boolean dualSim = SIMHandler.isDualSim(getApplicationContext());
 
-        if(sendImageButton != null) {
-            try {
-                defaultSubscriptionId.setValue(SIMHandler.getDefaultSimSubscription(getApplicationContext()));
-            } catch(Exception e ) {
-                e.printStackTrace();
-            }
-
-            sendImageButton.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if (simCount > 1) {
-                        showMultiDualSimAlert();
-                        return true;
-                    }
-                    return false;
-                }
-            });
-        }
 
         defaultSubscriptionId.observe(this, new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
-                if(simCount > 1) {
+                if(dualSim) {
                     String subscriptionName = SIMHandler.getSubscriptionName(getApplicationContext(), integer);
                     currentSimcardTextView.setText(subscriptionName);
                 }
             }
         });
+        if(dualSim && sendImageButton != null) {
+            String subscriptionName = SIMHandler.getSubscriptionName(getApplicationContext(),
+                    SIMHandler.getDefaultSimSubscription(getApplicationContext()));
+            Log.d(getClass().getName(), "Dual name: " + subscriptionName + ":" + SIMHandler.getDefaultSimSubscription(getApplicationContext()));
+            currentSimcardTextView.setText(subscriptionName);
+
+            defaultSubscriptionId.setValue(SIMHandler.getDefaultSimSubscription(getApplicationContext()));
+            sendImageButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    showMultiDualSimAlert();
+                    return true;
+                }
+            });
+        }
+
     }
 
     private void showMultiDualSimAlert() {

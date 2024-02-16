@@ -15,6 +15,7 @@ import android.telecom.TelecomManager;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -48,6 +49,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHa
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.snackbar.Snackbar;
@@ -568,9 +570,11 @@ public class ConversationActivity extends E2EECompactActivity {
                     counterView.setText(getSMSCount(s));
                     visibility = View.VISIBLE;
                 }
-                if(simCount > 1) {
-                    findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
-                            .setVisibility(visibility);
+                TextView dualSimCardName =
+                        (TextView) findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
+                if(SIMHandler.isDualSim(getApplicationContext())) {
+                    Log.d(getClass().getName(), "Yes is dual sim");
+                    dualSimCardName.setVisibility(View.VISIBLE);
                 }
                 sendBtn.setVisibility(visibility);
                 counterView.setVisibility(visibility);
