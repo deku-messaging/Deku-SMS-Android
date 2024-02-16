@@ -20,6 +20,7 @@ import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.E2EE.E2EEHandler;
@@ -169,6 +170,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         if(text != null) {
             if(messageId == null)
                 messageId = String.valueOf(System.currentTimeMillis());
+            final String messageIdFinal = messageId;
             Conversation conversation = new Conversation();
             conversation.setMessage_id(messageId);
             conversation.setText(text);
@@ -193,6 +195,11 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 //                                    _messageId, id);
                         } catch (Exception e) {
                             e.printStackTrace();
+                            NativeSMSDB.Outgoing.register_failed(getApplicationContext(), messageIdFinal, 1);
+                            conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_FAILED);
+                            conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
+                            conversation.setError_code(1);
+                            conversationsViewModel.update(conversation);
                         }
                     }
                 });

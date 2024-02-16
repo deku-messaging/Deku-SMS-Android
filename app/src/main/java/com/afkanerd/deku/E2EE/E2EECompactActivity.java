@@ -106,11 +106,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             @Override
             public void run() {
                 try {
-//                    E2EEHandler.clear(getApplicationContext(),
-//                            E2EEHandler.deriveKeystoreAlias(
-//                                    threadedConversations.getAddress(),
-//                                    0));
-
                     Pair<String,  byte[]> transmissionRequestKeyPair =
                             E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
                                     threadedConversations.getAddress());

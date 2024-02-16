@@ -48,20 +48,21 @@ public class DualSIMConversationActivity extends AppCompatActivity {
                 }
             }
         });
-        if(dualSim && sendImageButton != null) {
+        if(sendImageButton != null) {
             String subscriptionName = SIMHandler.getSubscriptionName(getApplicationContext(),
                     SIMHandler.getDefaultSimSubscription(getApplicationContext()));
-            Log.d(getClass().getName(), "Dual name: " + subscriptionName + ":" + SIMHandler.getDefaultSimSubscription(getApplicationContext()));
-            currentSimcardTextView.setText(subscriptionName);
 
             defaultSubscriptionId.setValue(SIMHandler.getDefaultSimSubscription(getApplicationContext()));
-            sendImageButton.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    showMultiDualSimAlert();
-                    return true;
-                }
-            });
+            if(dualSim) {
+                currentSimcardTextView.setText(subscriptionName);
+                sendImageButton.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        showMultiDualSimAlert();
+                        return true;
+                    }
+                });
+            }
         }
 
     }

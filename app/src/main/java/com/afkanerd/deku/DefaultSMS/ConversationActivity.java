@@ -443,12 +443,17 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onChanged(Conversation conversation) {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
-                conversationsViewModel.deleteItems(getApplicationContext(), list);
-                try {
-                    sendDataMessage(threadedConversations);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        conversationsViewModel.deleteItems(getApplicationContext(), list);
+                        try {
+                            sendDataMessage(threadedConversations);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         });
 
@@ -573,7 +578,6 @@ public class ConversationActivity extends E2EECompactActivity {
                 TextView dualSimCardName =
                         (TextView) findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
                 if(SIMHandler.isDualSim(getApplicationContext())) {
-                    Log.d(getClass().getName(), "Yes is dual sim");
                     dualSimCardName.setVisibility(View.VISIBLE);
                 }
                 sendBtn.setVisibility(visibility);
