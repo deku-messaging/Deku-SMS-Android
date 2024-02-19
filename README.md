@@ -109,6 +109,10 @@ The app sends a callback to your SMS Gateways once the requested message [status
 <b>* Status changes</b> - `sent`, `delivered`, `failed`
 
 # <a name="build"></a> Build
+```bash
+git clone https://github.com/deku-messaging/Deku-SMS-Android.git
+git submodule update --init --recursive
+```
 Getting the project into Android-studio would allow for an easy build.
 
 ## <a name="reproducible_builds"></a> Reproducible builds notes
