@@ -16,6 +16,7 @@ import android.provider.Settings;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -102,6 +103,13 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
         long gatewayId = getIntent().getLongExtra(GATEWAY_CLIENT_ID, -1);
         gatewayClient = gatewayClientHandler.fetch(gatewayId);
 
+
+        final boolean isDualSim = SIMHandler.isDualSim(getApplicationContext());
+        if(isDualSim) {
+            findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint)
+                    .setVisibility(View.VISIBLE);
+        }
+
         if(getIntent().hasExtra(GATEWAY_CLIENT_PROJECT_ID)) {
             id = getIntent().getLongExtra(GATEWAY_CLIENT_PROJECT_ID, -1);
             new Thread(new Runnable() {
@@ -117,12 +125,10 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
                         }
                     });
 
-                    if (SIMHandler.isDualSim(getApplicationContext())) {
+                    if (isDualSim) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint)
-                                        .setVisibility(View.VISIBLE);
                                 projectBinding2.setText(gatewayClientProjects.binding2Name);
                             }
                         });

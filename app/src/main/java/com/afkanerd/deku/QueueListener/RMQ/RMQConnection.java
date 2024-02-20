@@ -80,6 +80,10 @@ public class RMQConnection {
 //    }
 
     List<Channel> channelList = new ArrayList<>();
+    public void removeChannel(Channel channel) {
+        channelList.remove(channel);
+    }
+
     public Channel createChannel() throws IOException {
         int prefetchCount = 1;
         Channel channel = this.connection.createChannel();

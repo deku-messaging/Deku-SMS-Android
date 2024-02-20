@@ -239,7 +239,6 @@ public class RMQConnectionService extends Service {
                                                 Log.i(getClass().getName(), "Confirming message sent");
                                                 channel.basicAck(deliveryTag.getEnvelope().getDeliveryTag(), false);
                                                 smsStatusReport.reportedStatus = SMS_STATUS_SENT;
-//                                                channelList.remove(Long.parseLong(messageId));
                                             } else {
                                                 Log.e(getClass().getName(),
                                                         "Failed to send sms: " + messageId + ":" + getResultCode());
@@ -249,6 +248,7 @@ public class RMQConnectionService extends Service {
                                                         true);
                                                 smsStatusReport.reportedStatus = SMS_STATUS_FAILED;
                                             }
+                                            channelList.remove(Long.parseLong(messageId));
                                         }
 //                                        try {
 //                                            GatewayServerHandler gatewayServerHandler =
@@ -390,18 +390,31 @@ public class RMQConnectionService extends Service {
 
         List<GatewayClientProjects> gatewayClientProjectsList =
                 gatewayClientProjectDao.fetchGatewayClientIdList(gatewayClient.getId());
+        Log.i(getClass().getName(), "Subscription number: " + subscriptionInfoList.size());
         for(int j=0;j<subscriptionInfoList.size();++j) {
-            Channel channel = rmqConnection.createChannel();
-            DeliverCallback deliverCallback = getDeliverCallback(channel,
-                    subscriptionInfoList.get(j).getSubscriptionId());
-
             for(int i=0;i<gatewayClientProjectsList.size(); ++i) {
+                Channel channel = rmqConnection.createChannel();
+                DeliverCallback deliverCallback = getDeliverCallback(channel,
+                        subscriptionInfoList.get(j).getSubscriptionId());
+
                 GatewayClientProjects gatewayClientProjects = gatewayClientProjectsList.get(i);
                 String bindingName = j > 0 ? gatewayClientProjects.binding2Name :
                         gatewayClientProjects.binding1Name;
-                String queue = rmqConnection.createQueue(gatewayClientProjects.name, bindingName,
-                        channel);
-                String consumerTags = rmqConnection.consume(channel, queue, deliverCallback);
+                try {
+                    String queue = rmqConnection.createQueue(gatewayClientProjects.name, bindingName,
+                            channel);
+                    Log.i(getClass().getName(), "Created Queue: " + queue);
+                    String consumerTags = rmqConnection.consume(channel, queue, deliverCallback);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                } finally {
+//                    if(!channel.isOpen()) {
+//                        rmqConnection.removeChannel(channel);
+//                        channel = rmqConnection.createChannel();
+//                        deliverCallback = getDeliverCallback(channel,
+//                                subscriptionInfoList.get(j).getSubscriptionId());
+//                    }
+                }
 //                consumerTagChannels.put(consumerTags, channel);
 //                CustomChannelShutdownListener customChannelShutdownListener =
 //                        new CustomChannelShutdownListener(consumerTags, channel);
