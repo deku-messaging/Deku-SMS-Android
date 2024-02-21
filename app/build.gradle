@@ -55,6 +55,9 @@ android {
                 exclude 'com/afkanerd/deku/Images/Images/'
                 /* The holder name I want to excludes its all classes */
             }
+            resources {
+                srcDirs 'src/main/resources'
+            }
         }
     }
 

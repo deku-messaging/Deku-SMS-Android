@@ -21,8 +21,10 @@ public class RMQConnection {
 
     public static final String MESSAGE_BODY_KEY = "text";
     public static final String MESSAGE_MSISDN_KEY = "to";
-    public static final String MESSAGE_GLOBAL_MESSAGE_ID_KEY = "id";
     public static final String MESSAGE_SID = "sid";
+
+    public static final String RMQ_DELIVERY_TAG = "RMQ_DELIVERY_TAG";
+    public static final String RMQ_CONSUMER_TAG = "RMQ_CONSUMER_TAG";
 
     public Connection connection;
 
@@ -79,7 +81,7 @@ public class RMQConnection {
 //        return new Channel[]{channel1, channel2};
 //    }
 
-    List<Channel> channelList = new ArrayList<>();
+    public List<Channel> channelList = new ArrayList<>();
     public void removeChannel(Channel channel) {
         channelList.remove(channel);
     }
@@ -91,6 +93,7 @@ public class RMQConnection {
         channelList.add(channel);
         return channelList.get(channelList.size() -1);
     }
+
     public void close() throws IOException {
         if(connection != null)
             connection.close();
@@ -100,8 +103,10 @@ public class RMQConnection {
         return connection;
     }
 
-    public String createQueue(String exchangeName, String bindingKey, Channel channel) throws IOException {
-        final String queueName = bindingKey.replaceAll("\\.", "_");
+    public String createQueue(String exchangeName, String bindingKey, Channel channel,
+                              String queueName) throws IOException {
+        if(queueName == null)
+            queueName = bindingKey.replaceAll("\\.", "_");
 
         channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
         channel.queueBind(queueName, exchangeName, bindingKey);
