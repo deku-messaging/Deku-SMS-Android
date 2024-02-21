@@ -5,6 +5,8 @@ import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBro
 import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
+import static org.junit.Assert.assertTrue;
+
 import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -48,6 +50,7 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.Router.Router.RouterItem;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Command;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ConsumerShutdownSignalCallback;
@@ -56,6 +59,7 @@ import com.rabbitmq.client.Delivery;
 import com.rabbitmq.client.RecoveryDelayHandler;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
+import com.rabbitmq.client.TrafficListener;
 import com.rabbitmq.client.impl.DefaultExceptionHandler;
 
 import org.json.JSONException;
@@ -81,14 +85,12 @@ public class RMQConnectionService extends Service {
 
     private BroadcastReceiver messageStateChangedBroadcast;
 
-    private SharedPreferences sharedPreferences, cachePreferences;
+    private SharedPreferences sharedPreferences;
 
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
     Conversation conversation;
     ConversationDao conversationDao;
-
-    public final static String RMQ_MESSAGE_CACHE = "RMQ_MESSAGE_CACHE";
 
     public RMQConnectionService(Context context) {
         attachBaseContext(context);
@@ -104,7 +106,6 @@ public class RMQConnectionService extends Service {
         handleBroadcast();
 
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
-        cachePreferences = getSharedPreferences(RMQ_MESSAGE_CACHE, Context.MODE_PRIVATE);
 
         registerListeners();
 
@@ -157,7 +158,7 @@ public class RMQConnectionService extends Service {
     private void handleBroadcast() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(SMS_SENT_BROADCAST_INTENT);
-        intentFilter.addAction(SMS_DELIVERED_BROADCAST_INTENT);
+//        intentFilter.addAction(SMS_DELIVERED_BROADCAST_INTENT);
 
         messageStateChangedBroadcast = new BroadcastReceiver() {
             @Override
@@ -173,6 +174,7 @@ public class RMQConnectionService extends Service {
                                 intent.getStringExtra(RMQConnection.RMQ_CONSUMER_TAG);
                         final long deliveryTag =
                                 intent.getLongExtra(RMQConnection.RMQ_DELIVERY_TAG, -1);
+                        assertTrue(deliveryTag != -1);
 
                         Channel channel = activeConsumingChannels.get(consumerTag);
 
@@ -186,9 +188,6 @@ public class RMQConnectionService extends Service {
                                             Log.i(getClass().getName(),
                                                     "Confirming message sent");
                                             if(channel == null || !channel.isOpen()) {
-                                                cachePreferences.edit()
-                                                        .putBoolean(sid, true)
-                                                        .commit();
                                                 return;
                                             }
                                             channel.basicAck(deliveryTag, false);
@@ -204,9 +203,6 @@ public class RMQConnectionService extends Service {
                                     public void run() {
                                         try {
                                             if(channel == null || !channel.isOpen()) {
-                                                cachePreferences.edit()
-                                                        .putBoolean(sid, false)
-                                                        .commit();
                                                 return;
                                             }
                                             channel.basicReject(deliveryTag, true);
@@ -239,33 +235,13 @@ public class RMQConnectionService extends Service {
                 final String sid = jsonObject.getString(RMQConnection.MESSAGE_SID);
                 long threadId = Telephony.Threads.getOrCreateThreadId(getApplicationContext(), msisdn);
 
-                if(cachePreferences.contains(sid)) {
-                    if(!cachePreferences.getBoolean(sid, false)) {
-                        consumerExecutorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                if(channel != null && channel.isOpen()) {
-                                    try {
-                                        channel.basicAck(delivery.getEnvelope().getDeliveryTag(),
-                                                false);
-                                    } catch (IOException ex) {
-                                        ex.printStackTrace();
-                                    }
-                                }
-                            }
-                        });
-                        cachePreferences.edit().remove(sid).commit();
-                        return;
-                    }
-                }
-
                 Bundle bundle = new Bundle();
                 bundle.putString(RMQConnection.MESSAGE_SID, sid);
                 bundle.putLong(RMQConnection.RMQ_DELIVERY_TAG,
                         delivery.getEnvelope().getDeliveryTag());
                 bundle.putString(RMQConnection.RMQ_CONSUMER_TAG, consumerTag);
 
-                SemaphoreManager.acquireSemaphore();
+                SemaphoreManager.acquireSemaphore(subscriptionId);
                 long messageId = System.currentTimeMillis();
                 Conversation conversation = new Conversation();
                 conversation.setMessage_id(String.valueOf(messageId));
@@ -311,7 +287,7 @@ public class RMQConnectionService extends Service {
                 });
             } finally {
                 try {
-                    SemaphoreManager.releaseSemaphore();
+                    SemaphoreManager.releaseSemaphore(subscriptionId);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -319,8 +295,9 @@ public class RMQConnectionService extends Service {
         };
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    private void startAllGatewayClientConnections() {
+        Log.d(getClass().getName(), "Starting all connections...");
+        connectionList.clear();
         Map<String, ?> storedGatewayClients = sharedPreferences.getAll();
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
 
@@ -338,6 +315,11 @@ public class RMQConnectionService extends Service {
                 }
             }
         }
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        startAllGatewayClientConnections();
         return START_STICKY;
     }
 
@@ -366,6 +348,8 @@ public class RMQConnectionService extends Service {
                 if(sharedPreferences.getBoolean(String.valueOf(gatewayClient.getId()), false)) {
                     try {
                         connectionList.remove(gatewayClient.getId());
+                        int[] states = getGatewayClientNumbers();
+                        createForegroundNotification(states[0], states[1]);
                         startConnection(factory, gatewayClient);
                     } catch (IOException | TimeoutException | InterruptedException e) {
                         e.printStackTrace();
@@ -387,7 +371,7 @@ public class RMQConnectionService extends Service {
 
         for(int j=0;j<subscriptionInfoList.size();++j) {
             for(int i=0;i<gatewayClientProjectsList.size(); ++i) {
-                Channel channel = rmqConnection.createChannel();
+                final Channel channel = rmqConnection.createChannel();
                 GatewayClientProjects gatewayClientProjects = gatewayClientProjectsList.get(i);
                 String bindingName = j > 0 ? gatewayClientProjects.binding2Name :
                         gatewayClientProjects.binding1Name;
@@ -397,9 +381,12 @@ public class RMQConnectionService extends Service {
                         gatewayClientProjects, bindingName);
             }
         }
+
+        int[] states = getGatewayClientNumbers();
+        createForegroundNotification(states[0], states[1]);
     }
 
-    public void startChannelConsumption(RMQConnection rmqConnection, Channel channel,
+    public void startChannelConsumption(RMQConnection rmqConnection, final Channel channel,
                                         final int subscriptionId,
                                         final GatewayClientProjects gatewayClientProjects,
                                         final String bindingName) throws IOException {
@@ -431,6 +418,7 @@ public class RMQConnectionService extends Service {
             });
 
             activeConsumingChannels.put(consumerTag, channel);
+            Log.i(getClass().getName(), "Adding tag: " + consumerTag);
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -438,9 +426,9 @@ public class RMQConnectionService extends Service {
 
     Map<String, Channel> activeConsumingChannels = new HashMap<>();
 
+    boolean disconnected = false;
     public void connectGatewayClient(GatewayClient gatewayClient) throws InterruptedException {
         Log.d(getClass().getName(), "Starting new service connection...");
-        int[] states = getGatewayClientNumbers();
 
         ConnectionFactory factory = new ConnectionFactory();
 
@@ -452,6 +440,30 @@ public class RMQConnectionService extends Service {
         factory.setAutomaticRecoveryEnabled(true);
         factory.setNetworkRecoveryInterval(10000);
         factory.setExceptionHandler(new DefaultExceptionHandler());
+
+        factory.setRecoveryDelayHandler(new RecoveryDelayHandler() {
+            @Override
+            public long getDelay(int recoveryAttempts) {
+                Log.w(getClass().getName(), "Factory recovering...: " + recoveryAttempts);
+                int[] states = getGatewayClientNumbers();
+                createForegroundNotification(states[0], states[1]);
+                disconnected = true;
+                return 10000;
+            }
+        });
+        factory.setTrafficListener(new TrafficListener() {
+            @Override
+            public void write(Command outboundCommand) {
+            }
+
+            @Override
+            public void read(Command inboundCommand) {
+                if(disconnected) {
+                    startAllGatewayClientConnections();
+                    disconnected = false;
+                }
+            }
+        });
 
         consumerExecutorService.execute(new Runnable() {
             @Override
@@ -536,31 +548,5 @@ public class RMQConnectionService extends Service {
         }
         else
             startForeground(NOTIFICATION_ID, notification);
-    }
-
-    private class CustomChannelShutdownListener implements ShutdownListener {
-        public Channel channel;
-        public String consumerTag;
-
-        public CustomChannelShutdownListener(String consumerTag, Channel channel) {
-            this.channel = channel;
-            this.consumerTag = consumerTag;
-        }
-
-        @Override
-        public void shutdownCompleted(ShutdownSignalException cause) {
-            Log.d(getClass().getName(), "Channel shutdown caused: " + cause.getMessage());
-//            consumerTagChannels.remove(consumerTag);
-//            try {
-//                this.channel.basicRecover();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-            try {
-                channel.getConnection().close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }
