@@ -82,7 +82,7 @@ public class RMQConnectionService extends Service {
 
     private HashMap<Long, Connection> connectionList = new HashMap<>();
 
-    ExecutorService consumerExecutorService = Executors.newFixedThreadPool(4); // Create a pool of 5 worker threads
+    ExecutorService consumerExecutorService = Executors.newFixedThreadPool(50); // Create a pool of 5 worker threads
 
     private BroadcastReceiver messageStateChangedBroadcast;
 
@@ -372,8 +372,8 @@ public class RMQConnectionService extends Service {
                 gatewayClientProjectDao.fetchGatewayClientIdList(gatewayClient.getId());
         Log.d(getClass().getName(), "Subscription number: " + subscriptionInfoList.size());
 
-        for(int j=0;j<subscriptionInfoList.size();++j) {
-            for(int i=0;i<gatewayClientProjectsList.size(); ++i) {
+        for(int i=0;i<gatewayClientProjectsList.size(); ++i) {
+            for(int j=0;j<subscriptionInfoList.size();++j) {
                 final Channel channel = rmqConnection.createChannel();
                 GatewayClientProjects gatewayClientProjects = gatewayClientProjectsList.get(i);
                 String bindingName = j > 0 ? gatewayClientProjects.binding2Name :
@@ -395,36 +395,41 @@ public class RMQConnectionService extends Service {
                                         final String bindingName) throws IOException {
         channel.basicRecover(true);
         final DeliverCallback deliverCallback = getDeliverCallback(channel, subscriptionId);
-        try {
-            String queueName = rmqConnection.createQueue(gatewayClientProjects.name, bindingName,
-                    channel, null);
-            long messagesCount = channel.messageCount(queueName);
+        consumerExecutorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String queueName = rmqConnection.createQueue(gatewayClientProjects.name, bindingName,
+                            channel, null);
+                    long messagesCount = channel.messageCount(queueName);
 
-            Log.d(getClass().getName(), "Created Queue: " + queueName
-                    + " (" + messagesCount + ")");
-            String consumerTag = channel.basicConsume(queueName, false, deliverCallback,
-                    new ConsumerShutdownSignalCallback() {
-                @Override
-                public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
-                    Log.e(getClass().getName(), "Consumer error: " + sig.getMessage());
-                    if(rmqConnection.connection != null && rmqConnection.connection.isOpen()) {
-                        try {
-                            activeConsumingChannels.remove(consumerTag);
-                            Channel channel = rmqConnection.createChannel();
-                            startChannelConsumption(rmqConnection, channel, subscriptionId,
-                                    gatewayClientProjects, bindingName);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    Log.d(getClass().getName(), "Created Queue: " + queueName
+                            + " (" + messagesCount + ")");
+
+                    String consumerTag = channel.basicConsume(queueName, false, deliverCallback,
+                            new ConsumerShutdownSignalCallback() {
+                                @Override
+                                public void handleShutdownSignal(String consumerTag, ShutdownSignalException sig) {
+                                    Log.e(getClass().getName(), "Consumer error: " + sig.getMessage());
+                                    if(rmqConnection.connection != null && rmqConnection.connection.isOpen()) {
+                                        try {
+                                            activeConsumingChannels.remove(consumerTag);
+                                            Channel channel = rmqConnection.createChannel();
+                                            startChannelConsumption(rmqConnection, channel, subscriptionId,
+                                                    gatewayClientProjects, bindingName);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+                            });
+                    activeConsumingChannels.put(consumerTag, channel);
+                    Log.i(getClass().getName(), "Adding tag: " + consumerTag);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            });
-
-            activeConsumingChannels.put(consumerTag, channel);
-            Log.i(getClass().getName(), "Adding tag: " + consumerTag);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+            }
+        });
     }
 
     Map<String, Channel> activeConsumingChannels = new HashMap<>();
