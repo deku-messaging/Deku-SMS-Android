@@ -71,6 +71,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -297,7 +298,7 @@ public class RMQConnectionService extends Service {
 
     private void startAllGatewayClientConnections() {
         Log.d(getClass().getName(), "Starting all connections...");
-        connectionList.clear();
+//        connectionList.clear();
         Map<String, ?> storedGatewayClients = sharedPreferences.getAll();
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
 
@@ -305,7 +306,9 @@ public class RMQConnectionService extends Service {
         createForegroundNotification(states[0], states[1]);
 
         for (String gatewayClientIds : storedGatewayClients.keySet()) {
-            if(!connectionList.containsKey(Long.parseLong(gatewayClientIds))) {
+            if(!connectionList.containsKey(Long.parseLong(gatewayClientIds)) ||
+                    (connectionList.get(Long.parseLong(gatewayClientIds)) != null &&
+                            !connectionList.get(Long.parseLong(gatewayClientIds)).isOpen())) {
                 try {
                     GatewayClient gatewayClient =
                             gatewayClientHandler.fetch(Long.parseLong(gatewayClientIds));
@@ -459,6 +462,8 @@ public class RMQConnectionService extends Service {
             @Override
             public void read(Command inboundCommand) {
                 if(disconnected) {
+                    Objects.requireNonNull(connectionList.get(gatewayClient.getId())).abort();
+                    connectionList.remove(gatewayClient.getId());
                     startAllGatewayClientConnections();
                     disconnected = false;
                 }
