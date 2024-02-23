@@ -478,7 +478,7 @@ public class ThreadedConversationsFragment extends Fragment {
             case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
                 Log.d(getClass().getName(), "Fragment at encrypted");
                 try {
-                    threadedConversationsViewModel.getEncrypted(getContext()).observe(getViewLifecycleOwner(),
+                    threadedConversationsViewModel.getEncrypted().observe(getViewLifecycleOwner(),
                             new Observer<PagingData<ThreadedConversations>>() {
                                 @Override
                                 public void onChanged(PagingData<ThreadedConversations> smsList) {

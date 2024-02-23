@@ -107,8 +107,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
 
-                    Conversation conversation = ConversationHandler.acquireDatabase(context)
-                            .conversationDao().getMessage(id);
+                    Conversation conversation = databaseConnector.conversationDao().getMessage(id);
                     if(conversation == null)
                         return;
 
@@ -126,8 +125,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                             e.printStackTrace();
                         }
                     }
-                    ConversationHandler.acquireDatabase(context)
-                            .conversationDao().update(conversation);
+                    databaseConnector.conversationDao().update(conversation);
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -147,8 +145,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
 
-                    Conversation conversation = ConversationHandler.acquireDatabase(context)
-                            .conversationDao().getMessage(id);
+                    Conversation conversation = databaseConnector.conversationDao().getMessage(id);
                     if(conversation == null)
                         return;
 
@@ -162,8 +159,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setError_code(getResultCode());
                     }
 
-                    ConversationHandler.acquireDatabase(context)
-                            .conversationDao().update(conversation);
+                    databaseConnector.conversationDao().update(conversation);
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());

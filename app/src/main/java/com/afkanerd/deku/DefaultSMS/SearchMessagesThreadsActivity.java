@@ -58,6 +58,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                     .enableMultiInstanceInvalidation()
                     .build();
         databaseConnector = Datastore.datastore;
+
         searchViewModel = new ViewModelProvider(this).get(
                 SearchViewModel.class);
         searchViewModel.databaseConnector = Datastore.datastore;

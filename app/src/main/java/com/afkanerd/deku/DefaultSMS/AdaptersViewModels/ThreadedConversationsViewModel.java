@@ -148,17 +148,13 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return gson.toJson(conversations);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getEncrypted(Context context) throws InterruptedException {
+    public LiveData<PagingData<ThreadedConversations>> getEncrypted() throws InterruptedException {
         List<String> address = new ArrayList<>();
-        ConversationsThreadsEncryption conversationsThreadsEncryption1 =
-                new ConversationsThreadsEncryption();
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                conversationsThreadsEncryption1.getDaoInstance(context);
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
-                        conversationsThreadsEncryptionDao.getAll();
+                        Datastore.datastore.conversationsThreadsEncryptionDao().getAll();
                 for(ConversationsThreadsEncryption conversationsThreadsEncryption :
                         conversationsThreadsEncryptionList) {
                     String derivedAddress =
