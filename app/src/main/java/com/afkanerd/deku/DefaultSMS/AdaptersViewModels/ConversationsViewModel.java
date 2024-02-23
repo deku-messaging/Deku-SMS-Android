@@ -148,6 +148,6 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public void mute() {
-        datastore.threadedConversationsDao().updateUnMuteAll();
+        datastore.threadedConversationsDao().updateMuted(1, threadId);
     }
 }

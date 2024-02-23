@@ -201,23 +201,45 @@ public class ConversationActivity extends E2EECompactActivity {
             return true;
         }
         else if (R.id.conversations_menu_mute == item.getItemId()) {
-            conversationsViewModel.mute();
-            invalidateMenu();
-            configureToolbars();
-            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_muted),
-                    Toast.LENGTH_SHORT).show();
-            if(actionMode != null)
-                actionMode.finish();
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    conversationsViewModel.mute();
+                    threadedConversations.setIs_mute(true);
+                    invalidateMenu();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            configureToolbars();
+                            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_muted),
+                                    Toast.LENGTH_SHORT).show();
+                            if(actionMode != null)
+                                actionMode.finish();
+                        }
+                    });
+                }
+            });
             return true;
         }
         else if (R.id.conversations_menu_unmute == item.getItemId()) {
-            conversationsViewModel.unMute();
-            invalidateMenu();
-            configureToolbars();
-            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_unmuted),
-                    Toast.LENGTH_SHORT).show();
-            if(actionMode != null)
-                actionMode.finish();
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    conversationsViewModel.unMute();
+                    threadedConversations.setIs_mute(false);
+                    invalidateMenu();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            configureToolbars();
+                            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_unmuted),
+                                    Toast.LENGTH_SHORT).show();
+                            if(actionMode != null)
+                                actionMode.finish();
+                        }
+                    });
+                }
+            });
             return true;
         }
         return super.onOptionsItemSelected(item);
