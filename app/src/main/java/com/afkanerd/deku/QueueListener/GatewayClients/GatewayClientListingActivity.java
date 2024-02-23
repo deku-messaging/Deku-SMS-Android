@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -58,6 +59,14 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_listing);
 
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        databaseConnector = Datastore.datastore;
+
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
 
         toolbar = findViewById(R.id.gateway_client_listing_toolbar);
@@ -79,10 +88,6 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
         gatewayClientViewModel = new ViewModelProvider(this).get(
                 GatewayClientViewModel.class);
-
-        databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                Datastore.databaseName)
-                .build();
 
         gatewayClientDAO = databaseConnector.gatewayClientDAO();
 
@@ -155,11 +160,5 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         return editor.remove(String.valueOf(id))
                         .commit();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        databaseConnector.close();
     }
 }

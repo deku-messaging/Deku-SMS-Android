@@ -56,11 +56,13 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             finish();
         }
 
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Log.d(getClass().getName(), "Yes I am closed");
             Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
                             Datastore.databaseName)
                     .enableMultiInstanceInvalidation()
                     .build();
+        }
         databaseConnector = Datastore.datastore;
     }
 

@@ -7,6 +7,7 @@ import android.provider.Telephony;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
@@ -30,6 +31,7 @@ public class ThreadedConversations {
         this.is_secured = is_secured;
     }
 
+    @ColumnInfo(defaultValue = "0")
     public boolean is_secured = false;
     @NonNull
     @PrimaryKey
@@ -71,6 +73,7 @@ public class ThreadedConversations {
         this.is_mute = is_mute;
     }
 
+    @ColumnInfo(defaultValue = "0")
      private boolean is_mute = false;
 
     public static ThreadedConversations build(Context context, Conversation conversation) {

@@ -84,7 +84,7 @@ public class RoomMigrationTest {
         statement.close();
 
         db = helper.runMigrationsAndValidate(TEST_DB, 12, true,
-                Migrations.MIGRATION_11_12);
+                new Migrations.MIGRATION_11_12());
     }
 
 }

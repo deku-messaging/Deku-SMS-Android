@@ -160,9 +160,15 @@ public class Migrations {
         }
     }
 
-    public static final Migration MIGRATION_11_12 = new Migration(11, 12) {
+    public static class MIGRATION_11_12 extends Migration {
+
+        public MIGRATION_11_12() {
+            super(11, 12);
+        }
+
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase supportSQLiteDatabase) {
+            Log.d(getClass().getName(), "Migration to 12 happening");
             supportSQLiteDatabase.execSQL("ALTER TABLE ThreadedConversations " +
                     "ADD COLUMN is_mute INTEGER NOT NULL DEFAULT 0");
             supportSQLiteDatabase.execSQL("ALTER TABLE ThreadedConversations " +

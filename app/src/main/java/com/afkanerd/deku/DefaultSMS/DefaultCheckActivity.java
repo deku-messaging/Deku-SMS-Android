@@ -105,25 +105,27 @@ public class DefaultCheckActivity extends AppCompatActivity {
         }
     }
     public void startMigrations() {
-        Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration4To5())
-                .addMigrations(new Migrations.Migration5To6())
-                .addMigrations(new Migrations.Migration6To7())
-                .addMigrations(new Migrations.Migration7To8())
-                .addMigrations(new Migrations.Migration9To10())
-                .addMigrations(new Migrations.Migration10To11(getApplicationContext()))
-                .addMigrations(Migrations.MIGRATION_11_12)
-                .build().close();
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .addMigrations(new Migrations.Migration4To5())
+                    .addMigrations(new Migrations.Migration5To6())
+                    .addMigrations(new Migrations.Migration6To7())
+                    .addMigrations(new Migrations.Migration7To8())
+                    .addMigrations(new Migrations.Migration9To10())
+                    .addMigrations(new Migrations.Migration10To11(getApplicationContext()))
+                    .addMigrations(new Migrations.MIGRATION_11_12())
+                    .build();
     }
 
 
     private void startUserActivities() {
+        startMigrations();
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 configureNotifications();
-                startMigrations();
                 startServices();
             }
         });
