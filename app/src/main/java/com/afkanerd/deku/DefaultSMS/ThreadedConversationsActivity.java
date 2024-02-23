@@ -34,6 +34,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsView
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
@@ -209,22 +210,16 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         startActivity(intent);
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu){
-//        getMenuInflater().inflate(R.menu.conversations_threads_menu, menu);
-//        return super.onCreateOptionsMenu(menu);
-//    }
-
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-//        setViewModel(null);
-    }
 
     @Override
     protected void onResume() {
         super.onResume();
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversationsViewModel.getCount(getApplicationContext());
+            }
+        });
     }
 
 

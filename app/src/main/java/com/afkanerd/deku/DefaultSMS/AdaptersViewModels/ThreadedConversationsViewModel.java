@@ -1,13 +1,9 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.net.Uri;
 import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
-import android.telecom.TelecomManager;
-import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -18,28 +14,20 @@ import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
 
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 public class ThreadedConversationsViewModel extends ViewModel {
 
@@ -84,33 +72,18 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getMuted(Context context){
+    public LiveData<PagingData<ThreadedConversations>> getMuted(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
                 enablePlaceholder,
                 initialLoadSize,
                 maxSize
-        ), ()-> getMutedPagingSource(context));
+        ), ()-> databaseConnector.threadedConversationsDao().getMuted());
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
     PagingSource<Integer, ThreadedConversations> mutedPagingSource;
-    private PagingSource<Integer, ThreadedConversations> getMutedPagingSource(Context context){
-        List<String> mutedNumber = new ArrayList<>();
-        for(String number: Contacts.getMuted(context)) {
-            try {
-                mutedNumber.add(number);
-                mutedNumber.add(Helpers.getCountryNationalAndCountryCode(number)[1]);
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        mutedPagingSource = databaseConnector.threadedConversationsDao().getByAddress(mutedNumber);
-        return mutedPagingSource;
-    }
-
     public LiveData<PagingData<ThreadedConversations>> getUnread(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -312,7 +285,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public boolean hasUnread(List<String> ids) {
-        return databaseConnector.threadedConversationsDao().getAllUnreadWithoutArchivedCount(ids) > 0;
+        return databaseConnector.threadedConversationsDao().getCountUnread(ids) > 0;
     }
 
     public void markUnRead(Context context, List<String> threadIds) {
@@ -337,10 +310,10 @@ public class ThreadedConversationsViewModel extends ViewModel {
     public void getCount(Context context) {
         int draftsListCount = databaseConnector.threadedConversationsDao()
                 .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
-        int encryptedCount = databaseConnector.threadedConversationsDao().getAllEncryptedCount();
-        int unreadCount = databaseConnector.threadedConversationsDao().getAllUnreadWithoutArchivedCount();
-        int blockedCount = databaseConnector.threadedConversationsDao().getAllBlocked();
-        int mutedCount = Contacts.getMuted(context).size();
+        int encryptedCount = databaseConnector.threadedConversationsDao().getCountEncrypted();
+        int unreadCount = databaseConnector.threadedConversationsDao().getCountUnread();
+        int blockedCount = databaseConnector.threadedConversationsDao().getCountBlocked();
+        int mutedCount = databaseConnector.threadedConversationsDao().getCountMuted();
         List<Integer> list = new ArrayList<>();
         list.add(draftsListCount);
         list.add(encryptedCount);
@@ -350,20 +323,15 @@ public class ThreadedConversationsViewModel extends ViewModel {
         folderMetrics.postValue(list);
     }
 
-    public void unMute(Context context, List<String> threadIds) {
-        List<ThreadedConversations> threadedConversationsList =
-                databaseConnector.threadedConversationsDao().getList(threadIds);
-        for(ThreadedConversations threadedConversations : threadedConversationsList) {
-            Contacts.unmute(context, threadedConversations.getAddress());
-        }
-        mutedPagingSource.invalidate();
+    public void unMute(List<String> threadIds) {
+        databaseConnector.threadedConversationsDao().updateMuted(0, threadIds);
     }
 
-    public void mute(Context context, List<String> threadIds) {
-        List<ThreadedConversations> threadedConversationsList =
-                databaseConnector.threadedConversationsDao().getList(threadIds);
-        for(ThreadedConversations threadedConversations : threadedConversationsList) {
-            Contacts.mute(context, threadedConversations.getAddress());
-        }
+    public void mute(List<String> threadIds) {
+        databaseConnector.threadedConversationsDao().updateMuted(1, threadIds);
+    }
+
+    public void unMuteAll() {
+        databaseConnector.threadedConversationsDao().updateUnMuteAll();
     }
 }

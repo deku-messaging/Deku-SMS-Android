@@ -143,21 +143,12 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
         }
 
         else if(intent.getAction() != null && intent.getAction().equals(MUTE_BROADCAST_INTENT)) {
-            String address = intent.getStringExtra(Conversation.ADDRESS);
             String threadId = intent.getStringExtra(Conversation.THREAD_ID);
-            String messageId = intent.getStringExtra(Conversation.ID);
-            Contacts.mute(context, address);
-
-            Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
-            broadcastIntent.putExtra(Conversation.ID, messageId);
-            broadcastIntent.putExtra(Conversation.ADDRESS, address);
-            broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
-            if(intent.getExtras() != null)
-                broadcastIntent.putExtras(intent.getExtras());
-            context.sendBroadcast(broadcastIntent);
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
             notificationManager.cancel(Integer.parseInt(threadId));
+
+            databaseConnector.threadedConversationsDao().updateMuted(1, threadId);
         }
     }
 }

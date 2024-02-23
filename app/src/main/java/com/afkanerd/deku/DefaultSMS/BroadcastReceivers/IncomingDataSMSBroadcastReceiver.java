@@ -13,10 +13,12 @@ import androidx.room.Room;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -90,7 +92,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     conversation.setDate(dateSent);
                     conversation.setDate(date);
 
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
                             databaseConnector.conversationDao().insert(conversation);
@@ -109,7 +111,9 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
                             context.sendBroadcast(broadcastIntent);
 
-                            if(!Contacts.isMuted(context, address))
+                            ThreadedConversations threadedConversations =
+                                    databaseConnector.threadedConversationsDao().get(threadId);
+                            if(!threadedConversations.isIs_mute())
                                 NotificationsHandler.sendIncomingTextMessageNotification(context,
                                         conversation);
                         }

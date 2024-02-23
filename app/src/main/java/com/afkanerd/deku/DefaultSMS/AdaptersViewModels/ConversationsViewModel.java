@@ -142,4 +142,12 @@ public class ConversationsViewModel extends ViewModel {
                 .deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
         SMSDatabaseWrapper.deleteDraft(context, threadId);
     }
+
+    public void unMute() {
+        datastore.threadedConversationsDao().updateMuted(0, threadId);
+    }
+
+    public void mute() {
+        datastore.threadedConversationsDao().updateUnMuteAll();
+    }
 }

@@ -268,10 +268,11 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 broadcastIntent.putExtra(Conversation.ID, messageId);
                 context.sendBroadcast(broadcastIntent);
 
-                String defaultRegion = Helpers.getUserCountry(context);
-                String e16Address = Helpers.getFormatCompleteNumber(address, defaultRegion);
-                if(!Contacts.isMuted(context, e16Address) &&
-                        !Contacts.isMuted(context, address))
+//                String defaultRegion = Helpers.getUserCountry(context);
+//                String e16Address = Helpers.getFormatCompleteNumber(address, defaultRegion);
+                ThreadedConversations threadedConversations =
+                        databaseConnector.threadedConversationsDao().get(threadId);
+                if(!threadedConversations.isIs_mute())
                     NotificationsHandler.sendIncomingTextMessageNotification(context,
                             conversation);
 

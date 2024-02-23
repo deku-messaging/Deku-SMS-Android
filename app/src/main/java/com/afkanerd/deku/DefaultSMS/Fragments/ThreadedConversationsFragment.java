@@ -345,7 +345,7 @@ public class ThreadedConversationsFragment extends Fragment {
                     ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            threadedConversationsViewModel.mute(getContext(), threadIds);
+                            threadedConversationsViewModel.mute(threadIds);
                             threadedConversationsViewModel.getCount(getContext());
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
@@ -367,7 +367,7 @@ public class ThreadedConversationsFragment extends Fragment {
                     ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            threadedConversationsViewModel.unMute(getContext(), threadIds);
+                            threadedConversationsViewModel.unMute(threadIds);
                             threadedConversationsViewModel.getCount(getContext());
                         }
                     });
@@ -531,7 +531,7 @@ public class ThreadedConversationsFragment extends Fragment {
                         });
                 break;
             case MUTED_MESSAGE_TYPE:
-                threadedConversationsViewModel.getMuted(getContext()).observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.getMuted().observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -668,9 +668,7 @@ public class ThreadedConversationsFragment extends Fragment {
             return true;
         }
         else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_all) {
-            Contacts.unMuteAll(getContext());
-            startActivity(new Intent(getContext(), ThreadedConversationsActivity.class));
-            getActivity().finish();
+            threadedConversationsViewModel.unMuteAll();
             return true;
         }
         else if(item.getItemId() == R.id.conversations_menu_export) {

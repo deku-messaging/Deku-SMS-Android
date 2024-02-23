@@ -98,9 +98,7 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         this.materialCardView.setOnClickListener(onClickListener);
         this.materialCardView.setOnLongClickListener(onLongClickListener);
 
-        String e16Address = Helpers.getFormatCompleteNumber(conversation.getAddress(), defaultRegion);
-        if(Contacts.isMuted(itemView.getContext(), e16Address) ||
-                Contacts.isMuted(itemView.getContext(), conversation.getAddress()))
+        if(conversation.isIs_mute())
             this.muteAvatar.setVisibility(View.VISIBLE);
         else
             this.muteAvatar.setVisibility(View.GONE);

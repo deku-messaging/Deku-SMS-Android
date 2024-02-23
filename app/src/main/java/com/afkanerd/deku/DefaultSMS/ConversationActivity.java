@@ -169,7 +169,7 @@ public class ConversationActivity extends E2EECompactActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if(Contacts.isMuted(getApplicationContext(), threadedConversations.getAddress())) {
+        if(threadedConversations.isIs_mute()) {
             menu.findItem(R.id.conversations_menu_unmute).setVisible(true);
             menu.findItem(R.id.conversations_menu_mute).setVisible(false);
         }
@@ -201,7 +201,7 @@ public class ConversationActivity extends E2EECompactActivity {
             return true;
         }
         else if (R.id.conversations_menu_mute == item.getItemId()) {
-            Contacts.mute(getApplicationContext(), threadedConversations.getAddress());
+            conversationsViewModel.mute();
             invalidateMenu();
             configureToolbars();
             Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_muted),
@@ -211,7 +211,7 @@ public class ConversationActivity extends E2EECompactActivity {
             return true;
         }
         else if (R.id.conversations_menu_unmute == item.getItemId()) {
-            Contacts.unmute(getApplicationContext(), threadedConversations.getAddress());
+            conversationsViewModel.unMute();
             invalidateMenu();
             configureToolbars();
             Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_unmuted),
@@ -537,7 +537,7 @@ public class ConversationActivity extends E2EECompactActivity {
 //        return this.threadedConversations != null &&
 //                this.threadedConversations.getAddress() != null ?
 //                this.threadedConversations.getAddress(): "";
-        if(Contacts.isMuted(getApplicationContext(), threadedConversations.getAddress()))
+        if(threadedConversations.isIs_mute())
             return getString(R.string.conversation_menu_mute);
         return "";
     }
