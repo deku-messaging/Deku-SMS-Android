@@ -24,6 +24,7 @@ import androidx.room.Room;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
@@ -122,17 +123,17 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
         }
 
         else if(intent.getAction() != null && intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
-            String threadId = intent.getStringExtra(Conversation.THREAD_ID);
-            String messageId = intent.getStringExtra(Conversation.ID);
+            final String threadId = intent.getStringExtra(Conversation.THREAD_ID);
+            final String messageId = intent.getStringExtra(Conversation.ID);
             try {
-                NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
-
-                Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
-                broadcastIntent.putExtra(Conversation.ID, messageId);
-                broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
-                if(intent.getExtras() != null)
-                    broadcastIntent.putExtras(intent.getExtras());
-                context.sendBroadcast(broadcastIntent);
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
+                        databaseConnector.threadedConversationsDao().updateRead(1,
+                                Long.parseLong(threadId));
+                    }
+                });
 
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
                 notificationManager.cancel(Integer.parseInt(threadId));

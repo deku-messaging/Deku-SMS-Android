@@ -3,30 +3,23 @@ package com.afkanerd.deku.E2EE;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
-import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -62,7 +55,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     public void sendTextMessage(final String text, int subscriptionId,
                                 ThreadedConversations threadedConversations, String messageId,
                                 final byte[] _mk) throws NumberParseException, InterruptedException {
-        if(threadedConversations.secured && !isEncrypted) {
+        if(threadedConversations.is_secured && !isEncrypted) {
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -90,7 +83,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                threadedConversations.secured = secured;
+                threadedConversations.is_secured = secured;
                 if(secured && securePopUpRequest != null) {
                     securePopUpRequest.setVisibility(View.GONE);
                     TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
@@ -213,9 +206,9 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 public void run() {
                     try {
                         keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
-                        threadedConversations.secured =
+                        threadedConversations.is_secured =
                                 E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias);
-                        if(threadedConversations.secured) {
+                        if(threadedConversations.is_secured) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {

@@ -49,6 +49,8 @@ android {
 //        generateLocaleConfig true
 //    }
     sourceSets {
+        androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
+
         main {
             jniLibs.srcDirs = ['libs']
             java {
@@ -124,6 +126,7 @@ android {
 
 dependencies {
     implementation project(':smswithoutborders_libsignal-doubleratchet')
+    implementation 'androidx.room:room-testing:2.6.1'
     def paging_version = "3.2.1"
 
     testImplementation 'junit:junit:4.13.2'

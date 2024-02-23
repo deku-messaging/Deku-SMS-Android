@@ -67,7 +67,8 @@ public interface ThreadedConversationsDao {
             "Conversation.date, Conversation.type, Conversation.read, " +
             "ThreadedConversations.msg_count, ThreadedConversations.is_archived, " +
             "ThreadedConversations.is_blocked, ThreadedConversations.is_read, " +
-            "ThreadedConversations.is_shortcode, ThreadedConversations.contact_name " +
+            "ThreadedConversations.is_shortcode, ThreadedConversations.contact_name, " +
+            "ThreadedConversations.is_mute, ThreadedConversations.is_secured " +
             "FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
@@ -78,7 +79,8 @@ public interface ThreadedConversationsDao {
             "Conversation.thread_id, " +
             "Conversation.date, Conversation.type, Conversation.read, " +
             "0 as msg_count, ThreadedConversations.is_archived, ThreadedConversations.is_blocked, " +
-            "ThreadedConversations.is_read, ThreadedConversations.is_shortcode " +
+            "ThreadedConversations.is_read, ThreadedConversations.is_shortcode, " +
+            "ThreadedConversations.is_mute, ThreadedConversations.is_secured " +
             "FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
@@ -111,8 +113,14 @@ public interface ThreadedConversationsDao {
     @Query("UPDATE ThreadedConversations SET is_read = :read WHERE thread_id IN(:ids)")
     int updateAllRead(int read, List<String> ids);
 
+    @Query("UPDATE ThreadedConversations SET is_read = :read WHERE thread_id = :id")
+    int updateAllRead(int read, long id);
+
     @Query("UPDATE Conversation SET read = :read WHERE thread_id IN(:ids)")
     int updateAllReadConversation(int read, List<String> ids);
+
+    @Query("UPDATE Conversation SET read = :read WHERE thread_id = :id")
+    int updateAllReadConversation(int read, long id);
 
     @Transaction
     default void updateRead(int read) {
@@ -124,6 +132,12 @@ public interface ThreadedConversationsDao {
     default void updateRead(int read, List<String> ids) {
         updateAllRead(read, ids);
         updateAllReadConversation(read, ids);
+    }
+
+    @Transaction
+    default void updateRead(int read, long id) {
+        updateAllRead(read, id);
+        updateAllReadConversation(read, id);
     }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
