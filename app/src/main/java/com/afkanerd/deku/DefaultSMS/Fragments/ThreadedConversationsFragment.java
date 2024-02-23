@@ -626,24 +626,20 @@ public class ThreadedConversationsFragment extends Fragment {
             Intent searchIntent = new Intent(getContext(), SearchMessagesThreadsActivity.class);
             searchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(searchIntent);
-            return true;
         }
         if (item.getItemId() == R.id.conversation_threads_main_menu_routed) {
             Intent routingIntent = new Intent(getContext(), RouterActivity.class);
             routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(routingIntent);
-            return true;
         }
         if (item.getItemId() == R.id.conversation_threads_main_menu_settings) {
             Intent settingsIntent = new Intent(getContext(), SettingsActivity.class);
             startActivity(settingsIntent);
-            return true;
         }
         if (item.getItemId() == R.id.conversation_threads_main_menu_about) {
             Intent aboutIntent = new Intent(getContext(), AboutActivity.class);
             aboutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(aboutIntent);
-            return true;
         }
         if(item.getItemId() == R.id.conversation_threads_main_menu_clear_drafts) {
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
@@ -656,27 +652,34 @@ public class ThreadedConversationsFragment extends Fragment {
                     }
                 }
             });
-            return true;
         }
         if(item.getItemId() == R.id.conversation_threads_main_menu_mark_all_read) {
-            try {
-                threadedConversationsViewModel.markAllRead(getContext());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-            return true;
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    threadedConversationsViewModel.markAllRead(getContext());
+                }
+            });
         }
         else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_all) {
-            threadedConversationsViewModel.unMuteAll();
-            return true;
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    threadedConversationsViewModel.unMuteAll();
+                }
+            });
         }
         else if(item.getItemId() == R.id.conversations_menu_export) {
             exportInbox();
-            return true;
         }
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversationsViewModel.getCount(getContext());
+            }
+        });
 
-        return false;
+        return true;
     }
 
 }
