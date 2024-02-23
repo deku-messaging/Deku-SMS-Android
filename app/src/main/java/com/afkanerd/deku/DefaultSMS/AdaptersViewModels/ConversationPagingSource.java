@@ -86,47 +86,47 @@ public class ConversationPagingSource extends PagingSource<Integer, Conversation
             @Override
             public void run() {
                 list[0] = conversationDao.getDefault(threadId);
-                /**
-                 * Decrypt encrypted messages using their key
-                 */
-                String address = "";
-                if(list[0].size() > 0)
-                    address = list[0].get(0).getAddress();
-                for(int i=0;i<list[0].size(); ++i) {
-                    try {
-                        if ((list[0].get(i).getType() ==
-                                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT  ||
-                                list[0].get(i).getType() ==
-                                        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED ) &&
-                                E2EEHandler.isValidDefaultText(list[0].get(i).getText())) {
-                            try {
-                                byte[] cipherText =
-                                        E2EEHandler.extractTransmissionText(list[0].get(i).getText());
-                                byte[] mk = Base64.decode(list[0].get(i).get_mk(), Base64.NO_WRAP);
-
-                                String keystoreAlias = E2EEHandler.deriveKeystoreAlias( address,
-                                        0);
-
-                                ConversationsThreadsEncryption conversationsThreadsEncryption =
-                                        new ConversationsThreadsEncryption();
-                                ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                                        conversationsThreadsEncryption.getDaoInstance(context);
-                                conversationsThreadsEncryption =
-                                        conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
-
-                                byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(),
-                                        Base64.NO_WRAP);
-
-                                list[0].get(i).setText(new String(E2EEHandler.decrypt(context,
-                                        keystoreAlias, cipherText, mk, AD)));
-                            } catch (Throwable e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+//                /**
+//                 * Decrypt encrypted messages using their key
+//                 */
+//                String address = "";
+//                if(list[0].size() > 0)
+//                    address = list[0].get(0).getAddress();
+//                for(int i=0;i<list[0].size(); ++i) {
+//                    try {
+//                        if ((list[0].get(i).getType() ==
+//                                Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT  ||
+//                                list[0].get(i).getType() ==
+//                                        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED ) &&
+//                                E2EEHandler.isValidDefaultText(list[0].get(i).getText())) {
+//                            try {
+//                                byte[] cipherText =
+//                                        E2EEHandler.extractTransmissionText(list[0].get(i).getText());
+//                                byte[] mk = Base64.decode(list[0].get(i).get_mk(), Base64.NO_WRAP);
+//
+//                                String keystoreAlias = E2EEHandler.deriveKeystoreAlias( address,
+//                                        0);
+//
+//                                ConversationsThreadsEncryption conversationsThreadsEncryption =
+//                                        new ConversationsThreadsEncryption();
+//                                ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
+//                                        conversationsThreadsEncryption.getDaoInstance(context);
+//                                conversationsThreadsEncryption =
+//                                        conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
+//
+//                                byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(),
+//                                        Base64.NO_WRAP);
+//
+//                                list[0].get(i).setText(new String(E2EEHandler.decrypt(context,
+//                                        keystoreAlias, cipherText, mk, AD)));
+//                            } catch (Throwable e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    } catch(Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
             }
         });
         thread.start();

@@ -268,6 +268,10 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     e.printStackTrace();
                 }
 
+                Intent broadcastIntent = new Intent(SMS_DELIVER_ACTION);
+                broadcastIntent.putExtra(Conversation.ID, messageId);
+                context.sendBroadcast(broadcastIntent);
+
                 String defaultRegion = Helpers.getUserCountry(context);
                 String e16Address = Helpers.getFormatCompleteNumber(address, defaultRegion);
                 if(!Contacts.isMuted(context, e16Address) &&

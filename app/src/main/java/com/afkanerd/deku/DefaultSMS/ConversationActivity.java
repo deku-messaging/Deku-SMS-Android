@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS;
 
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -7,6 +8,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.BlockedNumberContract;
@@ -39,6 +41,8 @@ import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -92,6 +96,8 @@ public class ConversationActivity extends E2EECompactActivity {
     ImageButton forwardSearchBtn;
 
     Toolbar toolbar;
+
+    BroadcastReceiver broadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,6 +154,8 @@ public class ConversationActivity extends E2EECompactActivity {
                     NativeSMSDB.Incoming.update_read(getApplicationContext(), 1,
                             threadedConversations.getThread_id(), null);
                     conversationsViewModel.updateToRead(getApplicationContext());
+                    threadedConversations.setIs_read(true);
+                    databaseConnector.threadedConversationsDao().update(threadedConversations);
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -403,11 +411,36 @@ public class ConversationActivity extends E2EECompactActivity {
                                         conversationPagingData);
                             }
                         });
+                broadcastReceiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        final String messageId = intent.getStringExtra(Conversation.ID);
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                Conversation conversation = databaseConnector.conversationDao()
+                                        .getMessage(messageId);
+                                conversation.setRead(true);
+                                conversationsViewModel.update(conversation);
+                            }
+                        });
+                    }
+                };
+                IntentFilter intentFilter = new IntentFilter();
+                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION);
+                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
+
+                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT);
+                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT);
+
+                if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
+                    registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+                else
+                    registerReceiver(broadcastReceiver, intentFilter);
             }
             else if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {
-                conversationsViewModel.get(getApplicationContext(),
-                                this.threadedConversations.getThread_id())
+                conversationsViewModel.get(this.threadedConversations.getThread_id())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
                             public void onChanged(PagingData<Conversation> smsList) {
@@ -532,6 +565,8 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if(broadcastReceiver != null)
+            unregisterReceiver(broadcastReceiver);
     }
 
     static final String DRAFT_TEXT = "DRAFT_TEXT";

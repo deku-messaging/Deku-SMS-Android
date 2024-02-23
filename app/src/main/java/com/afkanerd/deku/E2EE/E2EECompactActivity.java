@@ -124,7 +124,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     conversation.setDate(String.valueOf(System.currentTimeMillis()));
                     conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-                    long id = conversationsViewModel.insert(conversation);
+                    long id = conversationsViewModel.insert(getApplicationContext(), conversation);
                     SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
                 } catch (Exception e) {
                     e.printStackTrace();

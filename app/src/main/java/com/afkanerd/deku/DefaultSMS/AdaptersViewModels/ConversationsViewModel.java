@@ -4,13 +4,8 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.Telephony;
-import android.util.Log;
 
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
@@ -19,16 +14,12 @@ import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 
-import java.sql.Ref;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ConversationsViewModel extends ViewModel {
@@ -64,15 +55,15 @@ public class ConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    PagingSource<Integer, Conversation> searchPagingSource;
+    PagingSource<Integer, Conversation> customPagingSource;
     public PagingSource<Integer, Conversation> getNewConversationPagingSource(Context context) {
-        searchPagingSource = new ConversationPagingSource(context, datastore.conversationDao(),
+        customPagingSource = new ConversationPagingSource(context, datastore.conversationDao(),
                 threadId,
                 pointer >= this.positions.size()-1 ? null : this.positions.get(++pointer));
-        return searchPagingSource;
+        return customPagingSource;
     }
 
-    public LiveData<PagingData<Conversation>> get(Context context, String threadId)
+    public LiveData<PagingData<Conversation>> get(String threadId)
             throws InterruptedException {
         this.threadId = threadId;
 
@@ -81,7 +72,7 @@ public class ConversationsViewModel extends ViewModel {
                 prefetchDistance,
                 enablePlaceholder,
                 initialLoadSize
-        ), null, ()->getNewConversationPagingSource(context));
+        ), null, ()->datastore.conversationDao().get(threadId));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
@@ -89,24 +80,20 @@ public class ConversationsViewModel extends ViewModel {
         return datastore.conversationDao().getMessage(messageId);
     }
 
-    public long insert(Conversation conversation) throws InterruptedException {
+    public long insert(Context context, Conversation conversation) throws InterruptedException {
         long id = datastore.conversationDao().insert(conversation);
-        searchPagingSource.invalidate();
+        ThreadedConversations threadedConversations =
+                ThreadedConversations.build(context, conversation);
+        threadedConversations.setIs_read(true);
+        datastore.threadedConversationsDao().insert(threadedConversations);
+        if(customPagingSource != null)
+            customPagingSource.invalidate();
         return id;
     }
 
     public void update(Conversation conversation) {
         datastore.conversationDao().update(conversation);
-        searchPagingSource.invalidate();
-    }
-
-    public void insertFromNative(Context context, String messageId) throws InterruptedException {
-        Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
-        if(cursor.moveToFirst()) {
-            Conversation conversation = Conversation.build(cursor);
-            insert(conversation);
-        }
-        cursor.close();
+        customPagingSource.invalidate();
     }
 
     public List<Integer> search(String input) throws InterruptedException {

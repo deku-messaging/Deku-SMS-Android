@@ -129,16 +129,14 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         sentMessageStatus.setText(statusMessage);
 
-        final String[] text = {conversation.getText()};
-        if(searchString != null && !searchString.isEmpty() && text[0] != null) {
+        final String text = conversation.getText();
+        if(searchString != null && !searchString.isEmpty() && text != null) {
             Spannable spannable = Helpers.highlightSubstringYellow(itemView.getContext(),
-                    text[0], searchString, true);
+                    text, searchString, true);
             sentMessage.setText(spannable);
         }
         else
-//            Helpers.highlightLinks(sentMessage, text[0],
-//                    itemView.getContext().getColor(R.color.primary_text_color));
-            Helpers.highlightLinks(sentMessage, text[0], Color.BLACK);
+            Helpers.highlightLinks(sentMessage, text, Color.BLACK);
     }
 
     @Override

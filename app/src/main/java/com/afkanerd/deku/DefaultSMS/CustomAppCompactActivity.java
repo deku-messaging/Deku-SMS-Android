@@ -111,7 +111,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     @Override
                     public void run() {
                         try {
-                            conversationsViewModel.insert(conversation);
+                            conversationsViewModel.insert(getApplicationContext(), conversation);
                             SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, null);
 //                            conversationsViewModel.updateThreadId(conversation.getThread_id(),
 //                                    _messageId, id);
@@ -145,7 +145,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         conversation.setAddress(threadedConversations.getAddress());
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
                         try {
-                            conversationsViewModel.insert(conversation);
+                            conversationsViewModel.insert(getApplicationContext(), conversation);
 
                             ThreadedConversations tc =
                                     ThreadedConversations.build(getApplicationContext(), conversation);
