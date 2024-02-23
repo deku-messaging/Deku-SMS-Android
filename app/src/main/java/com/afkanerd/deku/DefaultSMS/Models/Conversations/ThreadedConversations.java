@@ -74,19 +74,6 @@ public class ThreadedConversations {
     @Ignore
      private boolean is_mute = false;
 
-     @Ignore
-    Datastore databaseConnector;
-    public ThreadedConversationsDao getDaoInstance(Context context) {
-        databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName).build();
-        return databaseConnector.threadedConversationsDao();
-    }
-
-    public void close() {
-//        if(databaseConnector != null)
-//            databaseConnector.close();
-    }
-
     public static ThreadedConversations build(Context context, Conversation conversation) {
         ThreadedConversations threadedConversations = new ThreadedConversations();
         threadedConversations.setAddress(conversation.getAddress());

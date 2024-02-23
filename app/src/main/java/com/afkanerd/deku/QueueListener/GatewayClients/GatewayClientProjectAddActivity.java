@@ -54,8 +54,9 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        databaseConnector = Room.databaseBuilder(getApplicationContext(),
-                Datastore.class, Datastore.databaseName).build();
+//        databaseConnector = Room.databaseBuilder(getApplicationContext(),
+//                Datastore.class, Datastore.databaseName).build();
+        databaseConnector = GatewayClientProjectListingActivity.databaseConnector;
 
         try {
             getGatewayClient();
@@ -218,9 +219,7 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
             });
         }
 
-        Intent intent = new Intent(this, GatewayClientListingActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
+        finish();
     }
 
 

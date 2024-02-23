@@ -48,8 +48,10 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.snackbar.Snackbar;
@@ -84,7 +86,6 @@ public class ConversationActivity extends E2EECompactActivity {
     LinearLayoutManager linearLayoutManager;
     RecyclerView singleMessagesThreadRecyclerView;
 
-
     MutableLiveData<List<Integer>> searchPositions = new MutableLiveData<>();
 
     ImageButton backSearchBtn;
@@ -110,7 +111,6 @@ public class ConversationActivity extends E2EECompactActivity {
             configureMessagesTextBox();
 
             configureLayoutForMessageType();
-            configureBroadcastListeners();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -141,7 +141,7 @@ public class ConversationActivity extends E2EECompactActivity {
         if(threadedConversations.secured)
             layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
 
-        executorService.execute(new Runnable() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -246,8 +246,8 @@ public class ConversationActivity extends E2EECompactActivity {
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setThread_id(getIntent().getStringExtra(Conversation.THREAD_ID));
-            this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
-                    threadedConversations);
+            this.threadedConversations = ThreadedConversationsHandler.get(
+                    databaseConnector.threadedConversationsDao(), threadedConversations);
         }
         else if(getIntent().hasExtra(Conversation.ADDRESS)) {
             ThreadedConversations threadedConversations = new ThreadedConversations();
@@ -309,6 +309,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
+        conversationsViewModel.datastore = Datastore.datastore;
 
         backSearchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -345,7 +346,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
     }
 
-    ConversationDao conversationDao;
     boolean firstScrollInitiated = false;
 
     LifecycleOwner lifecycleOwner;
@@ -354,7 +354,6 @@ public class ConversationActivity extends E2EECompactActivity {
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
         singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
-        conversationDao = conversation.getDaoInstance(getApplicationContext());
 
         lifecycleOwner = this;
 
@@ -382,11 +381,10 @@ public class ConversationActivity extends E2EECompactActivity {
 
         if(this.threadedConversations != null) {
             if(getIntent().hasExtra(SEARCH_STRING)) {
-                conversationsViewModel.conversationDao = conversationDao;
                 conversationsViewModel.threadId = threadedConversations.getThread_id();
                 findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
                 String searching = getIntent().getStringExtra(SEARCH_STRING);
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         searchForInput(searching);
@@ -396,7 +394,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 searchPositions.setValue(new ArrayList<>(
                         Collections.singletonList(
                                 getIntent().getIntExtra(SEARCH_INDEX, 0))));
-                conversationsViewModel.getSearch(getApplicationContext(), conversationDao,
+                conversationsViewModel.getSearch(getApplicationContext(),
                                 threadedConversations.getThread_id(), searchPositions.getValue())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
@@ -408,7 +406,7 @@ public class ConversationActivity extends E2EECompactActivity {
             }
             else if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {
-                conversationsViewModel.get(getApplicationContext(), conversationDao,
+                conversationsViewModel.get(getApplicationContext(),
                                 this.threadedConversations.getThread_id())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
@@ -424,7 +422,7 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onChanged(Conversation conversation) {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         conversationsViewModel.deleteItems(getApplicationContext(), list);
@@ -443,7 +441,7 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onChanged(Conversation conversation) {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         conversationsViewModel.deleteItems(getApplicationContext(), list);
@@ -646,7 +644,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void checkDrafts() throws InterruptedException {
         if(smsTextView.getText() == null || smsTextView.getText().toString().isEmpty())
-            new Thread(new Runnable() {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -666,7 +664,7 @@ public class ConversationActivity extends E2EECompactActivity {
                         emptyDraft();
                     }
                 }
-            }).start();
+            });
     }
 
     private void configureLayoutForMessageType() {
@@ -702,12 +700,11 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void blockContact() {
-        executorService.execute(new Runnable() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 threadedConversations.setIs_blocked(true);
-                new ThreadedConversations().getDaoInstance(getApplicationContext())
-                        .update(threadedConversations);
+                databaseConnector.threadedConversationsDao().update(threadedConversations);
             }
         });
 
@@ -786,7 +783,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 .setTitle(getString(R.string.conversation_menu_view_details_title))
                 .setMessage(detailsBuilder);
 
-        executorService.execute(new Runnable() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -874,7 +871,7 @@ public class ConversationActivity extends E2EECompactActivity {
                     if(editable != null && editable.length() > 1) {
                         conversationsRecyclerAdapter.searchString = editable.toString();
                         conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
-                        executorService.execute(new Runnable() {
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
                             @Override
                             public void run() {
                                 searchForInput(editable.toString());

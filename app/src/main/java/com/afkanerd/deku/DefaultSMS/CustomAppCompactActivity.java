@@ -11,6 +11,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
@@ -20,9 +21,11 @@ import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -35,23 +38,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CustomAppCompactActivity extends DualSIMConversationActivity {
-    BroadcastReceiver generateUpdateEventsBroadcastReceiver;
-    BroadcastReceiver smsDeliverActionBroadcastReceiver;
-    BroadcastReceiver smsSentBroadcastIntent;
-    BroadcastReceiver smsDeliveredBroadcastIntent;
-    BroadcastReceiver dataSentBroadcastIntent;
-    BroadcastReceiver dataDeliveredBroadcastIntent;
-
-    protected static final String TAG_NAME = "NATIVE_CONVERSATION_TAG";
-    protected static final String UNIQUE_WORK_NAME = "NATIVE_CONVERSATION_TAG_UNIQUE_WORK_NAME";
-
     protected final static String DRAFT_PRESENT_BROADCAST = "DRAFT_PRESENT_BROADCAST";
 
     protected ConversationsViewModel conversationsViewModel;
 
     protected ThreadedConversationsViewModel threadedConversationsViewModel;
 
-    protected ExecutorService executorService = Executors.newFixedThreadPool(4);
+
+    public Datastore databaseConnector;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,92 +55,20 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             startActivity(new Intent(this, DefaultCheckActivity.class));
             finish();
         }
+
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        databaseConnector = Datastore.datastore;
     }
+
     private boolean _checkIsDefaultApp() {
         final String myPackageName = getPackageName();
         final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
 
         return myPackageName.equals(defaultPackage);
-    }
-
-    protected void configureBroadcastListeners() {
-
-        generateUpdateEventsBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if(intent.getAction() != null && (
-                        intent.getAction().equals(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION) ||
-                intent.getAction().equals(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION))) {
-                    String messageId = intent.getStringExtra(Conversation.ID);
-                    if(conversationsViewModel != null) {
-                        executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                Conversation conversation = conversationsViewModel
-                                        .conversationDao.getMessage(messageId);
-                                conversation.setRead(true);
-                                conversationsViewModel.update(conversation);
-                                try {
-                                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                            E2EEHandler.deriveKeystoreAlias(
-                                                    conversation.getAddress(), 0))) {
-                                        informSecured(true);
-                                    }
-                                } catch (CertificateException | KeyStoreException | IOException |
-                                         NoSuchAlgorithmException | NumberParseException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                    }
-                }  else {
-                    String messageId = intent.getStringExtra(Conversation.ID);
-                    if(conversationsViewModel != null && messageId != null) {
-                        executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                Conversation conversation = conversationsViewModel
-                                        .conversationDao.getMessage(messageId);
-                                conversation.setRead(true);
-                                conversationsViewModel.update(conversation);
-                                try {
-                                    if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                            E2EEHandler.deriveKeystoreAlias( conversation.getAddress(),
-                                                    0))) {
-                                        informSecured(true);
-                                    }
-                                } catch (CertificateException | KeyStoreException | IOException |
-                                         NoSuchAlgorithmException | NumberParseException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                    }
-                }
-                if(threadedConversationsViewModel != null) {
-                    executorService.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            threadedConversationsViewModel.refresh(context);
-                        }
-                    });
-                }
-            }
-        };
-
-        IntentFilter intentFilter = new IntentFilter();
-
-        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION);
-        intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
-
-        intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT);
-        intentFilter.addAction(DRAFT_PRESENT_BROADCAST);
-        intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT);
-
-        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
-            registerReceiver(generateUpdateEventsBroadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
-        else
-            registerReceiver(generateUpdateEventsBroadcastReceiver, intentFilter);
     }
 
     protected void informSecured(boolean secured) { }
@@ -185,7 +107,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                 conversation.set_mk(Base64.encodeToString(_mk, Base64.NO_WRAP));
 
             if(conversationsViewModel != null) {
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -210,7 +132,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
     protected void saveDraft(final String messageId, final String text, ThreadedConversations threadedConversations) throws InterruptedException {
         if(text != null) {
             if(conversationsViewModel != null) {
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         Conversation conversation = new Conversation();
@@ -227,10 +149,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
                             ThreadedConversations tc =
                                     ThreadedConversations.build(getApplicationContext(), conversation);
-                            ThreadedConversationsDao threadedConversationsDao =
-                                    tc.getDaoInstance(getApplicationContext());
-                            threadedConversationsDao.insert(tc);
-                            tc.close();
+                            databaseConnector.threadedConversationsDao().insert(tc);
 
                             SMSDatabaseWrapper.saveDraft(getApplicationContext(), conversation);
                         } catch (Exception e) {
@@ -243,28 +162,6 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                 });
             }
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if(generateUpdateEventsBroadcastReceiver != null)
-            unregisterReceiver(generateUpdateEventsBroadcastReceiver);
-
-        if(smsDeliverActionBroadcastReceiver != null)
-            unregisterReceiver(smsDeliverActionBroadcastReceiver);
-
-        if(smsSentBroadcastIntent != null)
-            unregisterReceiver(smsSentBroadcastIntent);
-
-        if(smsDeliveredBroadcastIntent != null)
-            unregisterReceiver(smsDeliveredBroadcastIntent);
-
-        if(dataSentBroadcastIntent != null)
-            unregisterReceiver(dataSentBroadcastIntent);
-
-        if(dataDeliveredBroadcastIntent != null)
-            unregisterReceiver(dataDeliveredBroadcastIntent);
     }
 
     protected void cancelNotifications(String threadId) {

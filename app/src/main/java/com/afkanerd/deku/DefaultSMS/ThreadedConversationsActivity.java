@@ -49,17 +49,9 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
     ActionBar ab;
 
-    HashMap<String, ThreadedConversationRecyclerAdapter> messagesThreadRecyclerAdapterHashMap = new HashMap<>();
-
-    String ITEM_TYPE = "";
-
-    ThreadedConversations threadedConversations = new ThreadedConversations();
-
     MaterialToolbar toolbar;
 
     NavigationView navigationView;
-
-    ThreadedConversationsDao threadedConversationsDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,18 +62,13 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         setSupportActionBar(toolbar);
         ab = getSupportActionBar();
 
-        threadedConversationsDao = threadedConversations.getDaoInstance(getApplicationContext());
-
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
-        threadedConversationsViewModel.threadedConversationsDao = threadedConversationsDao;
 
+        threadedConversationsViewModel.databaseConnector = databaseConnector;
 
         fragmentManagement();
-        configureBroadcastListeners();
         configureNavigationBar();
-
-        configureNotifications();
     }
 
     public void configureNavigationBar() {
@@ -245,90 +232,4 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     public ThreadedConversationsViewModel getThreadedConversationsViewModel() {
         return threadedConversationsViewModel;
     }
-
-    @Override
-    public ExecutorService getExecutorService() {
-        return executorService;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-//        threadedConversations.close();
-    }
-
-    ArrayList<String> notificationsChannelIds = new ArrayList<>();
-    ArrayList<String> notificationsChannelNames = new ArrayList<>();
-    private void createNotificationChannel() {
-        notificationsChannelIds.add(getString(R.string.incoming_messages_channel_id));
-        notificationsChannelNames.add(getString(R.string.incoming_messages_channel_name));
-
-        notificationsChannelIds.add(getString(R.string.running_gateway_clients_channel_id));
-        notificationsChannelNames.add(getString(R.string.running_gateway_clients_channel_name));
-
-        notificationsChannelIds.add(getString(R.string.foreground_service_failed_channel_id));
-        notificationsChannelNames.add(getString(R.string.foreground_service_failed_channel_name));
-
-        createNotificationChannelIncomingMessage();
-
-        createNotificationChannelRunningGatewayListeners();
-
-        createNotificationChannelReconnectGatewayListeners();
-    }
-
-    private void createNotificationChannelIncomingMessage() {
-        int importance = NotificationManager.IMPORTANCE_HIGH;
-
-        NotificationChannel channel = new NotificationChannel(
-                notificationsChannelIds.get(0), notificationsChannelNames.get(0), importance);
-        channel.setDescription(getString(R.string.incoming_messages_channel_description));
-        channel.enableLights(true);
-        channel.setLightColor(R.color.logo_primary);
-        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-
-        // Register the channel with the system; you can't change the importance
-        // or other notification behaviors after this
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        notificationManager.createNotificationChannel(channel);
-    }
-
-    private void createNotificationChannelRunningGatewayListeners() {
-        int importance = NotificationManager.IMPORTANCE_DEFAULT;
-        NotificationChannel channel = new NotificationChannel(
-                notificationsChannelIds.get(1), notificationsChannelNames.get(1), importance);
-        channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
-        channel.setLightColor(R.color.logo_primary);
-        channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
-
-        // Register the channel with the system; you can't change the importance
-        // or other notification behaviors after this
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        notificationManager.createNotificationChannel(channel);
-    }
-
-    private void createNotificationChannelReconnectGatewayListeners() {
-        int importance = NotificationManager.IMPORTANCE_DEFAULT;
-        NotificationChannel channel = new NotificationChannel(
-                notificationsChannelIds.get(2), notificationsChannelNames.get(2), importance);
-        channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
-        channel.setLightColor(R.color.logo_primary);
-        channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
-
-        // Register the channel with the system; you can't change the importance
-        // or other notification behaviors after this
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        notificationManager.createNotificationChannel(channel);
-    }
-
-    private void configureNotifications(){
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    createNotificationChannel();
-                }
-            });
-        }
-    }
-
 }

@@ -44,6 +44,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.SettingsActivity;
@@ -101,12 +102,9 @@ public class ThreadedConversationsFragment extends Fragment {
 
     public interface ViewModelsInterface {
         ThreadedConversationsViewModel getThreadedConversationsViewModel();
-        ExecutorService getExecutorService();
     }
 
     private ViewModelsInterface viewModelsInterface;
-
-    ExecutorService executorService;
 
     @Nullable
     @Override
@@ -142,7 +140,7 @@ public class ThreadedConversationsFragment extends Fragment {
 
             if(menu.findItem(R.id.conversations_threads_main_menu_mark_all_read) != null &&
             menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread) != null)
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         boolean hasUnread = threadedConversationsViewModel.hasUnread(threadsIds);
@@ -174,15 +172,11 @@ public class ThreadedConversationsFragment extends Fragment {
                 @Override
                 public void run() {
 
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            ThreadedConversations threadedConversations = new ThreadedConversations();
-                            ThreadedConversationsDao threadedConversationsDao =
-                                    threadedConversations.getDaoInstance(getContext());
-                            List<String> foundList =
-                                    threadedConversationsDao.findAddresses(ids);
-                            threadedConversations.close();
+                            List<String> foundList = threadedConversationsViewModel.
+                                    databaseConnector.threadedConversationsDao().findAddresses(ids);
                             threadedConversationsViewModel.delete(getContext(), ids);
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
@@ -259,7 +253,7 @@ public class ThreadedConversationsFragment extends Fragment {
                             archive.is_archived = true;
                             archiveList.add(archive);
                         }
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.archive(archiveList);
@@ -280,7 +274,7 @@ public class ThreadedConversationsFragment extends Fragment {
                             archive.is_archived = false;
                             archiveList.add(archive);
                         }
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.unarchive(archiveList);
@@ -298,7 +292,7 @@ public class ThreadedConversationsFragment extends Fragment {
                                 threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                             threadIds.add(viewHolder.id);
                         }
-                        executorService.execute(new Runnable() {
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
                             @Override
                             public void run() {
                                 threadedConversationsViewModel.markUnRead(getContext(), threadIds);
@@ -317,7 +311,7 @@ public class ThreadedConversationsFragment extends Fragment {
                                 threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                             threadIds.add(viewHolder.id);
                         }
-                        executorService.execute(new Runnable() {
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
                             @Override
                             public void run() {
                                 threadedConversationsViewModel.markRead(getContext(), threadIds);
@@ -333,7 +327,7 @@ public class ThreadedConversationsFragment extends Fragment {
                             threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                         threadIds.add(viewHolder.id);
                     }
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.unblock(getContext(), threadIds);
@@ -348,7 +342,7 @@ public class ThreadedConversationsFragment extends Fragment {
                             threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                         threadIds.add(viewHolder.id);
                     }
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.mute(getContext(), threadIds);
@@ -370,7 +364,7 @@ public class ThreadedConversationsFragment extends Fragment {
                             threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                         threadIds.add(viewHolder.id);
                     }
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.unMute(getContext(), threadIds);
@@ -398,7 +392,7 @@ public class ThreadedConversationsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        executorService.execute(new Runnable() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 if(getContext() != null) {
@@ -409,19 +403,15 @@ public class ThreadedConversationsFragment extends Fragment {
                                 .apply();
                         threadedConversationsViewModel.reset(getContext());
                     }
-
-                    threadedConversationsViewModel.refresh(getContext());
                 }
             }
         });
     }
 
-    ThreadedConversationsDao threadedConversationsDao;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         viewModelsInterface = (ViewModelsInterface) view.getContext();
-        executorService = viewModelsInterface.getExecutorService();
 
         setHasOptionsMenu(true);
         Bundle args = getArguments();
@@ -447,7 +437,7 @@ public class ThreadedConversationsFragment extends Fragment {
         threadedConversationsViewModel = viewModelsInterface.getThreadedConversationsViewModel();
 
         threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter(
-                threadedConversationsDao);
+                threadedConversationsViewModel.databaseConnector.threadedConversationsDao());
         threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<HashMap<Long, ThreadedConversationsTemplateViewHolder>>() {
             @Override
@@ -593,7 +583,7 @@ public class ThreadedConversationsFragment extends Fragment {
                 if(uri == null)
                     return;
 
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -601,8 +591,7 @@ public class ThreadedConversationsFragment extends Fragment {
                                     openFileDescriptor(uri, "w");
                             FileOutputStream fileOutputStream =
                                     new FileOutputStream(pfd.getFileDescriptor());
-                            fileOutputStream.write(threadedConversationsViewModel
-                                    .getAllExport(getContext())
+                            fileOutputStream.write(threadedConversationsViewModel.getAllExport()
                                     .getBytes());
                             // Let the document provider know you're done by closing the stream.
                             fileOutputStream.close();
@@ -657,7 +646,7 @@ public class ThreadedConversationsFragment extends Fragment {
             return true;
         }
         if(item.getItemId() == R.id.conversation_threads_main_menu_clear_drafts) {
-            executorService.execute(new Runnable() {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {

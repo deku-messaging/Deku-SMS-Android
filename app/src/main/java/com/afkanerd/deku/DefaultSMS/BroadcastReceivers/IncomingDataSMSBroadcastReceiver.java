@@ -8,9 +8,12 @@ import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
 
+import androidx.room.Room;
+
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
@@ -43,11 +46,21 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
             BuildConfig.APPLICATION_ID + ".DATA_UPDATED_BROADCAST_INTENT";
 
     ExecutorService executorService = Executors.newFixedThreadPool(4);
+
+    Datastore databaseConnector;
     @Override
     public void onReceive(Context context, Intent intent) {
         /**
          * Important note: either image or dump it
          */
+
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
+                            Datastore.class, Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        databaseConnector = Datastore.datastore;
 
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
@@ -77,11 +90,10 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     conversation.setDate(dateSent);
                     conversation.setDate(date);
 
-                    ConversationDao conversationDao = conversation.getDaoInstance(context);
                     executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            conversationDao.insert(conversation);
+                            databaseConnector.conversationDao().insert(conversation);
 
                             if(isValidKey) {
                                 try {

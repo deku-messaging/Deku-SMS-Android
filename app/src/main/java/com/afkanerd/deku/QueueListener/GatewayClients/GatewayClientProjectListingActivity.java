@@ -9,6 +9,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -27,6 +29,8 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
 
     long id;
     SharedPreferences sharedPreferences;
+
+    public static Datastore databaseConnector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +61,12 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
         GatewayClientProjectListingViewModel gatewayClientProjectListingViewModel =
                 new ViewModelProvider(this).get(GatewayClientProjectListingViewModel.class);
 
-        gatewayClientProjectListingViewModel.get(getApplicationContext(), id).observe(this,
+        databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                        Datastore.databaseName)
+                .enableMultiInstanceInvalidation()
+                .build();
+
+        gatewayClientProjectListingViewModel.get(databaseConnector, id).observe(this,
                 new Observer<List<GatewayClientProjects>>() {
             @Override
             public void onChanged(List<GatewayClientProjects> gatewayClients) {

@@ -17,16 +17,14 @@ public class ThreadedConversationsHandler {
         return threadedConversations;
     }
 
-    public static ThreadedConversations get(Context context, ThreadedConversations threadedConversations) throws InterruptedException {
+    public static ThreadedConversations get(ThreadedConversationsDao threadedConversationsDao,
+                                            ThreadedConversations threadedConversations) throws InterruptedException {
         final ThreadedConversations[] threadedConversations1 = {threadedConversations};
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                ThreadedConversationsDao threadedConversationsDao =
-                        threadedConversations.getDaoInstance(context);
                 threadedConversations1[0] = threadedConversationsDao
                         .get(threadedConversations.getThread_id());
-                threadedConversations.close();
             }
         });
         thread.start();

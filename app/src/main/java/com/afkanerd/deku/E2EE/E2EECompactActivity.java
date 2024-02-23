@@ -24,6 +24,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets;
 import com.google.android.material.textfield.TextInputLayout;
@@ -62,7 +63,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                                 ThreadedConversations threadedConversations, String messageId,
                                 final byte[] _mk) throws NumberParseException, InterruptedException {
         if(threadedConversations.secured && !isEncrypted) {
-            executorService.execute(new Runnable() {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -102,7 +103,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
     protected void sendDataMessage(ThreadedConversations threadedConversations) {
         final int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-        executorService.execute(new Runnable() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -207,7 +208,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     protected void onResume() {
         super.onResume();
         if(threadedConversations != null) {
-            executorService.execute(new Runnable() {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {

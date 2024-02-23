@@ -9,6 +9,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +34,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 
 import java.util.List;
 
@@ -43,12 +45,22 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
 
     ThreadedConversations threadedConversations = new ThreadedConversations();
 
+    Datastore databaseConnector;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_messages_threads);
+
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        databaseConnector = Datastore.datastore;
         searchViewModel = new ViewModelProvider(this).get(
                 SearchViewModel.class);
+        searchViewModel.databaseConnector = Datastore.datastore;
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.search_messages_toolbar);
         setSupportActionBar(myToolbar);
@@ -109,12 +121,8 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
             }
         });
 
-        ThreadedConversationsDao threadedConversationsDao =
-                threadedConversations.getDaoInstance(getApplicationContext());
-
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
-            searchViewModel.getByThreadId(threadedConversationsDao,
-                            getIntent().getStringExtra(Conversation.THREAD_ID)).observe(this,
+            searchViewModel.getByThreadId(getIntent().getStringExtra(Conversation.THREAD_ID)).observe(this,
                     new Observer<Pair<List<ThreadedConversations>,Integer>>() {
                         @Override
                         public void onChanged(Pair<List<ThreadedConversations>,Integer> smsList) {
@@ -130,7 +138,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                     });
         }
         else {
-            searchViewModel.get(threadedConversationsDao).observe(this,
+            searchViewModel.get().observe(this,
                     new Observer<Pair<List<ThreadedConversations>,Integer>>() {
                         @Override
                         public void onChanged(Pair<List<ThreadedConversations>,Integer> smsList) {
@@ -144,12 +152,6 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
                         }
                     });
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        threadedConversations.close();
     }
 
     public static class CustomContactsCursorAdapter extends CursorAdapter {

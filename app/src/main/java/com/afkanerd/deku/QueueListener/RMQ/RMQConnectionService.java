@@ -30,11 +30,13 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
@@ -82,16 +84,13 @@ public class RMQConnectionService extends Service {
 
     private HashMap<Long, Connection> connectionList = new HashMap<>();
 
-    ExecutorService consumerExecutorService = Executors.newFixedThreadPool(50); // Create a pool of 5 worker threads
+    ExecutorService consumerExecutorService = Executors.newFixedThreadPool(10); // Create a pool of 5 worker threads
 
     private BroadcastReceiver messageStateChangedBroadcast;
 
     private SharedPreferences sharedPreferences;
 
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
-
-    Conversation conversation;
-    ConversationDao conversationDao;
 
     public RMQConnectionService(Context context) {
         attachBaseContext(context);
@@ -100,18 +99,22 @@ public class RMQConnectionService extends Service {
     // DO NOT DELETE
     public RMQConnectionService() { }
 
+    Datastore databaseConnector;
     @Override
     public void onCreate() {
         super.onCreate();
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        databaseConnector = Datastore.datastore;
 
         handleBroadcast();
 
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
 
         registerListeners();
-
-        conversation = new Conversation();
-        conversationDao = conversation.getDaoInstance(getApplicationContext());
     }
 
     public int[] getGatewayClientNumbers() {
@@ -254,7 +257,7 @@ public class RMQConnectionService extends Service {
                 conversation.setThread_id(String.valueOf(threadId));
                 conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-                conversationDao.insert(conversation);
+                databaseConnector.conversationDao().insert(conversation);
                 Log.d(getClass().getName(), "Sending RMQ SMS: " + subscriptionId + ":"
                         + conversation.getAddress());
                 SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, bundle);
@@ -344,6 +347,7 @@ public class RMQConnectionService extends Service {
         RMQConnection rmqConnection = new RMQConnection(connection);
         connectionList.put(gatewayClient.getId(), connection);
 
+        if(connection != null)
         connection.addShutdownListener(new ShutdownListener() {
             @Override
             public void shutdownCompleted(ShutdownSignalException cause) {
