@@ -113,6 +113,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
                 .addMigrations(new Migrations.Migration7To8())
                 .addMigrations(new Migrations.Migration9To10())
                 .addMigrations(new Migrations.Migration10To11(getApplicationContext()))
+                .addMigrations(Migrations.MIGRATION_11_12)
                 .build().close();
     }
 
