@@ -672,6 +672,12 @@ public class ThreadedConversationsFragment extends Fragment {
         else if(item.getItemId() == R.id.conversations_menu_export) {
             exportInbox();
         }
+        else if(item.getItemId() == R.id.blocked_main_menu_unblock_manager_id) {
+            TelecomManager telecomManager = (TelecomManager)
+                    getContext().getSystemService(Context.TELECOM_SERVICE);
+            startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
+            return true;
+        }
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {

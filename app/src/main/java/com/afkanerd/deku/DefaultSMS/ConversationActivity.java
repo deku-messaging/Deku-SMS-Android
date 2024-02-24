@@ -770,7 +770,6 @@ public class ConversationActivity extends E2EECompactActivity {
                 Toast.LENGTH_SHORT).show();
         TelecomManager telecomManager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
         startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
-        finish();
     }
 
 
