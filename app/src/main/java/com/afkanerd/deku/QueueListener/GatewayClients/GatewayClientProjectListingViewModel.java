@@ -17,12 +17,9 @@ import java.util.Set;
 
 public class GatewayClientProjectListingViewModel extends ViewModel {
 
-    public LiveData<List<GatewayClientProjects>> get(Context context, long id) {
-        Log.d(getClass().getName(), "Fetching Gateway Projects: " + id);
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .enableMultiInstanceInvalidation()
-                .build();
+    long id;
+    public LiveData<List<GatewayClientProjects>> get(Datastore databaseConnector, long id) {
+        this.id = id;
         GatewayClientProjectDao gatewayClientProjectDao = databaseConnector.gatewayClientProjectDao();
         return gatewayClientProjectDao.fetchGatewayClientId(id);
     }

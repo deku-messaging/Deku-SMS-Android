@@ -106,30 +106,4 @@ public class CustomKeyStore {
         return new KeyPair(x509PublicKey, x509PrivateKey);
     }
 
-    @Ignore
-    Datastore databaseConnector;
-
-    public CustomKeyStoreDao getDaoInstance(Context context) {
-        databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .addMigrations(new Migrations.Migration9To10())
-                .build();
-        return databaseConnector.customKeyStoreDao();
-    }
-
-    public void close() {
-        if(databaseConnector != null)
-            databaseConnector.close();
-    }
-
-    public static CustomKeyStoreDao getDao(Context context) {
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .build();
-        CustomKeyStoreDao customKeyStoreDao = databaseConnector.customKeyStoreDao();
-        databaseConnector.close();
-        return customKeyStoreDao;
-    }
 }

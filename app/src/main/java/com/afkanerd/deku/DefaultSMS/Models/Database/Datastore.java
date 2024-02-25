@@ -7,6 +7,7 @@ import androidx.room.AutoMigration;
 import androidx.room.Database;
 import androidx.room.DatabaseConfiguration;
 import androidx.room.InvalidationTracker;
+import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
@@ -42,7 +43,7 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         ConversationsThreadsEncryption.class,
         Conversation.class,
         GatewayClient.class},
-        version = 11, autoMigrations = {@AutoMigration(from = 10, to = 11)})
+        version = 12, autoMigrations = {@AutoMigration(from = 11, to = 12)})
 public abstract class Datastore extends RoomDatabase {
     public static Datastore datastore;
 
@@ -60,6 +61,7 @@ public abstract class Datastore extends RoomDatabase {
     public abstract CustomKeyStoreDao customKeyStoreDao();
 
     public abstract ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao();
+
 
     @Override
     public void clearAllTables() {

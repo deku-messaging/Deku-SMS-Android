@@ -38,10 +38,10 @@ class RMQMonitor(val context: Context, private val gatewayClientId: Long,
     }
 
     fun setConnected(delayTimeout : Long ) {
-        sharedPreferences.edit()
-                .putBoolean(this.gatewayClientId.toString(), (delayTimeout == 0L))
-                .apply();
-
+//        sharedPreferences.edit()
+//                .putBoolean(this.gatewayClientId.toString(), (delayTimeout == 0L))
+//                .apply();
+//
         if(delayTimeout > 0 && !activeThreads.containsKey(gatewayClientId.toString()) &&
                 rmqConnection.connection != null)
             setMonitorTimeout(delayTimeout)

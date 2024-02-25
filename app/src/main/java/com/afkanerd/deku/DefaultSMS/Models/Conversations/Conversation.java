@@ -69,14 +69,6 @@ public class Conversation {
         this._mk = _mk;
     }
 
-    public synchronized ConversationDao getDaoInstance(Context context) {
-        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .enableMultiInstanceInvalidation()
-                .build();
-        return databaseConnector.conversationDao();
-    }
-
     public int getError_code() {
         return error_code;
     }

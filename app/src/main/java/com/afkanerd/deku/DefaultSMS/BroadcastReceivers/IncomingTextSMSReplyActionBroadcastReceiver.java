@@ -19,15 +19,19 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
+import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
@@ -42,8 +46,19 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
     // Key for the string that's delivered in the action's intent.
     public static final String KEY_TEXT_REPLY = "KEY_TEXT_REPLY";
 
+    Datastore databaseConnector;
+
     @Override
     public void onReceive(Context context, Intent intent) {
+
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
+                            Datastore.class, Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        databaseConnector = Datastore.datastore;
+
         if (intent.getAction() != null && intent.getAction().equals(REPLY_BROADCAST_INTENT)) {
             Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
             if (remoteInput != null) {
@@ -67,58 +82,58 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                 conversation.setDate(String.valueOf(System.currentTimeMillis()));
                 conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX);
                 conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_PENDING);
-                ConversationDao conversationDao = conversation.getDaoInstance(context);
-                Thread thread = new Thread(new Runnable() {
+
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        conversationDao.insert(conversation);
+                        try {
+                            databaseConnector.conversationDao().insert(conversation);
+
+                            SMSDatabaseWrapper.send_text(context, conversation, null);
+                            Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
+                            broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
+                            broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+                            if(intent.getExtras() != null)
+                                broadcastIntent.putExtras(intent.getExtras());
+
+                            context.sendBroadcast(broadcastIntent);
+
+                            NotificationCompat.MessagingStyle messagingStyle =
+                                    NotificationsHandler.getMessagingStyle(context, conversation, reply.toString());
+
+                            Intent replyIntent = NotificationsHandler.getReplyIntent(context, conversation);
+                            PendingIntent pendingIntent = NotificationsHandler.getPendingIntent(context, conversation);
+
+                            NotificationCompat.Builder builder =
+                                    NotificationsHandler.getNotificationBuilder(context, replyIntent,
+                                            conversation, pendingIntent);
+
+                            builder.setStyle(messagingStyle);
+                            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+                            notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
-                thread.start();
 
-                try {
-                    thread.join();
 
-                    SMSDatabaseWrapper.send_text(context, conversation, null);
-                    Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
-                    broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
-                    broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
-                    if(intent.getExtras() != null)
-                        broadcastIntent.putExtras(intent.getExtras());
-
-                    context.sendBroadcast(broadcastIntent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                NotificationCompat.MessagingStyle messagingStyle =
-                        NotificationsHandler.getMessagingStyle(context, conversation, reply.toString());
-
-                Intent replyIntent = NotificationsHandler.getReplyIntent(context, conversation);
-                PendingIntent pendingIntent = NotificationsHandler.getPendingIntent(context, conversation);
-
-                NotificationCompat.Builder builder =
-                        NotificationsHandler.getNotificationBuilder(context, replyIntent,
-                                conversation, pendingIntent);
-
-                builder.setStyle(messagingStyle);
-                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
-                notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
             }
         }
 
         else if(intent.getAction() != null && intent.getAction().equals(MARK_AS_READ_BROADCAST_INTENT)) {
-            String threadId = intent.getStringExtra(Conversation.THREAD_ID);
-            String messageId = intent.getStringExtra(Conversation.ID);
+            final String threadId = intent.getStringExtra(Conversation.THREAD_ID);
+            final String messageId = intent.getStringExtra(Conversation.ID);
             try {
-                NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
-
-                Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
-                broadcastIntent.putExtra(Conversation.ID, messageId);
-                broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
-                if(intent.getExtras() != null)
-                    broadcastIntent.putExtras(intent.getExtras());
-                context.sendBroadcast(broadcastIntent);
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        NativeSMSDB.Incoming.update_read(context, 1, threadId, null);
+                        databaseConnector.threadedConversationsDao().updateRead(1,
+                                Long.parseLong(threadId));
+                    }
+                });
 
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
                 notificationManager.cancel(Integer.parseInt(threadId));
@@ -128,21 +143,12 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
         }
 
         else if(intent.getAction() != null && intent.getAction().equals(MUTE_BROADCAST_INTENT)) {
-            String address = intent.getStringExtra(Conversation.ADDRESS);
             String threadId = intent.getStringExtra(Conversation.THREAD_ID);
-            String messageId = intent.getStringExtra(Conversation.ID);
-            Contacts.mute(context, address);
-
-            Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
-            broadcastIntent.putExtra(Conversation.ID, messageId);
-            broadcastIntent.putExtra(Conversation.ADDRESS, address);
-            broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
-            if(intent.getExtras() != null)
-                broadcastIntent.putExtras(intent.getExtras());
-            context.sendBroadcast(broadcastIntent);
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
             notificationManager.cancel(Integer.parseInt(threadId));
+
+            databaseConnector.threadedConversationsDao().updateMuted(1, threadId);
         }
     }
 }

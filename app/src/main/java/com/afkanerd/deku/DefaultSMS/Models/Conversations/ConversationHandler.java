@@ -14,16 +14,6 @@ public class ConversationHandler {
 
     public static ConversationDao conversationDao;
 
-    public static Datastore databaseConnector;
-    public static Datastore acquireDatabase(Context context) {
-        if(databaseConnector == null || !databaseConnector.isOpen())
-            databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        return databaseConnector;
-    }
-
     public static Conversation buildConversationForSending(Context context, String body, int subscriptionId,
                                                            String address) {
         long threadId = Telephony.Threads.getOrCreateThreadId(context, address);

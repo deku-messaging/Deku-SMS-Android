@@ -24,6 +24,7 @@ import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.button.MaterialButton;
 
@@ -104,32 +105,106 @@ public class DefaultCheckActivity extends AppCompatActivity {
         }
     }
     public void startMigrations() {
-        Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration4To5())
-                .addMigrations(new Migrations.Migration5To6())
-                .addMigrations(new Migrations.Migration6To7())
-                .addMigrations(new Migrations.Migration7To8())
-                .addMigrations(new Migrations.Migration9To10())
-                .addMigrations(new Migrations.Migration10To11(getApplicationContext()))
-                .build().close();
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .addMigrations(new Migrations.Migration4To5())
+                    .addMigrations(new Migrations.Migration5To6())
+                    .addMigrations(new Migrations.Migration6To7())
+                    .addMigrations(new Migrations.Migration7To8())
+                    .addMigrations(new Migrations.Migration9To10())
+                    .addMigrations(new Migrations.Migration10To11(getApplicationContext()))
+                    .addMigrations(new Migrations.MIGRATION_11_12())
+                    .build();
     }
 
 
     private void startUserActivities() {
-        new Thread(new Runnable() {
+        startMigrations();
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
-                startMigrations();
+                configureNotifications();
                 startServices();
             }
-        }).start();
+        });
 
         Intent intent = new Intent(this, ThreadedConversationsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
     }
+
+    private void configureNotifications(){
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel();
+        }
+    }
+    ArrayList<String> notificationsChannelIds = new ArrayList<>();
+    ArrayList<String> notificationsChannelNames = new ArrayList<>();
+
+    private void createNotificationChannel() {
+        notificationsChannelIds.add(getString(R.string.incoming_messages_channel_id));
+        notificationsChannelNames.add(getString(R.string.incoming_messages_channel_name));
+
+        notificationsChannelIds.add(getString(R.string.running_gateway_clients_channel_id));
+        notificationsChannelNames.add(getString(R.string.running_gateway_clients_channel_name));
+
+        notificationsChannelIds.add(getString(R.string.foreground_service_failed_channel_id));
+        notificationsChannelNames.add(getString(R.string.foreground_service_failed_channel_name));
+
+        createNotificationChannelIncomingMessage();
+
+        createNotificationChannelRunningGatewayListeners();
+
+        createNotificationChannelReconnectGatewayListeners();
+    }
+
+    private void createNotificationChannelIncomingMessage() {
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        NotificationChannel channel = new NotificationChannel(
+                notificationsChannelIds.get(0), notificationsChannelNames.get(0), importance);
+        channel.setDescription(getString(R.string.incoming_messages_channel_description));
+        channel.enableLights(true);
+        channel.setLightColor(R.color.logo_primary);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+        // Register the channel with the system; you can't change the importance
+        // or other notification behaviors after this
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
+    }
+
+    private void createNotificationChannelRunningGatewayListeners() {
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel channel = new NotificationChannel(
+                notificationsChannelIds.get(1), notificationsChannelNames.get(1), importance);
+        channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
+        channel.setLightColor(R.color.logo_primary);
+        channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
+
+        // Register the channel with the system; you can't change the importance
+        // or other notification behaviors after this
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
+    }
+
+    private void createNotificationChannelReconnectGatewayListeners() {
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel channel = new NotificationChannel(
+                notificationsChannelIds.get(2), notificationsChannelNames.get(2), importance);
+        channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
+        channel.setLightColor(R.color.logo_primary);
+        channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
+
+        // Register the channel with the system; you can't change the importance
+        // or other notification behaviors after this
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
+    }
+
 
     @Override
     public void onActivityResult(int reqCode, int resultCode, Intent data) {

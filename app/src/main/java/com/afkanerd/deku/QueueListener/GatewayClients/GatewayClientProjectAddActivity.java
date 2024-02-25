@@ -3,6 +3,7 @@ package com.afkanerd.deku.QueueListener.GatewayClients;
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -16,10 +17,12 @@ import android.provider.Settings;
 import android.telephony.SubscriptionInfo;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -27,6 +30,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class GatewayClientProjectAddActivity extends AppCompatActivity {
 
@@ -44,13 +49,17 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_customization);
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(),
+                            Datastore.class, Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        databaseConnector = Datastore.datastore;
 
         toolbar = findViewById(R.id.gateway_client_customization_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        databaseConnector = Room.databaseBuilder(getApplicationContext(),
-                Datastore.class, Datastore.databaseName).build();
 
         try {
             getGatewayClient();
@@ -102,9 +111,15 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
         long gatewayId = getIntent().getLongExtra(GATEWAY_CLIENT_ID, -1);
         gatewayClient = gatewayClientHandler.fetch(gatewayId);
 
+        final boolean isDualSim = SIMHandler.isDualSim(getApplicationContext());
+        if(isDualSim) {
+            findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint)
+                    .setVisibility(View.VISIBLE);
+        }
+
         if(getIntent().hasExtra(GATEWAY_CLIENT_PROJECT_ID)) {
             id = getIntent().getLongExtra(GATEWAY_CLIENT_PROJECT_ID, -1);
-            new Thread(new Runnable() {
+            consumerExecutorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     GatewayClientProjects gatewayClientProjects =
@@ -117,9 +132,7 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
                         }
                     });
 
-                    List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(getApplicationContext());
-                    if (simcards.size() > 1) {
-                        findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint).setVisibility(View.VISIBLE);
+                    if (isDualSim) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -128,7 +141,7 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
                         });
                     }
                 }
-            }).start();
+            });
         }
 
         projectName.addTextChangedListener(new TextWatcher() {
@@ -187,15 +200,15 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
             gatewayClientProjects.binding2Name = projectBinding2.getText().toString();
             gatewayClientProjects.gatewayClientId = gatewayClient.getId();
 
-            new Thread(new Runnable() {
+            consumerExecutorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     databaseConnector.gatewayClientProjectDao().insert(gatewayClientProjects);
                 }
-            }).start();
+            });
         }
         else {
-            new Thread(new Runnable() {
+            consumerExecutorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     GatewayClientProjects gatewayClientProjects =
@@ -206,19 +219,34 @@ public class GatewayClientProjectAddActivity extends AppCompatActivity {
                     gatewayClientProjects.gatewayClientId = gatewayClient.getId();
                     databaseConnector.gatewayClientProjectDao().update(gatewayClientProjects);
                 }
-            }).start();
+            });
         }
 
-        Intent intent = new Intent(this, GatewayClientListingActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
+        finish();
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.gateway_client_customization_menu, menu);
+        if(getIntent().hasExtra(GATEWAY_CLIENT_PROJECT_ID))
+            getMenuInflater().inflate(R.menu.gateway_client_customization_menu, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    ExecutorService consumerExecutorService = Executors.newFixedThreadPool(2); // Create a pool of 5 worker threads
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (R.id.gateway_client_project_delete == item.getItemId()) {
+            consumerExecutorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    databaseConnector.gatewayClientProjectDao().delete(id);
+                    finish();
+                }
+            });
+            return true;
+        }
+        return false;
     }
 
     @Override
