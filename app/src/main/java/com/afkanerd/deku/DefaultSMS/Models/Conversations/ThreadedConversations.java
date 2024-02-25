@@ -87,6 +87,8 @@ public class ThreadedConversations {
         threadedConversations.setDate(conversation.getDate());
         threadedConversations.setType(conversation.getType());
         threadedConversations.setIs_read(conversation.isRead());
+        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
+        threadedConversations.setContact_name(contactName);
 
         return threadedConversations;
     }
