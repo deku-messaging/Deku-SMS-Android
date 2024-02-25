@@ -1,9 +1,17 @@
 package com.afkanerd.deku.DefaultSMS.Fragments;
 
+import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
+import android.provider.BlockedNumberContract;
+import android.provider.DocumentsContract;
+import android.telecom.TelecomManager;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -13,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,16 +40,21 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyc
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.SettingsActivity;
+import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.Router.RouterActivity;
 import com.google.i18n.phonenumbers.NumberParseException;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -61,12 +75,24 @@ public class ThreadedConversationsFragment extends Fragment {
     ThreadedConversationRecyclerAdapter threadedConversationRecyclerAdapter;
     RecyclerView messagesThreadRecyclerView;
 
+    public static final String MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU =
+            "MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU";
+
+    public static final String MESSAGES_THREAD_FRAGMENT_DEFAULT_ACTION_MODE_MENU =
+            "MESSAGES_THREAD_FRAGMENT_DEFAULT_ACTION_MODE_MENU";
+    public static final String MESSAGES_THREAD_FRAGMENT_LABEL =
+            "MESSAGES_THREAD_FRAGMENT_LABEL";
+    public static final String MESSAGES_THREAD_FRAGMENT_NO_CONTENT =
+            "MESSAGES_THREAD_FRAGMENT_NO_CONTENT";
+
     public static final String MESSAGES_THREAD_FRAGMENT_TYPE = "MESSAGES_THREAD_FRAGMENT_TYPE";
     public static final String ALL_MESSAGES_THREAD_FRAGMENT = "ALL_MESSAGES_THREAD_FRAGMENT";
     public static final String PLAIN_MESSAGES_THREAD_FRAGMENT = "PLAIN_MESSAGES_THREAD_FRAGMENT";
     public static final String ENCRYPTED_MESSAGES_THREAD_FRAGMENT = "ENCRYPTED_MESSAGES_THREAD_FRAGMENT";
 
     public static final String ARCHIVED_MESSAGE_TYPES = "ARCHIVED_MESSAGE_TYPES";
+    public static final String BLOCKED_MESSAGE_TYPES = "BLOCKED_MESSAGE_TYPES";
+    public static final String MUTED_MESSAGE_TYPE = "MUTED_MESSAGE_TYPE";
     public static final String DRAFTS_MESSAGE_TYPES = "DRAFTS_MESSAGE_TYPES";
     public static final String UNREAD_MESSAGE_TYPES = "UNREAD_MESSAGE_TYPES";
 
@@ -76,12 +102,9 @@ public class ThreadedConversationsFragment extends Fragment {
 
     public interface ViewModelsInterface {
         ThreadedConversationsViewModel getThreadedConversationsViewModel();
-        ExecutorService getExecutorService();
     }
 
     private ViewModelsInterface viewModelsInterface;
-
-    ExecutorService executorService;
 
     @Nullable
     @Override
@@ -117,7 +140,7 @@ public class ThreadedConversationsFragment extends Fragment {
 
             if(menu.findItem(R.id.conversations_threads_main_menu_mark_all_read) != null &&
             menu.findItem(R.id.conversations_threads_main_menu_mark_all_unread) != null)
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         boolean hasUnread = threadedConversationsViewModel.hasUnread(threadsIds);
@@ -149,15 +172,11 @@ public class ThreadedConversationsFragment extends Fragment {
                 @Override
                 public void run() {
 
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            ThreadedConversations threadedConversations = new ThreadedConversations();
-                            ThreadedConversationsDao threadedConversationsDao =
-                                    threadedConversations.getDaoInstance(getContext());
-                            List<String> foundList =
-                                    threadedConversationsDao.findAddresses(ids);
-                            threadedConversations.close();
+                            List<String> foundList = threadedConversationsViewModel.
+                                    databaseConnector.threadedConversationsDao().findAddresses(ids);
                             threadedConversationsViewModel.delete(getContext(), ids);
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
@@ -169,9 +188,6 @@ public class ThreadedConversationsFragment extends Fragment {
                                 try {
                                     String keystoreAlias =
                                             E2EEHandler.deriveKeystoreAlias( address, 0);
-//                                    E2EEHandler.removeFromKeystore(getContext(), keystoreAlias);
-//                                    E2EEHandler.removeFromEncryptionDatabase(getContext(),
-//                                            keystoreAlias);
                                     E2EEHandler.clear(getContext(), keystoreAlias);
                                 } catch (KeyStoreException | NumberParseException |
                                          InterruptedException |
@@ -237,7 +253,7 @@ public class ThreadedConversationsFragment extends Fragment {
                             archive.is_archived = true;
                             archiveList.add(archive);
                         }
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.archive(archiveList);
@@ -258,7 +274,7 @@ public class ThreadedConversationsFragment extends Fragment {
                             archive.is_archived = false;
                             archiveList.add(archive);
                         }
-                    executorService.execute(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.unarchive(archiveList);
@@ -276,7 +292,7 @@ public class ThreadedConversationsFragment extends Fragment {
                                 threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                             threadIds.add(viewHolder.id);
                         }
-                        executorService.execute(new Runnable() {
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
                             @Override
                             public void run() {
                                 threadedConversationsViewModel.markUnRead(getContext(), threadIds);
@@ -295,7 +311,7 @@ public class ThreadedConversationsFragment extends Fragment {
                                 threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
                             threadIds.add(viewHolder.id);
                         }
-                        executorService.execute(new Runnable() {
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
                             @Override
                             public void run() {
                                 threadedConversationsViewModel.markRead(getContext(), threadIds);
@@ -305,7 +321,59 @@ public class ThreadedConversationsFragment extends Fragment {
                         return true;
                     }
                 }
-
+                else if(item.getItemId() == R.id.blocked_main_menu_unblock) {
+                    List<String> threadIds = new ArrayList<>();
+                    for (ThreadedConversationsTemplateViewHolder viewHolder :
+                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                        threadIds.add(viewHolder.id);
+                    }
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.unblock(getContext(), threadIds);
+                        }
+                    });
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
+                else if(item.getItemId() == R.id.conversations_threads_main_menu_mute) {
+                    List<String> threadIds = new ArrayList<>();
+                    for (ThreadedConversationsTemplateViewHolder viewHolder :
+                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                        threadIds.add(viewHolder.id);
+                    }
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.mute(threadIds);
+                            threadedConversationsViewModel.getCount(getContext());
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    threadedConversationRecyclerAdapter.notifyDataSetChanged();
+                                }
+                            });
+                        }
+                    });
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
+                else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_selected) {
+                    List<String> threadIds = new ArrayList<>();
+                    for (ThreadedConversationsTemplateViewHolder viewHolder :
+                            threadedConversationRecyclerAdapter.selectedItems.getValue().values()) {
+                        threadIds.add(viewHolder.id);
+                    }
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            threadedConversationsViewModel.unMute(threadIds);
+                            threadedConversationsViewModel.getCount(getContext());
+                        }
+                    });
+                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                    return true;
+                }
             }
             return false;
         }
@@ -324,7 +392,7 @@ public class ThreadedConversationsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        executorService.execute(new Runnable() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 if(getContext() != null) {
@@ -335,36 +403,41 @@ public class ThreadedConversationsFragment extends Fragment {
                                 .apply();
                         threadedConversationsViewModel.reset(getContext());
                     }
-
-                    threadedConversationsViewModel.refresh(getContext());
                 }
             }
         });
     }
 
-    ThreadedConversationsDao threadedConversationsDao;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         viewModelsInterface = (ViewModelsInterface) view.getContext();
-        executorService = viewModelsInterface.getExecutorService();
 
         setHasOptionsMenu(true);
         Bundle args = getArguments();
-        String messageType = args == null ? ALL_MESSAGES_THREAD_FRAGMENT :
-                args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
+
+        String messageType;
+        if(args != null) {
+            messageType = args.getString(MESSAGES_THREAD_FRAGMENT_TYPE);
+            setLabels(view, args.getString(MESSAGES_THREAD_FRAGMENT_LABEL),
+                    args.getString(MESSAGES_THREAD_FRAGMENT_NO_CONTENT));
+            defaultMenu = args.getInt(MESSAGES_THREAD_FRAGMENT_DEFAULT_MENU);
+            actionModeMenu = args.getInt(MESSAGES_THREAD_FRAGMENT_DEFAULT_ACTION_MODE_MENU);
+        } else {
+            messageType = ALL_MESSAGES_THREAD_FRAGMENT;
+            setLabels(view, getString(R.string.conversations_navigation_view_inbox), getString(R.string.homepage_no_message));
+        }
 
         actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext(),
                 LinearLayoutManager.VERTICAL, false);
 
-        setLabels(view, getString(R.string.conversations_navigation_view_inbox), getString(R.string.homepage_no_message));
 
         threadedConversationsViewModel = viewModelsInterface.getThreadedConversationsViewModel();
 
-        threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter( getContext(),
-                threadedConversationsDao);
+        threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter(
+                threadedConversationsViewModel.databaseConnector.threadedConversationsDao());
         threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<HashMap<Long, ThreadedConversationsTemplateViewHolder>>() {
             @Override
@@ -405,7 +478,7 @@ public class ThreadedConversationsFragment extends Fragment {
             case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
                 Log.d(getClass().getName(), "Fragment at encrypted");
                 try {
-                    threadedConversationsViewModel.getEncrypted(getContext()).observe(getViewLifecycleOwner(),
+                    threadedConversationsViewModel.getEncrypted().observe(getViewLifecycleOwner(),
                             new Observer<PagingData<ThreadedConversations>>() {
                                 @Override
                                 public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -447,6 +520,26 @@ public class ThreadedConversationsFragment extends Fragment {
                             }
                         });
                 break;
+            case BLOCKED_MESSAGE_TYPES:
+                threadedConversationsViewModel.getBlocked().observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
+                break;
+            case MUTED_MESSAGE_TYPE:
+                threadedConversationsViewModel.getMuted().observe(getViewLifecycleOwner(),
+                        new Observer<PagingData<ThreadedConversations>>() {
+                            @Override
+                            public void onChanged(PagingData<ThreadedConversations> smsList) {
+                                threadedConversationRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                view.findViewById(R.id.homepage_messages_loader).setVisibility(View.GONE);
+                            }
+                        });
+                break;
             case ALL_MESSAGES_THREAD_FRAGMENT:
             default:
                 threadedConversationsViewModel.get().observe(getViewLifecycleOwner(),
@@ -460,6 +553,67 @@ public class ThreadedConversationsFragment extends Fragment {
         }
     }
 
+    private static final int CREATE_FILE = 777;
+    public void exportInbox() {
+        // Request code for creating a PDF document.
+
+        String filename = "deku_sms_backup_" + System.currentTimeMillis() + ".json";
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, filename);
+
+        // Optionally, specify a URI for the directory that should be opened in
+        // the system file picker when your app creates the document.
+//        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri);
+
+        startActivityForResult(intent, CREATE_FILE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode,
+                                 Intent resultData) {
+        if (requestCode == CREATE_FILE && resultCode == Activity.RESULT_OK) {
+            // The result data contains a URI for the document or directory that
+            // the user selected.
+            if (resultData != null) {
+                Uri uri = resultData.getData();
+                // Perform operations on the document using its URI.
+
+                if(uri == null)
+                    return;
+
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            ParcelFileDescriptor pfd = requireActivity().getContentResolver().
+                                    openFileDescriptor(uri, "w");
+                            FileOutputStream fileOutputStream =
+                                    new FileOutputStream(pfd.getFileDescriptor());
+                            fileOutputStream.write(threadedConversationsViewModel.getAllExport()
+                                    .getBytes());
+                            // Let the document provider know you're done by closing the stream.
+                            fileOutputStream.close();
+                            pfd.close();
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getContext(),
+                                            getString(R.string.conversations_exported_complete),
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(defaultMenu, menu);
@@ -472,27 +626,23 @@ public class ThreadedConversationsFragment extends Fragment {
             Intent searchIntent = new Intent(getContext(), SearchMessagesThreadsActivity.class);
             searchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(searchIntent);
-            return true;
         }
         if (item.getItemId() == R.id.conversation_threads_main_menu_routed) {
             Intent routingIntent = new Intent(getContext(), RouterActivity.class);
             routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(routingIntent);
-            return true;
         }
         if (item.getItemId() == R.id.conversation_threads_main_menu_settings) {
             Intent settingsIntent = new Intent(getContext(), SettingsActivity.class);
             startActivity(settingsIntent);
-            return true;
         }
         if (item.getItemId() == R.id.conversation_threads_main_menu_about) {
             Intent aboutIntent = new Intent(getContext(), AboutActivity.class);
             aboutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(aboutIntent);
-            return true;
         }
         if(item.getItemId() == R.id.conversation_threads_main_menu_clear_drafts) {
-            executorService.execute(new Runnable() {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -502,19 +652,40 @@ public class ThreadedConversationsFragment extends Fragment {
                     }
                 }
             });
-            return true;
         }
         if(item.getItemId() == R.id.conversation_threads_main_menu_mark_all_read) {
-            try {
-                threadedConversationsViewModel.markAllRead(getContext());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    threadedConversationsViewModel.markAllRead(getContext());
+                }
+            });
+        }
+        else if(item.getItemId() == R.id.conversation_threads_main_menu_unmute_all) {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    threadedConversationsViewModel.unMuteAll();
+                }
+            });
+        }
+        else if(item.getItemId() == R.id.conversations_menu_export) {
+            exportInbox();
+        }
+        else if(item.getItemId() == R.id.blocked_main_menu_unblock_manager_id) {
+            TelecomManager telecomManager = (TelecomManager)
+                    getContext().getSystemService(Context.TELECOM_SERVICE);
+            startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
             return true;
         }
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversationsViewModel.getCount(getContext());
+            }
+        });
 
-        return false;
+        return true;
     }
 
 }

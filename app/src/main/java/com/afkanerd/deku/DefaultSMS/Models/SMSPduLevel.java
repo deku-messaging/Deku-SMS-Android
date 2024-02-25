@@ -98,4 +98,5 @@ public class SMSPduLevel {
         Log.d(IncomingTextSMSBroadcastReceiver.class.getName(), "PDU SMSC_NPI: " + SMSC_NPI);
     }
 
+    // A function that takes a pdu string as input and returns an array of two strings: the OA and DA
 }

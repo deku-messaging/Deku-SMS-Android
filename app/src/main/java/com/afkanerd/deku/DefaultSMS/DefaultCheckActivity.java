@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
+import androidx.room.Room;
 
 import android.Manifest;
 import android.app.Activity;
@@ -21,6 +22,9 @@ import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.button.MaterialButton;
 
@@ -44,6 +48,18 @@ public class DefaultCheckActivity extends AppCompatActivity {
                 makeDefault(v);
             }
         });
+
+        if(checkIsDefaultApp()) {
+            startUserActivities();
+        }
+
+    }
+
+    private boolean checkIsDefaultApp() {
+        final String myPackageName = getPackageName();
+        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
+
+        return myPackageName.equals(defaultPackage);
     }
 
 //    public void quicktest() {
@@ -80,64 +96,69 @@ public class DefaultCheckActivity extends AppCompatActivity {
             startActivity(intent);
         }
     }
-
-    private void checkIsDefaultApp() {
-        final String myPackageName = getPackageName();
-        final String defaultPackage = Telephony.Sms.getDefaultSmsPackage(this);
-
-        if (myPackageName.equals(defaultPackage)) {
-            startUserActivities();
+    private void startServices() {
+        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
+        try {
+            gatewayClientHandler.startServices(getApplicationContext());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
+    public void startMigrations() {
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .addMigrations(new Migrations.Migration4To5())
+                    .addMigrations(new Migrations.Migration5To6())
+                    .addMigrations(new Migrations.Migration6To7())
+                    .addMigrations(new Migrations.Migration7To8())
+                    .addMigrations(new Migrations.Migration9To10())
+                    .addMigrations(new Migrations.Migration10To11(getApplicationContext()))
+                    .addMigrations(new Migrations.MIGRATION_11_12())
+                    .build();
+    }
+
 
     private void startUserActivities() {
-        new Thread(new Runnable() {
+        startMigrations();
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
-                if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    createNotificationChannel();
-                }
+                configureNotifications();
                 startServices();
-                finish();
             }
-        }).start();
+        });
 
         Intent intent = new Intent(this, ThreadedConversationsActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+        finish();
     }
 
-    @Override
-    public void onActivityResult(int reqCode, int resultCode, Intent data) {
-        super.onActivityResult(reqCode, resultCode, data);
-
-        if (reqCode == 0) {
-            if (resultCode == Activity.RESULT_OK) {
-                SharedPreferences sharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                sharedPreferences.edit()
-                        .putBoolean(getString(R.string.configs_load_natives), true)
-                        .apply();
-                startUserActivities();
-            }
+    private void configureNotifications(){
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel();
         }
     }
-
     ArrayList<String> notificationsChannelIds = new ArrayList<>();
     ArrayList<String> notificationsChannelNames = new ArrayList<>();
 
-    private List<String> clearOutOldNotificationChannels() {
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        List<String> notificationChannelList = new ArrayList<>();
+    private void createNotificationChannel() {
+        notificationsChannelIds.add(getString(R.string.incoming_messages_channel_id));
+        notificationsChannelNames.add(getString(R.string.incoming_messages_channel_name));
 
-        for(NotificationChannel notificationChannel : notificationManager.getNotificationChannels()) {
-            if(!notificationsChannelIds.contains(notificationChannel.getId()))
-                notificationManager.deleteNotificationChannel(notificationChannel.getId());
-            else
-                notificationChannelList.add(notificationChannel.getId());
-        }
+        notificationsChannelIds.add(getString(R.string.running_gateway_clients_channel_id));
+        notificationsChannelNames.add(getString(R.string.running_gateway_clients_channel_name));
 
-        return notificationChannelList;
+        notificationsChannelIds.add(getString(R.string.foreground_service_failed_channel_id));
+        notificationsChannelNames.add(getString(R.string.foreground_service_failed_channel_name));
+
+        createNotificationChannelIncomingMessage();
+
+        createNotificationChannelRunningGatewayListeners();
+
+        createNotificationChannelReconnectGatewayListeners();
     }
 
     private void createNotificationChannelIncomingMessage() {
@@ -157,17 +178,17 @@ public class DefaultCheckActivity extends AppCompatActivity {
     }
 
     private void createNotificationChannelRunningGatewayListeners() {
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(
-                    notificationsChannelIds.get(1), notificationsChannelNames.get(1), importance);
-            channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
-            channel.setLightColor(R.color.logo_primary);
-            channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel channel = new NotificationChannel(
+                notificationsChannelIds.get(1), notificationsChannelNames.get(1), importance);
+        channel.setDescription(getString(R.string.running_gateway_clients_channel_description));
+        channel.setLightColor(R.color.logo_primary);
+        channel.setLockscreenVisibility(Notification.DEFAULT_ALL);
 
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
+        // Register the channel with the system; you can't change the importance
+        // or other notification behaviors after this
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
     }
 
     private void createNotificationChannelReconnectGatewayListeners() {
@@ -184,45 +205,27 @@ public class DefaultCheckActivity extends AppCompatActivity {
         notificationManager.createNotificationChannel(channel);
     }
 
-    private void createNotificationChannel() {
-        notificationsChannelIds.add(getString(R.string.incoming_messages_channel_id));
-        notificationsChannelNames.add(getString(R.string.incoming_messages_channel_name));
 
-        notificationsChannelIds.add(getString(R.string.running_gateway_clients_channel_id));
-        notificationsChannelNames.add(getString(R.string.running_gateway_clients_channel_name));
+    @Override
+    public void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
 
-        notificationsChannelIds.add(getString(R.string.foreground_service_failed_channel_id));
-        notificationsChannelNames.add(getString(R.string.foreground_service_failed_channel_name));
-
-        createNotificationChannelIncomingMessage();
-
-        createNotificationChannelRunningGatewayListeners();
-
-        createNotificationChannelReconnectGatewayListeners();
+        if (reqCode == 0) {
+            if (resultCode == Activity.RESULT_OK) {
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                sharedPreferences.edit()
+                        .putBoolean(getString(R.string.configs_load_natives), true)
+                        .apply();
+                startUserActivities();
+            }
+        }
     }
 
     public boolean checkPermissionToReadContacts() {
         int check = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
 
         return (check == PackageManager.PERMISSION_GRANTED);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        checkIsDefaultApp();
-    }
-
-    private void startServices() {
-        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        try {
-            gatewayClientHandler.startServices();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            gatewayClientHandler.close();
-        }
-
     }
 
 }

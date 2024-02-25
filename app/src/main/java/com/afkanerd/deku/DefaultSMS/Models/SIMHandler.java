@@ -1,6 +1,11 @@
 package com.afkanerd.deku.DefaultSMS.Models;
 
+import static android.content.Context.TELEPHONY_SERVICE;
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.content.Context;
+import android.telephony.CellInfo;
+import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
@@ -11,15 +16,12 @@ public class SIMHandler {
 
     public static List<SubscriptionInfo> getSimCardInformation(Context context) {
         SubscriptionManager subscriptionManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
-        int simCount = getActiveSimcardCount(context);
-
         return subscriptionManager.getActiveSubscriptionInfoList();
     }
 
-    public static int getActiveSimcardCount(Context context) {
-        SubscriptionManager subscriptionManager =
-                (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
-        return subscriptionManager.getActiveSubscriptionInfoCount();
+    public static boolean isDualSim(Context context) {
+        TelephonyManager manager = (TelephonyManager)context.getSystemService(TELEPHONY_SERVICE);
+        return manager.getPhoneCount() > 1;
     }
 
     private static String getSimStateString(int simState) {
@@ -40,10 +42,10 @@ public class SIMHandler {
         }
     }
     public static int getDefaultSimSubscription(Context context) {
-        int defaultSmsSubscriptionId = SubscriptionManager.getDefaultSmsSubscriptionId();
-        SubscriptionInfo subscriptionInfo = SubscriptionManager.from(context).getActiveSubscriptionInfo(defaultSmsSubscriptionId);
-
-        return subscriptionInfo.getSubscriptionId();
+        int subId = SubscriptionManager.getDefaultSmsSubscriptionId();
+        if(subId == SubscriptionManager.INVALID_SUBSCRIPTION_ID)
+            return getSimCardInformation(context).get(0).getSubscriptionId();
+        return subId;
     }
 
     public static String getSubscriptionName(Context context, int subscriptionId) {
@@ -52,28 +54,8 @@ public class SIMHandler {
         for(SubscriptionInfo subscriptionInfo : subscriptionInfos)
             if(subscriptionInfo.getSubscriptionId() == subscriptionId) {
                 if(subscriptionInfo.getCarrierName() != null)
-                    return subscriptionInfo.getCarrierName().toString();
+                    return subscriptionInfo.getDisplayName().toString();
             }
         return "";
-    }
-
-    public static String getOperatorName(Context context, String serviceCenterAddress) {
-        if(serviceCenterAddress == null)
-            return null;
-
-        SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
-
-        if (subscriptionManager.getActiveSubscriptionInfoCount() > 0) {
-            for (SubscriptionInfo subscriptionInfo : subscriptionManager.getActiveSubscriptionInfoList()) {
-                String smscNumber = subscriptionInfo.getSubscriptionId() + "";
-
-                // Compare the serviceCenterAddress with the SMS center number
-                if (serviceCenterAddress.equals(smscNumber)) {
-                    return subscriptionInfo.getCarrierName().toString();
-                }
-            }
-        }
-
-        return null; // Return null if operator name not found or no active subscriptions
     }
 }

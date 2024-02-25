@@ -1,19 +1,24 @@
 package com.afkanerd.deku.DefaultSMS.Models;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.provider.BlockedNumberContract;
 import android.provider.ContactsContract;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.Ignore;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Contacts {
 
@@ -152,5 +157,13 @@ public class Contacts {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static Cursor getBlocked(Context context) {
+        return context.getContentResolver().query(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+                new String[]{BlockedNumberContract.BlockedNumbers.COLUMN_ID,
+                        BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
+                        BlockedNumberContract.BlockedNumbers.COLUMN_E164_NUMBER},
+                null, null, null);
     }
 }

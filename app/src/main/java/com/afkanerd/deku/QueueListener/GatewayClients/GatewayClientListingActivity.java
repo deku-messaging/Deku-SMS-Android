@@ -14,13 +14,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -28,6 +28,7 @@ import java.util.List;
 public class GatewayClientListingActivity extends AppCompatActivity {
 
     public static String GATEWAY_CLIENT_ID = "GATEWAY_CLIENT_ID";
+    public static String GATEWAY_CLIENT_ID_NEW = "GATEWAY_CLIENT_ID_NEW";
     public static String GATEWAY_CLIENT_USERNAME = "GATEWAY_CLIENT_USERNAME";
     public static String GATEWAY_CLIENT_PASSWORD = "GATEWAY_CLIENT_PASSWORD";
     public static String GATEWAY_CLIENT_VIRTUAL_HOST = "GATEWAY_CLIENT_VIRTUAL_HOST";
@@ -58,6 +59,14 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_listing);
 
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        databaseConnector = Datastore.datastore;
+
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
 
         toolbar = findViewById(R.id.gateway_client_listing_toolbar);
@@ -79,11 +88,6 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
         gatewayClientViewModel = new ViewModelProvider(this).get(
                 GatewayClientViewModel.class);
-
-        databaseConnector = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                Datastore.databaseName)
-                .addMigrations(new Migrations.Migration5To6())
-                .build();
 
         gatewayClientDAO = databaseConnector.gatewayClientDAO();
 
@@ -127,7 +131,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.gateway_client_add_menu, menu);
+        getMenuInflater().inflate(R.menu.gateway_client_listing_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -156,11 +160,5 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         return editor.remove(String.valueOf(id))
                         .commit();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        databaseConnector.close();
     }
 }

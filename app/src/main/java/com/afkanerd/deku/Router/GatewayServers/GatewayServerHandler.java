@@ -16,12 +16,13 @@ public class GatewayServerHandler {
     Datastore databaseConnector;
 
     public GatewayServerHandler(Context context){
-         databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                         Datastore.databaseName)
-                 .addMigrations(new Migrations.Migration4To5())
-                .addMigrations(new Migrations.Migration5To6())
-                 .addMigrations(new Migrations.Migration6To7())
-                .build();
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(context, Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        databaseConnector = Datastore.datastore;
     }
 
     public LiveData<List<GatewayServer>> getAllLiveData() throws InterruptedException {
@@ -38,7 +39,8 @@ public class GatewayServerHandler {
 
         return liveData[0];
     }
-    public List<GatewayServer> getAll() throws InterruptedException {
+
+    public synchronized List<GatewayServer> getAll() throws InterruptedException {
         final List<GatewayServer>[] gatewayServerList = new List[]{new ArrayList<>()};
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -108,10 +110,6 @@ public class GatewayServerHandler {
         });
         thread.start();
         thread.join();
-    }
-
-    public void close() {
-        databaseConnector.close();
     }
 
 //    public static List<GatewayServer> fetchAll(Context context) throws InterruptedException {

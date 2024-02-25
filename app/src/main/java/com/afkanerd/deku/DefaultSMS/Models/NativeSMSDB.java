@@ -22,7 +22,9 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 
 public class NativeSMSDB {
     public static String ID = "ID";
@@ -134,6 +136,8 @@ public class NativeSMSDB {
      */
 
     private static String[] parseNewIncomingUriForThreadInformation(Context context, Uri uri) {
+        if(uri == null)
+            return null;
         Cursor cursor = context.getContentResolver().query(
                 uri,
                 new String[]{
@@ -142,8 +146,6 @@ public class NativeSMSDB {
                 null,
                 null,
                 null);
-        Log.d(NativeSMSDB.class.getName(), "Parsing draft information: " + cursor.getCount());
-
         if (cursor.moveToFirst()) {
             String threadId = cursor.getString(
                     cursor.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.THREAD_ID));
@@ -325,11 +327,9 @@ public class NativeSMSDB {
         }
 
         public static String[] register_sent(Context context, String messageId) {
-            Log.d(NativeSMSDB.class.getName(), "Registered sent message");
             int numberChanged =
                     update_status(context, Telephony.TextBasedSmsColumns.STATUS_NONE,
                             messageId, -1);
-            Log.d(NativeSMSDB.class.getName(), "Registered sent message update: " + numberChanged);
             return broadcastStateChanged(context, String.valueOf(messageId));
         }
 
@@ -438,7 +438,6 @@ public class NativeSMSDB {
                         contentValues,
                         "thread_id=?",
                         new String[]{thread_id});
-                Log.d(NativeSMSDB.class.getName(), "Updated to read: " + updated);
                 return updated;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -488,7 +487,6 @@ public class NativeSMSDB {
                 Uri uri = context.getContentResolver().insert(
                         Telephony.Sms.CONTENT_URI,
                         contentValues);
-                Log.d(NativeSMSDB.class.getName(), "URI: " + uri.toString());
                 String[] broadcastOutputs = parseNewIncomingUriForThreadInformation(context, uri);
                 String[] returnString = new String[7];
                 returnString[THREAD_ID] = broadcastOutputs[THREAD_ID];
@@ -505,14 +503,24 @@ public class NativeSMSDB {
             return null;
         }
 
-
         public static String[] register_incoming_data(Context context, Intent intent) throws IOException {
-            long messageId = System.currentTimeMillis();
+            /*
+             * Bundle: [
+             * android.telephony.extra.SUBSCRIPTION_INDEX,
+             * messageId,
+             * format,
+             * android.telephony.extra.SLOT_INDEX,
+             * pdus,
+             * phone,
+             * subscription
+             * ]
+             */
             ContentValues contentValues = new ContentValues();
 
             Bundle bundle = intent.getExtras();
             int subscriptionId = bundle.getInt("subscription", -1);
 
+            Set<String> keySet = bundle.keySet();
             String address = "";
             ByteArrayOutputStream dataBodyBuffer = new ByteArrayOutputStream();
 
@@ -520,16 +528,15 @@ public class NativeSMSDB {
             long date = System.currentTimeMillis();
 
             for (SmsMessage currentSMS : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                address = currentSMS.getDisplayOriginatingAddress();
+                address = currentSMS.getOriginatingAddress();
 
                 dataBodyBuffer.write(currentSMS.getUserData());
                 dateSent = currentSMS.getTimestampMillis();
             }
 
             String body = Base64.encodeToString(dataBodyBuffer.toByteArray(), Base64.DEFAULT);
-            contentValues.put(Telephony.Sms._ID, messageId);
+            contentValues.put(Telephony.Sms._ID, System.currentTimeMillis());
             contentValues.put(Telephony.TextBasedSmsColumns.ADDRESS, address);
-//            contentValues.put(Telephony.TextBasedSmsColumns.BODY, body);
             contentValues.put(Telephony.TextBasedSmsColumns.SUBSCRIPTION_ID, subscriptionId);
             contentValues.put(Telephony.TextBasedSmsColumns.TYPE, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
 

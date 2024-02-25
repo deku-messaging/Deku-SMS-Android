@@ -167,11 +167,4 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         }
         return false;
     }
-
-    @Override
-    protected void onDestroy() {
-        gatewayServerHandler.close();
-
-        super.onDestroy();
-    }
 }

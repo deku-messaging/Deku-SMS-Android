@@ -71,10 +71,6 @@ check:
 		echo "+ [NOT FOUND] ${RELEASE_VERSION_PYTHON_FILENAME}"; \
 		echo ">> This file releases the build on the various distribution outlets"; \
 	fi
-	@if [ ! -f ${KEYSTORE_PASSWD} ]; then \
-		echo "+ [NOT FOUND] ${KEYSTORE_PASSWD}"; \
-		echo ">> This file contains the password for the keystore"; \
-	fi
 
 info: check
 	@echo "- Branch name: ${branch}"

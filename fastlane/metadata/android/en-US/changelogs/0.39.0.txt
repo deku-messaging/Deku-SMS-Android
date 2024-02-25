@@ -1,0 +1,3 @@
+- fix: RMQ connections now shoes messages in SMS inbox
+- fix: Routing to custom cloud breaks when accessing database now fixed
+- update: can export messages to a json file

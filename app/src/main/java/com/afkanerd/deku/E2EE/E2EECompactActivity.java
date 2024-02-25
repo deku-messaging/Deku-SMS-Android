@@ -3,29 +3,23 @@ package com.afkanerd.deku.E2EE;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
-import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.Models.SettingsHandler;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -61,8 +55,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     public void sendTextMessage(final String text, int subscriptionId,
                                 ThreadedConversations threadedConversations, String messageId,
                                 final byte[] _mk) throws NumberParseException, InterruptedException {
-        if(threadedConversations.secured && !isEncrypted) {
-            executorService.execute(new Runnable() {
+        if(threadedConversations.is_secured && !isEncrypted) {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -89,7 +83,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                threadedConversations.secured = secured;
+                threadedConversations.is_secured = secured;
                 if(secured && securePopUpRequest != null) {
                     securePopUpRequest.setVisibility(View.GONE);
                     TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
@@ -102,15 +96,10 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
     protected void sendDataMessage(ThreadedConversations threadedConversations) {
         final int subscriptionId = SIMHandler.getDefaultSimSubscription(getApplicationContext());
-        executorService.execute(new Runnable() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-//                    E2EEHandler.clear(getApplicationContext(),
-//                            E2EEHandler.deriveKeystoreAlias(
-//                                    threadedConversations.getAddress(),
-//                                    0));
-
                     Pair<String,  byte[]> transmissionRequestKeyPair =
                             E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
                                     threadedConversations.getAddress());
@@ -128,7 +117,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     conversation.setDate(String.valueOf(System.currentTimeMillis()));
                     conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-                    long id = conversationsViewModel.insert(conversation);
+                    long id = conversationsViewModel.insert(getApplicationContext(), conversation);
                     SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -211,26 +200,28 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
-                    threadedConversations.secured =
-                            E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias);
-                    if(threadedConversations.secured) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
-                                layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-                            }
-                        });
+        if(threadedConversations != null) {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                        threadedConversations.is_secured =
+                                E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias);
+                        if(threadedConversations.is_secured) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
+                                    layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                                }
+                            });
+                        }
+                    } catch (IOException | GeneralSecurityException | NumberParseException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException | GeneralSecurityException | NumberParseException e) {
-                    e.printStackTrace();
                 }
-            }
-        });
+            });
+        }
     }
 }

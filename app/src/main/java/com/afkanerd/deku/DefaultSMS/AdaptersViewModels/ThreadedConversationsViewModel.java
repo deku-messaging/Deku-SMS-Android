@@ -2,8 +2,8 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
-import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -12,33 +12,32 @@ import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
+import androidx.paging.PagingSource;
 
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ThreadedConversationsViewModel extends ViewModel {
 
-    public ThreadedConversationsDao threadedConversationsDao;
     int pageSize = 20;
     int prefetchDistance = 3 * pageSize;
     boolean enablePlaceholder = false;
     int initialLoadSize = 2 * pageSize;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
+
+    public Datastore databaseConnector;
 
     public LiveData<PagingData<ThreadedConversations>> getArchived(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
@@ -47,7 +46,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 enablePlaceholder,
                 initialLoadSize,
                 maxSize
-        ), ()-> this.threadedConversationsDao.getArchived());
+        ), ()-> databaseConnector.threadedConversationsDao().getArchived());
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
     public LiveData<PagingData<ThreadedConversations>> getDrafts(){
@@ -57,11 +56,34 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 enablePlaceholder,
                 initialLoadSize,
                 maxSize
-        ), ()-> this.threadedConversationsDao.getThreadedDrafts(
+        ), ()-> databaseConnector.threadedConversationsDao().getThreadedDrafts(
                 Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
+    public LiveData<PagingData<ThreadedConversations>> getBlocked(){
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> databaseConnector.threadedConversationsDao().getBlocked());
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    public LiveData<PagingData<ThreadedConversations>> getMuted(){
+        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                pageSize,
+                prefetchDistance,
+                enablePlaceholder,
+                initialLoadSize,
+                maxSize
+        ), ()-> databaseConnector.threadedConversationsDao().getMuted());
+        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+    }
+
+    PagingSource<Integer, ThreadedConversations> mutedPagingSource;
     public LiveData<PagingData<ThreadedConversations>> getUnread(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -69,32 +91,43 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 enablePlaceholder,
                 initialLoadSize,
                 maxSize
-        ), ()-> this.threadedConversationsDao.getAllUnreadWithoutArchived());
+        ), ()-> databaseConnector.threadedConversationsDao().getAllUnreadWithoutArchived());
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
     public LiveData<PagingData<ThreadedConversations>> get(){
-        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize,
-                maxSize
-        ), ()-> this.threadedConversationsDao.getAllWithoutArchived());
-        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+        try {
+            Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
+                    pageSize,
+                    prefetchDistance,
+                    enablePlaceholder,
+                    initialLoadSize,
+                    maxSize
+            ), ()-> databaseConnector.threadedConversationsDao().getAllWithoutArchived());
+            return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getEncrypted(Context context) throws InterruptedException {
+    public String getAllExport() {
+        List<Conversation> conversations = databaseConnector.conversationDao().getComplete();
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setPrettyPrinting().serializeNulls();
+
+        Gson gson = gsonBuilder.create();
+        return gson.toJson(conversations);
+    }
+
+    public LiveData<PagingData<ThreadedConversations>> getEncrypted() throws InterruptedException {
         List<String> address = new ArrayList<>();
-        ConversationsThreadsEncryption conversationsThreadsEncryption1 =
-                new ConversationsThreadsEncryption();
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                conversationsThreadsEncryption1.getDaoInstance(context);
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
-                        conversationsThreadsEncryptionDao.getAll();
+                        Datastore.datastore.conversationsThreadsEncryptionDao().getAll();
                 for(ConversationsThreadsEncryption conversationsThreadsEncryption :
                         conversationsThreadsEncryptionList) {
                     String derivedAddress =
@@ -113,42 +146,15 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 prefetchDistance,
                 enablePlaceholder,
                 initialLoadSize
-        ), ()-> this.threadedConversationsDao.getByAddress(address));
+        ), ()-> databaseConnector.threadedConversationsDao().getByAddress(address));
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
-
-    public LiveData<PagingData<ThreadedConversations>> getNotEncrypted(Context context) throws InterruptedException {
-        List<String> address = new ArrayList<>();
-        ConversationsThreadsEncryption conversationsThreadsEncryption1 =
-                new ConversationsThreadsEncryption();
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                conversationsThreadsEncryption1.getDaoInstance(context);
-        List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
-                conversationsThreadsEncryptionDao.getAll();
-
-        for(ConversationsThreadsEncryption conversationsThreadsEncryption :
-                conversationsThreadsEncryptionList) {
-            String derivedAddress =
-                    E2EEHandler.getAddressFromKeystore(
-                            conversationsThreadsEncryption.getKeystoreAlias());
-            address.add(derivedAddress);
-        }
-        Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
-                pageSize,
-                prefetchDistance,
-                enablePlaceholder,
-                initialLoadSize
-        ), ()-> this.threadedConversationsDao.getNotInAddress(address));
-        return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
-    }
-
 
     public void insert(ThreadedConversations threadedConversations) {
-        threadedConversationsDao.insert(threadedConversations);
+        databaseConnector.threadedConversationsDao().insert(threadedConversations);
     }
 
     public void reset(Context context) {
-        Conversation conversation = new Conversation();
         Cursor cursor = NativeSMSDB.fetchAll(context);
 
         List<Conversation> conversationList = new ArrayList<>();
@@ -159,32 +165,23 @@ public class ThreadedConversationsViewModel extends ViewModel {
             cursor.close();
         }
 
-        ConversationDao conversationDao = conversation.getDaoInstance(context);
-        conversationDao.insertAll(conversationList);
-
-        ThreadedConversations threadedConversations = new ThreadedConversations();
-        ThreadedConversationsDao threadedConversationsDao1 =
-                threadedConversations.getDaoInstance(context);
-        threadedConversationsDao1.deleteAll();
-        threadedConversations.close();
+        databaseConnector.conversationDao().insertAll(conversationList);
+        databaseConnector.threadedConversationsDao().deleteAll();
         refresh(context);
     }
 
     public void archive(List<Archive> archiveList) {
-        threadedConversationsDao.archive(archiveList);
+        databaseConnector.threadedConversationsDao().archive(archiveList);
     }
 
 
     public void delete(Context context, List<String> ids) {
-        Conversation conversation = new Conversation();
-        ConversationDao conversationDao = conversation.getDaoInstance(context);
-        conversationDao.deleteAll(ids);
-        threadedConversationsDao.delete(ids);
+        databaseConnector.conversationDao().deleteAll(ids);
+        databaseConnector.threadedConversationsDao().delete(ids);
         NativeSMSDB.deleteThreads(context, ids.toArray(new String[0]));
-        conversation.close();
     }
 
-    public void refresh(Context context) {
+    private void refresh(Context context) {
         List<ThreadedConversations> newThreadedConversationsList = new ArrayList<>();
         Cursor cursor = context.getContentResolver().query(
                 Telephony.Threads.CONTENT_URI,
@@ -195,11 +192,10 @@ public class ThreadedConversationsViewModel extends ViewModel {
         );
 
         List<ThreadedConversations> threadedDraftsList =
-                threadedConversationsDao.getThreadedDraftsList(
+                databaseConnector.threadedConversationsDao().getThreadedDraftsList(
                         Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
 
-        List<String> archivedThreads = threadedConversationsDao.getArchivedList();
-
+        List<String> archivedThreads = databaseConnector.threadedConversationsDao().getArchivedList();
         List<String> threadsIdsInDrafts = new ArrayList<>();
         for(ThreadedConversations threadedConversations : threadedDraftsList)
             threadsIdsInDrafts.add(threadedConversations.getThread_id());
@@ -211,7 +207,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 m_cls, d_rpt, v, person, service_center, error_code, _id, m_type, status]
                  */
         List<ThreadedConversations> threadedConversationsList =
-                threadedConversationsDao.getAll();
+                databaseConnector.threadedConversationsDao().getAll();
         if(cursor != null && cursor.moveToFirst()) {
             do {
                 ThreadedConversations threadedConversations = new ThreadedConversations();
@@ -243,6 +239,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     threadedConversations.setType(cursor.getInt(typeIndex));
                     threadedConversations.setDate(cursor.getString(dateIndex));
                 }
+                if(BlockedNumberContract.isBlocked(context, threadedConversations.getAddress()))
+                    threadedConversations.setIs_blocked(true);
 
                 threadedConversations.setIs_archived(
                         archivedThreads.contains(threadedConversations.getThread_id()));
@@ -262,58 +260,78 @@ public class ThreadedConversationsViewModel extends ViewModel {
             } while(cursor.moveToNext());
             cursor.close();
         }
-        threadedConversationsDao.insertAll(newThreadedConversationsList);
-        getCount();
+        databaseConnector.threadedConversationsDao().insertAll(newThreadedConversationsList);
+        getCount(context);
     }
 
     public void unarchive(List<Archive> archiveList) {
-        threadedConversationsDao.unarchive(archiveList);
+        databaseConnector.threadedConversationsDao().unarchive(archiveList);
+    }
+
+    public void unblock(Context context, List<String> threadIds) {
+        List<ThreadedConversations> threadedConversationsList =
+                databaseConnector.threadedConversationsDao().getList(threadIds);
+        for(ThreadedConversations threadedConversations : threadedConversationsList) {
+            BlockedNumberContract.unblock(context, threadedConversations.getAddress());
+        }
+        refresh(context);
     }
 
     public void clearDrafts(Context context) {
         SMSDatabaseWrapper.deleteAllDraft(context);
-        threadedConversationsDao.clearDrafts(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
+        databaseConnector.threadedConversationsDao()
+                .clearDrafts(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
         refresh(context);
     }
 
     public boolean hasUnread(List<String> ids) {
-        return threadedConversationsDao.getAllUnreadWithoutArchivedCount(ids) > 0;
+        return databaseConnector.threadedConversationsDao().getCountUnread(ids) > 0;
     }
 
     public void markUnRead(Context context, List<String> threadIds) {
         NativeSMSDB.Incoming.update_all_read(context, 0, threadIds.toArray(new String[0]));
-        threadedConversationsDao.updateRead(0, threadIds);
+        databaseConnector.threadedConversationsDao().updateRead(0, threadIds);
         refresh(context);
     }
 
     public void markRead(Context context, List<String> threadIds) {
         NativeSMSDB.Incoming.update_all_read(context, 1, threadIds.toArray(new String[0]));
-        threadedConversationsDao.updateRead(1, threadIds);
-        refresh(context);
-    }
-
-    public void markAllUnRead(Context context) {
-        NativeSMSDB.Incoming.update_all_read(context, 0);
-        threadedConversationsDao.updateRead(0);
+        databaseConnector.threadedConversationsDao().updateRead(1, threadIds);
         refresh(context);
     }
 
     public void markAllRead(Context context) {
         NativeSMSDB.Incoming.update_all_read(context, 1);
-        threadedConversationsDao.updateRead(1);
+        databaseConnector.threadedConversationsDao().updateRead(1);
         refresh(context);
     }
 
     public MutableLiveData<List<Integer>> folderMetrics = new MutableLiveData<>();
-    private void getCount() {
-        int draftsListCount = threadedConversationsDao
+    public void getCount(Context context) {
+        int draftsListCount = databaseConnector.threadedConversationsDao()
                 .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
-        int encryptedCount = threadedConversationsDao.getAllEncryptedCount();
-        int unreadCount = threadedConversationsDao.getAllUnreadWithoutArchivedCount();
+        int encryptedCount = databaseConnector.threadedConversationsDao().getCountEncrypted();
+        int unreadCount = databaseConnector.threadedConversationsDao().getCountUnread();
+        int blockedCount = databaseConnector.threadedConversationsDao().getCountBlocked();
+        int mutedCount = databaseConnector.threadedConversationsDao().getCountMuted();
         List<Integer> list = new ArrayList<>();
         list.add(draftsListCount);
         list.add(encryptedCount);
         list.add(unreadCount);
+        list.add(blockedCount);
+        list.add(mutedCount);
         folderMetrics.postValue(list);
+    }
+
+    public void unMute(List<String> threadIds) {
+        databaseConnector.threadedConversationsDao().updateMuted(0, threadIds);
+    }
+
+    public void mute(List<String> threadIds) {
+        databaseConnector.threadedConversationsDao().updateMuted(1, threadIds);
+    }
+
+    public void unMuteAll() {
+        databaseConnector.threadedConversationsDao().updateUnMuteAll();
     }
 }

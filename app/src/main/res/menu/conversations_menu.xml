@@ -16,5 +16,18 @@
         android:icon="@drawable/ic_outline_search_24"
         android:id="@+id/conversation_main_menu_search"
         android:title="@string/conversations_menu_search_title"/>
+    <item
+        android:id="@+id/conversations_menu_mute"
+        android:title="@string/conversation_menu_mute"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/conversations_menu_unmute"
+        android:title="@string/conversation_menu_unmute"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/conversations_menu_block"
+        android:title="@string/conversation_menu_block"
+        app:showAsAction="never" />
 
 </menu>

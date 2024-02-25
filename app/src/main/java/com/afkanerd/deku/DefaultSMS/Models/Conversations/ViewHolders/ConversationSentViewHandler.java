@@ -101,11 +101,18 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
             statusMessage = itemView.getContext().getString(R.string.sms_status_sending);
         else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED ) {
             statusMessage = itemView.getContext().getString(R.string.sms_status_failed);
+
             sentMessageStatus.setVisibility(View.VISIBLE);
             this.date.setVisibility(View.VISIBLE);
+
             sentMessageStatus.setTextAppearance(R.style.conversation_failed);
             this.date.setTextAppearance(R.style.conversation_failed);
+
             lastKnownStateIsFailed = true;
+        }
+        else {
+            sentMessageStatus.setTextAppearance(R.style.Theme_main);
+            this.date.setTextAppearance(R.style.Theme_main);
         }
         if(lastKnownStateIsFailed && status != Telephony.TextBasedSmsColumns.STATUS_FAILED) {
             sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
@@ -122,16 +129,14 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         sentMessageStatus.setText(statusMessage);
 
-        final String[] text = {conversation.getText()};
-        if(searchString != null && !searchString.isEmpty() && text[0] != null) {
+        final String text = conversation.getText();
+        if(searchString != null && !searchString.isEmpty() && text != null) {
             Spannable spannable = Helpers.highlightSubstringYellow(itemView.getContext(),
-                    text[0], searchString, true);
+                    text, searchString, true);
             sentMessage.setText(spannable);
         }
         else
-//            Helpers.highlightLinks(sentMessage, text[0],
-//                    itemView.getContext().getColor(R.color.primary_text_color));
-            Helpers.highlightLinks(sentMessage, text[0], Color.BLACK);
+            Helpers.highlightLinks(sentMessage, text, Color.BLACK);
     }
 
     @Override

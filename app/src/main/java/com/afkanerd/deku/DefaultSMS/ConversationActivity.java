@@ -1,13 +1,19 @@
 package com.afkanerd.deku.DefaultSMS;
 
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
+import android.telecom.TelecomManager;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -21,7 +27,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
@@ -34,18 +39,21 @@ import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
+import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
-import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -53,7 +61,6 @@ import com.google.android.material.textfield.TextInputLayout;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -78,13 +85,14 @@ public class ConversationActivity extends E2EECompactActivity {
     LinearLayoutManager linearLayoutManager;
     RecyclerView singleMessagesThreadRecyclerView;
 
-
     MutableLiveData<List<Integer>> searchPositions = new MutableLiveData<>();
 
     ImageButton backSearchBtn;
     ImageButton forwardSearchBtn;
 
     Toolbar toolbar;
+
+    BroadcastReceiver broadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +112,6 @@ public class ConversationActivity extends E2EECompactActivity {
             configureMessagesTextBox();
 
             configureLayoutForMessageType();
-            configureBroadcastListeners();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -132,16 +139,18 @@ public class ConversationActivity extends E2EECompactActivity {
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
 
-        if(threadedConversations.secured)
+        if(threadedConversations.is_secured)
             layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
 
-        executorService.execute(new Runnable() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
                     NativeSMSDB.Incoming.update_read(getApplicationContext(), 1,
                             threadedConversations.getThread_id(), null);
                     conversationsViewModel.updateToRead(getApplicationContext());
+                    threadedConversations.setIs_read(true);
+                    databaseConnector.threadedConversationsDao().update(threadedConversations);
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -159,6 +168,10 @@ public class ConversationActivity extends E2EECompactActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        if(threadedConversations.isIs_mute()) {
+            menu.findItem(R.id.conversations_menu_unmute).setVisible(true);
+            menu.findItem(R.id.conversations_menu_mute).setVisible(false);
         }
         return super.onCreateOptionsMenu(menu);
     }
@@ -181,10 +194,54 @@ public class ConversationActivity extends E2EECompactActivity {
             intent.putExtra(Conversation.THREAD_ID, threadedConversations.getThread_id());
             startActivity(intent);
         }
-//        if(isSearchActive()) {
-//            resetSearch();
-//            return true;
-//        }
+        else if (R.id.conversations_menu_block == item.getItemId()) {
+            blockContact();
+            if(actionMode != null)
+                actionMode.finish();
+            return true;
+        }
+        else if (R.id.conversations_menu_mute == item.getItemId()) {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    conversationsViewModel.mute();
+                    threadedConversations.setIs_mute(true);
+                    invalidateMenu();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            configureToolbars();
+                            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_muted),
+                                    Toast.LENGTH_SHORT).show();
+                            if(actionMode != null)
+                                actionMode.finish();
+                        }
+                    });
+                }
+            });
+            return true;
+        }
+        else if (R.id.conversations_menu_unmute == item.getItemId()) {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    conversationsViewModel.unMute();
+                    threadedConversations.setIs_mute(false);
+                    invalidateMenu();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            configureToolbars();
+                            Toast.makeText(getApplicationContext(), getString(R.string.conversation_menu_unmuted),
+                                    Toast.LENGTH_SHORT).show();
+                            if(actionMode != null)
+                                actionMode.finish();
+                        }
+                    });
+                }
+            });
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -214,8 +271,8 @@ public class ConversationActivity extends E2EECompactActivity {
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setThread_id(getIntent().getStringExtra(Conversation.THREAD_ID));
-            this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
-                    threadedConversations);
+            this.threadedConversations = ThreadedConversationsHandler.get(
+                    databaseConnector.threadedConversationsDao(), threadedConversations);
         }
         else if(getIntent().hasExtra(Conversation.ADDRESS)) {
             ThreadedConversations threadedConversations = new ThreadedConversations();
@@ -273,11 +330,11 @@ public class ConversationActivity extends E2EECompactActivity {
         linearLayoutManager.setReverseLayout(true);
         singleMessagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
 
-        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(getApplicationContext(),
-                threadedConversations);
+        conversationsRecyclerAdapter = new ConversationsRecyclerAdapter(threadedConversations);
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
+        conversationsViewModel.datastore = Datastore.datastore;
 
         backSearchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -314,7 +371,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
     }
 
-    ConversationDao conversationDao;
     boolean firstScrollInitiated = false;
 
     LifecycleOwner lifecycleOwner;
@@ -323,7 +379,6 @@ public class ConversationActivity extends E2EECompactActivity {
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
         singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
-        conversationDao = conversation.getDaoInstance(getApplicationContext());
 
         lifecycleOwner = this;
 
@@ -351,11 +406,10 @@ public class ConversationActivity extends E2EECompactActivity {
 
         if(this.threadedConversations != null) {
             if(getIntent().hasExtra(SEARCH_STRING)) {
-                conversationsViewModel.conversationDao = conversationDao;
                 conversationsViewModel.threadId = threadedConversations.getThread_id();
                 findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
                 String searching = getIntent().getStringExtra(SEARCH_STRING);
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         searchForInput(searching);
@@ -365,7 +419,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 searchPositions.setValue(new ArrayList<>(
                         Collections.singletonList(
                                 getIntent().getIntExtra(SEARCH_INDEX, 0))));
-                conversationsViewModel.getSearch(getApplicationContext(), conversationDao,
+                conversationsViewModel.getSearch(getApplicationContext(),
                                 threadedConversations.getThread_id(), searchPositions.getValue())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
@@ -374,11 +428,36 @@ public class ConversationActivity extends E2EECompactActivity {
                                         conversationPagingData);
                             }
                         });
+                broadcastReceiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        final String messageId = intent.getStringExtra(Conversation.ID);
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                Conversation conversation = databaseConnector.conversationDao()
+                                        .getMessage(messageId);
+                                conversation.setRead(true);
+                                conversationsViewModel.update(conversation);
+                            }
+                        });
+                    }
+                };
+                IntentFilter intentFilter = new IntentFilter();
+                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION);
+                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
+
+                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT);
+                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT);
+
+                if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
+                    registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+                else
+                    registerReceiver(broadcastReceiver, intentFilter);
             }
             else if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {
-                conversationsViewModel.get(getApplicationContext(), conversationDao,
-                                this.threadedConversations.getThread_id())
+                conversationsViewModel.get(this.threadedConversations.getThread_id())
                         .observe(this, new Observer<PagingData<Conversation>>() {
                             @Override
                             public void onChanged(PagingData<Conversation> smsList) {
@@ -393,7 +472,7 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onChanged(Conversation conversation) {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
-                executorService.execute(new Runnable() {
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
                         conversationsViewModel.deleteItems(getApplicationContext(), list);
@@ -412,12 +491,17 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onChanged(Conversation conversation) {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
-                conversationsViewModel.deleteItems(getApplicationContext(), list);
-                try {
-                    sendDataMessage(threadedConversations);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        conversationsViewModel.deleteItems(getApplicationContext(), list);
+                        try {
+                            sendDataMessage(threadedConversations);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         });
 
@@ -472,9 +556,12 @@ public class ConversationActivity extends E2EECompactActivity {
                 this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
     }
     private String getAbSubTitle() {
-        return this.threadedConversations != null &&
-                this.threadedConversations.getAddress() != null ?
-                this.threadedConversations.getAddress(): "";
+//        return this.threadedConversations != null &&
+//                this.threadedConversations.getAddress() != null ?
+//                this.threadedConversations.getAddress(): "";
+        if(threadedConversations.isIs_mute())
+            return getString(R.string.conversation_menu_mute);
+        return "";
     }
 
     boolean isShortCode = false;
@@ -495,7 +582,8 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        conversation.close();
+        if(broadcastReceiver != null)
+            unregisterReceiver(broadcastReceiver);
     }
 
     static final String DRAFT_TEXT = "DRAFT_TEXT";
@@ -537,9 +625,10 @@ public class ConversationActivity extends E2EECompactActivity {
                     counterView.setText(getSMSCount(s));
                     visibility = View.VISIBLE;
                 }
-                if(simCount > 1) {
-                    findViewById(R.id.conversation_compose_dual_sim_send_sim_name)
-                            .setVisibility(visibility);
+                TextView dualSimCardName =
+                        (TextView) findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
+                if(SIMHandler.isDualSim(getApplicationContext())) {
+                    dualSimCardName.setVisibility(View.VISIBLE);
                 }
                 sendBtn.setVisibility(visibility);
                 counterView.setVisibility(visibility);
@@ -607,12 +696,12 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void checkDrafts() throws InterruptedException {
         if(smsTextView.getText() == null || smsTextView.getText().toString().isEmpty())
-            new Thread(new Runnable() {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         Conversation conversation =
-                                conversationsViewModel.fetchDraft(getApplicationContext());
+                                conversationsViewModel.fetchDraft();
                         if (conversation != null) {
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -627,7 +716,7 @@ public class ConversationActivity extends E2EECompactActivity {
                         emptyDraft();
                     }
                 }
-            }).start();
+            });
     }
 
     private void configureLayoutForMessageType() {
@@ -661,6 +750,28 @@ public class ConversationActivity extends E2EECompactActivity {
             shortCodeSnackBar.show();
         }
     }
+
+    private void blockContact() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                threadedConversations.setIs_blocked(true);
+                databaseConnector.threadedConversationsDao().update(threadedConversations);
+            }
+        });
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER,
+                threadedConversations.getAddress());
+        Uri uri = getContentResolver().insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+                contentValues);
+
+        Toast.makeText(getApplicationContext(), getString(R.string.conversations_menu_block_toast),
+                Toast.LENGTH_SHORT).show();
+        TelecomManager telecomManager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
+        startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
+    }
+
 
     private void shareItem() {
         Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
@@ -717,41 +828,49 @@ public class ConversationActivity extends E2EECompactActivity {
         Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
                 conversationsRecyclerAdapter.mutableSelectedItems.getValue().entrySet();
         String messageId = entry.iterator().next().getValue().getMessage_id();
-        Conversation conversation = conversationsViewModel.fetch(messageId);
-        StringBuilder detailsBuilder = new StringBuilder();
-        detailsBuilder.append(getString(R.string.conversation_menu_view_details_type))
-                .append(!conversation.getText().isEmpty() ?
-                        getString(R.string.conversation_menu_view_details_type_text):
-                        getString(R.string.conversation_menu_view_details_type_data))
-                .append("\n")
-                .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
-                        getString(R.string.conversation_menu_view_details_from) :
-                        getString(R.string.conversation_menu_view_details_to))
-                .append(conversation.getAddress())
-                .append("\n")
-                .append(getString(R.string.conversation_menu_view_details_sent))
-                .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
-                        Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())) :
-                        Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
-        if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ) {
-                detailsBuilder.append("\n")
-                        .append(getString(R.string.conversation_menu_view_details_received))
-                        .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
-        }
 
+        StringBuilder detailsBuilder = new StringBuilder();
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.conversation_menu_view_details_title))
                 .setMessage(detailsBuilder);
 
-//        View conversationSecurePopView = View.inflate(getApplicationContext(),
-//                R.layout.conversation_secure_popup_menu, null);
-//        builder.setView(conversationSecurePopView);
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Conversation conversation = conversationsViewModel.fetch(messageId);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            detailsBuilder.append(getString(R.string.conversation_menu_view_details_type))
+                                    .append(!conversation.getText().isEmpty() ?
+                                            getString(R.string.conversation_menu_view_details_type_text):
+                                            getString(R.string.conversation_menu_view_details_type_data))
+                                    .append("\n")
+                                    .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
+                                            getString(R.string.conversation_menu_view_details_from) :
+                                            getString(R.string.conversation_menu_view_details_to))
+                                    .append(conversation.getAddress())
+                                    .append("\n")
+                                    .append(getString(R.string.conversation_menu_view_details_sent))
+                                    .append(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ?
+                                            Helpers.formatLongDate(Long.parseLong(conversation.getDate_sent())) :
+                                            Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
+                            if(conversation.getType() == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX ) {
+                                detailsBuilder.append("\n")
+                                        .append(getString(R.string.conversation_menu_view_details_received))
+                                        .append(Helpers.formatLongDate(Long.parseLong(conversation.getDate())));
+                            }
 
-//        Button yesButton = conversationSecurePopView.findViewById(R.id.conversation_secure_popup_menu_send);
-//        Button cancelButton = conversationSecurePopView.findViewById(R.id.conversation_secure_popup_menu_cancel);
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
@@ -803,7 +922,7 @@ public class ConversationActivity extends E2EECompactActivity {
                     if(editable != null && editable.length() > 1) {
                         conversationsRecyclerAdapter.searchString = editable.toString();
                         conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
-                        executorService.execute(new Runnable() {
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
                             @Override
                             public void run() {
                                 searchForInput(editable.toString());

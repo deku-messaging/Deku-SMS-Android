@@ -8,11 +8,17 @@ import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
 
+import androidx.room.Room;
+
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -25,6 +31,8 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
@@ -39,11 +47,22 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     public static String DATA_UPDATED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".DATA_UPDATED_BROADCAST_INTENT";
 
+    ExecutorService executorService = Executors.newFixedThreadPool(4);
+
+    Datastore databaseConnector;
     @Override
     public void onReceive(Context context, Intent intent) {
         /**
          * Important note: either image or dump it
          */
+
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
+                            Datastore.class, Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        databaseConnector = Datastore.datastore;
 
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
@@ -73,10 +92,11 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     conversation.setDate(dateSent);
                     conversation.setDate(date);
 
-                    ConversationDao conversationDao = conversation.getDaoInstance(context);
-                    Thread thread = new Thread(new Runnable() {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
+                            databaseConnector.conversationDao().insert(conversation);
+
                             if(isValidKey) {
                                 try {
                                     processForEncryptionKey(context, conversation);
@@ -86,43 +106,31 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                                 }
                             }
 
-                            conversationDao.insert(conversation);
-
-                            NotificationsHandler.sendIncomingTextMessageNotification(context,
-                                    conversation);
-
                             Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
                             broadcastIntent.putExtra(Conversation.ID, messageId);
                             broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
                             context.sendBroadcast(broadcastIntent);
+
+                            ThreadedConversations threadedConversations =
+                                    databaseConnector.threadedConversationsDao().get(threadId);
+                            if(!threadedConversations.isIs_mute())
+                                NotificationsHandler.sendIncomingTextMessageNotification(context,
+                                        conversation);
                         }
                     });
-                    thread.start();
-                    thread.join();
-                    conversation.close();
 
-                } catch (IOException | InterruptedException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
     }
 
-    boolean processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException, JSONException {
+    void processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException, JSONException {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-        boolean isValidKey = E2EEHandler.isValidDefaultPublicKey(data);
+        String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
+        byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
 
-        if(isValidKey) {
-            String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
-            byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
-
-            E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
-
-//            if(E2EEHandler.getKeyType(context, keystoreAlias, extractedTransmissionKey) ==
-//                    E2EEHandler.AGREEMENT_KEY) {
-//                E2EEHandler.insertNewPeerPublicKey(context, extractedTransmissionKey, keystoreAlias);
-//            }
-        }
-        return isValidKey;
+        E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
     }
 }

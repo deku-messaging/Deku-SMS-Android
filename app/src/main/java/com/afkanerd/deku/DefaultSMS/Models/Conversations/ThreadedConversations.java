@@ -3,21 +3,16 @@ package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.Telephony;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
-import androidx.room.Room;
 
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.ArrayList;
@@ -28,8 +23,16 @@ import java.util.Objects;
 @Entity
 public class ThreadedConversations {
 
-    @Ignore
-    public boolean secured = false;
+    public boolean isIs_secured() {
+        return is_secured;
+    }
+
+    public void setIs_secured(boolean is_secured) {
+        this.is_secured = is_secured;
+    }
+
+    @ColumnInfo(defaultValue = "0")
+    public boolean is_secured = false;
     @NonNull
     @PrimaryKey
      private String thread_id;
@@ -62,24 +65,16 @@ public class ThreadedConversations {
 
      private String formatted_datetime;
 
-     @Ignore
-     public final static String nativeSMSContentUrl = Telephony.Threads.CONTENT_URI.toString();
-
-     @Ignore
-    Datastore databaseConnector;
-    public ThreadedConversationsDao getDaoInstance(Context context) {
-        databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .addMigrations(new Migrations.Migration9To10())
-                .build();
-        return databaseConnector.threadedConversationsDao();
+    public boolean isIs_mute() {
+        return is_mute;
     }
 
-    public void close() {
-        if(databaseConnector != null)
-            databaseConnector.close();
+    public void setIs_mute(boolean is_mute) {
+        this.is_mute = is_mute;
     }
+
+    @ColumnInfo(defaultValue = "0")
+     private boolean is_mute = false;
 
     public static ThreadedConversations build(Context context, Conversation conversation) {
         ThreadedConversations threadedConversations = new ThreadedConversations();
@@ -92,6 +87,8 @@ public class ThreadedConversations {
         threadedConversations.setDate(conversation.getDate());
         threadedConversations.setType(conversation.getType());
         threadedConversations.setIs_read(conversation.isRead());
+        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
+        threadedConversations.setContact_name(contactName);
 
         return threadedConversations;
     }
@@ -300,6 +297,7 @@ public class ThreadedConversations {
                     threadedConversations.is_read == this.is_read &&
                     threadedConversations.type == this.type &&
                     threadedConversations.msg_count == this.msg_count &&
+                    threadedConversations.is_mute == this.is_mute &&
                     Objects.equals(threadedConversations.date, this.date) &&
                     Objects.equals(threadedConversations.address, this.address) &&
                     Objects.equals(threadedConversations.contact_name, this.contact_name) &&

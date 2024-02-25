@@ -11,6 +11,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,21 +21,18 @@ public class SearchViewModel extends ViewModel {
 
     MutableLiveData<Pair<List<ThreadedConversations>, Integer>> liveData;
 
-    ThreadedConversationsDao threadedConversationsDao;
-
     String threadId;
 
-    public LiveData<Pair<List<ThreadedConversations>,Integer>> get(ThreadedConversationsDao threadedConversationsDao){
-        this.threadedConversationsDao = threadedConversationsDao;
+    public Datastore databaseConnector;
+
+    public LiveData<Pair<List<ThreadedConversations>,Integer>> get(){
         if(this.liveData == null) {
             liveData = new MutableLiveData<>();
         }
         return liveData;
     }
 
-    public LiveData<Pair<List<ThreadedConversations>,Integer>> getByThreadId(
-            ThreadedConversationsDao threadedConversationsDao, String threadId){
-        this.threadedConversationsDao = threadedConversationsDao;
+    public LiveData<Pair<List<ThreadedConversations>,Integer>> getByThreadId(String threadId){
         if(this.liveData == null) {
             liveData = new MutableLiveData<>();
             this.threadId = threadId;
@@ -42,17 +41,18 @@ public class SearchViewModel extends ViewModel {
     }
 
     public void search(Context context, String input) throws InterruptedException {
-        Thread thread = new Thread(new Runnable() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 List<Conversation> conversations = new ArrayList<>();
                 Integer index = null;
                 if(threadId == null || threadId.isEmpty())
-                    conversations = threadedConversationsDao.findAddresses(input);
+                    conversations = databaseConnector.threadedConversationsDao().findAddresses(input);
                 else {
-                    conversations = threadedConversationsDao.findByThread(input, threadId);
-                    ConversationDao conversationDao = new Conversation().getDaoInstance(context);
-                    List<Conversation> conversationList = conversationDao.getAll(threadId);
+                    conversations = databaseConnector.threadedConversationsDao()
+                            .findByThread(input, threadId);
+                    List<Conversation> conversationList = databaseConnector.conversationDao()
+                            .getAll(threadId);
                     if(!conversationList.isEmpty()) {
                         index = conversationList.indexOf(conversationList.get(0));
                     }
@@ -63,7 +63,6 @@ public class SearchViewModel extends ViewModel {
                 liveData.postValue(new Pair<>(threadedConversations, index));
             }
         });
-        thread.start();
     }
 
 }

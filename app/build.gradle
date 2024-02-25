@@ -49,11 +49,16 @@ android {
 //        generateLocaleConfig true
 //    }
     sourceSets {
+        androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
+
         main {
             jniLibs.srcDirs = ['libs']
             java {
                 exclude 'com/afkanerd/deku/Images/Images/'
                 /* The holder name I want to excludes its all classes */
+            }
+            resources {
+                srcDirs 'src/main/resources'
             }
         }
     }
@@ -61,12 +66,9 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+//            minifyEnabled true
+//            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-
-        nightly {
-            versionNameSuffix "-nightly"
-            debuggable true
         }
     }
 
@@ -124,6 +126,7 @@ android {
 
 dependencies {
     implementation project(':smswithoutborders_libsignal-doubleratchet')
+    implementation 'androidx.room:room-testing:2.6.1'
     def paging_version = "3.2.1"
 
     testImplementation 'junit:junit:4.13.2'

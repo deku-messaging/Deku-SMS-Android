@@ -9,6 +9,11 @@ import androidx.room.PrimaryKey;
 
 import com.afkanerd.deku.DefaultSMS.R;
 
+import org.apache.commons.codec.digest.MurmurHash3;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
 @Entity
 public class GatewayClient {
     public GatewayClient() {}
@@ -175,22 +180,42 @@ public class GatewayClient {
         this.protocol = protocol;
     }
 
+    public long[] getHashcode() {
+        String hashValues = protocol + hostUrl + port + virtualHost + username + password;
+        return MurmurHash3.hash128(hashValues.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public boolean same(@Nullable Object obj) {
+        if(obj instanceof GatewayClient) {
+            GatewayClient gatewayClient = (GatewayClient) obj;
+            return Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
+                    Objects.equals(gatewayClient.protocol, this.protocol) &&
+                    Objects.equals(gatewayClient.virtualHost, this.virtualHost) &&
+                    gatewayClient.port == this.port;
+        }
+        return false;
+    }
 
     public boolean equals(@Nullable Object obj) {
 //        return super.equals(obj);
         if(obj instanceof GatewayClient) {
             GatewayClient gatewayClient = (GatewayClient) obj;
-            return gatewayClient.id == this.id &&
-                    gatewayClient.hostUrl.equals(this.hostUrl) &&
-                    gatewayClient.protocol.equals(this.protocol) &&
-                    gatewayClient.port == this.port &&
-                    gatewayClient.projectBinding.equals(this.projectBinding) &&
-                    gatewayClient.projectName.equals(this.projectName) &&
-                    gatewayClient.connectionStatus.equals(this.connectionStatus) &&
-                    gatewayClient.date == this.date;
+//            return gatewayClient.id == this.id &&
+//                    Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
+//                    Objects.equals(gatewayClient.protocol, this.protocol) &&
+//                    gatewayClient.port == this.port &&
+//                    Objects.equals(gatewayClient.projectBinding, this.projectBinding) &&
+//                    Objects.equals(gatewayClient.projectName, this.projectName) &&
+//                    Objects.equals(gatewayClient.connectionStatus, this.connectionStatus) &&
+//                    gatewayClient.date == this.date;
+            return Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
+                    Objects.equals(gatewayClient.protocol, this.protocol) &&
+                    Objects.equals(gatewayClient.virtualHost, this.virtualHost) &&
+                    gatewayClient.port == this.port;
         }
         return false;
     }
+
     public static final DiffUtil.ItemCallback<GatewayClient> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<GatewayClient>() {
                 @Override

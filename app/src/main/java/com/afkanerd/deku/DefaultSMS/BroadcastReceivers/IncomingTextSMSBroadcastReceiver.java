@@ -12,22 +12,32 @@ import android.database.Cursor;
 import android.provider.Telephony;
 import android.util.Log;
 
+import androidx.room.Room;
+
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
+import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.afkanerd.deku.Router.Router.RouterItem;
 import com.afkanerd.deku.Router.Router.RouterHandler;
+
+import org.checkerframework.checker.units.qual.C;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
-    Context context;
-
     public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
     public static final String TAG_ROUTING_URL = "swob.work.route.url,";
 
@@ -54,9 +64,17 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
     ExecutorService executorService = Executors.newFixedThreadPool(4);
 
+    Datastore databaseConnector;
+
     @Override
     public void onReceive(Context context, Intent intent) {
-        this.context = context;
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
+                            Datastore.class, Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        databaseConnector = Datastore.datastore;
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
@@ -64,54 +82,18 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     final String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_text(context, intent);
                     if(regIncomingOutput != null) {
                         final String messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
-                        final String incomingText = regIncomingOutput[NativeSMSDB.BODY];
+                        final String body = regIncomingOutput[NativeSMSDB.BODY];
                         final String threadId = regIncomingOutput[NativeSMSDB.THREAD_ID];
                         final String address = regIncomingOutput[NativeSMSDB.ADDRESS];
                         final String date = regIncomingOutput[NativeSMSDB.DATE];
                         final String dateSent = regIncomingOutput[NativeSMSDB.DATE_SENT];
-                        final int subscriptionId = Integer.parseInt(regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID]);
+                        final int subscriptionId =
+                                Integer.parseInt(regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID]);
 
-                        executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                String text = incomingText;
-                                try {
-                                    text = processEncryptedIncoming(context, address, incomingText);
-                                } catch (Throwable e) {
-                                    e.printStackTrace();
-                                }
-                                Conversation conversation = new Conversation();
-                                conversation.setMessage_id(messageId);
-                                conversation.setText(text);
-                                conversation.setThread_id(threadId);
-                                conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
-                                conversation.setAddress(address);
-                                conversation.setSubscription_id(subscriptionId);
-                                conversation.setDate(date);
-                                conversation.setDate_sent(dateSent);
+                        insertConversation(context, address, messageId, threadId, body,
+                                subscriptionId, date, dateSent);
 
-                                try {
-                                    conversation.getDaoInstance(context).insert(conversation);
-                                }catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-
-                                Intent broadcastIntent = new Intent(SMS_DELIVER_ACTION);
-                                broadcastIntent.putExtra(Conversation.ID, messageId);
-                                context.sendBroadcast(broadcastIntent);
-
-                                NotificationsHandler.sendIncomingTextMessageNotification(context,
-                                        conversation);
-                            }
-                        });
-
-                        executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-//                                handleEncryption(text);
-                                router_activities(messageId);
-                            }
-                        });
+                        router_activities(context, messageId);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -124,10 +106,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
-                    Conversation conversation1 = new Conversation();
-                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
-                    Conversation conversation = conversationDao.getMessage(id);
 
+                    Conversation conversation = databaseConnector.conversationDao().getMessage(id);
                     if(conversation == null)
                         return;
 
@@ -145,12 +125,12 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                             e.printStackTrace();
                         }
                     }
-                    conversationDao.update(conversation);
-                    conversation1.close();
+                    databaseConnector.conversationDao().update(conversation);
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
                     broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
+
                     if(intent.getExtras() != null)
                         broadcastIntent.putExtras(intent.getExtras());
 
@@ -158,14 +138,16 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 }
             });
         }
+
         else if(intent.getAction().equals(SMS_DELIVERED_BROADCAST_INTENT)) {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
-                    Conversation conversation1 = new Conversation();
-                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
-                    Conversation conversation = conversationDao.getMessage(id);
+
+                    Conversation conversation = databaseConnector.conversationDao().getMessage(id);
+                    if(conversation == null)
+                        return;
 
                     if (getResultCode() == Activity.RESULT_OK) {
                         NativeSMSDB.Outgoing.register_delivered(context, id);
@@ -176,8 +158,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                         conversation.setError_code(getResultCode());
                     }
-                    conversationDao.update(conversation);
-                    conversation1.close();
+
+                    databaseConnector.conversationDao().update(conversation);
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -190,15 +172,12 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             });
         }
 
-
         else if(intent.getAction().equals(DATA_SENT_BROADCAST_INTENT)) {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
-                    Conversation conversation1 = new Conversation();
-                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
-                    Conversation conversation = conversationDao.getMessage(id);
+                    Conversation conversation = databaseConnector.conversationDao().getMessage(id);
 
                     if (getResultCode() == Activity.RESULT_OK) {
                         conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_NONE);
@@ -208,8 +187,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setError_code(getResultCode());
                         conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                     }
-                    conversationDao.update(conversation);
-                    conversation1.close();
+                    databaseConnector.conversationDao().update(conversation);
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -219,14 +197,13 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 }
             });
         }
+
         else if(intent.getAction().equals(DATA_DELIVERED_BROADCAST_INTENT)) {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     String id = intent.getStringExtra(NativeSMSDB.ID);
-                    Conversation conversation1 = new Conversation();
-                    ConversationDao conversationDao = conversation1.getDaoInstance(context);
-                    Conversation conversation = conversationDao.getMessage(id);
+                    Conversation conversation = databaseConnector.conversationDao().getMessage(id);
 
                     if (getResultCode() == Activity.RESULT_OK) {
                         conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_COMPLETE);
@@ -237,8 +214,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                     }
 
-                    conversationDao.update(conversation);
-                    conversation1.close();
+                    databaseConnector.conversationDao().update(conversation);
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -250,6 +226,61 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
+    public void insertThreads(Context context, Conversation conversation) {
+        ThreadedConversations threadedConversations =
+                ThreadedConversations.build(context, conversation);
+        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
+        threadedConversations.setContact_name(contactName);
+        databaseConnector.threadedConversationsDao().insert(threadedConversations);
+    }
+
+    public void insertConversation(Context context, String address, String messageId,
+                                   String threadId, String body, int subscriptionId, String date,
+                                   String dateSent) {
+
+        Conversation conversation = new Conversation();
+        conversation.setMessage_id(messageId);
+        conversation.setThread_id(threadId);
+        conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX);
+        conversation.setAddress(address);
+        conversation.setSubscription_id(subscriptionId);
+        conversation.setDate(date);
+        conversation.setDate_sent(dateSent);
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                String text = body;
+                try {
+                    text = processEncryptedIncoming(context, address, body);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+                conversation.setText(text);
+
+                try {
+                    databaseConnector.conversationDao().insert(conversation);
+                    insertThreads(context, conversation);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                Intent broadcastIntent = new Intent(SMS_DELIVER_ACTION);
+                broadcastIntent.putExtra(Conversation.ID, messageId);
+                context.sendBroadcast(broadcastIntent);
+
+//                String defaultRegion = Helpers.getUserCountry(context);
+//                String e16Address = Helpers.getFormatCompleteNumber(address, defaultRegion);
+                ThreadedConversations threadedConversations =
+                        databaseConnector.threadedConversationsDao().get(threadId);
+                if(!threadedConversations.isIs_mute())
+                    NotificationsHandler.sendIncomingTextMessageNotification(context,
+                            conversation);
+
+            }
+        });
+    }
+
+
     public String processEncryptedIncoming(Context context, String address, String text) throws Throwable {
         if(E2EEHandler.isValidDefaultText(text)) {
             String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
@@ -259,13 +290,14 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         return text;
     }
 
-    public void router_activities(String messageId) {
+    public void router_activities(Context context, String messageId) {
         try {
             Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
             if(cursor.moveToFirst()) {
+                GatewayServerHandler gatewayServerHandler = new GatewayServerHandler(context);
                 RouterItem routerItem = new RouterItem(cursor);
+                RouterHandler.route(context, routerItem, gatewayServerHandler);
                 cursor.close();
-                RouterHandler.route(context, routerItem);
             }
         } catch (Exception e) {
             e.printStackTrace();

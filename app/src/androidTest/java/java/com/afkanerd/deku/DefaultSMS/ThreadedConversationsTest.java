@@ -25,18 +25,4 @@ public class ThreadedConversationsTest {
    public ThreadedConversationsTest() {
        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
    }
-    @Test
-    public void testThreadedConversationsBuildMethods() {
-       ThreadedConversations threadedConversation = new ThreadedConversations();
-        ThreadedConversationsDao threadedConversationsDao = threadedConversation.getDaoInstance(context);
-        List<ThreadedConversations> threadedConversations = threadedConversationsDao.getAll();
-        threadedConversation.close();
-
-        Conversation conversation = new Conversation();
-        ConversationDao conversationDao = conversation.getDaoInstance(context);
-        List<Conversation> conversations = conversationDao.getComplete();
-        conversation.close();
-
-        assertEquals(conversations.get(0).getText(), threadedConversations.get(0).getSnippet());
-    }
 }

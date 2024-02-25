@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.PagingDataAdapter;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
@@ -24,23 +25,12 @@ import com.afkanerd.deku.DefaultSMS.R;
 import java.util.HashMap;
 
 public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<ThreadedConversations, ThreadedConversationsTemplateViewHolder> {
-
-    Context context;
-    Boolean isSearch = false;
     public String searchString = "";
 
     public MutableLiveData<HashMap<Long, ThreadedConversationsTemplateViewHolder>> selectedItems = new MutableLiveData<>();
-    final int MESSAGE_TYPE_SENT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_SENT;
-    final int MESSAGE_TYPE_INBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX;
-    final int MESSAGE_TYPE_DRAFT = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT;
-    final int MESSAGE_TYPE_OUTBOX = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_OUTBOX;
-    final int MESSAGE_TYPE_FAILED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED;
-    final int MESSAGE_TYPE_QUEUED = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_QUEUED;
-
     public final static int RECEIVED_VIEW_TYPE = 1;
     public final static int RECEIVED_UNREAD_VIEW_TYPE = 2;
     public final static int RECEIVED_ENCRYPTED_UNREAD_VIEW_TYPE = 3;
-    public final static int RECEIVED_ENCRYPTED_VIEW_TYPE = 4;
 
     public final static int SENT_VIEW_TYPE = 5;
     public final static int SENT_UNREAD_VIEW_TYPE = 6;
@@ -49,21 +39,19 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
 
     ThreadedConversationsDao threadedConversationsDao;
 
-    public ThreadedConversationRecyclerAdapter(Context context) {
+    public ThreadedConversationRecyclerAdapter() {
         super(ThreadedConversations.DIFF_CALLBACK);
-        this.context = context;
     }
 
-    public ThreadedConversationRecyclerAdapter(Context context, ThreadedConversationsDao threadedConversationsDao) {
+    public ThreadedConversationRecyclerAdapter(ThreadedConversationsDao threadedConversationsDao) {
         super(ThreadedConversations.DIFF_CALLBACK);
-        this.context = context;
         this.threadedConversationsDao = threadedConversationsDao;
     }
 
     @NonNull
     @Override
     public ThreadedConversationsTemplateViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(this.context);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
         View view = inflater.inflate(R.layout.conversations_threads_layout, parent, false);
 //        View view = viewCacheExtension.getViewForPositionAndType(parent, 0, viewType);
@@ -122,9 +110,9 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
                     }
                 }
 
-                Intent singleMessageThreadIntent = new Intent(context, ConversationActivity.class);
+                Intent singleMessageThreadIntent = new Intent(holder.itemView.getContext(), ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
-                context.startActivity(singleMessageThreadIntent);
+                holder.itemView.getContext().startActivity(singleMessageThreadIntent);
             }
         };
 //
@@ -140,7 +128,8 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
             }
         };
 
-        holder.bind(threadedConversations, onClickListener, onLongClickListener);
+        String defaultRegion = Helpers.getUserCountry(holder.itemView.getContext());
+        holder.bind(threadedConversations, onClickListener, onLongClickListener, defaultRegion);
    }
 
     public void resetAllSelectedItems() {
