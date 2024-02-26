@@ -17,6 +17,7 @@ import android.telecom.TelecomManager;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -150,7 +151,9 @@ public class ConversationActivity extends E2EECompactActivity {
                             threadedConversations.getThread_id(), null);
                     conversationsViewModel.updateToRead(getApplicationContext());
                     threadedConversations.setIs_read(true);
-                    databaseConnector.threadedConversationsDao().update(threadedConversations);
+                    int count =
+                            databaseConnector.threadedConversationsDao().update(threadedConversations);
+                    Log.d(getClass().getName(), "Updating count: " + count);
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -271,28 +274,31 @@ public class ConversationActivity extends E2EECompactActivity {
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setThread_id(getIntent().getStringExtra(Conversation.THREAD_ID));
-            this.threadedConversations = ThreadedConversationsHandler.get(
+            this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
                     databaseConnector.threadedConversationsDao(), threadedConversations);
         }
         else if(getIntent().hasExtra(Conversation.ADDRESS)) {
-            ThreadedConversations threadedConversations = new ThreadedConversations();
-            threadedConversations.setAddress(getIntent().getStringExtra(Conversation.ADDRESS));
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
                     getIntent().getStringExtra(Conversation.ADDRESS));
         }
 
         final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
         final String address = this.threadedConversations.getAddress();
-        this.threadedConversations.setAddress(
-                Helpers.getFormatCompleteNumber(address, defaultUserCountry));
+        Log.d(getClass().getName(), "Address: " + address);
+//        this.threadedConversations.setAddress(
+//                Helpers.getFormatCompleteNumber(address, defaultUserCountry));
+//        this.threadedConversations.setAddress(
+//                Helpers.getFormatCompleteNumber(getApplicationContext(), address, defaultUserCountry));
         String contactName = Contacts.retrieveContactName(getApplicationContext(),
                 this.threadedConversations.getAddress());
-        if(contactName == null) {
-            this.threadedConversations.setContact_name(Helpers.getFormatNationalNumber(address,
-                    defaultUserCountry ));
-        } else {
-            this.threadedConversations.setContact_name(contactName);
-        }
+        Log.d(getClass().getName(), "Contact: " + contactName);
+//        if(contactName == null) {
+//            this.threadedConversations.setContact_name(Helpers.getFormatNationalNumber(address,
+//                    defaultUserCountry ));
+//        } else {
+//            this.threadedConversations.setContact_name(contactName);
+//        }
+        this.threadedConversations.setContact_name(contactName);
 
         setEncryptionThreadedConversations(this.threadedConversations);
         isShortCode = Helpers.isShortCode(this.threadedConversations);
@@ -546,11 +552,12 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private String getAbTitle() {
-        String abTitle = getIntent().getStringExtra(Conversation.ADDRESS);
-        if(this.threadedConversations == null || this.threadedConversations.getContact_name() == null) {
-            this.threadedConversations.setContact_name(
-                    Contacts.retrieveContactName(getApplicationContext(), abTitle));
-        }
+//        String abTitle = getIntent().getStringExtra(Conversation.ADDRESS);
+//        String abTitle = threadedConversations.getAddress();
+//        if(this.threadedConversations == null || this.threadedConversations.getContact_name() == null) {
+//            this.threadedConversations.setContact_name(
+//                    Contacts.retrieveContactName(getApplicationContext(), abTitle));
+//        }
         return (this.threadedConversations.getContact_name() != null &&
                 !this.threadedConversations.getContact_name().isEmpty()) ?
                 this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
