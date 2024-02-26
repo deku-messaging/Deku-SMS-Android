@@ -6,21 +6,22 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Telephony;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 
 public class ThreadedConversationsHandler {
 
     public static ThreadedConversations get(Context context, String address) {
+        final String defaultUserCountry = Helpers.getUserCountry(context);
         long threadId = Telephony.Threads.getOrCreateThreadId(context, address);
         ThreadedConversations threadedConversations = new ThreadedConversations();
-        threadedConversations.setAddress(address);
+        threadedConversations.setAddress(Helpers.getFormatCompleteNumber(address, defaultUserCountry));
         threadedConversations.setThread_id(String.valueOf(threadId));
         return threadedConversations;
     }
 
     public static ThreadedConversations get(Context context,
-                                            ThreadedConversationsDao threadedConversationsDao,
                                             ThreadedConversations threadedConversations) throws InterruptedException {
 //        final ThreadedConversations[] threadedConversations1 = {threadedConversations};
 //        Thread thread = new Thread(new Runnable() {

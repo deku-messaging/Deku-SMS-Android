@@ -275,14 +275,13 @@ public class ConversationActivity extends E2EECompactActivity {
             ThreadedConversations threadedConversations = new ThreadedConversations();
             threadedConversations.setThread_id(getIntent().getStringExtra(Conversation.THREAD_ID));
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
-                    databaseConnector.threadedConversationsDao(), threadedConversations);
+                    threadedConversations);
         }
         else if(getIntent().hasExtra(Conversation.ADDRESS)) {
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
                     getIntent().getStringExtra(Conversation.ADDRESS));
         }
 
-        final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
         final String address = this.threadedConversations.getAddress();
         Log.d(getClass().getName(), "Address: " + address);
 //        this.threadedConversations.setAddress(
