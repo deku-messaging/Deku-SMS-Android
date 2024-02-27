@@ -110,10 +110,6 @@ public class ConversationsThreadsEncryptionTest {
 
     @Test
     public void canDoubleRatchet() throws Throwable {
-        ConversationsThreadsEncryption conversationsThreadsEncryption =
-                new ConversationsThreadsEncryption();
-        ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
-                conversationsThreadsEncryption.getDaoInstance(context);
         String aliceAddress = "+237555555555";
         String bobAddress = "+237666666666";
 
