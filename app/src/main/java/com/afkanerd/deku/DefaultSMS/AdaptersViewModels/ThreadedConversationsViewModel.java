@@ -169,7 +169,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
         }
 
         databaseConnector.conversationDao().insertAll(conversationList);
-        databaseConnector.threadedConversationsDao().deleteAll();
         refresh(context);
     }
 
@@ -230,6 +229,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 } while(cursor.moveToNext());
                 cursor.close();
             }
+            databaseConnector.threadedConversationsDao().deleteAll();
             databaseConnector.threadedConversationsDao().insertAll(threadedConversationsList);
             getCount(context);
         } catch(Exception e) {
