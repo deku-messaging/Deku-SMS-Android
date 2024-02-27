@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
+import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -182,197 +184,70 @@ public class ThreadedConversationsViewModel extends ViewModel {
         NativeSMSDB.deleteThreads(context, ids.toArray(new String[0]));
     }
 
-    public static Cursor getNewestMessages(Context context, List<String> threadIds) {
-        ContentResolver contentResolver = context.getContentResolver();
-
-        // Build the selection string using IN operator
-        StringBuilder selectionBuilder = new StringBuilder(Telephony.Sms.THREAD_ID + " IN (");
-        for (int i = 0; i < threadIds.size(); i++) {
-            selectionBuilder.append("?");
-            if (i < threadIds.size() - 1) {
-                selectionBuilder.append(",");
-            }
-        }
-        selectionBuilder.append(")");
-
-        // Prepare selection arguments
-        String[] selectionArgs = threadIds.toArray(new String[0]);
-
-        // Sort by date in descending order to get the newest message first
-        String sortOrder = Telephony.Sms.DATE + " DESC";
-
-        // Query the content provider
-        return contentResolver.query(
-                Telephony.Sms.CONTENT_URI,
-                null, // projection: retrieve all columns
-                selectionBuilder.toString(),
-                selectionArgs,
-                sortOrder
-        );
-    }
-
     private void refresh(Context context) {
-//        [snippet, thread_id, msg_count]
-        List<String> threadIds = new ArrayList<>();
-        try(Cursor cursor = context.getContentResolver().query(
-                Telephony.Sms.Conversations.CONTENT_URI,
-                null,
-                null,
-                null,
-                "date DESC"
-        )) {
+        try{
+            Cursor cursor = context.getContentResolver().query(
+                    Telephony.Threads.CONTENT_URI,
+                    null,
+                    null,
+                    null,
+                    "date DESC"
+            );
+
+                /*
+                [date, rr, sub, subject, ct_t, read_status, reply_path_present, body, type, msg_box,
+                thread_id, sub_cs, resp_st, retr_st, text_only, locked, exp, m_id, retr_txt_cs, st,
+                date_sent, read, ct_cls, m_size, rpt_a, address, sub_id, pri, tr_id, resp_txt, ct_l,
+                m_cls, d_rpt, v, person, service_center, error_code, _id, m_type, status]
+                 */
+            List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
             if(cursor != null && cursor.moveToFirst()) {
                 do {
-                    try {
-                        int snippetIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.SNIPPET);
-                        int threadIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.Conversations.THREAD_ID);
+                    ThreadedConversations threadedConversations = new ThreadedConversations();
+                    int recipientIdIndex = cursor.getColumnIndex("address");
+                    int snippetIndex = cursor.getColumnIndex("body");
+                    int dateIndex = cursor.getColumnIndex("date");
+                    int threadIdIndex = cursor.getColumnIndex("thread_id");
+                    int typeIndex = cursor.getColumnIndex("type");
+                    int readIndex = cursor.getColumnIndex("read");
 
-                        String snippet = cursor.getString(snippetIndex);
-                        String threadId = cursor.getString(threadIndex);
-                        threadIds.add(threadId);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
+
+                    threadedConversations.setAddress(cursor.getString(recipientIdIndex));
+                    if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
+                        continue;
+                    threadedConversations.setThread_id(cursor.getString(threadIdIndex));
+                    threadedConversations.setSnippet(cursor.getString(snippetIndex));
+                    threadedConversations.setType(cursor.getInt(typeIndex));
+                    threadedConversations.setDate(cursor.getString(dateIndex));
+                    if(BlockedNumberContract.isBlocked(context, threadedConversations.getAddress()))
+                        threadedConversations.setIs_blocked(true);
+
+                    String contactName = Contacts.retrieveContactName(context,
+                            threadedConversations.getAddress());
+                    threadedConversations.setContact_name(contactName);
+                    threadedConversationsList.add(threadedConversations);
                 } while(cursor.moveToNext());
-
-//                [_id, thread_id, address, person, date, date_sent, protocol, read, status, type,
-//                reply_path_present, subject, body, service_center, locked, sub_id, error_code, creator, seen]
-                Cursor conversationsCursor = getNewestMessages(context, threadIds);
-                if(conversationsCursor != null && conversationsCursor.moveToFirst()) {
-                    List<ThreadedConversations> threadedConversationsList = new ArrayList<>();
-                    do {
-                        try {
-                            int dateIndex = conversationsCursor
-                                    .getColumnIndexOrThrow(Telephony.Sms.DATE);
-                            int addressIndex = conversationsCursor
-                                    .getColumnIndexOrThrow(Telephony.Sms.ADDRESS);
-                            int typeIndex = conversationsCursor
-                                    .getColumnIndexOrThrow(Telephony.Sms.TYPE);
-                            int readIndex = conversationsCursor
-                                    .getColumnIndexOrThrow(Telephony.Sms.READ);
-                            int threadIdIndex = conversationsCursor
-                                    .getColumnIndexOrThrow(Telephony.Sms.THREAD_ID);
-                            int bodyIndex = conversationsCursor
-                                    .getColumnIndexOrThrow(Telephony.Sms.BODY);
-
-                            ThreadedConversations threadedConversations = new ThreadedConversations();
-                            String date = conversationsCursor.getString(dateIndex);
-                            String address = conversationsCursor.getString(addressIndex);
-                            String threadId = conversationsCursor.getString(threadIdIndex);
-                            int type = conversationsCursor.getInt(typeIndex);
-                            boolean read = conversationsCursor.getInt(readIndex) == 1;
-
-                            threadedConversations.setAddress(address);
-                            threadedConversations.setDate(date);
-                            threadedConversations.setType(type);
-                            threadedConversations.setIs_read(read);
-                            threadedConversations.setThread_id(threadId);
-                            threadedConversations.setSnippet(conversationsCursor
-                                    .getString(bodyIndex));
-
-                            if(BlockedNumberContract.isBlocked(context, threadedConversations.getAddress()))
-                                threadedConversations.setIs_blocked(true);
-
-                            String contactName = Contacts.retrieveContactName(context,
-                                    threadedConversations.getAddress());
-                            threadedConversations.setContact_name(contactName);
-                            threadedConversationsList.add(threadedConversations);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } while(conversationsCursor.moveToNext());
-                    databaseConnector.threadedConversationsDao()
-                            .insertAll(threadedConversationsList);
-                    conversationsCursor.close();
-                }
+                cursor.close();
             }
+            databaseConnector.threadedConversationsDao().insertAll(threadedConversationsList);
+            getCount(context);
+        } catch(Exception e) {
+            e.printStackTrace();
+            loadNative(context);
+        }
+
+    }
+
+    private void loadNative(Context context) {
+        try(Cursor cursor = NativeSMSDB.fetchAll(context)) {
+            List<ThreadedConversations> threadedConversations =
+                    ThreadedConversations.buildRaw(cursor);
+            databaseConnector.threadedConversationsDao().insertAll(threadedConversations);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-//    private void refresh(Context context) {
-//        List<ThreadedConversations> newThreadedConversationsList = new ArrayList<>();
-//        Cursor cursor = context.getContentResolver().query(
-//                Telephony.Threads.CONTENT_URI,
-//                null,
-//                null,
-//                null,
-//                "date DESC"
-//        );
-//
-//        List<ThreadedConversations> threadedDraftsList =
-//                databaseConnector.threadedConversationsDao().getThreadedDraftsList(
-//                        Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
-//
-//        List<String> archivedThreads = databaseConnector.threadedConversationsDao().getArchivedList();
-//        List<String> threadsIdsInDrafts = new ArrayList<>();
-//        for(ThreadedConversations threadedConversations : threadedDraftsList)
-//            threadsIdsInDrafts.add(threadedConversations.getThread_id());
-//
-//                /*
-//                [date, rr, sub, subject, ct_t, read_status, reply_path_present, body, type, msg_box,
-//                thread_id, sub_cs, resp_st, retr_st, text_only, locked, exp, m_id, retr_txt_cs, st,
-//                date_sent, read, ct_cls, m_size, rpt_a, address, sub_id, pri, tr_id, resp_txt, ct_l,
-//                m_cls, d_rpt, v, person, service_center, error_code, _id, m_type, status]
-//                 */
-//        List<ThreadedConversations> threadedConversationsList =
-//                databaseConnector.threadedConversationsDao().getAll();
-//        if(cursor != null && cursor.moveToFirst()) {
-//            do {
-//                ThreadedConversations threadedConversations = new ThreadedConversations();
-//                int recipientIdIndex = cursor.getColumnIndex("address");
-//                int snippetIndex = cursor.getColumnIndex("body");
-//                int dateIndex = cursor.getColumnIndex("date");
-//                int threadIdIndex = cursor.getColumnIndex("thread_id");
-//                int typeIndex = cursor.getColumnIndex("type");
-//                int readIndex = cursor.getColumnIndex("read");
-//
-//                threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
-//
-//                threadedConversations.setAddress(cursor.getString(recipientIdIndex));
-//                if(threadedConversations.getAddress() == null || threadedConversations.getAddress().isEmpty())
-//                    continue;
-//                threadedConversations.setThread_id(cursor.getString(threadIdIndex));
-//                if(threadsIdsInDrafts.contains(threadedConversations.getThread_id())) {
-//                    ThreadedConversations tc = threadedDraftsList.get(
-//                            threadsIdsInDrafts.indexOf(threadedConversations.getThread_id()));
-//                    threadedConversations.setSnippet(tc.getSnippet());
-//                    threadedConversations.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
-//                    threadedConversations.setDate(
-//                            Long.parseLong(tc.getDate()) >
-//                                    Long.parseLong(cursor.getString(dateIndex)) ?
-//                                    tc.getDate() : cursor.getString(dateIndex));
-//                }
-//                else {
-//                    threadedConversations.setSnippet(cursor.getString(snippetIndex));
-//                    threadedConversations.setType(cursor.getInt(typeIndex));
-//                    threadedConversations.setDate(cursor.getString(dateIndex));
-//                }
-//                if(BlockedNumberContract.isBlocked(context, threadedConversations.getAddress()))
-//                    threadedConversations.setIs_blocked(true);
-//
-//                threadedConversations.setIs_archived(
-//                        archivedThreads.contains(threadedConversations.getThread_id()));
-//
-//                String contactName = Contacts.retrieveContactName(context,
-//                        threadedConversations.getAddress());
-//                threadedConversations.setContact_name(contactName);
-//
-//                /**
-//                 * Check things that change first
-//                 * - Read status
-//                 * - Drafts
-//                 */
-//                if(!threadedConversationsList.contains(threadedConversations)) {
-//                    newThreadedConversationsList.add(threadedConversations);
-//                }
-//            } while(cursor.moveToNext());
-//            cursor.close();
-//        }
-//        databaseConnector.threadedConversationsDao().insertAll(newThreadedConversationsList);
-//        getCount(context);
-//    }
 
     public void unarchive(List<Archive> archiveList) {
         databaseConnector.threadedConversationsDao().unarchive(archiveList);
@@ -383,15 +258,15 @@ public class ThreadedConversationsViewModel extends ViewModel {
                 databaseConnector.threadedConversationsDao().getList(threadIds);
         for(ThreadedConversations threadedConversations : threadedConversationsList) {
             BlockedNumberContract.unblock(context, threadedConversations.getAddress());
+            threadedConversations.setIs_blocked(false);
+            databaseConnector.threadedConversationsDao().update(threadedConversations);
         }
-        refresh(context);
     }
 
     public void clearDrafts(Context context) {
         SMSDatabaseWrapper.deleteAllDraft(context);
         databaseConnector.threadedConversationsDao()
                 .clearDrafts(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
-        refresh(context);
     }
 
     public boolean hasUnread(List<String> ids) {
@@ -401,19 +276,16 @@ public class ThreadedConversationsViewModel extends ViewModel {
     public void markUnRead(Context context, List<String> threadIds) {
         NativeSMSDB.Incoming.update_all_read(context, 0, threadIds.toArray(new String[0]));
         databaseConnector.threadedConversationsDao().updateRead(0, threadIds);
-        refresh(context);
     }
 
     public void markRead(Context context, List<String> threadIds) {
         NativeSMSDB.Incoming.update_all_read(context, 1, threadIds.toArray(new String[0]));
         databaseConnector.threadedConversationsDao().updateRead(1, threadIds);
-        refresh(context);
     }
 
     public void markAllRead(Context context) {
         NativeSMSDB.Incoming.update_all_read(context, 1);
         databaseConnector.threadedConversationsDao().updateRead(1);
-        refresh(context);
     }
 
     public MutableLiveData<List<Integer>> folderMetrics = new MutableLiveData<>();
