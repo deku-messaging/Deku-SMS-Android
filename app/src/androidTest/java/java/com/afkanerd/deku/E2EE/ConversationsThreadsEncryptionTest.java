@@ -109,6 +109,76 @@ public class ConversationsThreadsEncryptionTest {
     }
 
     @Test
+    public void canSelfDoubleRatchet() throws Throwable {
+        String aliceAddress = "+2375555555550";
+        String bobAddress = "+2375555555550";
+
+        // Initial request
+        String aliceKeystoreAlias = E2EEHandler.deriveKeystoreAlias(bobAddress, 0);
+        Pair<String, byte[]> keystorePairAlice = E2EEHandler.buildForEncryptionRequest(context,
+                bobAddress);
+//        String aliceKeystoreAlias = keystorePairAlice.first;
+        byte[] aliceTransmissionKey = keystorePairAlice.second;
+
+        // bob received alice's key
+        assertTrue(E2EEHandler.isValidDefaultPublicKey(aliceTransmissionKey));
+        String bobKeystoreAlias = E2EEHandler.deriveKeystoreAlias(aliceAddress, 0);
+        byte[] aliceExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(aliceTransmissionKey);
+        E2EEHandler.insertNewAgreementKeyDefault(context, aliceExtractedTransmissionKey, bobKeystoreAlias);
+
+        // Agreement request
+        assertTrue(E2EEHandler.hasSameAgreementKey(context, bobKeystoreAlias,
+                aliceExtractedTransmissionKey));
+        Pair<String, byte[]> keystorePairBob = E2EEHandler.buildForEncryptionRequest(context, aliceAddress);
+//        String bobKeystoreAlias = keystorePairBob.first;
+        byte[] bobTransmissionKey = keystorePairBob.second;
+
+        // alice received bob's key
+        assertTrue(E2EEHandler.isValidDefaultPublicKey(bobTransmissionKey));
+        byte[] bobExtractedTransmissionKey = E2EEHandler.extractTransmissionKey(bobTransmissionKey);
+        E2EEHandler.insertNewAgreementKeyDefault(context, bobExtractedTransmissionKey, aliceKeystoreAlias);
+        assertFalse(E2EEHandler.hasSameAgreementKey(context, aliceKeystoreAlias,
+                aliceExtractedTransmissionKey));
+
+        assertTrue(E2EEHandler.isAvailableInKeystore(aliceKeystoreAlias));
+        assertTrue(E2EEHandler.isAvailableInKeystore(bobKeystoreAlias));
+
+        assertTrue(E2EEHandler.canCommunicateSecurely(context, aliceKeystoreAlias));
+        assertTrue(E2EEHandler.canCommunicateSecurely(context, bobKeystoreAlias));
+
+        // ----> alice sends the message
+        byte[] aliceText = CryptoHelpers.generateRandomBytes(130);
+        byte[][] aliceCipherText = E2EEHandler.encrypt(context, aliceKeystoreAlias, aliceText);
+        String aliceTransmissionText = E2EEHandler.buildTransmissionText(aliceCipherText[0]);
+
+        // <----- bob receives the message
+        assertTrue(E2EEHandler.isValidDefaultText(aliceTransmissionText));
+        byte[] aliceExtractedText = E2EEHandler.extractTransmissionText(aliceTransmissionText);
+        byte[] alicePlainText = E2EEHandler.decrypt(context, bobKeystoreAlias, aliceExtractedText,
+                null, null);
+        assertArrayEquals(aliceText, alicePlainText);
+
+        // <---- bob sends a message
+        byte[] bobText = CryptoHelpers.generateRandomBytes(130);
+        byte[][] bobCipherText = E2EEHandler.encrypt(context, bobKeystoreAlias, bobText);
+        String bobTransmissionText = E2EEHandler.buildTransmissionText(bobCipherText[0]);
+
+        // <----- bob receives the message again - as would be on mobile devices
+//        aliceExtractedText = E2EEHandler.extractTransmissionText(aliceTransmissionText);
+//        alicePlainText = E2EEHandler.decrypt(context, bobKeystoreAlias, aliceExtractedText,
+//                aliceCipherText[1], null);
+//        assertArrayEquals(aliceText, alicePlainText);
+
+        // <---- alice receives bob's message
+        assertTrue(E2EEHandler.isValidDefaultText(bobTransmissionText));
+        byte[] bobExtractedText = E2EEHandler.extractTransmissionText(bobTransmissionText);
+        byte[] bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText,
+                null, null);
+        assertArrayEquals(bobText, bobPlainText);
+    }
+
+
+    @Test
     public void canDoubleRatchet() throws Throwable {
         String aliceAddress = "+237555555555";
         String bobAddress = "+237666666666";

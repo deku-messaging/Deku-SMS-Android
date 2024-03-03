@@ -39,6 +39,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 import java.util.Map;
 
 import javax.crypto.BadPaddingException;
@@ -91,6 +92,20 @@ public class E2EEHandler {
          * AndroidKeyStore provider to list the currently stored entries.
          */
         return KeystoreHelpers.isAvailableInKeystore(keystoreAlias);
+    }
+
+    public static boolean hasSameAgreementKey(Context context, String keystoreAlias, byte[] publicKey) {
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
+                            Datastore.class, Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                Datastore.datastore.conversationsThreadsEncryptionDao().fetch(keystoreAlias);
+        byte[] currentPubKey =
+                Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP);
+        return Arrays.equals(currentPubKey, publicKey);
     }
 
     public static boolean canCommunicateSecurely(Context context, String keystoreAlias) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
