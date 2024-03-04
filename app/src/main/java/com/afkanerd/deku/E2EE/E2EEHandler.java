@@ -94,6 +94,10 @@ public class E2EEHandler {
         return KeystoreHelpers.isAvailableInKeystore(keystoreAlias);
     }
 
+    public static boolean isSelf(Context context, String keystoreAlias, byte[] publicKey) {
+        return hasSameAgreementKey(context, keystoreAlias, publicKey);
+    }
+
     public static boolean hasSameAgreementKey(Context context, String keystoreAlias, byte[] publicKey) {
         if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
             Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
@@ -254,6 +258,9 @@ public class E2EEHandler {
     /**
      * This uses session = 0, which is the default PublicKey values for.
      *
+     * If the PublicKey in Keystore is the same as ConversationsEncryption database for the same alias,
+     * this infers same person making a request and therefore uses the same public key.
+     *
      * @param context
      * @param address
      * @return
@@ -263,9 +270,15 @@ public class E2EEHandler {
      * @throws InterruptedException
      */
     public static Pair<String, byte[]> buildForEncryptionRequest(Context context, String address) throws Exception {
+        PublicKey publicKey;
         int session = 0;
+
         String keystoreAlias = deriveKeystoreAlias(address, session);
-        PublicKey publicKey = createNewKeyPair(context, keystoreAlias);
+        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
+        if(keyPair == null || !isSelf(context, keystoreAlias, keyPair.getPublic().getEncoded()))
+            publicKey = createNewKeyPair(context, keystoreAlias);
+        else
+            publicKey = keyPair.getPublic();
         return new Pair<>(keystoreAlias, buildDefaultPublicKey(publicKey.getEncoded()));
     }
 
@@ -311,6 +324,20 @@ public class E2EEHandler {
         return conversationsThreadsEncryptionDao.fetch(keystoreAlias);
     }
 
+    /**
+     * Get the default KeyPair, used in identifying the peers. This is different from the keypairs
+     * stored during ratcheting.
+     *
+     * @param context
+     * @param keystoreAlias
+     * @return
+     * @throws UnrecoverableEntryException
+     * @throws CertificateException
+     * @throws KeyStoreException
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws InterruptedException
+     */
     public static KeyPair getKeyPairBasedVersioning(Context context, String keystoreAlias) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
         final KeyPair[] keyPair = new KeyPair[1];
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
@@ -349,6 +376,15 @@ public class E2EEHandler {
         return keystoreAlias + "-ratchet-sessions";
     }
 
+    /**
+     * This returns a header, ciphertext and the mk.
+     *
+     * @param context
+     * @param keystoreAlias
+     * @param data
+     * @return
+     * @throws Throwable
+     */
     public static byte[][] encrypt(Context context, final String keystoreAlias, byte[] data) throws Throwable {
         if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
             Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
