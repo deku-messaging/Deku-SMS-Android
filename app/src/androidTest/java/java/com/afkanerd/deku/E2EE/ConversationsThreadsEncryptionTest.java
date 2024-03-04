@@ -164,10 +164,23 @@ public class ConversationsThreadsEncryptionTest {
         mk = bobCipherText[1];
         String bobTransmissionText = E2EEHandler.buildTransmissionText(bobCipherText[0]);
 
+        // <---- then bob sends another
+        byte[] bobText1 = CryptoHelpers.generateRandomBytes(130);
+        byte[][] bobCipherText1 = E2EEHandler.encrypt(context, bobKeystoreAlias, bobText1);
+        byte[] mk1 = bobCipherText1[1];
+        String bobTransmissionText1 = E2EEHandler.buildTransmissionText(bobCipherText1[0]);
+
+        // <---- alice receives bob's message - this message is out of order
+        assertTrue(E2EEHandler.isValidDefaultText(bobTransmissionText1));
+        byte[] bobExtractedText = E2EEHandler.extractTransmissionText(bobTransmissionText1);
+        byte[] bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText,
+                mk1, null);
+        assertArrayEquals(bobText1, bobPlainText);
+
         // <---- alice receives bob's message
         assertTrue(E2EEHandler.isValidDefaultText(bobTransmissionText));
-        byte[] bobExtractedText = E2EEHandler.extractTransmissionText(bobTransmissionText);
-        byte[] bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText, mk,
+        bobExtractedText = E2EEHandler.extractTransmissionText(bobTransmissionText);
+        bobPlainText = E2EEHandler.decrypt(context, aliceKeystoreAlias, bobExtractedText, mk,
                 null);
         assertArrayEquals(bobText, bobPlainText);
     }
