@@ -82,12 +82,12 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
     @Override
     public void informSecured(boolean secured) {
+        TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if(secured && securePopUpRequest != null) {
                     securePopUpRequest.setVisibility(View.GONE);
-                    TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
                     layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
                 }
 
@@ -201,9 +201,9 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(threadedConversations.is_secured) {
-            TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
-            layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-        }
+//        if(threadedConversations.is_secured) {
+//            TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
+//            layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+//        }
     }
 }

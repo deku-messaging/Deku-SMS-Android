@@ -140,9 +140,6 @@ public class ConversationActivity extends E2EECompactActivity {
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
 
-        if(threadedConversations.is_secured)
-            layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
@@ -454,11 +451,6 @@ public class ConversationActivity extends E2EECompactActivity {
                                         .getMessage(messageId);
                                 conversation.setRead(true);
                                 conversationsViewModel.update(conversation);
-                                threadedConversations = databaseConnector.threadedConversationsDao().get(threadId);
-                                if(threadedConversations.isIs_secured()) {
-                                    TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
-                                    layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-                                }
                             }
                         });
                     }
@@ -482,6 +474,18 @@ public class ConversationActivity extends E2EECompactActivity {
                             @Override
                             public void onChanged(PagingData<Conversation> smsList) {
                                 conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
+                                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ThreadedConversations tc =
+                                                databaseConnector.threadedConversationsDao()
+                                                .get(threadedConversations.getThread_id());
+                                        if(tc != null && tc.isIs_secured()) {
+                                            informSecured(tc.isIs_secured());
+                                            threadedConversations = tc;
+                                        }
+                                    }
+                                });
                             }
                         });
             }

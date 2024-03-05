@@ -309,6 +309,8 @@ public class ThreadedConversations {
                     threadedConversations.type == this.type &&
                     threadedConversations.msg_count == this.msg_count &&
                     threadedConversations.is_mute == this.is_mute &&
+                    threadedConversations.is_secured == this.is_secured &&
+                    threadedConversations.isSelf == this.isSelf &&
                     Objects.equals(threadedConversations.date, this.date) &&
                     Objects.equals(threadedConversations.address, this.address) &&
                     Objects.equals(threadedConversations.contact_name, this.contact_name) &&
