@@ -1,1 +1,1 @@
-- update: 
+- update: can send encrypted messages to self using ratchets (but single ratchet chain at this time)
