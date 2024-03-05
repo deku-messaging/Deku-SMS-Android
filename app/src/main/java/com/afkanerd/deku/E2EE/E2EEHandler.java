@@ -470,6 +470,7 @@ public class E2EEHandler {
         if(isSelf && !keystoreAlias.endsWith("_self"))
             throw new Exception("Expected " + keystoreAlias + "_self but got " + keystoreAlias);
 
+        Log.d(E2EEHandler.class.getName(), "Is self: " + isSelf + ":" + keystoreAlias);
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
                 Datastore.datastore.conversationsThreadsEncryptionDao();
         ConversationsThreadsEncryption conversationsThreadsEncryption =
@@ -562,10 +563,13 @@ public class E2EEHandler {
                     .build();
         }
         removeFromKeystore(context, keystoreAlias);
+        removeFromKeystore(context, buildForSelf(keystoreAlias));
         removeFromKeystore(context, getKeystoreForRatchets(keystoreAlias));
+        removeFromKeystore(context, getKeystoreForRatchets(buildForSelf(keystoreAlias)));
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
                 Datastore.datastore.conversationsThreadsEncryptionDao();
         conversationsThreadsEncryptionDao.delete(keystoreAlias);
+        conversationsThreadsEncryptionDao.delete(buildForSelf(keystoreAlias));
         conversationsThreadsEncryptionDao.delete(getKeystoreForRatchets(keystoreAlias));
     }
 

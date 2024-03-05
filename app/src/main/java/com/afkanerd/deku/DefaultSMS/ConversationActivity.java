@@ -272,10 +272,19 @@ public class ConversationActivity extends E2EECompactActivity {
             throw new Exception("No threadId nor Address supplied for activity");
         }
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
-            ThreadedConversations threadedConversations = new ThreadedConversations();
-            threadedConversations.setThread_id(getIntent().getStringExtra(Conversation.THREAD_ID));
-            this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
-                    threadedConversations);
+//            ThreadedConversations threadedConversations = new ThreadedConversations();
+//            threadedConversations.setThread_id(getIntent().getStringExtra(Conversation.THREAD_ID));
+//            this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
+//                    threadedConversations);
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    threadedConversations = databaseConnector.threadedConversationsDao()
+                            .get(getIntent().getStringExtra(Conversation.THREAD_ID));
+                }
+            });
+            thread.start();
+            thread.join();
         }
         else if(getIntent().hasExtra(Conversation.ADDRESS)) {
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
@@ -437,6 +446,7 @@ public class ConversationActivity extends E2EECompactActivity {
                     @Override
                     public void onReceive(Context context, Intent intent) {
                         final String messageId = intent.getStringExtra(Conversation.ID);
+                        final String threadId = intent.getStringExtra(Conversation.THREAD_ID);
                         ThreadingPoolExecutor.executorService.execute(new Runnable() {
                             @Override
                             public void run() {
@@ -444,6 +454,11 @@ public class ConversationActivity extends E2EECompactActivity {
                                         .getMessage(messageId);
                                 conversation.setRead(true);
                                 conversationsViewModel.update(conversation);
+                                threadedConversations = databaseConnector.threadedConversationsDao().get(threadId);
+                                if(threadedConversations.isIs_secured()) {
+                                    TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
+                                    layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                                }
                             }
                         });
                     }
@@ -661,7 +676,7 @@ public class ConversationActivity extends E2EECompactActivity {
                         final String text = smsTextView.getText().toString();
                         sendTextMessage(text, defaultSubscriptionId.getValue(),
                                 threadedConversations, String.valueOf(System.currentTimeMillis()),
-                                null, isSelf);
+                                null);
                         smsTextView.setText(null);
                     }
                 } catch (Exception e) {

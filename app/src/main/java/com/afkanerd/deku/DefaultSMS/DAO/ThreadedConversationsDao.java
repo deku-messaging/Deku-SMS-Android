@@ -75,7 +75,8 @@ public interface ThreadedConversationsDao {
             "ThreadedConversations.msg_count, ThreadedConversations.is_archived, " +
             "ThreadedConversations.is_blocked, ThreadedConversations.is_read, " +
             "ThreadedConversations.is_shortcode, ThreadedConversations.contact_name, " +
-            "ThreadedConversations.is_mute, ThreadedConversations.is_secured " +
+            "ThreadedConversations.is_mute, ThreadedConversations.is_secured, " +
+            "ThreadedConversations.isSelf " +
             "FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
@@ -87,7 +88,8 @@ public interface ThreadedConversationsDao {
             "Conversation.date, Conversation.type, Conversation.read, " +
             "0 as msg_count, ThreadedConversations.is_archived, ThreadedConversations.is_blocked, " +
             "ThreadedConversations.is_read, ThreadedConversations.is_shortcode, " +
-            "ThreadedConversations.is_mute, ThreadedConversations.is_secured " +
+            "ThreadedConversations.is_mute, ThreadedConversations.is_secured, " +
+            "ThreadedConversations.isSelf " +
             "FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")

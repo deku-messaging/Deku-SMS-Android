@@ -52,12 +52,16 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
     Datastore databaseConnector;
 
-    public void insertThreads(Context context, Conversation conversation) {
+    public ThreadedConversations insertThreads(Context context, Conversation conversation, boolean isSecure, boolean isSelf) {
         ThreadedConversations threadedConversations =
                 ThreadedConversations.build(context, conversation);
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
         threadedConversations.setContact_name(contactName);
+        threadedConversations.setIs_secured(isSecure);
+        threadedConversations.setSelf(isSelf);
         databaseConnector.threadedConversationsDao().insert(threadedConversations);
+
+        return threadedConversations;
     }
 
     @Override
@@ -106,23 +110,25 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                         @Override
                         public void run() {
                             databaseConnector.conversationDao().insert(conversation);
-                            insertThreads(context, conversation);
 
+                            boolean isSelf = false;
+                            boolean isSecured = false;
                             if(isValidKey) {
                                 try {
-                                    processForEncryptionKey(context, conversation);
+                                    isSelf = processForEncryptionKey(context, conversation);
+                                    isSecured = true;
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
+                            ThreadedConversations threadedConversations =
+                                    insertThreads(context, conversation, isSecured, isSelf);
 
                             Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
                             broadcastIntent.putExtra(Conversation.ID, messageId);
                             broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
                             context.sendBroadcast(broadcastIntent);
 
-                            ThreadedConversations threadedConversations =
-                                    databaseConnector.threadedConversationsDao().get(threadId);
                             if(!threadedConversations.isIs_mute())
                                 NotificationsHandler.sendIncomingTextMessageNotification(context,
                                         conversation);
@@ -136,7 +142,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    void processForEncryptionKey(Context context, Conversation conversation) throws
+    boolean processForEncryptionKey(Context context, Conversation conversation) throws
             Exception {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
         final String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
@@ -149,6 +155,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     conversation.getAddress(), keystoreAliasSelf);
             byte[] transmissionKey = E2EEHandler.extractTransmissionKey(keystorePair.second);
             E2EEHandler.insertNewAgreementKeyDefault(context, transmissionKey, keystoreAliasSelf);
+            return true;
         }
+        return false;
     }
 }

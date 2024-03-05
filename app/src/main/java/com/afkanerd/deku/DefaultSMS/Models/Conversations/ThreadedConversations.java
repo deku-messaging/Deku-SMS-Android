@@ -31,6 +31,17 @@ public class ThreadedConversations {
         this.is_secured = is_secured;
     }
 
+    public boolean isSelf() {
+        return isSelf;
+    }
+
+    public void setSelf(boolean self) {
+        isSelf = self;
+    }
+
+    @ColumnInfo(defaultValue = "0")
+    private boolean isSelf = false;
+
     @ColumnInfo(defaultValue = "0")
     public boolean is_secured = false;
     @NonNull

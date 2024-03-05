@@ -86,12 +86,12 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                    ThreadedConversations threadedConversations, String messageId) throws NumberParseException, InterruptedException {
         sendTextMessage(conversation.getText(),
                 conversation.getSubscription_id(),
-                threadedConversations, messageId, null, false);
+                threadedConversations, messageId, null);
     }
 
     protected void sendTextMessage(String text, int subscriptionId,
                                 ThreadedConversations threadedConversations, String messageId,
-                                   byte[] _mk, boolean isSelf) throws NumberParseException, InterruptedException {
+                                   byte[] _mk) throws NumberParseException, InterruptedException {
         if(text != null) {
             if(messageId == null)
                 messageId = String.valueOf(System.currentTimeMillis());
@@ -101,11 +101,11 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                 try {
                     String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
                             threadedConversations.getAddress(), 0);
-                    if(isSelf)
+                    if(threadedConversations.isSelf())
                         keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);
                     byte[] cipherText = E2EEHandler.extractTransmissionText(text);
                     String plainText = new String(E2EEHandler.decrypt(getApplicationContext(),
-                            keystoreAlias, cipherText, _mk, null, isSelf),
+                            keystoreAlias, cipherText, _mk, null, threadedConversations.isSelf()),
                             StandardCharsets.UTF_8);
                     conversation.setText(plainText);
                 } catch(Throwable e ) {
