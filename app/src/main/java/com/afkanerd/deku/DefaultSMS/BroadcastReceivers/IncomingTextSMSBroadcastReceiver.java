@@ -285,8 +285,11 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         if(E2EEHandler.isValidDefaultText(text)) {
             String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
             byte[] cipherText = E2EEHandler.extractTransmissionText(text);
-            text = new String(E2EEHandler.decrypt(context, keystoreAlias, cipherText, null,
-                    null, false));
+            boolean isSelf = E2EEHandler.isSelf(context, keystoreAlias);
+            Log.d(getClass().getName(), "Decrypting incoming: " + text);
+            text = new String(E2EEHandler.decrypt(context, isSelf ?
+                            E2EEHandler.buildForSelf(keystoreAlias) :keystoreAlias,
+                    cipherText, null, null, isSelf));
         }
         return text;
     }

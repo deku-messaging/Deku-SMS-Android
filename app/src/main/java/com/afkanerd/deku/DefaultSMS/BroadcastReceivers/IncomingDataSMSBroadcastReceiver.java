@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.room.Room;
 
@@ -110,8 +111,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             if(isValidKey) {
                                 try {
                                     processForEncryptionKey(context, conversation);
-                                } catch (NumberParseException | IOException | InterruptedException |
-                                         GeneralSecurityException | JSONException e) {
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
@@ -137,14 +137,18 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     }
 
     void processForEncryptionKey(Context context, Conversation conversation) throws
-            NumberParseException, GeneralSecurityException, IOException, InterruptedException, JSONException {
+            Exception {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-        String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
+        final String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
         byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
-
-        /*
-         * This should allow Bob to continue communicating in case (Bob == Alice) = true.
-         */
         E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
+
+        if(E2EEHandler.isSelf(context, keystoreAlias)) {
+            final String keystoreAliasSelf = E2EEHandler.buildForSelf(keystoreAlias);
+            Pair<String, byte[]> keystorePair = E2EEHandler.buildForEncryptionRequest(context,
+                    conversation.getAddress(), keystoreAliasSelf);
+            byte[] transmissionKey = E2EEHandler.extractTransmissionKey(keystorePair.second);
+            E2EEHandler.insertNewAgreementKeyDefault(context, transmissionKey, keystoreAliasSelf);
+        }
     }
 }

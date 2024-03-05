@@ -34,6 +34,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
     protected String keystoreAlias;
 
+    protected boolean isSelf = false;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,18 +56,18 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     public void sendTextMessage(final String text, int subscriptionId,
                                 ThreadedConversations threadedConversations, String messageId,
-                                final byte[] _mk) throws NumberParseException, InterruptedException {
+                                final byte[] _mk, boolean _isSelf) throws NumberParseException, InterruptedException {
         if(threadedConversations.is_secured && !isEncrypted) {
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         byte[][] cipherText = E2EEHandler.encrypt(getApplicationContext(),
-                                keystoreAlias, text.getBytes(StandardCharsets.UTF_8), false);
+                                keystoreAlias, text.getBytes(StandardCharsets.UTF_8), isSelf);
                         String encryptedText = E2EEHandler.buildTransmissionText(cipherText[0]);
                         isEncrypted = true;
-                        sendTextMessage(encryptedText, subscriptionId, threadedConversations, messageId,
-                                cipherText[1]);
+                        sendTextMessage(encryptedText, subscriptionId, threadedConversations,
+                                messageId, cipherText[1], isSelf);
                     } catch (Throwable e) {
                         e.printStackTrace();
                     }
@@ -74,7 +76,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         }
         else {
             isEncrypted = false;
-            super.sendTextMessage(text, subscriptionId, threadedConversations, messageId, _mk);
+            super.sendTextMessage(text, subscriptionId, threadedConversations, messageId, _mk,
+                    _isSelf);
         }
     }
 
@@ -205,10 +208,13 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 @Override
                 public void run() {
                     try {
-                        keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                        keystoreAlias = E2EEHandler.deriveKeystoreAlias(
+                                threadedConversations.getAddress(), 0);
                         threadedConversations.is_secured =
-                                E2EEHandler.canCommunicateSecurely(getApplicationContext(), keystoreAlias);
+                                E2EEHandler.canCommunicateSecurely(getApplicationContext(),
+                                        keystoreAlias);
                         if(threadedConversations.is_secured) {
+                            isSelf = E2EEHandler.isSelf(getApplicationContext(), keystoreAlias);
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -217,7 +223,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                                 }
                             });
                         }
-                    } catch (IOException | GeneralSecurityException | NumberParseException e) {
+                    } catch (IOException | GeneralSecurityException | NumberParseException |
+                             InterruptedException e) {
                         e.printStackTrace();
                     }
                 }

@@ -661,7 +661,7 @@ public class ConversationActivity extends E2EECompactActivity {
                         final String text = smsTextView.getText().toString();
                         sendTextMessage(text, defaultSubscriptionId.getValue(),
                                 threadedConversations, String.valueOf(System.currentTimeMillis()),
-                                null);
+                                null, isSelf);
                         smsTextView.setText(null);
                     }
                 } catch (Exception e) {
