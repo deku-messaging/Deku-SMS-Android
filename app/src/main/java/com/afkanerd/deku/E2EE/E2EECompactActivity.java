@@ -61,10 +61,10 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 public void run() {
                     try {
                         byte[][] cipherText = E2EEHandler.encrypt(getApplicationContext(),
-                                keystoreAlias, text.getBytes(StandardCharsets.UTF_8));
-                        String text = E2EEHandler.buildTransmissionText(cipherText[0]);
+                                keystoreAlias, text.getBytes(StandardCharsets.UTF_8), false);
+                        String encryptedText = E2EEHandler.buildTransmissionText(cipherText[0]);
                         isEncrypted = true;
-                        sendTextMessage(text, subscriptionId, threadedConversations, messageId,
+                        sendTextMessage(encryptedText, subscriptionId, threadedConversations, messageId,
                                 cipherText[1]);
                     } catch (Throwable e) {
                         e.printStackTrace();
@@ -102,7 +102,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 try {
                     Pair<String,  byte[]> transmissionRequestKeyPair =
                             E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
-                                    threadedConversations.getAddress());
+                                    threadedConversations.getAddress(), null);
 
                     final String messageId = String.valueOf(System.currentTimeMillis());
                     Conversation conversation = new Conversation();

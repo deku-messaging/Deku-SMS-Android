@@ -24,6 +24,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.List;
@@ -91,7 +92,9 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         }
         else this.address.setText(conversation.getAddress());
 
-        this.snippet.setText(conversation.getSnippet());
+        String text = conversation.getSnippet();
+
+        this.snippet.setText(text);
         String date = Helpers.formatDate(itemView.getContext(),
                 Long.parseLong(conversation.getDate()));
         this.date.setText(date);

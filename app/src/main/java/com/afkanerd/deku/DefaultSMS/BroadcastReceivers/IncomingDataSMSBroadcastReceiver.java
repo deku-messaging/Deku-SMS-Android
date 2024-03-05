@@ -50,6 +50,15 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     ExecutorService executorService = Executors.newFixedThreadPool(4);
 
     Datastore databaseConnector;
+
+    public void insertThreads(Context context, Conversation conversation) {
+        ThreadedConversations threadedConversations =
+                ThreadedConversations.build(context, conversation);
+        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
+        threadedConversations.setContact_name(contactName);
+        databaseConnector.threadedConversationsDao().insert(threadedConversations);
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         /**
@@ -96,6 +105,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                         @Override
                         public void run() {
                             databaseConnector.conversationDao().insert(conversation);
+                            insertThreads(context, conversation);
 
                             if(isValidKey) {
                                 try {
@@ -126,11 +136,15 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    void processForEncryptionKey(Context context, Conversation conversation) throws NumberParseException, GeneralSecurityException, IOException, InterruptedException, JSONException {
+    void processForEncryptionKey(Context context, Conversation conversation) throws
+            NumberParseException, GeneralSecurityException, IOException, InterruptedException, JSONException {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
         String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
         byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
 
+        /*
+         * This should allow Bob to continue communicating in case (Bob == Alice) = true.
+         */
         E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
     }
 }

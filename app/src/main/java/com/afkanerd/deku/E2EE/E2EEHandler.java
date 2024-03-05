@@ -94,11 +94,7 @@ public class E2EEHandler {
         return KeystoreHelpers.isAvailableInKeystore(keystoreAlias);
     }
 
-    public static boolean isSelf(Context context, String keystoreAlias, byte[] publicKey) {
-        return hasSameAgreementKey(context, keystoreAlias, publicKey);
-    }
-
-    public static boolean hasSameAgreementKey(Context context, String keystoreAlias, byte[] publicKey) {
+    public static boolean samePublicKey(Context context, String keystoreAlias, byte[] publicKey) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
         if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
             Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
                             Datastore.class, Datastore.databaseName)
@@ -107,9 +103,32 @@ public class E2EEHandler {
         }
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 Datastore.datastore.conversationsThreadsEncryptionDao().fetch(keystoreAlias);
+        if(conversationsThreadsEncryption == null)
+            return false;
+
         byte[] currentPubKey =
                 Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP);
         return Arrays.equals(currentPubKey, publicKey);
+    }
+
+    public static boolean isSelf(Context context, String keystoreAlias) throws UnrecoverableEntryException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, InterruptedException {
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
+                            Datastore.class, Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+
+        ConversationsThreadsEncryption conversationsThreadsEncryption =
+                Datastore.datastore.conversationsThreadsEncryptionDao().fetch(keystoreAlias);
+
+        if(conversationsThreadsEncryption == null)
+            return false;
+
+        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
+        byte[] currentPubKey =
+                Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP);
+        return Arrays.equals(currentPubKey, keyPair.getPublic().getEncoded());
     }
 
     public static boolean canCommunicateSecurely(Context context, String keystoreAlias) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
@@ -119,9 +138,12 @@ public class E2EEHandler {
                     .enableMultiInstanceInvalidation()
                     .build();
         }
-        return isAvailableInKeystore(keystoreAlias) &&
+        return (isAvailableInKeystore(keystoreAlias) &&
                 Datastore.datastore.conversationsThreadsEncryptionDao()
-                        .findByKeystoreAlias(keystoreAlias) != null;
+                        .findByKeystoreAlias(keystoreAlias) != null ||
+                isAvailableInKeystore(keystoreAlias) &&
+                        Datastore.datastore.conversationsThreadsEncryptionDao()
+                                .findByKeystoreAlias(buildForSelf(keystoreAlias)) != null);
     }
 
     public static PublicKey createNewKeyPair(Context context, String keystoreAlias)
@@ -269,17 +291,22 @@ public class E2EEHandler {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static Pair<String, byte[]> buildForEncryptionRequest(Context context, String address) throws Exception {
-        PublicKey publicKey;
+    public static Pair<String, byte[]> buildForEncryptionRequest(Context context, String address,
+                                                                 String keystoreAlias) throws Exception {
         int session = 0;
 
-        String keystoreAlias = deriveKeystoreAlias(address, session);
-        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
-        if(keyPair == null || !isSelf(context, keystoreAlias, keyPair.getPublic().getEncoded()))
-            publicKey = createNewKeyPair(context, keystoreAlias);
-        else
-            publicKey = keyPair.getPublic();
+        if(keystoreAlias == null)
+            keystoreAlias = deriveKeystoreAlias(address, session);
+        PublicKey publicKey = createNewKeyPair(context, keystoreAlias);
         return new Pair<>(keystoreAlias, buildDefaultPublicKey(publicKey.getEncoded()));
+    }
+
+    public static String buildForSelf(String keystoreAlias) {
+        return keystoreAlias + "_self";
+    }
+
+    public static String buildForOriginal(String keystoreAlias) {
+        return keystoreAlias.split("_")[0];
     }
 
     /**
@@ -385,17 +412,18 @@ public class E2EEHandler {
      * @return
      * @throws Throwable
      */
-    public static byte[][] encrypt(Context context, final String keystoreAlias, byte[] data) throws Throwable {
+    public static byte[][] encrypt(Context context, final String keystoreAlias, byte[] data,
+                                   boolean isSelf) throws Throwable {
         if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
             Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
                             Datastore.class, Datastore.databaseName)
                     .enableMultiInstanceInvalidation()
                     .build();
         }
-
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
                 Datastore.datastore.conversationsThreadsEncryptionDao();
-        ConversationsThreadsEncryption conversationsThreadsEncryption =
+        ConversationsThreadsEncryption conversationsThreadsEncryption = isSelf ?
+                conversationsThreadsEncryptionDao.findByKeystoreAlias(buildForSelf(keystoreAlias)):
                 conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
 
         States states;
@@ -407,7 +435,7 @@ public class E2EEHandler {
              * You are Alice, so act like it
              */
             PublicKey publicKey = SecurityECDH.buildPublicKey(
-                    Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
+                    Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP));
             keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
             final byte[] SK = SecurityECDH.generateSecretKey(keyPair, publicKey);
 
@@ -431,25 +459,30 @@ public class E2EEHandler {
                 cipherPair.second[1]};
     }
 
-    public static byte[] decrypt(Context context, final String keystoreAlias,
-                                 final byte[] cipherText, byte[] mk, byte[] _AD) throws Throwable {
+    public static byte[] decrypt(Context context, final String keystoreAlias, final byte[] cipherText,
+                                 byte[] mk, byte[] _AD, boolean isSelf) throws Throwable {
         if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
             Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
                             Datastore.class, Datastore.databaseName)
                     .enableMultiInstanceInvalidation()
                     .build();
         }
+        if(isSelf && !keystoreAlias.endsWith("_self"))
+            throw new Exception("Expected " + keystoreAlias + "_self but got " + keystoreAlias);
+
         ConversationsThreadsEncryptionDao conversationsThreadsEncryptionDao =
                 Datastore.datastore.conversationsThreadsEncryptionDao();
         ConversationsThreadsEncryption conversationsThreadsEncryption =
-                conversationsThreadsEncryptionDao.findByKeystoreAlias(keystoreAlias);
+                conversationsThreadsEncryptionDao.findByKeystoreAlias(isSelf ?
+                        buildForOriginal(keystoreAlias) :
+                        keystoreAlias);
 
-        Headers header = new Headers();
-        byte[] outputCipherText = header.deSerializeHeader(cipherText);
+        String keystoreAliasRatchet = getKeystoreForRatchets(keystoreAlias);
 
         States states;
-        final String keystoreAliasRatchet = getKeystoreForRatchets(keystoreAlias);
+        Headers header = new Headers();
 
+        byte[] outputCipherText = header.deSerializeHeader(cipherText);
         KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAliasRatchet);
         if(keyPair == null) {
             /**
@@ -457,12 +490,14 @@ public class E2EEHandler {
              */
             keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
             PublicKey publicKey = SecurityECDH.buildPublicKey(
-                    Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.DEFAULT));
+                    Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP));
             final byte[] SK = SecurityECDH.generateSecretKey(keyPair, publicKey);
 
             states = Ratchets.ratchetInitBob(new States(), SK, keyPair);
         } else {
+            Log.d(E2EEHandler.class.getName(), "Yep not null no more...");
             states = new States(keyPair, conversationsThreadsEncryption.getStates());
+            Log.d(E2EEHandler.class.getName(), states.getSerializedStates());
         }
 
         byte[] AD = _AD == null ?
