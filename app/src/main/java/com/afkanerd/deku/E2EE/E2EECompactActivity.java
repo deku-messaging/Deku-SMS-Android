@@ -3,6 +3,7 @@ package com.afkanerd.deku.E2EE;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
+import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,10 +13,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.lifecycle.Observer;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
@@ -26,18 +29,60 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
 
 public class E2EECompactActivity extends CustomAppCompactActivity {
 
     protected ThreadedConversations threadedConversations;
     View securePopUpRequest;
+    boolean isEncrypted = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
-    boolean isEncrypted = false;
+    protected void attachObservers() {
+        try {
+            String keystoreAlias =
+                    E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+            databaseConnector.conversationsThreadsEncryptionDao().fetchLiveData(keystoreAlias)
+                    .observe(this, new Observer<ConversationsThreadsEncryption>() {
+                        @Override
+                        public void onChanged(ConversationsThreadsEncryption conversationsThreadsEncryption) {
+                            Log.d(getClass().getName(), "Encryption changed!");
+                            if(conversationsThreadsEncryption != null) {
+                                threadedConversations.setIs_secured(true);
+                                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            threadedConversations.setSelf(
+                                                    E2EEHandler.isSelf(getApplicationContext(), keystoreAlias));
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    informSecured(true);
+                                                }
+                                            });
+                                        } catch (UnrecoverableEntryException | CertificateException |
+                                                 KeyStoreException | IOException |
+                                                 NoSuchAlgorithmException | InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+        } catch (NumberParseException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      *
@@ -83,16 +128,10 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     public void informSecured(boolean secured) {
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if(secured && securePopUpRequest != null) {
-                    securePopUpRequest.setVisibility(View.GONE);
-                    layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-                }
-
-            }
-        });
+        if(secured && securePopUpRequest != null) {
+            securePopUpRequest.setVisibility(View.GONE);
+            layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+        }
     }
 
     protected void sendDataMessage(ThreadedConversations threadedConversations) {
@@ -198,12 +237,4 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-//        if(threadedConversations.is_secured) {
-//            TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
-//            layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-//        }
-    }
 }

@@ -52,14 +52,22 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
     Datastore databaseConnector;
 
-    public ThreadedConversations insertThreads(Context context, Conversation conversation, boolean isSecure, boolean isSelf) {
+    public ThreadedConversations insertThreads(Context context, Conversation conversation,
+                                               boolean isSecure, boolean isSelf) {
         ThreadedConversations threadedConversations =
-                ThreadedConversations.build(context, conversation);
-        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
-        threadedConversations.setContact_name(contactName);
+                databaseConnector.threadedConversationsDao().get(conversation.getThread_id());
+        boolean available = threadedConversations != null;
+        if(!available) {
+            threadedConversations = ThreadedConversations.build(context, conversation);
+            String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
+            threadedConversations.setContact_name(contactName);
+        }
         threadedConversations.setIs_secured(isSecure);
         threadedConversations.setSelf(isSelf);
-        databaseConnector.threadedConversationsDao().insert(threadedConversations);
+        if(available)
+            databaseConnector.threadedConversationsDao().update(threadedConversations);
+        else
+            databaseConnector.threadedConversationsDao().insert(threadedConversations);
 
         return threadedConversations;
     }

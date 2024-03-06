@@ -269,10 +269,6 @@ public class ConversationActivity extends E2EECompactActivity {
             throw new Exception("No threadId nor Address supplied for activity");
         }
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
-//            ThreadedConversations threadedConversations = new ThreadedConversations();
-//            threadedConversations.setThread_id(getIntent().getStringExtra(Conversation.THREAD_ID));
-//            this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
-//                    threadedConversations);
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -288,25 +284,13 @@ public class ConversationActivity extends E2EECompactActivity {
                     getIntent().getStringExtra(Conversation.ADDRESS));
         }
 
-        final String address = this.threadedConversations.getAddress();
-        Log.d(getClass().getName(), "Address: " + address);
-//        this.threadedConversations.setAddress(
-//                Helpers.getFormatCompleteNumber(address, defaultUserCountry));
-//        this.threadedConversations.setAddress(
-//                Helpers.getFormatCompleteNumber(getApplicationContext(), address, defaultUserCountry));
         String contactName = Contacts.retrieveContactName(getApplicationContext(),
                 this.threadedConversations.getAddress());
-        Log.d(getClass().getName(), "Contact: " + contactName);
-//        if(contactName == null) {
-//            this.threadedConversations.setContact_name(Helpers.getFormatNationalNumber(address,
-//                    defaultUserCountry ));
-//        } else {
-//            this.threadedConversations.setContact_name(contactName);
-//        }
         this.threadedConversations.setContact_name(contactName);
 
         setEncryptionThreadedConversations(this.threadedConversations);
         isShortCode = Helpers.isShortCode(this.threadedConversations);
+        attachObservers();
     }
 
     int searchPointerPosition;
@@ -474,18 +458,6 @@ public class ConversationActivity extends E2EECompactActivity {
                             @Override
                             public void onChanged(PagingData<Conversation> smsList) {
                                 conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
-                                ThreadingPoolExecutor.executorService.execute(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        ThreadedConversations tc =
-                                                databaseConnector.threadedConversationsDao()
-                                                .get(threadedConversations.getThread_id());
-                                        if(tc != null && tc.isIs_secured()) {
-                                            informSecured(tc.isIs_secured());
-                                            threadedConversations = tc;
-                                        }
-                                    }
-                                });
                             }
                         });
             }
