@@ -1,5 +1,10 @@
 package com.afkanerd.deku.E2EE;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
@@ -8,14 +13,17 @@ import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.Observer;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
+import com.afkanerd.deku.DefaultSMS.Fragments.ModalSheetFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
@@ -23,11 +31,14 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitOption;
 import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -40,9 +51,12 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     View securePopUpRequest;
     boolean isEncrypted = false;
 
+    ModalSheetFragment modalSheetFragment;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        modalSheetFragment = new ModalSheetFragment();
+        modalSheetFragment.show(getSupportFragmentManager(), ModalSheetFragment.TAG);
     }
 
     protected void attachObservers() {
@@ -53,7 +67,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     .observe(this, new Observer<ConversationsThreadsEncryption>() {
                         @Override
                         public void onChanged(ConversationsThreadsEncryption conversationsThreadsEncryption) {
-                            Log.d(getClass().getName(), "Encryption changed!");
                             if(conversationsThreadsEncryption != null) {
                                 threadedConversations.setIs_secured(true);
                                 ThreadingPoolExecutor.executorService.execute(new Runnable() {
@@ -221,8 +234,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         super.onStart();
         securePopUpRequest = findViewById(R.id.conversations_request_secure_pop_layout);
         setSecurePopUpRequest();
-//        if(!SettingsHandler.alertNotEncryptedCommunicationDisabled(getApplicationContext()))
-//            securePopUpRequest.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -235,6 +246,13 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    public void clickPrivacyPolicy(View view) {
+        String url = getString(R.string.conversations_secure_conversation_request_information_deku_encryption_read_more);
+        Intent shareIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(shareIntent);
     }
 
 }

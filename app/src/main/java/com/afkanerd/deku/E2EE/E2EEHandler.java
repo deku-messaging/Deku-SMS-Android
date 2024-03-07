@@ -81,6 +81,7 @@ public class E2EEHandler {
     }
 
     public static String getAddressFromKeystore(String keystoreAlias) {
+        keystoreAlias = buildForOriginal(keystoreAlias);
         String decodedAlias = new String(Base64.decode(keystoreAlias, Base64.NO_WRAP),
                 StandardCharsets.UTF_8);
         return "+" + decodedAlias.split("_")[0];
@@ -306,7 +307,7 @@ public class E2EEHandler {
     }
 
     public static String buildForOriginal(String keystoreAlias) {
-        return keystoreAlias.split("_")[0];
+        return keystoreAlias.endsWith("_self") ? keystoreAlias.split("_")[0] : keystoreAlias;
     }
 
     /**

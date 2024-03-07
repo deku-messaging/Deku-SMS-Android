@@ -101,6 +101,7 @@ public class ConversationActivity extends E2EECompactActivity {
         setContentView(R.layout.activity_conversations);
 //        test();
 
+
         toolbar = (Toolbar) findViewById(R.id.conversation_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -116,6 +117,11 @@ public class ConversationActivity extends E2EECompactActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     public void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {

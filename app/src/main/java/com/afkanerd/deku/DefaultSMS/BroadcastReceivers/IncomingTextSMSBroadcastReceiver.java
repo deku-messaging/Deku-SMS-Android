@@ -79,7 +79,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
                 try {
-                    final String[] regIncomingOutput = NativeSMSDB.Incoming.register_incoming_text(context, intent);
+                    final String[] regIncomingOutput =
+                            NativeSMSDB.Incoming.register_incoming_text(context, intent);
                     if(regIncomingOutput != null) {
                         final String messageId = regIncomingOutput[NativeSMSDB.MESSAGE_ID];
                         final String body = regIncomingOutput[NativeSMSDB.BODY];
@@ -237,7 +238,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public void insertConversation(Context context, String address, String messageId,
                                    String threadId, String body, int subscriptionId, String date,
                                    String dateSent) {
-
         Conversation conversation = new Conversation();
         conversation.setMessage_id(messageId);
         conversation.setThread_id(threadId);
