@@ -124,7 +124,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             if(isValidKey) {
                                 try {
                                     isSelf = processForEncryptionKey(context, conversation);
-                                    isSecured = true;
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -150,6 +149,13 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
+    /**
+     *
+     * @param context
+     * @param conversation
+     * @return true if isSelf and false otherwise
+     * @throws Exception
+     */
     boolean processForEncryptionKey(Context context, Conversation conversation) throws
             Exception {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
@@ -157,14 +163,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
         E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
 
-        if(E2EEHandler.isSelf(context, keystoreAlias)) {
-            final String keystoreAliasSelf = E2EEHandler.buildForSelf(keystoreAlias);
-            Pair<String, byte[]> keystorePair = E2EEHandler.buildForEncryptionRequest(context,
-                    conversation.getAddress(), keystoreAliasSelf);
-            byte[] transmissionKey = E2EEHandler.extractTransmissionKey(keystorePair.second);
-            E2EEHandler.insertNewAgreementKeyDefault(context, transmissionKey, keystoreAliasSelf);
-            return true;
-        }
-        return false;
+
+        return E2EEHandler.isSelf(context, keystoreAlias);
     }
 }

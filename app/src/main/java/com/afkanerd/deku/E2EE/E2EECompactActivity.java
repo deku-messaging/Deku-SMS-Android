@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
@@ -51,44 +52,46 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     View securePopUpRequest;
     boolean isEncrypted = false;
 
-    ModalSheetFragment modalSheetFragment;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        modalSheetFragment = new ModalSheetFragment();
-        modalSheetFragment.show(getSupportFragmentManager(), ModalSheetFragment.TAG);
     }
 
     protected void attachObservers() {
         try {
-            String keystoreAlias =
+            final String keystoreAlias =
                     E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
             databaseConnector.conversationsThreadsEncryptionDao().fetchLiveData(keystoreAlias)
                     .observe(this, new Observer<ConversationsThreadsEncryption>() {
                         @Override
                         public void onChanged(ConversationsThreadsEncryption conversationsThreadsEncryption) {
-                            if(conversationsThreadsEncryption != null) {
-                                threadedConversations.setIs_secured(true);
-                                ThreadingPoolExecutor.executorService.execute(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            threadedConversations.setSelf(
-                                                    E2EEHandler.isSelf(getApplicationContext(), keystoreAlias));
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    informSecured(true);
-                                                }
-                                            });
-                                        } catch (UnrecoverableEntryException | CertificateException |
-                                                 KeyStoreException | IOException |
-                                                 NoSuchAlgorithmException | InterruptedException e) {
-                                            e.printStackTrace();
+                            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        final boolean isSelf = E2EEHandler
+                                                .isSelf(getApplicationContext(), keystoreAlias);
+
+                                        threadedConversations.setSelf(isSelf);
+
+                                        String _keystoreAlias = threadedConversations.isSelf() ?
+                                                E2EEHandler.buildForSelf(keystoreAlias) :
+                                                keystoreAlias;
+
+                                        if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
+                                                _keystoreAlias)) {
+                                            informSecured(true);
                                         }
+                                        else {
+                                            showSecureRequestAgreementModal();
+                                        }
+                                    } catch (CertificateException | KeyStoreException |
+                                             NoSuchAlgorithmException | IOException |
+                                             UnrecoverableEntryException | InterruptedException e) {
+                                        e.printStackTrace();
                                     }
-                                });
-                            }
+                                }
+                            });
                         }
                     });
         } catch (NumberParseException e) {
@@ -141,10 +144,17 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     @Override
     public void informSecured(boolean secured) {
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
-        if(secured && securePopUpRequest != null) {
-            securePopUpRequest.setVisibility(View.GONE);
-            layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-        }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(secured && securePopUpRequest != null) {
+                    securePopUpRequest.setVisibility(View.GONE);
+                    layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                } else {
+                    layout.setPlaceholderText(null);
+                }
+            }
+        });
     }
 
     protected void sendDataMessage(ThreadedConversations threadedConversations) {
@@ -248,11 +258,39 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
-    public void clickPrivacyPolicy(View view) {
-        String url = getString(R.string.conversations_secure_conversation_request_information_deku_encryption_read_more);
-        Intent shareIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        startActivity(shareIntent);
+    private void showSecureRequestAgreementModal() {
+        ModalSheetFragment modalSheetFragment = new ModalSheetFragment(threadedConversations);
+        Fragment fragment = getSupportFragmentManager()
+                .findFragmentByTag(ModalSheetFragment.TAG);
+        if(fragment == null || !fragment.isAdded())
+            modalSheetFragment.show(getSupportFragmentManager(), ModalSheetFragment.TAG);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                if(!threadedConversations.isIs_secured()) {
+                    try {
+                        String keystoreAlias =
+                                E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(),
+                                        0);
+                        String _keystoreAlias = threadedConversations.isSelf() ?
+                                E2EEHandler.buildForSelf(keystoreAlias) :
+                                keystoreAlias;
+                        if(!E2EEHandler.isAvailableInKeystore(_keystoreAlias) &&
+                                E2EEHandler.fetchStoredPeerData(getApplicationContext(), keystoreAlias)
+                                        != null) {
+                            showSecureRequestAgreementModal();
+                        }
+                    } catch (NumberParseException | CertificateException | KeyStoreException |
+                             IOException | NoSuchAlgorithmException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
 }
