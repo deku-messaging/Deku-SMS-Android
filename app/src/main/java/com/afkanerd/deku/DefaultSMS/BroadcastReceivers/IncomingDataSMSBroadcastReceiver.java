@@ -63,6 +63,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         }
         threadedConversations.setIs_secured(isSecure);
         threadedConversations.setSelf(isSelf);
+        threadedConversations.setDate(conversation.getDate());
         if(available)
             databaseConnector.threadedConversationsDao().update(threadedConversations);
         else

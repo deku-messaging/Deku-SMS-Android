@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
@@ -21,6 +22,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
@@ -268,40 +271,97 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     }
 
     private void showSecureRequestAgreementModal() {
-        if(threadedConversations != null) {
+        Fragment fragment = getSupportFragmentManager()
+                .findFragmentByTag(ModalSheetFragment.TAG);
+        if(threadedConversations != null && (fragment == null || !fragment.isAdded())) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             ModalSheetFragment modalSheetFragment = new ModalSheetFragment(threadedConversations);
-            Fragment fragment = getSupportFragmentManager()
-                    .findFragmentByTag(ModalSheetFragment.TAG);
-            if(fragment == null || !fragment.isAdded())
-                modalSheetFragment.show(getSupportFragmentManager(), ModalSheetFragment.TAG);
+            fragmentTransaction.add(modalSheetFragment,
+                    ModalSheetFragment.TAG);
+            fragmentTransaction.show(modalSheetFragment);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    fragmentTransaction.commitNow();
+                    Log.d(getClass().getName(), "Fragment null: " +
+                            String.valueOf(modalSheetFragment.getView() == null));
+                    modalSheetFragment.getView().findViewById(R.id.conversation_secure_request_agree_btn)
+                            .setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    agreeToSecure();
+                                    modalSheetFragment.dismiss();
+                                }
+                            });
+                }
+            });
+//            Fragment fragment = getSupportFragmentManager()
+//                    .findFragmentByTag(ModalSheetFragment.TAG);
+//            if(fragment == null || !fragment.isAdded()) {
+//                modalSheetFragment.show(getSupportFragmentManager(), ModalSheetFragment.TAG);
+//                Log.d(getClass().getName(), "Fragment null: " + String.valueOf(modalSheetFragment._view == null));
+//            }
         }
+    }
+
+    private void agreeToSecure() {
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String keystoreAlias = E2EEHandler
+                            .deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                    if (threadedConversations.isSelf()) {
+                        keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);
+                        Pair<String, byte[]> keystorePair = E2EEHandler
+                                .buildForEncryptionRequest(getApplicationContext(),
+                                        threadedConversations.getAddress(), keystoreAlias);
+
+                        byte[] transmissionKey = E2EEHandler
+                                .extractTransmissionKey(keystorePair.second);
+                        if (threadedConversations.isSelf())
+                            E2EEHandler.insertNewAgreementKeyDefault(getApplicationContext(),
+                                    transmissionKey, keystoreAlias);
+                        ThreadedConversations tc = Datastore.datastore.threadedConversationsDao()
+                                .get(threadedConversations.getThread_id());
+                        tc.setIs_secured(true);
+                        Datastore.datastore.threadedConversationsDao().update(tc);
+                        threadedConversations = tc;
+                    } else
+                        sendDataMessage(threadedConversations);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        ThreadingPoolExecutor.executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                if(!threadedConversations.isIs_secured()) {
-                    try {
-                        String keystoreAlias =
-                                E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(),
-                                        0);
-                        String _keystoreAlias = threadedConversations.isSelf() ?
-                                E2EEHandler.buildForSelf(keystoreAlias) :
-                                keystoreAlias;
-                        if(!E2EEHandler.isAvailableInKeystore(_keystoreAlias) &&
-                                E2EEHandler.fetchStoredPeerData(getApplicationContext(), keystoreAlias)
-                                        != null) {
-                            showSecureRequestAgreementModal();
-                        }
-                    } catch (NumberParseException | CertificateException | KeyStoreException |
-                             IOException | NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
+//        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+//            @Override
+//            public void run() {
+//                if(!threadedConversations.isIs_secured()) {
+//                    try {
+//                        String keystoreAlias =
+//                                E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(),
+//                                        0);
+//                        String _keystoreAlias = threadedConversations.isSelf() ?
+//                                E2EEHandler.buildForSelf(keystoreAlias) :
+//                                keystoreAlias;
+//                        if(!E2EEHandler.isAvailableInKeystore(_keystoreAlias) &&
+//                                E2EEHandler.fetchStoredPeerData(getApplicationContext(), keystoreAlias)
+//                                        != null) {
+//                            showSecureRequestAgreementModal();
+//                        }
+//                    } catch (NumberParseException | CertificateException | KeyStoreException |
+//                             IOException | NoSuchAlgorithmException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        });
     }
 }

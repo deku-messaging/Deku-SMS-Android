@@ -123,10 +123,11 @@ public class E2EEHandler {
         ConversationsThreadsEncryption conversationsThreadsEncryption =
                 Datastore.datastore.conversationsThreadsEncryptionDao().fetch(keystoreAlias);
 
-        if(conversationsThreadsEncryption == null)
+        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
+
+        if(conversationsThreadsEncryption == null || keyPair == null)
             return false;
 
-        KeyPair keyPair = getKeyPairBasedVersioning(context, keystoreAlias);
         byte[] currentPubKey =
                 Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP);
         return Arrays.equals(currentPubKey, keyPair.getPublic().getEncoded());

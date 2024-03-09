@@ -189,8 +189,7 @@ public interface ThreadedConversationsDao {
             "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")
     List<Conversation> findByThread(String search_string, String thread_id);
 
-//    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(ThreadedConversations threadedConversations);
 
     @Update

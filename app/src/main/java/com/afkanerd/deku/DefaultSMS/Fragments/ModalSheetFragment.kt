@@ -32,6 +32,7 @@ class ModalSheetFragment(var threadedConversations: ThreadedConversations) : Bot
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         val bottomSheet = view.findViewById<View>(R.id.conversations_bottom_sheet_view_id)
 
         // Get the BottomSheetBehavior instance
@@ -41,11 +42,6 @@ class ModalSheetFragment(var threadedConversations: ThreadedConversations) : Bot
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         view.findViewById<View>(R.id.conversation_secure_request_agree_read_more_btn)
                 .setOnClickListener(OnClickListener { clickPrivacyPolicy(it) })
-        view.findViewById<View>(R.id.conversation_secure_request_agree_btn)
-                .setOnClickListener(OnClickListener {
-                    agreeToSecure()
-                    dismiss()
-                })
     }
 
     companion object {
