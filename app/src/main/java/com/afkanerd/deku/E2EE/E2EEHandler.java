@@ -132,13 +132,18 @@ public class E2EEHandler {
         return Arrays.equals(currentPubKey, keyPair.getPublic().getEncoded());
     }
 
-    public static boolean canCommunicateSecurely(Context context, String keystoreAlias) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+    public static boolean canCommunicateSecurely(Context context, String keystoreAlias, boolean strict) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
             Datastore.datastore = Room.databaseBuilder(context, Datastore.class,
                             Datastore.databaseName)
                     .enableMultiInstanceInvalidation()
                     .build();
         }
+        if(strict)
+            return isAvailableInKeystore(keystoreAlias) &&
+                    Datastore.datastore.conversationsThreadsEncryptionDao()
+                            .findByKeystoreAlias(keystoreAlias) != null;
+
         return (isAvailableInKeystore(keystoreAlias) &&
                 Datastore.datastore.conversationsThreadsEncryptionDao()
                         .findByKeystoreAlias(keystoreAlias) != null ||

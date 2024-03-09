@@ -85,7 +85,10 @@ public class ConversationsViewModel extends ViewModel {
         ThreadedConversations threadedConversations =
                 ThreadedConversations.build(context, conversation);
         threadedConversations.setIs_read(true);
-        datastore.threadedConversationsDao().update(threadedConversations);
+        if(datastore.threadedConversationsDao().get(conversation.getThread_id()) != null)
+            datastore.threadedConversationsDao().update(threadedConversations);
+        else
+            datastore.threadedConversationsDao().insert(threadedConversations);
         if(customPagingSource != null)
             customPagingSource.invalidate();
         return id;

@@ -65,33 +65,40 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     .observe(this, new Observer<ConversationsThreadsEncryption>() {
                         @Override
                         public void onChanged(ConversationsThreadsEncryption conversationsThreadsEncryption) {
-                            ThreadingPoolExecutor.executorService.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        final boolean isSelf = E2EEHandler
-                                                .isSelf(getApplicationContext(), keystoreAlias);
+                            if(conversationsThreadsEncryption != null) {
+                                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            final boolean isSelf = E2EEHandler
+                                                    .isSelf(getApplicationContext(), keystoreAlias);
 
-                                        threadedConversations.setSelf(isSelf);
+                                            threadedConversations.setSelf(isSelf);
 
-                                        String _keystoreAlias = threadedConversations.isSelf() ?
-                                                E2EEHandler.buildForSelf(keystoreAlias) :
-                                                keystoreAlias;
+                                            String _keystoreAlias = threadedConversations.isSelf() ?
+                                                    E2EEHandler.buildForSelf(keystoreAlias) :
+                                                    keystoreAlias;
 
-                                        if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                                _keystoreAlias)) {
-                                            informSecured(true);
+                                            if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
+                                                    _keystoreAlias, true)) {
+                                                threadedConversations.setIs_secured(true);
+                                                Log.d(getClass().getName(), "Thread at activity changed to secured");
+                                                informSecured(true);
+                                            }
+                                            else {
+                                                showSecureRequestAgreementModal();
+                                            }
+                                        } catch (CertificateException | KeyStoreException |
+                                                 NoSuchAlgorithmException | IOException |
+                                                 UnrecoverableEntryException | InterruptedException e) {
+                                            e.printStackTrace();
                                         }
-                                        else {
-                                            showSecureRequestAgreementModal();
-                                        }
-                                    } catch (CertificateException | KeyStoreException |
-                                             NoSuchAlgorithmException | IOException |
-                                             UnrecoverableEntryException | InterruptedException e) {
-                                        e.printStackTrace();
                                     }
-                                }
-                            });
+                                });
+                            }
+                            else {
+                                informSecured(false);
+                            }
                         }
                     });
         } catch (NumberParseException e) {
@@ -151,7 +158,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     securePopUpRequest.setVisibility(View.GONE);
                     layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
                 } else {
-                    layout.setPlaceholderText(null);
+                    layout.setPlaceholderText(getString(R.string.send_message_text_box_hint));
                 }
             }
         });
@@ -180,6 +187,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     conversation.setDate(String.valueOf(System.currentTimeMillis()));
                     conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
+//                    Log.d(getClass().getName(), "Threaded conversation safe: " +
+//                            threadedConversations.isIs_secured());
                     long id = conversationsViewModel.insert(getApplicationContext(), conversation);
                     SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
                 } catch (Exception e) {
@@ -259,11 +268,13 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     }
 
     private void showSecureRequestAgreementModal() {
-        ModalSheetFragment modalSheetFragment = new ModalSheetFragment(threadedConversations);
-        Fragment fragment = getSupportFragmentManager()
-                .findFragmentByTag(ModalSheetFragment.TAG);
-        if(fragment == null || !fragment.isAdded())
-            modalSheetFragment.show(getSupportFragmentManager(), ModalSheetFragment.TAG);
+        if(threadedConversations != null) {
+            ModalSheetFragment modalSheetFragment = new ModalSheetFragment(threadedConversations);
+            Fragment fragment = getSupportFragmentManager()
+                    .findFragmentByTag(ModalSheetFragment.TAG);
+            if(fragment == null || !fragment.isAdded())
+                modalSheetFragment.show(getSupportFragmentManager(), ModalSheetFragment.TAG);
+        }
     }
 
     @Override

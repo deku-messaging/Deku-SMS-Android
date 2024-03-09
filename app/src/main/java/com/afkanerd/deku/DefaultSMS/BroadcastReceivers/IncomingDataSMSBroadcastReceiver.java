@@ -48,8 +48,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     public static String DATA_UPDATED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".DATA_UPDATED_BROADCAST_INTENT";
 
-    ExecutorService executorService = Executors.newFixedThreadPool(4);
-
     Datastore databaseConnector;
 
     public ThreadedConversations insertThreads(Context context, Conversation conversation,
@@ -57,6 +55,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         ThreadedConversations threadedConversations =
                 databaseConnector.threadedConversationsDao().get(conversation.getThread_id());
         boolean available = threadedConversations != null;
+        Log.d(getClass().getName(), "Threaded is null: " + String.valueOf(threadedConversations == null));
         if(!available) {
             threadedConversations = ThreadedConversations.build(context, conversation);
             String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
@@ -68,7 +67,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
             databaseConnector.threadedConversationsDao().update(threadedConversations);
         else
             databaseConnector.threadedConversationsDao().insert(threadedConversations);
-
         return threadedConversations;
     }
 
@@ -123,7 +121,9 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             boolean isSecured = false;
                             if(isValidKey) {
                                 try {
-                                    isSelf = processForEncryptionKey(context, conversation);
+                                    boolean[] res = processForEncryptionKey(context, conversation);
+                                    isSelf = res[0];
+                                    isSecured = res[1];
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -156,14 +156,20 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
      * @return true if isSelf and false otherwise
      * @throws Exception
      */
-    boolean processForEncryptionKey(Context context, Conversation conversation) throws
+    boolean[] processForEncryptionKey(Context context, Conversation conversation) throws
             Exception {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
         final String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
         byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
+
         E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
-
-
-        return E2EEHandler.isSelf(context, keystoreAlias);
+        final boolean isSelf = E2EEHandler.isSelf(context, keystoreAlias);
+//        Log.d(getClass().getName(), "Is self: " + isSelf);
+//        Log.d(getClass().getName(), "Is secured: " + E2EEHandler
+//                .canCommunicateSecurely(context, isSelf ?
+//                        E2EEHandler.buildForSelf(keystoreAlias) : keystoreAlias, true));
+        return new boolean[]{isSelf,
+                E2EEHandler.canCommunicateSecurely(context, isSelf ?
+                        E2EEHandler.buildForSelf(keystoreAlias) : keystoreAlias, true)};
     }
 }

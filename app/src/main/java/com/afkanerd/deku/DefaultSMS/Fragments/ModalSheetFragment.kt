@@ -9,6 +9,7 @@ import android.view.View
 import android.view.View.OnClickListener
 import android.view.ViewGroup
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.E2EE.E2EEHandler
@@ -16,7 +17,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.util.concurrent.ThreadPoolExecutor
 
-class ModalSheetFragment(val threadedConversations: ThreadedConversations) : BottomSheetDialogFragment() {
+class ModalSheetFragment(var threadedConversations: ThreadedConversations) : BottomSheetDialogFragment() {
 
     lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +44,7 @@ class ModalSheetFragment(val threadedConversations: ThreadedConversations) : Bot
         view.findViewById<View>(R.id.conversation_secure_request_agree_btn)
                 .setOnClickListener(OnClickListener {
                     agreeToSecure()
-                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+                    dismiss()
                 })
     }
 
@@ -58,17 +59,22 @@ class ModalSheetFragment(val threadedConversations: ThreadedConversations) : Bot
     }
 
     private fun agreeToSecure() {
-        val keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.address, 0)
+        var keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.address, 0)
         ThreadingPoolExecutor.executorService.execute {
-            if (E2EEHandler.isSelf(context, keystoreAlias)) {
-                val keystoreAliasSelf = E2EEHandler.buildForSelf(keystoreAlias)
-                val keystorePair: Pair<String, ByteArray> =
-                        E2EEHandler.buildForEncryptionRequest(context,
-                                threadedConversations.address,
-                                keystoreAliasSelf)
-                val transmissionKey: ByteArray = E2EEHandler.extractTransmissionKey(keystorePair.second)
-                E2EEHandler.insertNewAgreementKeyDefault(context, transmissionKey, keystoreAliasSelf)
+            if (threadedConversations.isSelf) {
+                keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias)
             }
+            val keystorePair: Pair<String, ByteArray> =
+                    E2EEHandler.buildForEncryptionRequest(context,
+                            threadedConversations.address, keystoreAlias)
+            val transmissionKey: ByteArray = E2EEHandler.extractTransmissionKey(keystorePair.second)
+            E2EEHandler.insertNewAgreementKeyDefault(context, transmissionKey, keystoreAlias)
+            val tc: ThreadedConversations =
+                    Datastore.datastore.threadedConversationsDao()
+                            .get(threadedConversations.thread_id)
+            tc.isIs_secured = true
+            Datastore.datastore.threadedConversationsDao().update(tc);
+            threadedConversations = tc
         }
     }
 }
