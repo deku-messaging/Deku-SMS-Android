@@ -1,15 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.main" parent="Theme.AppTheme">
-<!--        <item name="android:actionBarStyle">@style/MyActionBarTheme</item>-->
-
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorSecondary">@color/colorSecondary</item>
     </style>
-
-<!--    <style name="MyActionBarTheme" parent="@style/Widget.Material3.ActionBar.Solid">-->
-<!--        <item name="android:background">@drawable/compose_message_drawable</item>-->
-<!--        <item name="background">@drawable/compose_message_drawable</item>-->
-<!--    </style>-->
-
 </resources>

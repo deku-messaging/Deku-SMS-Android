@@ -45,9 +45,14 @@ android {
         resourceConfigurations += ["en", "fr"]
     }
 
-//    androidResources {
-//        generateLocaleConfig true
+//    buildFeatures {
+//        compose true
 //    }
+
+//    composeOptions {
+//        kotlinCompilerExtensionVersion = "1.1.1"
+//    }
+
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
 
@@ -128,6 +133,7 @@ dependencies {
     implementation project(':smswithoutborders_libsignal-doubleratchet')
     implementation 'androidx.room:room-testing:2.6.1'
     def paging_version = "3.2.1"
+    def m3 = "1.2.1"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
@@ -146,7 +152,6 @@ dependencies {
     implementation "androidx.work:work-multiprocess:2.9.0"
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.android.volley:volley:1.2.1'
@@ -188,5 +193,8 @@ dependencies {
 
     implementation 'com.budiyev.android:code-scanner:2.1.0'
 
+    implementation 'com.google.android.material:material:1.11.0'
+
+    implementation "androidx.compose.material3:material3:$m3"
 }
 
