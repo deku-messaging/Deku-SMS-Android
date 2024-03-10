@@ -12,6 +12,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.provider.Telephony;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,6 +25,7 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.List;
@@ -65,46 +67,50 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
 
     public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener,
                      View.OnLongClickListener onLongClickListener, String defaultRegion) {
-        this.id = String.valueOf(conversation.getThread_id());
+        try {
+            this.id = String.valueOf(conversation.getThread_id());
 
-        int contactColor = Helpers.getColor(itemView.getContext(), id);
-        if(conversation.getContact_name() != null && !conversation.getContact_name().isEmpty()) {
-            this.contactAvatar.setVisibility(View.GONE);
-            this.contactInitials.setVisibility(View.VISIBLE);
-            this.contactInitials.setAvatarInitials(conversation.getContact_name().contains(" ") ?
-                    conversation.getContact_name() : conversation.getContact_name().substring(0, 1));
-            this.contactInitials.setAvatarInitialsBackgroundColor(contactColor);
-        }
-        else {
-            this.contactAvatar.setVisibility(View.VISIBLE);
-            this.contactInitials.setVisibility(View.GONE);
-            Drawable drawable = contactAvatar.getDrawable();
-            if (drawable == null) {
-                drawable = itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24);
+            int contactColor = Helpers.getColor(itemView.getContext(), id);
+            if (conversation.getContact_name() != null && !conversation.getContact_name().isEmpty()) {
+                this.contactAvatar.setVisibility(View.GONE);
+                this.contactInitials.setVisibility(View.VISIBLE);
+                this.contactInitials.setAvatarInitials(conversation.getContact_name().contains(" ") ?
+                        conversation.getContact_name() : conversation.getContact_name().substring(0, 1));
+                this.contactInitials.setAvatarInitialsBackgroundColor(contactColor);
+            } else {
+                this.contactAvatar.setVisibility(View.VISIBLE);
+                this.contactInitials.setVisibility(View.GONE);
+                Drawable drawable = contactAvatar.getDrawable();
+                if (drawable == null) {
+                    drawable = itemView.getContext().getDrawable(R.drawable.baseline_account_circle_24);
+                }
+                if (drawable != null)
+                    drawable.setColorFilter(contactColor, PorterDuff.Mode.SRC_IN);
+                contactAvatar.setImageDrawable(drawable);
             }
-            if(drawable != null)
-                drawable.setColorFilter(contactColor, PorterDuff.Mode.SRC_IN);
-            contactAvatar.setImageDrawable(drawable);
+            if (conversation.getContact_name() != null) {
+                this.address.setText(conversation.getContact_name());
+            } else this.address.setText(conversation.getAddress());
+
+            String text = conversation.getSnippet();
+
+            this.snippet.setText(text);
+            String date = Helpers.formatDate(itemView.getContext(),
+                    Long.parseLong(conversation.getDate()));
+            this.date.setText(date);
+            this.materialCardView.setOnClickListener(onClickListener);
+            this.materialCardView.setOnLongClickListener(onLongClickListener);
+
+            if (conversation.isIs_mute())
+                this.muteAvatar.setVisibility(View.VISIBLE);
+            else
+                this.muteAvatar.setVisibility(View.GONE);
+
+            // TODO: investigate new Avatar first before anything else
+            //        this.contactInitials.setPlaceholder(itemView.getContext().getDrawable(R.drawable.round_person_24));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        if(conversation.getContact_name() != null) {
-            this.address.setText(conversation.getContact_name());
-        }
-        else this.address.setText(conversation.getAddress());
-
-        this.snippet.setText(conversation.getSnippet());
-        String date = Helpers.formatDate(itemView.getContext(),
-                Long.parseLong(conversation.getDate()));
-        this.date.setText(date);
-        this.materialCardView.setOnClickListener(onClickListener);
-        this.materialCardView.setOnLongClickListener(onLongClickListener);
-
-        if(conversation.isIs_mute())
-            this.muteAvatar.setVisibility(View.VISIBLE);
-        else
-            this.muteAvatar.setVisibility(View.GONE);
-
-        // TODO: investigate new Avatar first before anything else
-//        this.contactInitials.setPlaceholder(itemView.getContext().getDrawable(R.drawable.round_person_24));
     }
 
     public static int getViewType(int position, List<ThreadedConversations> items) {

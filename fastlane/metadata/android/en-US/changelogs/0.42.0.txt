@@ -1,0 +1,7 @@
+- update: can send encrypted messages to self using ratchets (but single ratchet chain at this time)
+
+- update: improvement to the key exchange user experience
+
+- update: UI improvements to unify with logo
+
+- fixed: issue with loading threads from mobiles with 'Threads' database

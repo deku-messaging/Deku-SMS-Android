@@ -17,6 +17,7 @@ import android.telecom.TelecomManager;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -100,6 +101,7 @@ public class ConversationActivity extends E2EECompactActivity {
         setContentView(R.layout.activity_conversations);
 //        test();
 
+
         toolbar = (Toolbar) findViewById(R.id.conversation_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -115,6 +117,11 @@ public class ConversationActivity extends E2EECompactActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     public void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
@@ -138,20 +145,25 @@ public class ConversationActivity extends E2EECompactActivity {
         super.onResume();
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
-
-        if(threadedConversations.is_secured)
-            layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
-
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    NativeSMSDB.Incoming.update_read(getApplicationContext(), 1,
-                            threadedConversations.getThread_id(), null);
-                    conversationsViewModel.updateToRead(getApplicationContext());
+                    NativeSMSDB.Incoming.update_read(getApplicationContext(),
+                            1, threadedConversations.getThread_id(),
+                            null);
+                    conversationsViewModel
+                            .updateToRead(getApplicationContext());
+
+//                    ThreadedConversations threadedConversations1 =
+//                            databaseConnector.threadedConversationsDao()
+//                                    .get(threadedConversations.getThread_id());
+//                    threadedConversations1.setIs_read(true);
+//                    databaseConnector.threadedConversationsDao().update(threadedConversations1);
+
                     threadedConversations.setIs_read(true);
                     databaseConnector.threadedConversationsDao().update(threadedConversations);
-                }catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -269,33 +281,28 @@ public class ConversationActivity extends E2EECompactActivity {
             throw new Exception("No threadId nor Address supplied for activity");
         }
         if(getIntent().hasExtra(Conversation.THREAD_ID)) {
-            ThreadedConversations threadedConversations = new ThreadedConversations();
-            threadedConversations.setThread_id(getIntent().getStringExtra(Conversation.THREAD_ID));
-            this.threadedConversations = ThreadedConversationsHandler.get(
-                    databaseConnector.threadedConversationsDao(), threadedConversations);
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    threadedConversations = databaseConnector.threadedConversationsDao()
+                            .get(getIntent().getStringExtra(Conversation.THREAD_ID));
+                }
+            });
+            thread.start();
+            thread.join();
         }
         else if(getIntent().hasExtra(Conversation.ADDRESS)) {
-            ThreadedConversations threadedConversations = new ThreadedConversations();
-            threadedConversations.setAddress(getIntent().getStringExtra(Conversation.ADDRESS));
             this.threadedConversations = ThreadedConversationsHandler.get(getApplicationContext(),
                     getIntent().getStringExtra(Conversation.ADDRESS));
         }
 
-        final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
-        final String address = this.threadedConversations.getAddress();
-        this.threadedConversations.setAddress(
-                Helpers.getFormatCompleteNumber(address, defaultUserCountry));
         String contactName = Contacts.retrieveContactName(getApplicationContext(),
                 this.threadedConversations.getAddress());
-        if(contactName == null) {
-            this.threadedConversations.setContact_name(Helpers.getFormatNationalNumber(address,
-                    defaultUserCountry ));
-        } else {
-            this.threadedConversations.setContact_name(contactName);
-        }
+        this.threadedConversations.setContact_name(contactName);
 
         setEncryptionThreadedConversations(this.threadedConversations);
         isShortCode = Helpers.isShortCode(this.threadedConversations);
+        attachObservers();
     }
 
     int searchPointerPosition;
@@ -428,32 +435,6 @@ public class ConversationActivity extends E2EECompactActivity {
                                         conversationPagingData);
                             }
                         });
-                broadcastReceiver = new BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        final String messageId = intent.getStringExtra(Conversation.ID);
-                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                Conversation conversation = databaseConnector.conversationDao()
-                                        .getMessage(messageId);
-                                conversation.setRead(true);
-                                conversationsViewModel.update(conversation);
-                            }
-                        });
-                    }
-                };
-                IntentFilter intentFilter = new IntentFilter();
-                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION);
-                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
-
-                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT);
-                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT);
-
-                if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
-                    registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
-                else
-                    registerReceiver(broadcastReceiver, intentFilter);
             }
             else if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {
@@ -546,11 +527,12 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private String getAbTitle() {
-        String abTitle = getIntent().getStringExtra(Conversation.ADDRESS);
-        if(this.threadedConversations == null || this.threadedConversations.getContact_name() == null) {
-            this.threadedConversations.setContact_name(
-                    Contacts.retrieveContactName(getApplicationContext(), abTitle));
-        }
+//        String abTitle = getIntent().getStringExtra(Conversation.ADDRESS);
+//        String abTitle = threadedConversations.getAddress();
+//        if(this.threadedConversations == null || this.threadedConversations.getContact_name() == null) {
+//            this.threadedConversations.setContact_name(
+//                    Contacts.retrieveContactName(getApplicationContext(), abTitle));
+//        }
         return (this.threadedConversations.getContact_name() != null &&
                 !this.threadedConversations.getContact_name().isEmpty()) ?
                 this.threadedConversations.getContact_name(): this.threadedConversations.getAddress();
@@ -569,7 +551,8 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (smsTextView.getText() != null && !smsTextView.getText().toString().isEmpty()) {
+        if (smsTextView != null && smsTextView.getText() != null &&
+                !smsTextView.getText().toString().isEmpty()) {
             try {
                 saveDraft(String.valueOf(System.currentTimeMillis()),
                         smsTextView.getText().toString(), threadedConversations);

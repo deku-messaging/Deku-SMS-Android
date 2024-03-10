@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:statusBarColor"> @android:color/transparent </item>
         <item name="android:navigationBarColor"> @android:color/transparent </item>
 
@@ -11,6 +11,13 @@
         <item name="android:fontFamily">@font/roboto</item>
         <item name="android:textCursorDrawable">@null</item>
         <item name="android:cursorVisible">true</item>
+<!--        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>-->
+        <item name="android:buttonStyle">@style/button_style</item>
+    </style>
+
+
+    <style name="button_style">
+        <item name="android:textColor">@color/failed_red</item>
     </style>
 
     <style name="conversation_failed">

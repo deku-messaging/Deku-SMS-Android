@@ -55,6 +55,14 @@ public class NativeSMSDB {
                 null);
     }
 
+    public static Cursor fetchByAddress(Context context, String address) {
+        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
+                null,
+                Telephony.Sms.ADDRESS + "=?",
+                new String[]{address},
+                null);
+    }
+
     public static Cursor fetchByMessageId(@NonNull Context context, String id) {
         return context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,

@@ -12,10 +12,9 @@
         android:id="@+id/messages_threads_cardview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginBottom="8dp"
-        app:cardBackgroundColor="@android:color/transparent"
-        app:cardElevation="0dp"
+        style="@style/Widget.Material3.CardView.Outlined"
+        app:strokeWidth="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -60,7 +59,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="8dp"
-                android:textColor="@color/secondary_text_color"
                 android:textSize="18sp"
                 app:layout_constraintStart_toEndOf="@+id/messages_threads_avatar_frame"
                 app:layout_constraintTop_toTopOf="parent"
@@ -75,7 +73,6 @@
                 android:layout_marginBottom="8dp"
                 android:ellipsize="end"
                 android:maxLines="3"
-                android:textColor="@color/secondary_text_color"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/message_you_label"
@@ -88,18 +85,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
-                tools:text="0 minutes ago"
-                android:textColor="@color/secondary_text_color"
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="0 minutes ago" />
 
             <TextView
                 android:id="@+id/message_you_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/messages_thread_you"
-                android:textColor="@color/secondary_text_color"
                 android:textStyle="normal"
                 android:visibility="gone"
                 app:layout_constraintStart_toStartOf="@+id/messages_thread_address_text"
@@ -111,11 +106,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/round_notifications_off_24"
-                tools:visibility="visible"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@+id/messages_thread_address_text"
                 app:layout_constraintStart_toEndOf="@+id/messages_thread_address_text"
-                app:layout_constraintTop_toTopOf="@+id/messages_thread_address_text"/>
+                app:layout_constraintTop_toTopOf="@+id/messages_thread_address_text"
+                tools:visibility="visible" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

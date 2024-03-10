@@ -19,38 +19,33 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/gateway_client_project_listing_project_name"
+            <LinearLayout
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/roboto_condensed_regular"
-                android:text="@string/gateway_client_project_listing_project_name_title"
-                android:textSize="16sp" />
+                android:layout_height="wrap_content">
 
-<!--            <TextView-->
-<!--                android:id="@+id/gateway_client_project_listing_project_name"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginStart="8dp"-->
-<!--                android:layout_marginTop="8dp"-->
-<!--                android:layout_marginEnd="8dp"-->
-<!--                android:layout_marginBottom="18dp"-->
-<!--                android:fontFamily="@font/roboto_bold"-->
-<!--                android:textSize="16sp"-->
-<!--                tools:text="staging-smswithoutborders-exchange" />-->
+                <TextView
+                    android:id="@+id/gateway_client_project_listing_project_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/roboto_condensed_regular"
+                    tools:text="@string/gateway_client_project_listing_project_name_title"
+                    android:textSize="16sp" />
 
-<!--            <TextView-->
-<!--                android:id="@+id/gateway_client_project_listing_project_status"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginStart="8dp"-->
-<!--                android:layout_marginEnd="8dp"-->
-<!--                android:layout_marginBottom="8dp"-->
-<!--                android:textSize="12sp"-->
-<!--                tools:text="connected" />-->
+                <TextView
+                    android:id="@+id/gateway_client_project_listing_project_queue_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/roboto_condensed_regular"
+                    tools:text="(10 Queued)"
+                    android:textSize="12sp" />
+
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/gateway_client_project_listing_project_binding1"
@@ -70,6 +65,7 @@
                 android:layout_marginEnd="8dp"
                 android:textSize="12sp"
                 tools:text="staging-smswithoutborders-exchange.123.02" />
+
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

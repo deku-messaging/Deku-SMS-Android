@@ -1,5 +1,8 @@
 package com.afkanerd.deku.DefaultSMS.DAO;
 
+import android.provider.Telephony;
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.paging.PagingSource;
 import androidx.room.Dao;
@@ -13,6 +16,7 @@ import androidx.room.Update;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 
 import java.util.List;
 
@@ -75,7 +79,8 @@ public interface ThreadedConversationsDao {
             "ThreadedConversations.msg_count, ThreadedConversations.is_archived, " +
             "ThreadedConversations.is_blocked, ThreadedConversations.is_read, " +
             "ThreadedConversations.is_shortcode, ThreadedConversations.contact_name, " +
-            "ThreadedConversations.is_mute, ThreadedConversations.is_secured " +
+            "ThreadedConversations.is_mute, ThreadedConversations.is_secured, " +
+            "ThreadedConversations.isSelf " +
             "FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
@@ -87,7 +92,8 @@ public interface ThreadedConversationsDao {
             "Conversation.date, Conversation.type, Conversation.read, " +
             "0 as msg_count, ThreadedConversations.is_archived, ThreadedConversations.is_blocked, " +
             "ThreadedConversations.is_read, ThreadedConversations.is_shortcode, " +
-            "ThreadedConversations.is_mute, ThreadedConversations.is_secured " +
+            "ThreadedConversations.is_mute, ThreadedConversations.is_secured, " +
+            "ThreadedConversations.isSelf " +
             "FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
@@ -187,12 +193,61 @@ public interface ThreadedConversationsDao {
             "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")
     List<Conversation> findByThread(String search_string, String thread_id);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insert(ThreadedConversations threadedConversations);
+    @Insert
+    long _insert(ThreadedConversations threadedConversations);
 
+    @Transaction
+    default ThreadedConversations insertThreadAndConversation(Conversation conversation) {
+        /* - Import things are:
+        1. Dates
+        2. Snippet
+        3. ThreadId
+         */
+        final String dates = conversation.getDate();
+        final String snippet = conversation.getText();
+        final String threadId = conversation.getThread_id();
+        final String address = conversation.getAddress();
+
+        final int type = conversation.getType();
+
+        final boolean isRead = type != Telephony.Sms.MESSAGE_TYPE_INBOX || conversation.isRead();
+        final boolean isSecured = conversation.isIs_encrypted();
+
+        boolean insert = false;
+        ThreadedConversations threadedConversations = Datastore.datastore.threadedConversationsDao()
+                .get(conversation.getThread_id());
+        if(threadedConversations == null) {
+            threadedConversations = new ThreadedConversations();
+            threadedConversations.setThread_id(threadId);
+            insert = true;
+        }
+        threadedConversations.setDate(dates);
+        threadedConversations.setSnippet(snippet);
+        threadedConversations.setIs_read(isRead);
+        threadedConversations.setIs_secured(isSecured);
+        threadedConversations.setAddress(address);
+        threadedConversations.setType(type);
+
+        long id = Datastore.datastore.conversationDao()._insert(conversation);
+        if(insert)
+            Datastore.datastore.threadedConversationsDao()._insert(threadedConversations);
+        else {
+            Datastore.datastore.threadedConversationsDao().update(threadedConversations);
+        }
+
+        return threadedConversations;
+    }
 
     @Update
-    int update(ThreadedConversations threadedConversations);
+    int _update(ThreadedConversations threadedConversations);
+
+    @Transaction
+    default long update(ThreadedConversations threadedConversations) {
+        if(threadedConversations.getDate() == null || threadedConversations.getDate().isEmpty())
+            threadedConversations.setDate(Datastore.datastore.conversationDao()
+                    .fetchLatestForThread(threadedConversations.getThread_id()).getDate());
+        return _update(threadedConversations);
+    }
 
     @Delete
     void delete(ThreadedConversations threadedConversations);

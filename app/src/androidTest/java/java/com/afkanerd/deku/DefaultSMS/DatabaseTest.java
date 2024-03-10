@@ -24,8 +24,9 @@ public class DatabaseTest {
     }
     @Test
     public void testThreads() {
+        // [snippet, thread_id, msg_count]
         Cursor cursor = context.getContentResolver().query(
-                Telephony.Threads.CONTENT_URI,
+                Telephony.Sms.CONTENT_URI,
                 null,
                 null,
                 null,

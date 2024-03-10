@@ -1,21 +1,14 @@
 package com.afkanerd.deku.DefaultSMS.DAO;
 
-import android.provider.Telephony;
-
-import androidx.lifecycle.LiveData;
-import androidx.paging.DataSource;
-import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 
 import java.util.List;
 
@@ -39,6 +32,10 @@ public interface ConversationDao {
             "latest_items WHERE thread_id IS NOT NULL ORDER BY date DESC")
     List<Conversation> getForThreading();
 
+
+    @Query("SELECT * FROM Conversation WHERE thread_id =:threadId ORDER BY date DESC LIMIT 1")
+    Conversation fetchLatestForThread(String threadId);
+
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
     List<Conversation> getComplete();
 
@@ -52,14 +49,14 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
     Conversation getMessage(String message_id);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insert(Conversation conversation);
+    @Insert
+    long _insert(Conversation conversation);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> insertAll(List<Conversation> conversationList);
 
     @Update
-    int update(Conversation conversation);
+    int _update(Conversation conversation);
 
     @Update
     int update(List<Conversation> conversations);

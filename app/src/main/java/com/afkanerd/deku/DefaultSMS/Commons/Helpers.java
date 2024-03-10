@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Uri;
@@ -29,11 +30,14 @@ import android.widget.TextView;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.google.android.material.navigation.NavigationBarItemView;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 
+import java.lang.annotation.Native;
 import java.security.SecureRandom;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
@@ -131,6 +135,20 @@ public class Helpers {
         Pattern pattern = Pattern.compile("[a-zA-Z]");
         Matcher matcher = pattern.matcher(address);
         return matcher.find();
+    }
+
+    public static String getFormatCompleteNumber(Context context, String address, String defaultRegion) {
+        try(Cursor cursor = NativeSMSDB.fetchByAddress(context, address)) {
+            if(cursor.moveToFirst()) {
+                int recipientIdIndex = cursor.getColumnIndexOrThrow("address");
+                address = cursor.getString(recipientIdIndex);
+            }
+            cursor.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        return address;
     }
 
     public static String getFormatCompleteNumber(String data, String defaultRegion) {
@@ -480,9 +498,13 @@ public class Helpers {
                         widget.getContext().startActivity(intent);
                     }
                 };
-                spannableString.setSpan(clickableSpan, start, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spannableString.setSpan(new ForegroundColorSpan(color), start, end,
-                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                try {
+                    spannableString.setSpan(clickableSpan, start, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    spannableString.setSpan(new ForegroundColorSpan(color), start, end,
+                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
             else if (_string.matches(
                     "\\(*\\+*[1-9]{0,3}\\)*-*[1-9]{0,3}[-. \\/]*\\(*[2-9]\\d{2}\\)*[-. \\/]*\\d{3}[-. \\/]*\\d{4} *e*x*t*\\.* *\\d{0,4}" +

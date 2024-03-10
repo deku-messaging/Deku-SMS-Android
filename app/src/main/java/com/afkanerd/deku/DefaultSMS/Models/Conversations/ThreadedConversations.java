@@ -31,6 +31,17 @@ public class ThreadedConversations {
         this.is_secured = is_secured;
     }
 
+    public boolean isSelf() {
+        return isSelf;
+    }
+
+    public void setSelf(boolean self) {
+        isSelf = self;
+    }
+
+    @ColumnInfo(defaultValue = "0")
+    private boolean isSelf = false;
+
     @ColumnInfo(defaultValue = "0")
     public boolean is_secured = false;
     @NonNull
@@ -83,6 +94,7 @@ public class ThreadedConversations {
             threadedConversations.setSnippet(context.getString(R.string.conversation_threads_secured_content));
         }
         else threadedConversations.setSnippet(conversation.getText());
+        threadedConversations.setIs_secured(conversation.isIs_encrypted());
         threadedConversations.setThread_id(conversation.getThread_id());
         threadedConversations.setDate(conversation.getDate());
         threadedConversations.setType(conversation.getType());
@@ -298,6 +310,8 @@ public class ThreadedConversations {
                     threadedConversations.type == this.type &&
                     threadedConversations.msg_count == this.msg_count &&
                     threadedConversations.is_mute == this.is_mute &&
+                    threadedConversations.is_secured == this.is_secured &&
+                    threadedConversations.isSelf == this.isSelf &&
                     Objects.equals(threadedConversations.date, this.date) &&
                     Objects.equals(threadedConversations.address, this.address) &&
                     Objects.equals(threadedConversations.contact_name, this.contact_name) &&

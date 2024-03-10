@@ -8,7 +8,9 @@ import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragme
 import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment.UNREAD_MESSAGE_TYPES;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.ActionBar;
+import androidx.compose.material3.CardKt;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
@@ -37,6 +39,10 @@ import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.badge.BadgeDrawable;
+import com.google.android.material.badge.BadgeUtils;
+import com.google.android.material.badge.ExperimentalBadgeUtils;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
@@ -72,6 +78,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         configureNavigationBar();
     }
 
+    @OptIn(markerClass = ExperimentalBadgeUtils.class)
     public void configureNavigationBar() {
         navigationView = findViewById(R.id.conversations_threads_navigation_view);
         View view = getLayoutInflater().inflate(R.layout.header_navigation_drawer, null);
@@ -90,8 +97,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         threadedConversationsViewModel.folderMetrics.observe(this, new Observer<List<Integer>>() {
             @Override
             public void onChanged(List<Integer> integers) {
-//                inboxMenuItem.setTitle(getString(R.string.conversations_navigation_view_inbox)
-//                        + "(" + integers.get(0) + ")");
                 draftMenuItem.setTitle(getString(R.string.conversations_navigation_view_drafts)
                         + "(" + integers.get(0) + ")");
 
@@ -120,6 +125,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                drawerLayout.close();
                 String messageType = "";
                 String label = "";
                 String noContent = "";
@@ -186,7 +192,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                                 ThreadedConversationsFragment.class, bundle, null)
                         .setReorderingAllowed(true)
                         .commit();
-                drawerLayout.close();
                 return true;
             }
         });
