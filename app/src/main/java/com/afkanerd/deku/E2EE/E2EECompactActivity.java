@@ -290,8 +290,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                             .setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    agreeToSecure();
                                     modalSheetFragment.dismiss();
+                                    agreeToSecure();
                                 }
                             });
                 }

@@ -26,6 +26,8 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
+import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -104,12 +106,17 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     if(threadedConversations.isSelf())
                         keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);
                     byte[] cipherText = E2EEHandler.extractTransmissionText(text);
+                    ConversationsThreadsEncryption conversationsThreadsEncryption =
+                            databaseConnector.conversationsThreadsEncryptionDao()
+                                    .fetch(keystoreAlias);
+                    byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP);
                     String plainText = new String(E2EEHandler.decrypt(getApplicationContext(),
-                            keystoreAlias, cipherText, _mk, null, threadedConversations.isSelf()),
+                            keystoreAlias, cipherText, _mk, AD, threadedConversations.isSelf()),
                             StandardCharsets.UTF_8);
                     conversation.setText(plainText);
                 } catch(Throwable e ) {
                     e.printStackTrace();
+                    conversation.setText(text);
                 }
             } else {
                 conversation.setText(text);
