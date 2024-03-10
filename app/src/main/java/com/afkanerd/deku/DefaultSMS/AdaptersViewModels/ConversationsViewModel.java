@@ -2,9 +2,7 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 
 import android.content.Context;
-import android.database.Cursor;
 import android.provider.Telephony;
-import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
@@ -15,7 +13,7 @@ import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
@@ -82,18 +80,10 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public long insert(Conversation conversation) throws InterruptedException {
-        long id = datastore.threadedConversationsDao().insertThreadAndConversation(conversation);
-//        ThreadedConversations tc = ThreadedConversations.build(context, conversation);
-//        tc.setIs_read(true);
-//        tc.setSelf(threadedConversations.isSelf());
-//        if(datastore.threadedConversationsDao().get(conversation.getThread_id()) == null)
-//            datastore.threadedConversationsDao().insert(tc);
-//        else {
-//            datastore.threadedConversationsDao().update(tc);
-//        }
+        datastore.threadedConversationsDao().insertThreadAndConversation(conversation);
         if(customPagingSource != null)
             customPagingSource.invalidate();
-        return id;
+        return 0;
     }
 
     public void update(Conversation conversation) {

@@ -1,5 +1,8 @@
 package com.afkanerd.deku.DefaultSMS.DAO;
 
+import android.provider.Telephony;
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.paging.PagingSource;
 import androidx.room.Dao;
@@ -190,11 +193,11 @@ public interface ThreadedConversationsDao {
             "LIKE '%' || :search_string || '%' GROUP BY thread_id ORDER BY date DESC")
     List<Conversation> findByThread(String search_string, String thread_id);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insert(ThreadedConversations threadedConversations);
+    @Insert
+    long _insert(ThreadedConversations threadedConversations);
 
     @Transaction
-    default long insertThreadAndConversation(Conversation conversation) {
+    default ThreadedConversations insertThreadAndConversation(Conversation conversation) {
         /* - Import things are:
         1. Dates
         2. Snippet
@@ -210,9 +213,9 @@ public interface ThreadedConversationsDao {
         final boolean isRead = conversation.isRead();
         final boolean isSecured = conversation.isIs_encrypted();
 
-        ThreadedConversations threadedConversations = get(threadId);
-
         boolean insert = false;
+        ThreadedConversations threadedConversations = Datastore.datastore.threadedConversationsDao()
+                .get(conversation.getThread_id());
         if(threadedConversations == null) {
             threadedConversations = new ThreadedConversations();
             threadedConversations.setThread_id(threadId);
@@ -227,18 +230,19 @@ public interface ThreadedConversationsDao {
 
         long id = Datastore.datastore.conversationDao()._insert(conversation);
         if(insert)
-            insert(threadedConversations);
-        else
-            _update(threadedConversations);
+            Datastore.datastore.threadedConversationsDao().update(threadedConversations);
+        else {
+            Datastore.datastore.threadedConversationsDao().update(threadedConversations);
+        }
 
-        return id;
+        return threadedConversations;
     }
 
     @Update
     int _update(ThreadedConversations threadedConversations);
 
     @Transaction
-    default int update(ThreadedConversations threadedConversations) {
+    default long update(ThreadedConversations threadedConversations) {
         if(threadedConversations.getDate() == null || threadedConversations.getDate().isEmpty())
             threadedConversations.setDate(Datastore.datastore.conversationDao()
                     .fetchLatestForThread(threadedConversations.getThread_id()).getDate());

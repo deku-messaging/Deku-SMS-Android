@@ -41,8 +41,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CustomAppCompactActivity extends DualSIMConversationActivity {
-    protected final static String DRAFT_PRESENT_BROADCAST = "DRAFT_PRESENT_BROADCAST";
-
     protected ConversationsViewModel conversationsViewModel;
 
     protected ThreadedConversationsViewModel threadedConversationsViewModel;
@@ -183,15 +181,13 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         conversation.setAddress(threadedConversations.getAddress());
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
                         conversation.setIs_encrypted(threadedConversations.isIs_secured());
+                        Log.d(getClass().getName(), "Saving draft");
                         try {
                             conversationsViewModel.insert(conversation);
                             SMSDatabaseWrapper.saveDraft(getApplicationContext(), conversation);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-
-                        Intent intent = new Intent(DRAFT_PRESENT_BROADCAST);
-                        sendBroadcast(intent);
                     }
                 });
             }

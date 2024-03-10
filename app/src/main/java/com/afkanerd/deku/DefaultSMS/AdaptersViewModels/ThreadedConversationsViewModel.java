@@ -154,7 +154,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public void insert(ThreadedConversations threadedConversations) {
-        databaseConnector.threadedConversationsDao().insert(threadedConversations);
+        databaseConnector.threadedConversationsDao()._insert(threadedConversations);
     }
 
     public void reset(Context context) {

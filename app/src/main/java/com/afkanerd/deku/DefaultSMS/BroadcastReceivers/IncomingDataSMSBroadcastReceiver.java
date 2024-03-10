@@ -6,14 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
 import android.util.Base64;
-import android.util.Log;
-import android.util.Pair;
 
 import androidx.room.Room;
 
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
@@ -21,19 +18,10 @@ import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EEHandler;
-import com.google.i18n.phonenumbers.NumberParseException;
 
 //import org.bouncycastle.operator.OperatorCreationException;
 
-import org.json.JSONException;
-
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
@@ -107,19 +95,16 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             }
                             conversation.setIs_key(true);
                             conversation.setIs_encrypted(isSecured);
-                            databaseConnector.threadedConversationsDao()
+
+                            ThreadedConversations threadedConversations =
+                                    databaseConnector.threadedConversationsDao()
                                     .insertThreadAndConversation(conversation);
-//                            ThreadedConversations threadedConversations =
-//                                    insertThreads(context, conversation, isSecured, isSelf);
 
                             Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
                             broadcastIntent.putExtra(Conversation.ID, messageId);
                             broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
                             context.sendBroadcast(broadcastIntent);
 
-                            ThreadedConversations threadedConversations =
-                                    databaseConnector.threadedConversationsDao().
-                                            get(conversation.getThread_id());
                             if(!threadedConversations.isIs_mute())
                                 NotificationsHandler.sendIncomingTextMessageNotification(context,
                                         conversation);

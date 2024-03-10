@@ -16,14 +16,10 @@ import android.util.Pair;
 import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
@@ -32,8 +28,6 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.afkanerd.deku.Router.Router.RouterItem;
 import com.afkanerd.deku.Router.Router.RouterHandler;
 
-import org.checkerframework.checker.units.qual.C;
-
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,7 +35,6 @@ import java.util.concurrent.Executors;
 public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
     public static final String TAG_ROUTING_URL = "swob.work.route.url,";
-
 
     public static String SMS_DELIVER_ACTION =
             BuildConfig.APPLICATION_ID + ".SMS_DELIVER_ACTION";
@@ -252,23 +245,20 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 }
                 conversation.setText(text);
 
-                ThreadedConversations threadedConversations = new ThreadedConversations();
                 try {
-                    databaseConnector.threadedConversationsDao()
-                            .insertThreadAndConversation(conversation);
-//                    threadedConversations = insertThreads(context, conversation);
+                    ThreadedConversations threadedConversations =
+                            databaseConnector.threadedConversationsDao()
+                                    .insertThreadAndConversation(conversation);
+                    if(!threadedConversations.isIs_mute())
+                        NotificationsHandler.sendIncomingTextMessageNotification(context,
+                                conversation);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
                 Intent broadcastIntent = new Intent(SMS_DELIVER_ACTION);
                 broadcastIntent.putExtra(Conversation.ID, messageId);
                 context.sendBroadcast(broadcastIntent);
-
-                if(!threadedConversations.isIs_mute())
-                    NotificationsHandler.sendIncomingTextMessageNotification(context,
-                            conversation);
-
             }
         });
     }

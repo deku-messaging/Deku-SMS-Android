@@ -1,21 +1,14 @@
 package com.afkanerd.deku.DefaultSMS.DAO;
 
-import android.provider.Telephony;
-
-import androidx.lifecycle.LiveData;
-import androidx.paging.DataSource;
-import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 
 import java.util.List;
 

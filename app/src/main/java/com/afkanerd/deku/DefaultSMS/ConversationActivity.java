@@ -145,6 +145,29 @@ public class ConversationActivity extends E2EECompactActivity {
         super.onResume();
         TextInputLayout layout = findViewById(R.id.conversations_send_text_layout);
         layout.requestFocus();
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    NativeSMSDB.Incoming.update_read(getApplicationContext(),
+                            1, threadedConversations.getThread_id(),
+                            null);
+                    conversationsViewModel
+                            .updateToRead(getApplicationContext());
+
+//                    ThreadedConversations threadedConversations1 =
+//                            databaseConnector.threadedConversationsDao()
+//                                    .get(threadedConversations.getThread_id());
+//                    threadedConversations1.setIs_read(true);
+//                    databaseConnector.threadedConversationsDao().update(threadedConversations1);
+
+                    threadedConversations.setIs_read(true);
+                    databaseConnector.threadedConversationsDao().update(threadedConversations);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
@@ -420,26 +443,6 @@ public class ConversationActivity extends E2EECompactActivity {
                             @Override
                             public void onChanged(PagingData<Conversation> smsList) {
                                 conversationsRecyclerAdapter.submitData(getLifecycle(), smsList);
-
-                                ThreadingPoolExecutor.executorService.execute(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            NativeSMSDB.Incoming.update_read(getApplicationContext(),
-                                                    1, threadedConversations.getThread_id(),
-                                                    null);
-                                            conversationsViewModel
-                                                    .updateToRead(getApplicationContext());
-                                            threadedConversations.setIs_read(true);
-                                            int count =
-                                                    databaseConnector.threadedConversationsDao()
-                                                            .update(threadedConversations);
-                                            Log.d(getClass().getName(), "Updating count: " + count);
-                                        }catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                });
                             }
                         });
             }
