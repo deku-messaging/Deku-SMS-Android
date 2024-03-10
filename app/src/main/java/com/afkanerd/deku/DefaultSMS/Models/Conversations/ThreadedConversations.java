@@ -94,6 +94,7 @@ public class ThreadedConversations {
             threadedConversations.setSnippet(context.getString(R.string.conversation_threads_secured_content));
         }
         else threadedConversations.setSnippet(conversation.getText());
+        threadedConversations.setIs_secured(conversation.isIs_encrypted());
         threadedConversations.setThread_id(conversation.getThread_id());
         threadedConversations.setDate(conversation.getDate());
         threadedConversations.setType(conversation.getType());

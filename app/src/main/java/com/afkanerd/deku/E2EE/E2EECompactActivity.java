@@ -192,7 +192,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
 //                    Log.d(getClass().getName(), "Threaded conversation safe: " +
 //                            threadedConversations.isIs_secured());
-                    long id = conversationsViewModel.insert(getApplicationContext(), conversation);
+                    long id = conversationsViewModel.insert(getApplicationContext(),
+                            conversation, threadedConversations);
                     SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -323,11 +324,9 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                         if (threadedConversations.isSelf())
                             E2EEHandler.insertNewAgreementKeyDefault(getApplicationContext(),
                                     transmissionKey, keystoreAlias);
-                        ThreadedConversations tc = Datastore.datastore.threadedConversationsDao()
-                                .get(threadedConversations.getThread_id());
-                        tc.setIs_secured(true);
-                        Datastore.datastore.threadedConversationsDao().update(tc);
-                        threadedConversations = tc;
+                        threadedConversations.setIs_secured(true);
+                        threadedConversations.setSelf(true);
+                        Datastore.datastore.threadedConversationsDao().update(threadedConversations);
                     } else
                         sendDataMessage(threadedConversations);
                 } catch(Exception e) {
@@ -337,31 +336,4 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-//        ThreadingPoolExecutor.executorService.execute(new Runnable() {
-//            @Override
-//            public void run() {
-//                if(!threadedConversations.isIs_secured()) {
-//                    try {
-//                        String keystoreAlias =
-//                                E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(),
-//                                        0);
-//                        String _keystoreAlias = threadedConversations.isSelf() ?
-//                                E2EEHandler.buildForSelf(keystoreAlias) :
-//                                keystoreAlias;
-//                        if(!E2EEHandler.isAvailableInKeystore(_keystoreAlias) &&
-//                                E2EEHandler.fetchStoredPeerData(getApplicationContext(), keystoreAlias)
-//                                        != null) {
-//                            showSecureRequestAgreementModal();
-//                        }
-//                    } catch (NumberParseException | CertificateException | KeyStoreException |
-//                             IOException | NoSuchAlgorithmException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
-    }
 }

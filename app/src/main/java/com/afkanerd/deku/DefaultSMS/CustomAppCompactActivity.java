@@ -114,6 +114,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                             keystoreAlias, cipherText, _mk, AD, threadedConversations.isSelf()),
                             StandardCharsets.UTF_8);
                     conversation.setText(plainText);
+                    conversation.setIs_encrypted(true);
                 } catch(Throwable e ) {
                     e.printStackTrace();
                     conversation.setText(text);
@@ -139,7 +140,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     @Override
                     public void run() {
                         try {
-                            conversationsViewModel.insert(getApplicationContext(), conversation);
+                            conversationsViewModel.insert(getApplicationContext(),
+                                    conversation, threadedConversations);
                             if(_mk == null)
                                 SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, null);
                             else
@@ -174,13 +176,10 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         conversation.setDate(String.valueOf(System.currentTimeMillis()));
                         conversation.setAddress(threadedConversations.getAddress());
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
+                        conversation.setIs_encrypted(threadedConversations.isIs_secured());
                         try {
-                            conversationsViewModel.insert(getApplicationContext(), conversation);
-
-                            ThreadedConversations tc =
-                                    ThreadedConversations.build(getApplicationContext(), conversation);
-                            databaseConnector.threadedConversationsDao().insert(tc);
-
+                            conversationsViewModel.insert(getApplicationContext(),
+                                    conversation, threadedConversations);
                             SMSDatabaseWrapper.saveDraft(getApplicationContext(), conversation);
                         } catch (Exception e) {
                             e.printStackTrace();

@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.provider.Telephony;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.room.Room;
 
@@ -227,12 +228,17 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    public void insertThreads(Context context, Conversation conversation) {
+    public ThreadedConversations insertThreads(Context context, Conversation conversation) {
         ThreadedConversations threadedConversations =
                 ThreadedConversations.build(context, conversation);
         String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
         threadedConversations.setContact_name(contactName);
+        final boolean isSelf =
+                databaseConnector.threadedConversationsDao().get(conversation.getThread_id())
+                        .isSelf();
+        threadedConversations.setSelf(isSelf);
         databaseConnector.threadedConversationsDao().insert(threadedConversations);
+        return threadedConversations;
     }
 
     public void insertConversation(Context context, String address, String messageId,
@@ -251,15 +257,18 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             public void run() {
                 String text = body;
                 try {
-                    text = processEncryptedIncoming(context, address, body);
+                    Pair<String, Boolean> res = processEncryptedIncoming(context, address, body);
+                    text = res.first;
+                    conversation.setIs_encrypted(res.second);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
                 conversation.setText(text);
 
+                ThreadedConversations threadedConversations = new ThreadedConversations();
                 try {
                     databaseConnector.conversationDao().insert(conversation);
-                    insertThreads(context, conversation);
+                    threadedConversations = insertThreads(context, conversation);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -268,10 +277,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 broadcastIntent.putExtra(Conversation.ID, messageId);
                 context.sendBroadcast(broadcastIntent);
 
-//                String defaultRegion = Helpers.getUserCountry(context);
-//                String e16Address = Helpers.getFormatCompleteNumber(address, defaultRegion);
-                ThreadedConversations threadedConversations =
-                        databaseConnector.threadedConversationsDao().get(threadId);
                 if(!threadedConversations.isIs_mute())
                     NotificationsHandler.sendIncomingTextMessageNotification(context,
                             conversation);
@@ -281,7 +286,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
     }
 
 
-    public String processEncryptedIncoming(Context context, String address, String text) throws Throwable {
+    public Pair<String, Boolean> processEncryptedIncoming(Context context, String address, String text) throws Throwable {
+        boolean encrypted = false;
         if(E2EEHandler.isValidDefaultText(text)) {
             String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
             byte[] cipherText = E2EEHandler.extractTransmissionText(text);
@@ -290,8 +296,9 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             text = new String(E2EEHandler.decrypt(context, isSelf ?
                             E2EEHandler.buildForSelf(keystoreAlias) :keystoreAlias,
                     cipherText, null, null, isSelf));
+            encrypted = true;
         }
-        return text;
+        return new Pair<>(text, encrypted);
     }
 
     public void router_activities(Context context, String messageId) {
