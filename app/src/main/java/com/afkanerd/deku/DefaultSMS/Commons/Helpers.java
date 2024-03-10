@@ -498,9 +498,13 @@ public class Helpers {
                         widget.getContext().startActivity(intent);
                     }
                 };
-                spannableString.setSpan(clickableSpan, start, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spannableString.setSpan(new ForegroundColorSpan(color), start, end,
-                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                try {
+                    spannableString.setSpan(clickableSpan, start, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    spannableString.setSpan(new ForegroundColorSpan(color), start, end,
+                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
             else if (_string.matches(
                     "\\(*\\+*[1-9]{0,3}\\)*-*[1-9]{0,3}[-. \\/]*\\(*[2-9]\\d{2}\\)*[-. \\/]*\\d{3}[-. \\/]*\\d{4} *e*x*t*\\.* *\\d{0,4}" +

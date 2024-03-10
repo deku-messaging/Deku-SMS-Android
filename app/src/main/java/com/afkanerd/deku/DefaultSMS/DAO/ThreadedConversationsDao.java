@@ -13,6 +13,7 @@ import androidx.room.Update;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 
 import java.util.List;
 
@@ -191,6 +192,41 @@ public interface ThreadedConversationsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(ThreadedConversations threadedConversations);
+
+    @Transaction
+    default long insertThreadAndConversation(Conversation conversation) {
+        /* - Import things are:
+        1. Dates
+        2. Snippet
+        3. ThreadId
+         */
+        final String dates = conversation.getDate();
+        final String snippet = conversation.getText();
+        final String threadId = conversation.getThread_id();
+        final boolean isRead = conversation.isRead();
+        final boolean isSecured = conversation.isIs_encrypted();
+
+        ThreadedConversations threadedConversations = get(threadId);
+
+        boolean insert = false;
+        if(threadedConversations == null) {
+            threadedConversations = new ThreadedConversations();
+            threadedConversations.setThread_id(threadId);
+            insert = true;
+        }
+        threadedConversations.setDate(dates);
+        threadedConversations.setSnippet(snippet);
+        threadedConversations.setIs_read(isRead);
+        threadedConversations.setIs_secured(isSecured);
+
+        long id = Datastore.datastore.conversationDao()._insert(conversation);
+        if(insert)
+            insert(threadedConversations);
+        else
+            update(threadedConversations);
+
+        return id;
+    }
 
     @Update
     int update(ThreadedConversations threadedConversations);

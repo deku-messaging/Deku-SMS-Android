@@ -127,7 +127,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                             e.printStackTrace();
                         }
                     }
-                    databaseConnector.conversationDao().update(conversation);
+                    databaseConnector.conversationDao()._update(conversation);
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -161,7 +161,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setError_code(getResultCode());
                     }
 
-                    databaseConnector.conversationDao().update(conversation);
+                    databaseConnector.conversationDao()._update(conversation);
 
                     Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -189,7 +189,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setError_code(getResultCode());
                         conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                     }
-                    databaseConnector.conversationDao().update(conversation);
+                    databaseConnector.conversationDao()._update(conversation);
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -216,7 +216,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                     }
 
-                    databaseConnector.conversationDao().update(conversation);
+                    databaseConnector.conversationDao()._update(conversation);
 
                     Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
                     broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
@@ -267,8 +267,9 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
                 ThreadedConversations threadedConversations = new ThreadedConversations();
                 try {
-                    databaseConnector.conversationDao().insert(conversation);
-                    threadedConversations = insertThreads(context, conversation);
+                    databaseConnector.threadedConversationsDao()
+                            .insertThreadAndConversation(conversation);
+//                    threadedConversations = insertThreads(context, conversation);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

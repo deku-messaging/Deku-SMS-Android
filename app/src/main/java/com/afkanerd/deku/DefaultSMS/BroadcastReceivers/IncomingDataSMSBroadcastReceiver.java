@@ -116,7 +116,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            databaseConnector.conversationDao().insert(conversation);
 
                             boolean isSelf = false;
                             boolean isSecured = false;
@@ -129,14 +128,21 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                                     e.printStackTrace();
                                 }
                             }
-                            ThreadedConversations threadedConversations =
-                                    insertThreads(context, conversation, isSecured, isSelf);
+                            conversation.setIs_key(true);
+                            conversation.setIs_encrypted(isSecured);
+                            databaseConnector.threadedConversationsDao()
+                                    .insertThreadAndConversation(conversation);
+//                            ThreadedConversations threadedConversations =
+//                                    insertThreads(context, conversation, isSecured, isSelf);
 
                             Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
                             broadcastIntent.putExtra(Conversation.ID, messageId);
                             broadcastIntent.putExtra(Conversation.THREAD_ID, threadId);
                             context.sendBroadcast(broadcastIntent);
 
+                            ThreadedConversations threadedConversations =
+                                    databaseConnector.threadedConversationsDao().
+                                            get(conversation.getThread_id());
                             if(!threadedConversations.isIs_mute())
                                 NotificationsHandler.sendIncomingTextMessageNotification(context,
                                         conversation);

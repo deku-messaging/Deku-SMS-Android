@@ -140,8 +140,13 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     @Override
                     public void run() {
                         try {
-                            conversationsViewModel.insert(getApplicationContext(),
-                                    conversation, threadedConversations);
+                            conversationsViewModel.insert(conversation);
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                            return;
+                        }
+
+                        try {
                             if(_mk == null)
                                 SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, null);
                             else
@@ -149,7 +154,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                                         text, null);
                         } catch (Exception e) {
                             e.printStackTrace();
-                            NativeSMSDB.Outgoing.register_failed(getApplicationContext(), messageIdFinal, 1);
+                            NativeSMSDB.Outgoing.register_failed(getApplicationContext(),
+                                    messageIdFinal, 1);
                             conversation.setStatus(Telephony.TextBasedSmsColumns.STATUS_FAILED);
                             conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                             conversation.setError_code(1);
@@ -178,8 +184,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
                         conversation.setIs_encrypted(threadedConversations.isIs_secured());
                         try {
-                            conversationsViewModel.insert(getApplicationContext(),
-                                    conversation, threadedConversations);
+                            conversationsViewModel.insert(conversation);
                             SMSDatabaseWrapper.saveDraft(getApplicationContext(), conversation);
                         } catch (Exception e) {
                             e.printStackTrace();

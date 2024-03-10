@@ -192,8 +192,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
 //                    Log.d(getClass().getName(), "Threaded conversation safe: " +
 //                            threadedConversations.isIs_secured());
-                    long id = conversationsViewModel.insert(getApplicationContext(),
-                            conversation, threadedConversations);
+                    long id = conversationsViewModel.insert(conversation);
                     SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
                 } catch (Exception e) {
                     e.printStackTrace();

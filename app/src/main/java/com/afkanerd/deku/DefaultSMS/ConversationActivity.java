@@ -429,33 +429,33 @@ public class ConversationActivity extends E2EECompactActivity {
                                         conversationPagingData);
                             }
                         });
-                broadcastReceiver = new BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        final String messageId = intent.getStringExtra(Conversation.ID);
-                        final String threadId = intent.getStringExtra(Conversation.THREAD_ID);
-                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                Conversation conversation = databaseConnector.conversationDao()
-                                        .getMessage(messageId);
-                                conversation.setRead(true);
-                                conversationsViewModel.update(conversation);
-                            }
-                        });
-                    }
-                };
-                IntentFilter intentFilter = new IntentFilter();
-                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION);
-                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
-
-                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT);
-                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT);
-
-                if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
-                    registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
-                else
-                    registerReceiver(broadcastReceiver, intentFilter);
+//                broadcastReceiver = new BroadcastReceiver() {
+//                    @Override
+//                    public void onReceive(Context context, Intent intent) {
+//                        final String messageId = intent.getStringExtra(Conversation.ID);
+//                        final String threadId = intent.getStringExtra(Conversation.THREAD_ID);
+//                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                Conversation conversation = databaseConnector.conversationDao()
+//                                        .getMessage(messageId);
+//                                conversation.setRead(true);
+//                                conversationsViewModel.update(conversation);
+//                            }
+//                        });
+//                    }
+//                };
+//                IntentFilter intentFilter = new IntentFilter();
+//                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_DELIVER_ACTION);
+//                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_DELIVER_ACTION);
+//
+//                intentFilter.addAction(IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT);
+//                intentFilter.addAction(IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT);
+//
+//                if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
+//                    registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+//                else
+//                    registerReceiver(broadcastReceiver, intentFilter);
             }
             else if(this.threadedConversations.getThread_id()!= null &&
                     !this.threadedConversations.getThread_id().isEmpty()) {

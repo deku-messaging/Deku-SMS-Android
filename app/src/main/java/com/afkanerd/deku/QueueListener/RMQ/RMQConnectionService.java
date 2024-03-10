@@ -257,7 +257,8 @@ public class RMQConnectionService extends Service {
                 conversation.setThread_id(String.valueOf(threadId));
                 conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-                databaseConnector.conversationDao().insert(conversation);
+                databaseConnector.threadedConversationsDao()
+                        .insertThreadAndConversation(conversation);
                 Log.d(getClass().getName(), "Sending RMQ SMS: " + subscriptionId + ":"
                         + conversation.getAddress());
                 SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, bundle);

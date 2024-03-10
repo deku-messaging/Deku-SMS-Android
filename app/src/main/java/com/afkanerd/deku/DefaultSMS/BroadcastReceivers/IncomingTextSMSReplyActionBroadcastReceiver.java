@@ -87,7 +87,8 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                     @Override
                     public void run() {
                         try {
-                            databaseConnector.conversationDao().insert(conversation);
+                            databaseConnector.threadedConversationsDao()
+                                    .insertThreadAndConversation(conversation);
 
                             SMSDatabaseWrapper.send_text(context, conversation, null);
                             Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);

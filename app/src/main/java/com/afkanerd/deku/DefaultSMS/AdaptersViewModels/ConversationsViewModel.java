@@ -81,24 +81,23 @@ public class ConversationsViewModel extends ViewModel {
         return datastore.conversationDao().getMessage(messageId);
     }
 
-    public long insert(Context context, Conversation conversation,
-                       ThreadedConversations threadedConversations) throws InterruptedException {
-        long id = datastore.conversationDao().insert(conversation);
-        ThreadedConversations tc = ThreadedConversations.build(context, conversation);
-        tc.setIs_read(true);
-        tc.setSelf(threadedConversations.isSelf());
-        if(datastore.threadedConversationsDao().get(conversation.getThread_id()) == null)
-            datastore.threadedConversationsDao().insert(tc);
-        else {
-            datastore.threadedConversationsDao().update(tc);
-        }
+    public long insert(Conversation conversation) throws InterruptedException {
+        long id = datastore.threadedConversationsDao().insertThreadAndConversation(conversation);
+//        ThreadedConversations tc = ThreadedConversations.build(context, conversation);
+//        tc.setIs_read(true);
+//        tc.setSelf(threadedConversations.isSelf());
+//        if(datastore.threadedConversationsDao().get(conversation.getThread_id()) == null)
+//            datastore.threadedConversationsDao().insert(tc);
+//        else {
+//            datastore.threadedConversationsDao().update(tc);
+//        }
         if(customPagingSource != null)
             customPagingSource.invalidate();
         return id;
     }
 
     public void update(Conversation conversation) {
-        datastore.conversationDao().update(conversation);
+        datastore.conversationDao()._update(conversation);
         customPagingSource.invalidate();
     }
 

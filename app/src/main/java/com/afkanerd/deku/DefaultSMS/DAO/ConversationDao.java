@@ -52,14 +52,14 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
     Conversation getMessage(String message_id);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insert(Conversation conversation);
+    @Insert
+    long _insert(Conversation conversation);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> insertAll(List<Conversation> conversationList);
 
     @Update
-    int update(Conversation conversation);
+    int _update(Conversation conversation);
 
     @Update
     int update(List<Conversation> conversations);
