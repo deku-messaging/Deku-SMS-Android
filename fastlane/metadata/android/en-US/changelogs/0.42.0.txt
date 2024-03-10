@@ -3,3 +3,5 @@
 - update: improvement to the key exchange user experience
 
 - update: UI improvements to unify with logo
+
+- fixed: issue with loading threads from mobiles with 'Threads' database
