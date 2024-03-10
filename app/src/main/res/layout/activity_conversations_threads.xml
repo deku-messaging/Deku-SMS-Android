@@ -48,7 +48,6 @@
                     android:textAlignment="center"
                     app:elevation="10dp"
                     app:icon="@drawable/bubble_round_speech"
-                    app:iconTint="@color/colorPrimary"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
 

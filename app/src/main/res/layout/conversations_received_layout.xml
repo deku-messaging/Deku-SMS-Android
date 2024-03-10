@@ -18,7 +18,6 @@
         android:paddingEnd="0dp"
         android:paddingStart="0dp"
         tools:text="@string/thread_conversation_timestamp_yesterday"
-        android:textColor="@color/primary_text_color"
         android:textSize="@dimen/conversation_properties_default_font_size_subtext"
         android:visibility="gone"
         tools:visibility="visible" />
@@ -41,7 +40,6 @@
             android:paddingTop="8dp"
             android:paddingEnd="8dp"
             android:paddingBottom="8dp"
-            android:textColor="@color/secondary_text_color"
             android:textSize="@dimen/conversation_properties_default_font_size" />
 
         <TextView
@@ -52,7 +50,6 @@
             android:paddingStart="8dp"
             tools:text="@string/sample_date"
             android:textAlignment="textStart"
-            android:textColor="@color/secondary_text_color"
             android:textSize="@dimen/conversation_properties_default_font_size_subtext"
             android:visibility="gone"
             tools:visibility="visible" />

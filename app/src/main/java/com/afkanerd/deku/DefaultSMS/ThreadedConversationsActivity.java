@@ -125,6 +125,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                drawerLayout.close();
                 String messageType = "";
                 String label = "";
                 String noContent = "";
@@ -191,7 +192,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                                 ThreadedConversationsFragment.class, bundle, null)
                         .setReorderingAllowed(true)
                         .commit();
-                drawerLayout.close();
                 return true;
             }
         });

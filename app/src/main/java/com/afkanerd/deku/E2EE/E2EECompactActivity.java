@@ -162,8 +162,10 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 if(secured && securePopUpRequest != null) {
                     securePopUpRequest.setVisibility(View.GONE);
                     layout.setPlaceholderText(getString(R.string.send_message_secured_text_box_hint));
+                    getSupportActionBar().setSubtitle(R.string.messages_thread_encrypted_content_label);
                 } else {
                     layout.setPlaceholderText(getString(R.string.send_message_text_box_hint));
+                    getSupportActionBar().setSubtitle(null);
                 }
             }
         });
@@ -205,11 +207,12 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     }
 
     private void showSecureRequestPopUpMenu() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.conversation_secure_popup_request_menu_title));
+        View conversationSecurePopView = getLayoutInflater()
+                .inflate(R.layout.conversation_secure_popup_menu, null);
 
-        View conversationSecurePopView = View.inflate(getApplicationContext(),
-                R.layout.conversation_secure_popup_menu, null);
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_main);
+        AlertDialog.Builder builder = new AlertDialog.Builder(conversationSecurePopView.getContext());
+        builder.setTitle(getString(R.string.conversation_secure_popup_request_menu_title));
         builder.setView(conversationSecurePopView);
 
         Button yesButton = conversationSecurePopView.findViewById(R.id.conversation_secure_popup_menu_send);

@@ -14,7 +14,6 @@
         android:layout_gravity="center"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"
-        android:textColor="@color/primary_text_color"
         tools:text="@string/thread_conversation_timestamp_yesterday"
         android:textSize="@dimen/conversation_properties_default_font_size_subtext"
         android:visibility="gone"
@@ -34,11 +33,11 @@
             android:layout_height="match_parent"
             android:background="@drawable/sent_messages_drawable"
             tools:text="@string/settings_add_gateway_server_protocol_meta_description"
+            android:textColor="@color/black"
             android:paddingStart="12dp"
             android:paddingTop="8dp"
             android:paddingEnd="8dp"
             android:paddingBottom="8dp"
-            android:textColor="@color/black"
             android:textSize="@dimen/conversation_properties_default_font_size" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
@@ -56,14 +55,12 @@
                 tools:text="@string/sample_date"
                 android:layout_gravity="end"
                 android:textAlignment="textEnd"
-                android:textColor="@color/secondary_text_color"
                 android:textSize="@dimen/conversation_properties_default_font_size_subtext" />
 
             <TextView
                 android:id="@+id/message_thread_sent_status_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/secondary_text_color"
                 tools:text=" * Delivered"
                 android:textSize="@dimen/conversation_properties_default_font_size_subtext"
                 app:layout_constraintBottom_toBottomOf="parent"

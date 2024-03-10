@@ -55,6 +55,7 @@
     <string name="messages_thread_you">You:</string>
 
     <string name="messages_thread_encrypted_content">Secured content</string>
+    <string name="messages_thread_encrypted_content_label">Secured</string>
 
     <string name="search_nothing_found">Nothing found</string>
 

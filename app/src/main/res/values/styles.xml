@@ -12,6 +12,12 @@
         <item name="android:textCursorDrawable">@null</item>
         <item name="android:cursorVisible">true</item>
 <!--        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>-->
+        <item name="android:buttonStyle">@style/button_style</item>
+    </style>
+
+
+    <style name="button_style">
+        <item name="android:textColor">@color/failed_red</item>
     </style>
 
     <style name="conversation_failed">
