@@ -7,4 +7,5 @@ cd Deku-SMS-Android && \
 	git submodule update --init --recursive && \
 	cp ../../release.properties . && \
 	cp ../../app/keys/app-release-key.jks app/keys/ && \
+	make clean && \ 
 	make release-cd jks_pass="$1" && cd .. \
