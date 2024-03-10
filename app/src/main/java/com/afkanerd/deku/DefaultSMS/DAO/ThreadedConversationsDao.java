@@ -210,7 +210,7 @@ public interface ThreadedConversationsDao {
 
         final int type = conversation.getType();
 
-        final boolean isRead = conversation.isRead();
+        final boolean isRead = type != Telephony.Sms.MESSAGE_TYPE_INBOX || conversation.isRead();
         final boolean isSecured = conversation.isIs_encrypted();
 
         boolean insert = false;
@@ -230,7 +230,7 @@ public interface ThreadedConversationsDao {
 
         long id = Datastore.datastore.conversationDao()._insert(conversation);
         if(insert)
-            Datastore.datastore.threadedConversationsDao().update(threadedConversations);
+            Datastore.datastore.threadedConversationsDao()._insert(threadedConversations);
         else {
             Datastore.datastore.threadedConversationsDao().update(threadedConversations);
         }
