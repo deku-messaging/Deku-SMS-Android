@@ -39,6 +39,10 @@ public interface ConversationDao {
             "latest_items WHERE thread_id IS NOT NULL ORDER BY date DESC")
     List<Conversation> getForThreading();
 
+
+    @Query("SELECT * FROM Conversation WHERE thread_id =:threadId ORDER BY date DESC LIMIT 1")
+    Conversation fetchLatestForThread(String threadId);
+
     @Query("SELECT * FROM Conversation ORDER BY date DESC")
     List<Conversation> getComplete();
 

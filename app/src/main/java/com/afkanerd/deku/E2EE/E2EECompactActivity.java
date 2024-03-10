@@ -68,7 +68,9 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     .observe(this, new Observer<ConversationsThreadsEncryption>() {
                         @Override
                         public void onChanged(ConversationsThreadsEncryption conversationsThreadsEncryption) {
-                            if(conversationsThreadsEncryption != null) {
+                            if(conversationsThreadsEncryption != null &&
+                                    conversationsThreadsEncryption.getKeystoreAlias()
+                                            .equals(keystoreAlias)) {
                                 ThreadingPoolExecutor.executorService.execute(new Runnable() {
                                     @Override
                                     public void run() {

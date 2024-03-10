@@ -572,7 +572,8 @@ public class ConversationActivity extends E2EECompactActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (smsTextView.getText() != null && !smsTextView.getText().toString().isEmpty()) {
+        if (smsTextView != null && smsTextView.getText() != null &&
+                !smsTextView.getText().toString().isEmpty()) {
             try {
                 saveDraft(String.valueOf(System.currentTimeMillis()),
                         smsTextView.getText().toString(), threadedConversations);

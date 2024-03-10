@@ -47,29 +47,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
     public static String DATA_UPDATED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".DATA_UPDATED_BROADCAST_INTENT";
-
     Datastore databaseConnector;
-
-    public ThreadedConversations insertThreads(Context context, Conversation conversation,
-                                               boolean isSecure, boolean isSelf) {
-        ThreadedConversations threadedConversations =
-                databaseConnector.threadedConversationsDao().get(conversation.getThread_id());
-        boolean available = threadedConversations != null;
-        Log.d(getClass().getName(), "Threaded is null: " + String.valueOf(threadedConversations == null));
-        if(!available) {
-            threadedConversations = ThreadedConversations.build(context, conversation);
-            String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
-            threadedConversations.setContact_name(contactName);
-        }
-        threadedConversations.setIs_secured(isSecure);
-        threadedConversations.setSelf(isSelf);
-        threadedConversations.setDate(conversation.getDate());
-        if(available)
-            databaseConnector.threadedConversationsDao().update(threadedConversations);
-        else
-            databaseConnector.threadedConversationsDao().insert(threadedConversations);
-        return threadedConversations;
-    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -84,7 +62,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     .build();
         }
         databaseConnector = Datastore.datastore;
-
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {

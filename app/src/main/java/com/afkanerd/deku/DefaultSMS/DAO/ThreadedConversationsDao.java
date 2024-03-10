@@ -203,6 +203,10 @@ public interface ThreadedConversationsDao {
         final String dates = conversation.getDate();
         final String snippet = conversation.getText();
         final String threadId = conversation.getThread_id();
+        final String address = conversation.getAddress();
+
+        final int type = conversation.getType();
+
         final boolean isRead = conversation.isRead();
         final boolean isSecured = conversation.isIs_encrypted();
 
@@ -218,18 +222,28 @@ public interface ThreadedConversationsDao {
         threadedConversations.setSnippet(snippet);
         threadedConversations.setIs_read(isRead);
         threadedConversations.setIs_secured(isSecured);
+        threadedConversations.setAddress(address);
+        threadedConversations.setType(type);
 
         long id = Datastore.datastore.conversationDao()._insert(conversation);
         if(insert)
             insert(threadedConversations);
         else
-            update(threadedConversations);
+            _update(threadedConversations);
 
         return id;
     }
 
     @Update
-    int update(ThreadedConversations threadedConversations);
+    int _update(ThreadedConversations threadedConversations);
+
+    @Transaction
+    default int update(ThreadedConversations threadedConversations) {
+        if(threadedConversations.getDate() == null || threadedConversations.getDate().isEmpty())
+            threadedConversations.setDate(Datastore.datastore.conversationDao()
+                    .fetchLatestForThread(threadedConversations.getThread_id()).getDate());
+        return _update(threadedConversations);
+    }
 
     @Delete
     void delete(ThreadedConversations threadedConversations);

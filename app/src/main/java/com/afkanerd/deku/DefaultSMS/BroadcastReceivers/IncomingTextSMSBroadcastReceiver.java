@@ -228,19 +228,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    public ThreadedConversations insertThreads(Context context, Conversation conversation) {
-        ThreadedConversations threadedConversations =
-                ThreadedConversations.build(context, conversation);
-        String contactName = Contacts.retrieveContactName(context, conversation.getAddress());
-        threadedConversations.setContact_name(contactName);
-        final boolean isSelf =
-                databaseConnector.threadedConversationsDao().get(conversation.getThread_id())
-                        .isSelf();
-        threadedConversations.setSelf(isSelf);
-        databaseConnector.threadedConversationsDao().insert(threadedConversations);
-        return threadedConversations;
-    }
-
     public void insertConversation(Context context, String address, String messageId,
                                    String threadId, String body, int subscriptionId, String date,
                                    String dateSent) {
