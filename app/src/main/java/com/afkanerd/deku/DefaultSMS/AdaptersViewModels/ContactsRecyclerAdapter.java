@@ -83,7 +83,8 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent singleMessageThreadIntent = new Intent(itemView.getContext(), ConversationActivity.class);
+                    Intent singleMessageThreadIntent = new Intent(itemView.getContext(),
+                            ConversationActivity.class);
                     singleMessageThreadIntent.putExtra(Conversation.ADDRESS, contacts.number);
 
                     if(sharedConversation != null && !sharedConversation.isEmpty())

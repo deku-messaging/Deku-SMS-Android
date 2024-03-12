@@ -12,10 +12,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ContactsViewModel;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -98,7 +100,21 @@ public class ComposeNewMessageActivity extends AppCompatActivity {
     private void _checkSharedContent() {
         if (Intent.ACTION_SEND.equals(getIntent().getAction()) && getIntent().getType() != null) {
             if ("text/plain".equals(getIntent().getType())) {
+                Bundle bundle = getIntent().getExtras();
+                for(String key : bundle.keySet())
+                    Log.d(getClass().getName(), key + ":" + bundle.get(key));
+
                 String sharedSMS = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+                if(getIntent().hasExtra("address")) {
+                    String address = getIntent().getStringExtra("address");
+                    Intent singleMessageThreadIntent = new Intent(getApplicationContext(),
+                            ConversationActivity.class);
+                    singleMessageThreadIntent.putExtra(Conversation.ADDRESS, address);
+                    if(sharedSMS != null && !sharedSMS.isEmpty())
+                        singleMessageThreadIntent.putExtra(Conversation.SHARED_SMS_BODY,
+                                sharedSMS);
+                    startActivity(singleMessageThreadIntent);
+                }
                 contactsRecyclerAdapter.setSharedMessage(sharedSMS);
             }
         }
