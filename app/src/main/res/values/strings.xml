@@ -171,7 +171,7 @@
     <string name="router_list_gateways">View Gateway servers</string>
     <string name="router_add_gateways">Add Gateway servers</string>
     <string name="conversation_menu_copy">copy</string>
-    <string name="conversation_menu_delete">delete</string>
+    <string name="conversation_menu_delete">Delete</string>
     <string name="conversation_menu_unarchive">unarchive</string>
     <string name="conversation_menu_share">Share</string>
     <string name="conversation_menu_block">Block</string>
@@ -238,7 +238,7 @@
 
     <string name="conversations_secure_conversation_request"><b>John</b> has requested to secure this conversation.</string>
     <string name="conversations_secure_conversation_request_agree">Agree to Secure!</string>
-    <string name="conversations_secure_conversation_request_information">When you send a message on our platform, it gets scrambled with a special code, just like a secret code you might use with a friend. This code makes it impossible for anyone to peek at your message while it\'s traveling between you and the recipient. Only the person you send it to has the key to unscramble it and read what you wrote. We call this process encryption.  Think of it like locking your messages in a safe while they\'re delivered!  Want to learn more about the secret code?  If you\'re curious about how this encryption works, you can check out this link for a deeper dive</string>
+    <string name="conversations_secure_conversation_request_information">When you send a message on our platform, it gets scrambled with a special code, just like a secret code you might use with a friend. This code makes it impossible for anyone to peek at your message while it\'s traveling between you and the recipient. Only the person you send it to has the key to unscramble it and read what you wrote. We call this process encryption.\n\nIf you\'re curious about how this encryption works, you can check out this link for a deeper dive</string>
     <string name="conversations_secure_conversation_request_information_deku_encryption_link" translatable="false">https://github.com/deku-messaging/Deku-SMS-Android?tab=readme-ov-file#-end-to-end-encryption</string>
     <string name="conversations_secure_conversation_request_information_deku_encryption_read_more">Learn more</string>
 </resources>

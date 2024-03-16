@@ -118,8 +118,10 @@ public class ConversationsViewModel extends ViewModel {
         }
         ThreadedConversations threadedConversations =
                 datastore.threadedConversationsDao().get(threadId);
-        threadedConversations.setContact_name(contactName);
-        datastore.threadedConversationsDao().update(threadedConversations);
+        if(threadedConversations != null) {
+            threadedConversations.setContact_name(contactName);
+            datastore.threadedConversationsDao().update(threadedConversations);
+        }
     }
 
     public void deleteItems(Context context, List<Conversation> conversations) {

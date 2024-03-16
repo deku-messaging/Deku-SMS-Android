@@ -60,6 +60,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -211,6 +212,16 @@ public class ConversationActivity extends E2EECompactActivity {
             if(actionMode != null)
                 actionMode.finish();
             return true;
+        }
+        else if (R.id.conversations_menu_delete == item.getItemId()) {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    databaseConnector.threadedConversationsDao()
+                            .delete(getApplicationContext(), Collections.singletonList(threadId));
+                }
+            });
+            finish();
         }
         else if (R.id.conversations_menu_mute == item.getItemId()) {
             ThreadingPoolExecutor.executorService.execute(new Runnable() {

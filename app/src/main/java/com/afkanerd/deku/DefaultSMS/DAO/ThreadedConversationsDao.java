@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.DAO;
 
+import android.content.Context;
 import android.provider.Telephony;
 import android.util.Log;
 
@@ -17,7 +18,16 @@ import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.i18n.phonenumbers.NumberParseException;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Dao
@@ -258,13 +268,46 @@ public interface ThreadedConversationsDao {
     }
 
     @Delete
-    void delete(ThreadedConversations threadedConversations);
-
-//    @Delete
-//    void delete(List<ThreadedConversations> threadedConversations);
+    void _delete(ThreadedConversations threadedConversations);
 
     @Query("DELETE FROM ThreadedConversations WHERE thread_id IN(:ids)")
-    void delete(List<String> ids);
+    void _delete(List<String> ids);
+
+    @Transaction
+    default void delete(Context context, List<String> ids) {
+        for(ThreadedConversations threadedConversations : getList(ids)) {
+            try {
+                String keystoreAlias =
+                        E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                E2EEHandler.clear(context, keystoreAlias);
+            } catch (KeyStoreException | NumberParseException |
+                     InterruptedException |
+                     NoSuchAlgorithmException | IOException |
+                     CertificateException e) {
+                e.printStackTrace();
+            }
+        }
+        _delete(ids);
+        Datastore.datastore.conversationDao().deleteAll(ids);
+    }
+
+    @Transaction
+    default void delete(Context context, ThreadedConversations threadedConversations) {
+        try {
+            String keystoreAlias =
+                    E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+            E2EEHandler.clear(context, keystoreAlias);
+        } catch (KeyStoreException | NumberParseException |
+                 InterruptedException |
+                 NoSuchAlgorithmException | IOException |
+                 CertificateException e) {
+            e.printStackTrace();
+        }
+
+        _delete(threadedConversations);
+        Datastore.datastore.conversationDao().deleteAll(Collections
+                .singletonList(threadedConversations.getThread_id()));
+    }
 
     @Query("DELETE FROM threadedconversations")
     void deleteAll();

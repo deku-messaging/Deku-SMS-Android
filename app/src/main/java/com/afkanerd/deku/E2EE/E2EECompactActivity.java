@@ -84,11 +84,11 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                                                     databaseConnector.threadedConversationsDao()
                                                             .get(threadId);
 
+                                            threadedConversations.setSelf(isSelf);
                                             if(E2EEHandler.canCommunicateSecurely(
                                                     getApplicationContext(), _keystoreAlias,
                                                     true)) {
                                                 threadedConversations.setIs_secured(true);
-                                                threadedConversations.setSelf(isSelf);
                                                 informSecured(true);
                                             }
                                             else {
@@ -171,13 +171,13 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             public void run() {
                 try {
                     Pair<String,  byte[]> transmissionRequestKeyPair =
-                            E2EEHandler.buildForEncryptionRequest(getApplicationContext(),
-                                    threadedConversations.getAddress(), null);
+                            E2EEHandler.buildForEncryptionRequest(getApplicationContext(), address,
+                                    null);
 
                     final String messageId = String.valueOf(System.currentTimeMillis());
                     Conversation conversation = new Conversation();
-                    conversation.setThread_id(threadedConversations.getThread_id());
-                    conversation.setAddress(threadedConversations.getAddress());
+                    conversation.setThread_id(threadId);
+                    conversation.setAddress(address);
                     conversation.setIs_key(true);
                     conversation.setMessage_id(messageId);
                     conversation.setData(Base64.encodeToString(transmissionRequestKeyPair.second,
@@ -221,8 +221,13 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         yesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendDataMessage(Datastore.datastore.threadedConversationsDao()
-                        .get(threadId));
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendDataMessage(Datastore.datastore.threadedConversationsDao()
+                                .get(threadId));
+                    }
+                });
                 dialog.dismiss();
             }
         });
@@ -267,12 +272,13 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     private void showSecureRequestAgreementModal() {
         Fragment fragment = getSupportFragmentManager()
                 .findFragmentByTag(ModalSheetFragment.TAG);
-        ThreadedConversations threadedConversations = Datastore.datastore.threadedConversationsDao()
+        ThreadedConversations threadedConversations = databaseConnector.threadedConversationsDao()
                 .get(threadId);
         if(threadedConversations != null && (fragment == null || !fragment.isAdded())) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            ModalSheetFragment modalSheetFragment = new ModalSheetFragment(threadedConversations);
+            ModalSheetFragment modalSheetFragment = new ModalSheetFragment(threadedConversations,
+                    contactName);
             fragmentTransaction.add(modalSheetFragment,
                     ModalSheetFragment.TAG);
             fragmentTransaction.show(modalSheetFragment);
@@ -280,8 +286,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 @Override
                 public void run() {
                     fragmentTransaction.commitNow();
-                    Log.d(getClass().getName(), "Fragment null: " +
-                            String.valueOf(modalSheetFragment.getView() == null));
                     modalSheetFragment.getView().findViewById(R.id.conversation_secure_request_agree_btn)
                             .setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -292,12 +296,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                             });
                 }
             });
-//            Fragment fragment = getSupportFragmentManager()
-//                    .findFragmentByTag(ModalSheetFragment.TAG);
-//            if(fragment == null || !fragment.isAdded()) {
-//                modalSheetFragment.show(getSupportFragmentManager(), ModalSheetFragment.TAG);
-//                Log.d(getClass().getName(), "Fragment null: " + String.valueOf(modalSheetFragment._view == null));
-//            }
         }
     }
 
