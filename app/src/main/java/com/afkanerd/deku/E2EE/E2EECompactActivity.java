@@ -51,9 +51,7 @@ import java.security.cert.CertificateException;
 
 public class E2EECompactActivity extends CustomAppCompactActivity {
 
-    protected ThreadedConversations threadedConversations;
     View securePopUpRequest;
-    boolean isEncrypted = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,7 +61,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     protected void attachObservers() {
         try {
             final String keystoreAlias =
-                    E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                    E2EEHandler.deriveKeystoreAlias(address, 0);
             databaseConnector.conversationsThreadsEncryptionDao().fetchLiveData(keystoreAlias)
                     .observe(this, new Observer<ConversationsThreadsEncryption>() {
                         @Override
@@ -78,21 +76,26 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                                             final boolean isSelf = E2EEHandler
                                                     .isSelf(getApplicationContext(), keystoreAlias);
 
-                                            threadedConversations.setSelf(isSelf);
-
-                                            String _keystoreAlias = threadedConversations.isSelf() ?
+                                            String _keystoreAlias = isSelf ?
                                                     E2EEHandler.buildForSelf(keystoreAlias) :
                                                     keystoreAlias;
 
-                                            if(E2EEHandler.canCommunicateSecurely(getApplicationContext(),
-                                                    _keystoreAlias, true)) {
+                                            ThreadedConversations threadedConversations =
+                                                    databaseConnector.threadedConversationsDao()
+                                                            .get(threadId);
+
+                                            if(E2EEHandler.canCommunicateSecurely(
+                                                    getApplicationContext(), _keystoreAlias,
+                                                    true)) {
                                                 threadedConversations.setIs_secured(true);
-                                                Log.d(getClass().getName(), "Thread at activity changed to secured");
+                                                threadedConversations.setSelf(isSelf);
                                                 informSecured(true);
                                             }
                                             else {
                                                 showSecureRequestAgreementModal();
                                             }
+                                            databaseConnector.threadedConversationsDao()
+                                                    .update(threadedConversations);
                                         } catch (CertificateException | KeyStoreException |
                                                  NoSuchAlgorithmException | IOException |
                                                  UnrecoverableEntryException | InterruptedException e) {
@@ -123,34 +126,24 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
      * @throws InterruptedException
      */
     @Override
-    public void sendTextMessage(final String text, int subscriptionId,
+    public void sendTextMessage(String text, int subscriptionId,
                                 ThreadedConversations threadedConversations, String messageId,
-                                final byte[] _mk) throws NumberParseException, InterruptedException {
-        if(threadedConversations.is_secured && !isEncrypted) {
-            ThreadingPoolExecutor.executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        String keystoreAlias =
-                                E2EEHandler.deriveKeystoreAlias(
-                                        threadedConversations.getAddress(), 0);
-                        byte[][] cipherText = E2EEHandler.encrypt(getApplicationContext(),
-                                keystoreAlias, text.getBytes(StandardCharsets.UTF_8),
-                                threadedConversations.isSelf());
-                        String encryptedText = E2EEHandler.buildTransmissionText(cipherText[0]);
-                        isEncrypted = true;
-                        sendTextMessage(encryptedText, subscriptionId, threadedConversations,
-                                messageId, cipherText[1]);
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+                                byte[] _mk) throws NumberParseException, InterruptedException {
+        if(threadedConversations.is_secured) {
+            try {
+                String keystoreAlias =
+                        E2EEHandler.deriveKeystoreAlias(
+                                threadedConversations.getAddress(), 0);
+                byte[][] cipherText = E2EEHandler.encrypt(getApplicationContext(),
+                        keystoreAlias, text.getBytes(StandardCharsets.UTF_8),
+                        threadedConversations.isSelf());
+                text = E2EEHandler.buildTransmissionText(cipherText[0]);
+                _mk = cipherText[1];
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
-        else {
-            isEncrypted = false;
-            super.sendTextMessage(text, subscriptionId, threadedConversations, messageId, _mk);
-        }
+        super.sendTextMessage(text, subscriptionId, threadedConversations, messageId, _mk);
     }
 
     @Override
@@ -220,8 +213,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         TextView descriptionText = conversationSecurePopView.findViewById(R.id.conversation_secure_popup_menu_text_description);
         String descriptionTextRevised = descriptionText.getText()
                 .toString()
-                .replaceAll("\\[contact name]", threadedConversations.getContact_name() == null ?
-                        threadedConversations.getAddress() : threadedConversations.getContact_name());
+                .replaceAll("\\[contact name]", contactName == null ? address : contactName);
         descriptionText.setText(descriptionTextRevised);
 
         AlertDialog dialog = builder.create();
@@ -229,7 +221,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         yesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendDataMessage(threadedConversations);
+                sendDataMessage(Datastore.datastore.threadedConversationsDao()
+                        .get(threadId));
                 dialog.dismiss();
             }
         });
@@ -250,10 +243,6 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 showSecureRequestPopUpMenu();
             }
         });
-    }
-
-    public void setEncryptionThreadedConversations(ThreadedConversations threadedConversations) {
-        this.threadedConversations = threadedConversations;
     }
 
     @Override
@@ -278,6 +267,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     private void showSecureRequestAgreementModal() {
         Fragment fragment = getSupportFragmentManager()
                 .findFragmentByTag(ModalSheetFragment.TAG);
+        ThreadedConversations threadedConversations = Datastore.datastore.threadedConversationsDao()
+                .get(threadId);
         if(threadedConversations != null && (fragment == null || !fragment.isAdded())) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -315,8 +306,10 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             @Override
             public void run() {
                 try {
+                    ThreadedConversations threadedConversations = Datastore.datastore
+                            .threadedConversationsDao().get(threadId);
                     String keystoreAlias = E2EEHandler
-                            .deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                            .deriveKeystoreAlias(address, 0);
                     if (threadedConversations.isSelf()) {
                         keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);
                         Pair<String, byte[]> keystorePair = E2EEHandler

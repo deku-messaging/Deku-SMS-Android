@@ -63,7 +63,7 @@ public class NotificationsHandler {
 
     public static Intent getReplyIntent(Context context, Conversation conversation) {
         if(conversation != null &&
-                !Helpers.isShortCode(ThreadedConversations.build(context, conversation) )) {
+                !Helpers.isShortCode(conversation.getAddress())) {
             Intent replyBroadcastIntent = new Intent(context, IncomingTextSMSReplyActionBroadcastReceiver.class);
 
             replyBroadcastIntent.putExtra(IncomingTextSMSReplyActionBroadcastReceiver.REPLY_ADDRESS,

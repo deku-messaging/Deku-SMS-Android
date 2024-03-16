@@ -23,9 +23,6 @@ import java.util.List;
 @Dao
 public interface ThreadedConversationsDao {
 
-    @Query("SELECT * FROM ThreadedConversations")
-    LiveData<List<ThreadedConversations>> getAllLiveData();
-
     @Query("SELECT * FROM ThreadedConversations ORDER BY date DESC")
     List<ThreadedConversations> getAll();
 
@@ -34,12 +31,6 @@ public interface ThreadedConversationsDao {
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_blocked = 1 ORDER BY date DESC")
     PagingSource<Integer, ThreadedConversations> getBlocked();
-
-    @Query("SELECT ThreadedConversations.thread_id FROM ThreadedConversations WHERE is_archived = 1")
-    List<String> getArchivedList();
-
-    @Query("SELECT ThreadedConversations.thread_id FROM ThreadedConversations WHERE is_blocked = 1")
-    List<String> getBlockedList();
 
     @Query("SELECT * FROM ThreadedConversations WHERE is_archived = 0 AND is_blocked = 0 " +
             "ORDER BY date DESC")
@@ -85,19 +76,6 @@ public interface ThreadedConversationsDao {
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
     PagingSource<Integer, ThreadedConversations> getThreadedDrafts(int type);
-
-    @Query("SELECT Conversation.address, " +
-            "Conversation.text as snippet, " +
-            "Conversation.thread_id, " +
-            "Conversation.date, Conversation.type, Conversation.read, " +
-            "0 as msg_count, ThreadedConversations.is_archived, ThreadedConversations.is_blocked, " +
-            "ThreadedConversations.is_read, ThreadedConversations.is_shortcode, " +
-            "ThreadedConversations.is_mute, ThreadedConversations.is_secured, " +
-            "ThreadedConversations.isSelf " +
-            "FROM Conversation, ThreadedConversations WHERE " +
-            "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
-            "ORDER BY Conversation.date DESC")
-    List<ThreadedConversations> getThreadedDraftsList(int type);
 
     @Query("SELECT COUNT(ThreadedConversations.thread_id) " +
             "FROM Conversation, ThreadedConversations WHERE " +
@@ -197,6 +175,37 @@ public interface ThreadedConversationsDao {
     long _insert(ThreadedConversations threadedConversations);
 
     @Transaction
+    default ThreadedConversations insertThreadFromConversation(Conversation conversation) {
+        /* - Import things are:
+        1. Dates
+        2. Snippet
+        3. ThreadId
+         */
+        final String dates = conversation.getDate();
+        final String snippet = conversation.getText();
+        final String threadId = conversation.getThread_id();
+        final String address = conversation.getAddress();
+
+        final int type = conversation.getType();
+
+        final boolean isRead = type != Telephony.Sms.MESSAGE_TYPE_INBOX || conversation.isRead();
+        final boolean isSecured = conversation.isIs_encrypted();
+
+        ThreadedConversations threadedConversations = Datastore.datastore.threadedConversationsDao()
+                .get(conversation.getThread_id());
+        threadedConversations.setDate(dates);
+        threadedConversations.setSnippet(snippet);
+        threadedConversations.setIs_read(isRead);
+        threadedConversations.setIs_secured(isSecured);
+        threadedConversations.setAddress(address);
+        threadedConversations.setType(type);
+
+        update(threadedConversations);
+        threadedConversations = Datastore.datastore.threadedConversationsDao()
+                .get(conversation.getThread_id());
+        return threadedConversations;
+    }
+    @Transaction
     default ThreadedConversations insertThreadAndConversation(Conversation conversation) {
         /* - Import things are:
         1. Dates
@@ -230,9 +239,9 @@ public interface ThreadedConversationsDao {
 
         long id = Datastore.datastore.conversationDao()._insert(conversation);
         if(insert)
-            Datastore.datastore.threadedConversationsDao()._insert(threadedConversations);
+            _insert(threadedConversations);
         else {
-            Datastore.datastore.threadedConversationsDao().update(threadedConversations);
+            update(threadedConversations);
         }
 
         return threadedConversations;

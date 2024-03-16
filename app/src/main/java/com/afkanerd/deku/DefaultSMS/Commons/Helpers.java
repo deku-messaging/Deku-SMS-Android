@@ -112,12 +112,12 @@ public class Helpers {
         return arrayOfString;
     }
 
-    public static boolean isShortCode(ThreadedConversations threadedConversations) {
-        if(threadedConversations.getAddress().length() < 4)
+    public static boolean isShortCode(String address) {
+        if(address.length() < 4)
             return true;
         Pattern pattern = Pattern.compile("[a-zA-Z]");
-        Matcher matcher = pattern.matcher(threadedConversations.getAddress());
-        return !PhoneNumberUtils.isWellFormedSmsAddress(threadedConversations.getAddress()) || matcher.find();
+        Matcher matcher = pattern.matcher(address);
+        return !PhoneNumberUtils.isWellFormedSmsAddress(address) || matcher.find();
     }
 
     public static byte[] generateRandomBytes(int length) {
@@ -127,14 +127,6 @@ public class Helpers {
                 byte[length];
         random.nextBytes(bytes);
         return bytes;
-    }
-
-    public static boolean isShortCode(String address) {
-        if(address.length() < 4)
-            return true;
-        Pattern pattern = Pattern.compile("[a-zA-Z]");
-        Matcher matcher = pattern.matcher(address);
-        return matcher.find();
     }
 
     public static String getFormatCompleteNumber(Context context, String address, String defaultRegion) {

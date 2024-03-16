@@ -112,6 +112,8 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
 
                 Intent singleMessageThreadIntent = new Intent(holder.itemView.getContext(), ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
+                singleMessageThreadIntent.putExtra(Conversation.ADDRESS,
+                        threadedConversations.getAddress());
                 holder.itemView.getContext().startActivity(singleMessageThreadIntent);
             }
         };

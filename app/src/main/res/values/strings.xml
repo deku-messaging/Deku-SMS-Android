@@ -163,6 +163,7 @@
     <string name="conversations_menu_unblock">Unblock</string>
     <string name="conversations_menu_block_toast">Contact blocked succcessfully</string>
     <string name="conversations_menu_search_title">Search</string>
+    <string name="conversations_menu_refresh_title">Refresh</string>
 
     <string name="conversations_search_results_found">results founds</string>
 

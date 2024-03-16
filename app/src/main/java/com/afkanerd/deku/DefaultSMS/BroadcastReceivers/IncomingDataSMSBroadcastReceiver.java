@@ -99,6 +99,9 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             ThreadedConversations threadedConversations =
                                     databaseConnector.threadedConversationsDao()
                                     .insertThreadAndConversation(conversation);
+                            threadedConversations.setSelf(isSelf);
+                            databaseConnector.threadedConversationsDao()
+                                    .update(threadedConversations);
 
                             Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
                             broadcastIntent.putExtra(Conversation.ID, messageId);

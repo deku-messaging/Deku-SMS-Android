@@ -627,6 +627,15 @@ public class ThreadedConversationsFragment extends Fragment {
             searchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(searchIntent);
         }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_refresh) {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    threadedConversationsViewModel.reset(getContext());
+                }
+            });
+            return true;
+        }
         if (item.getItemId() == R.id.conversation_threads_main_menu_routed) {
             Intent routingIntent = new Intent(getContext(), RouterActivity.class);
             routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
