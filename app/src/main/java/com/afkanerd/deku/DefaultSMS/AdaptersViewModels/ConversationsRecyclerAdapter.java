@@ -64,30 +64,9 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     ConversationSentViewHandler lastSentItem;
     ConversationReceivedViewHandler lastReceivedItem;
 
-    ThreadedConversations threadedConversations;
-
-    public ConversationsRecyclerAdapter(ThreadedConversations threadedConversations) {
+    public ConversationsRecyclerAdapter() {
         super(Conversation.DIFF_CALLBACK);
         this.mutableSelectedItems = new MutableLiveData<>();
-        this.threadedConversations = threadedConversations;
-
-//        Thread thread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
-//                    secured = E2EEHandler.canCommunicateSecurely(context, keystoreAlias);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-//        thread.start();
-//        try {
-//            thread.join();
-//        }catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
 
     @NonNull

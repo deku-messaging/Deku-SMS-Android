@@ -41,6 +41,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CustomAppCompactActivity extends DualSIMConversationActivity {
+
+    protected String address;
+    protected String contactName;
+    protected String threadId;
     protected ConversationsViewModel conversationsViewModel;
 
     protected ThreadedConversationsViewModel threadedConversationsViewModel;
@@ -96,7 +100,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             if(messageId == null)
                 messageId = String.valueOf(System.currentTimeMillis());
 
-            Conversation conversation = new Conversation();
+            final Conversation conversation = new Conversation();
             if(_mk != null) {
                 try {
                     String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
@@ -123,11 +127,11 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
             final String messageIdFinal = messageId;
             conversation.setMessage_id(messageId);
-            conversation.setThread_id(threadedConversations.getThread_id());
+            conversation.setThread_id(threadId);
             conversation.setSubscription_id(subscriptionId);
             conversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
             conversation.setDate(String.valueOf(System.currentTimeMillis()));
-            conversation.setAddress(threadedConversations.getAddress());
+            conversation.setAddress(address);
             conversation.setStatus(Telephony.Sms.STATUS_PENDING);
             // TODO: should encrypt this before storing
 //            if(_mk != null)
@@ -146,7 +150,8 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
                         try {
                             if(_mk == null)
-                                SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, null);
+                                SMSDatabaseWrapper.send_text(getApplicationContext(),
+                                        conversation, null);
                             else
                                 SMSDatabaseWrapper.send_text(getApplicationContext(), conversation,
                                         text, null);
@@ -165,7 +170,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
         }
     }
 
-    protected void saveDraft(final String messageId, final String text, ThreadedConversations threadedConversations) throws InterruptedException {
+    protected void saveDraft(final String messageId, final String text) throws InterruptedException {
         if(text != null) {
             if(conversationsViewModel != null) {
                 ThreadingPoolExecutor.executorService.execute(new Runnable() {
@@ -173,15 +178,13 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     public void run() {
                         Conversation conversation = new Conversation();
                         conversation.setMessage_id(messageId);
-                        conversation.setThread_id(threadedConversations.getThread_id());
+                        conversation.setThread_id(threadId);
                         conversation.setText(text);
                         conversation.setRead(true);
                         conversation.setType(Telephony.Sms.MESSAGE_TYPE_DRAFT);
                         conversation.setDate(String.valueOf(System.currentTimeMillis()));
-                        conversation.setAddress(threadedConversations.getAddress());
+                        conversation.setAddress(address);
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
-                        conversation.setIs_encrypted(threadedConversations.isIs_secured());
-                        Log.d(getClass().getName(), "Saving draft");
                         try {
                             conversationsViewModel.insert(conversation);
                             SMSDatabaseWrapper.saveDraft(getApplicationContext(), conversation);

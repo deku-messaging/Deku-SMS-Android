@@ -45,10 +45,10 @@ public class ThreadedConversationsHandler {
 //        return threadedConversations1[0];
     }
 
-    public static void call(Context context, ThreadedConversations threadedConversations) {
+    public static void call(Context context, String address) {
         Intent callIntent = new Intent(Intent.ACTION_DIAL);
         callIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        callIntent.setData(Uri.parse("tel:" + threadedConversations.getAddress()));
+        callIntent.setData(Uri.parse("tel:" + address));
 
         context.startActivity(callIntent);
     }

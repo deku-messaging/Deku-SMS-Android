@@ -178,8 +178,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
 
     public void delete(Context context, List<String> ids) {
-        databaseConnector.conversationDao().deleteAll(ids);
-        databaseConnector.threadedConversationsDao().delete(ids);
+        databaseConnector.threadedConversationsDao().delete(context, ids);
         NativeSMSDB.deleteThreads(context, ids.toArray(new String[0]));
     }
 

@@ -175,8 +175,6 @@ public class ThreadedConversationsFragment extends Fragment {
                     ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-                            List<String> foundList = threadedConversationsViewModel.
-                                    databaseConnector.threadedConversationsDao().findAddresses(ids);
                             threadedConversationsViewModel.delete(getContext(), ids);
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
@@ -184,18 +182,6 @@ public class ThreadedConversationsFragment extends Fragment {
                                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
                                 }
                             });
-                            for(String address : foundList) {
-                                try {
-                                    String keystoreAlias =
-                                            E2EEHandler.deriveKeystoreAlias( address, 0);
-                                    E2EEHandler.clear(getContext(), keystoreAlias);
-                                } catch (KeyStoreException | NumberParseException |
-                                         InterruptedException |
-                                         NoSuchAlgorithmException | IOException |
-                                         CertificateException e) {
-                                    e.printStackTrace();
-                                }
-                            }
                         }
                     });
                 }
@@ -626,6 +612,15 @@ public class ThreadedConversationsFragment extends Fragment {
             Intent searchIntent = new Intent(getContext(), SearchMessagesThreadsActivity.class);
             searchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(searchIntent);
+        }
+        if (item.getItemId() == R.id.conversation_threads_main_menu_refresh) {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    threadedConversationsViewModel.reset(getContext());
+                }
+            });
+            return true;
         }
         if (item.getItemId() == R.id.conversation_threads_main_menu_routed) {
             Intent routingIntent = new Intent(getContext(), RouterActivity.class);

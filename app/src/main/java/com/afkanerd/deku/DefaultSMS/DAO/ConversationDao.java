@@ -6,9 +6,12 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 
 import java.util.List;
 
@@ -67,11 +70,17 @@ public interface ConversationDao {
     @Query("DELETE FROM Conversation WHERE thread_id IN (:threadIds)")
     void deleteAll(List<String> threadIds);
 
-    @Query("DELETE FROM Conversation WHERE type = :type")
-    int deleteAllType(int type);
-
     @Query("DELETE FROM Conversation WHERE type = :type AND thread_id = :thread_id")
-    int deleteAllType(int type, String thread_id);
+    int _deleteAllType(int type, String thread_id);
+
+    @Transaction
+    default void deleteAllType(int type, String thread_id) {
+        _deleteAllType(type, thread_id);
+        Conversation conversation = fetchLatestForThread(thread_id);
+        if(conversation != null)
+            Datastore.datastore.threadedConversationsDao().insertThreadFromConversation(conversation);
+    }
+
     @Delete
     int delete(Conversation conversation);
 

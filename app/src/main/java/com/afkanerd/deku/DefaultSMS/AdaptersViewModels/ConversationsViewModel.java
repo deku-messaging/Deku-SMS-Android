@@ -13,7 +13,7 @@ import androidx.paging.PagingLiveData;
 import androidx.paging.PagingSource;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
@@ -104,7 +104,7 @@ public class ConversationsViewModel extends ViewModel {
         return positions;
     }
 
-    public void updateToRead(Context context) {
+    public void updateInformation(String contactName) {
         if(threadId != null && !threadId.isEmpty()) {
             List<Conversation> conversations = datastore.conversationDao().getAll(threadId);
             List<Conversation> updateList = new ArrayList<>();
@@ -115,6 +115,12 @@ public class ConversationsViewModel extends ViewModel {
                 }
             }
             datastore.conversationDao().update(updateList);
+        }
+        ThreadedConversations threadedConversations =
+                datastore.threadedConversationsDao().get(threadId);
+        if(threadedConversations != null) {
+            threadedConversations.setContact_name(contactName);
+            datastore.threadedConversationsDao().update(threadedConversations);
         }
     }
 
