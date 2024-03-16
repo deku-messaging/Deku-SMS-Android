@@ -223,8 +223,7 @@ public interface ThreadedConversationsDao {
         final boolean isSecured = conversation.isIs_encrypted();
 
         boolean insert = false;
-        ThreadedConversations threadedConversations = Datastore.datastore.threadedConversationsDao()
-                .get(conversation.getThread_id());
+        ThreadedConversations threadedConversations = get(threadId);
         if(threadedConversations == null) {
             threadedConversations = new ThreadedConversations();
             threadedConversations.setThread_id(threadId);

@@ -77,7 +77,8 @@ public interface ConversationDao {
     default void deleteAllType(int type, String thread_id) {
         _deleteAllType(type, thread_id);
         Conversation conversation = fetchLatestForThread(thread_id);
-        Datastore.datastore.threadedConversationsDao().insertThreadFromConversation(conversation);
+        if(conversation != null)
+            Datastore.datastore.threadedConversationsDao().insertThreadFromConversation(conversation);
     }
 
     @Delete

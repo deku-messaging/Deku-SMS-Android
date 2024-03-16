@@ -8,7 +8,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.BlockedNumberContract;
@@ -40,8 +39,6 @@ import androidx.paging.PagingData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -152,8 +149,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 try {
                     NativeSMSDB.Incoming.update_read(getApplicationContext(), 1, threadId,
                             null);
-                    conversationsViewModel
-                            .updateToRead(getApplicationContext());
+                    conversationsViewModel.updateInformation(contactName);
                     emptyDraft();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -178,7 +174,7 @@ public class ConversationActivity extends E2EECompactActivity {
             public void run() {
                 ThreadedConversations threadedConversations =
                         databaseConnector.threadedConversationsDao().get(threadId);
-                if(threadedConversations.isIs_mute()) {
+                if(threadedConversations != null && threadedConversations.isIs_mute()) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -297,7 +293,12 @@ public class ConversationActivity extends E2EECompactActivity {
         }
         if(getIntent().hasExtra(Conversation.ADDRESS)) {
             address = getIntent().getStringExtra(Conversation.ADDRESS);
-        } else {
+        }
+
+        if(threadId == null)
+            threadId = ThreadedConversationsHandler.get(getApplicationContext(), address)
+                    .getThread_id();
+        if(address == null) {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -309,8 +310,11 @@ public class ConversationActivity extends E2EECompactActivity {
             thread.start();
             thread.join();
         }
-
-        contactName = Contacts.retrieveContactName(getApplicationContext(), address);
+        final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
+        contactName = Contacts.retrieveContactName(getApplicationContext(),
+                Helpers.getFormatCompleteNumber(address, defaultUserCountry));
+        if(contactName == null)
+            contactName = Helpers.getFormatNationalNumber(address, defaultUserCountry);
 
         isShortCode = Helpers.isShortCode(address);
         attachObservers();
@@ -633,6 +637,10 @@ public class ConversationActivity extends E2EECompactActivity {
                             public void run() {
                                 ThreadedConversations threadedConversations =
                                         Datastore.datastore.threadedConversationsDao().get(threadId);
+                                if(threadedConversations == null) {
+                                    threadedConversations = new ThreadedConversations();
+                                    threadedConversations.setThread_id(threadId);
+                                }
                                 try {
                                     sendTextMessage(text, defaultSubscriptionId.getValue(),
                                             threadedConversations, String.valueOf(System.currentTimeMillis()),
