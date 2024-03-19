@@ -10,7 +10,7 @@
     <string name="no_showable_router_message">Aucun message routé à afficher !</string>
     <string name="save_new_gateway_client">Enregistrer</string>
     <string name="new_gateway_server_url">Entrez l\'URL - par ex. https://example.com:8080/api/</string>
-    <string name="new_gateway_server_tag">La balise Enter serait utilisée pour identifier cet appareil <i>(facultatif)</i></string>
+    <string name="new_gateway_server_tag">(Facultatif) Balise d\'identification</string>
     <string name="new_gateway_client_url">Entrez l\'URL - par ex. example.com <i>(ne pas inclure le protocole)</i></string>
     <string name="new_gateway_client_username">Saisissez votre nom d\'utilisateur</string>
     <string name="new_gateway_client_password">Entrer le mot de passe</string>
