@@ -133,7 +133,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 int actionModeMenu = -1;
                 if(item.getItemId() == R.id.navigation_view_menu_inbox) {
                     fragmentManagement();
-                    drawerLayout.close();
                     return true;
                 } else if(item.getItemId() == R.id.navigation_view_menu_drafts) {
                     messageType = DRAFTS_MESSAGE_TYPES;

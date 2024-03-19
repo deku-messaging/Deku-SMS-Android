@@ -56,24 +56,4 @@ class ModalSheetFragment(var threadedConversations: ThreadedConversations,
         val shareIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         view?.context?.startActivity(shareIntent)
     }
-
-    private fun agreeToSecure() {
-        var keystoreAlias = E2EEHandler.deriveKeystoreAlias(threadedConversations.address, 0)
-        ThreadingPoolExecutor.executorService.execute {
-            if (threadedConversations.isSelf) {
-                keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias)
-            }
-            val keystorePair: Pair<String, ByteArray> =
-                    E2EEHandler.buildForEncryptionRequest(context,
-                            threadedConversations.address, keystoreAlias)
-            val transmissionKey: ByteArray = E2EEHandler.extractTransmissionKey(keystorePair.second)
-            E2EEHandler.insertNewAgreementKeyDefault(context, transmissionKey, keystoreAlias)
-            val tc: ThreadedConversations =
-                    Datastore.datastore.threadedConversationsDao()
-                            .get(threadedConversations.thread_id)
-            tc.isIs_secured = true
-            Datastore.datastore.threadedConversationsDao().update(tc);
-            threadedConversations = tc
-        }
-    }
 }

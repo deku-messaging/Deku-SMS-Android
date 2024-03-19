@@ -3,49 +3,63 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:theme="@style/Theme.main"
+    android:id="@+id/activity_gateway_server_add_modal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity">
+    android:layout_height="wrap_content"
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+    style="@style/Widget.Material3.BottomSheet.Modal">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/gateway_server_add_toolbar"
+<!--    <com.google.android.material.bottomsheet.BottomSheetDragHandleView-->
+<!--        android:id="@+id/drag_handle"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/drag_handle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/add_new_gateway_server_toolbar_title"
+        android:textAlignment="center"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/new_gateway_client_url_input_layout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.Dense"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:hint="@string/new_gateway_server_url"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_toolbar"
-        app:startIconDrawable="@drawable/baseline_add_link_24">
+        app:layout_constraintTop_toBottomOf="@+id/drag_handle">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/new_gateway_client_url_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:imeOptions="actionGo"
-            android:inputType="text|textUri|textMultiLine" />
+            android:inputType="text|textWebEditText" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/new_gateway_client_tag_constraint_layout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.Dense"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
         android:hint="@string/new_gateway_server_tag"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_url_input_layout"
-        app:startIconDrawable="@drawable/round_tag_24">
+        app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_url_input_layout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/new_gateway_client_tag_input"
@@ -56,72 +70,16 @@
             android:maxLines="3" />
     </com.google.android.material.textfield.TextInputLayout>
 
-
-    <TextView
-        android:id="@+id/textView6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="@string/settings_add_gateway_server_protocol_description"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_tag_constraint_layout" />
-
-    <RadioGroup
-        android:id="@+id/add_gateway_server_protocol_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:checkedButton="@id/add_gateway_protocol_POST"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toStartOf="@+id/add_gateway_server_protocol_description"
-        app:layout_constraintTop_toBottomOf="@+id/textView6">
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/add_gateway_protocol_POST"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="POST"
-            android:textSize="14sp" />
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/add_gateway_protocol_GET"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:enabled="false"
-            android:text="GET" />
-    </RadioGroup>
-
-    <TextView
-        android:id="@+id/add_gateway_server_protocol_description"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/settings_add_gateway_server_protocol_meta_description"
-        android:textColor="@color/disabled_gray"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/textView6"
-        app:layout_constraintTop_toBottomOf="@+id/add_gateway_server_protocol_group" />
-
-    <TextView
-        android:id="@+id/textView5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="@string/settings_add_gateway_server_protocol_data_format"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="@+id/add_gateway_server_protocol_group"
-        app:layout_constraintTop_toBottomOf="@+id/add_gateway_server_protocol_description" />
-
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/router_add_gateway_server_add_linear_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView5">
+        app:layout_constraintTop_toBottomOf="@+id/new_gateway_client_tag_constraint_layout">
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/add_gateway_data_format_all"
@@ -150,10 +108,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:background="@drawable/compose_message_drawable"
+        android:layout_marginBottom="8dp"
         android:text="@string/save_new_gateway_client"
-        android:textAllCaps="false"
         android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/router_add_gateway_server_add_linear_layout" />

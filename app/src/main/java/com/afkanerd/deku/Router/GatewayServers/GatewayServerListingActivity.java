@@ -2,6 +2,9 @@ package com.afkanerd.deku.Router.GatewayServers;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -17,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.afkanerd.deku.DefaultSMS.Fragments.ModalSheetFragment;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -68,6 +72,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         }
 
         setRefreshTimer(gatewayServerRecyclerAdapter);
+        showSecureRequestAgreementModal();
     }
 
 
@@ -98,9 +103,30 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         return false;
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+    private void showSecureRequestAgreementModal() {
+        Fragment fragment = getSupportFragmentManager()
+                .findFragmentByTag(GatewayServerAddModelFragment.TAG);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        GatewayServerAddModelFragment gatewayServerAddModelFragment =
+                new GatewayServerAddModelFragment();
+        fragmentTransaction.add(gatewayServerAddModelFragment,
+                ModalSheetFragment.TAG);
+        fragmentTransaction.show(gatewayServerAddModelFragment);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                fragmentTransaction.commitNow();
+//                modalSheetFragment.getView().findViewById(R.id.conversation_secure_request_agree_btn)
+//                        .setOnClickListener(new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View v) {
+//                                modalSheetFragment.dismiss();
+//                                agreeToSecure();
+//                            }
+//                        });
+            }
+        });
     }
 }
 

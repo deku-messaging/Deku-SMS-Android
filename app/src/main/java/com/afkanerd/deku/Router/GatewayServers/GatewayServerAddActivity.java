@@ -30,10 +30,10 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_server_add);
 
-        toolbar = findViewById(R.id.gateway_server_add_toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(R.string.add_new_gateway_server_toolbar_title);
+//        toolbar = findViewById(R.id.gateway_server_add_toolbar);
+//        setSupportActionBar(toolbar);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setTitle(R.string.add_new_gateway_server_toolbar_title);
 
         gatewayServerHandler = new GatewayServerHandler(getApplicationContext());
 
@@ -52,8 +52,6 @@ public class GatewayServerAddActivity extends AppCompatActivity {
 
     private void populateForUpdates() {
         TextInputEditText textInputEditTextUrl = findViewById(R.id.new_gateway_client_url_input);
-        RadioGroup radioGroup = findViewById(R.id.add_gateway_server_protocol_group);
-
         TextInputEditText textInputEditTextTag = findViewById(R.id.new_gateway_client_tag_input);
 
         if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_URL)) {
@@ -107,10 +105,8 @@ public class GatewayServerAddActivity extends AppCompatActivity {
         if(base64.isChecked())
             formats = GatewayServer.BASE64_FORMAT;
 
-        RadioGroup radioGroup = findViewById(R.id.add_gateway_server_protocol_group);
-        int checkedRadioId = radioGroup.getCheckedRadioButtonId();
-        if(checkedRadioId == R.id.add_gateway_protocol_GET)
-            protocol = GatewayServer.GET_PROTOCOL;
+//        RadioGroup radioGroup = findViewById(R.id.add_gateway_server_protocol_group);
+//        int checkedRadioId = radioGroup.getCheckedRadioButtonId();
 
         // Important: test if valid url
         GatewayServer gatewayServer = new GatewayServer(gatewayServerUrl);
