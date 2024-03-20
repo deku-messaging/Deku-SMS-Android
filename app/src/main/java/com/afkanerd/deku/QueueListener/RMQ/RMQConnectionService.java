@@ -349,22 +349,22 @@ public class RMQConnectionService extends Service {
         connectionList.put(gatewayClient.getId(), connection);
 
         if(connection != null)
-        connection.addShutdownListener(new ShutdownListener() {
-            @Override
-            public void shutdownCompleted(ShutdownSignalException cause) {
-                Log.e(getClass().getName(), "Connection shutdown cause: " + cause.toString());
-                if(sharedPreferences.getBoolean(String.valueOf(gatewayClient.getId()), false)) {
-                    try {
-                        connectionList.remove(gatewayClient.getId());
-                        int[] states = getGatewayClientNumbers();
-                        createForegroundNotification(states[0], states[1]);
-                        startConnection(factory, gatewayClient);
-                    } catch (IOException | TimeoutException | InterruptedException e) {
-                        e.printStackTrace();
+            connection.addShutdownListener(new ShutdownListener() {
+                @Override
+                public void shutdownCompleted(ShutdownSignalException cause) {
+                    Log.e(getClass().getName(), "Connection shutdown cause: " + cause.toString());
+                    if(sharedPreferences.getBoolean(String.valueOf(gatewayClient.getId()), false)) {
+                        try {
+                            connectionList.remove(gatewayClient.getId());
+                            int[] states = getGatewayClientNumbers();
+                            createForegroundNotification(states[0], states[1]);
+                            startConnection(factory, gatewayClient);
+                        } catch (IOException | TimeoutException | InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
-        });
+            });
 
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
         GatewayClientProjectDao gatewayClientProjectDao =
