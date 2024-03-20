@@ -56,10 +56,10 @@ public class RMQConnectionTest {
     ExecutorService consumerExecutorService = Executors.newFixedThreadPool(1); // Create a pool of 5 worker threads
 
     public RMQConnectionTest() throws IOException {
-        this.context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        InputStream inputStream = this.context.getResources()
-                .openRawResource(R.raw.app);
-        properties.load(inputStream);
+//        this.context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+//        InputStream inputStream = this.context.getResources()
+//                .openRawResource(R.raw.app);
+//        properties.load(inputStream);
     }
 
     @Test

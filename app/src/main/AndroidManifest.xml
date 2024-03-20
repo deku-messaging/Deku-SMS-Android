@@ -37,6 +37,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
         <activity
+            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerSMTPActivity"
+            android:exported="false" />
+        <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectListingActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
