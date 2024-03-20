@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -72,7 +71,6 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         }
 
         setRefreshTimer(gatewayServerRecyclerAdapter);
-        showSecureRequestAgreementModal();
     }
 
 
@@ -89,30 +87,35 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.gateway_client_listing_menu, menu);
+        getMenuInflater().inflate(R.menu.gateway_server_listing_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.gateway_client_add_manually) {
-            Intent addGatewayIntent = new Intent(getApplicationContext(), GatewayServerAddActivity.class);
-            startActivity(addGatewayIntent);
+        if (item.getItemId() == R.id.gateway_server_menu_add_http) {
+            showSecureRequestAgreementModal(R.layout.fragment_modalsheet_gateway_server_http_add_layout);
+            return true;
+        }
+        else if (item.getItemId() == R.id.gateway_server_menu_add_smtp) {
+            showSecureRequestAgreementModal(R.layout.fragment_modalsheet_gateway_server_smtp_add_layout);
             return true;
         }
         return false;
     }
 
-    private void showSecureRequestAgreementModal() {
+    private void showSecureRequestAgreementModal(int layout) {
         Fragment fragment = getSupportFragmentManager()
                 .findFragmentByTag(GatewayServerAddModelFragment.TAG);
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
         GatewayServerAddModelFragment gatewayServerAddModelFragment =
-                new GatewayServerAddModelFragment();
+                new GatewayServerAddModelFragment(layout);
         fragmentTransaction.add(gatewayServerAddModelFragment,
                 ModalSheetFragment.TAG);
         fragmentTransaction.show(gatewayServerAddModelFragment);
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

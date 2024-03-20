@@ -14,7 +14,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -142,11 +141,11 @@ public class GatewayClientListingActivity extends AppCompatActivity {
             startActivity(addGatewayIntent);
             return true;
         }
-        else if (item.getItemId() == R.id.gateway_client_linked_device_add) {
-            Intent addGatewayIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);
-            startActivity(addGatewayIntent);
-            return true;
-        }
+//        else if (item.getItemId() == R.id.gateway_client_linked_device_add) {
+//            Intent addGatewayIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);
+//            startActivity(addGatewayIntent);
+//            return true;
+//        }
         return false;
     }
 

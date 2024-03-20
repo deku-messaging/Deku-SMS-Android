@@ -4,7 +4,4 @@
     <item
         android:id="@+id/router_list_gateways_menu_item"
         android:title="@string/router_list_gateways" />
-    <item
-        android:id="@+id/router_add_gateways_menu_item"
-        android:title="@string/router_add_gateways" />
 </menu>

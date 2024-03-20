@@ -1,6 +1,5 @@
 package com.afkanerd.deku.Router.Router;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -9,10 +8,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -24,7 +21,6 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class RouterActivity extends CustomAppCompactActivity {
 
@@ -92,7 +88,7 @@ public class RouterActivity extends CustomAppCompactActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.routing_menu, menu);
+        getMenuInflater().inflate(R.menu.gateway_server_routed_list_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -102,10 +98,6 @@ public class RouterActivity extends CustomAppCompactActivity {
             startActivity(new Intent(this, GatewayServerListingActivity.class));
             return true;
         }
-        if(item.getItemId() == R.id.router_add_gateways_menu_item) {
-            startActivity(new Intent(this, GatewayServerAddActivity.class));
-            return true;
-        }
         return false;
     }
 
@@ -113,7 +105,7 @@ public class RouterActivity extends CustomAppCompactActivity {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            mode.getMenuInflater().inflate(R.menu.routing_menu_items_selected, menu);
+            mode.getMenuInflater().inflate(R.menu.gateway_server_routed_menu_items_selected, menu);
             return true;
         }
 

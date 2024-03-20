@@ -7,6 +7,6 @@ import com.afkanerd.deku.DefaultSMS.R
 class GatewayServerSMTPActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_gateway_server_smtpactivity)
+        setContentView(R.layout.fragment_modalsheet_gateway_server_smtp_add_layout)
     }
 }

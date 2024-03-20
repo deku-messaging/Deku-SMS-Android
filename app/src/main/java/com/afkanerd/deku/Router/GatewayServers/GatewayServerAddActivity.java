@@ -1,7 +1,6 @@
 package com.afkanerd.deku.Router.GatewayServers;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -10,7 +9,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.RadioGroup;
 
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.Router.Router.RouterHandler;
@@ -28,7 +26,7 @@ public class GatewayServerAddActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gateway_server_add);
+        setContentView(R.layout.fragment_modalsheet_gateway_server_http_add_layout);
 
 //        toolbar = findViewById(R.id.gateway_server_add_toolbar);
 //        setSupportActionBar(toolbar);

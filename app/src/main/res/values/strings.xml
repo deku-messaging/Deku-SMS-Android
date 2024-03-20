@@ -45,6 +45,21 @@
     <string name="gateway_client_listing_toolbar_title">SMS listening Gateways</string>
     <string name="add_new_gateway_server_toolbar_title">Add Gateway</string>
 
+    <string name="add_new_gateway_server_http">Add HTTPS Gateway server</string>
+
+    <string name="add_new_gateway_server_smtp">Add SMTP Gateway server</string>
+    <string name="add_new_gateway_server_smtp_host">Host</string>
+    <string name="add_new_gateway_server_smtp_username">Username</string>
+    <string name="add_new_gateway_server_smtp_password">Password</string>
+    <string name="add_new_gateway_server_smtp_port">Port</string>
+    <string name="add_new_gateway_server_smtp_recipient">Recipient</string>
+    <string name="add_new_gateway_server_smtp_from">From</string>
+    <string name="add_new_gateway_server_smtp_subject">(Optional) Subject</string>
+    <string name="add_new_gateway_server_smtp_add">Add</string>
+
+    <string name="add_new_gateway_server_ftp">Add FTP Gateway</string>
+    <string name="add_new_gateway_server_amqp">Add AMQP Gateway</string>
+
     <string name="notifications_reply_label">Reply</string>
     <string name="notifications_mark_as_read_label">Mark as read</string>
 

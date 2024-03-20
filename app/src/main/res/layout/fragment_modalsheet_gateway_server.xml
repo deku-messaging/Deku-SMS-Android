@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout android:id="@+id/gateway_server_listing_coordinator"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    android:id="@+id/gateway_server_listing_coordinator"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <include
+    <ViewStub
+        android:id="@+id/gateway_server_add_include_layout"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        layout="@layout/activity_gateway_server_add"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
