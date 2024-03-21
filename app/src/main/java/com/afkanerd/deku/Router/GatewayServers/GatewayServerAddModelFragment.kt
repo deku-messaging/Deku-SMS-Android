@@ -38,7 +38,7 @@ class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int)
 
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         var materialButton: MaterialButton = inflatedView
-                .findViewById<MaterialButton>(R.id.gateway_client_customization_save_btn)
+                .findViewById<MaterialButton>(R.id.gateway_server_customization_save_btn)
         materialButton.setOnClickListener {
             runnable.run()
         }

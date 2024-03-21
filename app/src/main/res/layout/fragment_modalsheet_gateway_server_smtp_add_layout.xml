@@ -36,6 +36,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:hint="@string/add_new_gateway_server_smtp_host"
+        app:helperText="@string/add_new_gateway_server_smtp_host"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_smtp">
@@ -88,6 +89,17 @@
             android:inputType="textPassword" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/gateway_sever_add_smtp_divider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:dividerInsetStart="16dp"
+        app:dividerInsetEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_smtp_password" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/gateway_server_add_smtp_from"
         android:layout_width="match_parent"
@@ -98,7 +110,7 @@
         android:hint="@string/add_new_gateway_server_smtp_from"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_smtp_password">
+        app:layout_constraintTop_toBottomOf="@+id/gateway_sever_add_smtp_divider">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/gateway_server_add_smtp_recipient_input"
@@ -149,7 +161,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/gateway_server_add_btn"
+        android:id="@+id/gateway_server_customization_save_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
