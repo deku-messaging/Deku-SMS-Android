@@ -168,8 +168,6 @@ public class GatewayServerListingActivity extends AppCompatActivity {
     }
 
     private void showSecureRequestAgreementModal(int layout) {
-        Fragment fragment = getSupportFragmentManager()
-                .findFragmentByTag(GatewayServerAddModelFragment.TAG);
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
