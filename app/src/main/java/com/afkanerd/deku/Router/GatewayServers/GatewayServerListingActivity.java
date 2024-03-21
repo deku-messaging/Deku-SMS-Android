@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -20,7 +21,12 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.Fragments.ModalSheetFragment;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.List;
 
@@ -31,10 +37,21 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
     Toolbar toolbar;
 
+    Datastore databaseConnector;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_servers_listing_activitiy);
+
+        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
+            Log.d(getClass().getName(), "Yes I am closed");
+            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
+                            Datastore.databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
+        databaseConnector = Datastore.datastore;
 
         toolbar = findViewById(R.id.gateway_servers_listing_toolbar);
         setSupportActionBar(toolbar);
@@ -70,7 +87,53 @@ public class GatewayServerListingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        setRefreshTimer(gatewayServerRecyclerAdapter);
+    }
+
+    MaterialCheckBox all, base64;
+    public void onSaveGatewayServer(View view) {
+        TextInputEditText textInputEditTextUrl = view.findViewById(R.id.new_gateway_server_url_input);
+        String gatewayServerUrl = textInputEditTextUrl.getText().toString();
+
+        TextInputEditText textInputEditTextTag = view.findViewById(R.id.new_gateway_server_tag_input);
+        String gatewayServerTag = textInputEditTextTag.getText().toString();
+
+        String formats = "";
+        String protocol = GatewayServer.POST_PROTOCOL;
+
+        GatewayServer gatewayServer = new GatewayServer(gatewayServerUrl);
+//        if(base64.isChecked()) {
+//            formats = GatewayServer.BASE64_FORMAT;
+//        gatewayServer.setFormat(formats);
+//    }
+
+//        RadioGroup radioGroup = findViewById(R.id.add_gateway_server_protocol_group);
+//        int checkedRadioId = radioGroup.getCheckedRadioButtonId();
+
+        // Important: test if valid url
+        gatewayServer.setTag(gatewayServerTag);
+        gatewayServer.setProtocol(protocol);
+        gatewayServer.setDate(System.currentTimeMillis());
+
+        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_ID)) {
+            gatewayServer.setId(getIntent().getLongExtra(GatewayServer.GATEWAY_SERVER_ID, -1));
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    databaseConnector.gatewayServerDAO().update(gatewayServer);
+                }
+            });
+        }
+        else
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    databaseConnector.gatewayServerDAO().insert(gatewayServer);
+                }
+            });
+
+//            Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
+//            startActivity(gatewayServerListIntent);
+//            finish();
     }
 
 
@@ -120,14 +183,13 @@ public class GatewayServerListingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 fragmentTransaction.commitNow();
-//                modalSheetFragment.getView().findViewById(R.id.conversation_secure_request_agree_btn)
-//                        .setOnClickListener(new View.OnClickListener() {
-//                            @Override
-//                            public void onClick(View v) {
-//                                modalSheetFragment.dismiss();
-//                                agreeToSecure();
-//                            }
-//                        });
+                gatewayServerAddModelFragment.runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        onSaveGatewayServer(gatewayServerAddModelFragment.getView());
+                        gatewayServerAddModelFragment.dismiss();
+                    }
+                };
             }
         });
     }

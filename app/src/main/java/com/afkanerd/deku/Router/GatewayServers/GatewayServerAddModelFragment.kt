@@ -8,6 +8,7 @@ import android.view.ViewStub
 import com.afkanerd.deku.DefaultSMS.R
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.button.MaterialButton
 
 class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int)
     : BottomSheetDialogFragment() {
@@ -16,6 +17,8 @@ class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
+
+    public lateinit var runnable: Runnable
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -34,6 +37,11 @@ class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int)
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
 
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        var materialButton: MaterialButton = inflatedView
+                .findViewById<MaterialButton>(R.id.gateway_client_customization_save_btn)
+        materialButton.setOnClickListener {
+            runnable.run()
+        }
     }
 
     companion object {

@@ -17,7 +17,6 @@ import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class GatewayServerAddActivity extends AppCompatActivity {
-    MaterialCheckBox all, base64;
 
     GatewayServerHandler gatewayServerHandler;
 
@@ -35,98 +34,53 @@ public class GatewayServerAddActivity extends AppCompatActivity {
 
         gatewayServerHandler = new GatewayServerHandler(getApplicationContext());
 
-        dataTypeFilter();
+//        dataTypeFilter();
 
-        MaterialButton materialButton = findViewById(R.id.gateway_client_customization_save_btn);
-        materialButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onSaveGatewayServer(v);
-            }
-        });
-
-        populateForUpdates();
+//        populateForUpdates();
     }
 
-    private void populateForUpdates() {
-        TextInputEditText textInputEditTextUrl = findViewById(R.id.new_gateway_client_url_input);
-        TextInputEditText textInputEditTextTag = findViewById(R.id.new_gateway_client_tag_input);
+//    private void populateForUpdates() {
+//        TextInputEditText textInputEditTextUrl = findViewById(R.id.new_gateway_server_url_input);
+//        TextInputEditText textInputEditTextTag = findViewById(R.id.new_gateway_server_tag_input);
+//
+//        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_URL)) {
+//            textInputEditTextUrl.setText(getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_URL));
+//        }
+//
+//        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_TAG)) {
+//            textInputEditTextTag.setText(getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_TAG));
+//        }
+//
+//        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_FORMAT)) {
+//            String format = getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_FORMAT);
+//            if(format != null && format.equals(GatewayServer.BASE64_FORMAT))
+//                base64.setChecked(true);
+//        }
+//
+//    }
 
-        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_URL)) {
-            textInputEditTextUrl.setText(getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_URL));
-        }
+//    private void dataTypeFilter(){
+//        all = findViewById(R.id.add_gateway_data_format_all);
+//        base64 = findViewById(R.id.add_gateway_data_format_base64);
+//
+//        all.addOnCheckedStateChangedListener(new MaterialCheckBox.OnCheckedStateChangedListener() {
+//            @Override
+//            public void onCheckedStateChangedListener(@NonNull MaterialCheckBox checkBox, int state) {
+//                if(state == 1) {
+//                    base64.setChecked(false);
+//                }
+//            }
+//        });
+//        base64.addOnCheckedStateChangedListener(new MaterialCheckBox.OnCheckedStateChangedListener() {
+//            @Override
+//            public void onCheckedStateChangedListener(@NonNull MaterialCheckBox checkBox, int state) {
+//                if(state == 1) {
+//                    all.setChecked(false);
+//                }
+//            }
+//        });
+//    }
 
-        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_TAG)) {
-            textInputEditTextTag.setText(getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_TAG));
-        }
-
-        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_FORMAT)) {
-            String format = getIntent().getStringExtra(GatewayServer.GATEWAY_SERVER_FORMAT);
-            if(format != null && format.equals(GatewayServer.BASE64_FORMAT))
-                base64.setChecked(true);
-        }
-
-    }
-
-    private void dataTypeFilter(){
-        all = findViewById(R.id.add_gateway_data_format_all);
-        base64 = findViewById(R.id.add_gateway_data_format_base64);
-
-        all.addOnCheckedStateChangedListener(new MaterialCheckBox.OnCheckedStateChangedListener() {
-            @Override
-            public void onCheckedStateChangedListener(@NonNull MaterialCheckBox checkBox, int state) {
-                if(state == 1) {
-                    base64.setChecked(false);
-                }
-            }
-        });
-        base64.addOnCheckedStateChangedListener(new MaterialCheckBox.OnCheckedStateChangedListener() {
-            @Override
-            public void onCheckedStateChangedListener(@NonNull MaterialCheckBox checkBox, int state) {
-                if(state == 1) {
-                    all.setChecked(false);
-                }
-            }
-        });
-    }
-
-    public void onSaveGatewayServer(View view) {
-        TextInputEditText textInputEditTextUrl = findViewById(R.id.new_gateway_client_url_input);
-        String gatewayServerUrl = textInputEditTextUrl.getText().toString();
-
-        TextInputEditText textInputEditTextTag = findViewById(R.id.new_gateway_client_tag_input);
-        String gatewayServerTag = textInputEditTextTag.getText().toString();
-
-        String formats = "";
-        String protocol = GatewayServer.POST_PROTOCOL;
-
-        if(base64.isChecked())
-            formats = GatewayServer.BASE64_FORMAT;
-
-//        RadioGroup radioGroup = findViewById(R.id.add_gateway_server_protocol_group);
-//        int checkedRadioId = radioGroup.getCheckedRadioButtonId();
-
-        // Important: test if valid url
-        GatewayServer gatewayServer = new GatewayServer(gatewayServerUrl);
-        gatewayServer.setTag(gatewayServerTag);
-        gatewayServer.setFormat(formats);
-        gatewayServer.setProtocol(protocol);
-
-        try {
-            if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_ID)) {
-                gatewayServer.setId(getIntent().getLongExtra(GatewayServer.GATEWAY_SERVER_ID, -1));
-                gatewayServerHandler.update(gatewayServer);
-            }
-            else
-                gatewayServerHandler.add(gatewayServer);
-
-            Intent gatewayServerListIntent = new Intent(this, GatewayServerListingActivity.class);
-            startActivity(gatewayServerListIntent);
-            finish();
-        } catch(InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
