@@ -62,9 +62,9 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
         recentsRecyclerView.setLayoutManager(linearLayoutManager);
 
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(getApplicationContext(),
-                linearLayoutManager.getOrientation());
-        recentsRecyclerView.addItemDecoration(dividerItemDecoration);
+//        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(getApplicationContext(),
+//                linearLayoutManager.getOrientation());
+//        recentsRecyclerView.addItemDecoration(dividerItemDecoration);
 
         GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter(this);
         recentsRecyclerView.setAdapter(gatewayServerRecyclerAdapter);
