@@ -38,14 +38,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_servers_listing_activitiy);
 
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Log.d(getClass().getName(), "Yes I am closed");
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(getApplicationContext());
 
         toolbar = findViewById(R.id.gateway_servers_listing_toolbar);
         setSupportActionBar(toolbar);
@@ -57,7 +50,8 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
         recentsRecyclerView.setLayoutManager(linearLayoutManager);
 
-        GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter(this);
+        GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter =
+                new GatewayServerRecyclerAdapter();
         recentsRecyclerView.setAdapter(gatewayServerRecyclerAdapter);
 
         GatewayServerViewModel gatewayServerViewModel = new ViewModelProvider(this).get(

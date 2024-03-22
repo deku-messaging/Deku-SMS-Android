@@ -50,7 +50,24 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 13, to = 14)
 })
 public abstract class Datastore extends RoomDatabase {
-    public static Datastore datastore;
+    private static Datastore datastore;
+
+    public static Datastore getDatastore(Context context) {
+        if(datastore == null || !datastore.isOpen()) {
+            datastore = Room.databaseBuilder(context, Datastore.class, databaseName)
+                    .enableMultiInstanceInvalidation()
+                    .addMigrations(new Migrations.Migration4To5())
+                    .addMigrations(new Migrations.Migration5To6())
+                    .addMigrations(new Migrations.Migration6To7())
+                    .addMigrations(new Migrations.Migration7To8())
+                    .addMigrations(new Migrations.Migration9To10())
+                    .addMigrations(new Migrations.Migration10To11(context))
+                    .addMigrations(new Migrations.MIGRATION_11_12())
+                    .build();
+        }
+
+        return datastore;
+    }
 
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
 

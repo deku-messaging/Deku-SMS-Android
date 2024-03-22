@@ -79,8 +79,8 @@ public class ConversationsViewModel extends ViewModel {
         return datastore.conversationDao().getMessage(messageId);
     }
 
-    public long insert(Conversation conversation) throws InterruptedException {
-        datastore.threadedConversationsDao().insertThreadAndConversation(conversation);
+    public long insert(Context context, Conversation conversation) throws InterruptedException {
+        datastore.threadedConversationsDao().insertThreadAndConversation(context, conversation);
         if(customPagingSource != null)
             customPagingSource.invalidate();
         return 0;
@@ -104,7 +104,7 @@ public class ConversationsViewModel extends ViewModel {
         return positions;
     }
 
-    public void updateInformation(String contactName) {
+    public void updateInformation(Context context, String contactName) {
         if(threadId != null && !threadId.isEmpty()) {
             List<Conversation> conversations = datastore.conversationDao().getAll(threadId);
             List<Conversation> updateList = new ArrayList<>();
@@ -120,7 +120,7 @@ public class ConversationsViewModel extends ViewModel {
                 datastore.threadedConversationsDao().get(threadId);
         if(threadedConversations != null) {
             threadedConversations.setContact_name(contactName);
-            datastore.threadedConversationsDao().update(threadedConversations);
+            datastore.threadedConversationsDao().update(context, threadedConversations);
         }
     }
 
@@ -140,7 +140,7 @@ public class ConversationsViewModel extends ViewModel {
 
     public void clearDraft(Context context) {
         datastore.conversationDao()
-                .deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
+                .deleteAllType(context, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
         SMSDatabaseWrapper.deleteDraft(context, threadId);
     }
 

@@ -16,13 +16,7 @@ public class GatewayServerHandler {
     Datastore databaseConnector;
 
     public GatewayServerHandler(Context context){
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Datastore.datastore = Room.databaseBuilder(context, Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(context);
     }
 
     public LiveData<List<GatewayServer>> getAllLiveData() throws InterruptedException {

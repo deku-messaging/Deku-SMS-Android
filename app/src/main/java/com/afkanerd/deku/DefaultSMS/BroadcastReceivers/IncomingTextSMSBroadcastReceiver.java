@@ -62,13 +62,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
-                            Datastore.class, Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(context);
 
         if (intent.getAction().equals(Telephony.Sms.Intents.SMS_DELIVER_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
@@ -248,7 +242,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 try {
                     ThreadedConversations threadedConversations =
                             databaseConnector.threadedConversationsDao()
-                                    .insertThreadAndConversation(conversation);
+                                    .insertThreadAndConversation(context, conversation);
                     if(!threadedConversations.isIs_mute())
                         NotificationsHandler.sendIncomingTextMessageNotification(context,
                                 conversation);

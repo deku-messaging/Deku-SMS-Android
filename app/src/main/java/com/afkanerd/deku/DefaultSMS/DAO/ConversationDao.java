@@ -1,5 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.DAO;
 
+import android.content.Context;
+
 import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -74,11 +76,13 @@ public interface ConversationDao {
     int _deleteAllType(int type, String thread_id);
 
     @Transaction
-    default void deleteAllType(int type, String thread_id) {
+    default void deleteAllType(Context context, int type, String thread_id) {
         _deleteAllType(type, thread_id);
         Conversation conversation = fetchLatestForThread(thread_id);
         if(conversation != null)
-            Datastore.datastore.threadedConversationsDao().insertThreadFromConversation(conversation);
+            Datastore.getDatastore(context)
+                    .threadedConversationsDao()
+                    .insertThreadFromConversation(context, conversation);
     }
 
     @Delete

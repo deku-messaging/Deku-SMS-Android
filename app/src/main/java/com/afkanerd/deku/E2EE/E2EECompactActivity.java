@@ -95,7 +95,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                                                 showSecureRequestAgreementModal();
                                             }
                                             databaseConnector.threadedConversationsDao()
-                                                    .update(threadedConversations);
+                                                    .update(getApplicationContext(),
+                                                            threadedConversations);
                                         } catch (CertificateException | KeyStoreException |
                                                  NoSuchAlgorithmException | IOException |
                                                  UnrecoverableEntryException | InterruptedException e) {
@@ -187,9 +188,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     conversation.setDate(String.valueOf(System.currentTimeMillis()));
                     conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-//                    Log.d(getClass().getName(), "Threaded conversation safe: " +
-//                            threadedConversations.isIs_secured());
-                    long id = conversationsViewModel.insert(conversation);
+                    long id = conversationsViewModel.insert(getApplicationContext(), conversation);
                     SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -224,7 +223,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        sendDataMessage(Datastore.datastore.threadedConversationsDao()
+                        sendDataMessage(Datastore.getDatastore(getApplicationContext())
+                                .threadedConversationsDao()
                                 .get(threadId));
                     }
                 });
@@ -304,7 +304,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             @Override
             public void run() {
                 try {
-                    ThreadedConversations threadedConversations = Datastore.datastore
+                    ThreadedConversations threadedConversations =
+                            Datastore.getDatastore(getApplicationContext())
                             .threadedConversationsDao().get(threadId);
                     String keystoreAlias = E2EEHandler
                             .deriveKeystoreAlias(address, 0);
@@ -321,7 +322,9 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                                     transmissionKey, keystoreAlias);
                         threadedConversations.setIs_secured(true);
                         threadedConversations.setSelf(true);
-                        Datastore.datastore.threadedConversationsDao().update(threadedConversations);
+                        Datastore.getDatastore(getApplicationContext())
+                                .threadedConversationsDao()
+                                .update(getApplicationContext(), threadedConversations);
                     } else
                         sendDataMessage(threadedConversations);
                 } catch(Exception e) {

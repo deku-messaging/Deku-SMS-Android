@@ -124,13 +124,13 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return gson.toJson(conversations);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getEncrypted() throws InterruptedException {
+    public LiveData<PagingData<ThreadedConversations>> getEncrypted(Context context) throws InterruptedException {
         List<String> address = new ArrayList<>();
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
-                        Datastore.datastore.conversationsThreadsEncryptionDao().getAll();
+                        Datastore.getDatastore(context).conversationsThreadsEncryptionDao().getAll();
                 for(ConversationsThreadsEncryption conversationsThreadsEncryption :
                         conversationsThreadsEncryptionList) {
                     String derivedAddress =
@@ -258,7 +258,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
         for(ThreadedConversations threadedConversations : threadedConversationsList) {
             BlockedNumberContract.unblock(context, threadedConversations.getAddress());
             threadedConversations.setIs_blocked(false);
-            databaseConnector.threadedConversationsDao().update(threadedConversations);
+            databaseConnector.threadedConversationsDao().update(context, threadedConversations);
         }
     }
 

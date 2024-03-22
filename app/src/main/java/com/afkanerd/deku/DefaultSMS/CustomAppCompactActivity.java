@@ -61,14 +61,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             finish();
         }
 
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Log.d(getClass().getName(), "Yes I am closed");
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(getApplicationContext());
     }
 
     private boolean _checkIsDefaultApp() {
@@ -142,7 +135,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     @Override
                     public void run() {
                         try {
-                            conversationsViewModel.insert(conversation);
+                            conversationsViewModel.insert(getApplicationContext(), conversation);
                         } catch(Exception e) {
                             e.printStackTrace();
                             return;
@@ -186,7 +179,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         conversation.setAddress(address);
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
                         try {
-                            conversationsViewModel.insert(conversation);
+                            conversationsViewModel.insert(getApplicationContext(), conversation);
                             SMSDatabaseWrapper.saveDraft(getApplicationContext(), conversation);
                         } catch (Exception e) {
                             e.printStackTrace();

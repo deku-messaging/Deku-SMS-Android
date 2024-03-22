@@ -26,18 +26,13 @@ import java.util.List;
 public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewayServerRecyclerAdapter.ViewHolder> {
 
     private final AsyncListDiffer<GatewayServer> mDiffer = new AsyncListDiffer(this, GatewayServer.DIFF_CALLBACK);
-    Context context;
 
-    public GatewayServerRecyclerAdapter(Context context) {
-        this.context = context;
-    }
-
-    public GatewayServerRecyclerAdapter() {}
+    public GatewayServerRecyclerAdapter() { }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(this.context);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view = inflater.inflate(R.layout.gateway_server_listing_layout, parent, false);
         return new GatewayServerRecyclerAdapter.ViewHolder(view);
     }
@@ -55,15 +50,16 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
                 ? "all" : gatewayServer.getFormat();
         holder.format.setText(dataFormat);
 
-        String date = Helpers.formatDate(context, gatewayServer.getDate());
+        String date = Helpers.formatDate(holder.itemView.getContext(), gatewayServer.getDate());
         holder.date.setText(date);
 
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, GatewayServerAddActivity.class);
+                Intent intent = new Intent(holder.itemView.getContext(),
+                        GatewayServerAddActivity.class);
                 intent.putExtra(GatewayServer.GATEWAY_SERVER_ID, gatewayServer.getId());
-                context.startActivity(intent);
+                holder.itemView.getContext().startActivity(intent);
             }
         });
     }

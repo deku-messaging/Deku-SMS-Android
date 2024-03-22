@@ -58,13 +58,7 @@ public class GatewayClientListingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_listing);
 
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(getApplicationContext());
 
         sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
 

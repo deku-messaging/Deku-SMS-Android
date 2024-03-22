@@ -52,16 +52,11 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_messages_threads);
 
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(getApplicationContext());
 
         searchViewModel = new ViewModelProvider(this).get(
                 SearchViewModel.class);
-        searchViewModel.databaseConnector = Datastore.datastore;
+        searchViewModel.databaseConnector = Datastore.getDatastore(getApplicationContext());
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.search_messages_toolbar);
         setSupportActionBar(myToolbar);

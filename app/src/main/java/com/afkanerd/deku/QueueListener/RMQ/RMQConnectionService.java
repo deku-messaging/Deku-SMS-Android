@@ -104,12 +104,7 @@ public class RMQConnectionService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(getApplicationContext());
 
         handleBroadcast();
 
@@ -258,9 +253,8 @@ public class RMQConnectionService extends Service {
                 conversation.setThread_id(String.valueOf(threadId));
                 conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-                databaseConnector.threadedConversationsDao().insertThreadAndConversation(conversation);
-                Log.d(getClass().getName(), "Sending RMQ SMS: " + subscriptionId + ":"
-                        + conversation.getAddress());
+                databaseConnector.threadedConversationsDao()
+                        .insertThreadAndConversation(getApplicationContext(), conversation);
                 SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, bundle);
             } catch (JSONException e) {
                 e.printStackTrace();

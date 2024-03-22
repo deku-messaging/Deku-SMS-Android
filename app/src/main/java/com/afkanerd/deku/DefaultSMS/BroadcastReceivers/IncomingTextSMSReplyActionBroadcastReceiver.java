@@ -51,14 +51,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
-                            Datastore.class, Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(context);
 
         if (intent.getAction() != null && intent.getAction().equals(REPLY_BROADCAST_INTENT)) {
             Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
@@ -89,7 +82,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                     public void run() {
                         try {
                             databaseConnector.threadedConversationsDao()
-                                    .insertThreadAndConversation(conversation);
+                                    .insertThreadAndConversation(context, conversation);
 
                             SMSDatabaseWrapper.send_text(context, conversation, null);
                             Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);

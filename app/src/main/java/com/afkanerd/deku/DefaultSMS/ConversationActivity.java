@@ -150,7 +150,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 try {
                     NativeSMSDB.Incoming.update_read(getApplicationContext(), 1, threadId,
                             null);
-                    conversationsViewModel.updateInformation(contactName);
+                    conversationsViewModel.updateInformation(getApplicationContext(), contactName);
                     emptyDraft();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -232,7 +232,8 @@ public class ConversationActivity extends E2EECompactActivity {
                             databaseConnector.threadedConversationsDao().get(threadId);
                     threadedConversations.setIs_mute(true);
 
-                    databaseConnector.threadedConversationsDao().update(threadedConversations);
+                    databaseConnector.threadedConversationsDao().update(getApplicationContext(),
+                            threadedConversations);
                     invalidateMenu();
                     runOnUiThread(new Runnable() {
                         @Override
@@ -256,7 +257,8 @@ public class ConversationActivity extends E2EECompactActivity {
                     ThreadedConversations threadedConversations =
                             databaseConnector.threadedConversationsDao().get(threadId);
                     threadedConversations.setIs_mute(false);
-                    databaseConnector.threadedConversationsDao().update(threadedConversations);
+                    databaseConnector.threadedConversationsDao().update(getApplicationContext(),
+                            threadedConversations);
 
                     invalidateMenu();
                     runOnUiThread(new Runnable() {
@@ -367,7 +369,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
-        conversationsViewModel.datastore = Datastore.datastore;
+        conversationsViewModel.datastore = Datastore.getDatastore(getApplicationContext());
 
         backSearchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -647,7 +649,8 @@ public class ConversationActivity extends E2EECompactActivity {
                             @Override
                             public void run() {
                                 ThreadedConversations threadedConversations =
-                                        Datastore.datastore.threadedConversationsDao().get(threadId);
+                                        Datastore.getDatastore(getApplicationContext())
+                                                .threadedConversationsDao().get(threadId);
                                 if(threadedConversations == null) {
                                     threadedConversations = new ThreadedConversations();
                                     threadedConversations.setThread_id(threadId);
@@ -759,9 +762,11 @@ public class ConversationActivity extends E2EECompactActivity {
             @Override
             public void run() {
                 ThreadedConversations threadedConversations =
-                        Datastore.datastore.threadedConversationsDao().get(threadId);
+                        Datastore.getDatastore(getApplicationContext())
+                                .threadedConversationsDao().get(threadId);
                 threadedConversations.setIs_blocked(true);
-                databaseConnector.threadedConversationsDao().update(threadedConversations);
+                databaseConnector.threadedConversationsDao().update(getApplicationContext(),
+                        threadedConversations);
             }
         });
 

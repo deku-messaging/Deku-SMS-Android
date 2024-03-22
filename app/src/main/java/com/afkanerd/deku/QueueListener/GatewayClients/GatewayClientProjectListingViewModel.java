@@ -20,9 +20,10 @@ public class GatewayClientProjectListingViewModel extends ViewModel {
 
     long id;
     MutableLiveData<List<GatewayClientProjects>> mutableLiveData = new MutableLiveData<>();
-    public LiveData<List<GatewayClientProjects>> get(Datastore databaseConnector, long id) {
+    public LiveData<List<GatewayClientProjects>> get(Context context, long id) {
         this.id = id;
-        GatewayClientProjectDao gatewayClientProjectDao = databaseConnector.gatewayClientProjectDao();
+        GatewayClientProjectDao gatewayClientProjectDao = Datastore.getDatastore(context)
+                .gatewayClientProjectDao();
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
