@@ -43,7 +43,12 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         ConversationsThreadsEncryption.class,
         Conversation.class,
         GatewayClient.class},
-        version = 13, autoMigrations = {@AutoMigration(from = 11, to = 13)})
+        version = 14,
+        autoMigrations = {
+        @AutoMigration(from = 11, to = 12),
+        @AutoMigration(from = 12, to = 13),
+        @AutoMigration(from = 13, to = 14)
+})
 public abstract class Datastore extends RoomDatabase {
     public static Datastore datastore;
 
