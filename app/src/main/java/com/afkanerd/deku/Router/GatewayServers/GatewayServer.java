@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.ColumnInfo;
+import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
@@ -16,20 +17,15 @@ import androidx.room.RoomDatabase;
 
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.Router.SMTP;
 
 @Entity
 public class GatewayServer {
-
+    @Embedded public SMTP smtp;
     public static String BASE64_FORMAT = "base_64";
     public static String ALL_FORMAT = "all";
-    public static String POST_PROTOCOL = "POST";
-    public static String GET_PROTOCOL = "GET";
-
+    public static String POST_PROTOCOL = "HTTPS";
     public static String GATEWAY_SERVER_ID = "GATEWAY_SERVER_ID";
-    public static String GATEWAY_SERVER_TAG = "GATEWAY_SERVER_TAG";
-    public static String GATEWAY_SERVER_URL = "GATEWAY_SERVER_URL";
-    public static String GATEWAY_SERVER_PROTOCOL = "GATEWAY_SERVER_PROTOCOL";
-    public static String GATEWAY_SERVER_FORMAT = "GATEWAY_SERVER_FORMAT";
 
     @ColumnInfo(name="URL")
     public String URL;
@@ -102,23 +98,6 @@ public class GatewayServer {
     public void setId(long id) {
         this.id = id;
     }
-
-    @Ignore
-    Datastore databaseConnector;
-    public GatewayServerDAO getDaoInstance(Context context) {
-        databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .addMigrations(new Migrations.Migration9To10())
-                .enableMultiInstanceInvalidation()
-                .build();
-        return databaseConnector.gatewayServerDAO();
-    }
-
-//    public void close() {
-//        if(databaseConnector != null)
-//            databaseConnector.close();
-//    }
 
     @Override
     public boolean equals(@Nullable Object obj) {

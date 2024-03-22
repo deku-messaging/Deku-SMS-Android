@@ -9,10 +9,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Fragments.ModalSheetFragment;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import org.jetbrains.annotations.NotNull;
@@ -57,10 +60,6 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
             public void onClick(View v) {
                 Intent intent = new Intent(context, GatewayServerAddActivity.class);
                 intent.putExtra(GatewayServer.GATEWAY_SERVER_ID, gatewayServer.getId());
-                intent.putExtra(GatewayServer.GATEWAY_SERVER_TAG, gatewayServer.getTag());
-                intent.putExtra(GatewayServer.GATEWAY_SERVER_URL, gatewayServer.getURL());
-                intent.putExtra(GatewayServer.GATEWAY_SERVER_PROTOCOL, gatewayServer.getProtocol());
-                intent.putExtra(GatewayServer.GATEWAY_SERVER_FORMAT, gatewayServer.getFormat());
                 context.startActivity(intent);
             }
         });
@@ -88,5 +87,4 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
             this.cardView = itemView.findViewById(R.id.gateway_server_card_view);
         }
     }
-
 }

@@ -167,7 +167,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         return false;
     }
 
-    private void showSecureRequestAgreementModal(int layout) {
+    public void showSecureRequestAgreementModal(int layout) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
@@ -177,19 +177,14 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                 ModalSheetFragment.TAG);
         fragmentTransaction.show(gatewayServerAddModelFragment);
 
-        runOnUiThread(new Runnable() {
+        fragmentTransaction.commitNow();
+        gatewayServerAddModelFragment.runnable = new Runnable() {
             @Override
             public void run() {
-                fragmentTransaction.commitNow();
-                gatewayServerAddModelFragment.runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        onSaveGatewayServer(gatewayServerAddModelFragment.getView());
-                        gatewayServerAddModelFragment.dismiss();
-                    }
-                };
+                onSaveGatewayServer(gatewayServerAddModelFragment.getView());
+                gatewayServerAddModelFragment.dismiss();
             }
-        });
+        };
     }
 }
 
