@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Fragments.ModalSheetFragment;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.Router.SMTP;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -45,11 +46,13 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 //        GatewayServer gatewayServer = gatewayServerList.get(position);
         GatewayServer gatewayServer = mDiffer.getCurrentList().get(position);
-        holder.url.setText(gatewayServer.getURL());
+        String url = gatewayServer.getProtocol().equals(SMTP.PROTOCOL) ?
+                gatewayServer.smtp.host : gatewayServer.getURL();
+        holder.url.setText(url);
         holder.protocol.setText(gatewayServer.getProtocol());
 
         String dataFormat = (gatewayServer.getFormat() == null || gatewayServer.getFormat().isEmpty())
-                ? "All" : gatewayServer.getFormat();
+                ? "all" : gatewayServer.getFormat();
         holder.format.setText(dataFormat);
 
         String date = Helpers.formatDate(context, gatewayServer.getDate());

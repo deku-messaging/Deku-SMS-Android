@@ -21,7 +21,7 @@ import com.afkanerd.deku.Router.SMTP;
 
 @Entity
 public class GatewayServer {
-    @Embedded public SMTP smtp;
+    @Embedded public SMTP smtp = new SMTP();
     public static String BASE64_FORMAT = "base_64";
     public static String ALL_FORMAT = "all";
     public static String POST_PROTOCOL = "HTTPS";

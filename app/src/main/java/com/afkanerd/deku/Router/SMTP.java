@@ -1,6 +1,7 @@
 package com.afkanerd.deku.Router;
 
 public class SMTP {
+    public static String PROTOCOL = "SMTP";
 
     public String host;
 
