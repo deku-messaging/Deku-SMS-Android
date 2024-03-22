@@ -27,8 +27,9 @@ public class RouterItem extends Conversation  {
         this.text = this.getText();
     }
 
-    public RouterItem() {
-
+    public RouterItem(Conversation conversation) {
+        this.MSISDN = conversation.getAddress();
+        this.text = conversation.getText();
     }
 
     public static RouterItem build(Cursor cursor) {

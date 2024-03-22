@@ -24,6 +24,7 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.afkanerd.deku.Router.Router.RouterItem;
 import com.afkanerd.deku.Router.Router.RouterHandler;
@@ -79,10 +80,16 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         final int subscriptionId =
                                 Integer.parseInt(regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID]);
 
-                        insertConversation(context, address, messageId, threadId, body,
+                        Conversation conversation =
+                                insertConversation(context, address, messageId, threadId, body,
                                 subscriptionId, date, dateSent);
 
-                        router_activities(context, messageId);
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                GatewayServer.route(context, conversation);
+                            }
+                        });
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -215,7 +222,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    public void insertConversation(Context context, String address, String messageId,
+    public Conversation insertConversation(Context context, String address, String messageId,
                                    String threadId, String body, int subscriptionId, String date,
                                    String dateSent) {
         Conversation conversation = new Conversation();
@@ -255,6 +262,8 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 context.sendBroadcast(broadcastIntent);
             }
         });
+
+        return conversation;
     }
 
 
@@ -271,19 +280,5 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             encrypted = true;
         }
         return new Pair<>(text, encrypted);
-    }
-
-    public void router_activities(Context context, String messageId) {
-        try {
-            Cursor cursor = NativeSMSDB.fetchByMessageId(context, messageId);
-            if(cursor.moveToFirst()) {
-                GatewayServerHandler gatewayServerHandler = new GatewayServerHandler(context);
-                RouterItem routerItem = new RouterItem(cursor);
-                RouterHandler.route(context, routerItem, gatewayServerHandler);
-                cursor.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

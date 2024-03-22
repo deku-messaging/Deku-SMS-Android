@@ -36,6 +36,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:hint="@string/new_gateway_server_url"
+        app:helperTextEnabled="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_https">
@@ -56,6 +57,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:hint="@string/new_gateway_server_tag"
+        app:helperTextEnabled="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/new_gateway_server_url_input_layout">

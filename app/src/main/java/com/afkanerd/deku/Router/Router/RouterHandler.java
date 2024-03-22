@@ -45,7 +45,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class RouterHandler {
-    public static final String TAG_WORKER_ID = "swob.work.id.";
     public static int MESSAGE_ID = 0;
     public static int WORK_NAME = 1;
     public static int ROUTING_URL = 2;
@@ -79,70 +78,6 @@ public class RouterHandler {
 
     }
 
-    public static void route(Context context, RouterItem routerItem,
-                             GatewayServerHandler gatewayServerHandler) throws InterruptedException {
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.setPrettyPrinting().serializeNulls();
-        Gson gson = gsonBuilder.create();
-
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
-
-        boolean isBase64 = Helpers.isBase64Encoded(routerItem.getText());
-
-//        GatewayServer gatewayServer = new GatewayServer();
-//        GatewayServerDAO gatewayServerDAO = gatewayServer.getDaoInstance(context);
-//        List<GatewayServer> gatewayServerList = gatewayServerDAO.getAllList();
-        List<GatewayServer> gatewayServerList = gatewayServerHandler.getAll();
-
-        for (GatewayServer gatewayServer1 : gatewayServerList) {
-            if(gatewayServer1.getFormat() != null &&
-                    gatewayServer1.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
-                continue;
-
-            routerItem.tag = gatewayServer1.getTag();
-            final String jsonStringBody = gson.toJson(routerItem);
-
-            try {
-                OneTimeWorkRequest routeMessageWorkRequest = new OneTimeWorkRequest.Builder(RouterWorkManager.class)
-                        .setConstraints(constraints)
-                        .setBackoffCriteria(
-                                BackoffPolicy.LINEAR,
-                                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                                TimeUnit.MILLISECONDS
-                        )
-                        .addTag(TAG_NAME)
-                        .addTag(getTagForMessages(routerItem.getMessage_id()))
-                        .addTag(getTagForGatewayServers(gatewayServer1.getURL()))
-                        .setInputData(
-                                new Data.Builder()
-                                        .putString(RouterWorkManager.SMS_JSON_OBJECT, jsonStringBody)
-                                        .putString(RouterWorkManager.SMS_JSON_ROUTING_URL, gatewayServer1.getURL())
-                                        .build()
-                        )
-                        .build();
-
-                String uniqueWorkName = routerItem.getMessage_id() + ":" + gatewayServer1.getURL();
-                WorkManager workManager = WorkManager.getInstance(context);
-                workManager.enqueueUniqueWork(
-                        uniqueWorkName,
-                        ExistingWorkPolicy.KEEP,
-                        routeMessageWorkRequest);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static String getTagForMessages(String messageId) {
-        return TAG_WORKER_ID + messageId;
-    }
-
-    private static String getTagForGatewayServers(String gatewayClientUrl) {
-        return TAG_ROUTING_URL + gatewayClientUrl;
-    }
-
     public static void removeWorkForMessage(Context context, String messageId) {
         String tag = getTagForMessages(messageId);
         WorkManager workManager = WorkManager.getInstance(context);
@@ -154,6 +89,16 @@ public class RouterHandler {
         WorkManager workManager = WorkManager.getInstance(context);
         workManager.cancelAllWorkByTag(tag);
     }
+
+    public static final String TAG_WORKER_ID = "TAG_WORKER_ID";
+    public static String getTagForMessages(String messageId) {
+        return TAG_WORKER_ID + messageId;
+    }
+
+    public static String getTagForGatewayServers(String gatewayClientUrl) {
+        return TAG_ROUTING_URL + gatewayClientUrl;
+    }
+
 
     public static ArrayList<String[]> getMessageIdsFromWorkManagers(Context context) {
 

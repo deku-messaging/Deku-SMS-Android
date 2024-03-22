@@ -19,6 +19,8 @@ import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.google.gson.annotations.Expose;
 
+import java.util.Objects;
+
 @Entity(indices = {@Index(value={"message_id"}, unique=true)})
 public class Conversation {
     public static final String ID = "ID";
@@ -239,25 +241,9 @@ public class Conversation {
         this.setSubscription_id(cursor.getInt(subscriptionIdIndex));
     }
 
-    public static Conversation buildForDataTransmission(Conversation conversation, byte[] transmissionData) {
-        String messageId = String.valueOf(System.currentTimeMillis());
-        Conversation newConversation = new Conversation();
-        newConversation.setIs_key(conversation.isIs_key());
-        newConversation.setMessage_id(messageId);
-        newConversation.setData(Base64.encodeToString(transmissionData, Base64.DEFAULT));
-        newConversation.setSubscription_id(conversation.getSubscription_id());
-        newConversation.setType(Telephony.Sms.MESSAGE_TYPE_OUTBOX);
-        newConversation.setDate(String.valueOf(System.currentTimeMillis()));
-        newConversation.setAddress(conversation.getAddress());
-        newConversation.setStatus(Telephony.Sms.STATUS_PENDING);
-
-        return newConversation;
-    }
-
     public static Conversation build(Cursor cursor) {
         return new Conversation(cursor);
     }
-
 
     public static final DiffUtil.ItemCallback<Conversation> DIFF_CALLBACK = new DiffUtil.ItemCallback<Conversation>() {
         @Override
@@ -274,27 +260,16 @@ public class Conversation {
     public boolean equals(@Nullable Object obj) {
         if(obj instanceof Conversation) {
             Conversation conversation = (Conversation) obj;
-            if(data == null && text == null)
-                return false;
-
-            if(data ==  null)
-                return conversation.thread_id.equals(this.thread_id) &&
-                        conversation.message_id.equals(this.message_id) &&
-                        conversation.text.equals(this.text) &&
-                        conversation.status == this.status &&
-                        conversation.date.equals(this.date) &&
-                        conversation.address.equals(this.address) &&
-                        conversation.isRead() == this.isRead() &&
-                        conversation.type == this.type;
-            if(text == null)
-                return conversation.thread_id.equals(this.thread_id) &&
-                        conversation.message_id.equals(this.message_id) &&
-                        conversation.data.equals(this.data) &&
-                        conversation.status == this.status &&
-                        conversation.date.equals(this.date) &&
-                        conversation.address.equals(this.address) &&
-                        conversation.isRead() == this.isRead() &&
-                        conversation.type == this.type;
+            return
+                    Objects.equals(conversation.thread_id, this.thread_id) &&
+                    Objects.equals(conversation.message_id, this.message_id) &&
+                    Objects.equals(conversation.text, this.text) &&
+                    Objects.equals(conversation.data, this.data) &&
+                    Objects.equals(conversation.date, this.date) &&
+                    Objects.equals(conversation.address, this.address) &&
+                    conversation.status == this.status &&
+                    conversation.isRead() == this.isRead() &&
+                    conversation.type == this.type;
         }
         return super.equals(obj);
     }
