@@ -6,21 +6,42 @@
     android:id="@+id/activity_gateway_server_add_modal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context="com.afkanerd.deku.Router.GatewayServers.GatewayServerSMTPActivity"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
     style="@style/Widget.Material3.BottomSheet.Modal">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <com.google.android.material.bottomsheet.BottomSheetDragHandleView
-            android:id="@+id/drag_handle"
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/gateway_server_add_constraints"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
 
+            <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+                android:id="@+id/drag_handle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageButton
+                android:id="@+id/gateway_server_delete"
+                style="@android:style/Widget.Holo.ImageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/round_delete_24"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:visibility="visible" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/gateway_server_add_smtp"
             android:layout_width="match_parent"
@@ -30,7 +51,7 @@
             app:fontFamily="@font/roboto_bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/drag_handle" />
+            app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_constraints" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/gateway_server_add_smtp_host"

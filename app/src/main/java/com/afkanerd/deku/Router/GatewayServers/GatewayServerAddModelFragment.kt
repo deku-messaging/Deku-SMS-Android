@@ -5,10 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewStub
+import android.widget.ImageButton
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.SMTP
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.bottomsheet.BottomSheetDragHandleView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.textfield.TextInputEditText
@@ -59,6 +63,7 @@ class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int,
         if(gatewayServer.protocol == SMTP.PROTOCOL)
             editSMTP(view, gatewayServer)
         else editHTTP(view, gatewayServer)
+        configureParameters(view)
     }
 
     private fun editSMTP(view: View, gatewayServer: GatewayServer) {
@@ -105,5 +110,20 @@ class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int,
         val materialCheckBoxBase64: MaterialCheckBox =
                 view.findViewById<MaterialCheckBox>(R.id.add_gateway_data_format_base64)
         materialCheckBoxBase64.isChecked = gatewayServer.format == GatewayServer.BASE64_FORMAT
+    }
+
+    private fun configureParameters(view: View) {
+        val bottomSheetDragHandleView = view.findViewById<BottomSheetDragHandleView>(R.id.drag_handle)
+        bottomSheetDragHandleView.visibility = View.INVISIBLE
+
+        val deleteButton = view.findViewById<ImageButton>(R.id.gateway_server_delete)
+        deleteButton.visibility = View.VISIBLE
+
+        deleteButton.setOnClickListener {
+            ThreadingPoolExecutor.executorService.execute(Runnable {
+                Datastore.getDatastore(view.context).gatewayServerDAO().delete(gatewayServer)
+                dismiss()
+            })
+        }
     }
 }

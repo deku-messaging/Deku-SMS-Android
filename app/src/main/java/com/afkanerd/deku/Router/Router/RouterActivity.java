@@ -15,7 +15,6 @@ import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 
 import java.util.HashMap;
