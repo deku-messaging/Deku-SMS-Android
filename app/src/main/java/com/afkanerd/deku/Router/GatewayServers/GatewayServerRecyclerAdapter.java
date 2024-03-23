@@ -2,6 +2,7 @@ package com.afkanerd.deku.Router.GatewayServers;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,10 +60,6 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
             @Override
             public void onClick(View v) {
                 gatewayServerClickedListener.setValue(gatewayServer);
-//                Intent intent = new Intent(holder.itemView.getContext(),
-//                        GatewayServerAddActivity.class);
-//                intent.putExtra(GatewayServer.GATEWAY_SERVER_ID, gatewayServer.getId());
-//                holder.itemView.getContext().startActivity(intent);
             }
         });
     }

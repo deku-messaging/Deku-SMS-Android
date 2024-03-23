@@ -46,10 +46,14 @@ class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int,
 
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-        gatewayServer?.let { editGatewayServer(view, gatewayServer) }
-
         var materialButton: MaterialButton = inflatedView
                 .findViewById<MaterialButton>(R.id.gateway_server_customization_save_btn)
+
+        gatewayServer?.let {
+            editGatewayServer(view, gatewayServer)
+            materialButton.text = getString(R.string.gateway_server_update)
+        }
+
         materialButton.setOnClickListener {
             runnable.run()
         }
@@ -113,8 +117,8 @@ class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int,
     }
 
     private fun configureParameters(view: View) {
-        val bottomSheetDragHandleView = view.findViewById<BottomSheetDragHandleView>(R.id.drag_handle)
-        bottomSheetDragHandleView.visibility = View.INVISIBLE
+//        val bottomSheetDragHandleView = view.findViewById<BottomSheetDragHandleView>(R.id.drag_handle)
+//        bottomSheetDragHandleView.visibility = View.INVISIBLE
 
         val deleteButton = view.findViewById<ImageButton>(R.id.gateway_server_delete)
         deleteButton.visibility = View.VISIBLE

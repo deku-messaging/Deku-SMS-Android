@@ -80,16 +80,19 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                     public void onChanged(GatewayServer gatewayServer) {
                         if(gatewayServer != null) {
                             if(gatewayServer.getProtocol().equals(SMTP.PROTOCOL)) {
-                                showSecureRequestAgreementModal(SMTP_LAYOUT, TYPE_SMTP, gatewayServer);
+                                showSecureRequestAgreementModal(SMTP_LAYOUT, TYPE_SMTP,
+                                        gatewayServer);
                             } else {
-                                showSecureRequestAgreementModal(HTTP_LAYOUT, TYPE_HTTP, gatewayServer);
+                                showSecureRequestAgreementModal(HTTP_LAYOUT, TYPE_HTTP,
+                                        gatewayServer);
                             }
+                            gatewayServerRecyclerAdapter.gatewayServerClickedListener.setValue(null);
                         }
                     }
                 });
     }
 
-    public void onSaveTypeSmtp(View view) {
+    public void onSaveTypeSmtp(View view, GatewayServer gatewayServerEdit) {
         TextInputEditText textInputHost =
                 view.findViewById(R.id.gateway_server_add_smtp_host_input);
         TextInputEditText textInputUsername =
@@ -123,15 +126,25 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         gatewayServer.smtp.subject = textInputSubject.getText().toString();
         gatewayServer.setDate(System.currentTimeMillis());
 
-        ThreadingPoolExecutor.executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                databaseConnector.gatewayServerDAO().insert(gatewayServer);
-            }
-        });
+        if(gatewayServerEdit != null) {
+            gatewayServer.setId(gatewayServer.getId());
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    databaseConnector.gatewayServerDAO().update(gatewayServer);
+                }
+            });
+        }
+        else
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    databaseConnector.gatewayServerDAO().insert(gatewayServer);
+                }
+            });
     }
 
-    public void onSaveTypeHttp(View view) {
+    public void onSaveTypeHttp(View view, GatewayServer gatewayServerEdit) {
         TextInputEditText textInputEditTextUrl = view.findViewById(R.id.new_gateway_server_url_input);
         String gatewayServerUrl = textInputEditTextUrl.getText().toString();
 
@@ -152,9 +165,8 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         gatewayServer.setProtocol(protocol);
         gatewayServer.setDate(System.currentTimeMillis());
 
-        if(gatewayServerRecyclerAdapter.gatewayServerClickedListener.getValue() != null) {
-            gatewayServer.setId(gatewayServerRecyclerAdapter
-                    .gatewayServerClickedListener.getValue().getId());
+        if(gatewayServerEdit != null) {
+            gatewayServer.setId(gatewayServer.getId());
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -213,9 +225,9 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                 includedViewFormat = gatewayServerAddModelFragment.getView().
                         findViewById(R.id.gateway_server_routing_include);
                 if(type == TYPE_HTTP)
-                    onSaveTypeHttp(gatewayServerAddModelFragment.getView());
+                    onSaveTypeHttp(gatewayServerAddModelFragment.getView(), gatewayServer);
                 else if(type == TYPE_SMTP)
-                    onSaveTypeSmtp(gatewayServerAddModelFragment.getView());
+                    onSaveTypeSmtp(gatewayServerAddModelFragment.getView(), gatewayServer);
                 gatewayServerAddModelFragment.dismiss();
             }
         };
