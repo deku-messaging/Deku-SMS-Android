@@ -35,6 +35,8 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
     View includedViewFormat;
 
+    GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,8 +54,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         RecyclerView recentsRecyclerView = findViewById(R.id.gateway_server_listing_recycler_view);
         recentsRecyclerView.setLayoutManager(linearLayoutManager);
 
-        GatewayServerRecyclerAdapter gatewayServerRecyclerAdapter =
-                new GatewayServerRecyclerAdapter();
+        gatewayServerRecyclerAdapter = new GatewayServerRecyclerAdapter();
         recentsRecyclerView.setAdapter(gatewayServerRecyclerAdapter);
 
         GatewayServerViewModel gatewayServerViewModel = new ViewModelProvider(this).get(
@@ -77,10 +78,12 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                 .observe(this, new Observer<GatewayServer>() {
                     @Override
                     public void onChanged(GatewayServer gatewayServer) {
-                        if(gatewayServer.getProtocol().equals(SMTP.PROTOCOL)) {
-                            showSecureRequestAgreementModal(SMTP_LAYOUT, TYPE_SMTP);
-                        } else {
-                            showSecureRequestAgreementModal(HTTP_LAYOUT, TYPE_HTTP);
+                        if(gatewayServer != null) {
+                            if(gatewayServer.getProtocol().equals(SMTP.PROTOCOL)) {
+                                showSecureRequestAgreementModal(SMTP_LAYOUT, TYPE_SMTP, gatewayServer);
+                            } else {
+                                showSecureRequestAgreementModal(HTTP_LAYOUT, TYPE_HTTP, gatewayServer);
+                            }
                         }
                     }
                 });
@@ -149,14 +152,16 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         gatewayServer.setProtocol(protocol);
         gatewayServer.setDate(System.currentTimeMillis());
 
-        if(getIntent().hasExtra(GatewayServer.GATEWAY_SERVER_ID)) {
-            gatewayServer.setId(getIntent().getLongExtra(GatewayServer.GATEWAY_SERVER_ID, -1));
+        if(gatewayServerRecyclerAdapter.gatewayServerClickedListener.getValue() != null) {
+            gatewayServer.setId(gatewayServerRecyclerAdapter
+                    .gatewayServerClickedListener.getValue().getId());
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     databaseConnector.gatewayServerDAO().update(gatewayServer);
                 }
             });
+            gatewayServerRecyclerAdapter.gatewayServerClickedListener = new MutableLiveData<>();
         }
         else
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
@@ -178,11 +183,11 @@ public class GatewayServerListingActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.gateway_server_menu_add_http) {
-            showSecureRequestAgreementModal(HTTP_LAYOUT, TYPE_HTTP);
+            showSecureRequestAgreementModal(HTTP_LAYOUT, TYPE_HTTP, null);
             return true;
         }
         else if (item.getItemId() == R.id.gateway_server_menu_add_smtp) {
-            showSecureRequestAgreementModal(SMTP_LAYOUT, TYPE_SMTP);
+            showSecureRequestAgreementModal(SMTP_LAYOUT, TYPE_SMTP, null);
             return true;
         }
         return false;
@@ -190,12 +195,13 @@ public class GatewayServerListingActivity extends AppCompatActivity {
 
     static int TYPE_HTTP = 1;
     static int TYPE_SMTP = 2;
-    public void showSecureRequestAgreementModal(int layout, final int type) {
+    public void showSecureRequestAgreementModal(int layout, final int type,
+                                                GatewayServer gatewayServer) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         GatewayServerAddModelFragment gatewayServerAddModelFragment =
-                new GatewayServerAddModelFragment(layout);
+                new GatewayServerAddModelFragment(layout, gatewayServer);
         fragmentTransaction.add(gatewayServerAddModelFragment,
                 ModalSheetFragment.TAG);
         fragmentTransaction.show(gatewayServerAddModelFragment);

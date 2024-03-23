@@ -127,9 +127,9 @@ public class GatewayServer {
         if(obj instanceof GatewayServer) {
             GatewayServer gatewayServer = (GatewayServer) obj;
             return gatewayServer.id == this.id &&
-                    gatewayServer.URL.equals(this.URL) &&
-                    gatewayServer.protocol.equals(this.protocol) &&
-                    gatewayServer.date.equals(this.date) &&
+                    Objects.equals(gatewayServer.URL, this.URL) &&
+                    Objects.equals(gatewayServer.protocol, this.protocol) &&
+                    Objects.equals(gatewayServer.date, this.date) &&
                     Objects.equals(gatewayServer.smtp, this.smtp);
         }
         return false;
