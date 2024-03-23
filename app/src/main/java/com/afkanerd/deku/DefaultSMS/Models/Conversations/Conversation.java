@@ -245,6 +245,25 @@ public class Conversation {
         return new Conversation(cursor);
     }
 
+    @NonNull
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    public Conversation(Conversation conversation) {
+        this.setMessage_id(conversation.getMessage_id());
+        this.setText(conversation.getText());
+        this.setThread_id(conversation.getThread_id());
+        this.setAddress(conversation.getAddress());
+        this.setDate(conversation.getDate());
+        this.setDate_sent(conversation.getDate_sent());
+        this.setType(conversation.getType());
+        this.setStatus(conversation.getStatus());
+        this.setRead(conversation.isRead());
+        this.setSubscription_id(conversation.getSubscription_id());
+    }
+
     public static final DiffUtil.ItemCallback<Conversation> DIFF_CALLBACK = new DiffUtil.ItemCallback<Conversation>() {
         @Override
         public boolean areItemsTheSame(@NonNull Conversation oldItem, @NonNull Conversation newItem) {

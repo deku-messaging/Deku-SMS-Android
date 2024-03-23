@@ -37,12 +37,23 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import javax.mail.Address;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 public class RouterHandler {
     public static int MESSAGE_ID = 0;
@@ -52,29 +63,42 @@ public class RouterHandler {
 
     protected static ExecutorService executorService = Executors.newFixedThreadPool(4);
 
+    public static void routeSmtpMessages(final String body, GatewayServer gatewayServer)
+            throws MessagingException {
+        Properties properties = new Properties();
+        properties.put("mail.smtp.host", gatewayServer.smtp.host);
+        properties.put("mail.smtp.port", gatewayServer.smtp.port);
+//        properties.put("mail.debug", "true");
+
+        Session session = Session.getInstance(properties, null);
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(gatewayServer.smtp.from));
+        message.setRecipient(Message.RecipientType.TO,
+                new InternetAddress(gatewayServer.smtp.recipient));
+        message.setSubject(gatewayServer.smtp.subject);
+        message.setSentDate(new Date());
+        message.setText(body);
+
+        Transport.send(message, gatewayServer.smtp.username, gatewayServer.smtp.password);
+    }
+
     public static void routeJsonMessages(Context context, String jsonStringBody, String gatewayServerUrl)
             throws ExecutionException, InterruptedException, TimeoutException, JSONException {
-        try{
-            Log.d(RouterHandler.class.getName(), "Request to router: " + jsonStringBody);
-            JSONObject jsonBody = new JSONObject(jsonStringBody);
-            RequestFuture<JSONObject> future = RequestFuture.newFuture();
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
-                    gatewayServerUrl,
-                    jsonBody, future, future);
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
+        Log.d(RouterHandler.class.getName(), "Request to router: " + jsonStringBody);
+        JSONObject jsonBody = new JSONObject(jsonStringBody);
+        RequestFuture<JSONObject> future = RequestFuture.newFuture();
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
+                gatewayServerUrl,
+                jsonBody, future, future);
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
 
-            jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
-                    0,
-                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
+                0,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
-            requestQueue.add(jsonObjectRequest);
-            future.get(30, TimeUnit.SECONDS);
-        }
-        catch (ExecutionException | TimeoutException | InterruptedException e){
-            // Hit the server and came back with error code
-            throw e;
-        } // Because the server could return a string...
+        requestQueue.add(jsonObjectRequest);
+        future.get(30, TimeUnit.SECONDS);
 
     }
 

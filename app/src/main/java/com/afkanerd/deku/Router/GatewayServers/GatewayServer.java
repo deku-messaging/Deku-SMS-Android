@@ -23,6 +23,7 @@ import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.Operation;
 import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
@@ -148,16 +149,11 @@ public class GatewayServer {
             };
 
     public static void route(Context context, Conversation conversation) {
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.setPrettyPrinting().serializeNulls();
-        Gson gson = gsonBuilder.create();
-
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
         boolean isBase64 = Helpers.isBase64Encoded(conversation.getText());
-
         List<GatewayServer> gatewayServerList =
                 Datastore.getDatastore(context.getApplicationContext())
                         .gatewayServerDAO()
@@ -167,12 +163,6 @@ public class GatewayServer {
             if(gatewayServer1.getFormat() != null &&
                     gatewayServer1.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
                 continue;
-
-            RouterItem routerItem = (RouterItem) conversation;
-            routerItem.MSISDN = conversation.getAddress();
-            routerItem.text = conversation.getText();
-            routerItem.tag = gatewayServer1.getTag();
-            final String jsonStringBody = gson.toJson(routerItem);
 
             try {
                 OneTimeWorkRequest routeMessageWorkRequest =
@@ -184,20 +174,19 @@ public class GatewayServer {
                                         TimeUnit.MILLISECONDS
                                 )
                                 .addTag(TAG_NAME)
-                                .addTag(RouterHandler.getTagForMessages(routerItem.getMessage_id()))
+                                .addTag(RouterHandler.getTagForMessages(conversation.getMessage_id()))
                                 .addTag(RouterHandler.getTagForGatewayServers(gatewayServer1.getURL()))
-                                .setInputData(
-                                        new Data.Builder()
-                                                .putString(RouterWorkManager.SMS_JSON_OBJECT,
-                                                        jsonStringBody)
-                                                .putString(RouterWorkManager.SMS_JSON_ROUTING_URL,
-                                                        gatewayServer1.getURL())
-                                                .build()
-                                ).build();
+                                .setInputData(new Data.Builder()
+                                        .putLong(RouterWorkManager.GATEWAY_SERVER_ID,
+                                                gatewayServer1.getId())
+                                        .putString(RouterWorkManager.CONVERSATION_ID,
+                                                conversation.getMessage_id())
+                                        .build())
+                                .build();
 
-                String uniqueWorkName = routerItem.getMessage_id() + ":" + gatewayServer1.getURL();
+                String uniqueWorkName = conversation.getMessage_id() + ":" + gatewayServer1.getURL();
                 WorkManager workManager = WorkManager.getInstance(context);
-                workManager.enqueueUniqueWork(
+                Operation operation = workManager.enqueueUniqueWork(
                         uniqueWorkName,
                         ExistingWorkPolicy.KEEP,
                         routeMessageWorkRequest);

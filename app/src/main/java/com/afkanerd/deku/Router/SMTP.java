@@ -13,4 +13,6 @@ public class SMTP {
     public String recipient;
 
     public String subject;
+
+    public int port = 587;
 }

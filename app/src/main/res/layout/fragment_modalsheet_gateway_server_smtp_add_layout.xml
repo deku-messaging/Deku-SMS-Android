@@ -40,7 +40,6 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:hint="@string/add_new_gateway_server_smtp_host"
-            app:helperText="@string/add_new_gateway_server_smtp_host"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_smtp">
@@ -93,6 +92,26 @@
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/gateway_server_add_smtp_port"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:hint="@string/add_new_gateway_server_smtp_port"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_smtp_password">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/gateway_server_add_smtp_port_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionGo"
+                android:inputType="numberSigned" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.divider.MaterialDivider
             android:id="@+id/gateway_sever_add_smtp_divider"
             android:layout_width="match_parent"
@@ -102,7 +121,7 @@
             app:dividerInsetStart="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_smtp_password" />
+            app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_smtp_port" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/gateway_server_add_smtp_from"

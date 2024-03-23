@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
-    public static final String TAG_NAME = "RECEIVED_SMS_ROUTING";
+    public static final String TAG_NAME = "RECEIVED.SMS.ROUTING";
     public static final String TAG_ROUTING_URL = "swob.work.route.url,";
 
     public static String SMS_DELIVER_ACTION =
@@ -273,7 +273,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
             String keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0);
             byte[] cipherText = E2EEHandler.extractTransmissionText(text);
             boolean isSelf = E2EEHandler.isSelf(context, keystoreAlias);
-            Log.d(getClass().getName(), "Decrypting incoming: " + text);
             text = new String(E2EEHandler.decrypt(context, isSelf ?
                             E2EEHandler.buildForSelf(keystoreAlias) :keystoreAlias,
                     cipherText, null, null, isSelf));

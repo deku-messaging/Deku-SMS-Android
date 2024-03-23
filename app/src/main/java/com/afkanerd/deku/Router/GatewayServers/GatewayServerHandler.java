@@ -105,24 +105,4 @@ public class GatewayServerHandler {
         thread.start();
         thread.join();
     }
-
-//    public static List<GatewayServer> fetchAll(Context context) throws InterruptedException {
-//        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-//                Datastore.databaseName).build();
-//
-//        final List<GatewayServer>[] encryptedContentList = new List[]{new ArrayList<>()};
-//
-//        Thread fetchEncryptedMessagesThread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
-//                encryptedContentList[0] = gatewayServerDAO.getAll();
-//            }
-//        });
-//
-//        fetchEncryptedMessagesThread.start();
-//        fetchEncryptedMessagesThread.join();
-//
-//        return encryptedContentList[0];
-//    }
 }

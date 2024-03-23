@@ -80,6 +80,8 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                 view.findViewById(R.id.gateway_server_add_smtp_username_input);
         TextInputEditText textInputPassword =
                 view.findViewById(R.id.gateway_server_add_smtp_password_input);
+        TextInputEditText textInputPort =
+                view.findViewById(R.id.gateway_server_add_smtp_port_input);
         TextInputEditText textInputFrom =
                 view.findViewById(R.id.gateway_server_add_smtp_from_input);
         TextInputEditText textInputRecipient =
@@ -98,6 +100,8 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         gatewayServer.smtp.host = textInputHost.getText().toString();
         gatewayServer.smtp.username = textInputUsername.getText().toString();
         gatewayServer.smtp.password = textInputPassword.getText().toString();
+        if(textInputPort.getText() != null && !textInputPort.getText().toString().isEmpty())
+            gatewayServer.smtp.port = Integer.parseInt(textInputPort.getText().toString());
         gatewayServer.smtp.from = textInputFrom.getText().toString();
         gatewayServer.smtp.recipient = textInputRecipient.getText().toString();
         gatewayServer.smtp.subject = textInputSubject.getText().toString();

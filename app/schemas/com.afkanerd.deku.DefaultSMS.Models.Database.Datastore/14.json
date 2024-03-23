@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 14,
-    "identityHash": "f32ae2038119c8cd313df52d14191b3b",
+    "identityHash": "9aba083cb671f0798ba5ef169d32bc2b",
     "entities": [
       {
         "tableName": "ThreadedConversations",
@@ -193,7 +193,7 @@
       },
       {
         "tableName": "GatewayServer",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`URL` TEXT, `protocol` TEXT, `tag` TEXT, `format` TEXT, `date` INTEGER, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `host` TEXT, `username` TEXT, `password` TEXT, `from` TEXT, `recipient` TEXT, `subject` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`URL` TEXT, `protocol` TEXT, `tag` TEXT, `format` TEXT, `date` INTEGER, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `host` TEXT, `username` TEXT, `password` TEXT, `from` TEXT, `recipient` TEXT, `subject` TEXT, `port` INTEGER)",
         "fields": [
           {
             "fieldPath": "URL",
@@ -265,6 +265,12 @@
             "fieldPath": "smtp.subject",
             "columnName": "subject",
             "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "smtp.port",
+            "columnName": "port",
+            "affinity": "INTEGER",
             "notNull": false
           }
         ],
@@ -621,7 +627,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f32ae2038119c8cd313df52d14191b3b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9aba083cb671f0798ba5ef169d32bc2b')"
     ]
   }
 }
