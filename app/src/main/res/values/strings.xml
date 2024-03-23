@@ -54,6 +54,7 @@
     <string name="add_new_gateway_server_smtp_password">Password</string>
     <string name="add_new_gateway_server_smtp_port">Port</string>
     <string name="add_new_gateway_server_smtp_recipient">Recipient</string>
+    <string name="add_new_gateway_server_smtp_recipient_helper">Use commas for multiple recipients\ne.g example@email.com, example1@email.com</string>
     <string name="add_new_gateway_server_smtp_from">From</string>
     <string name="add_new_gateway_server_smtp_subject">(Optional) Subject</string>
     <string name="add_new_gateway_server_smtp_add">Add</string>

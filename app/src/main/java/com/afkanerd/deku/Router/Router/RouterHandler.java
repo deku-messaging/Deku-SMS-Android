@@ -71,11 +71,11 @@ public class RouterHandler {
         properties.put("mail.smtp.port", gatewayServer.smtp.port);
 //        properties.put("mail.debug", "true");
 
+        InternetAddress[] internetAddresses = InternetAddress.parse(gatewayServer.smtp.recipient);
         Session session = Session.getInstance(properties, null);
         Message message = new MimeMessage(session);
         message.setFrom(new InternetAddress(gatewayServer.smtp.from));
-        message.setRecipient(Message.RecipientType.TO,
-                new InternetAddress(gatewayServer.smtp.recipient));
+        message.setRecipients(Message.RecipientType.TO, internetAddresses);
         message.setSubject(gatewayServer.smtp.subject);
         message.setSentDate(new Date());
         message.setText(body);

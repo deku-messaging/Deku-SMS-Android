@@ -127,7 +127,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         gatewayServer.setDate(System.currentTimeMillis());
 
         if(gatewayServerEdit != null) {
-            gatewayServer.setId(gatewayServer.getId());
+            gatewayServer.setId(gatewayServerEdit.getId());
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -166,7 +166,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         gatewayServer.setDate(System.currentTimeMillis());
 
         if(gatewayServerEdit != null) {
-            gatewayServer.setId(gatewayServer.getId());
+            gatewayServer.setId(gatewayServerEdit.getId());
             ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {

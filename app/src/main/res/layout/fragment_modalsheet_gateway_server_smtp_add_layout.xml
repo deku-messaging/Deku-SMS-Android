@@ -152,7 +152,7 @@
             app:layout_constraintTop_toBottomOf="@+id/gateway_sever_add_smtp_divider">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/gateway_server_add_smtp_recipient_input"
+                android:id="@+id/gateway_server_add_smtp_from_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:imeOptions="actionGo"
@@ -167,12 +167,13 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:hint="@string/add_new_gateway_server_smtp_recipient"
+            app:helperText="@string/add_new_gateway_server_smtp_recipient_helper"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/gateway_server_add_smtp_from">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/gateway_server_add_smtp_from_input"
+                android:id="@+id/gateway_server_add_smtp_recipient_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:imeOptions="actionGo"
