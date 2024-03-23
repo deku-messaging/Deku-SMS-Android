@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -71,6 +73,17 @@ public class GatewayServerListingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        gatewayServerRecyclerAdapter.gatewayServerClickedListener
+                .observe(this, new Observer<GatewayServer>() {
+                    @Override
+                    public void onChanged(GatewayServer gatewayServer) {
+                        if(gatewayServer.getProtocol().equals(SMTP.PROTOCOL)) {
+                            showSecureRequestAgreementModal(SMTP_LAYOUT, TYPE_SMTP);
+                        } else {
+                            showSecureRequestAgreementModal(HTTP_LAYOUT, TYPE_HTTP);
+                        }
+                    }
+                });
     }
 
     public void onSaveTypeSmtp(View view) {
@@ -160,16 +173,16 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    int HTTP_LAYOUT = R.layout.fragment_modalsheet_gateway_server_http_add_layout;
+    int SMTP_LAYOUT = R.layout.fragment_modalsheet_gateway_server_smtp_add_layout;
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.gateway_server_menu_add_http) {
-            showSecureRequestAgreementModal(
-                    R.layout.fragment_modalsheet_gateway_server_http_add_layout, TYPE_HTTP);
+            showSecureRequestAgreementModal(HTTP_LAYOUT, TYPE_HTTP);
             return true;
         }
         else if (item.getItemId() == R.id.gateway_server_menu_add_smtp) {
-            showSecureRequestAgreementModal(
-                    R.layout.fragment_modalsheet_gateway_server_smtp_add_layout, TYPE_SMTP);
+            showSecureRequestAgreementModal(SMTP_LAYOUT, TYPE_SMTP);
             return true;
         }
         return false;

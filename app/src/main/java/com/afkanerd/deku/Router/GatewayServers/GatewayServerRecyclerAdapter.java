@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -37,6 +38,7 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
         return new GatewayServerRecyclerAdapter.ViewHolder(view);
     }
 
+    public MutableLiveData<GatewayServer> gatewayServerClickedListener = new MutableLiveData<>();
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 //        GatewayServer gatewayServer = gatewayServerList.get(position);
@@ -56,10 +58,11 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(holder.itemView.getContext(),
-                        GatewayServerAddActivity.class);
-                intent.putExtra(GatewayServer.GATEWAY_SERVER_ID, gatewayServer.getId());
-                holder.itemView.getContext().startActivity(intent);
+                gatewayServerClickedListener.setValue(gatewayServer);
+//                Intent intent = new Intent(holder.itemView.getContext(),
+//                        GatewayServerAddActivity.class);
+//                intent.putExtra(GatewayServer.GATEWAY_SERVER_ID, gatewayServer.getId());
+//                holder.itemView.getContext().startActivity(intent);
             }
         });
     }

@@ -65,6 +65,7 @@ public class RouterHandler {
 
     public static void routeSmtpMessages(final String body, GatewayServer gatewayServer)
             throws MessagingException {
+        Log.d(RouterHandler.class.getName(), "Request to route - SMTP: " + body);
         Properties properties = new Properties();
         properties.put("mail.smtp.host", gatewayServer.smtp.host);
         properties.put("mail.smtp.port", gatewayServer.smtp.port);
@@ -84,7 +85,7 @@ public class RouterHandler {
 
     public static void routeJsonMessages(Context context, String jsonStringBody, String gatewayServerUrl)
             throws ExecutionException, InterruptedException, TimeoutException, JSONException {
-        Log.d(RouterHandler.class.getName(), "Request to router: " + jsonStringBody);
+        Log.d(RouterHandler.class.getName(), "Request to route - HTTP: " + jsonStringBody);
         JSONObject jsonBody = new JSONObject(jsonStringBody);
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
