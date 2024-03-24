@@ -34,8 +34,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
-    public static final String TAG_NAME = "RECEIVED.SMS.ROUTING";
-    public static final String TAG_ROUTING_URL = "swob.work.route.url,";
 
     public static String SMS_DELIVER_ACTION =
             BuildConfig.APPLICATION_ID + ".SMS_DELIVER_ACTION";
@@ -80,7 +78,7 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         final int subscriptionId =
                                 Integer.parseInt(regIncomingOutput[NativeSMSDB.SUBSCRIPTION_ID]);
 
-                        Conversation conversation =
+                        final Conversation conversation =
                                 insertConversation(context, address, messageId, threadId, body,
                                 subscriptionId, date, dateSent);
 

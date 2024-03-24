@@ -5,6 +5,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.WorkInfo;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
+import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 
@@ -47,7 +49,7 @@ public class RouterActivity extends CustomAppCompactActivity {
                 LinearLayoutManager.VERTICAL, false);
         routedMessageRecyclerView.setLayoutManager(linearLayoutManager);
 
-        routerRecyclerAdapter = new RouterRecyclerAdapter(getApplicationContext());
+        routerRecyclerAdapter = new RouterRecyclerAdapter();
         routerRecyclerAdapter.setHasStableIds(true);
 
         routedMessageRecyclerView.setAdapter(routerRecyclerAdapter);
@@ -55,11 +57,11 @@ public class RouterActivity extends CustomAppCompactActivity {
         routerViewModel = new ViewModelProvider(this).get( RouterViewModel.class);
 
         routerViewModel.getMessages(getApplicationContext()).observe(this,
-                new Observer<List<RouterItem>>() {
+                new Observer<List<WorkInfo>>() {
                     @Override
-                    public void onChanged(List<RouterItem> smsList) {
-                        routerRecyclerAdapter.submitList(smsList);
-                        if(!smsList.isEmpty())
+                    public void onChanged(List<WorkInfo> workInfoList) {
+                        routerRecyclerAdapter.mDiffer.submitList(workInfoList);
+                        if(!workInfoList.isEmpty())
                             findViewById(R.id.router_no_showable_messages_text).setVisibility(View.GONE);
                         else {
                             findViewById(R.id.router_no_showable_messages_text).setVisibility(View.VISIBLE);
@@ -115,21 +117,6 @@ public class RouterActivity extends CustomAppCompactActivity {
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            if (item.getItemId() == R.id.router_cancel_menu_item) {
-                if(routerRecyclerAdapter.selectedItems.getValue() != null) {
-                    for (Map.Entry<Long, RouterRecyclerAdapter.ViewHolder>entry : routerRecyclerAdapter.selectedItems.getValue().entrySet()) {
-                        RouterItem routerItem =
-                                routerRecyclerAdapter.mDiffer
-                                        .getCurrentList()
-                                        .get(Math.toIntExact(entry.getKey()));
-                        String messageId = String.valueOf(routerItem.getMessage_id());
-                        RouterHandler.removeWorkForMessage(getApplicationContext(), messageId);
-                        routerRecyclerAdapter.notifyItemChanged(Math.toIntExact(entry.getKey()));
-                    }
-                    return true;
-                }
-                return true;
-            }
             return false;
         }
 

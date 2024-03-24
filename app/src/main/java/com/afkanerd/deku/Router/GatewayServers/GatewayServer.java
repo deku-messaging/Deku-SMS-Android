@@ -1,9 +1,7 @@
 package com.afkanerd.deku.Router.GatewayServers;
 
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.TAG_NAME;
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.TAG_ROUTING_URL;
-
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
@@ -148,7 +146,10 @@ public class GatewayServer {
                 }
             };
 
-    public static void route(Context context, Conversation conversation) {
+    public static void route(Context context, final Conversation conversation) {
+        Log.d(GatewayServer.class.getName(), "Gateway server con_msg_id: " +
+                conversation.getMessage_id());
+
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
@@ -173,9 +174,9 @@ public class GatewayServer {
                                         OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
                                         TimeUnit.MILLISECONDS
                                 )
-                                .addTag(TAG_NAME)
+                                .addTag(RouterHandler.TAG_NAME_GATEWAY_SERVER)
                                 .addTag(RouterHandler.getTagForMessages(conversation.getMessage_id()))
-                                .addTag(RouterHandler.getTagForGatewayServers(gatewayServer1.getURL()))
+                                .addTag(RouterHandler.getTagForGatewayServers(gatewayServer1.getId()))
                                 .setInputData(new Data.Builder()
                                         .putLong(RouterWorkManager.GATEWAY_SERVER_ID,
                                                 gatewayServer1.getId())

@@ -117,9 +117,6 @@ class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int,
     }
 
     private fun configureParameters(view: View) {
-//        val bottomSheetDragHandleView = view.findViewById<BottomSheetDragHandleView>(R.id.drag_handle)
-//        bottomSheetDragHandleView.visibility = View.INVISIBLE
-
         val deleteButton = view.findViewById<ImageButton>(R.id.gateway_server_delete)
         deleteButton.visibility = View.VISIBLE
 

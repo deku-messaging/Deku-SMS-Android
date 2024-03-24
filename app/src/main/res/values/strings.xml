@@ -259,4 +259,10 @@
     <string name="conversations_secure_conversation_request_information_deku_encryption_link" translatable="false">https://github.com/deku-messaging/Deku-SMS-Android?tab=readme-ov-file#-end-to-end-encryption</string>
     <string name="conversations_secure_conversation_request_information_deku_encryption_read_more">Learn more</string>
     <string name="route_incoming_messages_of_format">Route incoming messages of format</string>
+
+    <string name="gateway_server_routing_state_success">Succeeded</string>
+    <string name="gateway_server_routing_state_failed">Failed</string>
+    <string name="gateway_server_routing_state_enqueued">Enqueued</string>
+    <string name="gateway_server_routing_state_cancelled">Cancelled</string>
+    <string name="gateway_server_routing_state_running">Running</string>
 </resources>

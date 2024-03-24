@@ -5,6 +5,7 @@ import android.database.Cursor;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.work.WorkInfo;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 
@@ -37,14 +38,15 @@ public class RouterItem extends Conversation  {
         return (RouterItem) Conversation.build(cursor);
     }
 
-    public static final DiffUtil.ItemCallback<RouterItem> DIFF_CALLBACK = new DiffUtil.ItemCallback<RouterItem>() {
+    public static final DiffUtil.ItemCallback<WorkInfo> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<WorkInfo>() {
         @Override
-        public boolean areItemsTheSame(@NonNull RouterItem oldItem, @NonNull RouterItem newItem) {
-            return oldItem.getMessage_id().equals(newItem.getMessage_id());
+        public boolean areItemsTheSame(@NonNull WorkInfo oldItem, @NonNull WorkInfo newItem) {
+            return oldItem.getId() == newItem.getId();
         }
 
         @Override
-        public boolean areContentsTheSame(@NonNull RouterItem oldItem, @NonNull RouterItem newItem) {
+        public boolean areContentsTheSame(@NonNull WorkInfo oldItem, @NonNull WorkInfo newItem) {
             return oldItem.equals(newItem);
         }
     };

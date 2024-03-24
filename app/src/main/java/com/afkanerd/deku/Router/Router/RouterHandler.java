@@ -1,11 +1,11 @@
 package com.afkanerd.deku.Router.Router;
 
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.TAG_NAME;
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.TAG_ROUTING_URL;
-
 import android.content.Context;
 import android.util.Log;
+import android.util.Pair;
 
+import androidx.compose.runtime.State;
+import androidx.lifecycle.LiveData;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.Data;
@@ -16,7 +16,9 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkQuery;
 
+import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -40,6 +42,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,20 +59,18 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 public class RouterHandler {
-    public static int MESSAGE_ID = 0;
-    public static int WORK_NAME = 1;
-    public static int ROUTING_URL = 2;
-    public static int ROUTING_ID = 3;
-
     protected static ExecutorService executorService = Executors.newFixedThreadPool(4);
 
     public static void routeSmtpMessages(final String body, GatewayServer gatewayServer)
             throws MessagingException {
         Log.d(RouterHandler.class.getName(), "Request to route - SMTP: " + body);
+
         Properties properties = new Properties();
         properties.put("mail.smtp.host", gatewayServer.smtp.host);
         properties.put("mail.smtp.port", gatewayServer.smtp.port);
-//        properties.put("mail.debug", "true");
+
+        if(BuildConfig.DEBUG)
+            properties.put("mail.debug", "true");
 
         InternetAddress[] internetAddresses = InternetAddress.parse(gatewayServer.smtp.recipient);
         Session session = Session.getInstance(properties, null);
@@ -109,70 +110,74 @@ public class RouterHandler {
         workManager.cancelAllWorkByTag(tag);
     }
 
-    public static void removeWorkForGatewayServers(Context context, String gatewayClientUrl) {
-        String tag = getTagForGatewayServers(gatewayClientUrl);
+    public static void removeWorkForGatewayServers(Context context, long gatewayServerId) {
+        String tag = getTagForGatewayServers(gatewayServerId);
         WorkManager workManager = WorkManager.getInstance(context);
         workManager.cancelAllWorkByTag(tag);
     }
 
-    public static final String TAG_WORKER_ID = "TAG_WORKER_ID";
+    public static final String TAG_NAME_GATEWAY_SERVER = "TAG_NAME_GATEWAY_SERVER";
+    public static final String TAG_GATEWAY_SERVER_MESSAGE_ID = "TAG_GATEWAY_SERVER_MESSAGE_ID:";
+    public static final String TAG_GATEWAY_SERVER_ID = "TAG_GATEWAY_SERVER_ID:";
     public static String getTagForMessages(String messageId) {
-        return TAG_WORKER_ID + messageId;
+        return TAG_GATEWAY_SERVER_MESSAGE_ID + messageId;
     }
 
-    public static String getTagForGatewayServers(String gatewayClientUrl) {
-        return TAG_ROUTING_URL + gatewayClientUrl;
+    public static String getMessageIdFromTag(String tag) {
+        Log.d(RouterHandler.class.getName(), "Getting message ID from tag: " + tag);
+        return tag.split(":")[1];
     }
 
+    public static String getTagForGatewayServers(long gatewayServerId) {
+        return TAG_GATEWAY_SERVER_ID + gatewayServerId;
+    }
 
-    public static ArrayList<String[]> getMessageIdsFromWorkManagers(Context context) {
+    public static String getGatewayServerIdFromTag(String tag) {
+        Log.d(RouterHandler.class.getName(), "Getting server ID from tag: " + tag);
+        return tag.split(":")[1];
+    }
 
-        WorkQuery workQuery = WorkQuery.Builder
-                .fromTags(Collections.singletonList(
-                        TAG_NAME))
-                .addStates(Arrays.asList(
-                        WorkInfo.State.SUCCEEDED,
-                        WorkInfo.State.ENQUEUED,
-                        WorkInfo.State.FAILED,
-                        WorkInfo.State.RUNNING,
-                        WorkInfo.State.CANCELLED))
-                .build();
-
-        WorkManager workManager = WorkManager.getInstance(context);
-        ListenableFuture<List<WorkInfo>> worksInfo = workManager.getWorkInfos(workQuery);
-
-        ArrayList<String[]> workerIds = new ArrayList<>();
-        try {
-            List<WorkInfo> workInfoList = worksInfo.get();
-
-            for(WorkInfo workInfo : workInfoList) {
-                String messageId = "";
-                String gatewayServerUrl = "";
-                for(String tag : workInfo.getTags()) {
-                    if (tag.contains(RouterHandler.TAG_WORKER_ID)) {
-                        String[] tags = tag.split("\\.");
-                        messageId = tags[tags.length - 1];
-                    }
-                    if (tag.contains(IncomingTextSMSBroadcastReceiver.TAG_ROUTING_URL)) {
-                        String[] tags = tag.split(",");
-                        gatewayServerUrl = tags[tags.length - 1];
-                    }
-                }
-
-//                ArrayList<String> routeJobState = new ArrayList<>();
-                String[] routeJobState = new String[4];
-                if(!messageId.isEmpty() && !gatewayServerUrl.isEmpty()) {
-                    routeJobState[MESSAGE_ID] = messageId;
-                    routeJobState[WORK_NAME] = workInfo.getState().name();
-                    routeJobState[ROUTING_URL] = gatewayServerUrl;
-                    routeJobState[ROUTING_ID] = workInfo.getId().toString();
-                }
-
-                workerIds.add(routeJobState);
-            }
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+    public static String reverseState(Context context, WorkInfo.State state) {
+        String stateValue;
+        switch(state) {
+            case SUCCEEDED:
+                stateValue = context.getString(R.string.gateway_server_routing_state_success);
+                break;
+            case ENQUEUED:
+                stateValue = context.getString(R.string.gateway_server_routing_state_enqueued);
+                break;
+            case FAILED:
+                stateValue = context.getString(R.string.gateway_server_routing_state_failed);
+                break;
+            case RUNNING:
+                stateValue = context.getString(R.string.gateway_server_routing_state_running);
+                break;
+            case CANCELLED:
+                stateValue = context.getString(R.string.gateway_server_routing_state_cancelled);
+                break;
+            default:
+                stateValue = "";
         }
-        return workerIds;
+        return stateValue;
+    }
+
+    public static LiveData<List<WorkInfo>> getMessageIdsFromWorkManagers(Context context) {
+        WorkManager workManager = WorkManager.getInstance(context);
+        return workManager.getWorkInfosByTagLiveData(TAG_NAME_GATEWAY_SERVER);
+
+    }
+
+    public static Pair<String, String> workInfoParser(WorkInfo workInfo) {
+        String messageId = "", gatewayServerId = "";
+        for(String tag : workInfo.getTags()) {
+            Log.d(RouterHandler.class.getName(), "Tags: " + tag);
+            if (tag.contains(TAG_GATEWAY_SERVER_ID)) {
+                gatewayServerId = getGatewayServerIdFromTag(tag);
+            }
+            if (tag.contains(TAG_GATEWAY_SERVER_MESSAGE_ID)) {
+                messageId = getMessageIdFromTag(tag);
+            }
+        }
+        return new Pair<>(messageId, gatewayServerId);
     }
 }
