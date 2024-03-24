@@ -12,6 +12,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 
 public class RouterItem extends Conversation  {
+    public String routingUniqueId;
 
     public String url;
     public String  tag;
@@ -45,8 +46,7 @@ public class RouterItem extends Conversation  {
         @Override
         public boolean areItemsTheSame(@NonNull Pair<RouterItem, GatewayServer> oldItem,
                                        @NonNull Pair<RouterItem, GatewayServer> newItem) {
-            return oldItem.first.getMessage_id().equals(newItem.first.getMessage_id()) &&
-                    oldItem.second.getId() == newItem.second.getId();
+            return oldItem.first.routingUniqueId.equals(newItem.first.routingUniqueId);
         }
 
         @Override
@@ -61,9 +61,6 @@ public class RouterItem extends Conversation  {
         if(obj instanceof RouterItem) {
             Conversation conversation = (Conversation) obj;
             RouterItem routerItem = (RouterItem) obj;
-
-//            return routerItem.getMessage_id().equals(this.getMessage_id()) &&
-//                    routerItem.getText().equals(this.getText());
             return super.equals(conversation) && this.routingStatus.equals(routerItem.routingStatus);
         }
         return false;

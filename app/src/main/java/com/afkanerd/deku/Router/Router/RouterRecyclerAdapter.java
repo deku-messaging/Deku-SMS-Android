@@ -32,41 +32,36 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
     private final AsyncListDiffer<Pair<RouterItem, GatewayServer>> mDiffer =
             new AsyncListDiffer<>(this, RouterItem.DIFF_CALLBACK);
 
-    public void submitList(Context context, List<WorkInfo> workInfoList) throws InterruptedException {
+    public void submitList(Context context, final List<WorkInfo> workInfoList) throws InterruptedException {
         List<Pair<RouterItem, GatewayServer>> workInfoItemsList = new ArrayList<>();
-
-        List<String> messageIds = new ArrayList<>();
-        List<WorkInfo.State> routingStates = new ArrayList<>();
-        List<GatewayServer> gatewayServerList = new ArrayList<>();
+        Map<Long, Pair<RouterItem, GatewayServer>> map = new HashMap<>();
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 for(WorkInfo workInfo : workInfoList) {
                     Pair<String, String> workInfoPair = RouterHandler.workInfoParser(workInfo);
+
                     GatewayServer gatewayServer = Datastore.getDatastore(context)
                             .gatewayServerDAO().get(workInfoPair.second);
                     if(gatewayServer == null)
                         continue;
-                    gatewayServerList.add(gatewayServer);
-                    messageIds.add(workInfoPair.first);
-                    routingStates.add(workInfo.getState());
-                }
-                List<Conversation> conversationList = Datastore.getDatastore(context)
-                        .conversationDao().fetch(messageIds);
-                for(int i=0;i<conversationList.size(); ++i) {
-                    RouterItem routerItem = new RouterItem(conversationList.get(i));
-                    routerItem.routingStatus = RouterHandler.reverseState(context, routingStates.get(i));
-                    workInfoItemsList.add(new Pair<>(routerItem, gatewayServerList.get(i)));
-                }
 
+                    RouterItem routerItem = new RouterItem(Datastore.getDatastore(context)
+                            .conversationDao().getMessage(workInfoPair.first));
+                    routerItem.routingUniqueId = workInfo.getId().toString();
+                    routerItem.routingStatus = RouterHandler.reverseState(context,
+                            workInfo.getState());
+                    map.put(Long.parseLong(routerItem.getDate()),
+                            new Pair<>(routerItem, gatewayServer));
+                }
             }
         });
 
         thread.start();
         thread.join();
 
-        mDiffer.submitList(workInfoItemsList);
+        mDiffer.submitList(new ArrayList<>(map.values()));
     }
 
     public MutableLiveData<HashMap<Long, ViewHolder>> selectedItems;
