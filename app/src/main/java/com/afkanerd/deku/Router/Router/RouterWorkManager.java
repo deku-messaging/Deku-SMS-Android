@@ -35,7 +35,8 @@ public class RouterWorkManager extends Worker {
         String conversationId = getInputData().getString(CONVERSATION_ID);
 
         Datastore datastore = Datastore.getDatastore(getApplicationContext());
-        GatewayServer gatewayServer = datastore.gatewayServerDAO().get(gatewayServerId);
+        GatewayServer gatewayServer = datastore.gatewayServerDAO()
+                .get(String.valueOf(gatewayServerId));
         Conversation conversation = datastore.conversationDao().getMessage(conversationId);
 
         RouterItem routerItem = new RouterItem(conversation);

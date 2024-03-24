@@ -23,13 +23,51 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.SMTP;
 import com.google.android.material.card.MaterialCardView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAdapter.ViewHolder> {
-    public final AsyncListDiffer<WorkInfo> mDiffer =
+    private final AsyncListDiffer<Pair<RouterItem, GatewayServer>> mDiffer =
             new AsyncListDiffer<>(this, RouterItem.DIFF_CALLBACK);
+
+    public void submitList(Context context, List<WorkInfo> workInfoList) throws InterruptedException {
+        List<Pair<RouterItem, GatewayServer>> workInfoItemsList = new ArrayList<>();
+
+        List<String> messageIds = new ArrayList<>();
+        List<WorkInfo.State> routingStates = new ArrayList<>();
+        List<GatewayServer> gatewayServerList = new ArrayList<>();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(WorkInfo workInfo : workInfoList) {
+                    Pair<String, String> workInfoPair = RouterHandler.workInfoParser(workInfo);
+                    GatewayServer gatewayServer = Datastore.getDatastore(context)
+                            .gatewayServerDAO().get(workInfoPair.second);
+                    if(gatewayServer == null)
+                        continue;
+                    gatewayServerList.add(gatewayServer);
+                    messageIds.add(workInfoPair.first);
+                    routingStates.add(workInfo.getState());
+                }
+                List<Conversation> conversationList = Datastore.getDatastore(context)
+                        .conversationDao().fetch(messageIds);
+                for(int i=0;i<conversationList.size(); ++i) {
+                    RouterItem routerItem = new RouterItem(conversationList.get(i));
+                    routerItem.routingStatus = RouterHandler.reverseState(context, routingStates.get(i));
+                    workInfoItemsList.add(new Pair<>(routerItem, gatewayServerList.get(i)));
+                }
+
+            }
+        });
+
+        thread.start();
+        thread.join();
+
+        mDiffer.submitList(workInfoItemsList);
+    }
 
     public MutableLiveData<HashMap<Long, ViewHolder>> selectedItems;
     public RouterRecyclerAdapter() {
@@ -121,49 +159,21 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
             this.materialCardView = itemView.findViewById(R.id.routed_messages_material_cardview);
         }
 
-        public void bind(WorkInfo workInfo) throws InterruptedException {
-            Pair<String, String> workInfoPair = RouterHandler.workInfoParser(workInfo);
-            final String messageId = workInfoPair.first;
-            Log.d(getClass().getName(), "Parsed message ID: " + messageId);
-            final String gatewayServerId = workInfoPair.second;
+        public void bind(Pair<RouterItem, GatewayServer> conversationGatewayServerPair)
+                throws InterruptedException {
+            RouterItem conversation = conversationGatewayServerPair.first;
+            GatewayServer gatewayServer = conversationGatewayServerPair.second;
 
-            final Conversation[] conversation = {new Conversation()};
-            final GatewayServer[] gatewayServer = {new GatewayServer()};
+            String gatewayServerUrl = gatewayServer.getProtocol().equals(SMTP.PROTOCOL) ?
+                    gatewayServer.smtp.host :
+                    gatewayServer.getURL();
 
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        conversation[0] =
-                                Datastore.getDatastore(itemView.getContext()).conversationDao()
-                                        .getMessage(messageId);
-
-                        gatewayServer[0] =
-                                Datastore.getDatastore(itemView.getContext()).gatewayServerDAO()
-                                        .get(Long.parseLong(gatewayServerId));
-
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            thread.start();
-            thread.join();
-
-            if(conversation[0] == null || gatewayServer[0] == null)
-                return;
-
-            String gatewayServerUrl = gatewayServer[0].getProtocol().equals(SMTP.PROTOCOL) ?
-                    gatewayServer[0].smtp.host :
-                    gatewayServer[0].getURL();
-
-            address.setText(conversation[0].getAddress());
+            address.setText(conversation.getAddress());
             url.setText(gatewayServerUrl);
-            body.setText(conversation[0].getText());
-            status.setText(RouterHandler.reverseState(itemView.getContext(),
-                    workInfo.getState()));
+            body.setText(conversation.getText());
+            status.setText(conversation.routingStatus);
             date.setText(Helpers.formatDate(itemView.getContext(),
-                    Long.parseLong(conversation[0].getDate())));
+                    Long.parseLong(conversation.getDate())));
 
         }
 

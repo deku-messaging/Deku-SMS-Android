@@ -124,7 +124,6 @@ public class RouterHandler {
     }
 
     public static String getMessageIdFromTag(String tag) {
-        Log.d(RouterHandler.class.getName(), "Getting message ID from tag: " + tag);
         return tag.split(":")[1];
     }
 
@@ -133,7 +132,6 @@ public class RouterHandler {
     }
 
     public static String getGatewayServerIdFromTag(String tag) {
-        Log.d(RouterHandler.class.getName(), "Getting server ID from tag: " + tag);
         return tag.split(":")[1];
     }
 
@@ -170,7 +168,6 @@ public class RouterHandler {
     public static Pair<String, String> workInfoParser(WorkInfo workInfo) {
         String messageId = "", gatewayServerId = "";
         for(String tag : workInfo.getTags()) {
-            Log.d(RouterHandler.class.getName(), "Tags: " + tag);
             if (tag.contains(TAG_GATEWAY_SERVER_ID)) {
                 gatewayServerId = getGatewayServerIdFromTag(tag);
             }

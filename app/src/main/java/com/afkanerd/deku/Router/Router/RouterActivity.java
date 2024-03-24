@@ -60,7 +60,12 @@ public class RouterActivity extends CustomAppCompactActivity {
                 new Observer<List<WorkInfo>>() {
                     @Override
                     public void onChanged(List<WorkInfo> workInfoList) {
-                        routerRecyclerAdapter.mDiffer.submitList(workInfoList);
+                        try {
+                            routerRecyclerAdapter.submitList(
+                                    getApplicationContext(), workInfoList);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         if(!workInfoList.isEmpty())
                             findViewById(R.id.router_no_showable_messages_text).setVisibility(View.GONE);
                         else {

@@ -33,6 +33,9 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     List<Conversation> getAll(String thread_id);
 
+    @Query("SELECT * FROM Conversation WHERE message_id IN (:messageIds) ORDER BY date DESC")
+    List<Conversation> fetch(List<String> messageIds);
+
     @Query("SELECT * FROM ( SELECT * FROM Conversation GROUP BY thread_id HAVING MAX(date)) AS " +
             "latest_items WHERE thread_id IS NOT NULL ORDER BY date DESC")
     List<Conversation> getForThreading();

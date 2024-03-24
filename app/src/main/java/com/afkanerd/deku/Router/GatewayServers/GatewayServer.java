@@ -185,7 +185,7 @@ public class GatewayServer {
                                         .build())
                                 .build();
 
-                String uniqueWorkName = conversation.getMessage_id() + ":" + gatewayServer1.getURL();
+                String uniqueWorkName = conversation.getMessage_id() + ":" + gatewayServer1.getId();
                 WorkManager workManager = WorkManager.getInstance(context);
                 Operation operation = workManager.enqueueUniqueWork(
                         uniqueWorkName,

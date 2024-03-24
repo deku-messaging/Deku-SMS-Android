@@ -55,7 +55,7 @@ public class GatewayServerHandler {
             @Override
             public void run() {
                 GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
-                gatewayServer[0] = gatewayServerDAO.get(id);
+                gatewayServer[0] = gatewayServerDAO.get(String.valueOf(id));
             }
         });
         thread.start();
