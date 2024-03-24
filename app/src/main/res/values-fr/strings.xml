@@ -24,6 +24,19 @@
     <string name="gateway_server_listing_toolbar_title">Passerelles de routage SMS</string>
     <string name="gateway_client_listing_toolbar_title">Passerelles d\'écoute SMS</string>
     <string name="add_new_gateway_server_toolbar_title">Ajouter une passerelle</string>
+    <string name="gateway_server_update">Mise à jour</string>
+    <string name="add_new_gateway_server_http">Ajouter un serveur SMS HTTPS</string>
+    <string name="add_new_gateway_server_smtp">Ajouter un serveur SMS SMTP</string>
+    <string name="add_new_gateway_server_smtp_host">URL de l\'hôte</string>
+    <string name="add_new_gateway_server_smtp_username">Nom d\'utilisateur</string>
+    <string name="add_new_gateway_server_smtp_password">Mot de passe</string>
+    <string name="add_new_gateway_server_smtp_port">Port</string>
+    <string name="add_new_gateway_server_smtp_recipient">Destinataire</string>
+    <string name="add_new_gateway_server_smtp_from">Depuis</string>
+    <string name="add_new_gateway_server_smtp_subject">"(Optionnel) Sujet "</string>
+    <string name="add_new_gateway_server_smtp_add">Ajouter</string>
+    <string name="add_new_gateway_server_ftp">Ajouter une passerelle FTP</string>
+    <string name="add_new_gateway_server_amqp">Ajouter une passerelle AMQP</string>
     <string name="notifications_reply_label">Répondre</string>
     <string name="notifications_mark_as_read_label">Marquer comme lu</string>
     <string name="notification_title_new_key">Demande de communication sécurisée</string>
@@ -169,4 +182,11 @@
     <string name="conversations_secure_conversation_request_information_deku_encryption_read_more">Apprendre encore plus</string>
     <string name="messages_thread_encrypted_content_label">Sécurisé</string>
     <string name="conversations_menu_refresh_title">Rafraîchir</string>
+    <string name="route_incoming_messages_of_format">Acheminer les messages entrants au format</string>
+    <string name="gateway_server_routing_state_success">Réussie</string>
+    <string name="gateway_server_routing_state_failed">Échoué</string>
+    <string name="gateway_server_routing_state_enqueued">En attendant</string>
+    <string name="gateway_server_routing_state_cancelled">Annulé</string>
+    <string name="gateway_server_routing_state_running">En cours d\'exécution</string>
+    <string name="add_new_gateway_server_smtp_recipient_helper">Utilisez des virgules pour plusieurs destinataires, par exemple exemple@email.com, exemple1@email.com</string>
 </resources>
