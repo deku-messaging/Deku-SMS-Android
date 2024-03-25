@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView android:id="@+id/conversation_toolbar_contact_card"
+<com.google.android.material.card.MaterialCardView
+    android:id="@+id/conversation_toolbar_contact_card"
+    android:clickable="true"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     style="@style/Widget.Material3.CardView.Elevated"

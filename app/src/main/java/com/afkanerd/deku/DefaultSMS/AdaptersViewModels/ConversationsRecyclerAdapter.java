@@ -1,12 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
-import android.content.Context;
-import android.graphics.Color;
 import android.provider.Telephony;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.BackgroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,20 +12,14 @@ import androidx.paging.PagingDataAdapter;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationReceivedViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationSentViewHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.E2EE.E2EEHandler;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation, ConversationTemplateViewHandler> {
     public MutableLiveData<HashMap<Long, ConversationTemplateViewHandler>> mutableSelectedItems;
@@ -79,12 +67,12 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         switch(viewType) {
             case TIMESTAMP_MESSAGE_TYPE_INBOX:
                 returnView = new ConversationReceivedViewHandler.TimestampConversationReceivedViewHandler(
-                                inflater.inflate(R.layout.conversations_received_layout,
+                                inflater.inflate(R.layout.layout_conversations_received,
                                         parent, false));
                 break;
             case MESSAGE_TYPE_INBOX :
                 returnView = new ConversationReceivedViewHandler(
-                        inflater.inflate(R.layout.conversations_received_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
                 break;
             case TIMESTAMP_MESSAGE_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.TimestampConversationSentViewHandler(
@@ -100,27 +88,27 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 break;
             case MESSAGE_KEY_INBOX:
                 returnView = new ConversationReceivedViewHandler.KeyReceivedViewHandler(
-                        inflater.inflate(R.layout.conversations_received_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
                 break;
             case TIMESTAMP_KEY_TYPE_INBOX:
                 returnView = new ConversationReceivedViewHandler.TimestampKeyReceivedViewHandler(
-                        inflater.inflate(R.layout.conversations_received_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
                 break;
             case TIMESTAMP_MESSAGE_START_TYPE_INBOX:
                 returnView = new ConversationReceivedViewHandler.TimestampKeyReceivedStartViewHandler(
-                        inflater.inflate(R.layout.conversations_received_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
                 break;
             case MESSAGE_START_TYPE_INBOX:
                 returnView = new ConversationReceivedViewHandler.ConversationReceivedStartViewHandler(
-                        inflater.inflate(R.layout.conversations_received_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
                 break;
             case MESSAGE_END_TYPE_INBOX:
                 returnView = new ConversationReceivedViewHandler.ConversationReceivedEndViewHandler(
-                        inflater.inflate(R.layout.conversations_received_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
                 break;
             case MESSAGE_MIDDLE_TYPE_INBOX:
                 returnView = new ConversationReceivedViewHandler.ConversationReceivedMiddleViewHandler(
-                        inflater.inflate(R.layout.conversations_received_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
                 break;
             case TIMESTAMP_MESSAGE_START_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.TimestampKeySentStartGroupViewHandler(

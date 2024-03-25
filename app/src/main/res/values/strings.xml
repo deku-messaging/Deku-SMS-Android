@@ -189,6 +189,7 @@
     <string name="conversations_search_results_found">results founds</string>
 
     <string name="conversation_copied">Copied!</string>
+    <string name="conversation_contact_modal_details_address_label">Contact Info</string>
     <string name="router_list_gateways">View Gateway servers</string>
     <string name="router_add_gateways">Add Gateway servers</string>
     <string name="conversation_menu_copy">copy</string>

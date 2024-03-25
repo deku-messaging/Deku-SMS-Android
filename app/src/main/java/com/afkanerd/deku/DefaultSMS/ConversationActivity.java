@@ -34,6 +34,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -43,6 +46,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsContactModalFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdapter;
@@ -55,6 +59,7 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -63,7 +68,6 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -555,12 +559,12 @@ public class ConversationActivity extends E2EECompactActivity {
 
     private void configureToolbars() {
         setTitle(null);
-        View view = findViewById(R.id.conversation_toolbar_include_contact_card);
+//        View view = findViewById(R.id.conversation_toolbar_include_contact_card);
         TextView contactTextView = findViewById(R.id.conversation_contact_card_text_view);
         contactTextView.setText(getAbTitle());
 
-        AvatarView avatarView = view.findViewById(R.id.conversation_contact_card_frame_avatar_initials);
-        ImageView imageView = view.findViewById(R.id.conversation_contact_card_frame_avatar_photo);
+        AvatarView avatarView = findViewById(R.id.conversation_contact_card_frame_avatar_initials);
+        ImageView imageView = findViewById(R.id.conversation_contact_card_frame_avatar_photo);
         final int contactColor = Helpers.getColor(getApplicationContext(), threadId);
         if(isContact) {
             avatarView.setAvatarInitials(contactName.contains(" ") ? contactName :
@@ -574,7 +578,25 @@ public class ConversationActivity extends E2EECompactActivity {
             imageView.setImageDrawable(drawable);
             avatarView.setVisibility(View.INVISIBLE);
         }
+
+//        View view = getLayoutInflater().inflate(R.layout.layout_conversation_contact_card, null);
+        materialCardView = findViewById(R.id.conversation_toolbar_contact_card);
+        materialCardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(getClass().getName(), "Yes contact clicked");
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                ConversationsContactModalFragment modalSheetFragment =
+                        new ConversationsContactModalFragment(contactName, address);
+                fragmentTransaction.add(modalSheetFragment, ConversationsContactModalFragment.TAG);
+                fragmentTransaction.show(modalSheetFragment);
+                fragmentTransaction.commitNow();
+            }
+        });
     }
+    MaterialCardView materialCardView;
 
     private String getAbTitle() {
         return isContact? contactName: address;
@@ -926,7 +948,7 @@ public class ConversationActivity extends E2EECompactActivity {
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             Objects.requireNonNull(getSupportActionBar()).hide();
 
-            View viewGroup = getLayoutInflater().inflate(R.layout.conversation_search_bar_layout,
+            View viewGroup = getLayoutInflater().inflate(R.layout.layout_conversation_search_bar,
                     null);
             mode.setCustomView(viewGroup);
 
