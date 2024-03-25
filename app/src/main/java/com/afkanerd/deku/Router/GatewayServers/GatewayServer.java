@@ -138,9 +138,6 @@ public class GatewayServer {
             };
 
     public static void route(Context context, final Conversation conversation) {
-        Log.d(GatewayServer.class.getName(), "Gateway server con_msg_id: " +
-                conversation.getMessage_id());
-
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
