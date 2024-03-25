@@ -13,7 +13,13 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+        <include
+            android:id="@+id/conversation_toolbar_include_contact_card"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            layout="@layout/layout_conversation_contact_card"/>
+    </com.google.android.material.appbar.MaterialToolbar>
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/conversations_pop_ups_layouts"

@@ -8,6 +8,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.BlockedNumberContract;
@@ -23,6 +25,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,6 +71,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import io.getstream.avatarview.AvatarView;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 
@@ -77,6 +81,7 @@ public class ConversationActivity extends E2EECompactActivity {
     public static final String SEARCH_INDEX = "SEARCH_INDEX";
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
+    boolean isContact = false;
     ActionMode actionMode;
     ConversationsRecyclerAdapter conversationsRecyclerAdapter;
     TextInputEditText smsTextView;
@@ -326,8 +331,9 @@ public class ConversationActivity extends E2EECompactActivity {
         final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
         contactName = Contacts.retrieveContactName(getApplicationContext(),
                 Helpers.getFormatCompleteNumber(address, defaultUserCountry));
-        if(contactName == null)
+        if(contactName == null) {
             contactName = Helpers.getFormatNationalNumber(address, defaultUserCountry);
+        } else isContact = true;
 
         isShortCode = Helpers.isShortCode(address);
         attachObservers();
@@ -548,11 +554,30 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void configureToolbars() {
-        setTitle(getAbTitle());
+        setTitle(null);
+        View view = findViewById(R.id.conversation_toolbar_include_contact_card);
+        TextView contactTextView = findViewById(R.id.conversation_contact_card_text_view);
+        contactTextView.setText(getAbTitle());
+
+        AvatarView avatarView = view.findViewById(R.id.conversation_contact_card_frame_avatar_initials);
+        ImageView imageView = view.findViewById(R.id.conversation_contact_card_frame_avatar_photo);
+        final int contactColor = Helpers.getColor(getApplicationContext(), threadId);
+        if(isContact) {
+            avatarView.setAvatarInitials(contactName.contains(" ") ? contactName :
+                    contactName.substring(0, 1));
+            avatarView.setAvatarInitialsBackgroundColor(contactColor);
+            imageView.setVisibility(View.INVISIBLE);
+        } else {
+            Drawable drawable = getDrawable(R.drawable.baseline_account_circle_24);
+            if (drawable != null)
+                drawable.setColorFilter(contactColor, PorterDuff.Mode.SRC_IN);
+            imageView.setImageDrawable(drawable);
+            avatarView.setVisibility(View.INVISIBLE);
+        }
     }
 
     private String getAbTitle() {
-        return (contactName != null && !contactName.isEmpty())? contactName: address;
+        return isContact? contactName: address;
     }
 
     boolean isShortCode = false;

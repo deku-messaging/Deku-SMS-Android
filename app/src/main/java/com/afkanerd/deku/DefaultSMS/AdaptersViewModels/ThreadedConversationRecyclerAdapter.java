@@ -1,8 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
-import android.content.Context;
 import android.content.Intent;
-import android.provider.Telephony;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,7 +51,7 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     public ThreadedConversationsTemplateViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
-        View view = inflater.inflate(R.layout.conversations_threads_layout, parent, false);
+        View view = inflater.inflate(R.layout.layout_conversations_threads, parent, false);
 //        View view = viewCacheExtension.getViewForPositionAndType(parent, 0, viewType);
         if(viewType == (RECEIVED_UNREAD_VIEW_TYPE))
             return new ThreadedConversationsReceivedViewHandler.ReceivedViewHolderUnreadThreadedConversations(view);

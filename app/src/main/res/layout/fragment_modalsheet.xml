@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <include
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        layout="@layout/secure_model_sheet_layout"
+        layout="@layout/layout_secure_modal_sheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

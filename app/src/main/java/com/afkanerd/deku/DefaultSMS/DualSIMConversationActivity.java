@@ -3,7 +3,6 @@ package com.afkanerd.deku.DefaultSMS;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -12,7 +11,6 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
@@ -73,7 +71,7 @@ public class DualSIMConversationActivity extends AppCompatActivity {
         builder.setTitle(getString(R.string.sim_chooser_layout_text));
 //        builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
 
-        View simChooserView = View.inflate(getApplicationContext(), R.layout.sim_chooser_layout, null);
+        View simChooserView = View.inflate(getApplicationContext(), R.layout.layout_sim_chooser, null);
         builder.setView(simChooserView);
 
         List<SubscriptionInfo> subscriptionInfos = SIMHandler.getSimCardInformation(getApplicationContext());

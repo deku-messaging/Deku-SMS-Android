@@ -34,7 +34,7 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(this.context);
-        View view = inflater.inflate(R.layout.conversations_threads_layout, parent, false);
+        View view = inflater.inflate(R.layout.layout_conversations_threads, parent, false);
         return new ContactsViewHolderThreadedConversations(view, true);
     }
 
