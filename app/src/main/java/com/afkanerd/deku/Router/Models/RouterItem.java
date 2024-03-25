@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.Router;
+package com.afkanerd.deku.Router.Models;
 
 import android.database.Cursor;
 import android.util.Pair;
@@ -6,7 +6,6 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
-import androidx.work.WorkInfo;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;

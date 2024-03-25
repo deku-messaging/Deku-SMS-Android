@@ -8,16 +8,11 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.provider.Telephony;
-import android.util.Log;
 import android.util.Pair;
-
-import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
@@ -25,9 +20,6 @@ import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
-import com.afkanerd.deku.Router.Router.RouterItem;
-import com.afkanerd.deku.Router.Router.RouterHandler;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;

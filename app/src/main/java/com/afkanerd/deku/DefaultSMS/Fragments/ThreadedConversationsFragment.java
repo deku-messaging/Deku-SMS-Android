@@ -1,7 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.Fragments;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,10 +8,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
-import android.provider.BlockedNumberContract;
-import android.provider.DocumentsContract;
 import android.telecom.TelecomManager;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,33 +34,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.afkanerd.deku.DefaultSMS.AboutActivity;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.SettingsActivity;
-import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
-import com.afkanerd.deku.E2EE.E2EEHandler;
-import com.afkanerd.deku.Router.Router.RouterActivity;
-import com.google.i18n.phonenumbers.NumberParseException;
+import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
@@ -623,7 +607,7 @@ public class ThreadedConversationsFragment extends Fragment {
             return true;
         }
         if (item.getItemId() == R.id.conversation_threads_main_menu_routed) {
-            Intent routingIntent = new Intent(getContext(), RouterActivity.class);
+            Intent routingIntent = new Intent(getContext(), GatewayServerRoutedActivity.class);
             routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(routingIntent);
         }

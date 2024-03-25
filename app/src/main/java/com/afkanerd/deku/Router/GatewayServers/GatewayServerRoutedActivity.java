@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.Router;
+package com.afkanerd.deku.Router.GatewayServers;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
@@ -15,19 +15,16 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class RouterActivity extends CustomAppCompactActivity {
+public class GatewayServerRoutedActivity extends CustomAppCompactActivity {
 
-    RouterViewModel routerViewModel;
+    GatewayServerRouterViewModel gatewayServerRouterViewModel;
     RecyclerView routedMessageRecyclerView;
-    RouterRecyclerAdapter routerRecyclerAdapter;
+    GatewayServerRouterRecyclerAdapter gatewayServerRouterRecyclerAdapter;
 
     ActionMode actionMode;
 
@@ -49,19 +46,19 @@ public class RouterActivity extends CustomAppCompactActivity {
                 LinearLayoutManager.VERTICAL, false);
         routedMessageRecyclerView.setLayoutManager(linearLayoutManager);
 
-        routerRecyclerAdapter = new RouterRecyclerAdapter();
-        routerRecyclerAdapter.setHasStableIds(true);
+        gatewayServerRouterRecyclerAdapter = new GatewayServerRouterRecyclerAdapter();
+        gatewayServerRouterRecyclerAdapter.setHasStableIds(true);
 
-        routedMessageRecyclerView.setAdapter(routerRecyclerAdapter);
+        routedMessageRecyclerView.setAdapter(gatewayServerRouterRecyclerAdapter);
 
-        routerViewModel = new ViewModelProvider(this).get( RouterViewModel.class);
+        gatewayServerRouterViewModel = new ViewModelProvider(this).get( GatewayServerRouterViewModel.class);
 
-        routerViewModel.getMessages(getApplicationContext()).observe(this,
+        gatewayServerRouterViewModel.getMessages(getApplicationContext()).observe(this,
                 new Observer<List<WorkInfo>>() {
                     @Override
                     public void onChanged(List<WorkInfo> workInfoList) {
                         try {
-                            routerRecyclerAdapter.submitList(
+                            gatewayServerRouterRecyclerAdapter.submitList(
                                     getApplicationContext(), workInfoList);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -75,9 +72,9 @@ public class RouterActivity extends CustomAppCompactActivity {
                     }
                 });
 
-        routerRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<Long, RouterRecyclerAdapter.ViewHolder>>() {
+        gatewayServerRouterRecyclerAdapter.selectedItems.observe(this, new Observer<HashMap<Long, GatewayServerRouterRecyclerAdapter.ViewHolder>>() {
             @Override
-            public void onChanged(HashMap<Long, RouterRecyclerAdapter.ViewHolder> longs) {
+            public void onChanged(HashMap<Long, GatewayServerRouterRecyclerAdapter.ViewHolder> longs) {
                 if(longs == null || longs.isEmpty()) {
                     if(actionMode != null) {
                         actionMode.finish();
@@ -104,6 +101,10 @@ public class RouterActivity extends CustomAppCompactActivity {
             startActivity(new Intent(this, GatewayServerListingActivity.class));
             return true;
         }
+        else if(item.getItemId() == R.id.gateway_server_menu_settings) {
+            startActivity(new Intent(this, GatewayServerSettingsActivity.class));
+            return true;
+        }
         return false;
     }
 
@@ -128,7 +129,7 @@ public class RouterActivity extends CustomAppCompactActivity {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             actionMode = null;
-            routerRecyclerAdapter.resetAllSelected();
+            gatewayServerRouterRecyclerAdapter.resetAllSelected();
         }
     };
 }

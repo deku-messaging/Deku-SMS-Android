@@ -47,7 +47,8 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
         String url = gatewayServer.getProtocol().equals(SMTP.PROTOCOL) ?
                 gatewayServer.smtp.host : gatewayServer.getURL();
         holder.url.setText(url);
-        holder.protocol.setText(gatewayServer.getProtocol());
+        holder.protocol.setText(gatewayServer.getProtocol().equals("POST") ? "HTTPS" :
+                gatewayServer.getProtocol());
 
         String dataFormat = (gatewayServer.getFormat() == null || gatewayServer.getFormat().isEmpty())
                 ? "all" : gatewayServer.getFormat();

@@ -1,60 +1,39 @@
-package com.afkanerd.deku.Router.Router;
+package com.afkanerd.deku.Router.Models;
 
 import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
-import androidx.compose.runtime.State;
 import androidx.lifecycle.LiveData;
-import androidx.work.BackoffPolicy;
-import androidx.work.Constraints;
-import androidx.work.Data;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
-import androidx.work.WorkQuery;
 
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 

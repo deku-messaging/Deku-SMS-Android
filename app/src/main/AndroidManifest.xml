@@ -37,8 +37,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
         <activity
-            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerSMTPActivity"
-            android:exported="false" />
+            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerSettingsActivity"
+            android:exported="false"
+            android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
         <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectListingActivity"
             android:exported="false"
@@ -95,10 +96,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ArchivedMessagesActivity"
-            android:exported="false"
-            android:parentActivityName=".ThreadedConversationsActivity" />
-        <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"
             android:parentActivityName=".ConversationActivity" />
@@ -112,13 +109,9 @@
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity" />
+            android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
         <activity
-            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity"
-            android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity" />
-        <activity
-            android:name="com.afkanerd.deku.Router.Router.RouterActivity"
+            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity"
             android:exported="false"
             android:parentActivityName=".ThreadedConversationsActivity" />
         <activity

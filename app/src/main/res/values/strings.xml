@@ -88,10 +88,14 @@
 
     <string name="settings_advanced_developers_key" translatable="false">settings_advanced_developers_key</string>
     <string name="settings_locale" translatable="false">settings_locale</string>
+    <string name="gateway_server_settings_locale" translatable="false">gateway_server_settings_locale</string>
     <string name="settings_locale_description">Choose language</string>
+    <string name="gateway_server_settings_locale_description">Enable automatic protocol routing</string>
+    <string name="gateway_server_settings_locale_summary">Turn this on to route only to 1 protocol at a time. This begins with HTTP and performs a round-robin lookup for the other protocols. Use this to avoid receiving the same message to multiple protocols.</string>
 
     <string name="settings_about">About</string>
     <string name="settings_title">Settings</string>
+    <string name="gateway_server_settings_title">Gateway Server Settings</string>
     <string name="settings_advanced_category_title">Advance</string>
     <string name="settings_developer_category_title">Developers</string>
     <string name="settings_security_category_end_to_end_duration">Allow request for encryption to expire</string>

@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.Router;
+package com.afkanerd.deku.Router.GatewayServers;
 
 import android.content.Context;
 import android.util.Log;
@@ -15,11 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.WorkInfo;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
+import com.afkanerd.deku.Router.Models.RouterHandler;
+import com.afkanerd.deku.Router.Models.RouterItem;
 import com.afkanerd.deku.Router.SMTP;
 import com.google.android.material.card.MaterialCardView;
 
@@ -28,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAdapter.ViewHolder> {
+public class GatewayServerRouterRecyclerAdapter extends RecyclerView.Adapter<GatewayServerRouterRecyclerAdapter.ViewHolder> {
     private final AsyncListDiffer<Pair<RouterItem, GatewayServer>> mDiffer =
             new AsyncListDiffer<>(this, RouterItem.DIFF_CALLBACK);
 
@@ -65,7 +64,7 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
     }
 
     public MutableLiveData<HashMap<Long, ViewHolder>> selectedItems;
-    public RouterRecyclerAdapter() {
+    public GatewayServerRouterRecyclerAdapter() {
         this.selectedItems = new MutableLiveData<>();
     }
 
@@ -78,7 +77,7 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.routed_messages_layout, parent, false);
+        View view = inflater.inflate(R.layout.gateway_server_routed_messages_layout, parent, false);
         return new ViewHolder(view);
     }
 
@@ -163,7 +162,8 @@ public class RouterRecyclerAdapter extends RecyclerView.Adapter<RouterRecyclerAd
                     gatewayServer.smtp.host :
                     gatewayServer.getURL();
 
-            address.setText(conversation.getAddress());
+            String protAddress = gatewayServer.getProtocol() + "/" + conversation.getAddress();
+            address.setText(protAddress);
             url.setText(gatewayServerUrl);
             body.setText(conversation.getText());
             status.setText(conversation.routingStatus);
