@@ -47,9 +47,21 @@ public class RouterHandler {
         Properties properties = new Properties();
         properties.put("mail.smtp.host", gatewayServer.smtp.host);
         properties.put("mail.smtp.port", gatewayServer.smtp.port);
+        properties.put("mail.smtp.starttls.enable", "true");
 
         if(BuildConfig.DEBUG)
             properties.put("mail.debug", "true");
+
+        /**
+         * TODO
+         *  if (authenticationRequired) {
+         *             Authenticator auth = new SMTPAuthenticator();
+         *             props.put("mail.smtp.auth", "true");
+         *             session = Session.getDefaultInstance(props, auth);
+         *         } else {
+         *             session = Session.getDefaultInstance(props, null);
+         *         }
+         */
 
         InternetAddress[] internetAddresses = InternetAddress.parse(gatewayServer.smtp.recipient);
         Session session = Session.getInstance(properties, null);
