@@ -32,7 +32,6 @@ public class GatewayServerRouterRecyclerAdapter extends RecyclerView.Adapter<Gat
             new AsyncListDiffer<>(this, RouterItem.DIFF_CALLBACK);
 
     public void submitList(Context context, final List<WorkInfo> workInfoList) throws InterruptedException {
-        List<Pair<RouterItem, GatewayServer>> workInfoItemsList = new ArrayList<>();
         Map<Long, Pair<RouterItem, GatewayServer>> map = new HashMap<>();
 
         Thread thread = new Thread(new Runnable() {
