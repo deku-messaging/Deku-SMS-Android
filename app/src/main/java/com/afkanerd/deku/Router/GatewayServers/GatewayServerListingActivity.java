@@ -4,16 +4,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -65,9 +62,11 @@ public class GatewayServerListingActivity extends AppCompatActivity {
                     new Observer<List<GatewayServer>>() {
                         @Override
                         public void onChanged(List<GatewayServer> gatewayServerList) {
+                            gatewayServerRecyclerAdapter.submitList(gatewayServerList);
                             if(gatewayServerList.size() < 1 )
                                 findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
-                            gatewayServerRecyclerAdapter.submitList(gatewayServerList);
+                            else
+                                findViewById(R.id.no_gateway_server_added).setVisibility(View.GONE);
                         }
                     });
         } catch (InterruptedException e) {
@@ -212,23 +211,23 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        GatewayServerAddModelFragment gatewayServerAddModelFragment =
-                new GatewayServerAddModelFragment(layout, gatewayServer);
-        fragmentTransaction.add(gatewayServerAddModelFragment,
+        GatewayServerAddModalFragment gatewayServerAddModalFragment =
+                new GatewayServerAddModalFragment(layout, gatewayServer);
+        fragmentTransaction.add(gatewayServerAddModalFragment,
                 ModalSheetFragment.TAG);
-        fragmentTransaction.show(gatewayServerAddModelFragment);
+        fragmentTransaction.show(gatewayServerAddModalFragment);
 
         fragmentTransaction.commitNow();
-        gatewayServerAddModelFragment.runnable = new Runnable() {
+        gatewayServerAddModalFragment.runnable = new Runnable() {
             @Override
             public void run() {
-                includedViewFormat = gatewayServerAddModelFragment.getView().
+                includedViewFormat = gatewayServerAddModalFragment.getView().
                         findViewById(R.id.gateway_server_routing_include);
                 if(type == TYPE_HTTP)
-                    onSaveTypeHttp(gatewayServerAddModelFragment.getView(), gatewayServer);
+                    onSaveTypeHttp(gatewayServerAddModalFragment.getView(), gatewayServer);
                 else if(type == TYPE_SMTP)
-                    onSaveTypeSmtp(gatewayServerAddModelFragment.getView(), gatewayServer);
-                gatewayServerAddModelFragment.dismiss();
+                    onSaveTypeSmtp(gatewayServerAddModalFragment.getView(), gatewayServer);
+                gatewayServerAddModalFragment.dismiss();
             }
         };
     }

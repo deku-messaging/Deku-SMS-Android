@@ -1,6 +1,7 @@
 package com.afkanerd.deku.Router.GatewayServers;
 
 import android.content.Context;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -21,6 +22,10 @@ import com.afkanerd.deku.Router.Models.RouterHandler;
 import com.afkanerd.deku.Router.Models.RouterItem;
 import com.afkanerd.deku.Router.SMTP;
 import com.google.android.material.card.MaterialCardView;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.TreeMultimap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +37,7 @@ public class GatewayServerRouterRecyclerAdapter extends RecyclerView.Adapter<Gat
             new AsyncListDiffer<>(this, RouterItem.DIFF_CALLBACK);
 
     public void submitList(Context context, final List<WorkInfo> workInfoList) throws InterruptedException {
-        Map<Long, Pair<RouterItem, GatewayServer>> map = new HashMap<>();
+        ListMultimap<Long, Pair<RouterItem, GatewayServer>> map = ArrayListMultimap.create();
 
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -50,6 +55,7 @@ public class GatewayServerRouterRecyclerAdapter extends RecyclerView.Adapter<Gat
                     routerItem.routingUniqueId = workInfo.getId().toString();
                     routerItem.routingStatus = RouterHandler.reverseState(context,
                             workInfo.getState());
+                    Log.d(getClass().getName(), "# adding: " + routerItem.getDate());
                     map.put(Long.parseLong(routerItem.getDate()),
                             new Pair<>(routerItem, gatewayServer));
                 }

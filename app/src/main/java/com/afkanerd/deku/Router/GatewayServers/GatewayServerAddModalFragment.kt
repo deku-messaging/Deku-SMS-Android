@@ -12,13 +12,12 @@ import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.SMTP
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.bottomsheet.BottomSheetDragHandleView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.textfield.TextInputEditText
 
-class GatewayServerAddModelFragment( val bottomSheetViewLayout: Int,
-                                     val gatewayServer: GatewayServer?)
+class GatewayServerAddModalFragment(val bottomSheetViewLayout: Int,
+                                    val gatewayServer: GatewayServer?)
     : BottomSheetDialogFragment() {
 
     lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
