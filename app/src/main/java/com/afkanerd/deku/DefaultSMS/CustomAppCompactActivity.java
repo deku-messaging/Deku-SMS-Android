@@ -197,7 +197,4 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             notificationManager.cancel(Integer.parseInt(threadId));
         }
     }
-
-
-
 }

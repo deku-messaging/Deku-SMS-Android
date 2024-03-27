@@ -2,7 +2,6 @@ package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
 import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT;
 import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT;
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver.DATA_UPDATED_BROADCAST_INTENT;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -27,8 +26,6 @@ import java.util.concurrent.Executors;
 
 public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
 
-    public static String SMS_DELIVER_ACTION =
-            BuildConfig.APPLICATION_ID + ".SMS_DELIVER_ACTION";
     public static String SMS_SENT_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".SMS_SENT_BROADCAST_INTENT";
     public static String SMS_UPDATED_BROADCAST_INTENT =
@@ -174,12 +171,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                         conversation.setType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED);
                     }
                     databaseConnector.conversationDao()._update(conversation);
-
-                    Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
-                    broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
-                    broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
-
-                    context.sendBroadcast(broadcastIntent);
                 }
             });
         }
@@ -201,12 +192,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                     }
 
                     databaseConnector.conversationDao()._update(conversation);
-
-                    Intent broadcastIntent = new Intent(DATA_UPDATED_BROADCAST_INTENT);
-                    broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
-                    broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
-
-                    context.sendBroadcast(broadcastIntent);
                 }
             });
         }
@@ -247,9 +232,6 @@ public class IncomingTextSMSBroadcastReceiver extends BroadcastReceiver {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                Intent broadcastIntent = new Intent(SMS_DELIVER_ACTION);
-                broadcastIntent.putExtra(Conversation.ID, messageId);
-                context.sendBroadcast(broadcastIntent);
             }
         });
 

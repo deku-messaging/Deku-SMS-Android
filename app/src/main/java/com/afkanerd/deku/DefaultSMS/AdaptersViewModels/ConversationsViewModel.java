@@ -105,17 +105,7 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public void updateInformation(Context context, String contactName) {
-        if(threadId != null && !threadId.isEmpty()) {
-            List<Conversation> conversations = datastore.conversationDao().getAll(threadId);
-            List<Conversation> updateList = new ArrayList<>();
-            for(Conversation conversation : conversations) {
-                if(!conversation.isRead()) {
-                    conversation.setRead(true);
-                    updateList.add(conversation);
-                }
-            }
-            datastore.conversationDao().update(updateList);
-        }
+        datastore.conversationDao().updateRead(true, threadId);
         ThreadedConversations threadedConversations =
                 datastore.threadedConversationsDao().get(threadId);
         if(threadedConversations != null) {
@@ -130,7 +120,6 @@ public class ConversationsViewModel extends ViewModel {
         for(int i=0;i<conversations.size(); ++i)
             ids[i] = conversations.get(i).getMessage_id();
         NativeSMSDB.deleteMultipleMessages(context, ids);
-
     }
 
     public Conversation fetchDraft() throws InterruptedException {
@@ -151,4 +140,5 @@ public class ConversationsViewModel extends ViewModel {
     public void mute() {
         datastore.threadedConversationsDao().updateMuted(1, threadId);
     }
+
 }

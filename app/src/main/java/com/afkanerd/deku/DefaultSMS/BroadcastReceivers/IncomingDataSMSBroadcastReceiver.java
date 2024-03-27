@@ -7,10 +7,7 @@ import android.content.Intent;
 import android.provider.Telephony;
 import android.util.Base64;
 
-import androidx.room.Room;
-
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
@@ -33,8 +30,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     public static String DATA_DELIVERED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".DATA_DELIVERED_BROADCAST_INTENT";
 
-    public static String DATA_UPDATED_BROADCAST_INTENT =
-            BuildConfig.APPLICATION_ID + ".DATA_UPDATED_BROADCAST_INTENT";
     Datastore databaseConnector;
 
     @Override

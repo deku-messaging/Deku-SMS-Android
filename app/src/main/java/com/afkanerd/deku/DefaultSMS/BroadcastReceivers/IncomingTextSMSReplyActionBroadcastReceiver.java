@@ -3,29 +3,18 @@ package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
 import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.service.notification.StatusBarNotification;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
-import androidx.room.Room;
 
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
@@ -33,7 +22,6 @@ import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
-import com.afkanerd.deku.DefaultSMS.R;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
     public static String REPLY_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".REPLY_BROADCAST_ACTION";

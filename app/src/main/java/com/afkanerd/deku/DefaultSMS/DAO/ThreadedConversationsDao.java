@@ -187,6 +187,8 @@ public interface ThreadedConversationsDao {
     @Transaction
     default ThreadedConversations insertThreadFromConversation(Context context,
                                                                Conversation conversation) {
+        // TODO: Here is the culprit
+
         /* - Import things are:
         1. Dates
         2. Snippet
@@ -217,6 +219,7 @@ public interface ThreadedConversationsDao {
                 .get(conversation.getThread_id());
         return threadedConversations;
     }
+
     @Transaction
     default ThreadedConversations insertThreadAndConversation(Context context, Conversation conversation) {
         /* - Import things are:

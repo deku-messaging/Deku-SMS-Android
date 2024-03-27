@@ -26,20 +26,8 @@ public interface ConversationDao {
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id AND type IS NOT 3 ORDER BY date DESC")
     List<Conversation> getDefault(String thread_id);
 
-
-    @Query("SELECT * FROM Conversation WHERE address =:address ORDER BY date DESC")
-    PagingSource<Integer, Conversation> getByAddress(String address);
-
     @Query("SELECT * FROM Conversation WHERE thread_id =:thread_id ORDER BY date DESC")
     List<Conversation> getAll(String thread_id);
-
-    @Query("SELECT * FROM Conversation WHERE message_id IN (:messageIds) ORDER BY date DESC")
-    List<Conversation> fetch(List<String> messageIds);
-
-    @Query("SELECT * FROM ( SELECT * FROM Conversation GROUP BY thread_id HAVING MAX(date)) AS " +
-            "latest_items WHERE thread_id IS NOT NULL ORDER BY date DESC")
-    List<Conversation> getForThreading();
-
 
     @Query("SELECT * FROM Conversation WHERE thread_id =:threadId ORDER BY date DESC LIMIT 1")
     Conversation fetchLatestForThread(String threadId);
@@ -49,10 +37,6 @@ public interface ConversationDao {
 
     @Query("SELECT * FROM Conversation WHERE type = :type AND thread_id = :threadId ORDER BY date DESC")
     Conversation fetchTypedConversation(int type, String threadId);
-
-//    @Query("SELECT * FROM Conversation WHERE body " +
-//            "LIKE '%' || :text || '%' ORDER BY date DESC")
-//    PagingSource<Integer, Conversation> find(String text);
 
     @Query("SELECT * FROM Conversation WHERE message_id =:message_id")
     Conversation getMessage(String message_id);
@@ -68,6 +52,9 @@ public interface ConversationDao {
 
     @Update
     int update(List<Conversation> conversations);
+
+    @Query("UPDATE Conversation SET read = :isRead WHERE thread_id = :threadId AND read = 0")
+    int updateRead(boolean isRead, String threadId);
 
     @Query("DELETE FROM Conversation WHERE thread_id = :threadId")
     int delete(String threadId);

@@ -86,7 +86,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    PagingSource<Integer, ThreadedConversations> mutedPagingSource;
     public LiveData<PagingData<ThreadedConversations>> getUnread(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,

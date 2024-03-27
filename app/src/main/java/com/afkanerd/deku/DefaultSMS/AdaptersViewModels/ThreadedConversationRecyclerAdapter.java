@@ -35,15 +35,9 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     public final static int SENT_ENCRYPTED_UNREAD_VIEW_TYPE = 7;
     public final static int SENT_ENCRYPTED_VIEW_TYPE = 8;
 
-    ThreadedConversationsDao threadedConversationsDao;
 
     public ThreadedConversationRecyclerAdapter() {
         super(ThreadedConversations.DIFF_CALLBACK);
-    }
-
-    public ThreadedConversationRecyclerAdapter(ThreadedConversationsDao threadedConversationsDao) {
-        super(ThreadedConversations.DIFF_CALLBACK);
-        this.threadedConversationsDao = threadedConversationsDao;
     }
 
     @NonNull

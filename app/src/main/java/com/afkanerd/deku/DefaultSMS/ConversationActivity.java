@@ -101,7 +101,20 @@ public class ConversationActivity extends E2EECompactActivity {
 
     Toolbar toolbar;
 
-    BroadcastReceiver broadcastReceiver;
+    boolean firstScrollInitiated = false;
+
+    int searchPointerPosition;
+    TextView searchFoundTextView;
+
+    LifecycleOwner lifecycleOwner;
+
+    static final String DRAFT_TEXT = "DRAFT_TEXT";
+    static final String DRAFT_ID = "DRAFT_ID";
+
+    MaterialCardView materialCardView;
+    boolean isShortCode = false;
+    SmsManager smsManager = SmsManager.getDefault();
+    TextInputEditText textInputEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,11 +140,6 @@ public class ConversationActivity extends E2EECompactActivity {
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
     public void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         // Always call the superclass so it can restore the view hierarchy.
         super.onRestoreInstanceState(savedInstanceState);
@@ -141,11 +149,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
         savedInstanceState.remove(DRAFT_TEXT);
         savedInstanceState.remove(DRAFT_ID);
-    }
-
-    private void test() {
-        if(BuildConfig.DEBUG)
-            getIntent().putExtra(SEARCH_STRING, "Android");
     }
 
     @Override
@@ -196,13 +199,6 @@ public class ConversationActivity extends E2EECompactActivity {
             }
         });
         return super.onCreateOptionsMenu(menu);
-    }
-
-    private void resetSearch() {
-        findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
-        conversationsRecyclerAdapter.searchString = null;
-        conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
-        searchPositions = new MutableLiveData<>();
     }
 
     @Override
@@ -287,6 +283,55 @@ public class ConversationActivity extends E2EECompactActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (smsTextView != null && smsTextView.getText() != null &&
+                !smsTextView.getText().toString().isEmpty()) {
+            try {
+                saveDraft(String.valueOf(System.currentTimeMillis()),
+                        smsTextView.getText().toString());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state.
+        savedInstanceState.putString(DRAFT_TEXT, smsTextView.getText().toString());
+        savedInstanceState.putString(DRAFT_ID, String.valueOf(System.currentTimeMillis()));
+
+        // Always call the superclass so it can save the view hierarchy state.
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == SEND_SMS_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+                Toast.makeText(this, "Let's do this!!", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Permission denied!", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+
+    private void resetSearch() {
+        findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
+        conversationsRecyclerAdapter.searchString = null;
+        conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
+        searchPositions = new MutableLiveData<>();
+    }
+
     private void configureActivityDependencies() throws Exception {
         /**
          * Address = This could come from Shared Intent, Contacts etc
@@ -343,9 +388,6 @@ public class ConversationActivity extends E2EECompactActivity {
         attachObservers();
     }
 
-    int searchPointerPosition;
-    TextView searchFoundTextView;
-
     private void scrollRecyclerViewSearch(int position) {
         if(position == -2){
             String text = "0/0 " + getString(R.string.conversations_search_results_found);
@@ -379,7 +421,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
-        conversationsViewModel.datastore = Datastore.getDatastore(getApplicationContext());
+        conversationsViewModel.datastore = databaseConnector;
 
         backSearchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -416,14 +458,9 @@ public class ConversationActivity extends E2EECompactActivity {
 
     }
 
-    boolean firstScrollInitiated = false;
-
-    LifecycleOwner lifecycleOwner;
-
-    Conversation conversation = new Conversation();
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
-        singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
+//        singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
 
         lifecycleOwner = this;
 
@@ -546,11 +583,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        return super.onPrepareOptionsMenu(menu);
-    }
-
     private void configureSearchBox() {
 //        findViewById(R.id.conversations_pop_ups_layouts).setVisibility(View.VISIBLE);
         findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
@@ -596,53 +628,15 @@ public class ConversationActivity extends E2EECompactActivity {
             }
         });
     }
-    MaterialCardView materialCardView;
 
     private String getAbTitle() {
         return isContact? contactName: address;
-    }
-
-    boolean isShortCode = false;
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (smsTextView != null && smsTextView.getText() != null &&
-                !smsTextView.getText().toString().isEmpty()) {
-            try {
-                saveDraft(String.valueOf(System.currentTimeMillis()),
-                        smsTextView.getText().toString());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if(broadcastReceiver != null)
-            unregisterReceiver(broadcastReceiver);
-    }
-
-    static final String DRAFT_TEXT = "DRAFT_TEXT";
-    static final String DRAFT_ID = "DRAFT_ID";
-
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        // Save the user's current game state.
-        savedInstanceState.putString(DRAFT_TEXT, smsTextView.getText().toString());
-        savedInstanceState.putString(DRAFT_ID, String.valueOf(System.currentTimeMillis()));
-
-        // Always call the superclass so it can save the view hierarchy state.
-        super.onSaveInstanceState(savedInstanceState);
     }
 
     private void emptyDraft(){
         conversationsViewModel.clearDraft(getApplicationContext());
     }
 
-    SmsManager smsManager = SmsManager.getDefault();
     public String getSMSCount(String text) {
         final List<String> messages = smsManager.divideMessage(text);
         final int segmentCount = messages.get(messages.size() -1).length();
@@ -828,7 +822,6 @@ public class ConversationActivity extends E2EECompactActivity {
         startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
     }
 
-
     private void shareItem() {
         Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
                 conversationsRecyclerAdapter.mutableSelectedItems.getValue().entrySet();
@@ -929,19 +922,6 @@ public class ConversationActivity extends E2EECompactActivity {
         });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == SEND_SMS_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0) {
-                Toast.makeText(this, "Let's do this!!", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(this, "Permission denied!", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    TextInputEditText textInputEditText;
     private final ActionMode.Callback searchActionModeCallback = new ActionMode.Callback() {
 
         @Override
@@ -1014,6 +994,7 @@ public class ConversationActivity extends E2EECompactActivity {
             resetSearch();
         }
     };
+
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
 
         @Override
@@ -1026,7 +1007,8 @@ public class ConversationActivity extends E2EECompactActivity {
 
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            if(Objects.requireNonNull(conversationsRecyclerAdapter.mutableSelectedItems.getValue()).size() > 1) {
+            if(Objects.requireNonNull(conversationsRecyclerAdapter.mutableSelectedItems
+                    .getValue()).size() > 1) {
                 menu.clear();
                 mode.getMenuInflater().inflate(R.menu.conversations_menu_items_selected, menu);
                 return true;
