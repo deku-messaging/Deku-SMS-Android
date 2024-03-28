@@ -201,7 +201,7 @@ public interface ThreadedConversationsDao {
 
         final int type = conversation.getType();
 
-        final boolean isRead = type != Telephony.Sms.MESSAGE_TYPE_INBOX || conversation.isRead();
+        final boolean isRead = type == Telephony.Sms.MESSAGE_TYPE_OUTBOX || conversation.isRead();
         final boolean isSecured = conversation.isIs_encrypted();
 
         ThreadedConversations threadedConversations = Datastore.getDatastore(context)
