@@ -332,6 +332,7 @@ public class ConversationActivity extends E2EECompactActivity {
         searchPositions = new MutableLiveData<>();
     }
 
+    String defaultRegion;
     private void configureActivityDependencies() throws Exception {
         /**
          * Address = This could come from Shared Intent, Contacts etc
@@ -340,12 +341,12 @@ public class ConversationActivity extends E2EECompactActivity {
          * ==> If not ThreadId do not populate, everything else should take the pleasure of finding
          * and sending a threadID to this intent
          */
+        defaultRegion = Helpers.getUserCountry(getApplicationContext());
         if(getIntent().getAction() != null && (getIntent().getAction().equals(Intent.ACTION_SENDTO) ||
                 getIntent().getAction().equals(Intent.ACTION_SEND))) {
             String sendToString = getIntent().getDataString();
             if (sendToString != null && (sendToString.contains("smsto:") ||
                     sendToString.contains("sms:"))) {
-                String defaultRegion = Helpers.getUserCountry(getApplicationContext());
                 String address = Helpers.getFormatCompleteNumber(sendToString, defaultRegion);
                 getIntent().putExtra(Conversation.ADDRESS, address);
             }
@@ -377,11 +378,10 @@ public class ConversationActivity extends E2EECompactActivity {
             thread.start();
             thread.join();
         }
-        final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
         contactName = Contacts.retrieveContactName(getApplicationContext(),
-                Helpers.getFormatCompleteNumber(address, defaultUserCountry));
+                Helpers.getFormatCompleteNumber(address, defaultRegion));
         if(contactName == null) {
-            contactName = Helpers.getFormatNationalNumber(address, defaultUserCountry);
+            contactName = Helpers.getFormatForTransmission(address, defaultRegion);
         } else isContact = true;
 
         isShortCode = Helpers.isShortCode(address);
@@ -621,12 +621,14 @@ public class ConversationActivity extends E2EECompactActivity {
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
                 ConversationsContactModalFragment modalSheetFragment =
-                        new ConversationsContactModalFragment(contactName, address);
+                        new ConversationsContactModalFragment(contactName,
+                                Helpers.getFormatForTransmission(address, defaultRegion));
                 fragmentTransaction.add(modalSheetFragment, ConversationsContactModalFragment.TAG);
                 fragmentTransaction.show(modalSheetFragment);
                 fragmentTransaction.commitNow();
             }
         });
+
     }
 
     private String getAbTitle() {
