@@ -35,8 +35,6 @@
     <string name="add_new_gateway_server_smtp_from">Depuis</string>
     <string name="add_new_gateway_server_smtp_subject">"(Optionnel) Sujet "</string>
     <string name="add_new_gateway_server_smtp_add">Ajouter</string>
-    <string name="add_new_gateway_server_ftp">Ajouter une passerelle FTP</string>
-    <string name="add_new_gateway_server_amqp">Ajouter une passerelle AMQP</string>
     <string name="notifications_reply_label">Répondre</string>
     <string name="notifications_mark_as_read_label">Marquer comme lu</string>
     <string name="notification_title_new_key">Demande de communication sécurisée</string>
@@ -64,14 +62,11 @@
     <string name="settings_SMS_listening_title">Ecoute de SMS</string>
     <string name="settings_SMS_listening_server">Configurer les passerelles d\'écoute SMS</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations pour écouter les messages SMS via AMQP/s</string>
-    <string name="gateway_client_add_linked_device_title">Scanner le code QR</string>
     <string name="gateway_client_add_manually_title">Ajouter manuellement</string>
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
     <string name="settings_SMS_routing_type_all_option">Tout (par défaut)</string>
-    <string name="settings_add_gateway_server_protocol_description">Choisissez le protocole de routage</string>
     <string name="settings_add_gateway_client_protocol_description">Choisissez le protocole d\'écoute</string>
     <string name="settings_add_gateway_server_protocol_meta_description">Tous les POST sont routés au format JSON.\nTous les formats utilisent le format clé/valeur suivant :\n\n<b>MSISDN</b> :-L\'adresse du message entrant au format E.164\n\n<b>text</b> : le corps du texte du message entrant</string>
-    <string name="settings_add_gateway_server_protocol_data_format">Choisissez le format des données</string>
     <string name="settings_gateway_server_protocol_description">Protocole</string>
     <string name="settings_gateway_client_username_description">Nom d\'utilisateur</string>
     <string name="settings_gateway_server_data_format_description">Format des données</string>
@@ -113,7 +108,6 @@
     <string name="conversations_search_results_found">résultats trouvés</string>
     <string name="conversation_copied">Copié!</string>
     <string name="router_list_gateways">Afficher les serveurs de passerelle</string>
-    <string name="router_add_gateways">Ajouter des serveurs de passerelle</string>
     <string name="conversation_menu_copy">copie</string>
     <string name="conversation_menu_delete">supprimer</string>
     <string name="conversation_menu_share">partager</string>
@@ -126,8 +120,6 @@
     <string name="conversation_menu_view_details_to">À :\u00A0</string>
     <string name="conversation_menu_view_details_sent">Envoyé :\u00A0</string>
     <string name="conversation_menu_view_details_received">Reçu :\u00A0</string>
-    <string name="compose_new_message_to">À</string>
-    <string name="compose_new_message_title">Nouvelle conversation</string>
     <string name="conversation_secure_popup_text">Cliquez pour demander une conversation sécurisée</string>
     <string name="conversation_threads_secured_content">Contenu sécurisé</string>
     <string name="conversation_key_title_requested">Sécurisé demandé</string>
@@ -175,7 +167,6 @@
     <string name="conversations_exported_complete">Exportation terminée</string>
     <string name="gateway_client_project_listing_project_name_title">Nom du projet</string>
     <string name="gateway_client_project_listing_no_projects_added">Aucun projet ajouté</string>
-    <string name="gateway_client_project_activate_all">Activer tout</string>
     <string name="conversations_secure_conversation_request"><b>John</b> a demandé à sécuriser cette conversation.</string>
     <string name="conversations_secure_conversation_request_agree">Acceptez de sécuriser !</string>
     <string name="conversations_secure_conversation_request_information">Lorsque vous envoyez un message sur notre plateforme, celui-ci est brouillé avec un code spécial, tout comme un code secret que vous pourriez utiliser avec un ami.\n\nCe code empêche quiconque de consulter votre message pendant qu\'il circule entre vous et le destinataire. Seule la personne à qui vous l\'envoyez possède la clé pour le déchiffrer et lire ce que vous avez écrit. Nous appelons ce processus le cryptage.\n\nPensez-y comme si vous enfermiez vos messages dans un coffre-fort pendant leur livraison !\n\nVous voulez en savoir plus sur le code secret ?\n\nSi vous êtes curieux de savoir comment fonctionne ce cryptage, vous pouvez consulter ce lien pour une analyse plus approfondie.</string>

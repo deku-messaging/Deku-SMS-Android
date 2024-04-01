@@ -59,9 +59,6 @@
     <string name="add_new_gateway_server_smtp_subject">(Optional) Subject</string>
     <string name="add_new_gateway_server_smtp_add">Add</string>
 
-    <string name="add_new_gateway_server_ftp">Add FTP Gateway</string>
-    <string name="add_new_gateway_server_amqp">Add AMQP Gateway</string>
-
     <string name="notifications_reply_label">Reply</string>
     <string name="notifications_mark_as_read_label">Mark as read</string>
 
@@ -88,7 +85,6 @@
 
     <string name="settings_advanced_developers_key" translatable="false">settings_advanced_developers_key</string>
     <string name="settings_locale" translatable="false">settings_locale</string>
-    <string name="gateway_server_settings_locale" translatable="false">gateway_server_settings_locale</string>
     <string name="settings_locale_description">Choose language</string>
     <string name="gateway_server_settings_locale_description">Enable automatic protocol routing</string>
     <string name="gateway_server_settings_locale_summary">Turn this on to route only to 1 protocol at a time. This begins with HTTP and performs a round-robin lookup for the other protocols. Use this to avoid receiving the same message to multiple protocols.</string>
@@ -108,18 +104,14 @@
     <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
 
-    <string name="gateway_client_add_linked_device_title">Scan QR code</string>
     <string name="gateway_client_add_manually_title">Add Manually</string>
-    <string name="gateway_client_project_activate_all">Activate All</string>
 
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
     <string name="settings_SMS_routing_type_all_option">All (default)</string>
 
-    <string name="settings_add_gateway_server_protocol_description">Choose the routing protocol</string>
     <string name="settings_add_gateway_client_protocol_description">Choose the Listening protocol</string>
     <string name="settings_add_gateway_server_protocol_meta_description">All POST are routed as JSON formats.\nAll formats use the following key/value format:\n\n<b>MSISDN</b>:-The address of the incoming message in E.164 Format\n\n<b>text</b>:-The text body of the incoming message </string>
-    <string name="settings_add_gateway_server_protocol_data_format">Choose data format</string>
 
     <string name="settings_gateway_server_protocol_description">Protocol</string>
     <string name="settings_gateway_client_username_description">Username</string>
@@ -191,7 +183,6 @@
     <string name="conversation_copied">Copied!</string>
     <string name="conversation_contact_modal_details_address_label">Contact Info</string>
     <string name="router_list_gateways">View Gateway servers</string>
-    <string name="router_add_gateways">Add Gateway servers</string>
     <string name="conversation_menu_copy">copy</string>
     <string name="conversation_menu_delete">Delete</string>
     <string name="conversation_menu_unarchive">unarchive</string>
@@ -214,8 +205,6 @@
     <string name="conversation_menu_view_details_sent">Sent:\u00A0</string>
     <string name="conversation_menu_view_details_received">Received:\u00A0</string>
 
-    <string name="compose_new_message_to">To</string>
-    <string name="compose_new_message_title">New conversation</string>
     <string name="conversation_secure_popup_text">Click to request secure conversation</string>
 
     <string name="conversation_threads_secured_content">Secured Content</string>
