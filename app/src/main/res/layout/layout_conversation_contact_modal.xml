@@ -51,7 +51,6 @@
             tools:text="+2376123456789" />
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/conversation_contact_modal_details"
             style="@style/Widget.Material3.CardView.Filled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
