@@ -836,7 +836,8 @@ public class ConversationActivity extends E2EECompactActivity {
         Intent shareIntent = Intent.createChooser(sendIntent, null);
         // Only use for components you have control over
         ComponentName[] excludedComponentNames = {
-                new ComponentName(BuildConfig.APPLICATION_ID, ComposeNewMessageActivity.class.getName())
+                new ComponentName(BuildConfig.APPLICATION_ID,
+                        ThreadedConversationsActivity.class.getName())
         };
         shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames);
         startActivity(shareIntent);

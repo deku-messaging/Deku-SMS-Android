@@ -83,19 +83,6 @@
             android:exported="false"
             android:parentActivityName=".ThreadedConversationsActivity" />
         <activity
-            android:name=".ComposeNewMessageActivity"
-            android:exported="true"
-            android:parentActivityName=".ThreadedConversationsActivity"
-            android:windowSoftInputMode="stateAlwaysHidden">
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-        </activity>
-        <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"
             android:parentActivityName=".ConversationActivity" />
@@ -129,7 +116,15 @@
         </activity>
         <activity
             android:name=".ThreadedConversationsActivity"
-            android:exported="false" />
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ConversationActivity"
             android:excludeFromRecents="true"

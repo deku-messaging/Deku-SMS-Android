@@ -16,24 +16,21 @@ import java.util.List;
 
 public class ContactsViewModel extends ViewModel {
 
-    Context context;
     MutableLiveData<List<Contacts>> contactsMutableLiveData;
 
     public MutableLiveData<List<Contacts>> getContacts(Context context) {
-        this.context = context;
-
         if(contactsMutableLiveData == null) {
             contactsMutableLiveData = new MutableLiveData<>();
-            loadContacts();
+            loadContacts(context);
         }
 
         return contactsMutableLiveData;
     }
 
-    public void filterContact(String details) throws NumberParseException {
+    public void filterContact(Context context, String details) throws NumberParseException {
         List<Contacts> contactsList = new ArrayList<>();
         if(details.isEmpty()) {
-            loadContacts();
+            loadContacts(context);
             return;
         }
 
@@ -64,7 +61,7 @@ public class ContactsViewModel extends ViewModel {
     }
 
 
-    public void loadContacts(){
+    public void loadContacts(Context context){
         Cursor cursor = Contacts.getPhonebookContacts(context);
         List<Contacts> contactsList = new ArrayList<>();
         if(cursor.moveToFirst()) {
