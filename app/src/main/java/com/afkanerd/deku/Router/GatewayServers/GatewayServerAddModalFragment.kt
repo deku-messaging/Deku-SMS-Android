@@ -51,7 +51,7 @@ class GatewayServerAddModalFragment(val bottomSheetViewLayout: Int,
         gatewayServer?.let {
             editGatewayServer(view, gatewayServer)
             materialButton.text = getString(R.string.gateway_server_update)
-        }
+        } ?: insertDefaultValue(view)
 
         materialButton.setOnClickListener {
             runnable.run()
@@ -60,6 +60,12 @@ class GatewayServerAddModalFragment(val bottomSheetViewLayout: Int,
 
     companion object {
         const val TAG = "ModalBottomSheet"
+    }
+
+    private fun insertDefaultValue(view: View) {
+        val textInputPort = view
+                .findViewById<TextInputEditText>(R.id.gateway_server_add_smtp_port_input)
+        textInputPort.setText(SMTP().port.toString())
     }
 
     private fun editGatewayServer(view: View, gatewayServer: GatewayServer) {
