@@ -1,2 +1,3 @@
 app.properties
 smtp.properties
+ftp.properties
