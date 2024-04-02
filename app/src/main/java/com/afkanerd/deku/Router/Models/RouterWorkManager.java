@@ -1,6 +1,7 @@
 package com.afkanerd.deku.Router.Models;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
@@ -8,6 +9,7 @@ import androidx.work.WorkerParameters;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Router.FTP;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.afkanerd.deku.Router.SMTP;
 import com.android.volley.ParseError;
@@ -52,7 +54,19 @@ public class RouterWorkManager extends Worker {
                 try {
                     RouterHandler.routeSmtpMessages(jsonStringBody, gatewayServer);
                 } catch(Exception e) {
-                    e.printStackTrace();
+                    Log.e(getClass().getName(), "Exception: ", e);
+                    return Result.failure();
+                }
+            } else {
+                return Result.failure();
+            }
+        } else if(gatewayServer.getProtocol() != null &&
+                gatewayServer.getProtocol().equals(FTP.PROTOCOL)) {
+            if(jsonStringBody != null) {
+                try {
+                    RouterHandler.routeFTPMessages(jsonStringBody, gatewayServer);
+                } catch(Exception e) {
+                    Log.e(getClass().getName(), "Exception: ", e);
                     return Result.failure();
                 }
             } else {
@@ -65,7 +79,7 @@ public class RouterWorkManager extends Worker {
                     RouterHandler.routeJsonMessages(getApplicationContext(), jsonStringBody,
                             gatewayServer.getURL());
                 } catch (ExecutionException | TimeoutException | InterruptedException e) {
-                    e.printStackTrace();
+                    Log.e(getClass().getName(), "Exception: ", e);
                     if (e.getCause() instanceof ServerError) {
                         ServerError error = (ServerError) e.getCause();
                         if (error.networkResponse.statusCode >= 400)
@@ -76,7 +90,7 @@ public class RouterWorkManager extends Worker {
                     }
                     return Result.retry();
                 } catch (Exception e ) {
-                    e.printStackTrace();
+                    Log.e(getClass().getName(), "Exception: ", e);
                     return Result.failure();
                 }
             } else {

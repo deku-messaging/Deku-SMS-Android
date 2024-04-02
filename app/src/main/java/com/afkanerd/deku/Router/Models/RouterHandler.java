@@ -18,9 +18,15 @@ import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPSClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -39,6 +45,25 @@ import javax.mail.internet.MimeMessage;
 
 public class RouterHandler {
     protected static ExecutorService executorService = Executors.newFixedThreadPool(4);
+
+    public static void routeFTPMessages(final String body, GatewayServer gatewayServer) throws IOException {
+        Log.d(RouterHandler.class.getName(), "Request to route - FTP: " + body);
+        FTPSClient ftpsClient = new FTPSClient();
+
+        ftpsClient.connect(gatewayServer.ftp.ftp_host);
+        ftpsClient.login(gatewayServer.ftp.ftp_username, gatewayServer.ftp.ftp_password);
+        ftpsClient.setFileType(FTP.BINARY_FILE_TYPE);
+        ftpsClient.enterLocalPassiveMode();
+
+        if(ftpsClient.getReplyCode() >= 200 && ftpsClient.getReplyCode() < 300) {
+            if(!ftpsClient.changeWorkingDirectory(gatewayServer.ftp.ftp_working_directory)) {
+                ftpsClient.makeDirectory(gatewayServer.ftp.ftp_remote_path);
+                ftpsClient.changeWorkingDirectory(gatewayServer.ftp.ftp_working_directory);
+            }
+            ftpsClient.storeFile(gatewayServer.ftp.ftp_remote_path,
+                    new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)));
+        }
+    }
 
     public static void routeSmtpMessages(final String body, GatewayServer gatewayServer)
             throws MessagingException {

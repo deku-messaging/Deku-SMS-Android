@@ -50,12 +50,13 @@ class FTPTest {
         ftpClient.enterLocalPassiveMode()
 
         if(ftpClient.replyCode in 200..299) {
-            if(ftpClient.changeWorkingDirectory(properties.getProperty("directory"))) {
+            if(!ftpClient.changeWorkingDirectory(properties.getProperty("directory"))) {
                 ftpClient.makeDirectory(properties.getProperty("directory"))
                 ftpClient.changeWorkingDirectory(properties.getProperty("directory"))
             }
             val body = saveToJson()
-            ftpClient.storeFile(properties.getProperty("remotePath"),
+            val filename = System.currentTimeMillis().toString() + ".json"
+            ftpClient.storeFile(properties.getProperty("remotePath") + filename,
                     body.byteInputStream(Charset.defaultCharset()))
         } else {
             throw Exception("Failed to connect to FTP server: " + ftpClient.replyCode)
