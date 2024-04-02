@@ -158,7 +158,7 @@ public class GatewayServerRouterRecyclerAdapter extends RecyclerView.Adapter<Gat
             GatewayServer gatewayServer = conversationGatewayServerPair.second;
 
             String gatewayServerUrl = gatewayServer.getProtocol().equals(SMTP.PROTOCOL) ?
-                    gatewayServer.smtp.host :
+                    gatewayServer.smtp.smtp_host :
                     gatewayServer.getURL();
 
             String protAddress = gatewayServer.getProtocol() + "/" + conversation.getAddress();

@@ -22,6 +22,7 @@ import androidx.work.WorkManager;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Router.FTP;
 import com.afkanerd.deku.Router.Models.RouterHandler;
 import com.afkanerd.deku.Router.Models.RouterWorkManager;
 import com.afkanerd.deku.Router.SMTP;
@@ -33,6 +34,9 @@ import java.util.concurrent.TimeUnit;
 @Entity
 public class GatewayServer {
     @Embedded public SMTP smtp = new SMTP();
+
+    @Embedded public FTP ftp = new FTP();
+
     public static String BASE64_FORMAT = "base_64";
     public static String ALL_FORMAT = "all";
     public static String POST_PROTOCOL = "HTTPS";

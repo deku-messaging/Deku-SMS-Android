@@ -8,6 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.afkanerd.deku.DefaultSMS.R
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
+import org.apache.commons.net.ftp.FTPSClient
 import org.json.JSONException
 import org.json.JSONObject
 import org.junit.Before
@@ -27,7 +28,7 @@ class FTPTest {
 
     val properties: Properties = Properties()
     lateinit var context: Context
-    val ftpClient: FTPClient = FTPClient()
+    val ftpClient = FTPSClient()
 
     @Before
     fun init() {
@@ -39,13 +40,14 @@ class FTPTest {
 
     @Test
     fun ftpConnection() {
-        val host = properties.getProperty("host") + ":" + properties.getProperty("port")
+//        val host = properties.getProperty("host") + ":" + properties.getProperty("port")
+        val host = properties.getProperty("host")
         ftpClient.connect(InetAddress.getByName(host));
         ftpClient.login(properties.getProperty("username"), properties.getProperty("password"));
         ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-        // TODO: this should become a configuration
-//            ftpClient.enterLocalPassiveMode()
+//         TODO: this should become a configuration
+        ftpClient.enterLocalPassiveMode()
 
         if(ftpClient.replyCode in 200..299) {
             if(ftpClient.changeWorkingDirectory(properties.getProperty("directory"))) {
@@ -56,7 +58,7 @@ class FTPTest {
             ftpClient.storeFile(properties.getProperty("remotePath"),
                     body.byteInputStream(Charset.defaultCharset()))
         } else {
-            Log.e(LOG_TAG, "Failed to connect to FTP server")
+            throw Exception("Failed to connect to FTP server: " + ftpClient.replyCode)
         }
     }
 

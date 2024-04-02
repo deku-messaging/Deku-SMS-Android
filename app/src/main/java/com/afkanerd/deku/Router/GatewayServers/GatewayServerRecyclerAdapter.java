@@ -1,8 +1,5 @@
 package com.afkanerd.deku.Router.GatewayServers;
 
-import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,15 +7,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Fragments.ModalSheetFragment;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.Router.FTP;
 import com.afkanerd.deku.Router.SMTP;
 
 import org.jetbrains.annotations.NotNull;
@@ -42,10 +37,13 @@ public class GatewayServerRecyclerAdapter extends RecyclerView.Adapter<GatewaySe
     public MutableLiveData<GatewayServer> gatewayServerClickedListener = new MutableLiveData<>();
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-//        GatewayServer gatewayServer = gatewayServerList.get(position);
         GatewayServer gatewayServer = mDiffer.getCurrentList().get(position);
-        String url = gatewayServer.getProtocol().equals(SMTP.PROTOCOL) ?
-                gatewayServer.smtp.host : gatewayServer.getURL();
+        String url = gatewayServer.getURL();
+        if(gatewayServer.getProtocol().equals(SMTP.PROTOCOL))
+            url = gatewayServer.smtp.smtp_host;
+        else if(gatewayServer.getProtocol().equals(FTP.PROTOCOL))
+            url = gatewayServer.ftp.ftp_host;
+
         holder.url.setText(url);
         holder.protocol.setText(gatewayServer.getProtocol().equals("POST") ? "HTTPS" :
                 gatewayServer.getProtocol());

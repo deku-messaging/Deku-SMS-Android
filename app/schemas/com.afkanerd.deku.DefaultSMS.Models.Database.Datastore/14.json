@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 14,
-    "identityHash": "9aba083cb671f0798ba5ef169d32bc2b",
+    "identityHash": "22a6107f2a02a243a6c7c4a182c017e1",
     "entities": [
       {
         "tableName": "ThreadedConversations",
@@ -193,7 +193,7 @@
       },
       {
         "tableName": "GatewayServer",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`URL` TEXT, `protocol` TEXT, `tag` TEXT, `format` TEXT, `date` INTEGER, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `host` TEXT, `username` TEXT, `password` TEXT, `from` TEXT, `recipient` TEXT, `subject` TEXT, `port` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`URL` TEXT, `protocol` TEXT, `tag` TEXT, `format` TEXT, `date` INTEGER, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `smtp_host` TEXT, `smtp_username` TEXT, `smtp_password` TEXT, `smtp_from` TEXT, `smtp_recipient` TEXT, `smtp_subject` TEXT, `smtp_port` INTEGER, `ftp_host` TEXT, `ftp_username` TEXT, `ftp_password` TEXT, `ftp_remote_path` TEXT, `ftp_working_directory` TEXT)",
         "fields": [
           {
             "fieldPath": "URL",
@@ -232,45 +232,75 @@
             "notNull": true
           },
           {
-            "fieldPath": "smtp.host",
-            "columnName": "host",
+            "fieldPath": "smtp.smtp_host",
+            "columnName": "smtp_host",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "smtp.username",
-            "columnName": "username",
+            "fieldPath": "smtp.smtp_username",
+            "columnName": "smtp_username",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "smtp.password",
-            "columnName": "password",
+            "fieldPath": "smtp.smtp_password",
+            "columnName": "smtp_password",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "smtp.from",
-            "columnName": "from",
+            "fieldPath": "smtp.smtp_from",
+            "columnName": "smtp_from",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "smtp.recipient",
-            "columnName": "recipient",
+            "fieldPath": "smtp.smtp_recipient",
+            "columnName": "smtp_recipient",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "smtp.subject",
-            "columnName": "subject",
+            "fieldPath": "smtp.smtp_subject",
+            "columnName": "smtp_subject",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "smtp.port",
-            "columnName": "port",
+            "fieldPath": "smtp.smtp_port",
+            "columnName": "smtp_port",
             "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ftp.ftp_host",
+            "columnName": "ftp_host",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ftp.ftp_username",
+            "columnName": "ftp_username",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ftp.ftp_password",
+            "columnName": "ftp_password",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ftp.ftp_remote_path",
+            "columnName": "ftp_remote_path",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ftp.ftp_working_directory",
+            "columnName": "ftp_working_directory",
+            "affinity": "TEXT",
             "notNull": false
           }
         ],
@@ -627,7 +657,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9aba083cb671f0798ba5ef169d32bc2b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '22a6107f2a02a243a6c7c4a182c017e1')"
     ]
   }
 }

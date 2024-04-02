@@ -47,6 +47,7 @@
 
     <string name="gateway_server_update">Update</string>
     <string name="add_new_gateway_server_http">Add HTTPS Gateway server</string>
+    <string name="add_new_gateway_server_ftp">Add FTP Gateway server</string>
 
     <string name="add_new_gateway_server_smtp">Add SMTP Gateway server</string>
     <string name="add_new_gateway_server_smtp_host">Host</string>

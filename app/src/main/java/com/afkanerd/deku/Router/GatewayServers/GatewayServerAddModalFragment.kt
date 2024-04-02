@@ -9,6 +9,7 @@ import android.widget.ImageButton
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.Router.FTP
 import com.afkanerd.deku.Router.SMTP
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -65,44 +66,62 @@ class GatewayServerAddModalFragment(val bottomSheetViewLayout: Int,
     private fun insertDefaultValue(view: View) {
         val textInputPort = view
                 .findViewById<TextInputEditText>(R.id.gateway_server_add_smtp_port_input)
-        textInputPort.setText(SMTP().port.toString())
+        textInputPort?.let {
+            textInputPort.setText(SMTP().smtp_port.toString())
+        }
     }
 
     private fun editGatewayServer(view: View, gatewayServer: GatewayServer) {
         if(gatewayServer.protocol == SMTP.PROTOCOL)
             editSMTP(view, gatewayServer)
+        else if(gatewayServer.protocol == FTP.PROTOCOL)
+            editFTP(view, gatewayServer)
         else editHTTP(view, gatewayServer)
         configureParameters(view)
+    }
+
+    private fun editFTP(view: View, gatewayServer: GatewayServer) {
+        val textInputHost = view
+                .findViewById<TextInputEditText>(R.id.gateway_server_add_ftp_host_input)
+        textInputHost.setText(gatewayServer.ftp.ftp_host)
+
+        val textInputUsername = view
+                .findViewById<TextInputEditText>(R.id.gateway_server_add_ftp_username_input)
+        textInputUsername.setText(gatewayServer.ftp.ftp_username)
+
+        val textInputPassword = view
+                .findViewById<TextInputEditText>(R.id.gateway_server_add_ftp_password_input)
+        textInputPassword.setText(gatewayServer.ftp.ftp_password)
     }
 
     private fun editSMTP(view: View, gatewayServer: GatewayServer) {
         val textInputHost = view
                 .findViewById<TextInputEditText>(R.id.gateway_server_add_smtp_host_input)
-        textInputHost.setText(gatewayServer.smtp.host)
+        textInputHost.setText(gatewayServer.smtp.smtp_host)
 
         val textInputUsername = view
                 .findViewById<TextInputEditText>(R.id.gateway_server_add_smtp_username_input)
-        textInputUsername.setText(gatewayServer.smtp.username)
+        textInputUsername.setText(gatewayServer.smtp.smtp_username)
 
         val textInputPassword = view
                 .findViewById<TextInputEditText>(R.id.gateway_server_add_smtp_password_input)
-        textInputPassword.setText(gatewayServer.smtp.password)
+        textInputPassword.setText(gatewayServer.smtp.smtp_password)
 
         val textInputPort = view
                 .findViewById<TextInputEditText>(R.id.gateway_server_add_smtp_port_input)
-        textInputPort.setText(gatewayServer.smtp.port.toString())
+        textInputPort.setText(gatewayServer.smtp.smtp_port.toString())
 
         val textInputFrom = view
                 .findViewById<TextInputEditText>(R.id.gateway_server_add_smtp_from_input)
-        textInputFrom.setText(gatewayServer.smtp.from)
+        textInputFrom.setText(gatewayServer.smtp.smtp_from)
 
         val textInputRecipient = view
                 .findViewById<TextInputEditText>(R.id.gateway_server_add_smtp_recipient_input)
-        textInputRecipient.setText(gatewayServer.smtp.recipient)
+        textInputRecipient.setText(gatewayServer.smtp.smtp_recipient)
 
         val textInputSubject = view
                 .findViewById<TextInputEditText>(R.id.gateway_server_add_smtp_subject_input)
-        textInputSubject.setText(gatewayServer.smtp.subject)
+        textInputSubject.setText(gatewayServer.smtp.smtp_subject)
 
         val materialCheckBoxBase64: MaterialCheckBox =
                 view.findViewById<MaterialCheckBox>(R.id.add_gateway_data_format_base64)

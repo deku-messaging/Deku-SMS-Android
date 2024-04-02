@@ -45,8 +45,8 @@ public class RouterHandler {
         Log.d(RouterHandler.class.getName(), "Request to route - SMTP: " + body);
 
         Properties properties = new Properties();
-        properties.put("mail.smtp.host", gatewayServer.smtp.host);
-        properties.put("mail.smtp.port", gatewayServer.smtp.port);
+        properties.put("mail.smtp.host", gatewayServer.smtp.smtp_host);
+        properties.put("mail.smtp.port", gatewayServer.smtp.smtp_port);
         properties.put("mail.smtp.starttls.enable", "true");
 
         if(BuildConfig.DEBUG)
@@ -63,16 +63,16 @@ public class RouterHandler {
          *         }
          */
 
-        InternetAddress[] internetAddresses = InternetAddress.parse(gatewayServer.smtp.recipient);
+        InternetAddress[] internetAddresses = InternetAddress.parse(gatewayServer.smtp.smtp_recipient);
         Session session = Session.getInstance(properties, null);
         Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(gatewayServer.smtp.from));
+        message.setFrom(new InternetAddress(gatewayServer.smtp.smtp_from));
         message.setRecipients(Message.RecipientType.TO, internetAddresses);
-        message.setSubject(gatewayServer.smtp.subject);
+        message.setSubject(gatewayServer.smtp.smtp_subject);
         message.setSentDate(new Date());
         message.setText(body);
 
-        Transport.send(message, gatewayServer.smtp.username, gatewayServer.smtp.password);
+        Transport.send(message, gatewayServer.smtp.smtp_username, gatewayServer.smtp.smtp_password);
     }
 
     public static void routeJsonMessages(Context context, String jsonStringBody, String gatewayServerUrl)

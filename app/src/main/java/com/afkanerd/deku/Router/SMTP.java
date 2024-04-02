@@ -3,16 +3,16 @@ package com.afkanerd.deku.Router;
 public class SMTP {
     public static String PROTOCOL = "SMTP";
 
-    public String host;
+    public String smtp_host;
 
-    public String username;
+    public String smtp_username;
 
-    public String password;
+    public String smtp_password;
 
-    public String from;
-    public String recipient;
+    public String smtp_from;
+    public String smtp_recipient;
 
-    public String subject;
+    public String smtp_subject;
 
-    public int port = 587;
+    public int smtp_port = 587;
 }
