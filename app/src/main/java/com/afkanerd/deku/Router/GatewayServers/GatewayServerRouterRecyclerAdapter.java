@@ -45,13 +45,17 @@ public class GatewayServerRouterRecyclerAdapter extends RecyclerView.Adapter<Gat
                     if(gatewayServer == null)
                         continue;
 
-                    RouterItem routerItem = new RouterItem(Datastore.getDatastore(context)
-                            .conversationDao().getMessage(workInfoPair.first));
-                    routerItem.routingUniqueId = workInfo.getId().toString();
-                    routerItem.routingStatus = RouterHandler.reverseState(context,
-                            workInfo.getState());
-                    map.put(Long.parseLong(routerItem.getDate()),
-                            new Pair<>(routerItem, gatewayServer));
+                    try {
+                        RouterItem routerItem = new RouterItem(Datastore.getDatastore(context)
+                                .conversationDao().getMessage(workInfoPair.first));
+                        routerItem.routingUniqueId = workInfo.getId().toString();
+                        routerItem.routingStatus = RouterHandler.reverseState(context,
+                                workInfo.getState());
+                        map.put(Long.parseLong(routerItem.getDate()),
+                                new Pair<>(routerItem, gatewayServer));
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });

@@ -46,9 +46,11 @@ import javax.mail.internet.MimeMessage;
 public class RouterHandler {
     protected static ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-    public static void routeFTPMessages(final String body, GatewayServer gatewayServer) throws IOException {
+    public static void routeFTPMessages(final String body, GatewayServer gatewayServer) throws Exception {
         Log.d(RouterHandler.class.getName(), "Request to route - FTP: " + body);
-        FTPSClient ftpsClient = new FTPSClient();
+
+        // TODO: move TLS into a parameter configuration
+        FTPSClient ftpsClient = new FTPSClient("TLS");
 
         ftpsClient.connect(gatewayServer.ftp.ftp_host);
         ftpsClient.login(gatewayServer.ftp.ftp_username, gatewayServer.ftp.ftp_password);
@@ -56,12 +58,24 @@ public class RouterHandler {
         ftpsClient.enterLocalPassiveMode();
 
         if(ftpsClient.getReplyCode() >= 200 && ftpsClient.getReplyCode() < 300) {
-            if(!ftpsClient.changeWorkingDirectory(gatewayServer.ftp.ftp_working_directory)) {
-                ftpsClient.makeDirectory(gatewayServer.ftp.ftp_remote_path);
-                ftpsClient.changeWorkingDirectory(gatewayServer.ftp.ftp_working_directory);
-            }
-            ftpsClient.storeFile(gatewayServer.ftp.ftp_remote_path,
+            // TODO: move this to a parameter configuration
+            ftpsClient.execPBSZ(0); // Set protection buffer size (optional)
+            ftpsClient.execPROT("P"); // Set protection mode to private (optional)
+
+            // TODO: move this to a parameter configuration
+//            if(!ftpsClient.changeWorkingDirectory(gatewayServer.ftp.ftp_working_directory)) {
+//                ftpsClient.makeDirectory(gatewayServer.ftp.ftp_remote_path);
+//                ftpsClient.changeWorkingDirectory(gatewayServer.ftp.ftp_working_directory);
+//            }
+
+            if(gatewayServer.ftp.ftp_remote_path == null)
+                gatewayServer.ftp.ftp_remote_path = System.currentTimeMillis() + ".json";
+            boolean stored = ftpsClient.storeFile(gatewayServer.ftp.ftp_remote_path,
                     new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)));
+            ftpsClient.disconnect();
+            if(!stored) {
+                throw new Exception("Failed to write file to FTP server");
+            }
         }
     }
 
