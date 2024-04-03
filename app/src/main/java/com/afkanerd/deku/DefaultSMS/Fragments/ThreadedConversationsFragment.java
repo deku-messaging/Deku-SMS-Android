@@ -580,10 +580,10 @@ public class ThreadedConversationsFragment extends Fragment {
                             (float) viewHolder.itemView.getTop(),
                             (float) viewHolder.itemView.getRight(),
                             (float) viewHolder.itemView.getBottom());
-                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState,
+                            isCurrentlyActive);
                     return;
                 }
-
 
                 int xMarkMargin;
                 xMarkMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16,
