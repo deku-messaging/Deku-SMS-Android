@@ -30,6 +30,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ThreadedConversationsViewModel extends ViewModel {
@@ -173,6 +175,14 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
     public void archive(List<Archive> archiveList) {
         databaseConnector.threadedConversationsDao().archive(archiveList);
+    }
+
+    public void archive(String id) {
+        Archive archive = new Archive();
+        archive.thread_id = id;
+        archive.is_archived = true;
+        databaseConnector.threadedConversationsDao()
+                .archive(new ArrayList<>(Collections.singletonList(archive)));
     }
 
 

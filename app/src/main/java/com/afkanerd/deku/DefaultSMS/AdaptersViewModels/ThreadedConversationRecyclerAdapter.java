@@ -22,7 +22,8 @@ import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.HashMap;
 
-public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<ThreadedConversations, ThreadedConversationsTemplateViewHolder> {
+public class ThreadedConversationRecyclerAdapter extends
+        PagingDataAdapter<ThreadedConversations, ThreadedConversationsTemplateViewHolder> {
     public String searchString = "";
 
     public MutableLiveData<HashMap<Long, ThreadedConversationsTemplateViewHolder>> selectedItems = new MutableLiveData<>();
@@ -72,6 +73,10 @@ public class ThreadedConversationRecyclerAdapter extends PagingDataAdapter<Threa
     @Override
     public int getItemViewType(int position) {
         return ThreadedConversationsTemplateViewHolder.getViewType(position, snapshot().getItems());
+    }
+
+    public ThreadedConversations getItemByPosition(int position) {
+        return peek(position);
     }
 
     @Override

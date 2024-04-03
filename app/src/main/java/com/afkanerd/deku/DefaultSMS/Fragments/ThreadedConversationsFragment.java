@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.telecom.TelecomManager;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -56,6 +57,8 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -115,6 +118,49 @@ public class ThreadedConversationsFragment extends Fragment {
     }
 
     ActionMode actionMode;
+    public Runnable getDeleteRunnable(List<String> ids) {
+        return new Runnable() {
+            @Override
+            public void run() {
+
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        threadedConversationsViewModel.delete(getContext(), ids);
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                            }
+                        });
+                    }
+                });
+            }
+        };
+    }
+    private void showAlert(Runnable runnable) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(getString(R.string.messages_thread_delete_confirmation_title));
+        builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
+
+        builder.setPositiveButton(getString(R.string.messages_thread_delete_confirmation_yes),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        runnable.run();
+                    }
+                });
+
+        builder.setNegativeButton(getString(R.string.messages_thread_delete_confirmation_cancel),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
     protected int defaultMenu = R.menu.conversations_threads_menu;
     protected int actionModeMenu = R.menu.conversations_threads_menu_items_selected;
@@ -159,50 +205,6 @@ public class ThreadedConversationsFragment extends Fragment {
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             return false; // Return false if nothing is done.
-        }
-
-        public Runnable getDeleteRunnable(List<String> ids) {
-            return new Runnable() {
-                @Override
-                public void run() {
-
-                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            threadedConversationsViewModel.delete(getContext(), ids);
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
-                                }
-                            });
-                        }
-                    });
-                }
-            };
-        }
-        private void showAlert(Runnable runnable) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(getString(R.string.messages_thread_delete_confirmation_title));
-            builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
-
-            builder.setPositiveButton(getString(R.string.messages_thread_delete_confirmation_yes),
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            runnable.run();
-                        }
-                    });
-
-            builder.setNegativeButton(getString(R.string.messages_thread_delete_confirmation_cancel),
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
         }
 
         @Override
@@ -534,7 +536,7 @@ public class ThreadedConversationsFragment extends Fragment {
 
     private void swipeActions() {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper
-                .SimpleCallback(0, ItemTouchHelper.LEFT) {
+                .SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView,
                                   @NonNull RecyclerView.ViewHolder viewHolder,
@@ -544,7 +546,27 @@ public class ThreadedConversationsFragment extends Fragment {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                threadedConversationRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
+                if(direction == ItemTouchHelper.LEFT) {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            ThreadedConversations threadedConversations =
+                                    threadedConversationRecyclerAdapter
+                                            .getItemByPosition(viewHolder.getLayoutPosition());
+                            threadedConversationsViewModel
+                                    .archive(threadedConversations.getThread_id());
+                        }
+                    });
+                } else if(direction == ItemTouchHelper.RIGHT) {
+                    ThreadedConversations threadedConversations =
+                            threadedConversationRecyclerAdapter
+                                    .getItemByPosition(viewHolder.getLayoutPosition());
+                    showAlert(getDeleteRunnable(new ArrayList<>(
+                            Collections.singletonList(threadedConversations.getThread_id()))));
+                    threadedConversationRecyclerAdapter.
+                            notifyItemChanged(viewHolder.getLayoutPosition());
+                }
+//                threadedConversationRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
             }
             @Override
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
@@ -562,30 +584,36 @@ public class ThreadedConversationsFragment extends Fragment {
                     return;
                 }
 
-                final ColorDrawable background = new ColorDrawable(getContext()
-                        .getColor(R.color.primary_background_color));
-                background.setBounds(viewHolder.itemView.getLeft(), viewHolder.itemView.getTop(),
-                        viewHolder.itemView.getRight(), viewHolder.itemView.getBottom());
-                background.draw(c);
-
-
-                // draw delete icon
-                Drawable deleteIcon = ContextCompat.getDrawable(getContext(),
-                        R.drawable.round_delete_24);
-                int itemHeight = viewHolder.itemView.getBottom() - viewHolder.itemView.getTop();
-                int intrinsicWidth = deleteIcon.getIntrinsicWidth();
-                int intrinsicHeight = deleteIcon.getIntrinsicHeight();
-
 
                 int xMarkMargin;
                 xMarkMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16,
                         getResources().getDisplayMetrics());
-                int xMarkLeft = viewHolder.itemView.getRight() - xMarkMargin - intrinsicWidth;
-                int xMarkRight = viewHolder.itemView.getRight() - xMarkMargin;
+
+                int drawable = dX > 0 ? R.drawable.round_delete_24 : R.drawable.round_archive_24;
+                Drawable deleteIcon = ContextCompat.getDrawable(getContext(), drawable);
+                int itemHeight = viewHolder.itemView.getBottom() - viewHolder.itemView.getTop();
+                int intrinsicWidth = deleteIcon.getIntrinsicWidth();
+                int intrinsicHeight = deleteIcon.getIntrinsicHeight();
+
+                ColorDrawable background = new ColorDrawable(getContext()
+                        .getColor(R.color.primary_background_color));
+                int xMarkRight = 0, xMarkLeft=0;
+                if(dX > 0) {
+                    // Delete
+                    xMarkRight = viewHolder.itemView.getLeft() + xMarkMargin + intrinsicWidth;
+                    xMarkLeft = xMarkRight - intrinsicWidth;
+                    background = new ColorDrawable(getContext().getColor(R.color.failed_red));
+                } else if(dX < 0) {
+                    // Archive
+                    xMarkLeft = viewHolder.itemView.getRight() - xMarkMargin - intrinsicWidth;
+                    xMarkRight = xMarkLeft + intrinsicWidth;
+                }
+                background.setBounds(viewHolder.itemView.getLeft(), viewHolder.itemView.getTop(),
+                        viewHolder.itemView.getRight(), viewHolder.itemView.getBottom());
+                background.draw(c);
 
                 int xMarkTop = viewHolder.itemView.getTop() + (itemHeight - intrinsicHeight) / 2;
                 int xMarkBottom = xMarkTop + intrinsicHeight;
-
 
                 deleteIcon.setBounds(xMarkLeft, xMarkTop + 16, xMarkRight, xMarkBottom);
                 deleteIcon.draw(c);
