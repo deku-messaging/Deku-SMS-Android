@@ -5,10 +5,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.telecom.TelecomManager;
+import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,10 +29,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.paging.PagingData;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -430,7 +437,6 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(threadedConversationRecyclerAdapter);
-//        messagesThreadRecyclerView.setItemViewCacheSize(500);
 
         threadedConversationRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
             @Override
@@ -520,6 +526,60 @@ public class ThreadedConversationsFragment extends Fragment {
                             }
                         });
         }
+        swipeActions();
+    }
+
+    private void swipeActions() {
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper
+                .SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                threadedConversationRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
+            }
+            @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView,
+                                    RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+
+                final ColorDrawable background = new ColorDrawable(Color.RED);
+                background.setBounds(viewHolder.itemView.getLeft(), viewHolder.itemView.getTop(),
+                        viewHolder.itemView.getRight(), viewHolder.itemView.getBottom());
+                background.draw(c);
+
+
+                // draw delete icon
+                Drawable deleteIcon = ContextCompat.getDrawable(getContext(),
+                        R.drawable.round_delete_24);
+                int itemHeight = viewHolder.itemView.getBottom() - viewHolder.itemView.getTop();
+                int intrinsicWidth = deleteIcon.getIntrinsicWidth();
+                int intrinsicHeight = deleteIcon.getIntrinsicHeight();
+
+
+                int xMarkMargin;
+                xMarkMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16,
+                        getResources().getDisplayMetrics());
+                int xMarkLeft = viewHolder.itemView.getRight() - xMarkMargin - intrinsicWidth;
+                int xMarkRight = viewHolder.itemView.getRight() - xMarkMargin;
+
+                int xMarkTop = viewHolder.itemView.getTop() + (itemHeight - intrinsicHeight) / 2;
+                int xMarkBottom = xMarkTop + intrinsicHeight;
+
+
+                deleteIcon.setBounds(xMarkLeft, xMarkTop + 16, xMarkRight, xMarkBottom);
+                deleteIcon.draw(c);
+
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(messagesThreadRecyclerView);
     }
 
     private static final int CREATE_FILE = 777;
