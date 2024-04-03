@@ -3,3 +3,5 @@
 - update: Messages can now be forwarded to via SMTP in addition to HTTPS
 
 - update: Messages can now be forwarded to via FTP in addition to HTTPS
+
+- update: swipe action now added
