@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -531,7 +534,7 @@ public class ThreadedConversationsFragment extends Fragment {
 
     private void swipeActions() {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper
-                .SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+                .SimpleCallback(0, ItemTouchHelper.LEFT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView,
                                   @NonNull RecyclerView.ViewHolder viewHolder,
@@ -544,11 +547,23 @@ public class ThreadedConversationsFragment extends Fragment {
                 threadedConversationRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
             }
             @Override
-            public void onChildDraw(Canvas c, RecyclerView recyclerView,
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
                                     RecyclerView.ViewHolder viewHolder, float dX, float dY,
                                     int actionState, boolean isCurrentlyActive) {
 
-                final ColorDrawable background = new ColorDrawable(Color.RED);
+                boolean isCancelled = dX == 0 && !isCurrentlyActive;
+
+                if (isCancelled) {
+                    clearCanvas(c, viewHolder.itemView.getRight() + dX,
+                            (float) viewHolder.itemView.getTop(),
+                            (float) viewHolder.itemView.getRight(),
+                            (float) viewHolder.itemView.getBottom());
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                    return;
+                }
+
+                final ColorDrawable background = new ColorDrawable(getContext()
+                        .getColor(R.color.primary_background_color));
                 background.setBounds(viewHolder.itemView.getLeft(), viewHolder.itemView.getTop(),
                         viewHolder.itemView.getRight(), viewHolder.itemView.getBottom());
                 background.draw(c);
@@ -576,6 +591,17 @@ public class ThreadedConversationsFragment extends Fragment {
                 deleteIcon.draw(c);
 
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+
+            private void clearCanvas(Canvas c, Float left, Float top, Float right, Float bottom) {
+                Paint mClearPaint = new Paint();
+                mClearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                c.drawRect(left, top, right, bottom, mClearPaint);
+
+            }
+            @Override
+            public float getSwipeThreshold(@NonNull RecyclerView.ViewHolder viewHolder) {
+                return 0.7f;
             }
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
