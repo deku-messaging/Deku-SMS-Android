@@ -141,7 +141,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 text = E2EEHandler.buildTransmissionText(cipherText[0]);
                 _mk = cipherText[1];
             } catch (Throwable e) {
-                e.printStackTrace();
+                Log.e(E2EECompactActivity.class.getName(), "Exception", e);
             }
         }
         super.sendTextMessage(text, subscriptionId, threadedConversations, messageId, _mk);

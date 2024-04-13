@@ -700,7 +700,8 @@ public class ConversationActivity extends E2EECompactActivity {
                                 }
                                 try {
                                     sendTextMessage(text, defaultSubscriptionId.getValue(),
-                                            threadedConversations, String.valueOf(System.currentTimeMillis()),
+                                            threadedConversations,
+                                            String.valueOf(System.currentTimeMillis()),
                                             null);
                                 } catch (NumberParseException | InterruptedException e) {
                                     e.printStackTrace();

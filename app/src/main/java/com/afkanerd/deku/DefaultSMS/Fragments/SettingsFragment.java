@@ -42,8 +42,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
                 String languageLocale = (String) newValue;
-//                LocaleList currentAppLocales = getContext().getSystemService(LocaleManager.class)
-//                        .getApplicationLocales();
                 if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S_V2) {
                     getContext().getSystemService(LocaleManager.class)
                             .setApplicationLocales(
