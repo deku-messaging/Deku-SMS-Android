@@ -63,6 +63,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.textview.MaterialTextView;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
@@ -113,6 +114,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
     MaterialCardView materialCardView;
     boolean isShortCode = false;
+    boolean isDualSim = false;
     SmsManager smsManager = SmsManager.getDefault();
     TextInputEditText textInputEditText;
 
@@ -386,6 +388,8 @@ public class ConversationActivity extends E2EECompactActivity {
 
         isShortCode = Helpers.isShortCode(address);
         attachObservers();
+
+        isDualSim = SIMHandler.isDualSim(getApplicationContext());
     }
 
     private void scrollRecyclerViewSearch(int position) {
@@ -652,21 +656,23 @@ public class ConversationActivity extends E2EECompactActivity {
 
         TextView counterView = findViewById(R.id.conversation_compose_text_counter);
         View sendBtn = findViewById(R.id.conversation_send_btn);
+
+        MaterialTextView dualSimCardName =
+                findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                int visibility = View.GONE;
                 if(!s.isEmpty()) {
                     counterView.setText(getSMSCount(s));
-                    visibility = View.VISIBLE;
+                    sendBtn.setVisibility(View.VISIBLE);
+                    if(isDualSim)
+                        dualSimCardName.setVisibility(View.VISIBLE);
                 }
-                TextView dualSimCardName =
-                        (TextView) findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
-                if(SIMHandler.isDualSim(getApplicationContext())) {
-                    dualSimCardName.setVisibility(View.VISIBLE);
+                else {
+                    sendBtn.setVisibility(View.GONE);
+                    dualSimCardName.setVisibility(View.GONE);
+                    counterView.setVisibility(View.GONE);
                 }
-                sendBtn.setVisibility(visibility);
-                counterView.setVisibility(visibility);
             }
         });
 

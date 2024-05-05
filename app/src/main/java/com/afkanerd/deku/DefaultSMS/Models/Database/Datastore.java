@@ -50,23 +50,26 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         @AutoMigration(from = 13, to = 14)
 })
 public abstract class Datastore extends RoomDatabase {
-    private static Datastore datastore;
+    private static volatile Datastore datastore;
 
-    public static Datastore getDatastore(Context context) {
-        if(datastore == null || !datastore.isOpen()) {
-            datastore = Room.databaseBuilder(context, Datastore.class, databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .addMigrations(new Migrations.Migration4To5())
-                    .addMigrations(new Migrations.Migration5To6())
-                    .addMigrations(new Migrations.Migration6To7())
-                    .addMigrations(new Migrations.Migration7To8())
-                    .addMigrations(new Migrations.Migration9To10())
-                    .addMigrations(new Migrations.Migration10To11(context))
-                    .addMigrations(new Migrations.MIGRATION_11_12())
-                    .build();
+    public static synchronized Datastore getDatastore(Context context) {
+        if(datastore == null) {
+            datastore = create(context);
         }
-
         return datastore;
+    }
+
+    private static Datastore create(final Context context) {
+        return Room.databaseBuilder(context, Datastore.class, databaseName)
+                .enableMultiInstanceInvalidation()
+                .addMigrations(new Migrations.Migration4To5())
+                .addMigrations(new Migrations.Migration5To6())
+                .addMigrations(new Migrations.Migration6To7())
+                .addMigrations(new Migrations.Migration7To8())
+                .addMigrations(new Migrations.Migration9To10())
+                .addMigrations(new Migrations.Migration10To11(context))
+                .addMigrations(new Migrations.MIGRATION_11_12())
+                .build();
     }
 
     public static String databaseName = "SMSWithoutBorders-Messaging-DB";
