@@ -37,7 +37,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
         <activity
-            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerSettingsActivity"
+            android:name="com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
         <activity

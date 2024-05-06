@@ -1,10 +1,9 @@
-package com.afkanerd.deku.Router.GatewayServers
+package com.afkanerd.deku.Router.Settings
 
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import com.afkanerd.deku.DefaultSMS.Fragments.SettingsFragment
 import com.afkanerd.deku.DefaultSMS.R
 
 class GatewayServerSettingsActivity : AppCompatActivity() {

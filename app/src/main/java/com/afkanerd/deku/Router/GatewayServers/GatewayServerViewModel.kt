@@ -11,7 +11,7 @@ class GatewayServerViewModel : ViewModel() {
 
     private lateinit var datastore: Datastore
     operator fun get(context: Context): LiveData<List<GatewayServer>> {
-        if(::gatewayServersList.isInitialized) {
+        if(!::gatewayServersList.isInitialized) {
             datastore = Datastore.getDatastore(context)
             gatewayServersList = MutableLiveData()
             loadGatewayServers()

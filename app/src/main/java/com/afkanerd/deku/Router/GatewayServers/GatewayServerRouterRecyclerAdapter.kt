@@ -60,17 +60,18 @@ class GatewayServerRouterRecyclerAdapter :
 
         fun bind(conversationGatewayServerPair: Pair<RouterItem, GatewayServer>) {
             val conversation = conversationGatewayServerPair.first
-            val gatewayServer = conversationGatewayServerPair.second
-            val gatewayServerUrl = when(gatewayServer.getProtocol()) {
-                SMTP.PROTOCOL -> gatewayServer.smtp.smtp_host
-                else -> gatewayServer.url
+            conversationGatewayServerPair.second?.let {
+                val gatewayServerUrl = when(it.getProtocol()) {
+                    SMTP.PROTOCOL -> it.smtp.smtp_host
+                    else -> it.url
+                }
+                val protocolAddress = it.getProtocol() + "/" + conversation.address
+                address.text = protocolAddress
+                url.text = gatewayServerUrl
+                body.text = conversation.text
+                status.text = conversation.routingStatus
+                date.text = Helpers.formatDate(itemView.context, conversation.date!!.toLong())
             }
-            val protocolAddress = gatewayServer.getProtocol() + "/" + conversation.address
-            address.text = protocolAddress
-            url.text = gatewayServerUrl
-            body.text = conversation.text
-            status.text = conversation.routingStatus
-            date.text = Helpers.formatDate(itemView.context, conversation.date!!.toLong())
         }
     }
 }

@@ -20,6 +20,7 @@ import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.Models.RouterHandler
 import com.afkanerd.deku.Router.Models.RouterItem
+import com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity
 
 class GatewayServerRoutedActivity : CustomAppCompactActivity() {
     private val gatewayServerRouterViewModel: GatewayServerRouterViewModel by viewModels()

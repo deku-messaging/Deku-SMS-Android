@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.GatewayServers
+package com.afkanerd.deku.Router.Settings
 
 import android.os.Bundle
 import androidx.preference.PreferenceFragmentCompat

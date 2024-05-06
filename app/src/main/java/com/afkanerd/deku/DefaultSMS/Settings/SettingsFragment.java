@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Fragments;
+package com.afkanerd.deku.DefaultSMS.Settings;
 
 import static androidx.core.content.ContextCompat.getSystemService;
 
@@ -16,6 +16,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import com.afkanerd.deku.DefaultSMS.Fragments.DevelopersFragment;
 import com.afkanerd.deku.E2EE.EndToEndFragments;
 //import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 //import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;

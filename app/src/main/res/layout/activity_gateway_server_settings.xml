@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.afkanerd.deku.Router.GatewayServers.GatewayServerSettingsActivity">
+    tools:context="com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/gateway_server_toolbar"

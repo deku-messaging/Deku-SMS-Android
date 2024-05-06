@@ -1,12 +1,11 @@
 package com.afkanerd.deku.DefaultSMS;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.os.Bundle;
 
-import com.afkanerd.deku.DefaultSMS.Fragments.SettingsFragment;
+import com.afkanerd.deku.DefaultSMS.Settings.SettingsFragment;
 
 public class SettingsActivity extends AppCompatActivity {
 
