@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run SSH command
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.0.3
         timeout-minutes: 60
         with:
           command_timeout: "60m"
