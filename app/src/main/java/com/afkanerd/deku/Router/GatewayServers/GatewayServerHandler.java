@@ -15,25 +15,6 @@ import java.util.List;
 public class GatewayServerHandler {
     Datastore databaseConnector;
 
-    public GatewayServerHandler(Context context){
-        databaseConnector = Datastore.getDatastore(context);
-    }
-
-    public LiveData<List<GatewayServer>> getAllLiveData() throws InterruptedException {
-        final LiveData<List<GatewayServer>>[] liveData = new LiveData[]{new MutableLiveData<>()};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
-                liveData[0] = gatewayServerDAO.getAll();
-            }
-        });
-        thread.start();
-        thread.join();
-
-        return liveData[0];
-    }
-
     public synchronized List<GatewayServer> getAll() throws InterruptedException {
         final List<GatewayServer>[] gatewayServerList = new List[]{new ArrayList<>()};
         Thread thread = new Thread(new Runnable() {

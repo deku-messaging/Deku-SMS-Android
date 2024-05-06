@@ -58,21 +58,17 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         GatewayServerViewModel gatewayServerViewModel = new ViewModelProvider(this).get(
                 GatewayServerViewModel.class);
 
-        try {
-            gatewayServerViewModel.get(getApplicationContext()).observe(this,
-                    new Observer<List<GatewayServer>>() {
-                        @Override
-                        public void onChanged(List<GatewayServer> gatewayServerList) {
-                            gatewayServerRecyclerAdapter.submitList(gatewayServerList);
-                            if(gatewayServerList.size() < 1 )
-                                findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
-                            else
-                                findViewById(R.id.no_gateway_server_added).setVisibility(View.GONE);
-                        }
-                    });
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        gatewayServerViewModel.get(getApplicationContext()).observe(this,
+                new Observer<List<GatewayServer>>() {
+                    @Override
+                    public void onChanged(List<GatewayServer> gatewayServerList) {
+                        gatewayServerRecyclerAdapter.submitList(gatewayServerList);
+                        if(gatewayServerList.isEmpty())
+                            findViewById(R.id.no_gateway_server_added).setVisibility(View.VISIBLE);
+                        else
+                            findViewById(R.id.no_gateway_server_added).setVisibility(View.GONE);
+                    }
+                });
 
         gatewayServerRecyclerAdapter.gatewayServerClickedListener
                 .observe(this, new Observer<GatewayServer>() {

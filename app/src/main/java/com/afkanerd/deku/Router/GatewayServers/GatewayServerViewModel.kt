@@ -1,27 +1,25 @@
-package com.afkanerd.deku.Router.GatewayServers;
+package com.afkanerd.deku.Router.GatewayServers
 
+import android.content.Context
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
 
-import android.content.Context;
+class GatewayServerViewModel : ViewModel() {
+    private lateinit var gatewayServersList: LiveData<List<GatewayServer>>
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-
-import java.util.List;
-
-public class GatewayServerViewModel extends ViewModel {
-    private LiveData<List<GatewayServer>> gatewayServersList;
-
-    public LiveData<List<GatewayServer>> get(Context context) throws InterruptedException {
-        if(gatewayServersList == null) {
-            gatewayServersList = new MutableLiveData<>();
-            loadGatewayServers(context);
+    private lateinit var datastore: Datastore
+    operator fun get(context: Context): LiveData<List<GatewayServer>> {
+        if(::gatewayServersList.isInitialized) {
+            datastore = Datastore.getDatastore(context)
+            gatewayServersList = MutableLiveData()
+            loadGatewayServers()
         }
-        return gatewayServersList;
+        return gatewayServersList
     }
 
-    private void loadGatewayServers(Context context) throws InterruptedException {
-        GatewayServerHandler gatewayServerHandler = new GatewayServerHandler(context);
-        gatewayServersList = gatewayServerHandler.getAllLiveData();
+    private fun loadGatewayServers() {
+        gatewayServersList = datastore.gatewayServerDAO().all
     }
 }
