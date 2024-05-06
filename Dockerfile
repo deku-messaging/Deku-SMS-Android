@@ -17,6 +17,7 @@ ENV MIN_SDK=""
 
 # CMD ./gradlew assembleDebug
 FROM base as apk-builder
+RUN cp release.properties.example release.properties
 CMD ./gradlew assembleRelease && \
 apksigner sign --ks app/keys/app-release-key.jks \
 --ks-pass pass:$PASS \
