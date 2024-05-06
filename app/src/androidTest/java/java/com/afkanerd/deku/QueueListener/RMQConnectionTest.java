@@ -6,30 +6,18 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
-import android.telephony.SubscriptionInfo;
 import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.afkanerd.deku.DefaultSMS.BuildConfig;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
 import com.afkanerd.deku.QueueListener.RMQ.RMQConnection;
-import com.afkanerd.deku.QueueListener.RMQ.RMQMonitor;
-import com.rabbitmq.client.CancelCallback;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ConsumerShutdownSignalCallback;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
-import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
 import com.rabbitmq.client.impl.DefaultExceptionHandler;
 
@@ -37,10 +25,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -56,10 +42,10 @@ public class RMQConnectionTest {
     ExecutorService consumerExecutorService = Executors.newFixedThreadPool(1); // Create a pool of 5 worker threads
 
     public RMQConnectionTest() throws IOException {
-        this.context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        InputStream inputStream = this.context.getResources()
-                .openRawResource(R.raw.app);
-        properties.load(inputStream);
+//        this.context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+//        InputStream inputStream = this.context.getResources()
+//                .openRawResource(R.raw.app);
+//        properties.load(inputStream);
     }
 
     @Test

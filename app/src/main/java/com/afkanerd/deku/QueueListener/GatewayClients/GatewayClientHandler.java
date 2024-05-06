@@ -36,13 +36,7 @@ public class GatewayClientHandler {
     public Datastore databaseConnector;
 
     public GatewayClientHandler(Context context) {
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Datastore.datastore = Room.databaseBuilder(context, Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(context);
     }
 
     public long add(GatewayClient gatewayClient) throws InterruptedException {

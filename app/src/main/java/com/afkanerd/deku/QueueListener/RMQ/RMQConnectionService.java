@@ -1,8 +1,6 @@
 package com.afkanerd.deku.QueueListener.RMQ;
 
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT;
 import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
 import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import static org.junit.Assert.assertTrue;
@@ -17,48 +15,35 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
-import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Telephony;
-import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.util.Log;
-import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.room.Room;
 
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectDao;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServerHandler;
-import com.afkanerd.deku.Router.Router.RouterHandler;
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSReplyActionBroadcastReceiver;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.Router.Router.RouterItem;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Command;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ConsumerShutdownSignalCallback;
 import com.rabbitmq.client.DeliverCallback;
-import com.rabbitmq.client.Delivery;
 import com.rabbitmq.client.RecoveryDelayHandler;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
@@ -70,14 +55,12 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 
 public class RMQConnectionService extends Service {
@@ -104,12 +87,7 @@ public class RMQConnectionService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(getApplicationContext());
 
         handleBroadcast();
 
@@ -258,9 +236,8 @@ public class RMQConnectionService extends Service {
                 conversation.setThread_id(String.valueOf(threadId));
                 conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-                databaseConnector.threadedConversationsDao().insertThreadAndConversation(conversation);
-                Log.d(getClass().getName(), "Sending RMQ SMS: " + subscriptionId + ":"
-                        + conversation.getAddress());
+                databaseConnector.threadedConversationsDao()
+                        .insertThreadAndConversation(getApplicationContext(), conversation);
                 SMSDatabaseWrapper.send_text(getApplicationContext(), conversation, bundle);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -349,22 +326,22 @@ public class RMQConnectionService extends Service {
         connectionList.put(gatewayClient.getId(), connection);
 
         if(connection != null)
-        connection.addShutdownListener(new ShutdownListener() {
-            @Override
-            public void shutdownCompleted(ShutdownSignalException cause) {
-                Log.e(getClass().getName(), "Connection shutdown cause: " + cause.toString());
-                if(sharedPreferences.getBoolean(String.valueOf(gatewayClient.getId()), false)) {
-                    try {
-                        connectionList.remove(gatewayClient.getId());
-                        int[] states = getGatewayClientNumbers();
-                        createForegroundNotification(states[0], states[1]);
-                        startConnection(factory, gatewayClient);
-                    } catch (IOException | TimeoutException | InterruptedException e) {
-                        e.printStackTrace();
+            connection.addShutdownListener(new ShutdownListener() {
+                @Override
+                public void shutdownCompleted(ShutdownSignalException cause) {
+                    Log.e(getClass().getName(), "Connection shutdown cause: " + cause.toString());
+                    if(sharedPreferences.getBoolean(String.valueOf(gatewayClient.getId()), false)) {
+                        try {
+                            connectionList.remove(gatewayClient.getId());
+                            int[] states = getGatewayClientNumbers();
+                            createForegroundNotification(states[0], states[1]);
+                            startConnection(factory, gatewayClient);
+                        } catch (IOException | TimeoutException | InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
-        });
+            });
 
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
         GatewayClientProjectDao gatewayClientProjectDao =

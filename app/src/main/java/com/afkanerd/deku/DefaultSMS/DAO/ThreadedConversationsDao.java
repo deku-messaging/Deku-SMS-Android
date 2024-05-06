@@ -59,7 +59,7 @@ public interface ThreadedConversationsDao {
 
     @Query("SELECT COUNT(Conversation.id) FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.thread_id = ThreadedConversations.thread_id AND " +
-            "is_archived = 0 AND read = 0 AND ThreadedConversations.thread_id IN(:ids)")
+            "is_archived = 0 AND ThreadedConversations.is_read = 0 AND ThreadedConversations.thread_id IN(:ids)")
     int getCountUnread(List<String> ids);
 
     @Query("SELECT COUNT(ConversationsThreadsEncryption.id) FROM ConversationsThreadsEncryption")
@@ -185,7 +185,10 @@ public interface ThreadedConversationsDao {
     long _insert(ThreadedConversations threadedConversations);
 
     @Transaction
-    default ThreadedConversations insertThreadFromConversation(Conversation conversation) {
+    default ThreadedConversations insertThreadFromConversation(Context context,
+                                                               Conversation conversation) {
+        // TODO: Here is the culprit
+
         /* - Import things are:
         1. Dates
         2. Snippet
@@ -198,10 +201,11 @@ public interface ThreadedConversationsDao {
 
         final int type = conversation.getType();
 
-        final boolean isRead = type != Telephony.Sms.MESSAGE_TYPE_INBOX || conversation.isRead();
+        final boolean isRead = type == Telephony.Sms.MESSAGE_TYPE_OUTBOX || conversation.isRead();
         final boolean isSecured = conversation.isIs_encrypted();
 
-        ThreadedConversations threadedConversations = Datastore.datastore.threadedConversationsDao()
+        ThreadedConversations threadedConversations = Datastore.getDatastore(context)
+                .threadedConversationsDao()
                 .get(conversation.getThread_id());
         threadedConversations.setDate(dates);
         threadedConversations.setSnippet(snippet);
@@ -210,13 +214,14 @@ public interface ThreadedConversationsDao {
         threadedConversations.setAddress(address);
         threadedConversations.setType(type);
 
-        update(threadedConversations);
-        threadedConversations = Datastore.datastore.threadedConversationsDao()
+        update(context, threadedConversations);
+        threadedConversations = Datastore.getDatastore(context).threadedConversationsDao()
                 .get(conversation.getThread_id());
         return threadedConversations;
     }
+
     @Transaction
-    default ThreadedConversations insertThreadAndConversation(Conversation conversation) {
+    default ThreadedConversations insertThreadAndConversation(Context context, Conversation conversation) {
         /* - Import things are:
         1. Dates
         2. Snippet
@@ -246,11 +251,11 @@ public interface ThreadedConversationsDao {
         threadedConversations.setAddress(address);
         threadedConversations.setType(type);
 
-        long id = Datastore.datastore.conversationDao()._insert(conversation);
+        long id = Datastore.getDatastore(context).conversationDao()._insert(conversation);
         if(insert)
             _insert(threadedConversations);
         else {
-            update(threadedConversations);
+            update(context, threadedConversations);
         }
 
         return threadedConversations;
@@ -260,9 +265,9 @@ public interface ThreadedConversationsDao {
     int _update(ThreadedConversations threadedConversations);
 
     @Transaction
-    default long update(ThreadedConversations threadedConversations) {
+    default long update(Context context, ThreadedConversations threadedConversations) {
         if(threadedConversations.getDate() == null || threadedConversations.getDate().isEmpty())
-            threadedConversations.setDate(Datastore.datastore.conversationDao()
+            threadedConversations.setDate(Datastore.getDatastore(context).conversationDao()
                     .fetchLatestForThread(threadedConversations.getThread_id()).getDate());
         return _update(threadedConversations);
     }
@@ -288,7 +293,7 @@ public interface ThreadedConversationsDao {
             }
         }
         _delete(ids);
-        Datastore.datastore.conversationDao().deleteAll(ids);
+        Datastore.getDatastore(context).conversationDao().deleteAll(ids);
     }
 
     @Transaction
@@ -305,7 +310,7 @@ public interface ThreadedConversationsDao {
         }
 
         _delete(threadedConversations);
-        Datastore.datastore.conversationDao().deleteAll(Collections
+        Datastore.getDatastore(context).conversationDao().deleteAll(Collections
                 .singletonList(threadedConversations.getThread_id()));
     }
 

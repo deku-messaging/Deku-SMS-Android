@@ -79,8 +79,8 @@ public class ConversationsViewModel extends ViewModel {
         return datastore.conversationDao().getMessage(messageId);
     }
 
-    public long insert(Conversation conversation) throws InterruptedException {
-        datastore.threadedConversationsDao().insertThreadAndConversation(conversation);
+    public long insert(Context context, Conversation conversation) throws InterruptedException {
+        datastore.threadedConversationsDao().insertThreadAndConversation(context, conversation);
         if(customPagingSource != null)
             customPagingSource.invalidate();
         return 0;
@@ -104,23 +104,13 @@ public class ConversationsViewModel extends ViewModel {
         return positions;
     }
 
-    public void updateInformation(String contactName) {
-        if(threadId != null && !threadId.isEmpty()) {
-            List<Conversation> conversations = datastore.conversationDao().getAll(threadId);
-            List<Conversation> updateList = new ArrayList<>();
-            for(Conversation conversation : conversations) {
-                if(!conversation.isRead()) {
-                    conversation.setRead(true);
-                    updateList.add(conversation);
-                }
-            }
-            datastore.conversationDao().update(updateList);
-        }
+    public void updateInformation(Context context, String contactName) {
+        datastore.conversationDao().updateRead(true, threadId);
         ThreadedConversations threadedConversations =
                 datastore.threadedConversationsDao().get(threadId);
         if(threadedConversations != null) {
             threadedConversations.setContact_name(contactName);
-            datastore.threadedConversationsDao().update(threadedConversations);
+            datastore.threadedConversationsDao().update(context, threadedConversations);
         }
     }
 
@@ -130,7 +120,6 @@ public class ConversationsViewModel extends ViewModel {
         for(int i=0;i<conversations.size(); ++i)
             ids[i] = conversations.get(i).getMessage_id();
         NativeSMSDB.deleteMultipleMessages(context, ids);
-
     }
 
     public Conversation fetchDraft() throws InterruptedException {
@@ -140,7 +129,7 @@ public class ConversationsViewModel extends ViewModel {
 
     public void clearDraft(Context context) {
         datastore.conversationDao()
-                .deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
+                .deleteAllType(context, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
         SMSDatabaseWrapper.deleteDraft(context, threadId);
     }
 
@@ -151,4 +140,5 @@ public class ConversationsViewModel extends ViewModel {
     public void mute() {
         datastore.threadedConversationsDao().updateMuted(1, threadId);
     }
+
 }

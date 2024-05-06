@@ -3,10 +3,7 @@ package com.afkanerd.deku.E2EE;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.util.Base64;
 import android.util.Log;
@@ -14,13 +11,11 @@ import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -33,17 +28,13 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitOption;
-import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
@@ -95,7 +86,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                                                 showSecureRequestAgreementModal();
                                             }
                                             databaseConnector.threadedConversationsDao()
-                                                    .update(threadedConversations);
+                                                    .update(getApplicationContext(),
+                                                            threadedConversations);
                                         } catch (CertificateException | KeyStoreException |
                                                  NoSuchAlgorithmException | IOException |
                                                  UnrecoverableEntryException | InterruptedException e) {
@@ -140,7 +132,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 text = E2EEHandler.buildTransmissionText(cipherText[0]);
                 _mk = cipherText[1];
             } catch (Throwable e) {
-                e.printStackTrace();
+                Log.e(E2EECompactActivity.class.getName(), "Exception", e);
             }
         }
         super.sendTextMessage(text, subscriptionId, threadedConversations, messageId, _mk);
@@ -187,9 +179,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                     conversation.setDate(String.valueOf(System.currentTimeMillis()));
                     conversation.setStatus(Telephony.Sms.STATUS_PENDING);
 
-//                    Log.d(getClass().getName(), "Threaded conversation safe: " +
-//                            threadedConversations.isIs_secured());
-                    long id = conversationsViewModel.insert(conversation);
+                    long id = conversationsViewModel.insert(getApplicationContext(), conversation);
                     SMSDatabaseWrapper.send_data(getApplicationContext(), conversation);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -224,7 +214,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                 ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        sendDataMessage(Datastore.datastore.threadedConversationsDao()
+                        sendDataMessage(Datastore.getDatastore(getApplicationContext())
+                                .threadedConversationsDao()
                                 .get(threadId));
                     }
                 });
@@ -304,7 +295,8 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
             @Override
             public void run() {
                 try {
-                    ThreadedConversations threadedConversations = Datastore.datastore
+                    ThreadedConversations threadedConversations =
+                            Datastore.getDatastore(getApplicationContext())
                             .threadedConversationsDao().get(threadId);
                     String keystoreAlias = E2EEHandler
                             .deriveKeystoreAlias(address, 0);
@@ -321,7 +313,9 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                                     transmissionKey, keystoreAlias);
                         threadedConversations.setIs_secured(true);
                         threadedConversations.setSelf(true);
-                        Datastore.datastore.threadedConversationsDao().update(threadedConversations);
+                        Datastore.getDatastore(getApplicationContext())
+                                .threadedConversationsDao()
+                                .update(getApplicationContext(), threadedConversations);
                     } else
                         sendDataMessage(threadedConversations);
                 } catch(Exception e) {

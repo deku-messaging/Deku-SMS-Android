@@ -1,35 +1,46 @@
 package com.afkanerd.deku.Router.GatewayServers;
 
 import android.content.Context;
+import android.util.Log;
 
-import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.room.ColumnInfo;
+import androidx.room.Embedded;
 import androidx.room.Entity;
-import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
-import androidx.room.Room;
-import androidx.room.RoomDatabase;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.Operation;
+import androidx.work.WorkManager;
 
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.Router.FTP;
+import com.afkanerd.deku.Router.Models.RouterHandler;
+import com.afkanerd.deku.Router.Models.RouterWorkManager;
+import com.afkanerd.deku.Router.SMTP;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Entity
 public class GatewayServer {
+    @Embedded public SMTP smtp = new SMTP();
+
+    @Embedded public FTP ftp = new FTP();
 
     public static String BASE64_FORMAT = "base_64";
     public static String ALL_FORMAT = "all";
-    public static String POST_PROTOCOL = "POST";
-    public static String GET_PROTOCOL = "GET";
-
+    public static String POST_PROTOCOL = "HTTPS";
     public static String GATEWAY_SERVER_ID = "GATEWAY_SERVER_ID";
-    public static String GATEWAY_SERVER_TAG = "GATEWAY_SERVER_TAG";
-    public static String GATEWAY_SERVER_URL = "GATEWAY_SERVER_URL";
-    public static String GATEWAY_SERVER_PROTOCOL = "GATEWAY_SERVER_PROTOCOL";
-    public static String GATEWAY_SERVER_FORMAT = "GATEWAY_SERVER_FORMAT";
 
     @ColumnInfo(name="URL")
     public String URL;
@@ -103,32 +114,16 @@ public class GatewayServer {
         this.id = id;
     }
 
-    @Ignore
-    Datastore databaseConnector;
-    public GatewayServerDAO getDaoInstance(Context context) {
-        databaseConnector = Room.databaseBuilder(context, Datastore.class,
-                        Datastore.databaseName)
-                .addMigrations(new Migrations.Migration8To9())
-                .addMigrations(new Migrations.Migration9To10())
-                .enableMultiInstanceInvalidation()
-                .build();
-        return databaseConnector.gatewayServerDAO();
-    }
-
-//    public void close() {
-//        if(databaseConnector != null)
-//            databaseConnector.close();
-//    }
-
     @Override
     public boolean equals(@Nullable Object obj) {
 //        return super.equals(obj);
         if(obj instanceof GatewayServer) {
             GatewayServer gatewayServer = (GatewayServer) obj;
             return gatewayServer.id == this.id &&
-                    gatewayServer.URL.equals(this.URL) &&
-                    gatewayServer.protocol.equals(this.protocol) &&
-                    gatewayServer.date.equals(this.date);
+                    Objects.equals(gatewayServer.URL, this.URL) &&
+                    Objects.equals(gatewayServer.protocol, this.protocol) &&
+                    Objects.equals(gatewayServer.date, this.date) &&
+                    Objects.equals(gatewayServer.smtp, this.smtp);
         }
         return false;
     }
@@ -145,4 +140,57 @@ public class GatewayServer {
                     return oldItem.equals(newItem);
                 }
             };
+
+    public static void route(Context context, final Conversation conversation) {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        boolean isBase64 = Helpers.isBase64Encoded(conversation.getText());
+        List<GatewayServer> gatewayServerList =
+                Datastore.getDatastore(context.getApplicationContext())
+                        .gatewayServerDAO()
+                        .getAllList();
+
+        for (GatewayServer gatewayServer1 : gatewayServerList) {
+            if(gatewayServer1.getFormat() != null &&
+                    gatewayServer1.getFormat().equals(GatewayServer.BASE64_FORMAT) && !isBase64)
+                continue;
+
+            try {
+                OneTimeWorkRequest routeMessageWorkRequest =
+                        new OneTimeWorkRequest.Builder(RouterWorkManager.class)
+                                .setConstraints(constraints)
+                                .setBackoffCriteria(
+                                        BackoffPolicy.LINEAR,
+                                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                                        TimeUnit.MILLISECONDS
+                                )
+                                .addTag(RouterHandler.TAG_NAME_GATEWAY_SERVER)
+                                .addTag(RouterHandler.INSTANCE
+                                        .getTagForMessages(conversation.getMessage_id()))
+                                .addTag(RouterHandler.INSTANCE
+                                        .getTagForGatewayServers(gatewayServer1.getId()))
+                                .setInputData(new Data.Builder()
+                                        .putLong(RouterWorkManager.Companion.getGATEWAY_SERVER_ID(),
+                                                gatewayServer1.getId())
+                                        .putString(RouterWorkManager.Companion.getCONVERSATION_ID(),
+                                                conversation.getMessage_id())
+                                        .build())
+                                .build();
+
+                String uniqueWorkName = conversation.getMessage_id() + ":" +
+                        gatewayServer1.getURL() + ":" + gatewayServer1.getProtocol();
+                WorkManager workManager = WorkManager.getInstance(context);
+                Operation operation = workManager.enqueueUniqueWork(
+                        uniqueWorkName,
+                        ExistingWorkPolicy.KEEP,
+                        routeMessageWorkRequest);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
 }

@@ -13,7 +13,12 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+        <include
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            layout="@layout/layout_conversation_contact_card"/>
+    </com.google.android.material.appbar.MaterialToolbar>
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/conversations_pop_ups_layouts"
@@ -28,7 +33,7 @@
 
         <include
             android:id="@+id/conversations_search_results_found"
-            layout="@layout/conversations_search_navigation_layout"
+            layout="@layout/layout_conversations_search_navigation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
@@ -62,7 +67,7 @@
 
     <include
         android:id="@+id/compose_message_include_layout"
-        layout="@layout/conversation_compose_layout"
+        layout="@layout/layout_conversation_compose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"

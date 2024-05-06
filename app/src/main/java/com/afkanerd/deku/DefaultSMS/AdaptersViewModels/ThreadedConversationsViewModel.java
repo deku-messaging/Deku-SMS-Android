@@ -30,6 +30,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ThreadedConversationsViewModel extends ViewModel {
@@ -86,7 +88,6 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    PagingSource<Integer, ThreadedConversations> mutedPagingSource;
     public LiveData<PagingData<ThreadedConversations>> getUnread(){
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
@@ -124,13 +125,13 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return gson.toJson(conversations);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getEncrypted() throws InterruptedException {
+    public LiveData<PagingData<ThreadedConversations>> getEncrypted(Context context) throws InterruptedException {
         List<String> address = new ArrayList<>();
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
-                        Datastore.datastore.conversationsThreadsEncryptionDao().getAll();
+                        Datastore.getDatastore(context).conversationsThreadsEncryptionDao().getAll();
                 for(ConversationsThreadsEncryption conversationsThreadsEncryption :
                         conversationsThreadsEncryptionList) {
                     String derivedAddress =
@@ -163,7 +164,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
         List<Conversation> conversationList = new ArrayList<>();
         if(cursor != null && cursor.moveToFirst()) {
             do {
-                conversationList.add(Conversation.build(cursor));
+                conversationList.add(Conversation.Companion.build(cursor));
             } while(cursor.moveToNext());
             cursor.close();
         }
@@ -174,6 +175,14 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
     public void archive(List<Archive> archiveList) {
         databaseConnector.threadedConversationsDao().archive(archiveList);
+    }
+
+    public void archive(String id) {
+        Archive archive = new Archive();
+        archive.thread_id = id;
+        archive.is_archived = true;
+        databaseConnector.threadedConversationsDao()
+                .archive(new ArrayList<>(Collections.singletonList(archive)));
     }
 
 
@@ -258,7 +267,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
         for(ThreadedConversations threadedConversations : threadedConversationsList) {
             BlockedNumberContract.unblock(context, threadedConversations.getAddress());
             threadedConversations.setIs_blocked(false);
-            databaseConnector.threadedConversationsDao().update(threadedConversations);
+            databaseConnector.threadedConversationsDao().update(context, threadedConversations);
         }
     }
 

@@ -21,20 +21,17 @@ import java.util.List;
 
 public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
-    Context context;
-
     String sharedMessage;
     private final AsyncListDiffer<Contacts> mDiffer = new AsyncListDiffer(this, Contacts.DIFF_CALLBACK);
 
-    public ContactsRecyclerAdapter(Context context) {
-        this.context = context;
+    public ContactsRecyclerAdapter() {
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(this.context);
-        View view = inflater.inflate(R.layout.conversations_threads_layout, parent, false);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        View view = inflater.inflate(R.layout.layout_conversations_threads, parent, false);
         return new ContactsViewHolderThreadedConversations(view, true);
     }
 

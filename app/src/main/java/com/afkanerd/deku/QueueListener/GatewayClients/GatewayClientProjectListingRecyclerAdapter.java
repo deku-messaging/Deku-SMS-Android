@@ -23,7 +23,7 @@ public class GatewayClientProjectListingRecyclerAdapter extends RecyclerView.Ada
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.gateway_client_project_listing_layout, parent, false);
+        View view = inflater.inflate(R.layout.layout_gateway_client_project_listing, parent, false);
         return new ViewHolder(view);
     }
 

@@ -7,16 +7,13 @@ import android.content.Intent;
 import android.provider.Telephony;
 import android.util.Base64;
 
-import androidx.room.Room;
-
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationHandler;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 
 //import org.bouncycastle.operator.OperatorCreationException;
@@ -33,8 +30,6 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     public static String DATA_DELIVERED_BROADCAST_INTENT =
             BuildConfig.APPLICATION_ID + ".DATA_DELIVERED_BROADCAST_INTENT";
 
-    public static String DATA_UPDATED_BROADCAST_INTENT =
-            BuildConfig.APPLICATION_ID + ".DATA_UPDATED_BROADCAST_INTENT";
     Datastore databaseConnector;
 
     @Override
@@ -43,13 +38,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
          * Important note: either image or dump it
          */
 
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
-                            Datastore.class, Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(context);
 
         if (intent.getAction().equals(Telephony.Sms.Intents.DATA_SMS_RECEIVED_ACTION)) {
             if (getResultCode() == Activity.RESULT_OK) {
@@ -98,10 +87,10 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
 
                             ThreadedConversations threadedConversations =
                                     databaseConnector.threadedConversationsDao()
-                                    .insertThreadAndConversation(conversation);
+                                    .insertThreadAndConversation(context, conversation);
                             threadedConversations.setSelf(isSelf);
                             databaseConnector.threadedConversationsDao()
-                                    .update(threadedConversations);
+                                    .update(context, threadedConversations);
 
                             Intent broadcastIntent = new Intent(DATA_DELIVER_ACTION);
                             broadcastIntent.putExtra(Conversation.ID, messageId);

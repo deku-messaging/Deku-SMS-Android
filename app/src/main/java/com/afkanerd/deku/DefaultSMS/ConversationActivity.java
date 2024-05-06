@@ -1,6 +1,5 @@
 package com.afkanerd.deku.DefaultSMS;
 
-import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -8,6 +7,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.BlockedNumberContract;
@@ -23,6 +24,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +33,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -40,6 +44,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
+import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsContactModalFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdapter;
@@ -50,17 +55,18 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.Conversatio
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.textview.MaterialTextView;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +74,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import io.getstream.avatarview.AvatarView;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 
@@ -77,6 +84,7 @@ public class ConversationActivity extends E2EECompactActivity {
     public static final String SEARCH_INDEX = "SEARCH_INDEX";
     public static final int SEND_SMS_PERMISSION_REQUEST_CODE = 1;
 
+    boolean isContact = false;
     ActionMode actionMode;
     ConversationsRecyclerAdapter conversationsRecyclerAdapter;
     TextInputEditText smsTextView;
@@ -92,7 +100,21 @@ public class ConversationActivity extends E2EECompactActivity {
 
     Toolbar toolbar;
 
-    BroadcastReceiver broadcastReceiver;
+    boolean firstScrollInitiated = false;
+
+    int searchPointerPosition;
+    TextView searchFoundTextView;
+
+    LifecycleOwner lifecycleOwner;
+
+    static final String DRAFT_TEXT = "DRAFT_TEXT";
+    static final String DRAFT_ID = "DRAFT_ID";
+
+    MaterialCardView materialCardView;
+    boolean isShortCode = false;
+    boolean isDualSim = false;
+    SmsManager smsManager = SmsManager.getDefault();
+    TextInputEditText textInputEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,11 +140,6 @@ public class ConversationActivity extends E2EECompactActivity {
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
     public void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         // Always call the superclass so it can restore the view hierarchy.
         super.onRestoreInstanceState(savedInstanceState);
@@ -132,11 +149,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
         savedInstanceState.remove(DRAFT_TEXT);
         savedInstanceState.remove(DRAFT_ID);
-    }
-
-    private void test() {
-        if(BuildConfig.DEBUG)
-            getIntent().putExtra(SEARCH_STRING, "Android");
     }
 
     @Override
@@ -150,7 +162,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 try {
                     NativeSMSDB.Incoming.update_read(getApplicationContext(), 1, threadId,
                             null);
-                    conversationsViewModel.updateInformation(contactName);
+                    conversationsViewModel.updateInformation(getApplicationContext(), contactName);
                     emptyDraft();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -189,13 +201,6 @@ public class ConversationActivity extends E2EECompactActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void resetSearch() {
-        findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
-        conversationsRecyclerAdapter.searchString = null;
-        conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
-        searchPositions = new MutableLiveData<>();
-    }
-
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (R.id.conversation_main_menu_call == item.getItemId()) {
@@ -232,7 +237,8 @@ public class ConversationActivity extends E2EECompactActivity {
                             databaseConnector.threadedConversationsDao().get(threadId);
                     threadedConversations.setIs_mute(true);
 
-                    databaseConnector.threadedConversationsDao().update(threadedConversations);
+                    databaseConnector.threadedConversationsDao().update(getApplicationContext(),
+                            threadedConversations);
                     invalidateMenu();
                     runOnUiThread(new Runnable() {
                         @Override
@@ -256,7 +262,8 @@ public class ConversationActivity extends E2EECompactActivity {
                     ThreadedConversations threadedConversations =
                             databaseConnector.threadedConversationsDao().get(threadId);
                     threadedConversations.setIs_mute(false);
-                    databaseConnector.threadedConversationsDao().update(threadedConversations);
+                    databaseConnector.threadedConversationsDao().update(getApplicationContext(),
+                            threadedConversations);
 
                     invalidateMenu();
                     runOnUiThread(new Runnable() {
@@ -276,6 +283,56 @@ public class ConversationActivity extends E2EECompactActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (smsTextView != null && smsTextView.getText() != null &&
+                !smsTextView.getText().toString().isEmpty()) {
+            try {
+                saveDraft(String.valueOf(System.currentTimeMillis()),
+                        smsTextView.getText().toString());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state.
+        savedInstanceState.putString(DRAFT_TEXT, smsTextView.getText().toString());
+        savedInstanceState.putString(DRAFT_ID, String.valueOf(System.currentTimeMillis()));
+
+        // Always call the superclass so it can save the view hierarchy state.
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == SEND_SMS_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+                Toast.makeText(this, "Let's do this!!", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Permission denied!", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+
+    private void resetSearch() {
+        findViewById(R.id.conversations_search_results_found).setVisibility(View.GONE);
+        conversationsRecyclerAdapter.searchString = null;
+        conversationsRecyclerAdapter.resetSearchItems(searchPositions.getValue());
+        searchPositions = new MutableLiveData<>();
+    }
+
+    String defaultRegion;
     private void configureActivityDependencies() throws Exception {
         /**
          * Address = This could come from Shared Intent, Contacts etc
@@ -284,12 +341,12 @@ public class ConversationActivity extends E2EECompactActivity {
          * ==> If not ThreadId do not populate, everything else should take the pleasure of finding
          * and sending a threadID to this intent
          */
+        defaultRegion = Helpers.getUserCountry(getApplicationContext());
         if(getIntent().getAction() != null && (getIntent().getAction().equals(Intent.ACTION_SENDTO) ||
                 getIntent().getAction().equals(Intent.ACTION_SEND))) {
             String sendToString = getIntent().getDataString();
             if (sendToString != null && (sendToString.contains("smsto:") ||
                     sendToString.contains("sms:"))) {
-                String defaultRegion = Helpers.getUserCountry(getApplicationContext());
                 String address = Helpers.getFormatCompleteNumber(sendToString, defaultRegion);
                 getIntent().putExtra(Conversation.ADDRESS, address);
             }
@@ -321,18 +378,17 @@ public class ConversationActivity extends E2EECompactActivity {
             thread.start();
             thread.join();
         }
-        final String defaultUserCountry = Helpers.getUserCountry(getApplicationContext());
         contactName = Contacts.retrieveContactName(getApplicationContext(),
-                Helpers.getFormatCompleteNumber(address, defaultUserCountry));
-        if(contactName == null)
-            contactName = Helpers.getFormatNationalNumber(address, defaultUserCountry);
+                Helpers.getFormatCompleteNumber(address, defaultRegion));
+        if(contactName == null) {
+            contactName = Helpers.getFormatForTransmission(address, defaultRegion);
+        } else isContact = true;
 
         isShortCode = Helpers.isShortCode(address);
         attachObservers();
-    }
 
-    int searchPointerPosition;
-    TextView searchFoundTextView;
+        isDualSim = SIMHandler.isDualSim(getApplicationContext());
+    }
 
     private void scrollRecyclerViewSearch(int position) {
         if(position == -2){
@@ -367,7 +423,7 @@ public class ConversationActivity extends E2EECompactActivity {
 
         conversationsViewModel = new ViewModelProvider(this)
                 .get(ConversationsViewModel.class);
-        conversationsViewModel.datastore = Datastore.datastore;
+        conversationsViewModel.datastore = databaseConnector;
 
         backSearchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -404,14 +460,9 @@ public class ConversationActivity extends E2EECompactActivity {
 
     }
 
-    boolean firstScrollInitiated = false;
-
-    LifecycleOwner lifecycleOwner;
-
-    Conversation conversation = new Conversation();
     private void configureRecyclerView() throws InterruptedException {
         singleMessagesThreadRecyclerView.setAdapter(conversationsRecyclerAdapter);
-        singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
+//        singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
 
         lifecycleOwner = this;
 
@@ -534,11 +585,6 @@ public class ConversationActivity extends E2EECompactActivity {
 
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        return super.onPrepareOptionsMenu(menu);
-    }
-
     private void configureSearchBox() {
 //        findViewById(R.id.conversations_pop_ups_layouts).setVisibility(View.VISIBLE);
         findViewById(R.id.conversations_search_results_found).setVisibility(View.VISIBLE);
@@ -546,54 +592,55 @@ public class ConversationActivity extends E2EECompactActivity {
     }
 
     private void configureToolbars() {
-        setTitle(getAbTitle());
+        setTitle(null);
+//        View view = findViewById(R.id.conversation_toolbar_include_contact_card);
+        TextView contactTextView = findViewById(R.id.conversation_contact_card_text_view);
+        contactTextView.setText(getAbTitle());
+
+        AvatarView avatarView = findViewById(R.id.conversation_contact_card_frame_avatar_initials);
+        ImageView imageView = findViewById(R.id.conversation_contact_card_frame_avatar_photo);
+        final int contactColor = Helpers.getColor(getApplicationContext(), threadId);
+        if(isContact) {
+            avatarView.setAvatarInitials(contactName.contains(" ") ? contactName :
+                    contactName.substring(0, 1));
+            avatarView.setAvatarInitialsBackgroundColor(contactColor);
+            imageView.setVisibility(View.INVISIBLE);
+        } else {
+            Drawable drawable = getDrawable(R.drawable.baseline_account_circle_24);
+            if (drawable != null)
+                drawable.setColorFilter(contactColor, PorterDuff.Mode.SRC_IN);
+            imageView.setImageDrawable(drawable);
+            avatarView.setVisibility(View.INVISIBLE);
+        }
+
+//        View view = getLayoutInflater().inflate(R.layout.layout_conversation_contact_card, null);
+        materialCardView = findViewById(R.id.conversation_toolbar_contact_card);
+        materialCardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(getClass().getName(), "Yes contact clicked");
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                ConversationsContactModalFragment modalSheetFragment =
+                        new ConversationsContactModalFragment(contactName,
+                                Helpers.getFormatForTransmission(address, defaultRegion));
+                fragmentTransaction.add(modalSheetFragment, ConversationsContactModalFragment.TAG);
+                fragmentTransaction.show(modalSheetFragment);
+                fragmentTransaction.commitNow();
+            }
+        });
+
     }
 
     private String getAbTitle() {
-        return (contactName != null && !contactName.isEmpty())? contactName: address;
-    }
-
-    boolean isShortCode = false;
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (smsTextView != null && smsTextView.getText() != null &&
-                !smsTextView.getText().toString().isEmpty()) {
-            try {
-                saveDraft(String.valueOf(System.currentTimeMillis()),
-                        smsTextView.getText().toString());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if(broadcastReceiver != null)
-            unregisterReceiver(broadcastReceiver);
-    }
-
-    static final String DRAFT_TEXT = "DRAFT_TEXT";
-    static final String DRAFT_ID = "DRAFT_ID";
-
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        // Save the user's current game state.
-        savedInstanceState.putString(DRAFT_TEXT, smsTextView.getText().toString());
-        savedInstanceState.putString(DRAFT_ID, String.valueOf(System.currentTimeMillis()));
-
-        // Always call the superclass so it can save the view hierarchy state.
-        super.onSaveInstanceState(savedInstanceState);
+        return isContact? contactName: address;
     }
 
     private void emptyDraft(){
         conversationsViewModel.clearDraft(getApplicationContext());
     }
 
-    SmsManager smsManager = SmsManager.getDefault();
     public String getSMSCount(String text) {
         final List<String> messages = smsManager.divideMessage(text);
         final int segmentCount = messages.get(messages.size() -1).length();
@@ -607,21 +654,23 @@ public class ConversationActivity extends E2EECompactActivity {
 
         TextView counterView = findViewById(R.id.conversation_compose_text_counter);
         View sendBtn = findViewById(R.id.conversation_send_btn);
+
+        MaterialTextView dualSimCardName =
+                findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
         mutableLiveDataComposeMessage.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                int visibility = View.GONE;
                 if(!s.isEmpty()) {
                     counterView.setText(getSMSCount(s));
-                    visibility = View.VISIBLE;
+                    sendBtn.setVisibility(View.VISIBLE);
+                    if(isDualSim)
+                        dualSimCardName.setVisibility(View.VISIBLE);
                 }
-                TextView dualSimCardName =
-                        (TextView) findViewById(R.id.conversation_compose_dual_sim_send_sim_name);
-                if(SIMHandler.isDualSim(getApplicationContext())) {
-                    dualSimCardName.setVisibility(View.VISIBLE);
+                else {
+                    sendBtn.setVisibility(View.GONE);
+                    dualSimCardName.setVisibility(View.GONE);
+                    counterView.setVisibility(View.GONE);
                 }
-                sendBtn.setVisibility(visibility);
-                counterView.setVisibility(visibility);
             }
         });
 
@@ -647,14 +696,16 @@ public class ConversationActivity extends E2EECompactActivity {
                             @Override
                             public void run() {
                                 ThreadedConversations threadedConversations =
-                                        Datastore.datastore.threadedConversationsDao().get(threadId);
+                                        Datastore.getDatastore(getApplicationContext())
+                                                .threadedConversationsDao().get(threadId);
                                 if(threadedConversations == null) {
                                     threadedConversations = new ThreadedConversations();
                                     threadedConversations.setThread_id(threadId);
                                 }
                                 try {
                                     sendTextMessage(text, defaultSubscriptionId.getValue(),
-                                            threadedConversations, String.valueOf(System.currentTimeMillis()),
+                                            threadedConversations,
+                                            String.valueOf(System.currentTimeMillis()),
                                             null);
                                 } catch (NumberParseException | InterruptedException e) {
                                     e.printStackTrace();
@@ -759,9 +810,11 @@ public class ConversationActivity extends E2EECompactActivity {
             @Override
             public void run() {
                 ThreadedConversations threadedConversations =
-                        Datastore.datastore.threadedConversationsDao().get(threadId);
+                        Datastore.getDatastore(getApplicationContext())
+                                .threadedConversationsDao().get(threadId);
                 threadedConversations.setIs_blocked(true);
-                databaseConnector.threadedConversationsDao().update(threadedConversations);
+                databaseConnector.threadedConversationsDao().update(getApplicationContext(),
+                        threadedConversations);
             }
         });
 
@@ -776,7 +829,6 @@ public class ConversationActivity extends E2EECompactActivity {
         startActivity(telecomManager.createManageBlockedNumbersIntent(), null);
     }
 
-
     private void shareItem() {
         Set<Map.Entry<Long, ConversationTemplateViewHandler>> entry =
                 conversationsRecyclerAdapter.mutableSelectedItems.getValue().entrySet();
@@ -789,7 +841,8 @@ public class ConversationActivity extends E2EECompactActivity {
         Intent shareIntent = Intent.createChooser(sendIntent, null);
         // Only use for components you have control over
         ComponentName[] excludedComponentNames = {
-                new ComponentName(BuildConfig.APPLICATION_ID, ComposeNewMessageActivity.class.getName())
+                new ComponentName(BuildConfig.APPLICATION_ID,
+                        ThreadedConversationsActivity.class.getName())
         };
         shareIntent.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames);
         startActivity(shareIntent);
@@ -877,26 +930,13 @@ public class ConversationActivity extends E2EECompactActivity {
         });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == SEND_SMS_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0) {
-                Toast.makeText(this, "Let's do this!!", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(this, "Permission denied!", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    TextInputEditText textInputEditText;
     private final ActionMode.Callback searchActionModeCallback = new ActionMode.Callback() {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             Objects.requireNonNull(getSupportActionBar()).hide();
 
-            View viewGroup = getLayoutInflater().inflate(R.layout.conversation_search_bar_layout,
+            View viewGroup = getLayoutInflater().inflate(R.layout.layout_conversation_search_bar,
                     null);
             mode.setCustomView(viewGroup);
 
@@ -962,6 +1002,7 @@ public class ConversationActivity extends E2EECompactActivity {
             resetSearch();
         }
     };
+
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
 
         @Override
@@ -974,7 +1015,8 @@ public class ConversationActivity extends E2EECompactActivity {
 
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            if(Objects.requireNonNull(conversationsRecyclerAdapter.mutableSelectedItems.getValue()).size() > 1) {
+            if(Objects.requireNonNull(conversationsRecyclerAdapter.mutableSelectedItems
+                    .getValue()).size() > 1) {
                 menu.clear();
                 mode.getMenuInflater().inflate(R.menu.conversations_menu_items_selected, menu);
                 return true;

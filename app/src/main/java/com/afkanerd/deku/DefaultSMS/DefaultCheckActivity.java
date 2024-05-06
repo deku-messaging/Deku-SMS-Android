@@ -1,10 +1,8 @@
 package com.afkanerd.deku.DefaultSMS;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
-import androidx.room.Room;
 
 import android.Manifest;
 import android.app.Activity;
@@ -22,14 +20,11 @@ import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultCheckActivity extends AppCompatActivity {
 
@@ -104,24 +99,7 @@ public class DefaultCheckActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    public void startMigrations() {
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .addMigrations(new Migrations.Migration4To5())
-                    .addMigrations(new Migrations.Migration5To6())
-                    .addMigrations(new Migrations.Migration6To7())
-                    .addMigrations(new Migrations.Migration7To8())
-                    .addMigrations(new Migrations.Migration9To10())
-                    .addMigrations(new Migrations.Migration10To11(getApplicationContext()))
-                    .addMigrations(new Migrations.MIGRATION_11_12())
-                    .build();
-    }
-
-
     private void startUserActivities() {
-        startMigrations();
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {

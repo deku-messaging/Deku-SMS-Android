@@ -10,45 +10,32 @@ import static com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragme
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.ActionBar;
-import androidx.compose.material3.CardKt;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.room.Room;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
+import android.app.Activity;
 import android.content.Intent;
-import android.os.Build;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Telephony;
+import android.provider.ContactsContract;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment;
-import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.badge.BadgeDrawable;
-import com.google.android.material.badge.BadgeUtils;
 import com.google.android.material.badge.ExperimentalBadgeUtils;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.navigation.NavigationView;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 public class ThreadedConversationsActivity extends CustomAppCompactActivity implements ThreadedConversationsFragment.ViewModelsInterface {
     public static final String UNIQUE_WORK_MANAGER_NAME = BuildConfig.APPLICATION_ID;
@@ -74,6 +61,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
 
         threadedConversationsViewModel.databaseConnector = databaseConnector;
 
+        _checkSharedContent();
         fragmentManagement();
         configureNavigationBar();
     }
@@ -81,7 +69,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     @OptIn(markerClass = ExperimentalBadgeUtils.class)
     public void configureNavigationBar() {
         navigationView = findViewById(R.id.conversations_threads_navigation_view);
-        View view = getLayoutInflater().inflate(R.layout.header_navigation_drawer, null);
+        View view = getLayoutInflater().inflate(R.layout.layout_conversation_threads_navigation_drawer_version, null);
         TextView textView = view.findViewById(R.id.conversations_threads_navigation_view_version_number);
         textView.setText(BuildConfig.VERSION_NAME);
 
@@ -133,7 +121,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
                 int actionModeMenu = -1;
                 if(item.getItemId() == R.id.navigation_view_menu_inbox) {
                     fragmentManagement();
-                    drawerLayout.close();
                     return true;
                 } else if(item.getItemId() == R.id.navigation_view_menu_drafts) {
                     messageType = DRAFTS_MESSAGE_TYPES;
@@ -211,8 +198,80 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     public void onNewMessageClick(View view) {
-        Intent intent = new Intent(this, ComposeNewMessageActivity.class);
-        startActivity(intent);
+        launchMultiplePhonePicker(COMPOSE_NEW_REQUEST_CODE);
+    }
+
+    private final int COMPOSE_NEW_REQUEST_CODE = 1;
+    private final int SHARED_MESSAGE_REQUEST_CODE = 2;
+    private void launchMultiplePhonePicker(int requestCode) {
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+        startActivityForResult(intent, requestCode);
+    }
+    String sharedText;
+
+    @Override
+    public void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+
+        if (resultCode == Activity.RESULT_OK) {
+            Uri contactData = data.getData();
+            try(Cursor contactCursor =
+                        getContentResolver().query(contactData,
+                                null,
+                                null,
+                                null,
+                                null)) {
+                if (contactCursor != null) {
+                    if (contactCursor.moveToFirst()) {
+                        int contactIndexInformation = contactCursor
+                                .getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                        int contactNameIndexInformation = contactCursor
+                                .getColumnIndex(ContactsContract.CommonDataKinds
+                                        .Phone.DISPLAY_NAME);
+
+                        String address = contactCursor.getString(contactIndexInformation);
+                        String name = contactCursor.getString(contactNameIndexInformation);
+
+                        String threadId = ThreadedConversationsHandler.get(getApplicationContext(),
+                                address).getThread_id();
+                        Intent intent = new Intent(this, ConversationActivity.class);
+                        intent.putExtra(Conversation.ADDRESS, address);
+                        intent.putExtra(Conversation.THREAD_ID, threadId);
+
+                        if (reqCode == SHARED_MESSAGE_REQUEST_CODE)
+                            intent.putExtra(Conversation.SHARED_SMS_BODY, sharedText);
+
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void _checkSharedContent() {
+        if (Intent.ACTION_SEND.equals(getIntent().getAction()) && getIntent().getType() != null) {
+            getIntent().setAction(null);
+            if ("text/plain".equals(getIntent().getType())) {
+                sharedText = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+
+                if(getIntent().hasExtra("address")) {
+                    String address = getIntent().getStringExtra("address");
+                    Intent singleMessageThreadIntent = new Intent(getApplicationContext(),
+                            ConversationActivity.class);
+                    singleMessageThreadIntent.putExtra(Conversation.ADDRESS, address);
+                    if(sharedText != null && !sharedText.isEmpty())
+                        singleMessageThreadIntent.putExtra(Conversation.SHARED_SMS_BODY, sharedText);
+                    startActivity(singleMessageThreadIntent);
+                }
+                else {
+                    launchMultiplePhonePicker(SHARED_MESSAGE_REQUEST_CODE);
+                }
+            }
+        }
     }
 
 

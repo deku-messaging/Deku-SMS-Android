@@ -1,18 +1,21 @@
 package com.afkanerd.deku.DefaultSMS.Fragments;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
-import android.provider.BlockedNumberContract;
-import android.provider.DocumentsContract;
 import android.telecom.TelecomManager;
-import android.util.Log;
+import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,43 +31,34 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.paging.PagingData;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.AboutActivity;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ThreadedConversationsTemplateViewHolder;
-import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.DefaultSMS.SearchMessagesThreadsActivity;
 import com.afkanerd.deku.DefaultSMS.SettingsActivity;
-import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
-import com.afkanerd.deku.E2EE.E2EEHandler;
-import com.afkanerd.deku.Router.Router.RouterActivity;
-import com.google.i18n.phonenumbers.NumberParseException;
+import com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
@@ -121,6 +115,49 @@ public class ThreadedConversationsFragment extends Fragment {
     }
 
     ActionMode actionMode;
+    public Runnable getDeleteRunnable(List<String> ids) {
+        return new Runnable() {
+            @Override
+            public void run() {
+
+                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        threadedConversationsViewModel.delete(getContext(), ids);
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                threadedConversationRecyclerAdapter.resetAllSelectedItems();
+                            }
+                        });
+                    }
+                });
+            }
+        };
+    }
+    private void showAlert(Runnable runnable) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(getString(R.string.messages_thread_delete_confirmation_title));
+        builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
+
+        builder.setPositiveButton(getString(R.string.messages_thread_delete_confirmation_yes),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        runnable.run();
+                    }
+                });
+
+        builder.setNegativeButton(getString(R.string.messages_thread_delete_confirmation_cancel),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
     protected int defaultMenu = R.menu.conversations_threads_menu;
     protected int actionModeMenu = R.menu.conversations_threads_menu_items_selected;
@@ -165,50 +202,6 @@ public class ThreadedConversationsFragment extends Fragment {
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             return false; // Return false if nothing is done.
-        }
-
-        public Runnable getDeleteRunnable(List<String> ids) {
-            return new Runnable() {
-                @Override
-                public void run() {
-
-                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            threadedConversationsViewModel.delete(getContext(), ids);
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    threadedConversationRecyclerAdapter.resetAllSelectedItems();
-                                }
-                            });
-                        }
-                    });
-                }
-            };
-        }
-        private void showAlert(Runnable runnable) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(getString(R.string.messages_thread_delete_confirmation_title));
-            builder.setMessage(getString(R.string.messages_thread_delete_confirmation_text));
-
-            builder.setPositiveButton(getString(R.string.messages_thread_delete_confirmation_yes),
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            runnable.run();
-                        }
-                    });
-
-            builder.setNegativeButton(getString(R.string.messages_thread_delete_confirmation_cancel),
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
         }
 
         @Override
@@ -422,8 +415,7 @@ public class ThreadedConversationsFragment extends Fragment {
 
         threadedConversationsViewModel = viewModelsInterface.getThreadedConversationsViewModel();
 
-        threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter(
-                threadedConversationsViewModel.databaseConnector.threadedConversationsDao());
+        threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter();
         threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),
                 new Observer<HashMap<Long, ThreadedConversationsTemplateViewHolder>>() {
             @Override
@@ -447,7 +439,6 @@ public class ThreadedConversationsFragment extends Fragment {
         messagesThreadRecyclerView = view.findViewById(R.id.messages_threads_recycler_view);
         messagesThreadRecyclerView.setLayoutManager(linearLayoutManager);
         messagesThreadRecyclerView.setAdapter(threadedConversationRecyclerAdapter);
-//        messagesThreadRecyclerView.setItemViewCacheSize(500);
 
         threadedConversationRecyclerAdapter.addOnPagesUpdatedListener(new Function0<Unit>() {
             @Override
@@ -462,9 +453,9 @@ public class ThreadedConversationsFragment extends Fragment {
 
         switch(Objects.requireNonNull(messageType)) {
             case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
-                Log.d(getClass().getName(), "Fragment at encrypted");
                 try {
-                    threadedConversationsViewModel.getEncrypted().observe(getViewLifecycleOwner(),
+                    threadedConversationsViewModel.getEncrypted(getContext())
+                            .observe(getViewLifecycleOwner(),
                             new Observer<PagingData<ThreadedConversations>>() {
                                 @Override
                                 public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -537,6 +528,109 @@ public class ThreadedConversationsFragment extends Fragment {
                             }
                         });
         }
+        swipeActions();
+    }
+
+    private void swipeActions() {
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper
+                .SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                if(direction == ItemTouchHelper.LEFT) {
+                    ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            ThreadedConversations threadedConversations =
+                                    threadedConversationRecyclerAdapter
+                                            .getItemByPosition(viewHolder.getLayoutPosition());
+                            threadedConversationsViewModel
+                                    .archive(threadedConversations.getThread_id());
+                        }
+                    });
+                } else if(direction == ItemTouchHelper.RIGHT) {
+                    ThreadedConversations threadedConversations =
+                            threadedConversationRecyclerAdapter
+                                    .getItemByPosition(viewHolder.getLayoutPosition());
+                    showAlert(getDeleteRunnable(new ArrayList<>(
+                            Collections.singletonList(threadedConversations.getThread_id()))));
+                    threadedConversationRecyclerAdapter.
+                            notifyItemChanged(viewHolder.getLayoutPosition());
+                }
+//                threadedConversationRecyclerAdapter.notifyItemRemoved(viewHolder.getLayoutPosition());
+            }
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
+                                    RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+
+                boolean isCancelled = dX == 0 && !isCurrentlyActive;
+
+                if (isCancelled) {
+                    clearCanvas(c, viewHolder.itemView.getRight() + dX,
+                            (float) viewHolder.itemView.getTop(),
+                            (float) viewHolder.itemView.getRight(),
+                            (float) viewHolder.itemView.getBottom());
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState,
+                            isCurrentlyActive);
+                    return;
+                }
+
+                int xMarkMargin;
+                xMarkMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16,
+                        getResources().getDisplayMetrics());
+
+                int drawable = dX > 0 ? R.drawable.round_delete_24 : R.drawable.round_archive_24;
+                Drawable deleteIcon = ContextCompat.getDrawable(getContext(), drawable);
+                int itemHeight = viewHolder.itemView.getBottom() - viewHolder.itemView.getTop();
+                int intrinsicWidth = deleteIcon.getIntrinsicWidth();
+                int intrinsicHeight = deleteIcon.getIntrinsicHeight();
+
+                ColorDrawable background = new ColorDrawable(getContext()
+                        .getColor(R.color.primary_background_color));
+                int xMarkRight = 0, xMarkLeft=0;
+                if(dX > 0) {
+                    // Delete
+                    xMarkRight = viewHolder.itemView.getLeft() + xMarkMargin + intrinsicWidth;
+                    xMarkLeft = xMarkRight - intrinsicWidth;
+                    background = new ColorDrawable(getContext().getColor(R.color.failed_red));
+                } else if(dX < 0) {
+                    // Archive
+                    xMarkLeft = viewHolder.itemView.getRight() - xMarkMargin - intrinsicWidth;
+                    xMarkRight = xMarkLeft + intrinsicWidth;
+                }
+                background.setBounds(viewHolder.itemView.getLeft(), viewHolder.itemView.getTop(),
+                        viewHolder.itemView.getRight(), viewHolder.itemView.getBottom());
+                background.draw(c);
+
+                int xMarkTop = viewHolder.itemView.getTop() + (itemHeight - intrinsicHeight) / 2;
+                int xMarkBottom = xMarkTop + intrinsicHeight;
+
+                deleteIcon.setBounds(xMarkLeft, xMarkTop + 16, xMarkRight, xMarkBottom);
+                deleteIcon.draw(c);
+
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+
+            private void clearCanvas(Canvas c, Float left, Float top, Float right, Float bottom) {
+                Paint mClearPaint = new Paint();
+                mClearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                c.drawRect(left, top, right, bottom, mClearPaint);
+
+            }
+            @Override
+            public float getSwipeThreshold(@NonNull RecyclerView.ViewHolder viewHolder) {
+                return 0.7f;
+            }
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(messagesThreadRecyclerView);
     }
 
     private static final int CREATE_FILE = 777;
@@ -623,7 +717,7 @@ public class ThreadedConversationsFragment extends Fragment {
             return true;
         }
         if (item.getItemId() == R.id.conversation_threads_main_menu_routed) {
-            Intent routingIntent = new Intent(getContext(), RouterActivity.class);
+            Intent routingIntent = new Intent(getContext(), GatewayServerRoutedActivity.class);
             routingIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(routingIntent);
         }

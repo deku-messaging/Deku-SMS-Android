@@ -35,12 +35,6 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gateway_client_project_listing);
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(),
-                            Datastore.class, Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
 
         Toolbar toolbar = findViewById(R.id.gateway_client_project_listing_toolbar);
         setSupportActionBar(toolbar);
@@ -66,7 +60,7 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
         GatewayClientProjectListingViewModel gatewayClientProjectListingViewModel =
                 new ViewModelProvider(this).get(GatewayClientProjectListingViewModel.class);
 
-        gatewayClientProjectListingViewModel.get(Datastore.datastore, id).observe(this,
+        gatewayClientProjectListingViewModel.get(getApplicationContext(), id).observe(this,
                 new Observer<List<GatewayClientProjects>>() {
             @Override
             public void onChanged(List<GatewayClientProjects> gatewayClients) {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/gateway_server_menu_add_http"
+        android:title="@string/add_new_gateway_server_http"/>
+
+    <item
+        android:id="@+id/gateway_server_menu_add_smtp"
+        android:title="@string/add_new_gateway_server_smtp"/>
+
+    <item
+        android:id="@+id/gateway_server_menu_add_ftp"
+        android:title="@string/add_new_gateway_server_ftp"/>
+
+
+</menu>

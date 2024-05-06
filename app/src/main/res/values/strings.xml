@@ -19,7 +19,7 @@
 
     <string name="save_new_gateway_client">Save</string>
     <string name="new_gateway_server_url">Enter URL - e.g. https://example.com:8080/api/</string>
-    <string name="new_gateway_server_tag">Enter tag would be used for identifying this device <i>(optional)</i></string>
+    <string name="new_gateway_server_tag">(Optional) Identifier Tag</string>
     <string name="new_gateway_client_url">Enter URL - e.g. example.com <i>(do not include protocol)</i></string>
     <string name="new_gateway_client_username">Enter username</string>
     <string name="new_gateway_client_password">Enter password</string>
@@ -44,6 +44,21 @@
     <string name="gateway_server_listing_toolbar_title">SMS routing Gateways</string>
     <string name="gateway_client_listing_toolbar_title">SMS listening Gateways</string>
     <string name="add_new_gateway_server_toolbar_title">Add Gateway</string>
+
+    <string name="gateway_server_update">Update</string>
+    <string name="add_new_gateway_server_http">Add HTTPS Gateway server</string>
+    <string name="add_new_gateway_server_ftp">Add FTP Gateway server</string>
+
+    <string name="add_new_gateway_server_smtp">Add SMTP Gateway server</string>
+    <string name="add_new_gateway_server_smtp_host">Host</string>
+    <string name="add_new_gateway_server_smtp_username">Username</string>
+    <string name="add_new_gateway_server_smtp_password">Password</string>
+    <string name="add_new_gateway_server_smtp_port">Port</string>
+    <string name="add_new_gateway_server_smtp_recipient">Recipient</string>
+    <string name="add_new_gateway_server_smtp_recipient_helper">Use commas for multiple recipients e.g example@email.com, example1@email.com</string>
+    <string name="add_new_gateway_server_smtp_from">From</string>
+    <string name="add_new_gateway_server_smtp_subject">(Optional) Subject</string>
+    <string name="add_new_gateway_server_smtp_add">Add</string>
 
     <string name="notifications_reply_label">Reply</string>
     <string name="notifications_mark_as_read_label">Mark as read</string>
@@ -72,9 +87,12 @@
     <string name="settings_advanced_developers_key" translatable="false">settings_advanced_developers_key</string>
     <string name="settings_locale" translatable="false">settings_locale</string>
     <string name="settings_locale_description">Choose language</string>
+    <string name="gateway_server_settings_locale_description">Enable automatic protocol routing</string>
+    <string name="gateway_server_settings_locale_summary">Turn this on to route only to 1 protocol at a time. This begins with HTTP and performs a round-robin lookup for the other protocols. Use this to avoid receiving the same message to multiple protocols.</string>
 
     <string name="settings_about">About</string>
     <string name="settings_title">Settings</string>
+    <string name="gateway_server_settings_title">Gateway Server Settings</string>
     <string name="settings_advanced_category_title">Advance</string>
     <string name="settings_developer_category_title">Developers</string>
     <string name="settings_security_category_end_to_end_duration">Allow request for encryption to expire</string>
@@ -87,18 +105,14 @@
     <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
 
-    <string name="gateway_client_add_linked_device_title">Scan QR code</string>
     <string name="gateway_client_add_manually_title">Add Manually</string>
-    <string name="gateway_client_project_activate_all">Activate All</string>
 
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
     <string name="settings_SMS_routing_type_all_option">All (default)</string>
 
-    <string name="settings_add_gateway_server_protocol_description">Choose the routing protocol</string>
     <string name="settings_add_gateway_client_protocol_description">Choose the Listening protocol</string>
     <string name="settings_add_gateway_server_protocol_meta_description">All POST are routed as JSON formats.\nAll formats use the following key/value format:\n\n<b>MSISDN</b>:-The address of the incoming message in E.164 Format\n\n<b>text</b>:-The text body of the incoming message </string>
-    <string name="settings_add_gateway_server_protocol_data_format">Choose data format</string>
 
     <string name="settings_gateway_server_protocol_description">Protocol</string>
     <string name="settings_gateway_client_username_description">Username</string>
@@ -168,8 +182,8 @@
     <string name="conversations_search_results_found">results founds</string>
 
     <string name="conversation_copied">Copied!</string>
+    <string name="conversation_contact_modal_details_address_label">Contact Info</string>
     <string name="router_list_gateways">View Gateway servers</string>
-    <string name="router_add_gateways">Add Gateway servers</string>
     <string name="conversation_menu_copy">copy</string>
     <string name="conversation_menu_delete">Delete</string>
     <string name="conversation_menu_unarchive">unarchive</string>
@@ -192,8 +206,6 @@
     <string name="conversation_menu_view_details_sent">Sent:\u00A0</string>
     <string name="conversation_menu_view_details_received">Received:\u00A0</string>
 
-    <string name="compose_new_message_to">To</string>
-    <string name="compose_new_message_title">New conversation</string>
     <string name="conversation_secure_popup_text">Click to request secure conversation</string>
 
     <string name="conversation_threads_secured_content">Secured Content</string>
@@ -241,4 +253,11 @@
     <string name="conversations_secure_conversation_request_information">When you send a message on our platform, it gets scrambled with a special code, just like a secret code you might use with a friend. This code makes it impossible for anyone to peek at your message while it\'s traveling between you and the recipient. Only the person you send it to has the key to unscramble it and read what you wrote. We call this process encryption.\n\nIf you\'re curious about how this encryption works, you can check out this link for a deeper dive</string>
     <string name="conversations_secure_conversation_request_information_deku_encryption_link" translatable="false">https://github.com/deku-messaging/Deku-SMS-Android?tab=readme-ov-file#-end-to-end-encryption</string>
     <string name="conversations_secure_conversation_request_information_deku_encryption_read_more">Learn more</string>
+    <string name="route_incoming_messages_of_format">Route incoming messages of format</string>
+
+    <string name="gateway_server_routing_state_success">Succeeded</string>
+    <string name="gateway_server_routing_state_failed">Failed</string>
+    <string name="gateway_server_routing_state_enqueued">Enqueued</string>
+    <string name="gateway_server_routing_state_cancelled">Cancelled</string>
+    <string name="gateway_server_routing_state_running">Running</string>
 </resources>

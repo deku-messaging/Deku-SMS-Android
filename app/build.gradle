@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 	id "com.diffplug.spotless" version "6.20.0"
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.23'
 }
 
 import com.android.tools.profgen.ArtProfileKt
@@ -196,5 +197,20 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
 
     implementation "androidx.compose.material3:material3:$m3"
+
+    implementation 'com.sun.mail:android-mail:1.6.2'
+    implementation 'com.sun.mail:android-activation:1.6.2'
+
+    implementation 'commons-net:commons-net:3.6'
+
+    def fuelVersion = "2.2.1"
+    implementation "com.github.kittinunf.fuel:fuel:$fuelVersion" //for JVM
+    testImplementation "com.github.kittinunf.fuel:fuel:$fuelVersion" //for JVM
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1-Beta'//
+
+    implementation "com.github.kittinunf.fuel:fuel-android:$fuelVersion" //for Android
+    implementation "com.github.kittinunf.fuel:fuel-coroutines:$fuelVersion"
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
 }
 

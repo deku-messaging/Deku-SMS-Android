@@ -1,44 +1,26 @@
 package com.afkanerd.deku.DefaultSMS;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.room.Room;
 
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingDataSMSBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver;
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class CustomAppCompactActivity extends DualSIMConversationActivity {
 
@@ -61,14 +43,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             finish();
         }
 
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Log.d(getClass().getName(), "Yes I am closed");
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(getApplicationContext());
     }
 
     private boolean _checkIsDefaultApp() {
@@ -142,7 +117,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                     @Override
                     public void run() {
                         try {
-                            conversationsViewModel.insert(conversation);
+                            conversationsViewModel.insert(getApplicationContext(), conversation);
                         } catch(Exception e) {
                             e.printStackTrace();
                             return;
@@ -186,7 +161,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                         conversation.setAddress(address);
                         conversation.setStatus(Telephony.Sms.STATUS_PENDING);
                         try {
-                            conversationsViewModel.insert(conversation);
+                            conversationsViewModel.insert(getApplicationContext(), conversation);
                             SMSDatabaseWrapper.saveDraft(getApplicationContext(), conversation);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -204,7 +179,4 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             notificationManager.cancel(Integer.parseInt(threadId));
         }
     }
-
-
-
 }

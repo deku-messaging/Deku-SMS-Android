@@ -22,3 +22,4 @@ ks.passwd
 venv/*
 /release.properties
 *.sw*
+gradle.properties
