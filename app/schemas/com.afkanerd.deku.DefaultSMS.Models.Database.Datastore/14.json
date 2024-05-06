@@ -476,25 +476,25 @@
             "notNull": true
           },
           {
-            "fieldPath": "read",
+            "fieldPath": "isRead",
             "columnName": "read",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "is_encrypted",
+            "fieldPath": "isIs_encrypted",
             "columnName": "is_encrypted",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "is_key",
+            "fieldPath": "isIs_key",
             "columnName": "is_key",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "is_image",
+            "fieldPath": "isIs_image",
             "columnName": "is_image",
             "affinity": "INTEGER",
             "notNull": true

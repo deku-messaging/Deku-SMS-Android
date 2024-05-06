@@ -7,24 +7,18 @@ import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
 
-import androidx.annotation.NonNull;
-import androidx.room.Room;
-
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityECDH;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Headers;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States;
 import com.google.common.primitives.Bytes;
 import com.google.i18n.phonenumbers.NumberParseException;
-
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -40,14 +34,10 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.Map;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 public class E2EEHandler {
 

@@ -16,7 +16,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 

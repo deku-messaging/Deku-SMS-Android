@@ -1,10 +1,8 @@
 package com.afkanerd.deku.DefaultSMS;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
-import androidx.room.Room;
 
 import android.Manifest;
 import android.app.Activity;
@@ -22,14 +20,11 @@ import android.provider.Telephony;
 import android.util.Log;
 import android.view.View;
 
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DefaultCheckActivity extends AppCompatActivity {
 

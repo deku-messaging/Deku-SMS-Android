@@ -53,7 +53,7 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     ConversationReceivedViewHandler lastReceivedItem;
 
     public ConversationsRecyclerAdapter() {
-        super(Conversation.DIFF_CALLBACK);
+        super(Conversation.Companion.getDIFF_CALLBACK());
         this.mutableSelectedItems = new MutableLiveData<>();
     }
 

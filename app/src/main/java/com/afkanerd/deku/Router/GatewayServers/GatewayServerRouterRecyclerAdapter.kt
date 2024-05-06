@@ -1,6 +1,5 @@
 package com.afkanerd.deku.Router.GatewayServers
 
-import android.content.Context
 import android.util.Pair
 import android.view.LayoutInflater
 import android.view.View
@@ -9,12 +8,8 @@ import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.RecyclerView
-import androidx.work.WorkInfo
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.Router.Models.RouterHandler
 import com.afkanerd.deku.Router.Models.RouterItem
 import com.afkanerd.deku.Router.SMTP
 import com.google.android.material.card.MaterialCardView
@@ -22,7 +17,7 @@ import com.google.android.material.card.MaterialCardView
 class GatewayServerRouterRecyclerAdapter :
         RecyclerView.Adapter<GatewayServerRouterRecyclerAdapter.ViewHolder>() {
 
-    val mDiffer = AsyncListDiffer(this, RouterItem.DIFF_CALLBACK)
+    val mDiffer = AsyncListDiffer(this, RouterItem.Companion.DIFF_CALLBACK())
 
     val selectedItems: MutableLiveData<HashMap<Long, ViewHolder>> = MutableLiveData()
 
@@ -70,12 +65,12 @@ class GatewayServerRouterRecyclerAdapter :
                 SMTP.PROTOCOL -> gatewayServer.smtp.smtp_host
                 else -> gatewayServer.url
             }
-            val protocolAddress = gatewayServer.getProtocol() + "/" + conversation.getAddress()
+            val protocolAddress = gatewayServer.getProtocol() + "/" + conversation.address
             address.text = protocolAddress
             url.text = gatewayServerUrl
-            body.text = conversation.getText()
+            body.text = conversation.text
             status.text = conversation.routingStatus
-            date.text = Helpers.formatDate(itemView.context, conversation.getDate().toLong())
+            date.text = Helpers.formatDate(itemView.context, conversation.date!!.toLong())
         }
     }
 }

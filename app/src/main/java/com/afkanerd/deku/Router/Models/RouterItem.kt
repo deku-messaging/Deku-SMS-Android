@@ -1,68 +1,50 @@
-package com.afkanerd.deku.Router.Models;
+package com.afkanerd.deku.Router.Models
 
-import android.database.Cursor;
-import android.util.Pair;
+import android.database.Cursor
+import android.util.Pair
+import androidx.recyclerview.widget.DiffUtil
+import androidx.work.DelegatingWorkerFactory
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+import com.afkanerd.deku.Router.GatewayServers.GatewayServer
+import kotlinx.serialization.Serializable
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.DiffUtil;
 
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
+@Serializable
+data class RouterItem(val conversation: Conversation) : Conversation(conversation) {
+    var routingUniqueId: String? = null
+    var url: String? = null
+    var tag: String? = null
+    val MSISDN: String = ADDRESS
+    var routingDate: Long = 0
+    var routingStatus: String? = null
+    var sid: String? = null
+    var reportedStatus: String? = null
+//    var text = getText()
 
-public class RouterItem extends Conversation  {
-    public String routingUniqueId;
+//    override fun equals(other: Any?): Boolean {
+//        if (other is RouterItem) {
+//            val conversation = other as Conversation
+//            return super.equals(conversation) && routingStatus == other.routingStatus
+//        }
+//        return false
+//    }
 
-    public String url;
-    public String  tag;
-    public String MSISDN;
-    public long routingDate;
-
-    public String routingStatus;
-
-    public String sid;
-
-    public String reportedStatus;
-
-    public RouterItem(Cursor cursor) {
-        super(cursor);
-        this.MSISDN = this.getAddress();
-        this.text = this.getText();
-    }
-
-    public RouterItem(Conversation conversation) {
-        super(conversation);
-        this.MSISDN = this.getAddress();
-        this.text = this.getText();
-    }
-
-    public static RouterItem build(Cursor cursor) {
-        return (RouterItem) Conversation.build(cursor);
-    }
-
-    public static final DiffUtil.ItemCallback<Pair<RouterItem, GatewayServer>> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<Pair<RouterItem, GatewayServer>>() {
-        @Override
-        public boolean areItemsTheSame(@NonNull Pair<RouterItem, GatewayServer> oldItem,
-                                       @NonNull Pair<RouterItem, GatewayServer> newItem) {
-            return oldItem.first.routingUniqueId.equals(newItem.first.routingUniqueId);
+    companion object {
+        fun build(cursor: Cursor?): RouterItem {
+            return cursor?.let { Conversation.build(it) } as RouterItem
         }
+        class DIFF_CALLBACK : DiffUtil.ItemCallback<Pair<RouterItem, GatewayServer>>() {
+            override fun areItemsTheSame(oldItem: Pair<RouterItem, GatewayServer>,
+                                         newItem: Pair<RouterItem, GatewayServer>): Boolean {
+                // Logic to compare if two items represent the same data (e.g., by ID)
+                return oldItem.first.routingUniqueId == newItem.first.routingUniqueId
+            }
 
-        @Override
-        public boolean areContentsTheSame(@NonNull Pair<RouterItem, GatewayServer> oldItem,
-                                       @NonNull Pair<RouterItem, GatewayServer> newItem) {
-            return oldItem.equals(newItem);
+            override fun areContentsTheSame(oldItem: Pair<RouterItem, GatewayServer>,
+                                         newItem: Pair<RouterItem, GatewayServer>): Boolean {
+                // Logic to compare if content of two items are the same
+                return oldItem == newItem
+            }
         }
-    };
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-        if(obj instanceof RouterItem) {
-            Conversation conversation = (Conversation) obj;
-            RouterItem routerItem = (RouterItem) obj;
-            return super.equals(conversation) && this.routingStatus.equals(routerItem.routingStatus);
-        }
-        return false;
     }
-
 }

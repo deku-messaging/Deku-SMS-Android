@@ -167,12 +167,14 @@ public class GatewayServer {
                                         TimeUnit.MILLISECONDS
                                 )
                                 .addTag(RouterHandler.TAG_NAME_GATEWAY_SERVER)
-                                .addTag(RouterHandler.getTagForMessages(conversation.getMessage_id()))
-                                .addTag(RouterHandler.getTagForGatewayServers(gatewayServer1.getId()))
+                                .addTag(RouterHandler.INSTANCE
+                                        .getTagForMessages(conversation.getMessage_id()))
+                                .addTag(RouterHandler.INSTANCE
+                                        .getTagForGatewayServers(gatewayServer1.getId()))
                                 .setInputData(new Data.Builder()
-                                        .putLong(RouterWorkManager.GATEWAY_SERVER_ID,
+                                        .putLong(RouterWorkManager.Companion.getGATEWAY_SERVER_ID(),
                                                 gatewayServer1.getId())
-                                        .putString(RouterWorkManager.CONVERSATION_ID,
+                                        .putString(RouterWorkManager.Companion.getCONVERSATION_ID(),
                                                 conversation.getMessage_id())
                                         .build())
                                 .build();

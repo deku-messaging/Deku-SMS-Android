@@ -164,7 +164,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
         List<Conversation> conversationList = new ArrayList<>();
         if(cursor != null && cursor.moveToFirst()) {
             do {
-                conversationList.add(Conversation.build(cursor));
+                conversationList.add(Conversation.Companion.build(cursor));
             } while(cursor.moveToNext());
             cursor.close();
         }

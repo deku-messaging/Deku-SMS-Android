@@ -59,7 +59,7 @@ public interface ThreadedConversationsDao {
 
     @Query("SELECT COUNT(Conversation.id) FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.thread_id = ThreadedConversations.thread_id AND " +
-            "is_archived = 0 AND read = 0 AND ThreadedConversations.thread_id IN(:ids)")
+            "is_archived = 0 AND ThreadedConversations.is_read = 0 AND ThreadedConversations.thread_id IN(:ids)")
     int getCountUnread(List<String> ids);
 
     @Query("SELECT COUNT(ConversationsThreadsEncryption.id) FROM ConversationsThreadsEncryption")

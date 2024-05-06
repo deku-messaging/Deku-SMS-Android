@@ -3,17 +3,13 @@ package com.afkanerd.deku.DefaultSMS.Fragments
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Pair
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.widget.TextView
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.E2EE.E2EEHandler
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 

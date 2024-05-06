@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models;
+package com.afkanerd.deku.Modules;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

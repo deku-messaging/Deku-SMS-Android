@@ -21,6 +21,6 @@ public class GatewayServerRouterViewModel extends ViewModel {
     }
 
     private LiveData<List<WorkInfo>> loadSMSThreads(Context context) {
-        return RouterHandler.getMessageIdsFromWorkManagers(context);
+        return RouterHandler.INSTANCE.getMessageIdsFromWorkManagers(context);
     }
 }

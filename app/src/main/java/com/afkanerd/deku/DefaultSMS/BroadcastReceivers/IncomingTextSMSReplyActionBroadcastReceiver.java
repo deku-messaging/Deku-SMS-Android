@@ -21,7 +21,7 @@ import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
     public static String REPLY_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".REPLY_BROADCAST_ACTION";
