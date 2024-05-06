@@ -1,0 +1,210 @@
+<resources>
+    <string name="incoming_messages_channel_name">Входящие Сообщения</string>
+
+    <string name="incoming_messages_channel_description">Вызывается при получении нового сообщения.</string>
+    <string name="running_gateway_clients_channel_description">Оповещения, когда клиенты шлюза прослушивают.</string>
+    <string name="foreground_service_failed_channel_description">Нажмите, чтобы повторно подключить клиентов шлюза</string>
+
+    <string name="search_messages_text">Поиск сообщений</string>
+
+    <string name="no_showable_router_message">Нет маршрутизированный сообщений для показа!</string>
+
+    <string name="save_new_gateway_client">Сохранить</string>
+    <string name="new_gateway_server_url">Введите URL - н.п. https://example.com:8080/api/</string>
+    <string name="new_gateway_server_tag">Введите тег для идентификации этого устройства <i>(необязательно)</i></string>
+    <string name="new_gateway_client_url">Введите URL - н.п. example.com <i>(без протокола)</i></string>
+    <string name="new_gateway_client_username">Введите имя пользователя</string>
+    <string name="new_gateway_client_password">Введите пароль</string>
+    <string name="new_gateway_client_friendly_name">Введите название - н.п. Мой Сервер</string>
+    <string name="new_gateway_client_virtualhost_name">Введите виртуальный хост - <i>по умолчанию /</i></string>
+    <string name="new_gateway_client_port">Порт: <i>по умолчанию 5672</i></string>
+    <string name="homepage_menu_archived">Архивировано</string>
+    <string name="homepage_menu_routed">Переотправка сообщения</string>
+    <string name="homepage_menu_clear_draft">Очистить все черновики</string>
+    <string name="homepage_menu_clear_mark_all_read">Отметить всё прочтённым</string>
+    <string name="homepage_menu_unmute_all">Разглушить всех</string>
+    <string name="homepage_menu_clear_mark_unread">Отметить непрочитанным</string>
+    <string name="homepage_menu_clear_mark_read">Отметить прочитанным</string>
+    <string name="homepage_no_message">Отправьте ваше первое сообщение</string>
+    <string name="homepage_draft_no_message">Ничего в Черновиках</string>
+    <string name="homepage_archive_no_message">Ничего в Архивах</string>
+    <string name="homepage_blocked_no_message">Нет блокированных контактов</string>
+    <string name="homepage_muted_no_muted">Нет заглушённых контактов</string>
+    <string name="homepage_unread_no_message">Нет непрочитанных сообщений</string>
+    <string name="homepage_encryption_no_message">Нет контактов для Защищённого Общения</string>
+    <string name="no_gateway_server_added">Сервер шлюза не добавлен</string>
+    <string name="gateway_server_listing_toolbar_title">Шлюзы SMS маршрутизации</string>
+    <string name="gateway_client_listing_toolbar_title">Шлюзы SMS слушания</string>
+    <string name="add_new_gateway_server_toolbar_title">Добавить </string>
+
+    <string name="notifications_reply_label">Ответить</string>
+    <string name="notifications_mark_as_read_label">Отметить прочитанным</string>
+
+    <string name="notification_title_new_key">Запрос Защищённого Общения</string>
+
+    <string name="notification_title_reply_you">Вы</string>
+
+    <string name="messages_thread_you">Вы:</string>
+
+    <string name="messages_thread_encrypted_content">Защищённое содержимое</string>
+
+    <string name="search_nothing_found">Ничего не найдено</string>
+
+    <string name="default_check_text">Чтобы использовать Deku SMS, установите его как SMS приложение по умолчанию</string>
+    <string name="default_check_btn_text">Установить как SMS приложение по умолчанию</string>
+    <string name="default_check_privacy_policy">Прочтите нашу политику конфиденциальности</string>
+
+
+    <string name="sms_status_delivered">Доставлено</string>
+    <string name="sms_status_sent">Отправлено</string>
+    <string name="sms_status_sending">отправляется…</string>
+    <string name="sms_status_failed">не удалось, кликните чтобы повторить.</string>
+
+    <string name="settings_about">О приложении</string>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_advanced_category_title">Расширенные</string>
+    <string name="settings_developer_category_title">Разработчикам</string>
+    <string name="settings_security_category_end_to_end_duration">Разрешить истечение срока действия запроса на шифрование</string>
+    <string name="settings_security_category_end_to_end_disable">Отключить запросы на Защищённое Общение</string>
+    <string name="settings_security_category_end_to_end_disable_summary">Это не повлияет на контакты, с которыми вы уже безопасно общаетесь, но вам не будет предложено обеспечить безопасность связи с другими контактами.</string>
+    <string name="settings_security_category_end_to_end_duration_summary">Если этот параметр включен, срок действия запроса на шифрование, отправленного контактам, истечет через <b>1 час</b> после того, как он не будет согласован.</string>
+
+    <string name="settings_SMS_routing_title">История переотправок</string>
+    <string name="settings_SMS_listening_title">SMS слушание</string>
+    <string name="settings_SMS_listening_server">Настроить шлюз SMS слушания</string>
+    <string name="settings_SMS_listening_SMSWithoutBorders_summary">Конфигурации для прослушивания СМС сообщений через AMQP/s</string>
+
+    <string name="gateway_client_add_linked_device_title">Отсканируйте QR код</string>
+    <string name="gateway_client_add_manually_title">Добавить вручную</string>
+    <string name="gateway_client_project_activate_all">Активировать всё</string>
+
+
+    <string name="settings_SMS_routing_type_base64_option">Base64</string>
+    <string name="settings_SMS_routing_type_all_option">Всё (по умолчанию)</string>
+
+    <string name="settings_add_gateway_server_protocol_description">Выберете протокол маршрутизации</string>
+    <string name="settings_add_gateway_client_protocol_description">Выберете протокол прослушки</string>
+    <string name="settings_add_gateway_server_protocol_meta_description">Все POST маршрутизируются в формате JSON.\nВсе форматы используют следующий формат «ключ-значение»:\n\n<b>MSISDN</b>: — адрес входящего сообщения в формате E.164\n\n<b >текст</b>: текст входящего сообщения.</string>
+    <string name="settings_add_gateway_server_protocol_data_format">Выберете формат данных</string>
+
+    <string name="settings_gateway_server_protocol_description">Протокол</string>
+    <string name="settings_gateway_client_username_description">Имя пользователя</string>
+    <string name="settings_gateway_server_data_format_description">Формат данных</string>
+    <string name="settings_gateway_client_virtualhost_description">Виртуальный хост</string>
+    <string name="settings_gateway_client_cannot_be_empty">Не может быть пустым!</string>
+
+    <string name="gateway_client_project_name">Введите название проекта - (Exchange)</string>
+    <string name="gateway_client_project_binding">Введите биндинг проекта - <i>(по умолчанию project_name.operator_country.operator_name)</i></string>
+    <string name="gateway_client_no_available_gateway_clients">Нет клиентов шлюза прослушивания</string>
+
+    <string name="gateway_client_customization_connected">Подключено</string>
+
+    <string name="gateway_client_customization_activate">Активировать</string>
+
+    <string name="gateway_client_customization_deactivate">Деактивировать</string>
+    <string name="gateway_client_customization_deactivated">Деактивировано</string>
+
+    <string name="gateway_client_customization_reconnecting">Переподключение</string>
+
+    <string name="gateway_client_customization_delete">Удалить</string>
+    <string name="gateway_client_customization_edit">Редактировать</string>
+
+    <string name="gateway_client_running_title">Клиент шлюза: узел работает</string>
+    <string name="gateway_client_running_description">Клиенты шлюза подключены</string>
+    <string name="gateway_client_reconnecting_description">Клиенты шлюза переподключаются…</string>
+
+    <string name="homepage_fragment_tab_encrypted">Зашифровано</string>
+
+    <string name="messages_thread_delete_confirmation_title">Подтвердите удаление</string>
+    <string name="messages_thread_delete_confirmation_text">Удалить беседы?</string>
+    <string name="messages_thread_delete_confirmation_yes">Да</string>
+    <string name="messages_thread_delete_confirmation_cancel">Отмена</string>
+
+    <string name="single_message_thread_yesterday">Вчера</string>
+
+    <string name="sim_chooser_layout_text">Отправить сообщение через</string>
+
+    <string name="linked_devices_scan_qr_code_title">QR код связанных устройств</string>
+    <string name="message_threads_menu_delete">удалить</string>
+    <string name="message_threads_menu_cancel">отменить</string>
+    <string name="messages_threads_menu_archive">в архив</string>
+
+    <string name="about_deku">О приложении</string>
+    <string name="about_deku_motto">Свободное SMS приложение сделанное как надо</string>
+
+    <string name="about_deku_github_description">Deku SMS остается бесплатным и с открытым исходным кодом. Мы верим в необходимость отдать должное сообществу, которое дало нам так много. Многое в этом приложении является экспериментальным, но хорошие эксперименты приносят отличные результаты. Пожалуйста, поддержите нас поставив звёздочку на Github и поделившись им с друзьями.</string>
+    <string name="about_deku_github_btn">Просмотреть на GitHub</string>
+
+    <string name="send_message_text_box_hint">Текстовое Сообщение</string>
+    <string name="send_message_secured_text_box_hint">Текстовое Сообщение (защищённое)</string>
+    <string name="conversations_menu_call_title">Позвонить</string>
+    <string name="conversations_menu_encrypt_title">Зашифровать</string>
+    <string name="conversations_menu_unblock_manager">Менеджер Блокированных</string>
+    <string name="conversations_menu_unblock">Разблокировать</string>
+    <string name="conversations_menu_block_toast">Контакт заблокирован</string>
+    <string name="conversations_menu_search_title">Поиск</string>
+
+    <string name="conversations_search_results_found">результатов найдено</string>
+
+    <string name="conversation_copied">Скопировано!</string>
+    <string name="router_list_gateways">Просмотр серверов шлюзов</string>
+    <string name="router_add_gateways">Добавить серверы шлюзов</string>
+    <string name="conversation_menu_copy">копировать</string>
+    <string name="conversation_menu_delete">удалить</string>
+    <string name="conversation_menu_unarchive">разархивировать</string>
+    <string name="conversation_menu_share">Поделиться</string>
+    <string name="conversation_menu_block">Блокировать</string>
+    <string name="conversation_menu_export">Экспортировать</string>
+    <string name="conversation_menu_mute">Заглушить</string>
+    <string name="conversation_menu_muted_label">Заглушено</string>
+    <string name="conversation_menu_unmute">Разглушить</string>
+    <string name="conversation_menu_muted">Контакт теперь заглушён!</string>
+    <string name="conversation_menu_unmuted">Контакт теперь разглушён!</string>
+
+    <string name="conversation_menu_view_details">Детали</string>
+    <string name="conversation_menu_view_details_title">Детали сообщения</string>
+    <string name="conversation_menu_view_details_type">Тип:\u00A0</string>
+    <string name="conversation_menu_view_details_type_text">Текстовое</string>
+    <string name="conversation_menu_view_details_type_data">Данные</string>
+    <string name="conversation_menu_view_details_from">Отправитель:\u00A0</string>
+    <string name="conversation_menu_view_details_to">Получатель:\u00A0</string>
+    <string name="conversation_menu_view_details_sent">Отправлено:\u00A0</string>
+    <string name="conversation_menu_view_details_received">Получено:\u00A0</string>
+
+    <string name="compose_new_message_to">Кому</string>
+    <string name="compose_new_message_title">Новая беседа</string>
+    <string name="conversation_secure_popup_text">Кликните чтобы запросить Защищённую Общение</string>
+
+    <string name="conversation_threads_secured_content">Защищённое содержимое</string>
+    <string name="conversation_key_title_requested">Запрошено Защищённое Общение</string>
+
+    <string name="conversation_secure_popup_request_menu_yes">Отправить</string>
+    <string name="conversation_secure_popup_request_menu_cancel">Отмена</string>
+    <string name="conversation_secure_popup_request_menu_title">Запрос Защищённого Общения</string>
+    <string name="conversation_secure_popup_request_menu_description">Запрос на защищённое общение отправит SMS на [имя контакта]. \n\nЕму потребуется установить Deku SMS для получения этого запроса.</string>
+    <string name="conversation_secure_popup_request_menu_description_subtext">* стоимость SMS учитывается оператором</string>
+
+    <string name="conversation_shortcode_description">Не могу ответить на этот короткий код</string>
+    <string name="conversation_shortcode_action_button">Подробнее</string>
+    <string name="conversation_shortcode_learn_more_text">Короткие коды это местные или персонализированные номера для отправки международных SMS-сообщений.\n\nВы можете отвечать на только числовые короткие коды, но не на коды содержащие состоящие из букв и цифр, например \"MSG007\".</string>
+
+    <string name="thread_conversation_type_draft">Черновик</string>
+    <string name="thread_conversation_timestamp_yesterday">Вчера</string>
+
+    <!-- settings language -->
+    <string name="language_english">English</string>
+    <string name="language_french">French</string>
+    <string name="language_russian">Русский</string>
+
+    <string name="conversations_navigation_view_drafts">Черновики</string>
+    <string name="conversations_navigation_view_archived">Архивированные</string>
+    <string name="conversations_navigation_view_unread">Непрочитанные</string>
+    <string name="conversations_navigation_view_encryption">Зашифрованные</string>
+    <string name="conversations_navigation_view_blocked">Блокированные</string>
+    <string name="conversations_navigation_view_folders_label">Папки</string>
+    <string name="conversations_navigation_view_inbox">Входящие</string>
+
+    <string name="conversations_exported_complete">Экспорт завершён!</string>
+    <string name="gateway_client_project_listing_project_name_title">Имя проекта</string>
+    <string name="gateway_client_project_listing_no_projects_added">Нет добавленных проектов</string>
+</resources>

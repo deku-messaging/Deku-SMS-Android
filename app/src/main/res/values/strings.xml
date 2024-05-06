@@ -228,8 +228,10 @@
     <!-- settings language -->
     <string name="language_english">English</string>
     <string name="language_french">French</string>
+    <string name="language_russian" translatable="false">Русский</string>
     <string name="language_english_value" translatable="false">en</string>
     <string name="language_french_value" translatable="false">fr</string>
+    <string name="language_russian_value" translatable="false">ru</string>
 
 
     <string name="sample_date" translatable="false">9:26 AM . MTN</string>
