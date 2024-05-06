@@ -74,18 +74,14 @@
     <string name="settings_SMS_listening_server">Настроить шлюз SMS слушания</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Конфигурации для прослушивания СМС сообщений через AMQP/s</string>
 
-    <string name="gateway_client_add_linked_device_title">Отсканируйте QR код</string>
     <string name="gateway_client_add_manually_title">Добавить вручную</string>
-    <string name="gateway_client_project_activate_all">Активировать всё</string>
 
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
     <string name="settings_SMS_routing_type_all_option">Всё (по умолчанию)</string>
 
-    <string name="settings_add_gateway_server_protocol_description">Выберете протокол маршрутизации</string>
     <string name="settings_add_gateway_client_protocol_description">Выберете протокол прослушки</string>
     <string name="settings_add_gateway_server_protocol_meta_description">Все POST маршрутизируются в формате JSON.\nВсе форматы используют следующий формат «ключ-значение»:\n\n<b>MSISDN</b>: — адрес входящего сообщения в формате E.164\n\n<b >текст</b>: текст входящего сообщения.</string>
-    <string name="settings_add_gateway_server_protocol_data_format">Выберете формат данных</string>
 
     <string name="settings_gateway_server_protocol_description">Протокол</string>
     <string name="settings_gateway_client_username_description">Имя пользователя</string>
@@ -148,7 +144,6 @@
 
     <string name="conversation_copied">Скопировано!</string>
     <string name="router_list_gateways">Просмотр серверов шлюзов</string>
-    <string name="router_add_gateways">Добавить серверы шлюзов</string>
     <string name="conversation_menu_copy">копировать</string>
     <string name="conversation_menu_delete">удалить</string>
     <string name="conversation_menu_unarchive">разархивировать</string>
@@ -171,8 +166,6 @@
     <string name="conversation_menu_view_details_sent">Отправлено:\u00A0</string>
     <string name="conversation_menu_view_details_received">Получено:\u00A0</string>
 
-    <string name="compose_new_message_to">Кому</string>
-    <string name="compose_new_message_title">Новая беседа</string>
     <string name="conversation_secure_popup_text">Кликните чтобы запросить Защищённую Общение</string>
 
     <string name="conversation_threads_secured_content">Защищённое содержимое</string>
