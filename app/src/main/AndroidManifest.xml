@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-sdk android:minSdkVersion="@{minSdk}" />
 
@@ -203,23 +204,6 @@
                 <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
             </intent-filter>
         </receiver>
-        <receiver
-            android:name=".BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST" />
-                <action android:name="com.afkanerd.deku.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST" />
-            </intent-filter>
-        </receiver>
 
         <service
             android:name=".RespondViaMessageActivity"
@@ -236,6 +220,7 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
+
         <service
             android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService"
             android:enabled="true"
@@ -245,6 +230,20 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="com.afkanerd.deku.WorkManagerInitializer"
+                android:value="androidx.startup" />
+<!--            <meta-data-->
+<!--                android:name="com.afkanerd.deku.QueueListener.GatewayClients.StartupInitializer"-->
+<!--                android:value="androidx.startup" />-->
+        </provider>
+
     </application>
 
 </manifest>
