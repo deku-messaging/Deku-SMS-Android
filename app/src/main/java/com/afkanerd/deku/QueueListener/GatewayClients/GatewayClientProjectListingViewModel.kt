@@ -1,31 +1,29 @@
-package com.afkanerd.deku.QueueListener.GatewayClients;
+package com.afkanerd.deku.QueueListener.GatewayClients
 
-import android.content.Context;
+import android.content.Context
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+class GatewayClientProjectListingViewModel : ViewModel() {
+    private lateinit var datastore: Datastore
 
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
-
-import java.util.List;
-
-public class GatewayClientProjectListingViewModel extends ViewModel {
-
-    long id;
-    MutableLiveData<List<GatewayClientProjects>> mutableLiveData = new MutableLiveData<>();
-    public LiveData<List<GatewayClientProjects>> get(Context context, long id) {
-        this.id = id;
-        GatewayClientProjectDao gatewayClientProjectDao = Datastore.getDatastore(context)
-                .gatewayClientProjectDao();
-        ThreadingPoolExecutor.executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                mutableLiveData.postValue(gatewayClientProjectDao.fetchGatewayClientIdList(id));
-            }
-        });
-        return mutableLiveData;
+    private var liveData : LiveData<GatewayClientProjects> = MutableLiveData()
+    fun get(context: Context, gatewayClient: GatewayClient): LiveData<GatewayClientProjects>{
+        datastore = Datastore.getDatastore(context)
+        ThreadingPoolExecutor.executorService.execute {
+            liveData = datastore.gatewayClientProjectDao().fetchLiveData(gatewayClient.id)
+        }
+        return liveData
     }
 
+    fun insert(gatewayClientProjects: GatewayClientProjects) {
+        datastore.gatewayClientProjectDao().insert(gatewayClientProjects)
+    }
+
+    fun update(gatewayClientProjects: GatewayClientProjects) {
+        datastore.gatewayClientProjectDao().update(gatewayClientProjects)
+    }
 }

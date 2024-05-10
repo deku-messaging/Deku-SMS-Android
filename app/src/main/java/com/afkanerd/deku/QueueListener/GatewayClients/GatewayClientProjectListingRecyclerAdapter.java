@@ -38,10 +38,10 @@ public class GatewayClientProjectListingRecyclerAdapter extends RecyclerView.Ada
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(holder.itemView.getContext(), GatewayClientProjectAddActivity.class);
+                Intent intent = new Intent(holder.itemView.getContext(), GatewayClientProjectAddModalFragment.class);
                 intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID,
                         gatewayClientProjects.gatewayClientId);
-                intent.putExtra(GatewayClientProjectAddActivity.GATEWAY_CLIENT_PROJECT_ID,
+                intent.putExtra(GatewayClientProjectAddModalFragment.GATEWAY_CLIENT_PROJECT_ID,
                         gatewayClientProjects.id);
                 holder.itemView.getContext().startActivity(intent);
             }

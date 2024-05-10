@@ -9,18 +9,15 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.DefaultSMS.R;
 
 import java.util.List;
@@ -86,7 +83,7 @@ public class GatewayClientProjectListingActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.gateway_client_project_add) {
-            Intent intent = new Intent(getApplicationContext(), GatewayClientProjectAddActivity.class);
+            Intent intent = new Intent(getApplicationContext(), GatewayClientProjectAddModalFragment.class);
             intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id);
             intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, true);
             startActivity(intent);

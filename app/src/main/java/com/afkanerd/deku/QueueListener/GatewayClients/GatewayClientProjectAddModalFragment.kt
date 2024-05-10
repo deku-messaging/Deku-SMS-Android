@@ -1,251 +1,129 @@
-package com.afkanerd.deku.QueueListener.GatewayClients;
+package com.afkanerd.deku.QueueListener.GatewayClients
 
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+import android.content.Context.MODE_PRIVATE
+import android.content.Intent
+import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.os.Bundle
+import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.constraintlayout.widget.ConstraintLayout
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
+import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.room.Room;
+class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListingViewModel:
+                                           GatewayClientProjectListingViewModel,
+                                           private val gatewayClientId: Long,
+                                           private val gatewayClientProjects:
+                                           GatewayClientProjects? = null) :
+    BottomSheetDialogFragment(R.layout.fragment_modalsheet_gateway_client_project_add_edit) {
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.provider.Settings;
-import android.telephony.SubscriptionInfo;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        getGatewayClient(view)
 
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
-import com.afkanerd.deku.DefaultSMS.R;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputEditText;
+        val materialButton = view.findViewById<MaterialButton>(R.id.gateway_client_customization_save_btn)
+        materialButton.setOnClickListener { v ->
+            try {
+                onSaveGatewayClientConfiguration(v)
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+        }
+    }
 
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+    private fun getGatewayClient(view: View) {
+        val projectName = view.findViewById<TextInputEditText>(R.id.new_gateway_client_project_name)
+        val projectBinding =
+            view.findViewById<TextInputEditText>(R.id.new_gateway_client_project_binding_sim_1)
+        val projectBinding2 =
+            view.findViewById<TextInputEditText>(R.id.new_gateway_client_project_binding_sim_2)
 
-public class GatewayClientProjectAddActivity extends AppCompatActivity {
-
-    public static final String GATEWAY_CLIENT_PROJECT_ID = "GATEWAY_CLIENT_PROJECT_ID";
-    GatewayClient gatewayClient;
-    GatewayClientHandler gatewayClientHandler;
-
-    SharedPreferences sharedPreferences;
-    SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
-
-    Toolbar toolbar;
-
-    Datastore databaseConnector;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gateway_client_customization);
-        databaseConnector = Datastore.getDatastore(getApplicationContext());
-
-        toolbar = findViewById(R.id.gateway_client_customization_toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        try {
-            getGatewayClient();
-            getSupportActionBar().setTitle(gatewayClient == null ?
-                    getString(R.string.add_new_gateway_server_toolbar_title) :
-                    gatewayClient.getHostUrl());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        val isDualSim = SIMHandler.isDualSim(view.context)
+        if (isDualSim) {
+            view.findViewById<View>(R.id.new_gateway_client_project_binding_sim_2_constraint)
+                .visibility = View.VISIBLE
         }
 
-        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                invalidateOptionsMenu();
-            }
-        };
-
-        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
-        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
-
-//        checkForBatteryOptimization();
-
-        MaterialButton materialButton = findViewById(R.id.gateway_client_customization_save_btn);
-        materialButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    onSaveGatewayClientConfiguration(v);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        gatewayClientProjects?.let {
+            activity?.runOnUiThread {
+                projectName.setText(gatewayClientProjects.name)
+                projectBinding.setText(gatewayClientProjects.binding1Name)
+                if (isDualSim) {
+                    projectBinding2.setText(gatewayClientProjects.binding2Name)
                 }
             }
-        });
-
-    }
-
-    public void checkForBatteryOptimization() {
-        Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-        startActivity(intent);
-    }
-
-    long id = -1;
-    private void getGatewayClient() throws InterruptedException {
-        TextInputEditText projectName = findViewById(R.id.new_gateway_client_project_name);
-        TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding_sim_1);
-        TextInputEditText projectBinding2 = findViewById(R.id.new_gateway_client_project_binding_sim_2);
-
-        gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        long gatewayId = getIntent().getLongExtra(GATEWAY_CLIENT_ID, -1);
-        gatewayClient = gatewayClientHandler.fetch(gatewayId);
-
-        final boolean isDualSim = SIMHandler.isDualSim(getApplicationContext());
-        if(isDualSim) {
-            findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint)
-                    .setVisibility(View.VISIBLE);
         }
 
-        if(getIntent().hasExtra(GATEWAY_CLIENT_PROJECT_ID)) {
-            id = getIntent().getLongExtra(GATEWAY_CLIENT_PROJECT_ID, -1);
-            consumerExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    GatewayClientProjects gatewayClientProjects =
-                            databaseConnector.gatewayClientProjectDao().fetch(id);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            projectName.setText(gatewayClientProjects.name);
-                            projectBinding.setText(gatewayClientProjects.binding1Name);
-                        }
-                    });
-
-                    if (isDualSim) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                projectBinding2.setText(gatewayClientProjects.binding2Name);
-                            }
-                        });
-                    }
-                }
-            });
-        }
-
-        projectName.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+        projectName.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
             }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
             }
 
-            @Override
-            public void afterTextChanged(Editable s) {
-                List<String> projectBindings = GatewayClientHandler.getPublisherDetails(getApplicationContext(),
-                        s.toString());
+            override fun afterTextChanged(s: Editable) {
+                val projectBindings = GatewayClientHandler
+                    .getPublisherDetails( view.context, s.toString())
 
-                projectBinding.setText(projectBindings.get(0));
-
-                if(projectBindings.size() > 1) {
-                    projectBinding2.setText(projectBindings.get(1));
+                projectBinding.setText(projectBindings[0])
+                if (projectBindings.size > 1) {
+                    projectBinding2.setText(projectBindings[1])
                 }
             }
-        });
-
+        })
     }
 
-    public void onSaveGatewayClientConfiguration(View view) throws InterruptedException {
-        TextInputEditText projectName = findViewById(R.id.new_gateway_client_project_name);
+    private fun onSaveGatewayClientConfiguration(view: View) {
+        val projectName = view.findViewById<TextInputEditText>(R.id.new_gateway_client_project_name)
+        val projectBinding =
+            view.findViewById<TextInputEditText>(R.id.new_gateway_client_project_binding_sim_1)
+        val projectBinding2 =
+            view.findViewById<TextInputEditText>(R.id.new_gateway_client_project_binding_sim_2)
+        val projectBindingConstraint =
+            view.findViewById<ConstraintLayout>(R.id.new_gateway_client_project_binding_sim_2_constraint)
 
-        TextInputEditText projectBinding = findViewById(R.id.new_gateway_client_project_binding_sim_1);
-        TextInputEditText projectBinding2 = findViewById(R.id.new_gateway_client_project_binding_sim_2);
-        ConstraintLayout projectBindingConstraint = findViewById(R.id.new_gateway_client_project_binding_sim_2_constraint);
-
-        if(projectName.getText() == null || projectName.getText().toString().isEmpty()) {
-            projectName.setError(getString(R.string.settings_gateway_client_cannot_be_empty));
-            return;
+        if (projectName.text == null || projectName.text.toString().isEmpty()) {
+            projectName.error = getString(R.string.settings_gateway_client_cannot_be_empty)
+            return
         }
 
-        if(projectBinding.getText() == null || projectBinding.getText().toString().isEmpty()) {
-            projectBinding.setError(getString(R.string.settings_gateway_client_cannot_be_empty));
-            return;
+        if (projectBinding.text == null || projectBinding.text.toString().isEmpty()) {
+            projectBinding.error = getString(R.string.settings_gateway_client_cannot_be_empty)
+            return
         }
 
-        if(projectBindingConstraint.getVisibility() == View.VISIBLE &&
-                (projectBinding2.getText() == null || projectBinding2.getText().toString().isEmpty())) {
-            projectBinding2.setError(getString(R.string.settings_gateway_client_cannot_be_empty));
-            return;
+        if (projectBindingConstraint.visibility == View.VISIBLE &&
+            (projectBinding2.text == null || projectBinding2.text.toString().isEmpty())) {
+            projectBinding2.error = getString(R.string.settings_gateway_client_cannot_be_empty)
+            return
         }
 
-        if(id == -1) {
-            GatewayClientProjects gatewayClientProjects = new GatewayClientProjects();
-            gatewayClientProjects.name = projectName.getText().toString();
-            gatewayClientProjects.binding1Name = projectBinding.getText().toString();
-            gatewayClientProjects.binding2Name = projectBinding2.getText().toString();
-            gatewayClientProjects.gatewayClientId = gatewayClient.getId();
+        val gatewayClientProjectsLocal = gatewayClientProjects
+        gatewayClientProjectsLocal?.name = projectName.text.toString()
+        gatewayClientProjectsLocal?.binding1Name = projectBinding.text.toString()
+        gatewayClientProjectsLocal?.binding2Name = projectBinding2.text.toString()
+        gatewayClientProjectsLocal?.gatewayClientId = gatewayClientId
 
-            consumerExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    databaseConnector.gatewayClientProjectDao().insert(gatewayClientProjects);
-                }
-            });
+        ThreadingPoolExecutor.executorService.execute {
+            gatewayClientProjectListingViewModel.insert(gatewayClientProjectsLocal!!)
         }
-        else {
-            consumerExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    GatewayClientProjects gatewayClientProjects =
-                            databaseConnector.gatewayClientProjectDao().fetch(id);
-                    gatewayClientProjects.name = projectName.getText().toString();
-                    gatewayClientProjects.binding1Name = projectBinding.getText().toString();
-                    gatewayClientProjects.binding2Name = projectBinding2.getText().toString();
-                    gatewayClientProjects.gatewayClientId = gatewayClient.getId();
-                    databaseConnector.gatewayClientProjectDao().update(gatewayClientProjects);
-                }
-            });
-        }
-
-        finish();
+        dismiss()
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        if(getIntent().hasExtra(GATEWAY_CLIENT_PROJECT_ID))
-            getMenuInflater().inflate(R.menu.gateway_client_customization_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    ExecutorService consumerExecutorService = Executors.newFixedThreadPool(2); // Create a pool of 5 worker threads
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (R.id.gateway_client_project_delete == item.getItemId()) {
-            consumerExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    databaseConnector.gatewayClientProjectDao().delete(id);
-                    finish();
-                }
-            });
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+    companion object {
+        const val GATEWAY_CLIENT_PROJECT_ID: String = "GATEWAY_CLIENT_PROJECT_ID"
     }
 }

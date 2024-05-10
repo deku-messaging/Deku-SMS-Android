@@ -16,19 +16,9 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class ConversationsContactModalFragment(val contactName: String, val address: String) :
-        BottomSheetDialogFragment() {
+        BottomSheetDialogFragment(R.layout.layout_conversation_contact_card_modalsheet) {
 
-    lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.layout_conversation_contact_card_modalsheet, container,
-                false)
-    }
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

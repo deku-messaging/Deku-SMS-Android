@@ -158,12 +158,6 @@ public class GatewayClientHandler {
     public final static String MIGRATIONS = "MIGRATIONS";
     public final static String MIGRATIONS_TO_11 = "MIGRATIONS_TO_11";
     public void startServices(Context context) throws InterruptedException {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(MIGRATIONS, Context.MODE_PRIVATE);
-        if(sharedPreferences.getBoolean(MIGRATIONS_TO_11, false)) {
-            setMigrationsTo11();
-            sharedPreferences.edit().putBoolean(MIGRATIONS_TO_11, false).apply();
-        }
-
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .setRequiresBatteryNotLow(true)
@@ -232,9 +226,9 @@ public class GatewayClientHandler {
 
     public static void startListening(Context context, GatewayClient gatewayClient) throws InterruptedException {
         GatewayClientHandler.setListening(context, gatewayClient);
-        new GatewayClientHandler(context).startServices(context);
-//        AppInitializer.getInstance(context)
-//                .initializeComponent(WorkManagerInitializer.class);
+//        new GatewayClientHandler(context).startServices(context);
+        AppInitializer.getInstance(context)
+                .initializeComponent(WorkManagerInitializer.class);
     }
 
 }

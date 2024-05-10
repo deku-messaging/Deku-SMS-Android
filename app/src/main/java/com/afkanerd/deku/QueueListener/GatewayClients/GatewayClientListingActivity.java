@@ -135,11 +135,6 @@ public class GatewayClientListingActivity extends AppCompatActivity {
             startActivity(addGatewayIntent);
             return true;
         }
-//        else if (item.getItemId() == R.id.gateway_client_linked_device_add) {
-//            Intent addGatewayIntent = new Intent(getApplicationContext(), LinkedDevicesQRActivity.class);
-//            startActivity(addGatewayIntent);
-//            return true;
-//        }
         return false;
     }
 

@@ -68,7 +68,7 @@
                 android:value="barcode" />
         </activity>
         <activity
-            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectAddActivity"
+            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectAddModalFragment"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity

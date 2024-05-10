@@ -22,6 +22,9 @@ public interface GatewayClientProjectDao {
     @Query("SELECT * FROM GatewayClientProjects WHERE id = :id")
     GatewayClientProjects fetch(long id);
 
+    @Query("SELECT * FROM GatewayClientProjects WHERE id = :id")
+    LiveData<GatewayClientProjects> fetchLiveData(long id);
+
     @Query("SELECT * FROM GatewayClientProjects WHERE gatewayClientId = :gatewayClientId")
     LiveData<List<GatewayClientProjects>> fetchGatewayClientId(long gatewayClientId);
 
