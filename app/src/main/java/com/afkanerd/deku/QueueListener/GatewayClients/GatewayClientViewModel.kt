@@ -1,63 +1,49 @@
-package com.afkanerd.deku.QueueListener.GatewayClients;
+package com.afkanerd.deku.QueueListener.GatewayClients
 
-import android.content.Context;
-import android.util.Log;
+import android.content.Context
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
 
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+class GatewayClientViewModel : ViewModel() {
+    private var gatewayClientList: LiveData<List<GatewayClient>> = MutableLiveData()
 
-import java.util.ArrayList;
-import java.util.List;
+    private lateinit var datastore: Datastore
 
-public class GatewayClientViewModel extends ViewModel {
-
-    private MutableLiveData<List<GatewayClient>> gatewayClientList;
-    GatewayClientDAO gatewayClientDAO;
-
-    public MutableLiveData<List<GatewayClient>> getGatewayClientList(Context context, GatewayClientDAO gatewayClientDAO) {
-        if(gatewayClientList == null) {
-            this.gatewayClientDAO = gatewayClientDAO;
-            gatewayClientList = new MutableLiveData<>();
-            loadGatewayClients(context);
+    fun getGatewayClientList(context: Context): LiveData<List<GatewayClient>> {
+        datastore = Datastore.getDatastore(context)
+        if(gatewayClientList.value.isNullOrEmpty()) {
+            gatewayClientList = loadGatewayClients()
         }
-        return gatewayClientList;
+        return gatewayClientList
     }
 
-    public void refresh(Context context) {
-        loadGatewayClients(context);
+    private fun loadGatewayClients() : LiveData<List<GatewayClient>> {
+        return datastore.gatewayClientDAO().fetch()
+//        val gatewayClients = normalizeGatewayClients(datastore.gatewayClientDAO().all)
+//        for (gatewayClient in gatewayClients)
+//            gatewayClient.connectionStatus = GatewayClientHandler.getConnectionStatus(
+//                context, gatewayClient.id.toString() )
+//
+//        gatewayClientList!!.postValue(gatewayClients)
     }
 
-    private void loadGatewayClients(Context context) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<GatewayClient> gatewayClients = normalizeGatewayClients(gatewayClientDAO.getAll());
-                for(GatewayClient gatewayClient : gatewayClients)
-                    gatewayClient.setConnectionStatus(
-                            GatewayClientHandler.getConnectionStatus(context,
-                                    String.valueOf(gatewayClient.getId())));
-
-                gatewayClientList.postValue(gatewayClients);
-            }
-        }).start();
-    }
-
-    private List<GatewayClient> normalizeGatewayClients(List<GatewayClient> gatewayClients) {
-        List<GatewayClient> filteredGatewayClients = new ArrayList<>();
-        for(GatewayClient gatewayClient : gatewayClients) {
-            boolean contained = false;
-            for(GatewayClient gatewayClient1 : filteredGatewayClients) {
-                if(gatewayClient1.same(gatewayClient)) {
-                    contained = true;
-                    break;
+    private fun normalizeGatewayClients(gatewayClients: List<GatewayClient>): List<GatewayClient> {
+        val filteredGatewayClients: MutableList<GatewayClient> = ArrayList()
+        for (gatewayClient in gatewayClients) {
+            var contained = false
+            for (gatewayClient1 in filteredGatewayClients) {
+                if (gatewayClient1.same(gatewayClient)) {
+                    contained = true
+                    break
                 }
             }
-            if(!contained) {
-                filteredGatewayClients.add(gatewayClient);
+            if (!contained) {
+                filteredGatewayClients.add(gatewayClient)
             }
         }
 
-        return filteredGatewayClients;
+        return filteredGatewayClients
     }
-
 }

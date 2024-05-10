@@ -1,152 +1,93 @@
-package com.afkanerd.deku.QueueListener.GatewayClients;
+package com.afkanerd.deku.QueueListener.GatewayClients
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
+import android.content.Intent
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment
+import com.afkanerd.deku.DefaultSMS.R
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.os.Handler;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+class GatewayClientListingActivity : AppCompatActivity() {
+    private var gatewayClientRecyclerAdapter = GatewayClientRecyclerAdapter()
 
-import com.afkanerd.deku.DefaultSMS.LinkedDevicesQRActivity;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.R;
+    private val gatewayClientViewModel: GatewayClientViewModel by viewModels()
+    var toolbar: Toolbar? = null
 
-import java.util.List;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_gateway_client_listing)
 
-public class GatewayClientListingActivity extends AppCompatActivity {
+        toolbar = findViewById(R.id.gateway_client_listing_toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-    public static String GATEWAY_CLIENT_ID = "GATEWAY_CLIENT_ID";
-    public static String GATEWAY_CLIENT_ID_NEW = "GATEWAY_CLIENT_ID_NEW";
-    public static String GATEWAY_CLIENT_USERNAME = "GATEWAY_CLIENT_USERNAME";
-    public static String GATEWAY_CLIENT_PASSWORD = "GATEWAY_CLIENT_PASSWORD";
-    public static String GATEWAY_CLIENT_VIRTUAL_HOST = "GATEWAY_CLIENT_VIRTUAL_HOST";
-    public static String GATEWAY_CLIENT_HOST = "GATEWAY_CLIENT_HOST";
-    public static String GATEWAY_CLIENT_PORT = "GATEWAY_CLIENT_PORT";
-    public static String GATEWAY_CLIENT_FRIENDLY_NAME = "GATEWAY_CLIENT_FRIENDLY_NAME";
+        supportActionBar!!.title = getString(R.string.gateway_client_listing_toolbar_title)
 
-    public static String GATEWAY_CLIENT_LISTENERS = "GATEWAY_CLIENT_LISTENERS";
-    public static String GATEWAY_CLIENT_STOP_LISTENERS = "GATEWAY_CLIENT_STOP_LISTENERS";
+        val linearLayoutManager = LinearLayoutManager(this)
+        val recyclerView = findViewById<RecyclerView>(R.id.gateway_client_listing_recycler_view)
+        recyclerView.layoutManager = linearLayoutManager
 
-    SharedPreferences sharedPreferences;
-    Datastore databaseConnector;
+        val dividerItemDecoration = DividerItemDecoration( applicationContext,
+            linearLayoutManager.orientation )
+        recyclerView.addItemDecoration(dividerItemDecoration)
 
-    GatewayClientDAO gatewayClientDAO;
+        recyclerView.adapter = gatewayClientRecyclerAdapter
 
-    Handler mHandler = new Handler();
+        gatewayClientRecyclerAdapter.onSelectedListener.observe(this, Observer {
+            it?.let {
+                gatewayClientRecyclerAdapter.onSelectedListener = MutableLiveData()
 
-    GatewayClientRecyclerAdapter gatewayClientRecyclerAdapter;
-
-    GatewayClientViewModel gatewayClientViewModel;
-
-    SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
-
-    Toolbar toolbar;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gateway_client_listing);
-
-        databaseConnector = Datastore.getDatastore(getApplicationContext());
-
-        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
-
-        toolbar = findViewById(R.id.gateway_client_listing_toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        getSupportActionBar().setTitle(getString(R.string.gateway_client_listing_toolbar_title));
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        RecyclerView recyclerView = findViewById(R.id.gateway_client_listing_recycler_view);
-        recyclerView.setLayoutManager(linearLayoutManager);
-
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(getApplicationContext(),
-                linearLayoutManager.getOrientation());
-        recyclerView.addItemDecoration(dividerItemDecoration);
-
-        gatewayClientRecyclerAdapter = new GatewayClientRecyclerAdapter(this);
-        recyclerView.setAdapter(gatewayClientRecyclerAdapter);
-
-        gatewayClientViewModel = new ViewModelProvider(this).get(
-                GatewayClientViewModel.class);
-
-        gatewayClientDAO = databaseConnector.gatewayClientDAO();
-
-        gatewayClientViewModel.getGatewayClientList(
-                getApplicationContext(), gatewayClientDAO).observe(this,
-                new Observer<List<GatewayClient>>() {
-                    @Override
-                    public void onChanged(List<GatewayClient> gatewayServerList) {
-                        if(gatewayServerList.size() < 1 )
-                            findViewById(R.id.gateway_client_no_gateway_client_label).setVisibility(View.VISIBLE);
-                        gatewayClientRecyclerAdapter.submitList(gatewayServerList);
-                    }
-                });
-
-        registerListeners();
-
-        setRefreshTimer(gatewayClientRecyclerAdapter);
-    }
-
-    private void registerListeners() {
-        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                gatewayClientViewModel.refresh(getApplicationContext());
+                supportFragmentManager.beginTransaction()
+                    .replace( R.id.view_fragment, GatewayClientProjectListingFragment::class.java,
+                        null, "HOMEPAGE_TAG" )
+                    .setReorderingAllowed(true)
+                    .commit()
             }
-        };
+        })
 
-        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+        gatewayClientViewModel.getGatewayClientList(applicationContext).observe(this,
+            Observer {
+                if (it.isNullOrEmpty())
+                    findViewById<View>(R.id.gateway_client_no_gateway_client_label)
+                        .visibility = View.VISIBLE
+                gatewayClientRecyclerAdapter.submitList(it)
+            })
     }
 
-    private void setRefreshTimer(GatewayClientRecyclerAdapter adapter) {
-        final int recyclerViewTimeUpdateLimit = 60 * 1000;
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                adapter.notifyDataSetChanged();
-                mHandler.postDelayed(this, recyclerViewTimeUpdateLimit);
-            }
-        }, recyclerViewTimeUpdateLimit);
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.gateway_client_listing_menu, menu)
+        return super.onCreateOptionsMenu(menu)
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.gateway_client_listing_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.gateway_client_add_manually) {
-            Intent addGatewayIntent = new Intent(getApplicationContext(), GatewayClientAddActivity.class);
-            startActivity(addGatewayIntent);
-            return true;
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.gateway_client_add_manually) {
+            val addGatewayIntent = Intent(applicationContext, GatewayClientAddActivity::class.java)
+            startActivity(addGatewayIntent)
+            return true
         }
-        return false;
+        return false
     }
 
-    private boolean saveListenerConfiguration(int id) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        return editor.putLong(String.valueOf(id), System.currentTimeMillis())
-                .commit();
-    }
+    companion object {
+        var GATEWAY_CLIENT_ID: String = "GATEWAY_CLIENT_ID"
+        var GATEWAY_CLIENT_ID_NEW: String = "GATEWAY_CLIENT_ID_NEW"
+        var GATEWAY_CLIENT_USERNAME: String = "GATEWAY_CLIENT_USERNAME"
+        var GATEWAY_CLIENT_PASSWORD: String = "GATEWAY_CLIENT_PASSWORD"
+        var GATEWAY_CLIENT_VIRTUAL_HOST: String = "GATEWAY_CLIENT_VIRTUAL_HOST"
+        var GATEWAY_CLIENT_HOST: String = "GATEWAY_CLIENT_HOST"
+        var GATEWAY_CLIENT_PORT: String = "GATEWAY_CLIENT_PORT"
+        var GATEWAY_CLIENT_FRIENDLY_NAME: String = "GATEWAY_CLIENT_FRIENDLY_NAME"
 
-    private boolean removeListenerConfiguration(int id) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        return editor.remove(String.valueOf(id))
-                        .commit();
+        var GATEWAY_CLIENT_LISTENERS: String = "GATEWAY_CLIENT_LISTENERS"
+        var GATEWAY_CLIENT_STOP_LISTENERS: String = "GATEWAY_CLIENT_STOP_LISTENERS"
     }
 }

@@ -1,79 +1,63 @@
-package com.afkanerd.deku.QueueListener.GatewayClients;
+package com.afkanerd.deku.QueueListener.GatewayClients
 
-import android.content.Intent;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.content.Intent
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.RecyclerView
+import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectAddModalFragment
 
-import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.AsyncListDiffer;
-import androidx.recyclerview.widget.RecyclerView;
+class GatewayClientProjectListingRecyclerAdapter :
+    RecyclerView.Adapter<GatewayClientProjectListingRecyclerAdapter.ViewHolder>() {
+    val mDiffer: AsyncListDiffer<GatewayClientProjects> = AsyncListDiffer(
+        this, GatewayClientProjects.DIFF_CALLBACK )
 
-import com.afkanerd.deku.DefaultSMS.R;
+    var onSelectedLiveData: MutableLiveData<GatewayClientProjects> = MutableLiveData()
 
-import org.jetbrains.annotations.NotNull;
-
-public class GatewayClientProjectListingRecyclerAdapter extends RecyclerView.Adapter<GatewayClientProjectListingRecyclerAdapter.ViewHolder>{
-    public final AsyncListDiffer<GatewayClientProjects> mDiffer =
-            new AsyncListDiffer<>(this, GatewayClientProjects.DIFF_CALLBACK);
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.layout_gateway_client_project_listing, parent, false);
-        return new ViewHolder(view);
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        val view = inflater.inflate(R.layout.layout_gateway_client_project_listing, parent, false)
+        return ViewHolder(view)
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        GatewayClientProjects gatewayClientProjects = mDiffer.getCurrentList().get(position);
-        Log.d(getClass().getName(), "Binding object: " + gatewayClientProjects.name);
-        holder.projectNameTextView.setText(gatewayClientProjects.name);
-        holder.projectBinding1TextView.setText(gatewayClientProjects.binding1Name);
-        holder.projectBinding2TextView.setText(gatewayClientProjects.binding2Name);
-
-        holder.cardView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(holder.itemView.getContext(), GatewayClientProjectAddModalFragment.class);
-                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID,
-                        gatewayClientProjects.gatewayClientId);
-                intent.putExtra(GatewayClientProjectAddModalFragment.GATEWAY_CLIENT_PROJECT_ID,
-                        gatewayClientProjects.id);
-                holder.itemView.getContext().startActivity(intent);
-            }
-        });
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val gatewayClientProjects = mDiffer.currentList[position]
+        holder.bind(gatewayClientProjects, onSelectedLiveData)
     }
 
-    @Override
-    public int getItemCount() {
-        return mDiffer.getCurrentList().size();
-    }
+    override fun getItemCount(): Int { return mDiffer.currentList.size }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        CardView cardView;
-        TextView projectNameTextView;
-        TextView projectBinding1TextView, projectBinding2TextView;
-        public ViewHolder(@NonNull @NotNull View itemView) {
-            super(itemView);
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private var cardView: CardView = itemView.findViewById(R.id.gateway_client_project_listing_card)
 
-            cardView = itemView.findViewById(R.id.gateway_client_project_listing_card );
-            projectNameTextView =
-                    itemView.findViewById(R.id.gateway_client_project_listing_project_name);
+        private var projectNameTextView: TextView =
+            itemView.findViewById(R.id.gateway_client_project_listing_project_name)
 
-            projectBinding1TextView =
-                    itemView.findViewById(R.id.gateway_client_project_listing_project_binding1);
+        private var projectBinding1TextView: TextView =
+            itemView.findViewById(R.id.gateway_client_project_listing_project_binding1)
 
-            projectBinding2TextView =
-                    itemView.findViewById(R.id.gateway_client_project_listing_project_binding2);
+        private var projectBinding2TextView: TextView =
+            itemView.findViewById(R.id.gateway_client_project_listing_project_binding2)
+
+        fun bind(gatewayClientProjects: GatewayClientProjects,
+                 onSelectedLiveData: MutableLiveData<GatewayClientProjects>) {
+            projectNameTextView.text = gatewayClientProjects.name
+            projectBinding1TextView.text = gatewayClientProjects.binding1Name
+            projectBinding2TextView.text = gatewayClientProjects.binding2Name
+
+            cardView.setOnClickListener { onSelectedLiveData.value = gatewayClientProjects }
         }
+
     }
 
-    @Override
-    public int getItemViewType(int position) {
-        return super.getItemViewType(position);
+    override fun getItemViewType(position: Int): Int {
+        return super.getItemViewType(position)
     }
 }

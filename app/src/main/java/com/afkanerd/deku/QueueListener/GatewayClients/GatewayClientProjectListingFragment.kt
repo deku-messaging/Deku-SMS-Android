@@ -1,125 +1,113 @@
-package com.afkanerd.deku.QueueListener.GatewayClients;
+package com.afkanerd.deku.QueueListener.GatewayClients
 
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_ID;
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
+import android.content.SharedPreferences
+import android.os.Bundle
+import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.afkanerd.deku.DefaultSMS.R
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+class GatewayClientProjectListingFragment : Fragment(R.layout.activity_gateway_client_project_listing) {
+    var sharedPreferences: SharedPreferences? = null
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-
-import com.afkanerd.deku.DefaultSMS.R;
-
-import java.util.List;
-
-public class GatewayClientProjectListingActivity extends AppCompatActivity {
-
-    long id;
-    SharedPreferences sharedPreferences;
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+//        val toolbar = view.findViewById<Toolbar>(R.id.gateway_client_project_listing_toolbar)
+//        activity?.setActionBar(toolbar)
+//        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gateway_client_project_listing);
+//        val username = intent.getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME)
+//        val host = intent.getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_HOST)
+//        id = intent.getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1)
+//        sharedPreferences = getSharedPreferences(
+//            GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS,
+//            MODE_PRIVATE
+//        )
 
-        Toolbar toolbar = findViewById(R.id.gateway_client_project_listing_toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        val gatewayClientId : Long = arguments
+            ?.getLong(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1)!!
 
-        String username = getIntent().getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME);
-        String host = getIntent().getStringExtra(GatewayClientListingActivity.GATEWAY_CLIENT_HOST);
-        id = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
-        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+        val gatewayClientProjectListingViewModel :
+                GatewayClientProjectListingViewModel by viewModels()
 
-        getSupportActionBar().setTitle(username);
-        getSupportActionBar().setSubtitle(host);
+        val linearLayoutManager = LinearLayoutManager(view.context)
+        val recyclerView = view
+            .findViewById<RecyclerView>(R.id.gateway_client_project_listing_recycler_view)
 
-        GatewayClientProjectListingRecyclerAdapter gatewayClientProjectListingRecyclerAdapter =
-                new GatewayClientProjectListingRecyclerAdapter();
+        val gatewayClientProjectListingRecyclerAdapter = GatewayClientProjectListingRecyclerAdapter()
+        recyclerView.layoutManager = linearLayoutManager
+        recyclerView.adapter = gatewayClientProjectListingRecyclerAdapter
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        RecyclerView recyclerView = findViewById(R.id.gateway_client_project_listing_recycler_view);
-        recyclerView.setLayoutManager(linearLayoutManager);
+        gatewayClientProjectListingRecyclerAdapter.onSelectedLiveData.observe(viewLifecycleOwner,
+            Observer {
+                it?.let {
+                    gatewayClientProjectListingRecyclerAdapter.onSelectedLiveData = MutableLiveData()
 
-        recyclerView.setAdapter(gatewayClientProjectListingRecyclerAdapter);
-
-        GatewayClientProjectListingViewModel gatewayClientProjectListingViewModel =
-                new ViewModelProvider(this).get(GatewayClientProjectListingViewModel.class);
-
-        gatewayClientProjectListingViewModel.get(getApplicationContext(), id).observe(this,
-                new Observer<List<GatewayClientProjects>>() {
-            @Override
-            public void onChanged(List<GatewayClientProjects> gatewayClients) {
-                gatewayClientProjectListingRecyclerAdapter.mDiffer.submitList(gatewayClients);
-                if(gatewayClients == null || gatewayClients.isEmpty())
-                    findViewById(R.id.gateway_client_project_listing_no_projects).setVisibility(View.VISIBLE);
-                else
-                    findViewById(R.id.gateway_client_project_listing_no_projects).setVisibility(View.GONE);
-            }
-        });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.gateway_client_project_listing_menu, menu);
-        boolean connected = sharedPreferences.contains(String.valueOf(id));
-        menu.findItem(R.id.gateway_client_project_connect).setVisible(!connected);
-        menu.findItem(R.id.gateway_client_project_disconnect).setVisible(connected);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.gateway_client_project_add) {
-            Intent intent = new Intent(getApplicationContext(), GatewayClientProjectAddModalFragment.class);
-            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id);
-            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, true);
-            startActivity(intent);
-            return true;
-        }
-        if(item.getItemId() == R.id.gateway_client_edit ) {
-            Intent intent = new Intent(this, GatewayClientAddActivity.class);
-            intent.putExtra(GATEWAY_CLIENT_ID, id);
-
-            startActivity(intent);
-            return true;
-        }
-        if(item.getItemId() == R.id.gateway_client_project_connect) {
-            GatewayClientHandler gatewayClientHandler =
-                    new GatewayClientHandler(getApplicationContext());
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    GatewayClient gatewayClient =
-                            gatewayClientHandler.databaseConnector.gatewayClientDAO().fetch(id);
-                    try {
-                        GatewayClientHandler.startListening(getApplicationContext(), gatewayClient);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    val fragmentManager: FragmentManager = activity?.supportFragmentManager!!
+                    val fragmentTransaction = fragmentManager.beginTransaction()
+                    val gatewayClientProjectAddModalFragment =
+                        GatewayClientProjectAddModalFragment(gatewayClientProjectListingViewModel,
+                            gatewayClientId, it)
+                    fragmentTransaction.add(gatewayClientProjectAddModalFragment,
+                        "gateway_client_add_edit")
+                    fragmentTransaction.show(gatewayClientProjectAddModalFragment)
                 }
-            }).start();
-            return true;
-        }
-        if(item.getItemId() == R.id.gateway_client_project_disconnect) {
-            sharedPreferences.edit().remove(String.valueOf(id))
-                    .apply();
-            finish();
-            return true;
-        }
-        return false;
+            })
+
+        gatewayClientProjectListingViewModel.get(view.context, gatewayClientId).observe(this,
+            Observer {
+                gatewayClientProjectListingRecyclerAdapter.mDiffer.submitList(it)
+                if (it.isNullOrEmpty())
+                    view.findViewById<View>(R.id.gateway_client_project_listing_no_projects)
+                        .visibility = View.VISIBLE
+                else view.findViewById<View>(R.id.gateway_client_project_listing_no_projects)
+                    .visibility = View.GONE
+            })
     }
 
+
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        if (item.itemId == R.id.gateway_client_project_add) {
+//            val intent =
+//                Intent(applicationContext, GatewayClientProjectAddModalFragment::class.java)
+//            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id)
+//            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, true)
+//            startActivity(intent)
+//            return true
+//        }
+//        if (item.itemId == R.id.gateway_client_edit) {
+//            val intent = Intent(this, GatewayClientAddActivity::class.java)
+//            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id)
+//
+//            startActivity(intent)
+//            return true
+//        }
+//        if (item.itemId == R.id.gateway_client_project_connect) {
+//            val gatewayClientHandler =
+//                GatewayClientHandler(applicationContext)
+//            Thread {
+//                val gatewayClient =
+//                    gatewayClientHandler.databaseConnector.gatewayClientDAO().fetch(id)
+//                try {
+//                    GatewayClientHandler.startListening(applicationContext, gatewayClient)
+//                } catch (e: InterruptedException) {
+//                    e.printStackTrace()
+//                }
+//            }.start()
+//            return true
+//        }
+//        if (item.itemId == R.id.gateway_client_project_disconnect) {
+//            sharedPreferences!!.edit().remove(id.toString())
+//                .apply()
+//            finish()
+//            return true
+//        }
+//        return false
+//    }
 }

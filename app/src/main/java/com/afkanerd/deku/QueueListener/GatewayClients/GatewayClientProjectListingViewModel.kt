@@ -10,11 +10,11 @@ import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 class GatewayClientProjectListingViewModel : ViewModel() {
     private lateinit var datastore: Datastore
 
-    private var liveData : LiveData<GatewayClientProjects> = MutableLiveData()
-    fun get(context: Context, gatewayClient: GatewayClient): LiveData<GatewayClientProjects>{
+    private var liveData : LiveData<List<GatewayClientProjects>> = MutableLiveData()
+    fun get(context: Context, gatewayClientId: Long): LiveData<List<GatewayClientProjects>>{
         datastore = Datastore.getDatastore(context)
         ThreadingPoolExecutor.executorService.execute {
-            liveData = datastore.gatewayClientProjectDao().fetchLiveData(gatewayClient.id)
+            liveData = datastore.gatewayClientProjectDao().fetchGatewayClientId(gatewayClientId)
         }
         return liveData
     }

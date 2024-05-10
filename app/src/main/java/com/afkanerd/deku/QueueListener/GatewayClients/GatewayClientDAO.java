@@ -1,5 +1,6 @@
 package com.afkanerd.deku.QueueListener.GatewayClients;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -15,6 +16,9 @@ public interface GatewayClientDAO {
 
     @Query("SELECT * FROM GatewayClient")
     List<GatewayClient> getAll();
+
+    @Query("SELECT * FROM GatewayClient")
+    LiveData<List<GatewayClient>> fetch();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(GatewayClient gatewayClient);

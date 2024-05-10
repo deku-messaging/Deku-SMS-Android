@@ -1,115 +1,81 @@
-package com.afkanerd.deku.QueueListener.GatewayClients;
+package com.afkanerd.deku.QueueListener.GatewayClients
 
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient.DIFF_CALLBACK;
+import android.app.ActivityManager
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.lifecycle.MutableLiveData
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.RecyclerView
+import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.Models.ServiceHandler
+import com.afkanerd.deku.DefaultSMS.R
 
-import android.app.ActivityManager;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+class GatewayClientRecyclerAdapter :
+    RecyclerView.Adapter<GatewayClientRecyclerAdapter.ViewHolder>() {
+    private val mDiffer: AsyncListDiffer<GatewayClient> = AsyncListDiffer( this,
+        GatewayClient.DIFF_CALLBACK )
 
-import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.AsyncListDiffer;
-import androidx.recyclerview.widget.RecyclerView;
+    var onSelectedListener: MutableLiveData<GatewayClient> = MutableLiveData()
 
-import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.ServiceHandler;
-import com.afkanerd.deku.DefaultSMS.R;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class GatewayClientRecyclerAdapter extends RecyclerView.Adapter<GatewayClientRecyclerAdapter.ViewHolder>{
-    private final AsyncListDiffer<GatewayClient> mDiffer = new AsyncListDiffer(this, DIFF_CALLBACK);
-
-    List<ActivityManager.RunningServiceInfo> runningServiceInfoList = new ArrayList<>();
-
-    public static final String ADAPTER_POSITION = "ADAPTER_POSITION";
-
-    SharedPreferences sharedPreferences;
-    public GatewayClientRecyclerAdapter(Context context) {
-        runningServiceInfoList = ServiceHandler.getRunningService(context);
-        sharedPreferences = context.getSharedPreferences(
-                GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        val view = inflater.inflate(R.layout.gateway_client_listing_layout, parent, false)
+        return ViewHolder(view)
     }
 
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.gateway_client_listing_layout, parent, false);
-        return new ViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        GatewayClient gatewayClient = mDiffer.getCurrentList().get(position);
-
-        String urlBuilder = gatewayClient.getProtocol() + "://" +
-                gatewayClient.getHostUrl() + ":" +
-                gatewayClient.getPort();
-
-        holder.url.setText(urlBuilder);
-        holder.virtualHost.setText(gatewayClient.getVirtualHost());
-        holder.friendlyName.setText(gatewayClient.getFriendlyConnectionName());
-        holder.username.setText(gatewayClient.getUsername());
-        holder.connectionStatus.setText(gatewayClient.getConnectionStatus());
-
-        String date = Helpers.formatDate(holder.itemView.getContext(), gatewayClient.getDate());
-        holder.date.setText(date);
-
-        if(gatewayClient.getFriendlyConnectionName() == null ||
-                gatewayClient.getFriendlyConnectionName().isEmpty())
-            holder.friendlyName.setVisibility(View.GONE);
-        else
-            holder.friendlyName.setText(gatewayClient.getFriendlyConnectionName());
-
-        holder.cardView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(holder.itemView.getContext(), GatewayClientProjectListingActivity.class);
-                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, gatewayClient.getId());
-                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_USERNAME,
-                        gatewayClient.getUsername());
-                intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_HOST,
-                        gatewayClient.getHostUrl());
-                holder.itemView.getContext().startActivity(intent);
-            }
-        });
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val gatewayClient = mDiffer.currentList[position]
+        holder.bind(gatewayClient, onSelectedListener)
     }
 
 
-    public void submitList(List<GatewayClient> gatewayClientList) {
-        mDiffer.submitList(gatewayClientList);
+    fun submitList(gatewayClientList: List<GatewayClient>?) {
+        mDiffer.submitList(gatewayClientList)
     }
 
-    @Override
-    public int getItemCount() {
-        return mDiffer.getCurrentList().size();
+    override fun getItemCount(): Int {
+        return mDiffer.currentList.size
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private var url: TextView = itemView.findViewById(R.id.gateway_client_url)
+        private var virtualHost: TextView = itemView.findViewById(R.id.gateway_client_virtual_host)
+        private var friendlyName: TextView = itemView.findViewById(R.id.gateway_client_friendly_name_text)
+        private var date: TextView = itemView.findViewById(R.id.gateway_client_date)
+        private var username: TextView = itemView.findViewById(R.id.gateway_client_username)
+        private var connectionStatus = itemView.findViewById<TextView>(R.id.gateway_client_connection_status)
 
-        TextView url, virtualHost, friendlyName, date, username, connectionStatus;
+        private var cardView: CardView = itemView.findViewById(R.id.gateway_client_card)
 
-        CardView cardView;
-        public ViewHolder(@NonNull @NotNull View itemView) {
-            super(itemView);
+        fun bind(gatewayClient: GatewayClient, onSelectedListener: MutableLiveData<GatewayClient>) {
+            val urlBuilder = gatewayClient.protocol + "://" +
+                    gatewayClient.hostUrl + ":" +
+                    gatewayClient.port
 
-            url = itemView.findViewById(R.id.gateway_client_url);
-            virtualHost = itemView.findViewById(R.id.gateway_client_virtual_host);
-            friendlyName = itemView.findViewById(R.id.gateway_client_friendly_name_text);
-            date = itemView.findViewById(R.id.gateway_client_date);
-            cardView = itemView.findViewById(R.id.gateway_client_card);
-            username = itemView.findViewById(R.id.gateway_client_username);
-            username = itemView.findViewById(R.id.gateway_client_username);
-            connectionStatus = itemView.findViewById(R.id.gateway_client_connection_status);
+            url.text = urlBuilder
+            virtualHost.text = gatewayClient.virtualHost
+            friendlyName.text = gatewayClient.friendlyConnectionName
+            username.text = gatewayClient.username
+            connectionStatus.text = gatewayClient.connectionStatus
+
+            val date = Helpers.formatDate(itemView.context, gatewayClient.date)
+            this.date.text = date
+
+            if (gatewayClient.friendlyConnectionName.isNullOrEmpty())
+                friendlyName.visibility = View.GONE
+            else friendlyName.text = gatewayClient.friendlyConnectionName
+
+           cardView.setOnClickListener { onSelectedListener.value = gatewayClient }
         }
+    }
+
+    companion object {
+        const val ADAPTER_POSITION: String = "ADAPTER_POSITION"
     }
 }

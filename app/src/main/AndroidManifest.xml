@@ -42,7 +42,7 @@
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
         <activity
-            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectListingActivity"
+            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectListingFragment"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
 
