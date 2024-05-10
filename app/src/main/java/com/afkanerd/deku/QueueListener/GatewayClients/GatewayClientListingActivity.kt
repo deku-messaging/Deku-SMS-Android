@@ -46,9 +46,11 @@ class GatewayClientListingActivity : AppCompatActivity() {
             it?.let {
                 gatewayClientRecyclerAdapter.onSelectedListener = MutableLiveData()
 
+                val bundle = Bundle()
+                bundle.putLong(GATEWAY_CLIENT_ID, it.id)
                 supportFragmentManager.beginTransaction()
                     .replace( R.id.view_fragment, GatewayClientProjectListingFragment::class.java,
-                        null, "HOMEPAGE_TAG" )
+                        bundle, "HOMEPAGE_TAG" )
                     .setReorderingAllowed(true)
                     .commit()
             }

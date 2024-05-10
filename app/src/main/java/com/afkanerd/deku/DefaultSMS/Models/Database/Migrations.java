@@ -1,6 +1,5 @@
 package com.afkanerd.deku.DefaultSMS.Models.Database;
 
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -11,6 +10,7 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects;
 
 public class Migrations {
@@ -148,7 +148,8 @@ public class Migrations {
                 context.getSharedPreferences(GatewayClientHandler.MIGRATIONS, Context.MODE_PRIVATE)
                         .edit().putBoolean(GatewayClientHandler.MIGRATIONS_TO_11, true).apply();
                 sharedPreferences =
-                        context.getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+                        context.getSharedPreferences(GatewayClientListingActivity.Companion
+                                .getGATEWAY_CLIENT_LISTENERS(), Context.MODE_PRIVATE);
                 for(String key : sharedPreferences.getAll().keySet()) {
                     sharedPreferences.edit().remove(key).apply();
                 }

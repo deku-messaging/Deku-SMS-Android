@@ -185,7 +185,7 @@ public class GatewayClientHandler {
 
     public static String getConnectionStatus(Context context, String gatewayClientId) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(
-                GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+                GatewayClientListingActivity.Companion.getGATEWAY_CLIENT_LISTENERS(), Context.MODE_PRIVATE);
 
         if(sharedPreferences.contains(gatewayClientId)) {
             if(sharedPreferences.getBoolean(gatewayClientId, false)) {
@@ -217,7 +217,9 @@ public class GatewayClientHandler {
     }
 
     public static void setListening(Context context, GatewayClient gatewayClient) throws InterruptedException {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS,
+        SharedPreferences sharedPreferences = context
+                .getSharedPreferences(GatewayClientListingActivity.Companion
+                                .getGATEWAY_CLIENT_LISTENERS(),
                 Context.MODE_PRIVATE);
         sharedPreferences.edit()
                 .putBoolean(String.valueOf(gatewayClient.getId()), false)

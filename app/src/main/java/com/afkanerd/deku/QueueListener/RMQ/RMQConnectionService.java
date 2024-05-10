@@ -1,7 +1,6 @@
 package com.afkanerd.deku.QueueListener.RMQ;
 
 import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT;
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import static org.junit.Assert.assertTrue;
 
@@ -91,7 +90,9 @@ public class RMQConnectionService extends Service {
 
         handleBroadcast();
 
-        sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+        sharedPreferences =
+                getSharedPreferences(GatewayClientListingActivity.Companion
+                        .getGATEWAY_CLIENT_LISTENERS(), Context.MODE_PRIVATE);
 
         registerListeners();
     }

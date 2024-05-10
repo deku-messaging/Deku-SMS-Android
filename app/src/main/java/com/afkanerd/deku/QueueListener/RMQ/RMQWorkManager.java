@@ -1,6 +1,5 @@
 package com.afkanerd.deku.QueueListener.RMQ;
 
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import android.app.ForegroundServiceStartNotAllowedException;
 import android.app.Notification;
@@ -17,6 +16,7 @@ import androidx.work.WorkerParameters;
 
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 
 public class RMQWorkManager extends Worker {
     final int NOTIFICATION_ID = 12345;
@@ -32,7 +32,8 @@ public class RMQWorkManager extends Worker {
     public Result doWork() {
         Intent intent = new Intent(getApplicationContext(), RMQConnectionService.class);
         sharedPreferences = getApplicationContext()
-                .getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+                .getSharedPreferences(GatewayClientListingActivity.Companion
+                        .getGATEWAY_CLIENT_LISTENERS(), Context.MODE_PRIVATE);
         if(!sharedPreferences.getAll().isEmpty()) {
             try {
                 getApplicationContext().startForegroundService(intent);
