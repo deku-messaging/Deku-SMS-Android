@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.telephony.SubscriptionInfo;
 
 import androidx.room.Room;
+import androidx.startup.AppInitializer;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingWorkPolicy;
@@ -22,6 +23,7 @@ import com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService;
 import com.afkanerd.deku.QueueListener.RMQ.RMQWorkManager;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.WorkManagerInitializer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -231,6 +233,8 @@ public class GatewayClientHandler {
     public static void startListening(Context context, GatewayClient gatewayClient) throws InterruptedException {
         GatewayClientHandler.setListening(context, gatewayClient);
         new GatewayClientHandler(context).startServices(context);
+//        AppInitializer.getInstance(context)
+//                .initializeComponent(WorkManagerInitializer.class);
     }
 
 }

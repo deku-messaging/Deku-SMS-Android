@@ -91,20 +91,11 @@ public class DefaultCheckActivity extends AppCompatActivity {
             startActivity(intent);
         }
     }
-    private void startServices() {
-        GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        try {
-            gatewayClientHandler.startServices(getApplicationContext());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
     private void startUserActivities() {
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
                 configureNotifications();
-                startServices();
             }
         });
 

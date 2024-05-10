@@ -1,36 +1,50 @@
 package com.afkanerd.deku
 
 import android.content.Context
+import android.util.Log
 import androidx.startup.Initializer
 import androidx.work.BackoffPolicy
+import androidx.work.Configuration
 import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.Operation
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
+import androidx.work.WorkRequest
+import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient
 import com.afkanerd.deku.QueueListener.RMQ.RMQWorkManager
 import java.util.concurrent.TimeUnit
 
-class WorkManagerInitializer : Initializer<WorkManager> {
-    override fun create(context: Context): WorkManager {
+class WorkManagerInitializer : Initializer<Operation> {
+    override fun create(context: Context): Operation {
         val constraints : Constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(true)
+//            .setRequiresBatteryNotLow(true)
             .build();
 
-        val gatewayClientListenerWorker : OneTimeWorkRequest = OneTimeWorkRequest
-            .Builder(RMQWorkManager::class.java)
+        val gatewayClientListenerWorker = OneTimeWorkRequestBuilder<RMQWorkManager>()
             .setConstraints(constraints)
-            .setBackoffCriteria( BackoffPolicy.LINEAR,
-                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                WorkRequest.MIN_BACKOFF_MILLIS,
                 TimeUnit.MILLISECONDS
             )
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .addTag(GatewayClient::class.simpleName!!)
             .build();
 
-        return WorkManager.getInstance(context);
+//        val configuration = Configuration.Builder().build()
+//        WorkManager.initialize(context, configuration)
+
+        val workManager = WorkManager.getInstance(context)
+        return workManager.enqueueUniqueWork(
+            ThreadedConversationsActivity.UNIQUE_WORK_MANAGER_NAME,
+            ExistingWorkPolicy.KEEP,
+            gatewayClientListenerWorker
+        )
     }
 
     override fun dependencies(): List<Class<out Initializer<*>>> {
