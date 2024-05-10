@@ -48,6 +48,6 @@ class WorkManagerInitializer : Initializer<Operation> {
     }
 
     override fun dependencies(): List<Class<out Initializer<*>>> {
-        return emptyList()
+        return listOf(NotificationsInitializer::class.java)
     }
 }
