@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.afkanerd.deku.DefaultSMS.R
 
-class GatewayClientProjectListingFragment : Fragment(R.layout.activity_gateway_client_project_listing) {
+class GatewayClientProjectListingFragment(val gatewayClientId: Long) : Fragment(R.layout.activity_gateway_client_project_listing) {
     var sharedPreferences: SharedPreferences? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -30,8 +30,8 @@ class GatewayClientProjectListingFragment : Fragment(R.layout.activity_gateway_c
 //            MODE_PRIVATE
 //        )
 
-        val gatewayClientId : Long = arguments
-            ?.getLong(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1)!!
+//        val gatewayClientId : Long = arguments
+//            ?.getLong(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1)!!
 
         val gatewayClientProjectListingViewModel :
                 GatewayClientProjectListingViewModel by viewModels()

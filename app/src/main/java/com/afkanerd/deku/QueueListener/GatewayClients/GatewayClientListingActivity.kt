@@ -17,9 +17,7 @@ import com.afkanerd.deku.DefaultSMS.Fragments.ThreadedConversationsFragment
 import com.afkanerd.deku.DefaultSMS.R
 
 class GatewayClientListingActivity : AppCompatActivity() {
-    private var gatewayClientRecyclerAdapter = GatewayClientRecyclerAdapter()
 
-    private val gatewayClientViewModel: GatewayClientViewModel by viewModels()
     var toolbar: Toolbar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,37 +30,12 @@ class GatewayClientListingActivity : AppCompatActivity() {
 
         supportActionBar!!.title = getString(R.string.gateway_client_listing_toolbar_title)
 
-        val linearLayoutManager = LinearLayoutManager(this)
-        val recyclerView = findViewById<RecyclerView>(R.id.gateway_client_listing_recycler_view)
-        recyclerView.layoutManager = linearLayoutManager
-
-        val dividerItemDecoration = DividerItemDecoration( applicationContext,
-            linearLayoutManager.orientation )
-        recyclerView.addItemDecoration(dividerItemDecoration)
-
-        recyclerView.adapter = gatewayClientRecyclerAdapter
-
-        gatewayClientRecyclerAdapter.onSelectedListener.observe(this, Observer {
-            it?.let {
-                gatewayClientRecyclerAdapter.onSelectedListener = MutableLiveData()
-
-                val bundle = Bundle()
-                bundle.putLong(GATEWAY_CLIENT_ID, it.id)
-                supportFragmentManager.beginTransaction()
-                    .replace( R.id.view_fragment, GatewayClientProjectListingFragment::class.java,
-                        bundle, "HOMEPAGE_TAG" )
-                    .setReorderingAllowed(true)
-                    .commit()
-            }
-        })
-
-        gatewayClientViewModel.getGatewayClientList(applicationContext).observe(this,
-            Observer {
-                if (it.isNullOrEmpty())
-                    findViewById<View>(R.id.gateway_client_no_gateway_client_label)
-                        .visibility = View.VISIBLE
-                gatewayClientRecyclerAdapter.submitList(it)
-            })
+        val gatewayClientListingFragment = GatewayClientListingFragment()
+        supportFragmentManager.beginTransaction()
+                .add( R.id.view_fragment, gatewayClientListingFragment)
+                .setReorderingAllowed(true)
+                .setReorderingAllowed(true)
+                .commit()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
