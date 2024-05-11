@@ -4,8 +4,10 @@ import android.content.Context
 import android.util.Log
 import android.util.Pair
 import androidx.lifecycle.LiveData
+import androidx.startup.AppInitializer
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.WorkManagerInitializer
 import com.afkanerd.deku.DefaultSMS.BuildConfig
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
@@ -135,6 +137,8 @@ object RouterHandler {
     }
 
     fun getMessageIdsFromWorkManagers(context: Context): LiveData<List<WorkInfo>> {
+        AppInitializer.getInstance(context)
+                .initializeComponent(WorkManagerInitializer::class.java)
         val workManager = WorkManager.getInstance(context)
         return workManager.getWorkInfosByTagLiveData(TAG_NAME_GATEWAY_SERVER)
     }
