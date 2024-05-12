@@ -11,6 +11,7 @@ import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -22,14 +23,15 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textview.MaterialTextView
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListingViewModel:
                                            GatewayClientProjectListingViewModel,
                                            private val gatewayClientId: Long,
-                                           private val gatewayClientProjects:
-                                           GatewayClientProjects? = null) :
+                                           private var gatewayClientProjects:
+                                           GatewayClientProjects? = GatewayClientProjects()) :
     BottomSheetDialogFragment(R.layout.fragment_modalsheet_gateway_client_project_add_edit) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -38,7 +40,7 @@ class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListi
         val materialButton = view.findViewById<MaterialButton>(R.id.gateway_client_customization_save_btn)
         materialButton.setOnClickListener { v ->
             try {
-                onSaveGatewayClientConfiguration(v)
+                onSaveGatewayClientConfiguration(view)
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
@@ -62,16 +64,16 @@ class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListi
 
         val isDualSim = SIMHandler.isDualSim(view.context)
         if (isDualSim) {
-            view.findViewById<View>(R.id.new_gateway_client_project_binding_sim_2_constraint)
+            view.findViewById<View>(R.id.new_gateway_client_project_binding_sim_2_layout)
                 .visibility = View.VISIBLE
         }
 
         gatewayClientProjects?.let {
             activity?.runOnUiThread {
-                projectName.setText(gatewayClientProjects.name)
-                projectBinding.setText(gatewayClientProjects.binding1Name)
+                projectName.setText(gatewayClientProjects!!.name)
+                projectBinding.setText(gatewayClientProjects!!.binding1Name)
                 if (isDualSim) {
-                    projectBinding2.setText(gatewayClientProjects.binding2Name)
+                    projectBinding2.setText(gatewayClientProjects!!.binding2Name)
                 }
             }
         }
@@ -102,7 +104,7 @@ class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListi
         val projectBinding2 =
             view.findViewById<TextInputEditText>(R.id.new_gateway_client_project_binding_sim_2)
         val projectBindingConstraint =
-            view.findViewById<ConstraintLayout>(R.id.new_gateway_client_project_binding_sim_2_constraint)
+            view.findViewById<LinearLayout>(R.id.new_gateway_client_project_binding_sim_2_layout)
 
         if (projectName.text == null || projectName.text.toString().isEmpty()) {
             projectName.error = getString(R.string.settings_gateway_client_cannot_be_empty)
@@ -120,16 +122,18 @@ class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListi
             return
         }
 
-        val gatewayClientProjectsLocal = gatewayClientProjects
-        gatewayClientProjectsLocal?.name = projectName.text.toString()
-        gatewayClientProjectsLocal?.binding1Name = projectBinding.text.toString()
-        gatewayClientProjectsLocal?.binding2Name = projectBinding2.text.toString()
-        gatewayClientProjectsLocal?.gatewayClientId = gatewayClientId
+        if(gatewayClientProjects == null)
+            gatewayClientProjects = GatewayClientProjects()
+
+        gatewayClientProjects?.name = projectName.text.toString()
+        gatewayClientProjects?.binding1Name = projectBinding.text.toString()
+        gatewayClientProjects?.binding2Name = projectBinding2.text.toString()
+        gatewayClientProjects?.gatewayClientId = gatewayClientId
 
         ThreadingPoolExecutor.executorService.execute {
-            gatewayClientProjectListingViewModel.insert(gatewayClientProjectsLocal!!)
+            gatewayClientProjectListingViewModel.insert(gatewayClientProjects!!)
+            dismiss()
         }
-        dismiss()
     }
 
     companion object {
