@@ -18,6 +18,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
@@ -42,6 +43,14 @@ class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListi
                 e.printStackTrace()
             }
         }
+
+        val toolbar = view.findViewById<Toolbar>(R.id.gateway_client_project_add_edit_toolbar)
+        toolbar.title = view.context.getString(R.string.gateway_client_add_edit_add_gateway_client)
+
+        val bottomSheet = view.findViewById<View>(R.id.gateway_client_project_add_edit_layout)
+        val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+        bottomSheetBehavior.isFitToContents = true
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     private fun getGatewayClient(view: View) {

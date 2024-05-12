@@ -15,7 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.afkanerd.deku.DefaultSMS.Fragments.ModalSheetFragment;
+import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsSecureRequestModalSheetFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -261,7 +261,7 @@ public class GatewayServerListingActivity extends AppCompatActivity {
         GatewayServerAddModalFragment gatewayServerAddModalFragment =
                 new GatewayServerAddModalFragment(layout, gatewayServer);
         fragmentTransaction.add(gatewayServerAddModalFragment,
-                ModalSheetFragment.TAG);
+                ConversationsSecureRequestModalSheetFragment.TAG);
         fragmentTransaction.show(gatewayServerAddModalFragment);
 
         fragmentTransaction.commitNow();

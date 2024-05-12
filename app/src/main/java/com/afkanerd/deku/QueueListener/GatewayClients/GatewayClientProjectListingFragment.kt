@@ -67,15 +67,15 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) : Fragment(
                 }
             })
 
-        gatewayClientProjectListingViewModel.get(view.context, gatewayClientId).observe(this,
-            Observer {
-                gatewayClientProjectListingRecyclerAdapter.mDiffer.submitList(it)
-                if (it.isNullOrEmpty())
-                    view.findViewById<View>(R.id.gateway_client_project_listing_no_projects)
-                        .visibility = View.VISIBLE
-                else view.findViewById<View>(R.id.gateway_client_project_listing_no_projects)
-                    .visibility = View.GONE
-            })
+        gatewayClientProjectListingViewModel.get(view.context, gatewayClientId)
+                .observe(viewLifecycleOwner, Observer {
+                    gatewayClientProjectListingRecyclerAdapter.mDiffer.submitList(it)
+                    if (it.isNullOrEmpty())
+                        view.findViewById<View>(R.id.gateway_client_project_listing_no_projects)
+                            .visibility = View.VISIBLE
+                    else view.findViewById<View>(R.id.gateway_client_project_listing_no_projects)
+                        .visibility = View.GONE
+                })
     }
 
     private fun showAddGatewayClientModal(gatewayClientProjects: GatewayClientProjects? = null) {
@@ -87,6 +87,7 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) : Fragment(
         fragmentTransaction.add(gatewayClientProjectAddModalFragment,
             "gateway_client_add_edit")
         fragmentTransaction.show(gatewayClientProjectAddModalFragment)
+        fragmentTransaction.commit()
     }
 
 

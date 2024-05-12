@@ -22,7 +22,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
-import com.afkanerd.deku.DefaultSMS.Fragments.ModalSheetFragment;
+import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsSecureRequestModalSheetFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
@@ -262,26 +262,26 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
     private void showSecureRequestAgreementModal() {
         Fragment fragment = getSupportFragmentManager()
-                .findFragmentByTag(ModalSheetFragment.TAG);
+                .findFragmentByTag(ConversationsSecureRequestModalSheetFragment.TAG);
         ThreadedConversations threadedConversations = databaseConnector.threadedConversationsDao()
                 .get(threadId);
         if(threadedConversations != null && (fragment == null || !fragment.isAdded())) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            ModalSheetFragment modalSheetFragment = new ModalSheetFragment(threadedConversations,
+            ConversationsSecureRequestModalSheetFragment conversationsSecureRequestModalSheetFragment = new ConversationsSecureRequestModalSheetFragment(threadedConversations,
                     contactName);
-            fragmentTransaction.add(modalSheetFragment,
-                    ModalSheetFragment.TAG);
-            fragmentTransaction.show(modalSheetFragment);
+            fragmentTransaction.add(conversationsSecureRequestModalSheetFragment,
+                    ConversationsSecureRequestModalSheetFragment.TAG);
+            fragmentTransaction.show(conversationsSecureRequestModalSheetFragment);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     fragmentTransaction.commitNow();
-                    modalSheetFragment.getView().findViewById(R.id.conversation_secure_request_agree_btn)
+                    conversationsSecureRequestModalSheetFragment.getView().findViewById(R.id.conversation_secure_request_agree_btn)
                             .setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    modalSheetFragment.dismiss();
+                                    conversationsSecureRequestModalSheetFragment.dismiss();
                                     agreeToSecure();
                                 }
                             });

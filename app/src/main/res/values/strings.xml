@@ -262,4 +262,5 @@
     <string name="gateway_server_routing_state_enqueued">Enqueued</string>
     <string name="gateway_server_routing_state_cancelled">Cancelled</string>
     <string name="gateway_server_routing_state_running">Running</string>
+    <string name="gateway_client_add_edit_add_gateway_client">Add Gateway Client</string>
 </resources>
