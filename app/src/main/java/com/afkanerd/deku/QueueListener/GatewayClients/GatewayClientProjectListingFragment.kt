@@ -1,8 +1,14 @@
 package com.afkanerd.deku.QueueListener.GatewayClients
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
@@ -14,6 +20,17 @@ import com.afkanerd.deku.DefaultSMS.R
 
 class GatewayClientProjectListingFragment(val gatewayClientId: Long) : Fragment(R.layout.activity_gateway_client_project_listing) {
     var sharedPreferences: SharedPreferences? = null
+    val gatewayClientProjectListingViewModel :
+            GatewayClientProjectListingViewModel by viewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        setHasOptionsMenu(true);
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,8 +50,6 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) : Fragment(
 //        val gatewayClientId : Long = arguments
 //            ?.getLong(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1)!!
 
-        val gatewayClientProjectListingViewModel :
-                GatewayClientProjectListingViewModel by viewModels()
 
         val linearLayoutManager = LinearLayoutManager(view.context)
         val recyclerView = view
@@ -48,15 +63,7 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) : Fragment(
             Observer {
                 it?.let {
                     gatewayClientProjectListingRecyclerAdapter.onSelectedLiveData = MutableLiveData()
-
-                    val fragmentManager: FragmentManager = activity?.supportFragmentManager!!
-                    val fragmentTransaction = fragmentManager.beginTransaction()
-                    val gatewayClientProjectAddModalFragment =
-                        GatewayClientProjectAddModalFragment(gatewayClientProjectListingViewModel,
-                            gatewayClientId, it)
-                    fragmentTransaction.add(gatewayClientProjectAddModalFragment,
-                        "gateway_client_add_edit")
-                    fragmentTransaction.show(gatewayClientProjectAddModalFragment)
+                    showAddGatewayClientModal(it)
                 }
             })
 
@@ -71,16 +78,37 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) : Fragment(
             })
     }
 
+    private fun showAddGatewayClientModal(gatewayClientProjects: GatewayClientProjects? = null) {
+        val fragmentManager: FragmentManager = activity?.supportFragmentManager!!
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        val gatewayClientProjectAddModalFragment =
+            GatewayClientProjectAddModalFragment(gatewayClientProjectListingViewModel,
+                gatewayClientId, gatewayClientProjects)
+        fragmentTransaction.add(gatewayClientProjectAddModalFragment,
+            "gateway_client_add_edit")
+        fragmentTransaction.show(gatewayClientProjectAddModalFragment)
+    }
 
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        if (item.itemId == R.id.gateway_client_project_add) {
-//            val intent =
-//                Intent(applicationContext, GatewayClientProjectAddModalFragment::class.java)
+
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        menu.clear()
+        inflater.inflate(R.menu.gateway_client_project_listing_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.gateway_client_project_add) {
+            val fragmentIntent =
+                GatewayClientProjectAddModalFragment(gatewayClientProjectListingViewModel,
+                    gatewayClientId)
+            showAddGatewayClientModal()
+//            val intent = Intent(applicationContext, GatewayClientProjectAddModalFragment::class.java)
 //            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id)
 //            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID_NEW, true)
 //            startActivity(intent)
-//            return true
-//        }
+            return true
+        }
 //        if (item.itemId == R.id.gateway_client_edit) {
 //            val intent = Intent(this, GatewayClientAddActivity::class.java)
 //            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id)
@@ -108,6 +136,6 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) : Fragment(
 //            finish()
 //            return true
 //        }
-//        return false
-//    }
+        return false
+    }
 }

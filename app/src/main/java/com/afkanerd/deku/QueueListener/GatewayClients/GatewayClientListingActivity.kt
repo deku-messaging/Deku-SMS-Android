@@ -38,19 +38,6 @@ class GatewayClientListingActivity : AppCompatActivity() {
                 .commit()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.gateway_client_listing_menu, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.gateway_client_add_manually) {
-            val addGatewayIntent = Intent(applicationContext, GatewayClientAddActivity::class.java)
-            startActivity(addGatewayIntent)
-            return true
-        }
-        return false
-    }
 
     companion object {
         var GATEWAY_CLIENT_ID: String = "GATEWAY_CLIENT_ID"
