@@ -1,11 +1,9 @@
 package com.afkanerd.deku.QueueListener.GatewayClients;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.telephony.SubscriptionInfo;
 
-import androidx.room.Room;
 import androidx.startup.AppInitializer;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
@@ -15,11 +13,8 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
-import com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.QueueListener.RMQ.RMQWorkManager;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
@@ -112,47 +107,6 @@ public class GatewayClientHandler {
         thread.join();
 
         return gatewayClientList[0];
-    }
-
-    private void setMigrationsTo11() {
-        try {
-            SemaphoreManager.acquireSemaphore();
-            GatewayClientDAO gatewayClientDAO = databaseConnector.gatewayClientDAO();
-            Map<Long, Set<GatewayClientProjects>> gatewayClientMaps = new HashMap<>();
-            List<GatewayClient> gatewayClientList = new ArrayList<>();
-            for(GatewayClient gatewayClient : gatewayClientDAO.getAll()) {
-                GatewayClientProjects gatewayClientProjects1 = new GatewayClientProjects();
-                gatewayClientProjects1.name = gatewayClient.getProjectName();
-                gatewayClientProjects1.binding1Name = gatewayClient.getProjectBinding();
-                gatewayClientProjects1.binding2Name = gatewayClient.getProjectBinding2();
-                gatewayClientProjects1.gatewayClientId = gatewayClient.getHashcode()[0];
-
-                if(!gatewayClientMaps.containsKey(gatewayClient.getHashcode()[0]) ||
-                        gatewayClientMaps.get(gatewayClient.getHashcode()[0]) == null) {
-                    gatewayClientMaps.put(gatewayClient.getHashcode()[0], new HashSet<>());
-                    gatewayClient.setId(gatewayClient.getHashcode()[0]);
-                    gatewayClientList.add(gatewayClient);
-                }
-                gatewayClientMaps.get(gatewayClient.getHashcode()[0]).add(gatewayClientProjects1);
-            }
-
-            gatewayClientDAO.deleteAll();
-            gatewayClientDAO.insert(gatewayClientList);
-
-            List<GatewayClientProjects> projectsList = new ArrayList<>();
-            for(Set<GatewayClientProjects> gatewayClientProjects : gatewayClientMaps.values())
-                projectsList.addAll(gatewayClientProjects);
-
-            databaseConnector.gatewayClientProjectDao().insert(projectsList);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                SemaphoreManager.releaseSemaphore();
-            } catch (InterruptedException e ) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public final static String MIGRATIONS = "MIGRATIONS";

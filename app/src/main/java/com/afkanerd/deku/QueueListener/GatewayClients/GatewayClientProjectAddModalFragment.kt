@@ -1,21 +1,11 @@
 package com.afkanerd.deku.QueueListener.GatewayClients
 
-import android.content.Context.MODE_PRIVATE
-import android.content.Intent
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
-import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.constraintlayout.widget.ConstraintLayout
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
@@ -23,9 +13,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textview.MaterialTextView
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListingViewModel:
                                            GatewayClientProjectListingViewModel,
@@ -131,7 +118,11 @@ class GatewayClientProjectAddModalFragment(private val gatewayClientProjectListi
         gatewayClientProjects?.gatewayClientId = gatewayClientId
 
         ThreadingPoolExecutor.executorService.execute {
-            gatewayClientProjectListingViewModel.insert(gatewayClientProjects!!)
+            try {
+                gatewayClientProjectListingViewModel.insert(gatewayClientProjects!!)
+            } catch(e: Exception) {
+                e.printStackTrace()
+            }
             dismiss()
         }
     }

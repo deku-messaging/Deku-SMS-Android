@@ -31,7 +31,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchConversationRecycle
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 
 import java.util.List;
 

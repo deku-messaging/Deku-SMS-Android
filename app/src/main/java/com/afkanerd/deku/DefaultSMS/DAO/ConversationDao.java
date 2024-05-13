@@ -12,8 +12,7 @@ import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 
 import java.util.List;
 

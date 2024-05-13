@@ -1,79 +1,61 @@
-package com.afkanerd.deku.QueueListener.RMQ;
+package com.afkanerd.deku.QueueListener.RMQ
+
+import android.app.ForegroundServiceStartNotAllowedException
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.work.Worker
+import androidx.work.WorkerParameters
+import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.Companion.GATEWAY_CLIENT_LISTENERS
 
 
-import android.app.ForegroundServiceStartNotAllowedException;
-import android.app.Notification;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-
-import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
-
-import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
-import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
-
-public class RMQWorkManager extends Worker {
-    final int NOTIFICATION_ID = 12345;
-
-    SharedPreferences sharedPreferences;
-
-    public RMQWorkManager(@NonNull Context context, @NonNull WorkerParameters workerParams) {
-        super(context, workerParams);
-    }
-
-    @NonNull
-    @Override
-    public Result doWork() {
-        Intent intent = new Intent(getApplicationContext(), RMQConnectionService.class);
-        sharedPreferences = getApplicationContext()
-                .getSharedPreferences(GatewayClientListingActivity.Companion
-                        .getGATEWAY_CLIENT_LISTENERS(), Context.MODE_PRIVATE);
-        if(!sharedPreferences.getAll().isEmpty()) {
+class RMQWorkManager(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
+    override fun doWork(): Result {
+        val intent = Intent(applicationContext, RMQConnectionService::class.java)
+        val sharedPreferences = applicationContext
+                .getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE)
+        if (sharedPreferences.all.isNotEmpty()) {
             try {
-                getApplicationContext().startForegroundService(intent);
-                RMQConnectionService rmqConnectionService =
-                        new RMQConnectionService(getApplicationContext());
-//                rmqConnectionService.createForegroundNotification(0,
-//                        sharedPreferences.getAll().size());
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (e instanceof ForegroundServiceStartNotAllowedException) {
-                    notifyUserToReconnectSMSServices();
+                applicationContext.startForegroundService(intent)
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Exception with starting RMQ services:", e)
+                if (e is ForegroundServiceStartNotAllowedException) {
+                    notifyUserToReconnectSMSServices()
                 }
-                return Result.failure();
+                return Result.failure()
             }
         }
-        return Result.success();
+        return Result.success()
     }
 
-    private void notifyUserToReconnectSMSServices(){
-        Intent notificationIntent = new Intent(getApplicationContext(), ThreadedConversationsActivity.class);
-        PendingIntent pendingIntent =
-                PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent,
-                        PendingIntent.FLAG_IMMUTABLE);
+    private fun notifyUserToReconnectSMSServices() {
+        val NOTIFICATION_ID: Int = 12345
+        val notificationIntent = Intent(applicationContext, ThreadedConversationsActivity::class.java)
+        val pendingIntent =
+                PendingIntent.getActivity(applicationContext, 0, notificationIntent,
+                        PendingIntent.FLAG_IMMUTABLE)
 
-        Notification notification =
-                new NotificationCompat.Builder(getApplicationContext(),
-                        getApplicationContext().getString(R.string.foreground_service_failed_channel_id))
-                        .setContentTitle(getApplicationContext()
+        val notification =
+                NotificationCompat.Builder(applicationContext,
+                        applicationContext.getString(R.string.foreground_service_failed_channel_id))
+                        .setContentTitle(applicationContext
                                 .getString(R.string.foreground_service_failed_channel_name))
                         .setSmallIcon(R.drawable.ic_stat_name)
                         .setPriority(NotificationCompat.DEFAULT_ALL)
                         .setAutoCancel(true)
-                        .setContentText(getApplicationContext()
+                        .setContentText(applicationContext
                                 .getString(R.string.foreground_service_failed_channel_description))
                         .setContentIntent(pendingIntent)
-                        .build();
+                        .build()
 
-        NotificationManagerCompat notificationManager =
-                NotificationManagerCompat.from(getApplicationContext());
-        notificationManager.notify(NOTIFICATION_ID, notification);
+        val notificationManager =
+                NotificationManagerCompat.from(applicationContext)
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
-
 }

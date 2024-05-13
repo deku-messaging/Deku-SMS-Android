@@ -2,9 +2,7 @@ package com.afkanerd.deku.DefaultSMS.DAO;
 
 import android.content.Context;
 import android.provider.Telephony;
-import android.util.Log;
 
-import androidx.lifecycle.LiveData;
 import androidx.paging.PagingSource;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -17,7 +15,7 @@ import androidx.room.Update;
 import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
@@ -25,8 +23,6 @@ import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

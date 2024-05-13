@@ -10,7 +10,6 @@ import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.afkanerd.deku.DefaultSMS.Models.Database.SemaphoreManager;
 import com.afkanerd.deku.QueueListener.RMQ.RMQConnection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;

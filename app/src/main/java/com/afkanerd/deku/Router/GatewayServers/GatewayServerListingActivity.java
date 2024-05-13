@@ -16,7 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsSecureRequestModalSheetFragment;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.Router.FTP;

@@ -1,232 +1,70 @@
-package com.afkanerd.deku.QueueListener.GatewayClients;
+package com.afkanerd.deku.QueueListener.GatewayClients
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.room.Entity;
-import androidx.room.Ignore;
-import androidx.room.PrimaryKey;
-
-import com.afkanerd.deku.DefaultSMS.R;
-
-import org.apache.commons.codec.digest.MurmurHash3;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import androidx.recyclerview.widget.DiffUtil
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
+import org.apache.commons.codec.digest.MurmurHash3
+import java.nio.charset.StandardCharsets
 
 @Entity
-public class GatewayClient {
-    public GatewayClient() {}
-
+class GatewayClient {
     @Ignore
-    private String connectionStatus;
-
-    public String getConnectionStatus() {
-        return connectionStatus;
-    }
-
-    public void setConnectionStatus(String connectionStatus) {
-        this.connectionStatus = connectionStatus;
-    }
+    var connectionStatus: String? = null
 
     @PrimaryKey(autoGenerate = true)
-    private long id;
+    var id: Long = 0
 
+    var date: Long = 0
 
-    private long date;
+    var hostUrl: String? = null
 
-    private String hostUrl;
+    var username: String? = null
 
-    private String username;
-    private String password;
+    var password: String? = null
 
-    private int port;
+    var port: Int = 0
 
-    private String friendlyConnectionName;
-    private String virtualHost;
+    var friendlyConnectionName: String? = null
 
-    private int connectionTimeout = 10000;
+    var virtualHost: String? = null
 
-    private int prefetch_count = 1;
+    var connectionTimeout: Int = 10000
 
-    private int heartbeat = 30;
+    var prefetch_count: Int = 1
 
-    private String protocol = "amqp";
+    var heartbeat: Int = 30
 
-    private String projectName;
+    var protocol: String = "amqp"
 
-    private String projectBinding;
+    var projectName: String? = null
 
-    public String getProjectBinding2() {
-        return projectBinding2;
-    }
+    var projectBinding: String? = null
 
-    public void setProjectBinding2(String projectBinding2) {
-        this.projectBinding2 = projectBinding2;
-    }
+    var projectBinding2: String? = null
 
-    private String projectBinding2;
+    @ColumnInfo(defaultValue = "0")
+    var activated: Boolean = false
 
-    public String getProjectName() {
-        return projectName;
-    }
+    @ColumnInfo(defaultValue = "0")
+    var state = 0
 
-    public String getProjectBinding() {
-        return projectBinding;
-    }
-
-    public void setProjectBinding(String projectBinding) {
-        this.projectBinding = projectBinding;
-    }
-
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getVirtualHost() {
-        return virtualHost;
-    }
-
-    public void setVirtualHost(String virtualHost) {
-        this.virtualHost = virtualHost;
-    }
-
-    public int getConnectionTimeout() {
-        return connectionTimeout;
-    }
-
-    public void setConnectionTimeout(int connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
-    }
-
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getHostUrl() {
-        return hostUrl;
-    }
-
-    public void setHostUrl(String hostUrl) {
-        this.hostUrl = hostUrl;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public String getFriendlyConnectionName() {
-        return friendlyConnectionName;
-    }
-
-    public void setFriendlyConnectionName(String friendlyConnectionName) {
-        this.friendlyConnectionName = friendlyConnectionName;
-    }
-
-    public int getPrefetch_count() {
-        return prefetch_count;
-    }
-
-    public void setPrefetch_count(int prefetch_count) {
-        this.prefetch_count = prefetch_count;
-    }
-
-    public int getHeartbeat() {
-        return heartbeat;
-    }
-
-    public void setHeartbeat(int heartbeat) {
-        this.heartbeat = heartbeat;
-    }
-    public long getDate() {
-        return date;
-    }
-
-    public void setDate(long date) {
-        this.date = date;
-    }
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public long[] getHashcode() {
-        String hashValues = protocol + hostUrl + port + virtualHost + username + password;
-        return MurmurHash3.hash128(hashValues.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public boolean same(@Nullable Object obj) {
-        if(obj instanceof GatewayClient) {
-            GatewayClient gatewayClient = (GatewayClient) obj;
-            return Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
-                    Objects.equals(gatewayClient.protocol, this.protocol) &&
-                    Objects.equals(gatewayClient.virtualHost, this.virtualHost) &&
-                    gatewayClient.port == this.port;
+    companion object {
+        val DIFF_CALLBACK: DiffUtil.ItemCallback<GatewayClient> =
+                object : DiffUtil.ItemCallback<GatewayClient>() {
+                    override fun areItemsTheSame(oldItem: GatewayClient, newItem: GatewayClient):
+                            Boolean {
+                        return oldItem.id == newItem.id
+                    }
+                    override fun areContentsTheSame(oldItem: GatewayClient, newItem: GatewayClient):
+                            Boolean {
+                        return oldItem == newItem
+                    }
         }
-        return false;
+
+        var STATE_DISCONNECTED = 0
+        var STATE_RECONNECTING = 1
+        var STATE_CONNECTED = 2
     }
-
-    public boolean equals(@Nullable Object obj) {
-//        return super.equals(obj);
-        if(obj instanceof GatewayClient) {
-            GatewayClient gatewayClient = (GatewayClient) obj;
-//            return gatewayClient.id == this.id &&
-//                    Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
-//                    Objects.equals(gatewayClient.protocol, this.protocol) &&
-//                    gatewayClient.port == this.port &&
-//                    Objects.equals(gatewayClient.projectBinding, this.projectBinding) &&
-//                    Objects.equals(gatewayClient.projectName, this.projectName) &&
-//                    Objects.equals(gatewayClient.connectionStatus, this.connectionStatus) &&
-//                    gatewayClient.date == this.date;
-            return Objects.equals(gatewayClient.hostUrl, this.hostUrl) &&
-                    Objects.equals(gatewayClient.protocol, this.protocol) &&
-                    Objects.equals(gatewayClient.virtualHost, this.virtualHost) &&
-                    gatewayClient.port == this.port;
-        }
-        return false;
-    }
-
-    public static final DiffUtil.ItemCallback<GatewayClient> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<GatewayClient>() {
-                @Override
-                public boolean areItemsTheSame(@NonNull GatewayClient oldItem, @NonNull GatewayClient newItem) {
-                    return oldItem.id == newItem.id;
-                }
-
-                @Override
-                public boolean areContentsTheSame(@NonNull GatewayClient oldItem, @NonNull GatewayClient newItem) {
-                    return oldItem.equals(newItem);
-                }
-            };
-
 }

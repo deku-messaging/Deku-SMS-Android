@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
+import com.afkanerd.deku.Datastore
 
 class GatewayServerViewModel : ViewModel() {
     private lateinit var gatewayServersList: LiveData<List<GatewayServer>>

@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Models.Database;
+package com.afkanerd.deku;
 
 import android.content.Context;
 
@@ -16,6 +16,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
+import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
 import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
@@ -43,11 +44,14 @@ import com.afkanerd.deku.Router.GatewayServers.GatewayServerDAO;
         ConversationsThreadsEncryption.class,
         Conversation.class,
         GatewayClient.class},
-        version = 14,
+        version = 15,
         autoMigrations = {
+        @AutoMigration(from = 9, to = 10),
+        @AutoMigration(from = 10, to = 11),
         @AutoMigration(from = 11, to = 12),
         @AutoMigration(from = 12, to = 13),
-        @AutoMigration(from = 13, to = 14)
+        @AutoMigration(from = 13, to = 14),
+        @AutoMigration(from = 14, to = 15)
 })
 public abstract class Datastore extends RoomDatabase {
     private static volatile Datastore datastore;
@@ -62,13 +66,6 @@ public abstract class Datastore extends RoomDatabase {
     private static Datastore create(final Context context) {
         return Room.databaseBuilder(context, Datastore.class, databaseName)
                 .enableMultiInstanceInvalidation()
-                .addMigrations(new Migrations.Migration4To5())
-                .addMigrations(new Migrations.Migration5To6())
-                .addMigrations(new Migrations.Migration6To7())
-                .addMigrations(new Migrations.Migration7To8())
-                .addMigrations(new Migrations.Migration9To10())
-                .addMigrations(new Migrations.Migration10To11(context))
-                .addMigrations(new Migrations.MIGRATION_11_12())
                 .build();
     }
 

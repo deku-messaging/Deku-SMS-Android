@@ -1,7 +1,6 @@
 package java.com.afkanerd.deku;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteStatement;
 
 import androidx.room.testing.MigrationTestHelper;
 import androidx.sqlite.db.SupportSQLiteDatabase;
@@ -10,8 +9,7 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
 
 import org.junit.Rule;

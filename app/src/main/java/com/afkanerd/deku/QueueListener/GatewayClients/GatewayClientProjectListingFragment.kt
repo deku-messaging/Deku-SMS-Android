@@ -1,5 +1,6 @@
 package com.afkanerd.deku.QueueListener.GatewayClients
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,12 +16,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 
 class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
         Fragment(R.layout.fragment_modalsheet_gateway_client_project_listing_layout) {
-    var sharedPreferences: SharedPreferences? = null
-    val gatewayClientProjectListingViewModel :
+    private val gatewayClientProjectListingViewModel :
             GatewayClientProjectListingViewModel by viewModels()
 
     override fun onCreateView( inflater: LayoutInflater, container: ViewGroup?,
@@ -48,7 +50,7 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
                 }
             })
 
-        gatewayClientProjectListingViewModel.get(view.context, gatewayClientId)
+        gatewayClientProjectListingViewModel.get(requireContext(), gatewayClientId)
                 .observe(viewLifecycleOwner, Observer {
                     gatewayClientProjectListingRecyclerAdapter.mDiffer.submitList(it)
                     if (it.isNullOrEmpty())
@@ -57,7 +59,20 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
                     else view.findViewById<View>(R.id.gateway_client_project_listing_no_projects)
                         .visibility = View.GONE
                 })
+
+        ThreadingPoolExecutor.executorService.execute {
+            val gatewayClientLiveData = Datastore.getDatastore(view.context).gatewayClientDAO()
+                    .fetchLiveData(gatewayClientId)
+            activity?.runOnUiThread {
+                gatewayClientLiveData.observe(viewLifecycleOwner, Observer {
+                    gatewayClient = it
+                    activity?.invalidateOptionsMenu()
+                })
+            }
+        }
     }
+
+    private var gatewayClient = GatewayClient()
 
     private fun showAddGatewayClientModal(gatewayClientProjects: GatewayClientProjects? = null) {
         val fragmentManager: FragmentManager = activity?.supportFragmentManager!!
@@ -79,32 +94,37 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        if(gatewayClient.activated) {
+            menu.findItem(R.id.gateway_client_project_disconnect)
+                    .setVisible(true)
+        } else {
+            menu.findItem(R.id.gateway_client_project_connect)
+                    .setVisible(true)
+        }
+        super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.gateway_client_project_add) {
             showAddGatewayClientModal()
             return true
         }
-//        if (item.itemId == R.id.gateway_client_edit) {
-//            val intent = Intent(this, GatewayClientAddActivity::class.java)
-//            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, id)
-//
-//            startActivity(intent)
-//            return true
-//        }
-//        if (item.itemId == R.id.gateway_client_project_connect) {
-//            val gatewayClientHandler =
-//                GatewayClientHandler(applicationContext)
-//            Thread {
-//                val gatewayClient =
-//                    gatewayClientHandler.databaseConnector.gatewayClientDAO().fetch(id)
-//                try {
-//                    GatewayClientHandler.startListening(applicationContext, gatewayClient)
-//                } catch (e: InterruptedException) {
-//                    e.printStackTrace()
-//                }
-//            }.start()
-//            return true
-//        }
+        if (item.itemId == R.id.gateway_client_edit) {
+            val intent = Intent(requireContext(), GatewayClientAddActivity::class.java)
+            intent.putExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, gatewayClientId)
+
+            startActivity(intent)
+            return true
+        }
+        if (item.itemId == R.id.gateway_client_project_connect) {
+            gatewayClient.activated = true
+            ThreadingPoolExecutor.executorService.execute {
+                Datastore.getDatastore(requireContext()).gatewayClientDAO().update(gatewayClient)
+            }
+            GatewayClientHandler.startListening(requireContext(), gatewayClient)
+            return true
+        }
 //        if (item.itemId == R.id.gateway_client_project_disconnect) {
 //            sharedPreferences!!.edit().remove(id.toString())
 //                .apply()

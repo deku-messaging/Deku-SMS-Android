@@ -1,142 +1,57 @@
-package com.afkanerd.deku.QueueListener.RMQ;
+package com.afkanerd.deku.QueueListener.RMQ
 
-import android.util.Log;
+import com.rabbitmq.client.Channel
+import com.rabbitmq.client.Connection
+import com.rabbitmq.client.DeliverCallback
+import okhttp3.internal.toImmutableMap
+import java.io.IOException
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.DeliverCallback;
-import com.rabbitmq.client.ShutdownListener;
-import com.rabbitmq.client.ShutdownSignalException;
-import com.rabbitmq.client.impl.ChannelN;
+class RMQConnection(var id: Long, var connection: Connection) {
+    private val autoDelete: Boolean = false
+    private val exclusive: Boolean = false
+    private val durable: Boolean = true
+    private val autoAck: Boolean = false
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+    private val channelList: MutableList<Channel> = ArrayList()
+    private val channelTagMap = mutableMapOf<String, Channel>()
 
-public class RMQConnection {
-    final boolean autoDelete = false;
-    final boolean exclusive = false;
-    final boolean durable = true;
-    final boolean autoAck = false;
 
-    public static final String MESSAGE_BODY_KEY = "text";
-    public static final String MESSAGE_MSISDN_KEY = "to";
-    public static final String MESSAGE_SID = "sid";
-
-    public static final String RMQ_DELIVERY_TAG = "RMQ_DELIVERY_TAG";
-    public static final String RMQ_CONSUMER_TAG = "RMQ_CONSUMER_TAG";
-
-    public Connection connection;
-
-//    private Channel channel1;
-//    private Channel channel2;
-
-//    public Channel getChannel2() {
-//        return channel2;
-//    }
-//
-//    public void setChannel2(Channel channel2) {
-//        this.channel2 = channel2;
-//    }
-//
-
-    private boolean reconnecting = false;
-
-    public void setReconnecting(boolean reconnecting) {
-        this.reconnecting = reconnecting;
+    fun removeChannel(channel: Channel) {
+        channelList.remove(channel)
     }
 
-//    private DeliverCallback deliverCallback, deliverCallback2;
-
-    public RMQConnection(Connection connection) throws IOException {
-        this.connection = connection;
+    fun createChannel(): Channel {
+        return connection.createChannel().apply {
+            val prefetchCount = 1
+            basicQos(prefetchCount)
+        }
+//        channelList.add()
+//        return channelList.last()
     }
 
-    public RMQConnection(){
+    fun bindChannelToTag(channel: Channel, channelTag: String)  {
+        channelTagMap[channelTag] = channel
     }
 
-//    public Channel[] getChannels() throws IOException {
-//        Channel channel1 = this.connection.createChannel();
-//        Channel channel2 = this.connection.createChannel();
-//
-//        int prefetchCount = 1;
-//        channel1.basicQos(prefetchCount);
-//        channel2.basicQos(prefetchCount);
-//
-//        return new Channel[]{channel1, channel2};
-//    }
-
-//    public Channel[] setConnection(Connection connection) throws IOException {
-//        this.connection = connection;
-//
-//        Channel channel1 = this.connection.createChannel();
-//        channel1.basicRecover(true);
-//        Channel channel2 = this.connection.createChannel();
-//        channel2.basicRecover(true);
-//
-//        int prefetchCount = 1;
-//        channel1.basicQos(prefetchCount);
-//        channel2.basicQos(prefetchCount);
-//
-//        return new Channel[]{channel1, channel2};
-//    }
-
-    public List<Channel> channelList = new ArrayList<>();
-    public void removeChannel(Channel channel) {
-        channelList.remove(channel);
+    fun findChannelByTag(channelTag: String) : Channel? {
+        return channelTagMap[channelTag]
     }
 
-    public Channel createChannel() throws IOException {
-        int prefetchCount = 1;
-        Channel channel = this.connection.createChannel();
-        channel.basicQos(prefetchCount);
-        channelList.add(channel);
-        return channelList.get(channelList.size() -1);
+    fun close() {
+        if (connection.isOpen)
+            connection.close()
     }
 
-    public void close() throws IOException {
-        if(connection != null)
-            connection.close();
+    fun createQueue(exchangeName: String, bindingKey: String, channel: Channel,
+                    queueName: String = bindingKey.replace("\\.".toRegex(), "_")) :
+            String {
+        channel.queueDeclare(queueName, durable, exclusive, autoDelete, null)
+        channel.queueBind(queueName, exchangeName, bindingKey)
+
+        return queueName
     }
 
-    public Connection getConnection() {
-        return connection;
-    }
-
-    public String createQueue(String exchangeName, String bindingKey, Channel channel,
-                              String queueName) throws IOException {
-        if(queueName == null)
-            queueName = bindingKey.replaceAll("\\.", "_");
-
-        channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
-        channel.queueBind(queueName, exchangeName, bindingKey);
-
-        return queueName;
-    }
-
-//    public void createQueue1(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
-//        this.queueName = bindingKey.replaceAll("\\.", "_");
-//        this.deliverCallback = deliverCallback;
-//
-//        this.channel1.queueDeclare(queueName, durable, exclusive, autoDelete, null);
-//        this.channel1.queueBind(queueName, exchangeName, bindingKey);
-//        this.channel1.addShutdownListener(new ShutdownListener() {
-//            @Override
-//            public void shutdownCompleted(ShutdownSignalException cause) {
-//                Log.d(getClass().getName(), "CHannel shutdown listener called: " + cause.toString());
-//            }
-//        });
-//    }
-//
-//    public void createQueue2(String exchangeName, String bindingKey, DeliverCallback deliverCallback) throws IOException {
-//        this.queueName2 = bindingKey.replaceAll("\\.", "_");
-//        this.deliverCallback = deliverCallback;
-//
-//        this.channel2.queueDeclare(queueName2, durable, exclusive, autoDelete, null);
-//        this.channel2.queueBind(queueName2, exchangeName, bindingKey);
-//    }
-
-    public String consume(Channel channel, String queueName, DeliverCallback deliverCallback) throws IOException {
+    fun consume(channel: Channel, queueName: String?, deliverCallback: DeliverCallback?): String {
         /**
          * - Binding information dumb:
          * 1. .usd. = <anything>.usd.</anything>
@@ -144,37 +59,15 @@ public class RMQConnection {
          * 3. #.usd = <many anything>.usd
          * 4. Can all be used in combination with each
          * 5. We can translate this into managing multiple service providers
-         */
-
-//        ShutdownListener shutdownListener2 = new ShutdownListener() {
-//            @Override
-//            public void shutdownCompleted(ShutdownSignalException cause) {
-//                Log.d(getClass().getName(), "Channel shutdown listener called: " + cause.toString());
-//                if(!cause.isInitiatedByApplication() && connection.isOpen()) {
-//                    try {
-//                        channels[1].basicConsume(queueName2, autoAck, deliverCallback, consumerTag -> {});
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        };
-        return channel.basicConsume(queueName, autoAck, deliverCallback, consumerTag -> {});
+        </many></single> */
+        return channel.basicConsume(queueName, autoAck, deliverCallback) { consumerTag: String? -> }
     }
 
-//    public void consume1() throws IOException {
-//        /**
-//         * - Binding information dumb:
-//         * 1. .usd. = <anything>.usd.</anything>
-//         * 2. *.usd = <single anything>.usd
-//         * 3. #.usd = <many anything>.usd
-//         * 4. Can all be used in combination with each
-//         * 5. We can translate this into managing multiple service providers
-//         */
-//        this.channel1.basicConsume(this.queueName, autoAck, deliverCallback, consumerTag -> {});
-//    }
-//
-//    public void consume2() throws IOException {
-//        this.channel2.basicConsume(this.queueName2, autoAck, deliverCallback, consumerTag -> {});
-//    }
+    companion object {
+        const val MESSAGE_SID: String = "sid"
+
+        const val RMQ_ID: String = "RMQ_ID"
+        const val RMQ_DELIVERY_TAG: String = "RMQ_DELIVERY_TAG"
+        const val RMQ_CONSUMER_TAG: String = "RMQ_CONSUMER_TAG"
+    }
 }

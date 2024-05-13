@@ -8,7 +8,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;

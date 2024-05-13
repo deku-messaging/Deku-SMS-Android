@@ -1,7 +1,6 @@
 package com.afkanerd.deku.Router.GatewayServers;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,7 +20,7 @@ import androidx.work.WorkManager;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.Router.FTP;
 import com.afkanerd.deku.Router.Models.RouterHandler;
 import com.afkanerd.deku.Router.Models.RouterWorkManager;

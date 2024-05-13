@@ -13,6 +13,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.Operation
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
+import androidx.work.WorkManagerInitializer
 import androidx.work.WorkRequest
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient
@@ -39,6 +40,7 @@ class WorkManagerInitializer : Initializer<Operation> {
 //        val configuration = Configuration.Builder().build()
 //        WorkManager.initialize(context, configuration)
 
+        Log.d(javaClass.name, "Enqueueing work for later")
         val workManager = WorkManager.getInstance(context)
         return workManager.enqueueUniqueWork(
             ThreadedConversationsActivity.UNIQUE_WORK_MANAGER_NAME,
@@ -48,6 +50,6 @@ class WorkManagerInitializer : Initializer<Operation> {
     }
 
     override fun dependencies(): List<Class<out Initializer<*>>> {
-        return listOf(NotificationsInitializer::class.java)
+        return listOf(WorkManagerInitializer::class.java, NotificationsInitializer::class.java)
     }
 }
