@@ -86,6 +86,7 @@ class RMQConnectionService : Service() {
         messageStateChangedBroadcast = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action != null && intentFilter.hasAction(intent.action)) {
+                    Log.d(javaClass.name, "Received incoming broadcast")
                     if (intent.hasExtra(RMQConnection.MESSAGE_SID) &&
                             intent.hasExtra(RMQConnection.RMQ_DELIVERY_TAG)) {
 
@@ -131,7 +132,11 @@ class RMQConnectionService : Service() {
 
     @Serializable
     private data class SMSRequest(val text: String, val to: String, val sid: String, val id: String)
-    private suspend fun sendSMS(smsRequest: SMSRequest, subscriptionId: Int, consumerTag: String) {
+    private suspend fun sendSMS(smsRequest: SMSRequest,
+                                subscriptionId: Int,
+                                consumerTag: String,
+                                deliveryTag: Long,
+                                rmqConnectionId: Long) {
         resourceSemaphore.acquire()
         val messageId = System.currentTimeMillis()
         resourceSemaphore.release()
@@ -141,6 +146,8 @@ class RMQConnectionService : Service() {
         val bundle = Bundle()
         bundle.putString(RMQConnection.MESSAGE_SID, smsRequest.sid)
         bundle.putString(RMQConnection.RMQ_CONSUMER_TAG, consumerTag)
+        bundle.putLong(RMQConnection.RMQ_DELIVERY_TAG, deliveryTag)
+        bundle.putLong(RMQConnection.RMQ_ID, rmqConnectionId)
 
         val conversation = Conversation()
         conversation.message_id = messageId.toString()
@@ -157,14 +164,19 @@ class RMQConnectionService : Service() {
         SMSDatabaseWrapper.send_text(applicationContext, conversation, bundle)
         Log.d(javaClass.name, "SMS sent...")
     }
-    private fun getDeliverCallback(channel: Channel, subscriptionId: Int): DeliverCallback {
+    private fun getDeliverCallback(channel: Channel, subscriptionId: Int,
+                                   rmqConnectionId: Long): DeliverCallback {
         return DeliverCallback { consumerTag: String, delivery: Delivery ->
             val message = String(delivery.body, StandardCharsets.UTF_8)
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val smsRequest = Json.decodeFromString<SMSRequest>(message)
-                    sendSMS(smsRequest, subscriptionId, consumerTag)
+                    sendSMS(smsRequest,
+                            subscriptionId,
+                            consumerTag,
+                            delivery.envelope.deliveryTag,
+                            rmqConnectionId)
                 } catch (e: Exception) {
                     Log.e(javaClass.name, "", e)
                     when(e) {
@@ -274,7 +286,7 @@ class RMQConnectionService : Service() {
                                 bindingName: String) {
         Log.d(javaClass.name, "Starting channel connection")
         channel.basicRecover(true)
-        val deliverCallback = getDeliverCallback(channel, subscriptionId)
+        val deliverCallback = getDeliverCallback(channel, subscriptionId, rmqConnection.id)
         val queueName = rmqConnection.createQueue(gatewayClientProjects.name, bindingName, channel)
         val messagesCount = channel.messageCount(queueName)
 
