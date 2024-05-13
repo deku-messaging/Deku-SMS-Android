@@ -16,6 +16,7 @@ import android.os.IBinder
 import android.provider.Telephony
 import android.telephony.SubscriptionInfo
 import android.util.Log
+import android.view.inputmethod.CorrectionInfo
 import androidx.core.app.NotificationCompat
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -40,6 +41,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -128,7 +130,7 @@ class RMQConnectionService : Service() {
     }
 
     @Serializable
-    private data class SMSRequest(val body: String, val to: String, val sid: String)
+    private data class SMSRequest(val text: String, val to: String, val sid: String, val id: String)
     private suspend fun sendSMS(smsRequest: SMSRequest, subscriptionId: Int, consumerTag: String) {
         resourceSemaphore.acquire()
         val messageId = System.currentTimeMillis()
@@ -142,7 +144,7 @@ class RMQConnectionService : Service() {
 
         val conversation = Conversation()
         conversation.message_id = messageId.toString()
-        conversation.text = smsRequest.body
+        conversation.text = smsRequest.text
         conversation.address = smsRequest.to
         conversation.subscription_id = subscriptionId
         conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
@@ -153,15 +155,15 @@ class RMQConnectionService : Service() {
         databaseConnector.threadedConversationsDao()
                 .insertThreadAndConversation(applicationContext, conversation)
         SMSDatabaseWrapper.send_text(applicationContext, conversation, bundle)
+        Log.d(javaClass.name, "SMS sent...")
     }
     private fun getDeliverCallback(channel: Channel, subscriptionId: Int): DeliverCallback {
         return DeliverCallback { consumerTag: String, delivery: Delivery ->
             val message = String(delivery.body, StandardCharsets.UTF_8)
 
-            val smsRequest = Json.decodeFromString<SMSRequest>(message)
-
-            CoroutineScope(Dispatchers.Default).launch {
+            CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    val smsRequest = Json.decodeFromString<SMSRequest>(message)
                     sendSMS(smsRequest, subscriptionId, consumerTag)
                 } catch (e: Exception) {
                     Log.e(javaClass.name, "", e)
@@ -177,6 +179,9 @@ class RMQConnectionService : Service() {
                                 if (it.isOpen)
                                     it.basicReject(delivery.envelope.deliveryTag, true)
                             }
+                        }
+                        else -> {
+                            e.printStackTrace()
                         }
                     }
                 }
@@ -237,6 +242,7 @@ class RMQConnectionService : Service() {
                     val bindingName = if (j > 0)
                         gatewayClientProjects.binding2Name else gatewayClientProjects.binding1Name
 
+                    Log.d(javaClass.name, "Starting channel for sim slot $j in project #$i")
                     startChannelConsumption(rmqConnection, channel, subscriptionId,
                             gatewayClientProjects, bindingName)
                 }
@@ -261,23 +267,23 @@ class RMQConnectionService : Service() {
         }
     }
 
-    fun startChannelConsumption(rmqConnection: RMQConnection,
+    private fun startChannelConsumption(rmqConnection: RMQConnection,
                                 channel: Channel,
                                 subscriptionId: Int,
                                 gatewayClientProjects: GatewayClientProjects,
                                 bindingName: String) {
+        Log.d(javaClass.name, "Starting channel connection")
         channel.basicRecover(true)
         val deliverCallback = getDeliverCallback(channel, subscriptionId)
         val queueName = rmqConnection.createQueue(gatewayClientProjects.name, bindingName, channel)
         val messagesCount = channel.messageCount(queueName)
 
-        Log.d(javaClass.name, "Created Queue: $queueName ($messagesCount)")
-
         val consumerTag = channel.basicConsume(queueName, false, deliverCallback,
                 object : ConsumerShutdownSignalCallback {
                     override fun handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException) {
-                        Log.e(javaClass.name, "Consumer error: " + sig.message)
+                        println("Some error occuring with design")
                         if (rmqConnection.connection.isOpen) {
+                            Log.e(javaClass.name, "Consumer error", sig)
                             startChannelConsumption(rmqConnection,
                                     rmqConnection.createChannel(),
                                     subscriptionId,
@@ -286,6 +292,7 @@ class RMQConnectionService : Service() {
                         }
                     }
                 })
+        Log.d(javaClass.name, "Created Queue: $queueName ($messagesCount) - tag: $consumerTag")
         rmqConnection.bindChannelToTag(channel, consumerTag)
     }
 

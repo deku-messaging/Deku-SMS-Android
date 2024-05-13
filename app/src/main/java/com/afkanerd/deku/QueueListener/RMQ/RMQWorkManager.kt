@@ -23,6 +23,7 @@ class RMQWorkManager(context: Context, workerParams: WorkerParameters) : Worker(
         if (sharedPreferences.all.isNotEmpty()) {
             try {
                 applicationContext.startForegroundService(intent)
+                Log.d(javaClass.name, "Started RMQConnection foreground service")
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Exception with starting RMQ services:", e)
                 if (e is ForegroundServiceStartNotAllowedException) {
