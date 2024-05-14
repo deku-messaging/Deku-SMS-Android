@@ -63,8 +63,9 @@ class GatewayClient {
                     }
         }
 
-        var STATE_DISCONNECTED = 0
-        var STATE_RECONNECTING = 1
-        var STATE_CONNECTED = 2
+        val STATE_DISCONNECTED = 0
+        const val STATE_RECONNECTING = 1
+        const val STATE_CONNECTED = 2
+        const val GATEWAY_CLIENT_ID = "GATEWAY_CLIENT_ID"
     }
 }

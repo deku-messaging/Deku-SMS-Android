@@ -19,6 +19,7 @@ import android.util.Log
 import android.view.inputmethod.CorrectionInfo
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -27,8 +28,10 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects
 import com.rabbitmq.client.Channel
@@ -58,20 +61,26 @@ import java.util.concurrent.TimeoutException
 class RMQConnectionService : Service() {
     private lateinit var databaseConnector: Datastore
     private lateinit var subscriptionInfoList: List<SubscriptionInfo>
-    private val resourceSemaphore = Semaphore(1)
     private lateinit var messageStateChangedBroadcast: BroadcastReceiver
-    private lateinit var gatewayClientLiveData: LiveData<List<GatewayClient>>
-    val observer = Observer<List<GatewayClient>> {
-        createForegroundNotification(it)
+    private var gatewayClientLiveData: LiveData<GatewayClient> = MutableLiveData()
+
+    val observer = Observer<GatewayClient> {
+        if(it.activated && it.state != GatewayClient.STATE_DISCONNECTED)
+            connectGatewayClient(it)
     }
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        startAllGatewayClientConnections()
+        createForegroundNotification()
+        val gatewayClientId = intent.getLongExtra(GatewayClient.GATEWAY_CLIENT_ID, -1)
+        gatewayClientLiveData.observeForever(observer)
+        ThreadingPoolExecutor.executorService.execute {
+            gatewayClientLiveData = databaseConnector.gatewayClientDAO()
+                    .fetchLiveData(gatewayClientId)
+        }
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(javaClass.name, "Ending connection...")
         unregisterReceiver(messageStateChangedBroadcast)
         gatewayClientLiveData.removeObserver(observer)
     }
@@ -85,12 +94,6 @@ class RMQConnectionService : Service() {
         databaseConnector = Datastore.getDatastore(applicationContext)
         subscriptionInfoList = SIMHandler.getSimCardInformation(applicationContext)
         handleBroadcast()
-        notificationObservability()
-    }
-
-    private fun notificationObservability() {
-        gatewayClientLiveData = databaseConnector.gatewayClientDAO().fetch()
-        gatewayClientLiveData.observeForever(observer)
     }
 
     private fun handleBroadcast() {
@@ -148,9 +151,9 @@ class RMQConnectionService : Service() {
                                 consumerTag: String,
                                 deliveryTag: Long,
                                 rmqConnectionId: Long) {
-        resourceSemaphore.acquire()
+        SemaphoreManager.resourceSemaphore.acquire()
         val messageId = System.currentTimeMillis()
-        resourceSemaphore.release()
+        SemaphoreManager.resourceSemaphore.release()
 
         val threadId = Telephony.Threads.getOrCreateThreadId(applicationContext, smsRequest.to)
 
@@ -212,16 +215,6 @@ class RMQConnectionService : Service() {
         }
     }
 
-    private fun startAllGatewayClientConnections() {
-        Log.d(javaClass.name, "Starting all connections...")
-
-        ThreadingPoolExecutor.executorService.execute {
-            databaseConnector.gatewayClientDAO().all.forEach {
-                connectGatewayClient(it)
-            }
-        }
-    }
-
 
     private val rmqConnectionList = ArrayList<RMQConnection>()
     private fun startConnection(factory: ConnectionFactory, gatewayClient: GatewayClient) {
@@ -245,9 +238,12 @@ class RMQConnectionService : Service() {
                  * from the database connection state then reconnect this client
                  */
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
-                if(databaseConnector.gatewayClientDAO().fetch(gatewayClient.id).activated) {
+                val gatewayClient1 = databaseConnector.gatewayClientDAO().fetch(gatewayClient.id)
+                if(gatewayClient1.activated) {
                     rmqConnectionList.remove(rmqConnection)
-                    startConnection(factory, gatewayClient)
+                    gatewayClient1.state = GatewayClient.STATE_DISCONNECTED
+                    databaseConnector.gatewayClientDAO().update(gatewayClient1)
+                    GatewayClientHandler.startListening(applicationContext, gatewayClient)
                 }
             }
 
@@ -331,19 +327,6 @@ class RMQConnectionService : Service() {
             10000
         }
 
-//        factory.setTrafficListener(object : TrafficListener {
-//            override fun write(outboundCommand: Command) {
-//            }
-//
-//            override fun read(inboundCommand: Command) {
-//                if (disconnected) {
-//                    Objects.requireNonNull(connectionList[gatewayClient.id]).abort()
-//                    connectionList.remove(gatewayClient.id)
-//                    startAllGatewayClientConnections()
-//                    disconnected = false
-//                }
-//            }
-//        })
         startConnection(factory, gatewayClient)
     }
 
@@ -360,7 +343,7 @@ class RMQConnectionService : Service() {
 
     }
 
-    private fun createForegroundNotification(gatewayClients: List<GatewayClient>) {
+    private fun createForegroundNotification() {
         val notificationIntent = Intent(applicationContext, GatewayClientListingActivity::class.java)
         val pendingIntent = PendingIntent
                 .getActivity(applicationContext,
@@ -368,29 +351,30 @@ class RMQConnectionService : Service() {
                         notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE)
 
-        databaseConnector.gatewayClientDAO().fetch()
+//        databaseConnector.gatewayClientDAO().fetch()
+//
+//        var nConnected = 0
+//        var nReconnecting = 0
+//        gatewayClients.forEach {
+//            if(it.activated) {
+//                when(it.state) {
+//                    GatewayClient.STATE_CONNECTED -> nConnected++
+//                    GatewayClient.STATE_RECONNECTING -> nReconnecting++
+//                }
+//                if (nConnected < 1 && nReconnecting < 1) {
+//                    stopForeground(STOP_FOREGROUND_REMOVE)
+//                    stopSelf()
+//                }
+//            }
+//        }
 
-        var nConnected = 0
-        var nReconnecting = 0
-        gatewayClients.forEach {
-            if(it.activated) {
-                when(it.state) {
-                    GatewayClient.STATE_CONNECTED -> nConnected++
-                    GatewayClient.STATE_RECONNECTING -> nReconnecting++
-                }
-                if (nConnected < 1 && nReconnecting < 1) {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    stopSelf()
-                }
-            }
-        }
-
-        val description = "$nConnected ${getString(R.string.gateway_client_running_description)}\n" +
-                "$nReconnecting ${getString(R.string.gateway_client_reconnecting_description)}"
+//        val description = "$nConnected ${getString(R.string.gateway_client_running_description)}\n" +
+//                "$nReconnecting ${getString(R.string.gateway_client_reconnecting_description)}"
+        val description = applicationContext.getString(R.string.gateway_client_running_description)
 
         val notification =
                 NotificationCompat.Builder(applicationContext,
-                        getString(R.string.running_gateway_clients_channel_id))
+                        applicationContext.getString(R.string.running_gateway_clients_channel_id))
                         .setContentTitle(applicationContext
                                 .getString(R.string.gateway_client_running_title))
                         .setSmallIcon(R.drawable.ic_stat_name)
@@ -401,7 +385,7 @@ class RMQConnectionService : Service() {
                         .setContentIntent(pendingIntent)
                         .build()
 
-        val NOTIFICATION_ID: Int = 1234
+        val NOTIFICATION_ID = 1234
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(NOTIFICATION_ID, notification,
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)

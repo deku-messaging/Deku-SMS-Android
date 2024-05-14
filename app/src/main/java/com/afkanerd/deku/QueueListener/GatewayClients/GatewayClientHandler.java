@@ -7,6 +7,7 @@ import android.telephony.SubscriptionInfo;
 import androidx.startup.AppInitializer;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
+import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
@@ -90,63 +91,8 @@ public class GatewayClientHandler {
         return gatewayClient[0];
     }
 
-    public List<GatewayClient> fetchAll() throws InterruptedException {
-        final List<GatewayClient>[] gatewayClientList = new List[]{new ArrayList<>()};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                GatewayClientDAO gatewayClientDAO = databaseConnector.gatewayClientDAO();
-                gatewayClientList[0] = gatewayClientDAO.getAll();
-            }
-        });
-
-        thread.start();
-        thread.join();
-
-        return gatewayClientList[0];
-    }
-
     public final static String MIGRATIONS = "MIGRATIONS";
     public final static String MIGRATIONS_TO_11 = "MIGRATIONS_TO_11";
-    public void startServices(Context context) throws InterruptedException {
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .setRequiresBatteryNotLow(true)
-                .build();
-
-        try {
-            OneTimeWorkRequest gatewayClientListenerWorker = new OneTimeWorkRequest.Builder(RMQWorkManager.class)
-                    .setConstraints(constraints)
-                    .setBackoffCriteria(
-                            BackoffPolicy.LINEAR,
-                            OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                            TimeUnit.MILLISECONDS
-                    )
-                    .addTag(GatewayClient.class.getName())
-                    .build();
-
-            WorkManager workManager = WorkManager.getInstance(context);
-            workManager.enqueueUniqueWork(ThreadedConversationsActivity.UNIQUE_WORK_MANAGER_NAME,
-                    ExistingWorkPolicy.KEEP,
-                    gatewayClientListenerWorker);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static String getConnectionStatus(Context context, String gatewayClientId) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(
-                GatewayClientListingActivity.Companion.getGATEWAY_CLIENT_LISTENERS(), Context.MODE_PRIVATE);
-
-        if(sharedPreferences.contains(gatewayClientId)) {
-            if(sharedPreferences.getBoolean(gatewayClientId, false)) {
-                return context.getString(R.string.gateway_client_customization_connected);
-            } else {
-                return context.getString(R.string.gateway_client_customization_reconnecting);
-            }
-        }
-        return context.getString(R.string.gateway_client_customization_deactivated);
-    }
 
     public static List<String> getPublisherDetails(Context context, String projectName) {
         List<SubscriptionInfo> simcards = SIMHandler.getSimCardInformation(context);
