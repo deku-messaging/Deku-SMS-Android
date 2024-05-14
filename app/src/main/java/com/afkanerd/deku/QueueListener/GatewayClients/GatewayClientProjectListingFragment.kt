@@ -1,7 +1,6 @@
 package com.afkanerd.deku.QueueListener.GatewayClients
 
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -125,12 +124,14 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
             GatewayClientHandler.startListening(requireContext(), gatewayClient)
             return true
         }
-//        if (item.itemId == R.id.gateway_client_project_disconnect) {
-//            sharedPreferences!!.edit().remove(id.toString())
-//                .apply()
-//            finish()
-//            return true
-//        }
+        if (item.itemId == R.id.gateway_client_project_disconnect) {
+            gatewayClient.activated = false
+            ThreadingPoolExecutor.executorService.execute {
+                Datastore.getDatastore(requireContext()).gatewayClientDAO().update(gatewayClient)
+            }
+            GatewayClientHandler.startListening(requireContext(), gatewayClient)
+            return true
+        }
         return false
     }
 }

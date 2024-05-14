@@ -15,17 +15,14 @@ import androidx.work.WorkManager;
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity;
 import com.afkanerd.deku.Datastore;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.QueueListener.RMQ.RMQWorkManager;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.WorkManagerInitializer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class GatewayClientHandler {
@@ -170,21 +167,17 @@ public class GatewayClientHandler {
         return operatorDetails;
     }
 
-    public static void setListening(Context context, GatewayClient gatewayClient) throws InterruptedException {
-        SharedPreferences sharedPreferences = context
-                .getSharedPreferences(GatewayClientListingActivity.Companion
-                                .getGATEWAY_CLIENT_LISTENERS(),
-                Context.MODE_PRIVATE);
-        sharedPreferences.edit()
-                .putBoolean(String.valueOf(gatewayClient.getId()), false)
-                .apply();
-    }
 
     public static void startListening(Context context, GatewayClient gatewayClient) throws InterruptedException {
-        GatewayClientHandler.setListening(context, gatewayClient);
-//        new GatewayClientHandler(context).startServices(context);
-        AppInitializer.getInstance(context)
-                .initializeComponent(WorkManagerInitializer.class);
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                Datastore.getDatastore(context).gatewayClientDAO().update(gatewayClient);
+                if(gatewayClient.getActivated())
+                    AppInitializer.getInstance(context)
+                            .initializeComponent(WorkManagerInitializer.class);
+            }
+        });
     }
 
 }

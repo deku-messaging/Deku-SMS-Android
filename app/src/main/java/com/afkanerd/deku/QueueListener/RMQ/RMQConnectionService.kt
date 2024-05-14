@@ -329,7 +329,6 @@ class RMQConnectionService : Service() {
         factory.setRecoveryDelayHandler {
             Log.w(javaClass.name, "Factory recovering...: $it")
             10000
-            TODO("Let WorkManager handle everything from here")
         }
 
 //        factory.setTrafficListener(object : TrafficListener {
@@ -359,10 +358,6 @@ class RMQConnectionService : Service() {
             }
         }
 
-        if (rmqConnectionList.isEmpty()) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
-        }
     }
 
     private fun createForegroundNotification(gatewayClients: List<GatewayClient>) {
@@ -382,6 +377,10 @@ class RMQConnectionService : Service() {
                 when(it.state) {
                     GatewayClient.STATE_CONNECTED -> nConnected++
                     GatewayClient.STATE_RECONNECTING -> nReconnecting++
+                }
+                if (nConnected < 1 && nReconnecting < 1) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
                 }
             }
         }

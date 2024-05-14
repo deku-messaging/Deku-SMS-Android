@@ -10,17 +10,20 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.Companion.GATEWAY_CLIENT_LISTENERS
 
 
 class RMQWorkManager(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
     override fun doWork(): Result {
         val intent = Intent(applicationContext, RMQConnectionService::class.java)
-        val sharedPreferences = applicationContext
-                .getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE)
-        if (sharedPreferences.all.isNotEmpty()) {
+
+        if (Datastore.getDatastore(applicationContext).gatewayClientDAO().fetchActivated()
+                .isNotEmpty()) {
             try {
                 applicationContext.startForegroundService(intent)
                 Log.d(javaClass.name, "Started RMQConnection foreground service")
