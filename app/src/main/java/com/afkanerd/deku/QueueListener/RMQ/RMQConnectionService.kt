@@ -18,6 +18,8 @@ import android.telephony.SubscriptionInfo
 import android.util.Log
 import android.view.inputmethod.CorrectionInfo
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.Datastore
@@ -58,6 +60,10 @@ class RMQConnectionService : Service() {
     private lateinit var subscriptionInfoList: List<SubscriptionInfo>
     private val resourceSemaphore = Semaphore(1)
     private lateinit var messageStateChangedBroadcast: BroadcastReceiver
+    private lateinit var gatewayClientLiveData: LiveData<List<GatewayClient>>
+    val observer = Observer<List<GatewayClient>> {
+        createForegroundNotification(it)
+    }
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         startAllGatewayClientConnections()
         return START_STICKY
@@ -67,6 +73,7 @@ class RMQConnectionService : Service() {
         super.onDestroy()
         Log.d(javaClass.name, "Ending connection...")
         unregisterReceiver(messageStateChangedBroadcast)
+        gatewayClientLiveData.removeObserver(observer)
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -78,6 +85,12 @@ class RMQConnectionService : Service() {
         databaseConnector = Datastore.getDatastore(applicationContext)
         subscriptionInfoList = SIMHandler.getSimCardInformation(applicationContext)
         handleBroadcast()
+        notificationObservability()
+    }
+
+    private fun notificationObservability() {
+        gatewayClientLiveData = databaseConnector.gatewayClientDAO().fetch()
+        gatewayClientLiveData.observeForever(observer)
     }
 
     private fun handleBroadcast() {
@@ -125,9 +138,7 @@ class RMQConnectionService : Service() {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            registerReceiver(messageStateChangedBroadcast, intentFilter, RECEIVER_EXPORTED)
-        else registerReceiver(messageStateChangedBroadcast, intentFilter)
+        registerReceiver(messageStateChangedBroadcast, intentFilter, RECEIVER_EXPORTED)
     }
 
     @Serializable
@@ -203,7 +214,6 @@ class RMQConnectionService : Service() {
 
     private fun startAllGatewayClientConnections() {
         Log.d(javaClass.name, "Starting all connections...")
-        createForegroundNotification()
 
         ThreadingPoolExecutor.executorService.execute {
             databaseConnector.gatewayClientDAO().all.forEach {
@@ -235,10 +245,8 @@ class RMQConnectionService : Service() {
                  * from the database connection state then reconnect this client
                  */
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
-                if(databaseConnector.gatewayClientDAO().fetch(gatewayClient.id)
-                                .activated) {
+                if(databaseConnector.gatewayClientDAO().fetch(gatewayClient.id).activated) {
                     rmqConnectionList.remove(rmqConnection)
-                    createForegroundNotification()
                     startConnection(factory, gatewayClient)
                 }
             }
@@ -260,7 +268,6 @@ class RMQConnectionService : Service() {
                 }
             }
 
-            createForegroundNotification()
         } catch (e: Exception) {
             when(e) {
                 is TimeoutException -> {
@@ -293,7 +300,6 @@ class RMQConnectionService : Service() {
         val consumerTag = channel.basicConsume(queueName, false, deliverCallback,
                 object : ConsumerShutdownSignalCallback {
                     override fun handleShutdownSignal(consumerTag: String, sig: ShutdownSignalException) {
-                        println("Some error occuring with design")
                         if (rmqConnection.connection.isOpen) {
                             Log.e(javaClass.name, "Consumer error", sig)
                             startChannelConsumption(rmqConnection,
@@ -322,8 +328,8 @@ class RMQConnectionService : Service() {
 
         factory.setRecoveryDelayHandler {
             Log.w(javaClass.name, "Factory recovering...: $it")
-            createForegroundNotification()
             10000
+            TODO("Let WorkManager handle everything from here")
         }
 
 //        factory.setTrafficListener(object : TrafficListener {
@@ -356,12 +362,10 @@ class RMQConnectionService : Service() {
         if (rmqConnectionList.isEmpty()) {
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
-        } else {
-            createForegroundNotification()
         }
     }
 
-    private fun createForegroundNotification() {
+    private fun createForegroundNotification(gatewayClients: List<GatewayClient>) {
         val notificationIntent = Intent(applicationContext, GatewayClientListingActivity::class.java)
         val pendingIntent = PendingIntent
                 .getActivity(applicationContext,
@@ -369,10 +373,21 @@ class RMQConnectionService : Service() {
                         notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE)
 
-        var description = "N/A ${getString(R.string.gateway_client_running_description)}"
+        databaseConnector.gatewayClientDAO().fetch()
 
-//        if (reconnecting > 0)
-//            description += "N/A ${getString(R.string.gateway_client_reconnecting_description)}"
+        var nConnected = 0
+        var nReconnecting = 0
+        gatewayClients.forEach {
+            if(it.activated) {
+                when(it.state) {
+                    GatewayClient.STATE_CONNECTED -> nConnected++
+                    GatewayClient.STATE_RECONNECTING -> nReconnecting++
+                }
+            }
+        }
+
+        val description = "$nConnected ${getString(R.string.gateway_client_running_description)}\n" +
+                "$nReconnecting ${getString(R.string.gateway_client_reconnecting_description)}"
 
         val notification =
                 NotificationCompat.Builder(applicationContext,

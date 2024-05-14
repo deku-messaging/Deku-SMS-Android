@@ -20,6 +20,9 @@ public interface GatewayClientDAO {
     @Query("SELECT * FROM GatewayClient")
     LiveData<List<GatewayClient>> fetch();
 
+    @Query("SELECT * FROM GatewayClient WHERE state = :state")
+    LiveData<List<GatewayClient>> fetchByState(int state);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(GatewayClient gatewayClient);
 
