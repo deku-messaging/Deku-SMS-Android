@@ -16,6 +16,7 @@ import android.widget.RadioGroup;
 
 import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -163,17 +164,12 @@ public class GatewayClientAddActivity extends AppCompatActivity {
             sharedPreferences.edit().remove(String.valueOf(id))
                     .apply();
 
-            GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-//                GatewayClient gatewayClient = gatewayClientHandler.fetch(id);
-//                gatewayClientHandler.delete(gatewayClient);
-            new Thread(new Runnable() {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    GatewayClient gatewayClient = datastore.gatewayClientDAO().fetch(id);
-                    datastore.gatewayClientDAO().delete(gatewayClient);
                     datastore.gatewayClientProjectDao().deleteGatewayClientId(id);
                 }
-            }).start();
+            });
 
             startActivity(new Intent(this, GatewayClientListingActivity.class));
             finish();

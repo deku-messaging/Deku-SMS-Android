@@ -255,9 +255,8 @@ class RMQConnectionService : Service() {
                 val gatewayClient1 = databaseConnector.gatewayClientDAO().fetch(gatewayClient.id)
                 if(gatewayClient1.activated) {
                     rmqConnectionList.remove(rmqConnection)
-                    gatewayClient1.state = GatewayClient.STATE_RECONNECTING
-                    databaseConnector.gatewayClientDAO().update(gatewayClient1)
                     GatewayClientHandler.startListening(applicationContext, gatewayClient)
+                    stopSelf()
                 }
             }
 
@@ -333,7 +332,7 @@ class RMQConnectionService : Service() {
         factory.virtualHost = gatewayClient.virtualHost
         factory.host = gatewayClient.hostUrl
         factory.port = gatewayClient.port
-        factory.isAutomaticRecoveryEnabled = true
+//        factory.isAutomaticRecoveryEnabled = true
         factory.exceptionHandler = DefaultExceptionHandler()
 
         factory.setRecoveryDelayHandler {
