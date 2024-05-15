@@ -14,13 +14,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioGroup;
 
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class GatewayClientAddActivity extends AppCompatActivity {
-
     Toolbar toolbar;
+
+    Datastore datastore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,8 @@ public class GatewayClientAddActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         getSupportActionBar().setTitle(getString(R.string.add_new_gateway_server_toolbar_title));
+
+        datastore = Datastore.getDatastore(getApplicationContext());
 
         if(getIntent().hasExtra(GatewayClientListingActivity.Companion.getGATEWAY_CLIENT_ID())) {
             try {
@@ -165,12 +169,9 @@ public class GatewayClientAddActivity extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    GatewayClient gatewayClient = gatewayClientHandler.databaseConnector
-                            .gatewayClientDAO().fetch(id);
-                    gatewayClientHandler.databaseConnector.gatewayClientDAO()
-                            .delete(gatewayClient);
-                    gatewayClientHandler.databaseConnector.gatewayClientProjectDao()
-                            .deleteGatewayClientId(id);
+                    GatewayClient gatewayClient = datastore.gatewayClientDAO().fetch(id);
+                    datastore.gatewayClientDAO().delete(gatewayClient);
+                    datastore.gatewayClientProjectDao().deleteGatewayClientId(id);
                 }
             }).start();
 

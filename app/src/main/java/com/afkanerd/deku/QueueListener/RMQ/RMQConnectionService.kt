@@ -65,24 +65,39 @@ class RMQConnectionService : Service() {
     private var gatewayClientLiveData: LiveData<GatewayClient> = MutableLiveData()
 
     val observer = Observer<GatewayClient> {
-        if(it.activated && it.state != GatewayClient.STATE_DISCONNECTED)
-            connectGatewayClient(it)
+        Log.d(javaClass.name, "Gateway client changed")
+        if(!it.activated) {
+            stopSelf()
+        }
+        else if(it.state == GatewayClient.STATE_DISCONNECTED)
+            ThreadingPoolExecutor.executorService.execute {
+                connectGatewayClient(it)
+            }
     }
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         createForegroundNotification()
         val gatewayClientId = intent.getLongExtra(GatewayClient.GATEWAY_CLIENT_ID, -1)
+        Assert.assertTrue(gatewayClientId.toInt() != -1)
+        gatewayClientLiveData = databaseConnector.gatewayClientDAO().fetchLiveData(gatewayClientId)
         gatewayClientLiveData.observeForever(observer)
-        ThreadingPoolExecutor.executorService.execute {
-            gatewayClientLiveData = databaseConnector.gatewayClientDAO()
-                    .fetchLiveData(gatewayClientId)
-        }
+//        ThreadingPoolExecutor.executorService.execute {
+//            val gatewayClient = databaseConnector.gatewayClientDAO().fetch(gatewayClientId)
+//            connectGatewayClient(gatewayClient)
+//        }
+//        gatewayClientLiveData.value!!.state = GatewayClient.STATE_RECONNECTING
+//        databaseConnector.gatewayClientDAO().update(gatewayClientLiveData.value)
         return START_STICKY
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         unregisterReceiver(messageStateChangedBroadcast)
         gatewayClientLiveData.removeObserver(observer)
+        ThreadingPoolExecutor.executorService.execute {
+            val gatewayClient = gatewayClientLiveData.value
+            gatewayClient?.state = GatewayClient.STATE_DISCONNECTED
+            Datastore.getDatastore(applicationContext).gatewayClientDAO().update(gatewayClient)
+        }
+        super.onDestroy()
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -219,10 +234,9 @@ class RMQConnectionService : Service() {
     private val rmqConnectionList = ArrayList<RMQConnection>()
     private fun startConnection(factory: ConnectionFactory, gatewayClient: GatewayClient) {
         Log.d(javaClass.name, "Starting new connection...")
-        gatewayClient.state = GatewayClient.STATE_RECONNECTING
-        databaseConnector.gatewayClientDAO().update(gatewayClient)
 
         // TODO: use this without internet connection and catch that error and best handle
+        gatewayClient.state = GatewayClient.STATE_INITIALIZING
         try {
             val connection = factory.newConnection(ThreadingPoolExecutor.executorService,
                     gatewayClient.friendlyConnectionName)
@@ -241,7 +255,7 @@ class RMQConnectionService : Service() {
                 val gatewayClient1 = databaseConnector.gatewayClientDAO().fetch(gatewayClient.id)
                 if(gatewayClient1.activated) {
                     rmqConnectionList.remove(rmqConnection)
-                    gatewayClient1.state = GatewayClient.STATE_DISCONNECTED
+                    gatewayClient1.state = GatewayClient.STATE_RECONNECTING
                     databaseConnector.gatewayClientDAO().update(gatewayClient1)
                     GatewayClientHandler.startListening(applicationContext, gatewayClient)
                 }

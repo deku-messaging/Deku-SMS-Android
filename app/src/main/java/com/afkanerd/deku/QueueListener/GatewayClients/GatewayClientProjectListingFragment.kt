@@ -117,18 +117,17 @@ class GatewayClientProjectListingFragment(val gatewayClientId: Long) :
             return true
         }
         if (item.itemId == R.id.gateway_client_project_connect) {
+//            val gatewayClient = Datastore.getDatastore(requireContext()).gatewayClientDAO()
+//                    .fetch(gatewayClientId)
             gatewayClient.activated = true
-            ThreadingPoolExecutor.executorService.execute {
-                Datastore.getDatastore(requireContext()).gatewayClientDAO().update(gatewayClient)
-            }
             GatewayClientHandler.startListening(requireContext(), gatewayClient)
             return true
         }
         if (item.itemId == R.id.gateway_client_project_disconnect) {
+//            val gatewayClient = Datastore.getDatastore(requireContext()).gatewayClientDAO()
+//                    .fetch(gatewayClientId)
             gatewayClient.activated = false
-            ThreadingPoolExecutor.executorService.execute {
-                Datastore.getDatastore(requireContext()).gatewayClientDAO().update(gatewayClient)
-            }
+//            Datastore.getDatastore(requireContext()).gatewayClientDAO().update(gatewayClient)
             GatewayClientHandler.startListening(requireContext(), gatewayClient)
             return true
         }
