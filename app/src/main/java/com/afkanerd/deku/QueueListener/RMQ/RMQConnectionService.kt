@@ -21,6 +21,7 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.work.WorkInfo
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.Datastore
@@ -74,18 +75,20 @@ class RMQConnectionService : Service() {
                 connectGatewayClient(it)
             }
     }
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+
+    private val workManagerObserver = Observer<List<WorkInfo>> {
         createForegroundNotification()
+    }
+
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+//        createForegroundNotification()
+        RMQServiceMonitor.monitorRMQConnections(applicationContext)
+                .observeForever(workManagerObserver)
+
         val gatewayClientId = intent.getLongExtra(GatewayClient.GATEWAY_CLIENT_ID, -1)
         Assert.assertTrue(gatewayClientId.toInt() != -1)
         gatewayClientLiveData = databaseConnector.gatewayClientDAO().fetchLiveData(gatewayClientId)
         gatewayClientLiveData.observeForever(observer)
-//        ThreadingPoolExecutor.executorService.execute {
-//            val gatewayClient = databaseConnector.gatewayClientDAO().fetch(gatewayClientId)
-//            connectGatewayClient(gatewayClient)
-//        }
-//        gatewayClientLiveData.value!!.state = GatewayClient.STATE_RECONNECTING
-//        databaseConnector.gatewayClientDAO().update(gatewayClientLiveData.value)
         return START_STICKY
     }
 

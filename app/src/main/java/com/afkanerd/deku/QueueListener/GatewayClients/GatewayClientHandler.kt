@@ -132,7 +132,7 @@ class GatewayClientHandler(context: Context?) {
                                 .setInputData(Data.Builder()
                                         .putLong(GatewayClient.GATEWAY_CLIENT_ID, it.id)
                                         .build())
-                                .addTag(GatewayClient::class.simpleName!!)
+                                .addTag(GatewayClient::class.java.name)
                                 .build();
 
                         workManager.enqueueUniqueWork(

@@ -137,8 +137,8 @@ object RouterHandler {
     }
 
     fun getMessageIdsFromWorkManagers(context: Context): LiveData<List<WorkInfo>> {
-        AppInitializer.getInstance(context)
-                .initializeComponent(WorkManagerInitializer::class.java)
+//        AppInitializer.getInstance(context)
+//                .initializeComponent(WorkManagerInitializer::class.java)
         val workManager = WorkManager.getInstance(context)
         return workManager.getWorkInfosByTagLiveData(TAG_NAME_GATEWAY_SERVER)
     }
