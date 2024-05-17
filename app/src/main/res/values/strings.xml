@@ -144,6 +144,7 @@
     <string name="gateway_client_running_title">Gateway Client: Node Running</string>
     <string name="gateway_client_running_description">Gateway clients connected</string>
     <string name="gateway_client_reconnecting_description">Gateway clients reconnecting…</string>
+    <string name="gateway_client_enqueue_description">Gateway clients waiting for connection…</string>
 
     <string name="homepage_fragment_tab_encrypted">Encrypted</string>
 

@@ -22,6 +22,7 @@ import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivi
 
 class RMQConnectionService : Service() {
     private var nConnected = 0
+    private var nEnqueued = 0
     private var nReconnecting = 0
 
     private lateinit var gatewayClientListLiveData: LiveData<List<GatewayClient>>
@@ -36,17 +37,14 @@ class RMQConnectionService : Service() {
     }
 
     private val workManagerObserver = Observer<List<WorkInfo>> {
+        nConnected = 0
+        nEnqueued = 0
+        nReconnecting = 0
         it.forEach { workInfo ->
             when(workInfo.state) {
-                WorkInfo.State.ENQUEUED -> { }
-                WorkInfo.State.RUNNING -> {
-                    ++nReconnecting
-                    nConnected = if(nConnected <= 0) 0 else nConnected -1
-                }
-                WorkInfo.State.SUCCEEDED -> {
-                    nReconnecting = if(nReconnecting <= 0) 0 else nReconnecting -1
-                    ++nConnected
-                }
+                WorkInfo.State.ENQUEUED -> ++nEnqueued
+                WorkInfo.State.RUNNING -> ++nReconnecting
+                WorkInfo.State.SUCCEEDED -> ++nConnected
                 WorkInfo.State.FAILED -> {}
                 WorkInfo.State.BLOCKED -> {}
                 WorkInfo.State.CANCELLED -> {}
@@ -92,13 +90,15 @@ class RMQConnectionService : Service() {
                         notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE)
 
-        val description = "$nConnected ${getString(R.string.gateway_client_running_description)}\n" +
+        val description = "$nEnqueued ${getString(R.string.gateway_client_enqueue_description)}\n" +
                 "$nReconnecting ${getString(R.string.gateway_client_reconnecting_description)}"
+
+        val title = "$nConnected ${getString(R.string.gateway_client_running_description)}"
 
         val notification =
                 NotificationCompat.Builder(applicationContext,
                         getString(R.string.running_gateway_clients_channel_id))
-                        .setContentTitle(getString(R.string.gateway_client_running_title))
+                        .setContentTitle(title)
                         .setSmallIcon(R.drawable.ic_stat_name)
                         .setPriority(NotificationCompat.DEFAULT_ALL)
                         .setSilent(true)

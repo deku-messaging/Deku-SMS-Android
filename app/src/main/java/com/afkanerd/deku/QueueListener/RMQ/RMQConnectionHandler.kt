@@ -217,6 +217,7 @@ class RMQConnectionHandler(val context: Context, val gatewayClientId: Long) {
             }
 
         } catch (e: Exception) {
+            e.printStackTrace()
             when(e) {
                 is TimeoutException -> {
                     e.printStackTrace()
