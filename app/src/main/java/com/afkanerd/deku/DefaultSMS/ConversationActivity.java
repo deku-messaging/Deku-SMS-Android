@@ -525,6 +525,8 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onChanged(Conversation conversation) {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
+
+                // TODO: make this call a modal sheet and work from there
                 ThreadingPoolExecutor.executorService.execute(new Runnable() {
                     @Override
                     public void run() {
