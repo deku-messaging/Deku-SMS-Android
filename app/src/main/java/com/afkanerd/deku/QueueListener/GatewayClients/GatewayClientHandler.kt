@@ -101,42 +101,36 @@ class GatewayClientHandler(context: Context?) {
                     Datastore.getDatastore(context).gatewayClientDAO().update(gatewayClient)
                     Log.d(javaClass.name, "Gateway client: " + gatewayClient.activated)
                     if (gatewayClient.activated)
-                        startWorkManager(context)
+                        startWorkManager(context, gatewayClient)
                 }
             })
         }
 
-        fun startWorkManager(context: Context) : WorkManager {
+        fun startWorkManager(context: Context, gatewayClient: GatewayClient) : WorkManager {
             val constraints : Constraints = Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build();
 
             val workManager = WorkManager.getInstance(context)
-            ThreadingPoolExecutor.executorService.execute {
-                Datastore.getDatastore(context).gatewayClientDAO().all.forEach {
-                    if(it.activated) {
-                        Log.d(javaClass.name, "WorkManager: ${it.id}:${it.hostUrl}")
-                        val gatewayClientListenerWorker = OneTimeWorkRequestBuilder<RMQWorkManager>()
-                                .setConstraints(constraints)
-                                .setBackoffCriteria(
-                                        BackoffPolicy.LINEAR,
-                                        WorkRequest.MIN_BACKOFF_MILLIS,
-                                        TimeUnit.MILLISECONDS
-                                )
-                                .setInputData(Data.Builder()
-                                        .putLong(GatewayClient.GATEWAY_CLIENT_ID, it.id)
-                                        .build())
-                                .addTag(GatewayClient::class.java.name)
-                                .build();
+            Log.d(javaClass.name, "WorkManager: ${gatewayClient.id}:${gatewayClient.hostUrl}")
+            val gatewayClientListenerWorker = OneTimeWorkRequestBuilder<RMQWorkManager>()
+                    .setConstraints(constraints)
+                    .setBackoffCriteria(
+                            BackoffPolicy.LINEAR,
+                            WorkRequest.MIN_BACKOFF_MILLIS,
+                            TimeUnit.MILLISECONDS
+                    )
+                    .setInputData(Data.Builder()
+                            .putLong(GatewayClient.GATEWAY_CLIENT_ID, gatewayClient.id)
+                            .build())
+                    .addTag(GatewayClient::class.java.name)
+                    .build();
 
-                        workManager.enqueueUniqueWork(
-                                ThreadedConversationsActivity.UNIQUE_WORK_MANAGER_NAME,
-                                ExistingWorkPolicy.KEEP,
-                                gatewayClientListenerWorker
-                        )
-                    }
-                }
-            }
+            workManager.enqueueUniqueWork(
+                    ThreadedConversationsActivity.UNIQUE_WORK_MANAGER_NAME,
+                    ExistingWorkPolicy.KEEP,
+                    gatewayClientListenerWorker
+            )
             return workManager
         }
     }
