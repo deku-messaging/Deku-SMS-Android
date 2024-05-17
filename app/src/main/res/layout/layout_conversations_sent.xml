@@ -4,70 +4,93 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingBottom="1dp">
+    android:gravity="end"
+    android:orientation="vertical">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/sent_message_date_segment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
-        tools:text="@string/thread_conversation_timestamp_yesterday"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
         android:textSize="@dimen/conversation_properties_default_font_size_subtext"
         android:visibility="gone"
+        tools:text="@string/thread_conversation_timestamp_yesterday"
         tools:visibility="visible" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/conversation_linear_layout"
-        android:orientation="vertical"
-        android:paddingStart="80dp"
-        android:paddingEnd="8dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
+        android:id="@+id/sent_message_linear_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_gravity="end"
-            android:id="@+id/message_sent_text"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:background="@drawable/sent_messages_drawable"
-            tools:text="@string/settings_add_gateway_server_protocol_meta_description"
-            android:textColor="@color/black"
-            android:paddingStart="12dp"
-            android:paddingTop="8dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="@dimen/conversation_properties_default_font_size" />
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/message_sent_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/sent_messages_drawable"
+                android:maxWidth="340dp"
+                android:paddingStart="12dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/black"
+                android:textSize="@dimen/conversation_properties_default_font_size"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/message_failed_indicator_img"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="@string/settings_add_gateway_server_protocol_meta_description" />
+
+            <ImageButton
+                android:id="@+id/message_failed_indicator_img"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:src="@drawable/exclamation_circle_svgrepo_com"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/message_sent_text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/message_sent_text"
+                tools:visibility="visible" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/conversation_status_linear_layout"
+            android:id="@+id/message_status_timestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:layout_gravity="end"
-            tools:visibility="visible"
-            android:visibility="gone">
+            android:visibility="gone"
+            tools:visibility="visible">
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/message_thread_sent_date_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="@string/sample_date"
                 android:layout_gravity="end"
                 android:textAlignment="textEnd"
-                android:textSize="@dimen/conversation_properties_default_font_size_subtext" />
+                android:textSize="@dimen/conversation_properties_default_font_size_subtext"
+                tools:text="@string/sample_date" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/message_thread_sent_status_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text=" * Delivered"
+                android:layout_marginEnd="8dp"
                 android:textSize="@dimen/conversation_properties_default_font_size_subtext"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/message_sent_text"
-                app:layout_constraintTop_toBottomOf="@+id/message_sent_text" />
-
+                tools:text=" * Delivered" />
         </androidx.appcompat.widget.LinearLayoutCompat>
+
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

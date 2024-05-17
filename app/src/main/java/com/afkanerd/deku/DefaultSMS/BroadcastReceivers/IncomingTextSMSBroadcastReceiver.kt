@@ -80,9 +80,11 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                         } catch (e: Exception) {
                             Log.e(javaClass.name,
                                     "Exception with sent message broadcast", e)
+                        } finally {
+                            Datastore.getDatastore(context).conversationDao()
+                                    ._update(conversation)
                         }
                     }
-                    Datastore.getDatastore(context).conversationDao()._update(conversation)
                 }
             })
         } else if (intent.action == SMS_DELIVERED_BROADCAST_INTENT) {

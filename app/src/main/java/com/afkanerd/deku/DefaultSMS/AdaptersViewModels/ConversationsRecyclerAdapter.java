@@ -76,15 +76,15 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 break;
             case TIMESTAMP_MESSAGE_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.TimestampConversationSentViewHandler(
-                        inflater.inflate(R.layout.conversations_sent_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_sent, parent, false));
                 break;
             case MESSAGE_KEY_OUTBOX:
-                View view = inflater.inflate(R.layout.conversations_sent_layout, parent, false);
+                View view = inflater.inflate(R.layout.layout_conversations_sent, parent, false);
                 returnView = new ConversationSentViewHandler.KeySentViewHandler(view);
                 break;
             case TIMESTAMP_KEY_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.TimestampKeySentViewHandler(
-                        inflater.inflate(R.layout.conversations_sent_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_sent, parent, false));
                 break;
             case MESSAGE_KEY_INBOX:
                 returnView = new ConversationReceivedViewHandler.KeyReceivedViewHandler(
@@ -112,23 +112,23 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 break;
             case TIMESTAMP_MESSAGE_START_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.TimestampKeySentStartGroupViewHandler(
-                        inflater.inflate(R.layout.conversations_sent_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_sent, parent, false));
                 break;
             case MESSAGE_START_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.ConversationSentStartViewHandler(
-                        inflater.inflate(R.layout.conversations_sent_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_sent, parent, false));
                 break;
             case MESSAGE_END_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.ConversationSentEndViewHandler(
-                        inflater.inflate(R.layout.conversations_sent_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_sent, parent, false));
                 break;
             case MESSAGE_MIDDLE_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.ConversationSentMiddleViewHandler(
-                        inflater.inflate(R.layout.conversations_sent_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_sent, parent, false));
                 break;
             default:
                 returnView = new ConversationSentViewHandler(
-                        inflater.inflate(R.layout.conversations_sent_layout, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_sent, parent, false));
         }
 
         return returnView;
@@ -159,12 +159,9 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         else if(holder instanceof ConversationSentViewHandler){
             ConversationSentViewHandler conversationSentViewHandler = (ConversationSentViewHandler) holder;
             conversationSentViewHandler.bind(conversation, searchString);
-            if(holder.getAbsoluteAdapterPosition() == 0 ) {
-                if(lastSentItem != null)
-                    lastSentItem.hideDetails();
-                lastSentItem = conversationSentViewHandler;
-                lastSentItem.messageStatusLinearLayoutCompact.setVisibility(View.VISIBLE);
-            }
+            if(holder.getAbsoluteAdapterPosition() != 0 ) {
+                conversationSentViewHandler.hideDetails();
+            } else conversationSentViewHandler.showDetails();
         }
 
     }

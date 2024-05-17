@@ -29,7 +29,7 @@
         android:id="@+id/conversation_received_linear_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/message_received_text"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -42,7 +42,7 @@
             android:paddingBottom="8dp"
             android:textSize="@dimen/conversation_properties_default_font_size" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/message_thread_received_date_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

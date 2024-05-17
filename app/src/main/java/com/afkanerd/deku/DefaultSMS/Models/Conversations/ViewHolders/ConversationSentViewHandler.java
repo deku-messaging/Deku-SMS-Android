@@ -5,6 +5,7 @@ import android.provider.Telephony;
 import android.text.Spannable;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -12,6 +13,7 @@ import androidx.annotation.NonNull;
 //import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
@@ -32,13 +34,9 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     TextView sentMessageStatus;
     TextView date;
     TextView timestamp;
-    ImageView imageView;
-    ConstraintLayout imageConstraintLayout;
-
     LinearLayoutCompat linearLayoutCompat;
-    public LinearLayoutCompat messageStatusLinearLayoutCompact;
-
     LinearLayoutCompat.LayoutParams layoutParams;
+    LinearLayoutCompat messageStatusTimestampLayout;
 
     boolean lastKnownStateIsFailed = false;
 
@@ -48,14 +46,9 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
         date = itemView.findViewById(R.id.message_thread_sent_date_text);
         timestamp = itemView.findViewById(R.id.sent_message_date_segment);
-        linearLayoutCompat = itemView.findViewById(R.id.conversation_linear_layout);
-        messageStatusLinearLayoutCompact = itemView.findViewById(R.id.conversation_status_linear_layout);
-
-//        constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
-//        imageConstraintLayout = itemView.findViewById(R.id.message_sent_image_container);
-//        imageView = itemView.findViewById(R.id.message_sent_image_view);
-//        constraint4 = itemView.findViewById(R.id.conversation_sent_layout_container);
-
+        messageStatusTimestampLayout = itemView.findViewById(R.id.message_status_timestamp);
+////        messageStatusLinearLayoutCompact = itemView.findViewById(R.id.conversation_status_linear_layout);
+        linearLayoutCompat = itemView.findViewById(R.id.sent_message_linear_layout);
         layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
         layoutParams.bottomMargin = Helpers.dpToPixel(16);
         linearLayoutCompat.setLayoutParams(layoutParams);
@@ -156,19 +149,19 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     @Override
     public void toggleDetails() {
-        int visibility = this.messageStatusLinearLayoutCompact.getVisibility() == View.VISIBLE ?
+        int visibility = this.messageStatusTimestampLayout.getVisibility() == View.VISIBLE ?
                 View.GONE : View.VISIBLE;
-        this.messageStatusLinearLayoutCompact.setVisibility(visibility);
+        this.messageStatusTimestampLayout.setVisibility(visibility);
     }
 
     @Override
     public void hideDetails() {
-        this.messageStatusLinearLayoutCompact.setVisibility(View.GONE);
+        this.messageStatusTimestampLayout.setVisibility(View.GONE);
     }
 
     @Override
     public void showDetails() {
-        this.messageStatusLinearLayoutCompact.setVisibility(View.VISIBLE);
+        this.messageStatusTimestampLayout.setVisibility(View.VISIBLE);
     }
 
     public static class TimestampConversationSentViewHandler extends ConversationSentViewHandler {
@@ -209,7 +202,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class TimestampKeySentStartGroupViewHandler extends TimestampConversationSentViewHandler {
         public TimestampKeySentStartGroupViewHandler(@NonNull View itemView) {
             super(itemView);
-
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
             linearLayoutCompat.setLayoutParams(layoutParams);
             sentMessage.setBackground(
@@ -263,7 +255,8 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         public ConversationSentMiddleViewHandler(@NonNull View itemView) {
             super(itemView);
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
-            linearLayoutCompat.setLayoutParams(layoutParams);
+//            linearLayoutCompat.setLayoutParams(layoutParams);
+            itemView.setLayoutParams(layoutParams);
 
             sentMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_middle_view_drawable));
