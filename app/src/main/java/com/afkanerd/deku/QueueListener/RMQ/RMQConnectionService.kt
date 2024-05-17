@@ -37,11 +37,13 @@ import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects
 import com.rabbitmq.client.Channel
+import com.rabbitmq.client.Command
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConsumerShutdownSignalCallback
 import com.rabbitmq.client.DeliverCallback
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.ShutdownSignalException
+import com.rabbitmq.client.TrafficListener
 import com.rabbitmq.client.impl.DefaultExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,18 +66,6 @@ class RMQConnectionService : Service() {
     private lateinit var databaseConnector: Datastore
     private lateinit var subscriptionInfoList: List<SubscriptionInfo>
     private lateinit var messageStateChangedBroadcast: BroadcastReceiver
-    private var gatewayClientLiveData: LiveData<GatewayClient> = MutableLiveData()
-
-    val observer = Observer<GatewayClient> {
-        Log.d(javaClass.name, "Gateway client changed")
-        if(!it.activated) {
-            stopSelf()
-        }
-        else if(it.state == GatewayClient.STATE_DISCONNECTED)
-            ThreadingPoolExecutor.executorService.execute {
-                connectGatewayClient(it)
-            }
-    }
 
     private val workManagerObserver = Observer<List<WorkInfo>> {
         it.forEach { workInfo ->
@@ -104,24 +94,14 @@ class RMQConnectionService : Service() {
 
         val gatewayClientId = intent.getLongExtra(GatewayClient.GATEWAY_CLIENT_ID, -1)
         Assert.assertTrue(gatewayClientId.toInt() != -1)
-        gatewayClientLiveData = databaseConnector.gatewayClientDAO().fetchLiveData(gatewayClientId)
-        gatewayClientLiveData.observeForever(observer)
+        connectGatewayClient(gatewayClientId)
         return START_STICKY
     }
 
     override fun onDestroy() {
-        unregisterReceiver(messageStateChangedBroadcast)
-
-        gatewayClientLiveData.removeObserver(observer)
-
-        Companion.destroy(workManagerObserver)
-
-        ThreadingPoolExecutor.executorService.execute {
-            val gatewayClient = gatewayClientLiveData.value
-            gatewayClient?.state = GatewayClient.STATE_DISCONNECTED
-            Datastore.getDatastore(applicationContext).gatewayClientDAO().update(gatewayClient)
-        }
         super.onDestroy()
+        unregisterReceiver(messageStateChangedBroadcast)
+        Companion.destroy(workManagerObserver)
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -259,12 +239,10 @@ class RMQConnectionService : Service() {
     private fun startConnection(factory: ConnectionFactory, gatewayClient: GatewayClient) {
         Log.d(javaClass.name, "Starting new connection...")
 
-        // TODO: use this without internet connection and catch that error and best handle
-        gatewayClient.state = GatewayClient.STATE_INITIALIZING
         try {
             val connection = factory.newConnection(ThreadingPoolExecutor.executorService,
                     gatewayClient.friendlyConnectionName)
-            gatewayClient.state = GatewayClient.STATE_CONNECTED
+
             databaseConnector.gatewayClientDAO().update(gatewayClient)
 
             val rmqConnection = RMQConnection(gatewayClient.id, connection)
@@ -273,15 +251,18 @@ class RMQConnectionService : Service() {
             connection.addShutdownListener {
                 /**
                  * The logic here, if the user has not deactivated this - which can be known
-                 * from the database connection state then reconnect this client
+                 * from the database connection state then reconnect this client.
                  */
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
-                val gatewayClient1 = databaseConnector.gatewayClientDAO().fetch(gatewayClient.id)
-                if(gatewayClient1.activated) {
-                    rmqConnectionList.remove(rmqConnection)
-                    GatewayClientHandler.startListening(applicationContext, gatewayClient)
-                    stopSelf()
-                }
+
+                stop()
+
+                rmqConnectionList.remove(rmqConnection)
+
+                /**
+                 * Use another Service to monitor this change of state.
+                 */
+//                GatewayClientHandler.startWorkManager(applicationContext)
             }
 
             val gatewayClientProjectsList = databaseConnector.gatewayClientProjectDao()
@@ -347,37 +328,33 @@ class RMQConnectionService : Service() {
         rmqConnection.bindChannelToTag(channel, consumerTag)
     }
 
-    private fun connectGatewayClient(gatewayClient: GatewayClient) {
+
+    private val factory = ConnectionFactory()
+    private fun connectGatewayClient(gatewayClientId: Long) {
         Log.d(javaClass.name, "Starting new service connection...")
 
-        val factory = ConnectionFactory()
-        factory.username = gatewayClient.username
-        factory.password = gatewayClient.password
-        factory.virtualHost = gatewayClient.virtualHost
-        factory.host = gatewayClient.hostUrl
-        factory.port = gatewayClient.port
-//        factory.isAutomaticRecoveryEnabled = true
-        factory.exceptionHandler = DefaultExceptionHandler()
+        ThreadingPoolExecutor.executorService.execute {
+            val gatewayClient = Datastore.getDatastore(applicationContext).gatewayClientDAO()
+                    .fetch(gatewayClientId)
 
-        factory.setRecoveryDelayHandler {
-            Log.w(javaClass.name, "Factory recovering...: $it")
-            10000
+            factory.username = gatewayClient.username
+            factory.password = gatewayClient.password
+            factory.virtualHost = gatewayClient.virtualHost
+            factory.host = gatewayClient.hostUrl
+            factory.port = gatewayClient.port
+            factory.exceptionHandler = DefaultExceptionHandler()
+
+            /**
+             * Increase connectivity sensitivity
+             */
+            factory.isAutomaticRecoveryEnabled = false
+            startConnection(factory, gatewayClient)
         }
-
-        startConnection(factory, gatewayClient)
     }
 
 
-    private fun stop(gatewayClientId: Long) {
-        val iterator = rmqConnectionList.iterator()
-        while(iterator.hasNext()) {
-            val gatewayClient = iterator.next()
-            if(gatewayClient.id == gatewayClientId) {
-                rmqConnectionList.remove(gatewayClient)
-                break
-            }
-        }
-
+    private fun stop() {
+        stopSelf()
     }
 
     private fun createForegroundNotification() {
@@ -389,19 +366,6 @@ class RMQConnectionService : Service() {
                         PendingIntent.FLAG_IMMUTABLE)
 
         databaseConnector.gatewayClientDAO().fetch()
-
-//        gatewayClients.forEach {
-//            if(it.activated) {
-//                when(it.state) {
-//                    GatewayClient.STATE_CONNECTED -> nConnected++
-//                    GatewayClient.STATE_RECONNECTING -> nReconnecting++
-//                }
-//                if (nConnected < 1 && nReconnecting < 1) {
-//                    stopForeground(STOP_FOREGROUND_REMOVE)
-//                    stopSelf()
-//                }
-//            }
-//        }
 
         val description = "$nConnected ${getString(R.string.gateway_client_running_description)}\n" +
                 "$nReconnecting ${getString(R.string.gateway_client_reconnecting_description)}"

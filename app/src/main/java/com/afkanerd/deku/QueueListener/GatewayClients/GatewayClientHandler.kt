@@ -109,19 +109,13 @@ class GatewayClientHandler(context: Context?) {
         fun startWorkManager(context: Context) : WorkManager {
             val constraints : Constraints = Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)
-//            .setRequiresBatteryNotLow(true)
                     .build();
 
             val workManager = WorkManager.getInstance(context)
-
             ThreadingPoolExecutor.executorService.execute {
                 Datastore.getDatastore(context).gatewayClientDAO().all.forEach {
-                    Log.d(javaClass.name, "WorkManager: ${it.id}:${it.hostUrl}")
-                    if(it.state == GatewayClient.STATE_INITIALIZING) {
-                        it.state = GatewayClient.STATE_DISCONNECTED
-                        Datastore.getDatastore(context).gatewayClientDAO().update(it)
-                    }
                     if(it.activated) {
+                        Log.d(javaClass.name, "WorkManager: ${it.id}:${it.hostUrl}")
                         val gatewayClientListenerWorker = OneTimeWorkRequestBuilder<RMQWorkManager>()
                                 .setConstraints(constraints)
                                 .setBackoffCriteria(

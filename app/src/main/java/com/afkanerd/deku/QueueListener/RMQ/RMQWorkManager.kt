@@ -26,12 +26,16 @@ import org.junit.Assert
 class RMQWorkManager(context: Context, workerParams: WorkerParameters)
     : Worker(context, workerParams) {
     override fun doWork(): Result {
-//        val intent = Intent(applicationContext, RMQConnectionService::class.java)
         val rmqConnectionService = RMQConnectionService()
+
         val intent = Intent(applicationContext, rmqConnectionService.javaClass)
+
         val gatewayClientId = inputData.getLong(GatewayClient.GATEWAY_CLIENT_ID, -1)
+
         Assert.assertTrue(gatewayClientId.toInt() != -1)
+
         intent.putExtra(GatewayClient.GATEWAY_CLIENT_ID, gatewayClientId)
+
         try {
             applicationContext.startForegroundService(intent)
             Log.d(javaClass.name, "Started RMQConnection foreground service")
