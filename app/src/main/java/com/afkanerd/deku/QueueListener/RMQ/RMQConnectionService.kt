@@ -22,6 +22,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.Datastore
@@ -77,12 +78,28 @@ class RMQConnectionService : Service() {
     }
 
     private val workManagerObserver = Observer<List<WorkInfo>> {
+        it.forEach { workInfo ->
+            when(workInfo.state) {
+                WorkInfo.State.ENQUEUED -> { }
+                WorkInfo.State.RUNNING -> {
+                    ++nReconnecting
+                    nConnected = if(nConnected <= 0) 0 else nConnected -1
+                }
+                WorkInfo.State.SUCCEEDED -> {
+                    nReconnecting = if(nReconnecting <= 0) 0 else nReconnecting -1
+                    ++nConnected
+                }
+                WorkInfo.State.FAILED -> {}
+                WorkInfo.State.BLOCKED -> {}
+                WorkInfo.State.CANCELLED -> {}
+            }
+        }
         createForegroundNotification()
     }
 
+
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-//        createForegroundNotification()
-        RMQServiceMonitor.monitorRMQConnections(applicationContext)
+        monitorRMQConnections(applicationContext, workManagerObserver)
                 .observeForever(workManagerObserver)
 
         val gatewayClientId = intent.getLongExtra(GatewayClient.GATEWAY_CLIENT_ID, -1)
@@ -94,7 +111,11 @@ class RMQConnectionService : Service() {
 
     override fun onDestroy() {
         unregisterReceiver(messageStateChangedBroadcast)
+
         gatewayClientLiveData.removeObserver(observer)
+
+        Companion.destroy(workManagerObserver)
+
         ThreadingPoolExecutor.executorService.execute {
             val gatewayClient = gatewayClientLiveData.value
             gatewayClient?.state = GatewayClient.STATE_DISCONNECTED
@@ -367,10 +388,8 @@ class RMQConnectionService : Service() {
                         notificationIntent,
                         PendingIntent.FLAG_IMMUTABLE)
 
-//        databaseConnector.gatewayClientDAO().fetch()
-//
-//        var nConnected = 0
-//        var nReconnecting = 0
+        databaseConnector.gatewayClientDAO().fetch()
+
 //        gatewayClients.forEach {
 //            if(it.activated) {
 //                when(it.state) {
@@ -384,9 +403,8 @@ class RMQConnectionService : Service() {
 //            }
 //        }
 
-//        val description = "$nConnected ${getString(R.string.gateway_client_running_description)}\n" +
-//                "$nReconnecting ${getString(R.string.gateway_client_reconnecting_description)}"
-        val description = applicationContext.getString(R.string.gateway_client_running_description)
+        val description = "$nConnected ${getString(R.string.gateway_client_running_description)}\n" +
+                "$nReconnecting ${getString(R.string.gateway_client_reconnecting_description)}"
 
         val notification =
                 NotificationCompat.Builder(applicationContext,
@@ -406,5 +424,27 @@ class RMQConnectionService : Service() {
             startForeground(NOTIFICATION_ID, notification,
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         } else startForeground(NOTIFICATION_ID, notification)
+    }
+
+    companion object {
+        var nConnected = 0
+        var nReconnecting = 0
+
+        private lateinit var workManagerLiveData: LiveData<List<WorkInfo>>
+        fun monitorRMQConnections(context: Context, workManagerObserver: Observer<List<WorkInfo>>) :
+                LiveData<List<WorkInfo>> {
+            if(!::workManagerLiveData.isInitialized) {
+                val workManager = WorkManager.getInstance(context)
+                workManagerLiveData =  workManager
+                        .getWorkInfosByTagLiveData(GatewayClient::class.java.name)
+                workManagerLiveData.observeForever(workManagerObserver)
+            }
+            return workManagerLiveData
+        }
+
+        fun destroy(workManagerObserver: Observer<List<WorkInfo>>) {
+            workManagerLiveData.removeObserver(workManagerObserver)
+        }
+
     }
 }
