@@ -83,6 +83,7 @@
     <string name="sms_status_sent">Sent</string>
     <string name="sms_status_sending">sending…</string>
     <string name="sms_status_failed">failed, click to retry.</string>
+    <string name="sms_status_failed_only">failed</string>
 
     <string name="settings_advanced_developers_key" translatable="false">settings_advanced_developers_key</string>
     <string name="settings_locale" translatable="false">settings_locale</string>

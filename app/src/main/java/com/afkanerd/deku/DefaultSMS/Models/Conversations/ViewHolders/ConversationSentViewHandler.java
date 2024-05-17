@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 public class ConversationSentViewHandler extends ConversationTemplateViewHandler {
 
     final static int BOTTOM_MARGIN = 4;
+    ImageView messageFailedIcon;
     TextView sentMessage;
     TextView sentMessageStatus;
     TextView date;
@@ -38,8 +39,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     LinearLayoutCompat.LayoutParams layoutParams;
     LinearLayoutCompat messageStatusTimestampLayout;
 
-    boolean lastKnownStateIsFailed = false;
-
     public ConversationSentViewHandler(@NonNull View itemView) {
         super(itemView);
         sentMessage = itemView.findViewById(R.id.message_sent_text);
@@ -47,6 +46,8 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         date = itemView.findViewById(R.id.message_thread_sent_date_text);
         timestamp = itemView.findViewById(R.id.sent_message_date_segment);
         messageStatusTimestampLayout = itemView.findViewById(R.id.message_status_timestamp);
+        messageFailedIcon = itemView.findViewById(R.id.message_failed_indicator_img);
+
 ////        messageStatusLinearLayoutCompact = itemView.findViewById(R.id.conversation_status_linear_layout);
         linearLayoutCompat = itemView.findViewById(R.id.sent_message_linear_layout);
         layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
@@ -93,24 +94,24 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         if(status == Telephony.TextBasedSmsColumns.STATUS_PENDING )
             statusMessage = itemView.getContext().getString(R.string.sms_status_sending);
         else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED ) {
-            statusMessage = itemView.getContext().getString(R.string.sms_status_failed);
-
-            sentMessageStatus.setVisibility(View.VISIBLE);
-            this.date.setVisibility(View.VISIBLE);
+            statusMessage = itemView.getContext().getString(R.string.sms_status_failed_only);
 
             sentMessageStatus.setTextAppearance(R.style.conversation_failed);
             this.date.setTextAppearance(R.style.conversation_failed);
+            this.messageFailedIcon.setVisibility(View.VISIBLE);
 
-            lastKnownStateIsFailed = true;
+            LinearLayoutCompat.LayoutParams linearLayoutCompat1 = (LinearLayoutCompat.LayoutParams)
+                    this.messageStatusTimestampLayout.getLayoutParams();
+            linearLayoutCompat1.setMarginEnd(Helpers.dpToPixel(32));
+            this.messageStatusTimestampLayout.setLayoutParams(linearLayoutCompat1);
+            showDetails();
         }
         else {
             sentMessageStatus.setTextAppearance(R.style.Theme_main);
             this.date.setTextAppearance(R.style.Theme_main);
+            this.messageFailedIcon.setVisibility(View.GONE);
         }
-        if(lastKnownStateIsFailed && status != Telephony.TextBasedSmsColumns.STATUS_FAILED) {
-            sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
-            lastKnownStateIsFailed = false;
-        }
+
         statusMessage = " • " + statusMessage;
 
         if(conversation.getSubscription_id() > 0) {

@@ -158,10 +158,10 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
         else if(holder instanceof ConversationSentViewHandler){
             ConversationSentViewHandler conversationSentViewHandler = (ConversationSentViewHandler) holder;
-            conversationSentViewHandler.bind(conversation, searchString);
             if(holder.getAbsoluteAdapterPosition() != 0 ) {
                 conversationSentViewHandler.hideDetails();
             } else conversationSentViewHandler.showDetails();
+            conversationSentViewHandler.bind(conversation, searchString);
         }
 
     }
