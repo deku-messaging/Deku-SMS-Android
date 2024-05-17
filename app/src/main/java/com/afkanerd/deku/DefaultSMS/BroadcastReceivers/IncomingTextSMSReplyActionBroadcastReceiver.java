@@ -1,8 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
 
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
-
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -73,14 +71,6 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                                     .insertThreadAndConversation(context, conversation);
 
                             SMSDatabaseWrapper.send_text(context, conversation, null);
-                            Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
-                            broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
-                            broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
-                            if(intent.getExtras() != null)
-                                broadcastIntent.putExtras(intent.getExtras());
-
-                            context.sendBroadcast(broadcastIntent);
-
                             NotificationCompat.MessagingStyle messagingStyle =
                                     NotificationsHandler.getMessagingStyle(context, conversation,
                                             reply.toString());

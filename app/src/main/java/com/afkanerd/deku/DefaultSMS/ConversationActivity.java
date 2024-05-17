@@ -535,7 +535,7 @@ public class ConversationActivity extends E2EECompactActivity {
                             sendTextMessage(conversation, threadedConversations,
                                     conversation.getMessage_id());
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            Log.e(getClass().getName(), "Exception sending failed message", e);
                         }
                     }
                 });
@@ -556,7 +556,8 @@ public class ConversationActivity extends E2EECompactActivity {
                                     databaseConnector.threadedConversationsDao().get(threadId);
                             sendDataMessage(threadedConversations);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            Log.e(getClass().getName(),
+                                    "Exception sending failed data message", e);
                         }
                     }
                 });

@@ -59,8 +59,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
 
-        threadedConversationsViewModel.databaseConnector = databaseConnector;
-
         _checkSharedContent();
         fragmentManagement();
         configureNavigationBar();
@@ -281,7 +279,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
-                threadedConversationsViewModel.getCount(getApplicationContext());
+                threadedConversationsViewModel.getCount();
             }
         });
     }

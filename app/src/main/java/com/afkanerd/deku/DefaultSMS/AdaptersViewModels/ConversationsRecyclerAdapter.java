@@ -201,11 +201,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                         addSelectedItems(holder);
                     }
                 } else if(conversation.getStatus() == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
-                    if(conversation.getData() != null)
-                        retryFailedDataMessage.setValue(conversation);
-                    else
-                        retryFailedMessage.setValue(conversation);
-
+                    if(conversation.getData() != null) retryFailedDataMessage.setValue(conversation);
+                    else retryFailedMessage.setValue(conversation);
                 } else {
                     holder.toggleDetails();
                 }

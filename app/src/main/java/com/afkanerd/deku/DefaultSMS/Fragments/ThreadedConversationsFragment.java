@@ -325,7 +325,7 @@ public class ThreadedConversationsFragment extends Fragment {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.mute(threadIds);
-                            threadedConversationsViewModel.getCount(getContext());
+                            threadedConversationsViewModel.getCount();
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -347,7 +347,7 @@ public class ThreadedConversationsFragment extends Fragment {
                         @Override
                         public void run() {
                             threadedConversationsViewModel.unMute(threadIds);
-                            threadedConversationsViewModel.getCount(getContext());
+                            threadedConversationsViewModel.getCount();
                         }
                     });
                     threadedConversationRecyclerAdapter.resetAllSelectedItems();
@@ -454,7 +454,7 @@ public class ThreadedConversationsFragment extends Fragment {
         switch(Objects.requireNonNull(messageType)) {
             case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
                 try {
-                    threadedConversationsViewModel.getEncrypted(getContext())
+                    threadedConversationsViewModel.getEncrypted()
                             .observe(getViewLifecycleOwner(),
                             new Observer<PagingData<ThreadedConversations>>() {
                                 @Override
@@ -468,7 +468,8 @@ public class ThreadedConversationsFragment extends Fragment {
                 }
                 break;
             case UNREAD_MESSAGE_TYPES:
-                threadedConversationsViewModel.getUnread().observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.getUnread(requireContext())
+                        .observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -478,7 +479,8 @@ public class ThreadedConversationsFragment extends Fragment {
                         });
                 break;
             case ARCHIVED_MESSAGE_TYPES:
-                threadedConversationsViewModel.getArchived().observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.getArchived(requireContext())
+                        .observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -488,7 +490,8 @@ public class ThreadedConversationsFragment extends Fragment {
                         });
                 break;
             case DRAFTS_MESSAGE_TYPES:
-                threadedConversationsViewModel.getDrafts().observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.getDrafts(requireContext())
+                        .observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -498,7 +501,8 @@ public class ThreadedConversationsFragment extends Fragment {
                         });
                 break;
             case BLOCKED_MESSAGE_TYPES:
-                threadedConversationsViewModel.getBlocked().observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.getBlocked(requireContext())
+                        .observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -508,7 +512,8 @@ public class ThreadedConversationsFragment extends Fragment {
                         });
                 break;
             case MUTED_MESSAGE_TYPE:
-                threadedConversationsViewModel.getMuted().observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.getMuted(requireContext())
+                        .observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -519,7 +524,7 @@ public class ThreadedConversationsFragment extends Fragment {
                 break;
             case ALL_MESSAGES_THREAD_FRAGMENT:
             default:
-                threadedConversationsViewModel.get().observe(getViewLifecycleOwner(),
+                threadedConversationsViewModel.get(requireContext()).observe(getViewLifecycleOwner(),
                         new Observer<PagingData<ThreadedConversations>>() {
                             @Override
                             public void onChanged(PagingData<ThreadedConversations> smsList) {
@@ -770,7 +775,7 @@ public class ThreadedConversationsFragment extends Fragment {
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
-                threadedConversationsViewModel.getCount(getContext());
+                threadedConversationsViewModel.getCount();
             }
         });
 

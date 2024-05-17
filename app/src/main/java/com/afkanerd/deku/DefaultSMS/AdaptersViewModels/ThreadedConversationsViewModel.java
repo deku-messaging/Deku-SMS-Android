@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.BlockedNumberContract;
 import android.provider.Telephony;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -37,9 +38,10 @@ public class ThreadedConversationsViewModel extends ViewModel {
     int initialLoadSize = 2 * pageSize;
     int maxSize = PagingConfig.MAX_SIZE_UNBOUNDED;
 
-    public Datastore databaseConnector;
+    private Datastore databaseConnector;
 
-    public LiveData<PagingData<ThreadedConversations>> getArchived(){
+    public LiveData<PagingData<ThreadedConversations>> getArchived(Context context){
+        this.databaseConnector = Datastore.getDatastore(context);
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
@@ -49,7 +51,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
         ), ()-> databaseConnector.threadedConversationsDao().getArchived());
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
-    public LiveData<PagingData<ThreadedConversations>> getDrafts(){
+    public LiveData<PagingData<ThreadedConversations>> getDrafts(Context context){
+        this.databaseConnector = Datastore.getDatastore(context);
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
@@ -61,7 +64,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getBlocked(){
+    public LiveData<PagingData<ThreadedConversations>> getBlocked(Context context){
+        this.databaseConnector = Datastore.getDatastore(context);
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
@@ -72,7 +76,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getMuted(){
+    public LiveData<PagingData<ThreadedConversations>> getMuted(Context context){
+        this.databaseConnector = Datastore.getDatastore(context);
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
@@ -83,7 +88,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getUnread(){
+    public LiveData<PagingData<ThreadedConversations>> getUnread(Context context){
+        this.databaseConnector = Datastore.getDatastore(context);
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
                 prefetchDistance,
@@ -94,7 +100,8 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return PagingLiveData.cachedIn(PagingLiveData.getLiveData(pager), this);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> get(){
+    public LiveData<PagingData<ThreadedConversations>> get(Context context){
+        this.databaseConnector = Datastore.getDatastore(context);
         try {
             Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                     pageSize,
@@ -120,13 +127,13 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return gson.toJson(conversations);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getEncrypted(Context context) throws InterruptedException {
+    public LiveData<PagingData<ThreadedConversations>> getEncrypted() throws InterruptedException {
         List<String> address = new ArrayList<>();
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
-                        Datastore.getDatastore(context).conversationsThreadsEncryptionDao().getAll();
+                        databaseConnector.conversationsThreadsEncryptionDao().getAll();
                 for(ConversationsThreadsEncryption conversationsThreadsEncryption :
                         conversationsThreadsEncryptionList) {
                     String derivedAddress =
@@ -234,9 +241,9 @@ public class ThreadedConversationsViewModel extends ViewModel {
             }
             databaseConnector.threadedConversationsDao().deleteAll();
             databaseConnector.threadedConversationsDao().insertAll(threadedConversationsList);
-            getCount(context);
+            getCount();
         } catch(Exception e) {
-            e.printStackTrace();
+            Log.e(getClass().getName(), "Exception refreshing", e);
             loadNative(context);
         }
 
@@ -248,7 +255,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     ThreadedConversations.buildRaw(cursor);
             databaseConnector.threadedConversationsDao().insertAll(threadedConversations);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(getClass().getName(), "Exception loading native", e);
         }
     }
 
@@ -292,7 +299,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
     }
 
     public MutableLiveData<List<Integer>> folderMetrics = new MutableLiveData<>();
-    public void getCount(Context context) {
+    public void getCount() {
         int draftsListCount = databaseConnector.threadedConversationsDao()
                 .getThreadedDraftsListCount( Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT);
         int encryptedCount = databaseConnector.threadedConversationsDao().getCountEncrypted();
