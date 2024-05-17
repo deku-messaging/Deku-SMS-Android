@@ -17,7 +17,7 @@ class RMQWorkManager(context: Context, workerParams: WorkerParameters)
     override fun doWork(): Result {
         val gatewayClientId = inputData.getLong(GatewayClient.GATEWAY_CLIENT_ID, -1)
 
-        RMQConnectionHandler(applicationContext, gatewayClientId)
+        RMQConnectionWorker(applicationContext, gatewayClientId)
                 .start()
 
         return Result.success()

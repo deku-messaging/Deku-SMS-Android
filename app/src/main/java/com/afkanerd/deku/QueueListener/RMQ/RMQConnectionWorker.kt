@@ -1,33 +1,24 @@
 package com.afkanerd.deku.QueueListener.RMQ
 
 import android.app.Activity
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.ServiceInfo
-import android.os.Build
 import android.os.Bundle
 import android.provider.Telephony
 import android.telephony.SubscriptionInfo
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
-import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Modules.SemaphoreManager
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClient
-import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity
+import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientHandler
 import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjects
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
@@ -42,12 +33,13 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import org.hamcrest.CoreMatchers.anyOf
 import org.junit.Assert
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
 
-class RMQConnectionHandler(val context: Context, val gatewayClientId: Long) {
+class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
     private lateinit var rmqConnection: RMQConnection
     private val factory = ConnectionFactory()
 
@@ -185,8 +177,6 @@ class RMQConnectionHandler(val context: Context, val gatewayClientId: Long) {
             val connection = factory.newConnection(ThreadingPoolExecutor.executorService,
                     gatewayClient.friendlyConnectionName)
 
-            databaseConnector.gatewayClientDAO().update(gatewayClient)
-
             rmqConnection = RMQConnection(gatewayClient.id, connection)
 
             connection.addShutdownListener {
@@ -195,8 +185,8 @@ class RMQConnectionHandler(val context: Context, val gatewayClientId: Long) {
                  * from the database connection state then reconnect this client.
                  */
                 Log.e(javaClass.name, "Connection shutdown cause: $it")
-
-                TODO("Connection shutdown not implemented yet")
+                if(gatewayClient.activated)
+                    GatewayClientHandler.startWorkManager(context, gatewayClient)
             }
 
             val gatewayClientProjectsList = databaseConnector.gatewayClientProjectDao()
@@ -219,14 +209,11 @@ class RMQConnectionHandler(val context: Context, val gatewayClientId: Long) {
         } catch (e: Exception) {
             e.printStackTrace()
             when(e) {
-                is TimeoutException -> {
+                is TimeoutException, is IOException -> {
                     e.printStackTrace()
                     Thread.sleep(3000)
                     Log.d(javaClass.name, "Attempting a reconnect to the server...")
                     startConnection(factory, gatewayClient)
-                }
-                is IOException -> {
-                    Log.e(javaClass.name, "IO Exception connecting rmq", e)
                 }
                 else -> {
                     Log.e(javaClass.name, "Exception connecting rmq", e)

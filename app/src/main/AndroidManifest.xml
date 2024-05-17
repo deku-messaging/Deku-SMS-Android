@@ -236,7 +236,6 @@
 <!--            android:authorities="${applicationId}.androidx-startup"-->
 <!--            android:exported="false"-->
 <!--            tools:node="merge">-->
-
 <!--            &lt;!&ndash; If you are using androidx.startup to initialize other components &ndash;&gt;-->
 <!--            <meta-data-->
 <!--                android:name="androidx.work.WorkManagerInitializer"-->
@@ -250,7 +249,7 @@
             android:exported="false"
             tools:node="merge">
             <meta-data
-                android:name="com.afkanerd.deku.WorkManagerInitializer"
+                android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionServiceInitializer"
                 android:value="androidx.startup" />
 <!--            <meta-data-->
 <!--                android:name="com.afkanerd.deku.NotificationsInitializer"-->

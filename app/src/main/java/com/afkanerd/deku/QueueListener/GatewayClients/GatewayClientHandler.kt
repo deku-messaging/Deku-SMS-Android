@@ -2,7 +2,6 @@ package com.afkanerd.deku.QueueListener.GatewayClients
 
 import android.content.Context
 import android.util.Log
-import androidx.startup.AppInitializer
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
@@ -17,7 +16,6 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.QueueListener.RMQ.RMQWorkManager
-import com.afkanerd.deku.WorkManagerInitializer
 import java.util.concurrent.TimeUnit
 
 class GatewayClientHandler(context: Context?) {

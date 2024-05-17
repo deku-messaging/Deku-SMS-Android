@@ -1,1 +1,3 @@
 - refactor: Gateway client connections
+
+- update: notify via sound when no Gateway client connected

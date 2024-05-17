@@ -31,8 +31,10 @@ class RMQConnectionService : Service() {
 
     private val gatewayClientObserver = Observer<List<GatewayClient>> {
         it.forEach {gatewayClient ->
-            if(gatewayClient.activated)
+            if(gatewayClient.activated) {
+                println("Starting work manager")
                 GatewayClientHandler.startWorkManager(applicationContext, gatewayClient)
+            }
         }
     }
 
@@ -66,7 +68,6 @@ class RMQConnectionService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-
         workManagerLiveData = WorkManager.getInstance(applicationContext)
                 .getWorkInfosByTagLiveData(GatewayClient::class.java.name)
 
@@ -101,7 +102,7 @@ class RMQConnectionService : Service() {
                         .setContentTitle(title)
                         .setSmallIcon(R.drawable.ic_stat_name)
                         .setPriority(NotificationCompat.DEFAULT_ALL)
-                        .setSilent(true)
+                        .setSilent(nConnected > 0)
                         .setOngoing(true)
                         .setContentText(description)
                         .setContentIntent(pendingIntent)
