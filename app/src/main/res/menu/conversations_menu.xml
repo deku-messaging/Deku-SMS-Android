@@ -5,7 +5,7 @@
     <item
         android:icon="@drawable/baseline_enhanced_encryption_24"
         android:id="@+id/conversation_main_menu_encrypt_lock"
-        app:showAsAction="ifRoom"
+        app:showAsAction="never"
         android:title="@string/conversations_menu_encrypt_title"/>
     <item
         android:icon="@drawable/round_call_24"
