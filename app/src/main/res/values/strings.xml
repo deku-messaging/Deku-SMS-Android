@@ -2,16 +2,23 @@
     <string name="app_name" translatable="false">Deku SMS</string>
     <string name="privacy_policy_url" translatable="false">https://smswithoutborders.com/privacy-policy</string>
     <string name="incoming_messages_channel_name">Incoming Messages</string>
-    <string name="running_gateway_clients_channel_name">Running Gateway Listeners</string>
-    <string name="foreground_service_failed_channel_name">Gateway clients auto-reconnect</string>
+    <string name="running_gateway_clients_channel_name" translatable="false">Running Gateway Listeners</string>
+    <string name="foreground_service_failed_channel_name" translatable="false">Gateway clients auto-reconnect</string>
+    <string name="message_failed_channel_name" translatable="false">Message Failed</string>
 
     <string name="incoming_messages_channel_description">Gets called when a new message is received.</string>
     <string name="running_gateway_clients_channel_description">Alerts when gateway clients are listening.</string>
     <string name="foreground_service_failed_channel_description">Click to reconnect Gateway clients</string>
+    <string name="message_failed_notifications_descriptions">Get notifications when messages fail</string>
+
+    <string name="gateway_client_service_notification_id">100000000</string>
+    <string name="message_failed_notification_id">100000001</string>
+
 
     <string name="incoming_messages_channel_id" translatable="false">@string/incoming_messages_channel_name</string>
     <string name="running_gateway_clients_channel_id" translatable="false">@string/running_gateway_clients_channel_name</string>
     <string name="foreground_service_failed_channel_id" translatable="false">@string/foreground_service_failed_channel_name</string>
+    <string name="message_failed_channel_id" translatable="false">@string/message_failed_channel_name</string>
 
     <string name="search_messages_text">Search messages</string>
 
@@ -265,4 +272,5 @@
     <string name="gateway_server_routing_state_cancelled">Cancelled</string>
     <string name="gateway_server_routing_state_running">Running</string>
     <string name="gateway_client_add_edit_add_gateway_client">Add Gateway Client</string>
+    <string name="message_failed_send_notification_description_a_message_failed_to_send_to">"A message failed to send to "</string>
 </resources>

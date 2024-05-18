@@ -102,13 +102,13 @@ class RMQConnectionService : Service() {
                         .setContentTitle(title)
                         .setSmallIcon(R.drawable.ic_stat_name)
                         .setPriority(NotificationCompat.DEFAULT_ALL)
-                        .setSilent(nConnected > 0)
+                        .setSilent(true)
                         .setOngoing(true)
                         .setContentText(description)
                         .setContentIntent(pendingIntent)
                         .build()
 
-        val notificationId = 1234
+        val notificationId = getString(R.string.gateway_client_service_notification_id).toInt()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(notificationId, notification,
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)

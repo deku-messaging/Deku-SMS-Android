@@ -23,28 +23,4 @@ class RMQWorkManager(context: Context, workerParams: WorkerParameters)
         return Result.success()
     }
 
-    private fun notifyUserToReconnectSMSServices() {
-        val NOTIFICATION_ID: Int = 12345
-        val notificationIntent = Intent(applicationContext, ThreadedConversationsActivity::class.java)
-        val pendingIntent =
-                PendingIntent.getActivity(applicationContext, 0, notificationIntent,
-                        PendingIntent.FLAG_IMMUTABLE)
-
-        val notification =
-                NotificationCompat.Builder(applicationContext,
-                        applicationContext.getString(R.string.foreground_service_failed_channel_id))
-                        .setContentTitle(applicationContext
-                                .getString(R.string.foreground_service_failed_channel_name))
-                        .setSmallIcon(R.drawable.ic_stat_name)
-                        .setPriority(NotificationCompat.DEFAULT_ALL)
-                        .setAutoCancel(true)
-                        .setContentText(applicationContext
-                                .getString(R.string.foreground_service_failed_channel_description))
-                        .setContentIntent(pendingIntent)
-                        .build()
-
-        val notificationManager =
-                NotificationManagerCompat.from(applicationContext)
-        notificationManager.notify(NOTIFICATION_ID, notification)
-    }
 }

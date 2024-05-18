@@ -37,9 +37,13 @@ class NotificationsInitializer : Initializer<NotificationManager> {
         notificationsChannelIds.add(context.getString(R.string.foreground_service_failed_channel_id))
         notificationsChannelNames.add(context.getString(R.string.foreground_service_failed_channel_name))
 
+        notificationsChannelIds.add(context.getString(R.string.message_failed_channel_id))
+        notificationsChannelNames.add(context.getString(R.string.message_failed_channel_name))
+
         createNotificationChannelIncomingMessage(context, notificationManager)
         createNotificationChannelRunningGatewayListeners(context, notificationManager)
         createNotificationChannelReconnectGatewayListeners(context, notificationManager)
+        createNotificationChannelFailedMessages(context, notificationManager)
     }
     private fun createNotificationChannelIncomingMessage(context: Context,
                                                          notificationManager: NotificationManager) {
@@ -79,6 +83,19 @@ class NotificationsInitializer : Initializer<NotificationManager> {
             importance )
         channel.description = context.getString(R.string.running_gateway_clients_channel_description)
         channel.lightColor = R.color.logo_primary
+        channel.lockscreenVisibility = Notification.DEFAULT_ALL
+        notificationManager.createNotificationChannel(channel)
+    }
+
+
+    private fun createNotificationChannelFailedMessages(context: Context,
+                                                                   notificationManager: NotificationManager) {
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel( notificationsChannelIds[3],
+                notificationsChannelNames[3],
+                importance )
+        channel.description = context.getString(R.string.message_failed_notifications_descriptions)
+        channel.lightColor = R.color.failed_red
         channel.lockscreenVisibility = Notification.DEFAULT_ALL
         notificationManager.createNotificationChannel(channel)
     }

@@ -192,6 +192,8 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
             val gatewayClientProjectsList = databaseConnector.gatewayClientProjectDao()
                     .fetchGatewayClientIdList(gatewayClient.id)
 
+            // TODO: try to match the operator code (carrier code) by the binding name
+            // TODO: if enabled in settings
             for (i in gatewayClientProjectsList.indices) {
                 for (j in subscriptionInfoList.indices) {
                     val channel = rmqConnection.createChannel()
