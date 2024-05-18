@@ -182,6 +182,7 @@
     <string name="send_message_secured_text_box_hint">Text Message (secured)</string>
     <string name="conversations_menu_call_title">Call</string>
     <string name="conversations_menu_encrypt_title">Encrypt</string>
+    <string name="conversations_menu_secure_title">Secure</string>
     <string name="conversations_menu_unblock_manager">Blocked Manager</string>
     <string name="conversations_menu_unblock">Unblock</string>
     <string name="conversations_menu_block_toast">Contact blocked succcessfully</string>
