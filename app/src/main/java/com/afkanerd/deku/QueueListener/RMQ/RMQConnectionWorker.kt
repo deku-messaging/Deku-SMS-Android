@@ -100,7 +100,7 @@ class RMQConnectionWorker(val context: Context, val gatewayClientId: Long) {
     }
 
     @Serializable
-    private data class SMSRequest(val text: String, val to: String, val sid: String, val id: String)
+    private data class SMSRequest(val text: String, val to: String, val sid: String, val id: Int)
     private suspend fun sendSMS(smsRequest: SMSRequest,
                                 subscriptionId: Int,
                                 consumerTag: String,
