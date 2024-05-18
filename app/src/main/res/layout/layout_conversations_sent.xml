@@ -21,7 +21,7 @@
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/sent_message_linear_layout"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:orientation="vertical">
@@ -37,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:background="@drawable/sent_messages_drawable"
-                android:maxWidth="340dp"
+                android:maxWidth="280dp"
                 android:paddingStart="12dp"
                 android:paddingTop="8dp"
                 android:paddingEnd="12dp"
