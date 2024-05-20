@@ -98,8 +98,6 @@ public class ThreadedConversationsFragment extends Fragment {
         ThreadedConversationsViewModel getThreadedConversationsViewModel();
     }
 
-    private ViewModelsInterface viewModelsInterface;
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -390,7 +388,7 @@ public class ThreadedConversationsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        viewModelsInterface = (ViewModelsInterface) view.getContext();
+        ViewModelsInterface viewModelsInterface = (ViewModelsInterface) view.getContext();
 
         setHasOptionsMenu(true);
         Bundle args = getArguments();

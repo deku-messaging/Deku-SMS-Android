@@ -196,7 +196,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     public void onNewMessageClick(View view) {
-        launchMultiplePhonePicker(COMPOSE_NEW_REQUEST_CODE);
+//        launchMultiplePhonePicker(COMPOSE_NEW_REQUEST_CODE);
+        startActivity(new Intent(this, ComposeNewMessageActivity.class));
     }
 
     private final int COMPOSE_NEW_REQUEST_CODE = 1;

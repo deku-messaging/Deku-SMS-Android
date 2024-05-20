@@ -38,6 +38,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
         <activity
+            android:name=".ComposeNewMessageActivity"
+            android:exported="false"
+            android:parentActivityName=".ThreadedConversationsActivity"/>
+        <activity
             android:name="com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
@@ -117,7 +121,7 @@
         </activity>
         <activity
             android:name=".ThreadedConversationsActivity"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -220,7 +224,6 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-
         <service
             android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionService"
             android:enabled="true"
@@ -229,20 +232,17 @@
 
         <meta-data
             android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
-
-<!--        <provider-->
-<!--            android:name="androidx.startup.InitializationProvider"-->
-<!--            android:authorities="${applicationId}.androidx-startup"-->
-<!--            android:exported="false"-->
-<!--            tools:node="merge">-->
-<!--            &lt;!&ndash; If you are using androidx.startup to initialize other components &ndash;&gt;-->
-<!--            <meta-data-->
-<!--                android:name="androidx.work.WorkManagerInitializer"-->
-<!--                android:value="androidx.startup"-->
-<!--                tools:node="remove" />-->
-<!--        </provider>-->
-
+            android:resource="@array/preloaded_fonts" /> <!-- <provider -->
+        <!-- android:name="androidx.startup.InitializationProvider" -->
+        <!-- android:authorities="${applicationId}.androidx-startup" -->
+        <!-- android:exported="false" -->
+        <!-- tools:node="merge"> -->
+        <!-- &lt;!&ndash; If you are using androidx.startup to initialize other components &ndash;&gt; -->
+        <!-- <meta-data -->
+        <!-- android:name="androidx.work.WorkManagerInitializer" -->
+        <!-- android:value="androidx.startup" -->
+        <!-- tools:node="remove" /> -->
+        <!-- </provider> -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -251,11 +251,10 @@
             <meta-data
                 android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionServiceInitializer"
                 android:value="androidx.startup" />
-<!--            <meta-data-->
-<!--                android:name="com.afkanerd.deku.NotificationsInitializer"-->
-<!--                android:value="androidx.startup" />-->
+            <!-- <meta-data -->
+            <!-- android:name="com.afkanerd.deku.NotificationsInitializer" -->
+            <!-- android:value="androidx.startup" /> -->
         </provider>
-
     </application>
 
 </manifest>

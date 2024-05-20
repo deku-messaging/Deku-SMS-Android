@@ -274,4 +274,8 @@
     <string name="gateway_server_routing_state_running">Running</string>
     <string name="gateway_client_add_edit_add_gateway_client">Add Gateway Client</string>
     <string name="message_failed_send_notification_description_a_message_failed_to_send_to">"A message failed to send to "</string>
+
+    <string name="compose_new_message_to">To</string>
+    <string name="compose_new_message_title">New conversation</string>
+
 </resources>
