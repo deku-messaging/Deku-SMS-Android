@@ -68,8 +68,8 @@ public class Helpers {
         // Set the foreground color of the substring to yellow.
         BackgroundColorSpan backgroundColorSpan = new BackgroundColorSpan(
                 context.getColor(sent ?
-                        R.color.highlight_yellow_send :
-                        R.color.highlight_yellow_received));
+                        R.color.md_theme_onBackground_mediumContrast :
+                        R.color.md_theme_onBackground_mediumContrast));
         for (int startIndex : startIndices) {
             spannableString.setSpan(backgroundColorSpan, startIndex, startIndex + searchString.length(),
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

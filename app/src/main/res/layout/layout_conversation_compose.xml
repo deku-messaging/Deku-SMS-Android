@@ -37,7 +37,7 @@
                 android:maxLines="3"
                 android:paddingTop="8dp"
                 android:scrollbars="vertical"
-                android:textSize="@dimen/conversation_properties_default_font_size" />
+                android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout

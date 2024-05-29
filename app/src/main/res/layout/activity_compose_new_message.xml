@@ -18,7 +18,7 @@
             android:paddingEnd="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:boxBackgroundColor="@color/primary_background_color_transparent"
+            app:boxBackgroundColor="@color/md_theme_background"
             android:hint="@string/compose_new_message_to"
             app:boxStrokeWidth="1dp"
             app:boxStrokeWidthFocused="1dp"

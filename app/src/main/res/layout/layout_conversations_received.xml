@@ -18,7 +18,7 @@
         android:paddingEnd="0dp"
         android:paddingStart="0dp"
         tools:text="@string/thread_conversation_timestamp_yesterday"
-        android:textSize="@dimen/conversation_properties_default_font_size_subtext"
+        android:textSize="12sp"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -35,12 +35,13 @@
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:background="@drawable/received_messages_drawable"
+            android:textColor="@color/md_theme_onSecondary"
             tools:text="@string/settings_add_gateway_server_protocol_meta_description"
             android:paddingStart="12dp"
             android:paddingTop="8dp"
             android:paddingEnd="8dp"
             android:paddingBottom="8dp"
-            android:textSize="@dimen/conversation_properties_default_font_size" />
+            android:textSize="16sp" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/message_thread_received_date_text"
@@ -50,7 +51,7 @@
             android:paddingStart="8dp"
             tools:text="@string/sample_date"
             android:textAlignment="textStart"
-            android:textSize="@dimen/conversation_properties_default_font_size_subtext"
+            android:textSize="12sp"
             android:visibility="gone"
             tools:visibility="visible" />
 

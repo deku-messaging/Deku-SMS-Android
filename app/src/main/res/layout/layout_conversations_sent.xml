@@ -14,7 +14,7 @@
         android:layout_gravity="center"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp"
-        android:textSize="@dimen/conversation_properties_default_font_size_subtext"
+        android:textSize="12sp"
         android:visibility="gone"
         tools:text="@string/thread_conversation_timestamp_yesterday"
         tools:visibility="visible" />
@@ -42,8 +42,8 @@
                 android:paddingTop="8dp"
                 android:paddingEnd="12dp"
                 android:paddingBottom="8dp"
-                android:textColor="@color/black"
-                android:textSize="@dimen/conversation_properties_default_font_size"
+                android:textColor="@color/md_theme_onPrimary"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/message_failed_indicator_img"
                 app:layout_constraintStart_toStartOf="parent"
@@ -81,7 +81,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:textAlignment="textEnd"
-                android:textSize="@dimen/conversation_properties_default_font_size_subtext"
+                android:textSize="12sp"
                 tools:text="@string/sample_date" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -89,7 +89,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:textSize="@dimen/conversation_properties_default_font_size_subtext"
+                android:textSize="12sp"
                 tools:text=" * Delivered" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 

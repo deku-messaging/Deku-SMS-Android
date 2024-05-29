@@ -55,7 +55,7 @@ class NotificationsInitializer : Initializer<NotificationManager> {
             importance )
         channel.description = context.getString(R.string.incoming_messages_channel_description)
         channel.enableLights(true)
-        channel.lightColor = R.color.logo_primary
+        channel.lightColor = R.color.md_theme_primary
         channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
 
         notificationManager.createNotificationChannel(channel)
@@ -68,7 +68,7 @@ class NotificationsInitializer : Initializer<NotificationManager> {
             notificationsChannelNames[1],
             importance )
         channel.description = context.getString(R.string.running_gateway_clients_channel_description)
-        channel.lightColor = R.color.logo_primary
+        channel.lightColor = R.color.md_theme_primary
         channel.lockscreenVisibility = Notification.DEFAULT_ALL
 
         notificationManager.createNotificationChannel(channel)
@@ -82,7 +82,7 @@ class NotificationsInitializer : Initializer<NotificationManager> {
             notificationsChannelNames[2],
             importance )
         channel.description = context.getString(R.string.running_gateway_clients_channel_description)
-        channel.lightColor = R.color.logo_primary
+        channel.lightColor = R.color.md_theme_primary
         channel.lockscreenVisibility = Notification.DEFAULT_ALL
         notificationManager.createNotificationChannel(channel)
     }
@@ -95,7 +95,7 @@ class NotificationsInitializer : Initializer<NotificationManager> {
                 notificationsChannelNames[3],
                 importance )
         channel.description = context.getString(R.string.message_failed_notifications_descriptions)
-        channel.lightColor = R.color.failed_red
+        channel.lightColor = R.color.md_theme_error
         channel.lockscreenVisibility = Notification.DEFAULT_ALL
         notificationManager.createNotificationChannel(channel)
     }

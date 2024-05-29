@@ -230,9 +230,9 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <meta-data
-            android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" /> <!-- <provider -->
+<!--        <meta-data-->
+<!--            android:name="preloaded_fonts"-->
+<!--            android:resource="@array/preloaded_fonts" /> &lt;!&ndash; <provider &ndash;&gt;-->
         <!-- android:name="androidx.startup.InitializationProvider" -->
         <!-- android:authorities="${applicationId}.androidx-startup" -->
         <!-- android:exported="false" -->

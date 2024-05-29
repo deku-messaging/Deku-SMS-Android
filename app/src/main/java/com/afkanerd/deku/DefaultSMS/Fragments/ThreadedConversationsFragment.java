@@ -596,13 +596,13 @@ public class ThreadedConversationsFragment extends Fragment {
                 int intrinsicHeight = deleteIcon.getIntrinsicHeight();
 
                 ColorDrawable background = new ColorDrawable(getContext()
-                        .getColor(R.color.primary_background_color));
+                        .getColor(R.color.md_theme_background));
                 int xMarkRight = 0, xMarkLeft=0;
                 if(dX > 0) {
                     // Delete
                     xMarkRight = viewHolder.itemView.getLeft() + xMarkMargin + intrinsicWidth;
                     xMarkLeft = xMarkRight - intrinsicWidth;
-                    background = new ColorDrawable(getContext().getColor(R.color.failed_red));
+                    background = new ColorDrawable(getContext().getColor(R.color.md_theme_error));
                 } else if(dX < 0) {
                     // Archive
                     xMarkLeft = viewHolder.itemView.getRight() - xMarkMargin - intrinsicWidth;

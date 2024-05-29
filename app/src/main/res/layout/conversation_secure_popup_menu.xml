@@ -72,7 +72,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:fontFamily="@font/roboto_light_italic"
                 android:text="@string/conversation_secure_popup_request_menu_description_subtext"
                 app:layout_constraintStart_toStartOf="@+id/conversation_secure_popup_menu_text_description"
                 app:layout_constraintTop_toBottomOf="@+id/conversation_secure_popup_menu_text_description" />

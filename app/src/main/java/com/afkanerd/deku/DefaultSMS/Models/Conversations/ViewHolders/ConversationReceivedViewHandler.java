@@ -79,7 +79,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         }
         else
             Helpers.highlightLinks(receivedMessage, text,
-                    itemView.getContext().getColor(R.color.primary_text_color));
+                    itemView.getContext().getColor(R.color.md_theme_onPrimary));
 
         if(conversation.getSubscription_id() > 0) {
             String subscriptionName = SIMHandler.getSubscriptionName(itemView.getContext(),
