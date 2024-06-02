@@ -1,5 +1,6 @@
 <resources>
     <style name="Theme.main" parent="Theme.AppTheme">
+        <item name="android:windowLightStatusBar">false</item>
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
