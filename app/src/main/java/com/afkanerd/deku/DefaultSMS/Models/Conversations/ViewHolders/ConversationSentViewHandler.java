@@ -177,11 +177,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
             super(itemView);
         }
 
-        public void highlight() {
+        @Override
+        public void activate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
         }
 
-        public void unHighlight() {
+        @Override
+        public void deactivate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_drawable);
         }
 
@@ -210,10 +212,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         }
 
-        public void highlight() {
+        @Override
+        public void activate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
         }
-        public void unHighlight() {
+
+        @Override
+        public void deactivate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
         }
     }
@@ -228,10 +233,12 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
                     itemView.getContext().getDrawable(R.drawable.sent_messages_start_view_drawable));
         }
 
-        public void highlight() {
+        @Override
+        public void activate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
         }
-        public void unHighlight() {
+        @Override
+        public void deactivate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
         }
     }
@@ -244,10 +251,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
             sentMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_end_view_drawable));
         }
-        public void highlight() {
+        @Override
+        public void activate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_end_highlight_drawable);
         }
-        public void unHighlight() {
+
+        @Override
+        public void deactivate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_end_view_drawable);
         }
     }
@@ -263,10 +273,12 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
                     itemView.getContext().getDrawable(R.drawable.sent_messages_middle_view_drawable));
         }
 
-        public void highlight() {
+        @Override
+        public void activate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_middle_hightlight_drawable);
         }
-        public void unHighlight() {
+        @Override
+        public void deactivate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_middle_view_drawable);
         }
     }
