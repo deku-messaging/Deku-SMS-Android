@@ -872,7 +872,12 @@ public class ConversationActivity extends E2EECompactActivity {
             conversation.setMessage_id(viewHandler.getMessage_id());
             conversationList.add(conversation);
         }
-        conversationsViewModel.deleteItems(getApplicationContext(), conversationList);
+        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                conversationsViewModel.deleteItems(getApplicationContext(), conversationList);
+            }
+        });
     }
 
     private void searchForInput(String search){

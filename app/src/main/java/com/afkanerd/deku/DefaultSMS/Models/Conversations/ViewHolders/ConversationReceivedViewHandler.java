@@ -129,6 +129,15 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             super(itemView);
             timestamp.setVisibility(View.VISIBLE);
         }
+        @Override
+        public void activate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_drawable);
+        }
     }
 
     public static class KeyReceivedViewHandler extends ConversationReceivedViewHandler {
@@ -144,11 +153,29 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             receivedMessage.setText(
                     itemView.getContext().getString(R.string.conversation_threads_secured_content));
         }
+        @Override
+        public void activate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_drawable);
+        }
     }
     public static class TimestampKeyReceivedViewHandler extends KeyReceivedViewHandler {
         public TimestampKeyReceivedViewHandler(@NonNull View itemView) {
             super(itemView);
             timestamp.setVisibility(View.VISIBLE);
+        }
+        @Override
+        public void activate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_drawable);
         }
     }
 
@@ -163,6 +190,15 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             receivedMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
         }
+        @Override
+        public void activate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_mesages_start_highlighted_view_drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_drawable);
+        }
     }
 
     public static class ConversationReceivedStartViewHandler extends ConversationReceivedViewHandler {
@@ -175,6 +211,15 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             receivedMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
         }
+        @Override
+        public void activate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_mesages_start_highlighted_view_drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_drawable);
+        }
     }
     public static class ConversationReceivedEndViewHandler extends ConversationReceivedViewHandler {
         public ConversationReceivedEndViewHandler(@NonNull View itemView) {
@@ -184,6 +229,15 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
             receivedMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.received_messages_end_view_drawable));
+        }
+        @Override
+        public void activate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_end_highlighted_view_drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_end_view_drawable);
         }
     }
 
@@ -195,6 +249,16 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
             receivedMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.received_messages_middle_view_drawable));
+        }
+
+        @Override
+        public void activate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_middle_highlighted_view_drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_end_view_drawable);
         }
     }
 

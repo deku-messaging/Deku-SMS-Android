@@ -4,8 +4,8 @@
     <solid
         android:color="@color/md_theme_tertiary"/>
     <corners
-        android:topLeftRadius="18dp"
-        android:topRightRadius="5dp"
+        android:topLeftRadius="5dp"
+        android:topRightRadius="18dp"
         android:bottomRightRadius="18dp"
         android:bottomLeftRadius="18dp" />
 </shape>

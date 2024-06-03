@@ -602,7 +602,8 @@ public class ThreadedConversationsFragment extends Fragment {
                     // Delete
                     xMarkRight = viewHolder.itemView.getLeft() + xMarkMargin + intrinsicWidth;
                     xMarkLeft = xMarkRight - intrinsicWidth;
-                    background = new ColorDrawable(getContext().getColor(R.color.md_theme_error));
+                    background = new ColorDrawable(getContext()
+                            .getColor(R.color.md_theme_tertiary));
                 } else if(dX < 0) {
                     // Archive
                     xMarkLeft = viewHolder.itemView.getRight() - xMarkMargin - intrinsicWidth;
