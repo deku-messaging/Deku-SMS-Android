@@ -162,7 +162,7 @@ public class ConversationActivity extends E2EECompactActivity {
                 try {
                     NativeSMSDB.Incoming.update_read(getApplicationContext(), 1, threadId,
                             null);
-                    conversationsViewModel.updateInformation(getApplicationContext(), contactName);
+//                    conversationsViewModel.updateInformation(getApplicationContext(), contactName);
                     emptyDraft();
                 } catch (Exception e) {
                     e.printStackTrace();
