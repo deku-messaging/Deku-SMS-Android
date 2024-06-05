@@ -27,11 +27,15 @@ class SMTPTest {
         properties.put("mail.smtp.host", properties.getProperty("host"))
         properties.put("mail.smtp.port", properties.getProperty("port"))
         properties.put("mail.debug", "true");
+
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.starttls.enable", "true")
     }
 
 
     @Test
     fun smtpTest() {
+
         val session = Session.getInstance(properties, null)
         with(session) {
             val msg = MimeMessage(session)

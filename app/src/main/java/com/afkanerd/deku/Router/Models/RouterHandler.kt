@@ -70,6 +70,7 @@ object RouterHandler {
         val properties = Properties()
         properties["mail.smtp.host"] = gatewayServer.smtp.smtp_host
         properties["mail.smtp.port"] = gatewayServer.smtp.smtp_port
+        properties["mail.smtp.auth"] = "true";
         properties["mail.smtp.starttls.enable"] = "true"
         if (BuildConfig.DEBUG) properties["mail.debug"] = "true"
 
