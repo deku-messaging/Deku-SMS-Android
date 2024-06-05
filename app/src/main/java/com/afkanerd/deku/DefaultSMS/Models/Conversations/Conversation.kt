@@ -5,46 +5,48 @@ import android.provider.Telephony
 import androidx.recyclerview.widget.DiffUtil
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.Expose
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 @Entity(indices = [Index(value = ["message_id"], unique = true)])
 open class Conversation : Cloneable {
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0
-    var message_id: String? = null
-    var thread_id: String? = null
-    var date: String? = null
-    var date_sent: String? = null
-    var type = 0
-    var num_segments = 0
-    var subscription_id = 0
-    var status = 0
-    var error_code = 0
-    @ColumnInfo(name = "read")
-    var isRead = false
+    @PrimaryKey(autoGenerate = true) @EncodeDefault var id: Long = 0
+    @EncodeDefault var message_id: String? = null
+    @EncodeDefault var thread_id: String? = null
+    @EncodeDefault var date: String? = null
+    @EncodeDefault var date_sent: String? = null
+    @EncodeDefault var type = 0
+    @EncodeDefault var num_segments = 0
+    @EncodeDefault var subscription_id = 0
+    @EncodeDefault var status = 0
+    @EncodeDefault var error_code = 0
+    @ColumnInfo(name = "read") @EncodeDefault var isRead = false
 
     @ColumnInfo(name = "is_encrypted")
-    var isIs_encrypted = false
+    @EncodeDefault var isIs_encrypted = false
 
     @ColumnInfo(name = "is_key")
-    var isIs_key = false
+    @EncodeDefault var isIs_key = false
 
     @ColumnInfo(name = "is_image")
-    var isIs_image = false
+    @EncodeDefault var isIs_image = false
 
-    var formatted_date: String? = null
-    var address: String? = null
-    var text: String? = null
-    var data: String? = null
+    @EncodeDefault var formatted_date: String? = null
+    @EncodeDefault var address: String? = null
+    @EncodeDefault var text: String? = null
+    @EncodeDefault var data: String? = null
 
+    @Transient @EncodeDefault var _mk: String? = null
 
-    // To stop gson from serializing this
-//    @Expose(serialize = false, deserialize = false)
-    var _mk: String? = null
+    @Ignore()
+    @EncodeDefault
+    var tag: String? = null
     constructor()
     constructor(cursor: Cursor) {
         val idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID)

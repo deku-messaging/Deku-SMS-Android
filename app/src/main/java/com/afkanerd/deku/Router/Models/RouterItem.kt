@@ -6,28 +6,19 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.work.DelegatingWorkerFactory
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
+import com.google.gson.annotations.Expose
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
-
-@Serializable
-data class RouterItem(val conversation: Conversation) : Conversation(conversation) {
+class RouterItem(val conversation: Conversation) : Conversation(conversation) {
     var routingUniqueId: String? = null
     var url: String? = null
-    var tag: String? = null
-    val MSISDN: String = ADDRESS
-    var routingDate: Long = 0
     var routingStatus: String? = null
-    var sid: String? = null
-    var reportedStatus: String? = null
-//    var text = getText()
 
-//    override fun equals(other: Any?): Boolean {
-//        if (other is RouterItem) {
-//            val conversation = other as Conversation
-//            return super.equals(conversation) && routingStatus == other.routingStatus
-//        }
-//        return false
-//    }
+    fun serializeJson() : String {
+        return Json.encodeToString(conversation)
+    }
 
     companion object {
         fun build(cursor: Cursor?): RouterItem {

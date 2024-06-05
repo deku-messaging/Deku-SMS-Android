@@ -24,7 +24,7 @@ class RouterWorkManager (context: Context, workerParams: WorkerParameters)
         val routerItem = RouterItem(conversation)
         routerItem.tag = gatewayServer.getTag()
 
-        val jsonStringBody = Json.encodeToString(routerItem)
+        val jsonStringBody = routerItem.serializeJson()
         println(jsonStringBody)
 
         when(gatewayServer.getProtocol()) {
