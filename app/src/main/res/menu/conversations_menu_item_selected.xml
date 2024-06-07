@@ -19,4 +19,8 @@
         android:id="@+id/conversations_menu_view_details"
         android:title="@string/conversation_menu_view_details"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/conversations_menu_replay"
+        android:title="@string/conversation_menu_view_replay"
+        app:showAsAction="never" />
 </menu>

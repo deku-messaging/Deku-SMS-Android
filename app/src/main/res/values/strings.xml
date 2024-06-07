@@ -207,6 +207,7 @@
     <string name="conversation_menu_unmuted">Contact is now unmuted!</string>
 
     <string name="conversation_menu_view_details">View details</string>
+    <string name="conversation_menu_view_replay">Replay</string>
     <string name="conversation_menu_view_details_title">Message details</string>
     <string name="conversation_menu_view_details_type">Type:\u00A0</string>
     <string name="conversation_menu_view_details_type_text">Text message</string>

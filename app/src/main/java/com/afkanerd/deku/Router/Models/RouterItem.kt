@@ -17,7 +17,10 @@ class RouterItem(val conversation: Conversation) : Conversation(conversation) {
     var routingStatus: String? = null
 
     fun serializeJson() : String {
-        return Json.encodeToString(conversation)
+        val json = Json {
+            prettyPrint = true
+        }
+        return json.encodeToString(conversation)
     }
 
     companion object {

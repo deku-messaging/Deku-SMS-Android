@@ -57,6 +57,7 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.E2EECompactActivity;
+import com.afkanerd.deku.Router.GatewayServers.GatewayServer;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
@@ -864,6 +865,22 @@ public class ConversationActivity extends E2EECompactActivity {
                 Toast.LENGTH_SHORT).show();
     }
 
+    private void replay() {
+        for(ConversationTemplateViewHandler viewHandler :
+                conversationsRecyclerAdapter.mutableSelectedItems.getValue().values()) {
+            final Conversation conversation = new Conversation();
+            conversation.setId(viewHandler.getId());
+            conversation.setMessage_id(viewHandler.getMessage_id());
+
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    GatewayServer.route(getApplicationContext(), conversation);
+                }
+            });
+        }
+    }
+
     private void deleteItems() throws Exception {
         List<Conversation> conversationList = new ArrayList<>();
         for(ConversationTemplateViewHandler viewHandler :
@@ -1059,15 +1076,10 @@ public class ConversationActivity extends E2EECompactActivity {
                 }
                 return true;
             }
-            else if (R.id.conversations_menu_view_details == id) {
-                try {
-                    viewDetailsPopUp();
-                    if(actionMode != null)
-                        actionMode.finish();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    return false;
-                }
+            else if (R.id.conversations_menu_replay == id) {
+                replay();
+                if(actionMode != null)
+                    actionMode.finish();
                 return true;
             }
             return false;
