@@ -382,7 +382,8 @@ public class Helpers {
     }
 
     public static int getColor(Context context, String input) {
-        int sDefaultColor = context.getColor(R.color.letter_tile_default_color);
+        int sDefaultColor = context.getResources().getIntArray(R.array.letter_tile_colors)[0];
+//        int sDefaultColor = context.getColor(defaultColor);
         if (TextUtils.isEmpty(input)) {
             return sDefaultColor;
         }
