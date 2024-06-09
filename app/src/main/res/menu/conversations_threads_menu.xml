@@ -8,10 +8,6 @@
             android:title="@string/conversations_menu_search_title"
             app:showAsAction="ifRoom" />
         <item
-            android:id="@+id/conversation_threads_main_menu_routed"
-            android:title="@string/homepage_menu_routed"
-            app:showAsAction="never" />
-        <item
             android:id="@+id/conversations_menu_export"
             android:title="@string/conversation_menu_export"
             app:showAsAction="never" />
@@ -20,14 +16,20 @@
             android:title="@string/settings_title"
             app:showAsAction="never" />
         <item
+            android:id="@+id/conversation_threads_main_menu_refresh"
+            android:icon="@drawable/round_refresh_24"
+            android:title="@string/conversations_menu_refresh_title"
+            app:showAsAction="never" />
+
+        <item
             android:theme="@style/Theme.main"
             android:id="@+id/conversation_threads_main_menu_about"
             android:title="@string/settings_about"
             app:showAsAction="never" />
+
         <item
-            android:id="@+id/conversation_threads_main_menu_refresh"
-            android:icon="@drawable/round_refresh_24"
-            android:title="@string/conversations_menu_refresh_title"
+            android:id="@+id/conversation_threads_main_menu_routed"
+            android:title="@string/homepage_menu_routed"
             app:showAsAction="never" />
 
     </group>
