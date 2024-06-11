@@ -1,5 +1,7 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
+import static java.sql.DriverManager.println;
+
 import android.provider.Telephony;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -187,12 +189,25 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
     }
 
     private void setOnClickListeners(ConversationTemplateViewHandler holder, Conversation conversation) {
+
+        if(holder instanceof ConversationSentViewHandler) {
+            ((ConversationSentViewHandler) holder).messageFailedIcon
+                    .setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if(conversation.getStatus() == Telephony.TextBasedSmsColumns.STATUS_FAILED) {
+                                if(conversation.getData() != null) retryFailedDataMessage.setValue(conversation);
+                                else retryFailedMessage.setValue(conversation);
+                            }
+                        }
+            });
+        }
+
         holder.getContainerLayout().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(mutableSelectedItems != null && mutableSelectedItems.getValue() != null) {
                     if(mutableSelectedItems.getValue().containsKey(holder.getId())) {
-                        Log.d(getClass().getName(), "Removing item");
                         removeSelectedItems(holder);
                     } else if(!mutableSelectedItems.getValue().isEmpty()){
                         addSelectedItems(holder);

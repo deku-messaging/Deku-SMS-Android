@@ -44,7 +44,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Fragments.ConversationsContactModalFragment;
+import com.afkanerd.deku.DefaultSMS.Modals.ConversationsContactModalFragment;
+import com.afkanerd.deku.DefaultSMS.Modals.ConversationsSecureRequestModalSheetFragment;
+import com.afkanerd.deku.DefaultSMS.Modals.FailedMessageRetryModal;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdapter;
@@ -528,19 +530,23 @@ public class ConversationActivity extends E2EECompactActivity {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
 
-                // TODO: make this call a modal sheet and work from there
-                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                showFailedRetryModal(new Runnable() {
                     @Override
                     public void run() {
-                        conversationsViewModel.deleteItems(getApplicationContext(), list);
-                        try {
-                            ThreadedConversations threadedConversations =
-                                    databaseConnector.threadedConversationsDao().get(threadId);
-                            sendTextMessage(conversation, threadedConversations,
-                                    conversation.getMessage_id());
-                        } catch (Exception e) {
-                            Log.e(getClass().getName(), "Exception sending failed message", e);
-                        }
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                conversationsViewModel.deleteItems(getApplicationContext(), list);
+                                try {
+                                    ThreadedConversations threadedConversations =
+                                            databaseConnector.threadedConversationsDao().get(threadId);
+                                    sendTextMessage(conversation, threadedConversations,
+                                            conversation.getMessage_id());
+                                } catch (Exception e) {
+                                    Log.e(getClass().getName(), "Exception sending failed message", e);
+                                }
+                            }
+                        });
                     }
                 });
             }
@@ -551,18 +557,23 @@ public class ConversationActivity extends E2EECompactActivity {
             public void onChanged(Conversation conversation) {
                 List<Conversation> list = new ArrayList<>();
                 list.add(conversation);
-                ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                showFailedRetryModal(new Runnable() {
                     @Override
                     public void run() {
-                        conversationsViewModel.deleteItems(getApplicationContext(), list);
-                        try {
-                            ThreadedConversations threadedConversations =
-                                    databaseConnector.threadedConversationsDao().get(threadId);
-                            sendDataMessage(threadedConversations);
-                        } catch (Exception e) {
-                            Log.e(getClass().getName(),
-                                    "Exception sending failed data message", e);
-                        }
+                        ThreadingPoolExecutor.executorService.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                conversationsViewModel.deleteItems(getApplicationContext(), list);
+                                try {
+                                    ThreadedConversations threadedConversations =
+                                            databaseConnector.threadedConversationsDao().get(threadId);
+                                    sendDataMessage(threadedConversations);
+                                } catch (Exception e) {
+                                    Log.e(getClass().getName(),
+                                            "Exception sending failed data message", e);
+                                }
+                            }
+                        });
                     }
                 });
             }
@@ -588,6 +599,15 @@ public class ConversationActivity extends E2EECompactActivity {
                     }
                 });
 
+    }
+
+    private void showFailedRetryModal(Runnable runnable) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        FailedMessageRetryModal failedMessageRetryModal = new FailedMessageRetryModal(runnable);
+        fragmentTransaction.add(failedMessageRetryModal, "failed_message_modal");
+//        fragmentTransaction.show(failedMessageRetryModal);
+        fragmentTransaction.commit();
     }
 
     private void configureSearchBox() {

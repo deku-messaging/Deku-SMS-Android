@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 public class ConversationSentViewHandler extends ConversationTemplateViewHandler {
 
     final static int BOTTOM_MARGIN = 4;
-    ImageView messageFailedIcon;
+    public ImageView messageFailedIcon;
     TextView sentMessage;
     TextView sentMessageStatus;
     TextView date;

@@ -1,4 +1,4 @@
-package com.afkanerd.deku.DefaultSMS.Fragments
+package com.afkanerd.deku.DefaultSMS.Modals
 
 import android.content.Intent
 import android.net.Uri
