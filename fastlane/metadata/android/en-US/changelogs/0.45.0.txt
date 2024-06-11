@@ -1,3 +1,5 @@
 - refactor: Gateway client connections
 
 - update: notify via sound when no Gateway client connected
+
+- update: improved the UI/UX for retrying failed messages - reduces the chances of error retries
