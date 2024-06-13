@@ -690,6 +690,7 @@ public class ConversationActivity extends E2EECompactActivity {
                     sendBtn.setVisibility(View.VISIBLE);
                     if(isDualSim)
                         dualSimCardName.setVisibility(View.VISIBLE);
+                    counterView.setVisibility(View.VISIBLE);
                 }
                 else {
                     sendBtn.setVisibility(View.GONE);
