@@ -108,7 +108,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         drawable.setColorFilter(
                 new PorterDuffColorFilter(ContextCompat
                         .getColor(itemView.getContext(),
-                                R.color.md_theme_onSecondary),
+                                R.color.md_theme_outline),
                         PorterDuff.Mode.SRC_IN));
         receivedMessage.setBackground(drawable);
     }
@@ -183,7 +183,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             drawable.setColorFilter(
                     new PorterDuffColorFilter(ContextCompat
                             .getColor(itemView.getContext(),
-                                    R.color.md_theme_onSecondary),
+                                    R.color.md_theme_outline),
                             PorterDuff.Mode.SRC_IN));
             receivedMessage.setBackground(drawable);
         }
@@ -211,7 +211,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             drawable.setColorFilter(
                     new PorterDuffColorFilter(ContextCompat
                             .getColor(itemView.getContext(),
-                                    R.color.md_theme_onSecondary),
+                                    R.color.md_theme_outline),
                             PorterDuff.Mode.SRC_IN));
             receivedMessage.setBackground(drawable);
         }
@@ -237,7 +237,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             drawable.setColorFilter(
                     new PorterDuffColorFilter(ContextCompat
                             .getColor(itemView.getContext(),
-                                    R.color.md_theme_onSecondary),
+                                    R.color.md_theme_outline),
                             PorterDuff.Mode.SRC_IN));
             receivedMessage.setBackground(drawable);
         }
@@ -265,7 +265,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             drawable.setColorFilter(
                     new PorterDuffColorFilter(ContextCompat
                             .getColor(itemView.getContext(),
-                                    R.color.md_theme_onSecondary),
+                                    R.color.md_theme_outline),
                             PorterDuff.Mode.SRC_IN));
             receivedMessage.setBackground(drawable);
         }

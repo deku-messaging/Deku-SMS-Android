@@ -149,7 +149,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
                 R.drawable.sent_messages_drawable);
         drawable.setColorFilter(
                 new PorterDuffColorFilter(ContextCompat
-                        .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                        .getColor(itemView.getContext(), R.color.md_theme_outline),
                         PorterDuff.Mode.SRC_IN));
         sentMessage.setBackground(drawable);
     }
@@ -219,7 +219,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
                     R.drawable.sent_messages_start_view_drawable);
             drawable.setColorFilter(
                     new PorterDuffColorFilter(ContextCompat
-                            .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                            .getColor(itemView.getContext(), R.color.md_theme_outline),
                             PorterDuff.Mode.SRC_IN));
             sentMessage.setBackground(drawable);
         }
@@ -246,7 +246,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
                     R.drawable.sent_messages_start_view_drawable);
             drawable.setColorFilter(
                     new PorterDuffColorFilter(ContextCompat
-                            .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                            .getColor(itemView.getContext(), R.color.md_theme_outline),
                             PorterDuff.Mode.SRC_IN));
             sentMessage.setBackground(drawable);
         }
@@ -270,7 +270,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
                     R.drawable.sent_messages_end_view_drawable);
             drawable.setColorFilter(
                     new PorterDuffColorFilter(ContextCompat
-                            .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                            .getColor(itemView.getContext(), R.color.md_theme_outline),
                             PorterDuff.Mode.SRC_IN));
             sentMessage.setBackground(drawable);
         }
@@ -298,7 +298,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
                     R.drawable.sent_messages_middle_view_drawable);
             drawable.setColorFilter(
                     new PorterDuffColorFilter(ContextCompat
-                            .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                            .getColor(itemView.getContext(), R.color.md_theme_outline),
                             PorterDuff.Mode.SRC_IN));
             sentMessage.setBackground(drawable);
         }

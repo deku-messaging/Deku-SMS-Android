@@ -27,7 +27,7 @@ public class ConversationsViewModel extends ViewModel {
     public String address;
     public int pageSize = 10;
     int prefetchDistance = 3 * pageSize;
-    boolean enablePlaceholder = false;
+    boolean enablePlaceholder = true;
     int initialLoadSize = pageSize * 2;
 
     public Integer initialKey = null;
