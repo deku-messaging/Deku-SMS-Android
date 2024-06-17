@@ -148,7 +148,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         setOnClickListeners(holder, conversation);
 
         if(holder instanceof ConversationReceivedViewHandler) {
-            ConversationReceivedViewHandler conversationReceivedViewHandler = (ConversationReceivedViewHandler) holder;
+            ConversationReceivedViewHandler conversationReceivedViewHandler =
+                    (ConversationReceivedViewHandler) holder;
             conversationReceivedViewHandler.bind(conversation, searchString);
             if(holder.getAbsoluteAdapterPosition() == 0) {
                 if(lastReceivedItem != null)

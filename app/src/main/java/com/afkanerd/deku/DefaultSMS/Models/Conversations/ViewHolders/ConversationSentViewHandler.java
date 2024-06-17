@@ -1,6 +1,9 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.provider.Telephony;
 import android.text.Spannable;
 import android.util.Log;
@@ -13,6 +16,7 @@ import androidx.annotation.NonNull;
 //import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
@@ -20,6 +24,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.android.material.textview.MaterialTextView;
 
 import java.sql.Date;
 import java.text.DateFormat;
@@ -31,7 +36,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     final static int BOTTOM_MARGIN = 4;
     public ImageView messageFailedIcon;
-    TextView sentMessage;
+    MaterialTextView sentMessage;
     TextView sentMessageStatus;
     TextView date;
     TextView timestamp;
@@ -140,7 +145,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     @Override
     public void activate() {
-        sentMessage.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
+        Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                R.drawable.sent_messages_drawable);
+        drawable.setColorFilter(
+                new PorterDuffColorFilter(ContextCompat
+                        .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                        PorterDuff.Mode.SRC_IN));
+        sentMessage.setBackground(drawable);
     }
 
     @Override
@@ -178,16 +189,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         }
 
         @Override
-        public void activate() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
-        }
-
-        @Override
-        public void deactivate() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_drawable);
-        }
-
-        @Override
         public void bind(Conversation conversation, String searchString) {
             super.bind(conversation, searchString);
             sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title_requested));
@@ -214,7 +215,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         @Override
         public void activate() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.sent_messages_start_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                            PorterDuff.Mode.SRC_IN));
+            sentMessage.setBackground(drawable);
         }
 
         @Override
@@ -235,7 +242,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         @Override
         public void activate() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.sent_messages_start_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                            PorterDuff.Mode.SRC_IN));
+            sentMessage.setBackground(drawable);
         }
         @Override
         public void deactivate() {
@@ -253,7 +266,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         }
         @Override
         public void activate() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_end_highlight_drawable);
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.sent_messages_end_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                            PorterDuff.Mode.SRC_IN));
+            sentMessage.setBackground(drawable);
         }
 
         @Override
@@ -275,7 +294,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         @Override
         public void activate() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_middle_hightlight_drawable);
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.sent_messages_middle_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(), R.color.md_theme_onSecondary),
+                            PorterDuff.Mode.SRC_IN));
+            sentMessage.setBackground(drawable);
         }
         @Override
         public void deactivate() {
