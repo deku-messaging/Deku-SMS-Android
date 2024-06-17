@@ -52,7 +52,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     protected void attachObservers() {
         try {
             final String keystoreAlias =
-                    E2EEHandler.deriveKeystoreAlias(address, 0);
+                    E2EEHandler.deriveKeystoreAlias(getApplicationContext(), address, 0);
             databaseConnector.conversationsThreadsEncryptionDao().fetchLiveData(keystoreAlias)
                     .observe(this, new Observer<ConversationsThreadsEncryption>() {
                         @Override
@@ -124,7 +124,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         if(threadedConversations.is_secured) {
             try {
                 String keystoreAlias =
-                        E2EEHandler.deriveKeystoreAlias(
+                        E2EEHandler.deriveKeystoreAlias(getApplicationContext(),
                                 threadedConversations.getAddress(), 0);
                 byte[][] cipherText = E2EEHandler.encrypt(getApplicationContext(),
                         keystoreAlias, text.getBytes(StandardCharsets.UTF_8),
@@ -299,7 +299,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                             Datastore.getDatastore(getApplicationContext())
                             .threadedConversationsDao().get(threadId);
                     String keystoreAlias = E2EEHandler
-                            .deriveKeystoreAlias(address, 0);
+                            .deriveKeystoreAlias(getApplicationContext(), address, 0);
                     if (threadedConversations.isSelf()) {
                         keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);
                         Pair<String, byte[]> keystorePair = E2EEHandler

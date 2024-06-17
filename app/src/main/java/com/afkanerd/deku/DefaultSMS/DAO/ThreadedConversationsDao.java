@@ -279,7 +279,7 @@ public interface ThreadedConversationsDao {
         for(ThreadedConversations threadedConversations : getList(ids)) {
             try {
                 String keystoreAlias =
-                        E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                        E2EEHandler.deriveKeystoreAlias(context, threadedConversations.getAddress(), 0);
                 E2EEHandler.clear(context, keystoreAlias);
             } catch (KeyStoreException | NumberParseException |
                      InterruptedException |
@@ -296,7 +296,7 @@ public interface ThreadedConversationsDao {
     default void delete(Context context, ThreadedConversations threadedConversations) {
         try {
             String keystoreAlias =
-                    E2EEHandler.deriveKeystoreAlias(threadedConversations.getAddress(), 0);
+                    E2EEHandler.deriveKeystoreAlias(context, threadedConversations.getAddress(), 0);
             E2EEHandler.clear(context, keystoreAlias);
         } catch (KeyStoreException | NumberParseException |
                  InterruptedException |

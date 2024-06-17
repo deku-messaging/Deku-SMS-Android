@@ -185,7 +185,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         var text = text
         var encrypted = false
         if (E2EEHandler.isValidDefaultText(text)) {
-            val keystoreAlias = E2EEHandler.deriveKeystoreAlias(address, 0)
+            val keystoreAlias = E2EEHandler.deriveKeystoreAlias(context, address, 0)
             val cipherText = E2EEHandler.extractTransmissionText(text)
             val isSelf = E2EEHandler.isSelf(context, keystoreAlias)
             text = String(E2EEHandler.decrypt(context,

@@ -78,7 +78,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             final Conversation conversation = new Conversation();
             if(_mk != null) {
                 try {
-                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
+                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(getApplicationContext(),
                             threadedConversations.getAddress(), 0);
                     if(threadedConversations.isSelf())
                         keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);
