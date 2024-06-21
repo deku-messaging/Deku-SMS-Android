@@ -9,13 +9,19 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.2'
+        classpath 'com.android.tools.build:gradle:8.5.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
+
+//plugins {
+//    id("com.vanniktech.maven.publish") version "0.28.0" apply false
+//    id("com.gradleup.nmcp") version "0.0.7" apply false
+//}
+
 
 tasks.register('clean', Delete) {
     delete rootProject.buildDir
