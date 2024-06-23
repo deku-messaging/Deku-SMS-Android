@@ -169,7 +169,7 @@
     <string name="gateway_client_project_listing_no_projects_added">Aucun projet ajouté</string>
     <string name="conversations_secure_conversation_request"><b>John</b> a demandé à sécuriser cette conversation.</string>
     <string name="conversations_secure_conversation_request_agree">Acceptez de sécuriser !</string>
-    <string name="conversations_secure_conversation_request_information">Lorsque vous envoyez un message sur notre plateforme, celui-ci est brouillé avec un code spécial, tout comme un code secret que vous pourriez utiliser avec un ami.\n\nCe code empêche quiconque de consulter votre message pendant qu\'il circule entre vous et le destinataire. Seule la personne à qui vous l\'envoyez possède la clé pour le déchiffrer et lire ce que vous avez écrit. Nous appelons ce processus le cryptage.\n\nPensez-y comme si vous enfermiez vos messages dans un coffre-fort pendant leur livraison !\n\nVous voulez en savoir plus sur le code secret ?\n\nSi vous êtes curieux de savoir comment fonctionne ce cryptage, vous pouvez consulter ce lien pour une analyse plus approfondie.</string>
+    <string name="conversations_secure_conversation_request_information">Vous pouvez envoyer une demande de chiffrement des messages à tout le monde à l'aide de Deku SMS. Une fois qu'ils sont d'accord, vous pouvez tous les deux commencer à communiquer en toute sécurité</string>
     <string name="conversations_secure_conversation_request_information_deku_encryption_read_more">Apprendre encore plus</string>
     <string name="messages_thread_encrypted_content_label">Sécurisé</string>
     <string name="conversations_menu_refresh_title">Rafraîchir</string>
