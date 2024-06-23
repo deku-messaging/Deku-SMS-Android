@@ -45,11 +45,6 @@
             android:name="com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
-        <activity
-            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectListingFragment"
-            android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
-
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
@@ -71,10 +66,6 @@
                 android:name="com.google.android.gms.vision.DEPENDENCIES"
                 android:value="barcode" />
         </activity>
-        <activity
-            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectAddModalFragment"
-            android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
         <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
             android:exported="false"
