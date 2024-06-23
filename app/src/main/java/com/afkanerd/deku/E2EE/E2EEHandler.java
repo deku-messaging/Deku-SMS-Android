@@ -8,7 +8,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
@@ -64,8 +64,17 @@ public class E2EEHandler {
                 data, DEFAULT_HEADER_END_PREFIX.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static String deriveKeystoreAlias(String address, int mode) throws NumberParseException {
-        String[] addressDetails = Helpers.getCountryNationalAndCountryCode(address);
+    public static String deriveKeystoreAlias(Context context, String address, int mode) throws NumberParseException {
+        String[] addressDetails = new String[2];
+        try {
+            addressDetails = Helpers.getCountryNationalAndCountryCode(address);
+        } catch(Exception e) {
+            e.printStackTrace();
+            String defaultRegion = Helpers.getUserCountry(context);
+
+            address = Helpers.getFormatCompleteNumber(address, defaultRegion);
+            addressDetails = Helpers.getCountryNationalAndCountryCode(address);
+        }
         String keystoreAliasRequirements = addressDetails[0] + addressDetails[1] + "_" + mode;
         return Base64.encodeToString(keystoreAliasRequirements.getBytes(), Base64.NO_WRAP);
     }
@@ -254,7 +263,7 @@ public class E2EEHandler {
         int session = 0;
 
         if(keystoreAlias == null)
-            keystoreAlias = deriveKeystoreAlias(address, session);
+            keystoreAlias = deriveKeystoreAlias(context, address, session);
         PublicKey publicKey = createNewKeyPair(context, keystoreAlias);
         return new Pair<>(keystoreAlias, buildDefaultPublicKey(publicKey.getEncoded()));
     }

@@ -9,7 +9,7 @@ import android.util.Base64;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
@@ -120,7 +120,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
     boolean[] processForEncryptionKey(Context context, Conversation conversation) throws
             Exception {
         byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-        final String keystoreAlias = E2EEHandler.deriveKeystoreAlias(conversation.getAddress(), 0);
+        final String keystoreAlias = E2EEHandler.deriveKeystoreAlias(context, conversation.getAddress(), 0);
         byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
 
         E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);

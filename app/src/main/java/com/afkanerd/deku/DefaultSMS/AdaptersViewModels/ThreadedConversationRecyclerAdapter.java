@@ -107,8 +107,11 @@ public class ThreadedConversationRecyclerAdapter extends
                     }
                 }
 
-                Intent singleMessageThreadIntent = new Intent(holder.itemView.getContext(), ConversationActivity.class);
+                Intent singleMessageThreadIntent = new Intent(holder.itemView.getContext(),
+                        ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
+                singleMessageThreadIntent.putExtra(Conversation.SUBSCRIPTION_ID,
+                        threadedConversations.getSubscription_id());
                 singleMessageThreadIntent.putExtra(Conversation.ADDRESS,
                         threadedConversations.getAddress());
                 holder.itemView.getContext().startActivity(singleMessageThreadIntent);

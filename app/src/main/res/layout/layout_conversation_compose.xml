@@ -21,6 +21,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
+            app:placeholderTextColor="@color/md_theme_onSecondary"
             app:boxStrokeWidth="0dp"
             app:boxStrokeWidthFocused="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -31,13 +32,14 @@
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/conversation_send_text_input"
+                android:textColor="@color/md_theme_onSecondary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text|textAutoComplete|textAutoCorrect|textCapSentences|textEnableTextConversionSuggestions|textMultiLine"
                 android:maxLines="3"
                 android:paddingTop="8dp"
                 android:scrollbars="vertical"
-                android:textSize="@dimen/conversation_properties_default_font_size" />
+                android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
@@ -64,6 +66,7 @@
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/conversation_compose_dual_sim_send_sim_name"
+                android:textColor="@color/md_theme_onSecondary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"

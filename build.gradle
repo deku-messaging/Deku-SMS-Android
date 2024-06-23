@@ -9,13 +9,32 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.android.tools.build:gradle:8.5.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
+
+//plugins {
+//    id("com.gradleup.nmcp").version("0.0.8")
+//}
+
+//def releaseProperties = new Properties()
+//def releasePropertiesFile= rootProject.file("release.properties")
+//releaseProperties.load(new FileInputStream(releasePropertiesFile))
+//
+//nmcp {
+//    publishAllProjectsProbablyBreakingProjectIsolation {
+//        username = releaseProperties["ossrhUsername"]
+//        password = releaseProperties["ossrhPassword"]
+//        // publish manually from the portal
+////        publicationType = "USER_MANAGED"
+//        // or if you want to publish automatically
+//        publicationType = "AUTOMATIC"
+//    }
+//}
 
 tasks.register('clean', Delete) {
     delete rootProject.buildDir

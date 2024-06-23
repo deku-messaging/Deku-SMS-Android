@@ -1,10 +1,14 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.provider.Telephony;
 import android.text.Spannable;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -12,12 +16,15 @@ import androidx.annotation.NonNull;
 //import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
 import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.google.android.material.textview.MaterialTextView;
 
 import java.sql.Date;
 import java.text.DateFormat;
@@ -28,19 +35,14 @@ import java.util.concurrent.ExecutorService;
 public class ConversationSentViewHandler extends ConversationTemplateViewHandler {
 
     final static int BOTTOM_MARGIN = 4;
-    TextView sentMessage;
+    public ImageView messageFailedIcon;
+    MaterialTextView sentMessage;
     TextView sentMessageStatus;
     TextView date;
     TextView timestamp;
-    ImageView imageView;
-    ConstraintLayout imageConstraintLayout;
-
     LinearLayoutCompat linearLayoutCompat;
-    public LinearLayoutCompat messageStatusLinearLayoutCompact;
-
     LinearLayoutCompat.LayoutParams layoutParams;
-
-    boolean lastKnownStateIsFailed = false;
+    LinearLayoutCompat messageStatusTimestampLayout;
 
     public ConversationSentViewHandler(@NonNull View itemView) {
         super(itemView);
@@ -48,14 +50,11 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
         date = itemView.findViewById(R.id.message_thread_sent_date_text);
         timestamp = itemView.findViewById(R.id.sent_message_date_segment);
-        linearLayoutCompat = itemView.findViewById(R.id.conversation_linear_layout);
-        messageStatusLinearLayoutCompact = itemView.findViewById(R.id.conversation_status_linear_layout);
+        messageStatusTimestampLayout = itemView.findViewById(R.id.message_status_timestamp);
+        messageFailedIcon = itemView.findViewById(R.id.message_failed_indicator_img);
 
-//        constraintLayout = itemView.findViewById(R.id.message_sent_constraint);
-//        imageConstraintLayout = itemView.findViewById(R.id.message_sent_image_container);
-//        imageView = itemView.findViewById(R.id.message_sent_image_view);
-//        constraint4 = itemView.findViewById(R.id.conversation_sent_layout_container);
-
+////        messageStatusLinearLayoutCompact = itemView.findViewById(R.id.conversation_status_linear_layout);
+        linearLayoutCompat = itemView.findViewById(R.id.sent_message_linear_layout);
         layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
         layoutParams.bottomMargin = Helpers.dpToPixel(16);
         linearLayoutCompat.setLayoutParams(layoutParams);
@@ -100,24 +99,24 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         if(status == Telephony.TextBasedSmsColumns.STATUS_PENDING )
             statusMessage = itemView.getContext().getString(R.string.sms_status_sending);
         else if(status == Telephony.TextBasedSmsColumns.STATUS_FAILED ) {
-            statusMessage = itemView.getContext().getString(R.string.sms_status_failed);
-
-            sentMessageStatus.setVisibility(View.VISIBLE);
-            this.date.setVisibility(View.VISIBLE);
+            statusMessage = itemView.getContext().getString(R.string.sms_status_failed_only);
 
             sentMessageStatus.setTextAppearance(R.style.conversation_failed);
             this.date.setTextAppearance(R.style.conversation_failed);
+            this.messageFailedIcon.setVisibility(View.VISIBLE);
 
-            lastKnownStateIsFailed = true;
+            LinearLayoutCompat.LayoutParams linearLayoutCompat1 = (LinearLayoutCompat.LayoutParams)
+                    this.messageStatusTimestampLayout.getLayoutParams();
+            linearLayoutCompat1.setMarginEnd(Helpers.dpToPixel(32));
+            this.messageStatusTimestampLayout.setLayoutParams(linearLayoutCompat1);
+            showDetails();
         }
         else {
             sentMessageStatus.setTextAppearance(R.style.Theme_main);
             this.date.setTextAppearance(R.style.Theme_main);
+            this.messageFailedIcon.setVisibility(View.GONE);
         }
-        if(lastKnownStateIsFailed && status != Telephony.TextBasedSmsColumns.STATUS_FAILED) {
-            sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
-            lastKnownStateIsFailed = false;
-        }
+
         statusMessage = " • " + statusMessage;
 
         if(conversation.getSubscription_id() > 0) {
@@ -146,7 +145,13 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     @Override
     public void activate() {
-        sentMessage.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
+        Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                R.drawable.sent_messages_drawable);
+        drawable.setColorFilter(
+                new PorterDuffColorFilter(ContextCompat
+                        .getColor(itemView.getContext(), R.color.md_theme_outline),
+                        PorterDuff.Mode.SRC_IN));
+        sentMessage.setBackground(drawable);
     }
 
     @Override
@@ -156,19 +161,19 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     @Override
     public void toggleDetails() {
-        int visibility = this.messageStatusLinearLayoutCompact.getVisibility() == View.VISIBLE ?
+        int visibility = this.messageStatusTimestampLayout.getVisibility() == View.VISIBLE ?
                 View.GONE : View.VISIBLE;
-        this.messageStatusLinearLayoutCompact.setVisibility(visibility);
+        this.messageStatusTimestampLayout.setVisibility(visibility);
     }
 
     @Override
     public void hideDetails() {
-        this.messageStatusLinearLayoutCompact.setVisibility(View.GONE);
+        this.messageStatusTimestampLayout.setVisibility(View.GONE);
     }
 
     @Override
     public void showDetails() {
-        this.messageStatusLinearLayoutCompact.setVisibility(View.VISIBLE);
+        this.messageStatusTimestampLayout.setVisibility(View.VISIBLE);
     }
 
     public static class TimestampConversationSentViewHandler extends ConversationSentViewHandler {
@@ -181,14 +186,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class KeySentViewHandler extends ConversationSentViewHandler {
         public KeySentViewHandler(@NonNull View itemView) {
             super(itemView);
-        }
-
-        public void highlight() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_highlighted_drawable);
-        }
-
-        public void unHighlight() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_drawable);
         }
 
         @Override
@@ -209,7 +206,6 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class TimestampKeySentStartGroupViewHandler extends TimestampConversationSentViewHandler {
         public TimestampKeySentStartGroupViewHandler(@NonNull View itemView) {
             super(itemView);
-
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
             linearLayoutCompat.setLayoutParams(layoutParams);
             sentMessage.setBackground(
@@ -217,10 +213,19 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
         }
 
-        public void highlight() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
+        @Override
+        public void activate() {
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.sent_messages_start_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(), R.color.md_theme_outline),
+                            PorterDuff.Mode.SRC_IN));
+            sentMessage.setBackground(drawable);
         }
-        public void unHighlight() {
+
+        @Override
+        public void deactivate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
         }
     }
@@ -235,10 +240,18 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
                     itemView.getContext().getDrawable(R.drawable.sent_messages_start_view_drawable));
         }
 
-        public void highlight() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_start_highlight_drawable);
+        @Override
+        public void activate() {
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.sent_messages_start_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(), R.color.md_theme_outline),
+                            PorterDuff.Mode.SRC_IN));
+            sentMessage.setBackground(drawable);
         }
-        public void unHighlight() {
+        @Override
+        public void deactivate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_start_view_drawable);
         }
     }
@@ -251,10 +264,19 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
             sentMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_end_view_drawable));
         }
-        public void highlight() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_end_highlight_drawable);
+        @Override
+        public void activate() {
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.sent_messages_end_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(), R.color.md_theme_outline),
+                            PorterDuff.Mode.SRC_IN));
+            sentMessage.setBackground(drawable);
         }
-        public void unHighlight() {
+
+        @Override
+        public void deactivate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_end_view_drawable);
         }
     }
@@ -263,16 +285,25 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         public ConversationSentMiddleViewHandler(@NonNull View itemView) {
             super(itemView);
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
-            linearLayoutCompat.setLayoutParams(layoutParams);
+//            linearLayoutCompat.setLayoutParams(layoutParams);
+            itemView.setLayoutParams(layoutParams);
 
             sentMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.sent_messages_middle_view_drawable));
         }
 
-        public void highlight() {
-            sentMessage.setBackgroundResource(R.drawable.sent_messages_middle_hightlight_drawable);
+        @Override
+        public void activate() {
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.sent_messages_middle_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(), R.color.md_theme_outline),
+                            PorterDuff.Mode.SRC_IN));
+            sentMessage.setBackground(drawable);
         }
-        public void unHighlight() {
+        @Override
+        public void deactivate() {
             sentMessage.setBackgroundResource(R.drawable.sent_messages_middle_view_drawable);
         }
     }

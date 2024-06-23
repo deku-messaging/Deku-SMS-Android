@@ -14,7 +14,7 @@ import androidx.paging.PagingSource;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 
@@ -27,7 +27,7 @@ public class ConversationsViewModel extends ViewModel {
     public String address;
     public int pageSize = 10;
     int prefetchDistance = 3 * pageSize;
-    boolean enablePlaceholder = false;
+    boolean enablePlaceholder = true;
     int initialLoadSize = pageSize * 2;
 
     public Integer initialKey = null;
@@ -104,12 +104,13 @@ public class ConversationsViewModel extends ViewModel {
         return positions;
     }
 
-    public void updateInformation(Context context, String contactName) {
+    public void updateInformation(Context context, String contactName, Integer subscriptionId) {
         datastore.conversationDao().updateRead(true, threadId);
         ThreadedConversations threadedConversations =
                 datastore.threadedConversationsDao().get(threadId);
         if(threadedConversations != null) {
             threadedConversations.setContact_name(contactName);
+            threadedConversations.setSubscription_id(subscriptionId);
             datastore.threadedConversationsDao().update(context, threadedConversations);
         }
     }

@@ -3,6 +3,7 @@ package com.afkanerd.deku.DefaultSMS;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -14,7 +15,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
+import com.afkanerd.deku.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 
 import java.util.List;
 
@@ -41,18 +45,40 @@ public class DualSIMConversationActivity extends AppCompatActivity {
             @Override
             public void onChanged(Integer integer) {
                 if(dualSim) {
-                    String subscriptionName = SIMHandler.getSubscriptionName(getApplicationContext(), integer);
+                    if(integer == -1) {
+                        integer = SIMHandler.getDefaultSimSubscription(getApplicationContext());
+                    }
+                    String subscriptionName = SIMHandler.getSubscriptionName(getApplicationContext(),
+                            integer);
                     currentSimcardTextView.setText(subscriptionName);
                 }
             }
         });
         if(sendImageButton != null) {
-            String subscriptionName = SIMHandler.getSubscriptionName(getApplicationContext(),
-                    SIMHandler.getDefaultSimSubscription(getApplicationContext()));
+            final int[] subscriptionId = {getIntent().hasExtra(Conversation.SUBSCRIPTION_ID) ?
+                    getIntent().getIntExtra(Conversation.SUBSCRIPTION_ID, -1) :
+                    SIMHandler.getDefaultSimSubscription(getApplicationContext())};
 
-            defaultSubscriptionId.setValue(SIMHandler.getDefaultSimSubscription(getApplicationContext()));
+            if(dualSim && subscriptionId[0] == -1 && getIntent().hasExtra(Conversation.THREAD_ID)) {
+                Thread thread = new Thread(() -> {
+                    Conversation conversation = Datastore.getDatastore(getApplicationContext())
+                            .conversationDao().fetchLatestForThread(String.valueOf(getIntent()
+                                    .getStringExtra(Conversation.THREAD_ID)));
+                    subscriptionId[0] = conversation.getSubscription_id();
+                });
+                thread.start();
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            String subscriptionName = SIMHandler.getSubscriptionName(getApplicationContext(),
+                    subscriptionId[0]);
+
             if(dualSim) {
-                currentSimcardTextView.setText(subscriptionName);
+//                currentSimcardTextView.setText(subscriptionName);
                 sendImageButton.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
@@ -61,6 +87,7 @@ public class DualSIMConversationActivity extends AppCompatActivity {
                     }
                 });
             }
+            defaultSubscriptionId.setValue(subscriptionId[0]);
         }
 
     }

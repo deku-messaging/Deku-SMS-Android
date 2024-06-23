@@ -22,10 +22,8 @@ import java.util.List;
 public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
     String sharedMessage;
-    private final AsyncListDiffer<Contacts> mDiffer = new AsyncListDiffer(this, Contacts.DIFF_CALLBACK);
-
-    public ContactsRecyclerAdapter() {
-    }
+    private final AsyncListDiffer<Contacts> mDiffer =
+            new AsyncListDiffer(this, Contacts.DIFF_CALLBACK);
 
     @NonNull
     @Override

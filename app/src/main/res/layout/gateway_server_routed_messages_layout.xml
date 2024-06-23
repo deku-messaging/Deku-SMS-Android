@@ -42,7 +42,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="@color/light_blue"
+                android:textColor="@color/material_on_background_disabled"
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="@+id/routed_messages_address"
                 app:layout_constraintStart_toStartOf="@+id/routed_messages_address"

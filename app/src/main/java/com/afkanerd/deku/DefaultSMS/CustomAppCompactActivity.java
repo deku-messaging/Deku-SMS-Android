@@ -12,7 +12,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
@@ -78,7 +78,7 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
             final Conversation conversation = new Conversation();
             if(_mk != null) {
                 try {
-                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(
+                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(getApplicationContext(),
                             threadedConversations.getAddress(), 0);
                     if(threadedConversations.isSelf())
                         keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);

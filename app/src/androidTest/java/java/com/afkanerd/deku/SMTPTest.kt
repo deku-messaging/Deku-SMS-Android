@@ -3,10 +3,14 @@ package java.com.afkanerd.deku
 import android.content.Context
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import org.junit.Before
 import org.junit.Test
 import java.util.Properties
 import com.afkanerd.deku.DefaultSMS.R
+import com.afkanerd.deku.Router.Models.RouterItem
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.util.Date
 import javax.mail.Message
 import javax.mail.Session
@@ -27,11 +31,15 @@ class SMTPTest {
         properties.put("mail.smtp.host", properties.getProperty("host"))
         properties.put("mail.smtp.port", properties.getProperty("port"))
         properties.put("mail.debug", "true");
+
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.starttls.enable", "true")
     }
 
 
     @Test
     fun smtpTest() {
+
         val session = Session.getInstance(properties, null)
         with(session) {
             val msg = MimeMessage(session)
@@ -45,5 +53,18 @@ class SMTPTest {
             Transport.send(msg,
                 properties.getProperty("username"), properties.getProperty("password"))
         }
+    }
+
+    @Test
+    fun testJson() {
+        val conversation = Conversation()
+        conversation.address = "test_address"
+        conversation.id = 1
+        conversation.text = "hello world"
+
+        val routerItem = RouterItem(conversation)
+        routerItem.tag = "sample_tag"
+
+        println(routerItem.serializeJson())
     }
 }

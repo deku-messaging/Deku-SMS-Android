@@ -67,9 +67,7 @@ public class Helpers {
 
         // Set the foreground color of the substring to yellow.
         BackgroundColorSpan backgroundColorSpan = new BackgroundColorSpan(
-                context.getColor(sent ?
-                        R.color.highlight_yellow_send :
-                        R.color.highlight_yellow_received));
+                context.getColor(R.color.md_theme_inversePrimary));
         for (int startIndex : startIndices) {
             spannableString.setSpan(backgroundColorSpan, startIndex, startIndex + searchString.length(),
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -382,7 +380,8 @@ public class Helpers {
     }
 
     public static int getColor(Context context, String input) {
-        int sDefaultColor = context.getColor(R.color.letter_tile_default_color);
+        int sDefaultColor = context.getResources().getIntArray(R.array.letter_tile_colors)[0];
+//        int sDefaultColor = context.getColor(defaultColor);
         if (TextUtils.isEmpty(input)) {
             return sDefaultColor;
         }

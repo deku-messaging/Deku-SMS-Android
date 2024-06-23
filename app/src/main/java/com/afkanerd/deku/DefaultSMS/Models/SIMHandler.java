@@ -15,7 +15,8 @@ import java.util.List;
 public class SIMHandler {
 
     public static List<SubscriptionInfo> getSimCardInformation(Context context) {
-        SubscriptionManager subscriptionManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        SubscriptionManager subscriptionManager = (SubscriptionManager)
+                context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         return subscriptionManager.getActiveSubscriptionInfoList();
     }
 

@@ -31,7 +31,7 @@
                 android:layout_height="match_parent"
                 app:avatarViewBorderRadius="0dp"
                 app:avatarViewBorderWidth="0dp"
-                app:avatarViewInitialsTextColor="@color/primary_text_color"
+                app:avatarViewInitialsTextColor="@color/md_theme_onPrimary"
                 app:avatarViewInitialsTextSize="20sp"
                 app:avatarViewInitialsTextStyle="normal" />
 
@@ -50,7 +50,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="8dp"
-            android:textSize="20sp"
+            android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/conversation_contact_card_frame"

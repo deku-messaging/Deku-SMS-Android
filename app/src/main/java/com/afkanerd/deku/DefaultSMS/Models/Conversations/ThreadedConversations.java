@@ -76,6 +76,17 @@ public class ThreadedConversations {
 
      private String formatted_datetime;
 
+    public int getSubscription_id() {
+        return subscription_id;
+    }
+
+    public void setSubscription_id(int subscription_id) {
+        this.subscription_id = subscription_id;
+    }
+
+    @ColumnInfo(defaultValue = "-1")
+    private int subscription_id;
+
     public boolean isIs_mute() {
         return is_mute;
     }

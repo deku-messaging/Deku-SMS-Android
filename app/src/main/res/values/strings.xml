@@ -2,16 +2,23 @@
     <string name="app_name" translatable="false">Deku SMS</string>
     <string name="privacy_policy_url" translatable="false">https://smswithoutborders.com/privacy-policy</string>
     <string name="incoming_messages_channel_name">Incoming Messages</string>
-    <string name="running_gateway_clients_channel_name">Running Gateway Listeners</string>
-    <string name="foreground_service_failed_channel_name">Gateway clients auto-reconnect</string>
+    <string name="running_gateway_clients_channel_name" translatable="false">Running Gateway Listeners</string>
+    <string name="foreground_service_failed_channel_name" translatable="false">Gateway clients auto-reconnect</string>
+    <string name="message_failed_channel_name" translatable="false">Message Failed</string>
 
     <string name="incoming_messages_channel_description">Gets called when a new message is received.</string>
     <string name="running_gateway_clients_channel_description">Alerts when gateway clients are listening.</string>
     <string name="foreground_service_failed_channel_description">Click to reconnect Gateway clients</string>
+    <string name="message_failed_notifications_descriptions">Get notifications when messages fail</string>
+
+    <string name="gateway_client_service_notification_id">100000000</string>
+    <string name="message_failed_notification_id">100000001</string>
+
 
     <string name="incoming_messages_channel_id" translatable="false">@string/incoming_messages_channel_name</string>
     <string name="running_gateway_clients_channel_id" translatable="false">@string/running_gateway_clients_channel_name</string>
     <string name="foreground_service_failed_channel_id" translatable="false">@string/foreground_service_failed_channel_name</string>
+    <string name="message_failed_channel_id" translatable="false">@string/message_failed_channel_name</string>
 
     <string name="search_messages_text">Search messages</string>
 
@@ -83,6 +90,7 @@
     <string name="sms_status_sent">Sent</string>
     <string name="sms_status_sending">sending…</string>
     <string name="sms_status_failed">failed, click to retry.</string>
+    <string name="sms_status_failed_only">failed</string>
 
     <string name="settings_advanced_developers_key" translatable="false">settings_advanced_developers_key</string>
     <string name="settings_locale" translatable="false">settings_locale</string>
@@ -144,6 +152,7 @@
     <string name="gateway_client_running_title">Gateway Client: Node Running</string>
     <string name="gateway_client_running_description">Gateway clients connected</string>
     <string name="gateway_client_reconnecting_description">Gateway clients reconnecting…</string>
+    <string name="gateway_client_enqueue_description">Gateway clients waiting for connection…</string>
 
     <string name="homepage_fragment_tab_encrypted">Encrypted</string>
 
@@ -173,6 +182,7 @@
     <string name="send_message_secured_text_box_hint">Text Message (secured)</string>
     <string name="conversations_menu_call_title">Call</string>
     <string name="conversations_menu_encrypt_title">Encrypt</string>
+    <string name="conversations_menu_secure_title">Secure</string>
     <string name="conversations_menu_unblock_manager">Blocked Manager</string>
     <string name="conversations_menu_unblock">Unblock</string>
     <string name="conversations_menu_block_toast">Contact blocked succcessfully</string>
@@ -197,6 +207,7 @@
     <string name="conversation_menu_unmuted">Contact is now unmuted!</string>
 
     <string name="conversation_menu_view_details">View details</string>
+    <string name="conversation_menu_view_replay">Replay</string>
     <string name="conversation_menu_view_details_title">Message details</string>
     <string name="conversation_menu_view_details_type">Type:\u00A0</string>
     <string name="conversation_menu_view_details_type_text">Text message</string>
@@ -252,7 +263,7 @@
 
     <string name="conversations_secure_conversation_request"><b>John</b> has requested to secure this conversation.</string>
     <string name="conversations_secure_conversation_request_agree">Agree to Secure!</string>
-    <string name="conversations_secure_conversation_request_information">When you send a message on our platform, it gets scrambled with a special code, just like a secret code you might use with a friend. This code makes it impossible for anyone to peek at your message while it\'s traveling between you and the recipient. Only the person you send it to has the key to unscramble it and read what you wrote. We call this process encryption.\n\nIf you\'re curious about how this encryption works, you can check out this link for a deeper dive</string>
+    <string name="conversations_secure_conversation_request_information">You can send a request to encrypt messages to everyone using Deku SMS. Once they agree, you both can begin communicating securely</string>
     <string name="conversations_secure_conversation_request_information_deku_encryption_link" translatable="false">https://github.com/deku-messaging/Deku-SMS-Android?tab=readme-ov-file#-end-to-end-encryption</string>
     <string name="conversations_secure_conversation_request_information_deku_encryption_read_more">Learn more</string>
     <string name="route_incoming_messages_of_format">Route incoming messages of format</string>
@@ -262,4 +273,12 @@
     <string name="gateway_server_routing_state_enqueued">Enqueued</string>
     <string name="gateway_server_routing_state_cancelled">Cancelled</string>
     <string name="gateway_server_routing_state_running">Running</string>
+    <string name="gateway_client_add_edit_add_gateway_client">Add Gateway Client</string>
+    <string name="message_failed_send_notification_description_a_message_failed_to_send_to">"A message failed to send to "</string>
+
+    <string name="compose_new_message_to">To</string>
+    <string name="compose_new_message_title">New conversation</string>
+    <string name="this_message_failed_to_send">This message failed to send.</string>
+    <string name="try_again">Try Again</string>
+
 </resources>

@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.DefaultSMS.R
 import com.afkanerd.deku.Router.Models.RouterHandler

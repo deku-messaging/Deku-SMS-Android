@@ -59,8 +59,6 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         threadedConversationsViewModel = new ViewModelProvider(this).get(
                 ThreadedConversationsViewModel.class);
 
-        threadedConversationsViewModel.databaseConnector = databaseConnector;
-
         _checkSharedContent();
         fragmentManagement();
         configureNavigationBar();
@@ -198,7 +196,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
     }
 
     public void onNewMessageClick(View view) {
-        launchMultiplePhonePicker(COMPOSE_NEW_REQUEST_CODE);
+//        launchMultiplePhonePicker(COMPOSE_NEW_REQUEST_CODE);
+        startActivity(new Intent(this, ComposeNewMessageActivity.class));
     }
 
     private final int COMPOSE_NEW_REQUEST_CODE = 1;
@@ -281,7 +280,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
-                threadedConversationsViewModel.getCount(getApplicationContext());
+                threadedConversationsViewModel.getCount();
             }
         });
     }

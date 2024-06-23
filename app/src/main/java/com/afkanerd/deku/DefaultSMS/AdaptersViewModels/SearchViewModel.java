@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 
 import java.util.ArrayList;

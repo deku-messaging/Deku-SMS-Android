@@ -14,6 +14,7 @@ import android.provider.Telephony;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -63,6 +64,7 @@ public class ThreadedConversationsTemplateViewHolder extends RecyclerView.ViewHo
         materialCardView = itemView.findViewById(R.id.messages_threads_cardview);
         contactAvatar = itemView.findViewById(R.id.messages_threads_contact_photo);
         muteAvatar = itemView.findViewById(R.id.messages_threads_mute_icon);
+
     }
 
     public void bind(ThreadedConversations conversation, View.OnClickListener onClickListener,

@@ -4,17 +4,15 @@ import android.content.Context
 import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore
+import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.Modules.Network
 import com.afkanerd.deku.Router.FTP
 import com.afkanerd.deku.Router.SMTP
-import com.android.volley.ParseError
-import com.android.volley.ServerError
-import com.google.gson.GsonBuilder
+import com.sun.mail.util.MailConnectException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeoutException
+import javax.mail.MessagingException
+import javax.mail.SendFailedException
 
 class RouterWorkManager (context: Context, workerParams: WorkerParameters)
     : Worker(context, workerParams) {
@@ -29,7 +27,7 @@ class RouterWorkManager (context: Context, workerParams: WorkerParameters)
         val routerItem = RouterItem(conversation)
         routerItem.tag = gatewayServer.getTag()
 
-        val jsonStringBody = Json.encodeToString(routerItem)
+        val jsonStringBody = routerItem.serializeJson()
         println(jsonStringBody)
 
         when(gatewayServer.getProtocol()) {
@@ -37,7 +35,8 @@ class RouterWorkManager (context: Context, workerParams: WorkerParameters)
                 try {
                     RouterHandler.routeSmtpMessages(jsonStringBody, gatewayServer)
                 } catch (e: Exception) {
-                    Log.e(javaClass.getName(), "Exception: ", e)
+                    e.printStackTrace()
+                    if (e is MailConnectException) { return Result.retry() }
                     return Result.failure()
                 }
             }

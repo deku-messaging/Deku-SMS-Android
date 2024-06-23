@@ -1,6 +1,5 @@
 package com.afkanerd.deku.QueueListener.GatewayClients;
 
-import static com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity.GATEWAY_CLIENT_LISTENERS;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,13 +14,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.RadioGroup;
 
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class GatewayClientAddActivity extends AppCompatActivity {
-
     Toolbar toolbar;
+
+    Datastore datastore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +36,9 @@ public class GatewayClientAddActivity extends AppCompatActivity {
 
         getSupportActionBar().setTitle(getString(R.string.add_new_gateway_server_toolbar_title));
 
-        if(getIntent().hasExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID)) {
+        datastore = Datastore.getDatastore(getApplicationContext());
+
+        if(getIntent().hasExtra(GatewayClientListingActivity.Companion.getGATEWAY_CLIENT_ID())) {
             try {
                 editGatewayClient();
             } catch (InterruptedException e) {
@@ -57,7 +61,7 @@ public class GatewayClientAddActivity extends AppCompatActivity {
 
     long id = -1;
     public void editGatewayClient() throws InterruptedException {
-        id = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+        id = getIntent().getLongExtra(GatewayClientListingActivity.Companion.getGATEWAY_CLIENT_ID(), -1);
 
         if(id != -1 ) {
             TextInputEditText url = findViewById(R.id.new_gateway_client_url_input);
@@ -124,8 +128,9 @@ public class GatewayClientAddActivity extends AppCompatActivity {
             gatewayClient.setProtocol(getString(R.string.settings_gateway_client_amqp_protocol).toLowerCase());
 
         GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-        if(getIntent().hasExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID)) {
-            long gatewayClientId = getIntent().getLongExtra(GatewayClientListingActivity.GATEWAY_CLIENT_ID, -1);
+        if(getIntent().hasExtra(GatewayClientListingActivity.Companion.getGATEWAY_CLIENT_ID())) {
+            long gatewayClientId = getIntent().getLongExtra(GatewayClientListingActivity.Companion
+                    .getGATEWAY_CLIENT_ID(), -1);
 
             GatewayClient gatewayClient1 = gatewayClientHandler.fetch(gatewayClientId);
 
@@ -154,24 +159,17 @@ public class GatewayClientAddActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.gateway_client_delete) {
-            SharedPreferences sharedPreferences = getSharedPreferences(GATEWAY_CLIENT_LISTENERS, Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences(GatewayClientListingActivity
+                    .Companion.getGATEWAY_CLIENT_LISTENERS(), Context.MODE_PRIVATE);
             sharedPreferences.edit().remove(String.valueOf(id))
                     .apply();
 
-            GatewayClientHandler gatewayClientHandler = new GatewayClientHandler(getApplicationContext());
-//                GatewayClient gatewayClient = gatewayClientHandler.fetch(id);
-//                gatewayClientHandler.delete(gatewayClient);
-            new Thread(new Runnable() {
+            ThreadingPoolExecutor.executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    GatewayClient gatewayClient = gatewayClientHandler.databaseConnector
-                            .gatewayClientDAO().fetch(id);
-                    gatewayClientHandler.databaseConnector.gatewayClientDAO()
-                            .delete(gatewayClient);
-                    gatewayClientHandler.databaseConnector.gatewayClientProjectDao()
-                            .deleteGatewayClientId(id);
+                    datastore.gatewayClientProjectDao().deleteGatewayClientId(id);
                 }
-            }).start();
+            });
 
             startActivity(new Intent(this, GatewayClientListingActivity.class));
             finish();

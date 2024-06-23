@@ -22,10 +22,10 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 
 import com.afkanerd.deku.DefaultSMS.CustomAppCompactActivity;
-import com.afkanerd.deku.DefaultSMS.Fragments.ModalSheetFragment;
+import com.afkanerd.deku.DefaultSMS.Modals.ConversationsSecureRequestModalSheetFragment;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
@@ -52,7 +52,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
     protected void attachObservers() {
         try {
             final String keystoreAlias =
-                    E2EEHandler.deriveKeystoreAlias(address, 0);
+                    E2EEHandler.deriveKeystoreAlias(getApplicationContext(), address, 0);
             databaseConnector.conversationsThreadsEncryptionDao().fetchLiveData(keystoreAlias)
                     .observe(this, new Observer<ConversationsThreadsEncryption>() {
                         @Override
@@ -124,7 +124,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
         if(threadedConversations.is_secured) {
             try {
                 String keystoreAlias =
-                        E2EEHandler.deriveKeystoreAlias(
+                        E2EEHandler.deriveKeystoreAlias(getApplicationContext(),
                                 threadedConversations.getAddress(), 0);
                 byte[][] cipherText = E2EEHandler.encrypt(getApplicationContext(),
                         keystoreAlias, text.getBytes(StandardCharsets.UTF_8),
@@ -262,26 +262,26 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
 
     private void showSecureRequestAgreementModal() {
         Fragment fragment = getSupportFragmentManager()
-                .findFragmentByTag(ModalSheetFragment.TAG);
+                .findFragmentByTag(ConversationsSecureRequestModalSheetFragment.TAG);
         ThreadedConversations threadedConversations = databaseConnector.threadedConversationsDao()
                 .get(threadId);
         if(threadedConversations != null && (fragment == null || !fragment.isAdded())) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            ModalSheetFragment modalSheetFragment = new ModalSheetFragment(threadedConversations,
+            ConversationsSecureRequestModalSheetFragment conversationsSecureRequestModalSheetFragment = new ConversationsSecureRequestModalSheetFragment(threadedConversations,
                     contactName);
-            fragmentTransaction.add(modalSheetFragment,
-                    ModalSheetFragment.TAG);
-            fragmentTransaction.show(modalSheetFragment);
+            fragmentTransaction.add(conversationsSecureRequestModalSheetFragment,
+                    ConversationsSecureRequestModalSheetFragment.TAG);
+            fragmentTransaction.show(conversationsSecureRequestModalSheetFragment);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     fragmentTransaction.commitNow();
-                    modalSheetFragment.getView().findViewById(R.id.conversation_secure_request_agree_btn)
+                    conversationsSecureRequestModalSheetFragment.getView().findViewById(R.id.conversation_secure_request_agree_btn)
                             .setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    modalSheetFragment.dismiss();
+                                    conversationsSecureRequestModalSheetFragment.dismiss();
                                     agreeToSecure();
                                 }
                             });
@@ -299,7 +299,7 @@ public class E2EECompactActivity extends CustomAppCompactActivity {
                             Datastore.getDatastore(getApplicationContext())
                             .threadedConversationsDao().get(threadId);
                     String keystoreAlias = E2EEHandler
-                            .deriveKeystoreAlias(address, 0);
+                            .deriveKeystoreAlias(getApplicationContext(), address, 0);
                     if (threadedConversations.isSelf()) {
                         keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);
                         Pair<String, byte[]> keystorePair = E2EEHandler

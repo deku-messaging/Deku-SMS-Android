@@ -3,6 +3,8 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 	id "com.diffplug.spotless" version "6.20.0"
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.23'
+
+    id("com.gradleup.nmcp").version("0.0.8")
 }
 
 import com.android.tools.profgen.ArtProfileKt
@@ -133,7 +135,8 @@ android {
 dependencies {
     implementation project(':smswithoutborders_libsignal-doubleratchet')
     implementation 'androidx.room:room-testing:2.6.1'
-    def paging_version = "3.2.1"
+    implementation 'androidx.activity:activity:1.9.0'
+    def paging_version = "3.3.0"
     def m3 = "1.2.1"
 
     testImplementation 'junit:junit:4.13.2'
@@ -147,16 +150,16 @@ dependencies {
     implementation "androidx.work:work-runtime:2.9.0"
     implementation "androidx.work:work-rxjava2:2.9.0"
     // optional - GCMNetworkManager support
-    implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.paging:paging-guava:3.2.1'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.paging:paging-guava:3.3.0'
     // optional - Multiprocess support
     implementation "androidx.work:work-multiprocess:2.9.0"
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.android.volley:volley:1.2.1'
-    implementation "androidx.core:core:1.12.0"
+    implementation "androidx.core:core:1.13.1"
 
     implementation 'commons-codec:commons-codec:1.16.0'
     implementation "io.getstream:avatarview-coil:1.0.7"
@@ -166,18 +169,6 @@ dependencies {
     annotationProcessor "androidx.room:room-compiler:2.6.1"
 
     implementation "androidx.paging:paging-runtime:$paging_version"
-
-    // optional - RxJava2 support
-    implementation "androidx.paging:paging-rxjava2:$paging_version"
-
-    // optional - RxJava3 support
-    implementation "androidx.paging:paging-rxjava3:$paging_version"
-
-    // optional - Guava ListenableFuture support
-    implementation "androidx.paging:paging-guava:$paging_version"
-
-    // optional - Jetpack Compose integration
-    implementation "androidx.paging:paging-compose:3.2.1"
 
     implementation 'com.googlecode.libphonenumber:libphonenumber:8.13.27'
 
@@ -190,11 +181,11 @@ dependencies {
 
     implementation 'org.java-websocket:Java-WebSocket:1.5.5'
 
-    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.google.code.gson:gson:2.11.0'
 
     implementation 'com.budiyev.android:code-scanner:2.1.0'
 
-    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'com.google.android.material:material:1.12.0'
 
     implementation "androidx.compose.material3:material3:$m3"
 
@@ -212,5 +203,8 @@ dependencies {
     implementation "com.github.kittinunf.fuel:fuel-coroutines:$fuelVersion"
 
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
+
+    implementation "androidx.startup:startup-runtime:1.1.1"
+
 }
 
