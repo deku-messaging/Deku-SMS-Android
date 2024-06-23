@@ -45,7 +45,6 @@ public class DualSIMConversationActivity extends AppCompatActivity {
             @Override
             public void onChanged(Integer integer) {
                 if(dualSim) {
-                    Log.d(getClass().getName(), "Setting subscription: " + integer);
                     if(integer == -1) {
                         integer = SIMHandler.getDefaultSimSubscription(getApplicationContext());
                     }
