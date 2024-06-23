@@ -9,7 +9,14 @@
 
         <item name="android:textCursorDrawable">@null</item>
         <item name="android:cursorVisible">true</item>
+        <item name="autoCompleteTextViewStyle">@style/SearchAutoCompleteTextView</item>
     </style>
+
+    <style name="SearchAutoCompleteTextView" parent="Widget.AppCompat.Light.AutoCompleteTextView">
+        <item name="android:textColor">@color/md_theme_onSecondary</item>
+        <item name="android:textColorHint">@color/material_on_primary_disabled</item>
+    </style>
+
 
 
     <style name="conversation_failed">
