@@ -1,7 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.BroadcastReceivers
 
 import android.app.Activity
-import android.app.Notification
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -18,7 +17,6 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.DefaultSMS.ThreadedConversationsActivity
 import com.afkanerd.deku.E2EE.E2EEHandler
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
@@ -90,7 +88,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                             Datastore.getDatastore(context).conversationDao()
                                     ._update(conversation)
                             conversation.thread_id?.let {
-                                notifyUserToReconnectSMSServices(context, conversation)
+                                notifyMessageFailedToSend(context, conversation)
                             }
                         }
                     }
@@ -201,7 +199,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         var SMS_DELIVERED_BROADCAST_INTENT: String = BuildConfig.APPLICATION_ID + ".SMS_DELIVERED_BROADCAST_INTENT"
     }
 
-    private fun notifyUserToReconnectSMSServices(context: Context, conversation: Conversation) {
+    private fun notifyMessageFailedToSend(context: Context, conversation: Conversation) {
         val notificationIntent = Intent(context, ConversationActivity::class.java).apply {
             putExtra(Conversation.THREAD_ID, conversation.thread_id)
         }

@@ -5,3 +5,5 @@
 - update: improved the UI/UX for retrying failed messages - reduces the chances of error retries
 
 - fix: secure request not goes to numbers which don't fit the E.16 format
+
+- update: notify when message fails to send
