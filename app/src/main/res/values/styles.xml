@@ -10,6 +10,7 @@
         <item name="android:textCursorDrawable">@null</item>
         <item name="android:cursorVisible">true</item>
         <item name="autoCompleteTextViewStyle">@style/SearchAutoCompleteTextView</item>
+        <item name="colorControlNormal">@color/md_theme_onBackground</item>
     </style>
 
     <style name="SearchAutoCompleteTextView" parent="Widget.AppCompat.Light.AutoCompleteTextView">
