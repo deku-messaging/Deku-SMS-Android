@@ -202,6 +202,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
     private fun notifyMessageFailedToSend(context: Context, conversation: Conversation) {
         val notificationIntent = Intent(context, ConversationActivity::class.java).apply {
             putExtra(Conversation.THREAD_ID, conversation.thread_id)
+            putExtra(Conversation.SUBSCRIPTION_ID, conversation.subscription_id)
         }
 
         val pendingIntent =

@@ -166,7 +166,7 @@ public class ConversationActivity extends E2EECompactActivity {
                     NativeSMSDB.Incoming.update_read(getApplicationContext(), 1, threadId,
                             null);
                     conversationsViewModel.updateInformation(getApplicationContext(),
-                            isContact ? contactName : null);
+                            isContact ? contactName : null, defaultSubscriptionId.getValue());
                     emptyDraft();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -392,6 +392,11 @@ public class ConversationActivity extends E2EECompactActivity {
         attachObservers();
 
         isDualSim = SIMHandler.isDualSim(getApplicationContext());
+
+//        if(isDualSim && getIntent().hasExtra(Conversation.SUBSCRIPTION_ID)) {
+//            defaultSubscriptionId.setValue(getIntent()
+//                    .getIntExtra(Conversation.SUBSCRIPTION_ID, -1));
+//        }
     }
 
     private void scrollRecyclerViewSearch(int position) {

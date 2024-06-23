@@ -104,12 +104,13 @@ public class ConversationsViewModel extends ViewModel {
         return positions;
     }
 
-    public void updateInformation(Context context, String contactName) {
+    public void updateInformation(Context context, String contactName, Integer subscriptionId) {
         datastore.conversationDao().updateRead(true, threadId);
         ThreadedConversations threadedConversations =
                 datastore.threadedConversationsDao().get(threadId);
         if(threadedConversations != null) {
             threadedConversations.setContact_name(contactName);
+            threadedConversations.setSubscription_id(subscriptionId);
             datastore.threadedConversationsDao().update(context, threadedConversations);
         }
     }

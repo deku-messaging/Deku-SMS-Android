@@ -105,6 +105,7 @@ open class Conversation : Cloneable {
         const val ID = "ID"
         const val ADDRESS = "ADDRESS"
         const val THREAD_ID = "THREAD_ID"
+        const val SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
         const val SHARED_SMS_BODY = "sms_body"
         fun build(cursor: Cursor): Conversation {
             return Conversation(cursor)
