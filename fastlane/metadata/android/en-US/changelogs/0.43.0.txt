@@ -1,0 +1,3 @@
+- update: added ability to delete threads inside conversation menu
+
+- fix: issue with threads and conversations not reflecting a single point of truth

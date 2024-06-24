@@ -1,6 +1,7 @@
 package com.afkanerd.deku.E2EE;
 
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -11,6 +12,9 @@ import java.util.List;
 
 @Dao
 public interface ConversationsThreadsEncryptionDao {
+
+    @Query("SELECT * FROM ConversationsThreadsEncryption WHERE keystoreAlias = :keystoreAlias")
+    LiveData<ConversationsThreadsEncryption> fetchLiveData(String keystoreAlias);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(ConversationsThreadsEncryption conversationsThreadsEncryption);

@@ -1,44 +1,12 @@
 package com.afkanerd.deku.Router.GatewayServers;
 
-import android.content.Context;
-
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.room.Room;
-
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
+import com.afkanerd.deku.Datastore;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GatewayServerHandler {
     Datastore databaseConnector;
-
-    public GatewayServerHandler(Context context){
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Datastore.datastore = Room.databaseBuilder(context, Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
-    }
-
-    public LiveData<List<GatewayServer>> getAllLiveData() throws InterruptedException {
-        final LiveData<List<GatewayServer>>[] liveData = new LiveData[]{new MutableLiveData<>()};
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
-                liveData[0] = gatewayServerDAO.getAll();
-            }
-        });
-        thread.start();
-        thread.join();
-
-        return liveData[0];
-    }
 
     public synchronized List<GatewayServer> getAll() throws InterruptedException {
         final List<GatewayServer>[] gatewayServerList = new List[]{new ArrayList<>()};
@@ -61,7 +29,7 @@ public class GatewayServerHandler {
             @Override
             public void run() {
                 GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
-                gatewayServer[0] = gatewayServerDAO.get(id);
+                gatewayServer[0] = gatewayServerDAO.get(String.valueOf(id));
             }
         });
         thread.start();
@@ -111,24 +79,4 @@ public class GatewayServerHandler {
         thread.start();
         thread.join();
     }
-
-//    public static List<GatewayServer> fetchAll(Context context) throws InterruptedException {
-//        Datastore databaseConnector = Room.databaseBuilder(context, Datastore.class,
-//                Datastore.databaseName).build();
-//
-//        final List<GatewayServer>[] encryptedContentList = new List[]{new ArrayList<>()};
-//
-//        Thread fetchEncryptedMessagesThread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                GatewayServerDAO gatewayServerDAO = databaseConnector.gatewayServerDAO();
-//                encryptedContentList[0] = gatewayServerDAO.getAll();
-//            }
-//        });
-//
-//        fetchEncryptedMessagesThread.start();
-//        fetchEncryptedMessagesThread.join();
-//
-//        return encryptedContentList[0];
-//    }
 }

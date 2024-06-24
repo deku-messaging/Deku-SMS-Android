@@ -55,6 +55,14 @@ public class NativeSMSDB {
                 null);
     }
 
+    public static Cursor fetchByAddress(Context context, String address) {
+        return context.getContentResolver().query(Telephony.Sms.CONTENT_URI,
+                null,
+                Telephony.Sms.ADDRESS + "=?",
+                new String[]{address},
+                null);
+    }
+
     public static Cursor fetchByMessageId(@NonNull Context context, String id) {
         return context.getContentResolver().query(
                 Telephony.Sms.CONTENT_URI,
@@ -361,11 +369,13 @@ public class NativeSMSDB {
         }
 
         public static PendingIntent[] getPendingIntents(Context context, String messageId, Bundle bundle) {
-            Intent sentIntent = new Intent(IncomingTextSMSBroadcastReceiver.SMS_SENT_BROADCAST_INTENT);
+            Intent sentIntent = new Intent(IncomingTextSMSBroadcastReceiver.Companion
+                    .getSMS_SENT_BROADCAST_INTENT());
             sentIntent.setPackage(context.getPackageName());
             sentIntent.putExtra(ID, messageId);
 
-            Intent deliveredIntent = new Intent(IncomingTextSMSBroadcastReceiver.SMS_DELIVERED_BROADCAST_INTENT);
+            Intent deliveredIntent = new Intent(IncomingTextSMSBroadcastReceiver.Companion
+                    .getSMS_DELIVERED_BROADCAST_INTENT());
             deliveredIntent.setPackage(context.getPackageName());
             deliveredIntent.putExtra(Conversation.ID, messageId);
 

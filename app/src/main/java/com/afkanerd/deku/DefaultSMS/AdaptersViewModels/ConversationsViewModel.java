@@ -2,7 +2,6 @@ package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 
 import android.content.Context;
-import android.database.Cursor;
 import android.provider.Telephony;
 
 import androidx.lifecycle.LiveData;
@@ -15,7 +14,7 @@ import androidx.paging.PagingSource;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 
@@ -28,7 +27,7 @@ public class ConversationsViewModel extends ViewModel {
     public String address;
     public int pageSize = 10;
     int prefetchDistance = 3 * pageSize;
-    boolean enablePlaceholder = false;
+    boolean enablePlaceholder = true;
     int initialLoadSize = pageSize * 2;
 
     public Integer initialKey = null;
@@ -81,18 +80,14 @@ public class ConversationsViewModel extends ViewModel {
     }
 
     public long insert(Context context, Conversation conversation) throws InterruptedException {
-        long id = datastore.conversationDao().insert(conversation);
-        ThreadedConversations threadedConversations =
-                ThreadedConversations.build(context, conversation);
-        threadedConversations.setIs_read(true);
-        datastore.threadedConversationsDao().update(threadedConversations);
+        datastore.threadedConversationsDao().insertThreadAndConversation(context, conversation);
         if(customPagingSource != null)
             customPagingSource.invalidate();
-        return id;
+        return 0;
     }
 
     public void update(Conversation conversation) {
-        datastore.conversationDao().update(conversation);
+        datastore.conversationDao()._update(conversation);
         customPagingSource.invalidate();
     }
 
@@ -109,17 +104,14 @@ public class ConversationsViewModel extends ViewModel {
         return positions;
     }
 
-    public void updateToRead(Context context) {
-        if(threadId != null && !threadId.isEmpty()) {
-            List<Conversation> conversations = datastore.conversationDao().getAll(threadId);
-            List<Conversation> updateList = new ArrayList<>();
-            for(Conversation conversation : conversations) {
-                if(!conversation.isRead()) {
-                    conversation.setRead(true);
-                    updateList.add(conversation);
-                }
-            }
-            datastore.conversationDao().update(updateList);
+    public void updateInformation(Context context, String contactName, Integer subscriptionId) {
+        datastore.conversationDao().updateRead(true, threadId);
+        ThreadedConversations threadedConversations =
+                datastore.threadedConversationsDao().get(threadId);
+        if(threadedConversations != null) {
+            threadedConversations.setContact_name(contactName);
+            threadedConversations.setSubscription_id(subscriptionId);
+            datastore.threadedConversationsDao().update(context, threadedConversations);
         }
     }
 
@@ -129,7 +121,6 @@ public class ConversationsViewModel extends ViewModel {
         for(int i=0;i<conversations.size(); ++i)
             ids[i] = conversations.get(i).getMessage_id();
         NativeSMSDB.deleteMultipleMessages(context, ids);
-
     }
 
     public Conversation fetchDraft() throws InterruptedException {
@@ -139,7 +130,7 @@ public class ConversationsViewModel extends ViewModel {
 
     public void clearDraft(Context context) {
         datastore.conversationDao()
-                .deleteAllType(Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
+                .deleteAllType(context, Telephony.TextBasedSmsColumns.MESSAGE_TYPE_DRAFT, threadId);
         SMSDatabaseWrapper.deleteDraft(context, threadId);
     }
 
@@ -150,4 +141,5 @@ public class ConversationsViewModel extends ViewModel {
     public void mute() {
         datastore.threadedConversationsDao().updateMuted(1, threadId);
     }
+
 }

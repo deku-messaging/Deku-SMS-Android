@@ -21,6 +21,7 @@
         android:text="@string/no_gateway_server_added"
         android:textSize="20sp"
         android:visibility="invisible"
+        tools:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -35,4 +36,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gateway_servers_listing_toolbar" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

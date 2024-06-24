@@ -15,10 +15,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
         <com.google.android.material.textfield.TextInputLayout
+            android:paddingEnd="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:boxBackgroundColor="@color/primary_background_color_transparent"
-            app:placeholderText="@string/compose_new_message_to"
+            app:boxBackgroundColor="@color/md_theme_background"
+            android:hint="@string/compose_new_message_to"
             app:boxStrokeWidth="1dp"
             app:boxStrokeWidthFocused="1dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -29,7 +30,7 @@
                 android:id="@+id/compose_new_message_to"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textEmailAddress" />
+                android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
     </com.google.android.material.appbar.MaterialToolbar>

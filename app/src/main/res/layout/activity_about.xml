@@ -102,7 +102,6 @@
         android:layout_marginTop="8dp"
         android:fontFamily="@font/roboto_bold"
         android:text="@string/about_deku_github_btn"
-        android:textColor="@color/colorSecondary"
         app:layout_constraintStart_toStartOf="@+id/textView11"
         app:layout_constraintTop_toBottomOf="@+id/textView11" />
 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        app:title="@string/gateway_server_settings_title">
+        <SwitchPreference
+            app:iconSpaceReserved="true"
+            app:key="@string/gateway_server_settings_title"
+            app:title="@string/gateway_server_settings_locale_description"
+            app:summary="@string/gateway_server_settings_locale_summary"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

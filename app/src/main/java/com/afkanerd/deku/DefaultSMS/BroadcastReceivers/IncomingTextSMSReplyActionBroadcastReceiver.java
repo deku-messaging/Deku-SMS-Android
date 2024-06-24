@@ -1,38 +1,25 @@
 package com.afkanerd.deku.DefaultSMS.BroadcastReceivers;
 
 
-import static com.afkanerd.deku.DefaultSMS.BroadcastReceivers.IncomingTextSMSBroadcastReceiver.SMS_UPDATED_BROADCAST_INTENT;
-
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.service.notification.StatusBarNotification;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
-import androidx.room.Room;
 
-import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
-import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.DefaultSMS.Models.ThreadingPoolExecutor;
-import com.afkanerd.deku.DefaultSMS.R;
+import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 
 public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiver {
     public static String REPLY_BROADCAST_INTENT = BuildConfig.APPLICATION_ID + ".REPLY_BROADCAST_ACTION";
@@ -50,14 +37,7 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen()) {
-            Datastore.datastore = Room.databaseBuilder(context.getApplicationContext(),
-                            Datastore.class, Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        }
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(context);
 
         if (intent.getAction() != null && intent.getAction().equals(REPLY_BROADCAST_INTENT)) {
             Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
@@ -87,29 +67,27 @@ public class IncomingTextSMSReplyActionBroadcastReceiver extends BroadcastReceiv
                     @Override
                     public void run() {
                         try {
-                            databaseConnector.conversationDao().insert(conversation);
+                            databaseConnector.threadedConversationsDao()
+                                    .insertThreadAndConversation(context, conversation);
 
                             SMSDatabaseWrapper.send_text(context, conversation, null);
-                            Intent broadcastIntent = new Intent(SMS_UPDATED_BROADCAST_INTENT);
-                            broadcastIntent.putExtra(Conversation.ID, conversation.getMessage_id());
-                            broadcastIntent.putExtra(Conversation.THREAD_ID, conversation.getThread_id());
-                            if(intent.getExtras() != null)
-                                broadcastIntent.putExtras(intent.getExtras());
-
-                            context.sendBroadcast(broadcastIntent);
-
                             NotificationCompat.MessagingStyle messagingStyle =
-                                    NotificationsHandler.getMessagingStyle(context, conversation, reply.toString());
+                                    NotificationsHandler.getMessagingStyle(context, conversation,
+                                            reply.toString());
 
-                            Intent replyIntent = NotificationsHandler.getReplyIntent(context, conversation);
-                            PendingIntent pendingIntent = NotificationsHandler.getPendingIntent(context, conversation);
+                            Intent replyIntent = NotificationsHandler
+                                    .getReplyIntent(context, conversation);
+
+                            PendingIntent pendingIntent = NotificationsHandler
+                                    .getPendingIntent(context, conversation);
 
                             NotificationCompat.Builder builder =
                                     NotificationsHandler.getNotificationBuilder(context, replyIntent,
                                             conversation, pendingIntent);
 
                             builder.setStyle(messagingStyle);
-                            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
+                            NotificationManagerCompat notificationManagerCompat =
+                                    NotificationManagerCompat.from(context);
                             notificationManagerCompat.notify(Integer.parseInt(threadId), builder.build());
 
                         } catch (Exception e) {

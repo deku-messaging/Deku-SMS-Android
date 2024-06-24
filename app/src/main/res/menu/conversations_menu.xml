@@ -5,8 +5,8 @@
     <item
         android:icon="@drawable/baseline_enhanced_encryption_24"
         android:id="@+id/conversation_main_menu_encrypt_lock"
-        app:showAsAction="ifRoom"
-        android:title="@string/conversations_menu_encrypt_title"/>
+        app:showAsAction="never"
+        android:title="@string/conversations_menu_secure_title"/>
     <item
         android:icon="@drawable/round_call_24"
         android:id="@+id/conversation_main_menu_call"
@@ -28,6 +28,10 @@
     <item
         android:id="@+id/conversations_menu_block"
         android:title="@string/conversation_menu_block"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/conversations_menu_delete"
+        android:title="@string/conversation_menu_delete"
         app:showAsAction="never" />
 
 </menu>

@@ -9,7 +9,6 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
 import android.content.Context;
 import android.content.Intent;
@@ -18,7 +17,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,10 +29,9 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchConversationRecyclerAdapter;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
-import com.afkanerd.deku.DefaultSMS.DAO.ThreadedConversationsDao;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.SearchViewModel;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
+import com.afkanerd.deku.Datastore;
 
 import java.util.List;
 
@@ -52,16 +49,11 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_messages_threads);
 
-        if(Datastore.datastore == null || !Datastore.datastore.isOpen())
-            Datastore.datastore = Room.databaseBuilder(getApplicationContext(), Datastore.class,
-                            Datastore.databaseName)
-                    .enableMultiInstanceInvalidation()
-                    .build();
-        databaseConnector = Datastore.datastore;
+        databaseConnector = Datastore.getDatastore(getApplicationContext());
 
         searchViewModel = new ViewModelProvider(this).get(
                 SearchViewModel.class);
-        searchViewModel.databaseConnector = Datastore.datastore;
+        searchViewModel.databaseConnector = Datastore.getDatastore(getApplicationContext());
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.search_messages_toolbar);
         setSupportActionBar(myToolbar);
@@ -164,7 +156,7 @@ public class SearchMessagesThreadsActivity extends AppCompatActivity {
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
 //            return LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false);
-            return LayoutInflater.from(context).inflate(R.layout.conversations_threads_layout, parent, false);
+            return LayoutInflater.from(context).inflate(R.layout.layout_conversations_threads, parent, false);
         }
 
         @Override

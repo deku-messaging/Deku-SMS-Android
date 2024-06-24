@@ -2,16 +2,23 @@
     <string name="app_name" translatable="false">Deku SMS</string>
     <string name="privacy_policy_url" translatable="false">https://smswithoutborders.com/privacy-policy</string>
     <string name="incoming_messages_channel_name">Incoming Messages</string>
-    <string name="running_gateway_clients_channel_name">Running Gateway Listeners</string>
-    <string name="foreground_service_failed_channel_name">Gateway clients auto-reconnect</string>
+    <string name="running_gateway_clients_channel_name" translatable="false">Running Gateway Listeners</string>
+    <string name="foreground_service_failed_channel_name" translatable="false">Gateway clients auto-reconnect</string>
+    <string name="message_failed_channel_name" translatable="false">Message Failed</string>
 
     <string name="incoming_messages_channel_description">Gets called when a new message is received.</string>
     <string name="running_gateway_clients_channel_description">Alerts when gateway clients are listening.</string>
     <string name="foreground_service_failed_channel_description">Click to reconnect Gateway clients</string>
+    <string name="message_failed_notifications_descriptions">Get notifications when messages fail</string>
+
+    <string name="gateway_client_service_notification_id">100000000</string>
+    <string name="message_failed_notification_id">100000001</string>
+
 
     <string name="incoming_messages_channel_id" translatable="false">@string/incoming_messages_channel_name</string>
     <string name="running_gateway_clients_channel_id" translatable="false">@string/running_gateway_clients_channel_name</string>
     <string name="foreground_service_failed_channel_id" translatable="false">@string/foreground_service_failed_channel_name</string>
+    <string name="message_failed_channel_id" translatable="false">@string/message_failed_channel_name</string>
 
     <string name="search_messages_text">Search messages</string>
 
@@ -19,7 +26,7 @@
 
     <string name="save_new_gateway_client">Save</string>
     <string name="new_gateway_server_url">Enter URL - e.g. https://example.com:8080/api/</string>
-    <string name="new_gateway_server_tag">Enter tag would be used for identifying this device <i>(optional)</i></string>
+    <string name="new_gateway_server_tag">(Optional) Identifier Tag</string>
     <string name="new_gateway_client_url">Enter URL - e.g. example.com <i>(do not include protocol)</i></string>
     <string name="new_gateway_client_username">Enter username</string>
     <string name="new_gateway_client_password">Enter password</string>
@@ -45,6 +52,21 @@
     <string name="gateway_client_listing_toolbar_title">SMS listening Gateways</string>
     <string name="add_new_gateway_server_toolbar_title">Add Gateway</string>
 
+    <string name="gateway_server_update">Update</string>
+    <string name="add_new_gateway_server_http">Add HTTPS Gateway server</string>
+    <string name="add_new_gateway_server_ftp">Add FTP Gateway server</string>
+
+    <string name="add_new_gateway_server_smtp">Add SMTP Gateway server</string>
+    <string name="add_new_gateway_server_smtp_host">Host</string>
+    <string name="add_new_gateway_server_smtp_username">Username</string>
+    <string name="add_new_gateway_server_smtp_password">Password</string>
+    <string name="add_new_gateway_server_smtp_port">Port</string>
+    <string name="add_new_gateway_server_smtp_recipient">Recipient</string>
+    <string name="add_new_gateway_server_smtp_recipient_helper">Use commas for multiple recipients e.g example@email.com, example1@email.com</string>
+    <string name="add_new_gateway_server_smtp_from">From</string>
+    <string name="add_new_gateway_server_smtp_subject">(Optional) Subject</string>
+    <string name="add_new_gateway_server_smtp_add">Add</string>
+
     <string name="notifications_reply_label">Reply</string>
     <string name="notifications_mark_as_read_label">Mark as read</string>
 
@@ -55,6 +77,7 @@
     <string name="messages_thread_you">You:</string>
 
     <string name="messages_thread_encrypted_content">Secured content</string>
+    <string name="messages_thread_encrypted_content_label">Secured</string>
 
     <string name="search_nothing_found">Nothing found</string>
 
@@ -67,13 +90,17 @@
     <string name="sms_status_sent">Sent</string>
     <string name="sms_status_sending">sending…</string>
     <string name="sms_status_failed">failed, click to retry.</string>
+    <string name="sms_status_failed_only">failed</string>
 
     <string name="settings_advanced_developers_key" translatable="false">settings_advanced_developers_key</string>
     <string name="settings_locale" translatable="false">settings_locale</string>
     <string name="settings_locale_description">Choose language</string>
+    <string name="gateway_server_settings_locale_description">Enable automatic protocol routing</string>
+    <string name="gateway_server_settings_locale_summary">Turn this on to route only to 1 protocol at a time. This begins with HTTP and performs a round-robin lookup for the other protocols. Use this to avoid receiving the same message to multiple protocols.</string>
 
     <string name="settings_about">About</string>
     <string name="settings_title">Settings</string>
+    <string name="gateway_server_settings_title">Gateway Server Settings</string>
     <string name="settings_advanced_category_title">Advance</string>
     <string name="settings_developer_category_title">Developers</string>
     <string name="settings_security_category_end_to_end_duration">Allow request for encryption to expire</string>
@@ -86,18 +113,14 @@
     <string name="settings_SMS_listening_server">Configure SMS listening Gateways</string>
     <string name="settings_SMS_listening_SMSWithoutBorders_summary">Configurations for listening SMS messages through AMQP/s</string>
 
-    <string name="gateway_client_add_linked_device_title">Scan QR code</string>
     <string name="gateway_client_add_manually_title">Add Manually</string>
-    <string name="gateway_client_project_activate_all">Activate All</string>
 
 
     <string name="settings_SMS_routing_type_base64_option">Base64</string>
     <string name="settings_SMS_routing_type_all_option">All (default)</string>
 
-    <string name="settings_add_gateway_server_protocol_description">Choose the routing protocol</string>
     <string name="settings_add_gateway_client_protocol_description">Choose the Listening protocol</string>
     <string name="settings_add_gateway_server_protocol_meta_description">All POST are routed as JSON formats.\nAll formats use the following key/value format:\n\n<b>MSISDN</b>:-The address of the incoming message in E.164 Format\n\n<b>text</b>:-The text body of the incoming message </string>
-    <string name="settings_add_gateway_server_protocol_data_format">Choose data format</string>
 
     <string name="settings_gateway_server_protocol_description">Protocol</string>
     <string name="settings_gateway_client_username_description">Username</string>
@@ -129,6 +152,7 @@
     <string name="gateway_client_running_title">Gateway Client: Node Running</string>
     <string name="gateway_client_running_description">Gateway clients connected</string>
     <string name="gateway_client_reconnecting_description">Gateway clients reconnecting…</string>
+    <string name="gateway_client_enqueue_description">Gateway clients waiting for connection…</string>
 
     <string name="homepage_fragment_tab_encrypted">Encrypted</string>
 
@@ -158,18 +182,20 @@
     <string name="send_message_secured_text_box_hint">Text Message (secured)</string>
     <string name="conversations_menu_call_title">Call</string>
     <string name="conversations_menu_encrypt_title">Encrypt</string>
+    <string name="conversations_menu_secure_title">Secure</string>
     <string name="conversations_menu_unblock_manager">Blocked Manager</string>
     <string name="conversations_menu_unblock">Unblock</string>
     <string name="conversations_menu_block_toast">Contact blocked succcessfully</string>
     <string name="conversations_menu_search_title">Search</string>
+    <string name="conversations_menu_refresh_title">Refresh</string>
 
     <string name="conversations_search_results_found">results founds</string>
 
     <string name="conversation_copied">Copied!</string>
+    <string name="conversation_contact_modal_details_address_label">Contact Info</string>
     <string name="router_list_gateways">View Gateway servers</string>
-    <string name="router_add_gateways">Add Gateway servers</string>
     <string name="conversation_menu_copy">copy</string>
-    <string name="conversation_menu_delete">delete</string>
+    <string name="conversation_menu_delete">Delete</string>
     <string name="conversation_menu_unarchive">unarchive</string>
     <string name="conversation_menu_share">Share</string>
     <string name="conversation_menu_block">Block</string>
@@ -181,6 +207,7 @@
     <string name="conversation_menu_unmuted">Contact is now unmuted!</string>
 
     <string name="conversation_menu_view_details">View details</string>
+    <string name="conversation_menu_view_replay">Replay</string>
     <string name="conversation_menu_view_details_title">Message details</string>
     <string name="conversation_menu_view_details_type">Type:\u00A0</string>
     <string name="conversation_menu_view_details_type_text">Text message</string>
@@ -190,8 +217,6 @@
     <string name="conversation_menu_view_details_sent">Sent:\u00A0</string>
     <string name="conversation_menu_view_details_received">Received:\u00A0</string>
 
-    <string name="compose_new_message_to">To</string>
-    <string name="compose_new_message_title">New conversation</string>
     <string name="conversation_secure_popup_text">Click to request secure conversation</string>
 
     <string name="conversation_threads_secured_content">Secured Content</string>
@@ -214,8 +239,10 @@
     <!-- settings language -->
     <string name="language_english">English</string>
     <string name="language_french">French</string>
+    <string name="language_russian" translatable="false">Русский</string>
     <string name="language_english_value" translatable="false">en</string>
     <string name="language_french_value" translatable="false">fr</string>
+    <string name="language_russian_value" translatable="false">ru</string>
 
 
     <string name="sample_date" translatable="false">9:26 AM . MTN</string>
@@ -232,4 +259,26 @@
     <string name="conversations_exported_complete">Export Complete!</string>
     <string name="gateway_client_project_listing_project_name_title">Project name</string>
     <string name="gateway_client_project_listing_no_projects_added">No Projects added</string>
+    <!-- TODO: Remove or change this placeholder text -->
+
+    <string name="conversations_secure_conversation_request"><b>John</b> has requested to secure this conversation.</string>
+    <string name="conversations_secure_conversation_request_agree">Agree to Secure!</string>
+    <string name="conversations_secure_conversation_request_information">You can send a request to encrypt messages to everyone using Deku SMS. Once they agree, you both can begin communicating securely</string>
+    <string name="conversations_secure_conversation_request_information_deku_encryption_link" translatable="false">https://github.com/deku-messaging/Deku-SMS-Android?tab=readme-ov-file#-end-to-end-encryption</string>
+    <string name="conversations_secure_conversation_request_information_deku_encryption_read_more">Learn more</string>
+    <string name="route_incoming_messages_of_format">Route incoming messages of format</string>
+
+    <string name="gateway_server_routing_state_success">Succeeded</string>
+    <string name="gateway_server_routing_state_failed">Failed</string>
+    <string name="gateway_server_routing_state_enqueued">Enqueued</string>
+    <string name="gateway_server_routing_state_cancelled">Cancelled</string>
+    <string name="gateway_server_routing_state_running">Running</string>
+    <string name="gateway_client_add_edit_add_gateway_client">Add Gateway Client</string>
+    <string name="message_failed_send_notification_description_a_message_failed_to_send_to">"A message failed to send to "</string>
+
+    <string name="compose_new_message_to">To</string>
+    <string name="compose_new_message_title">New conversation</string>
+    <string name="this_message_failed_to_send">This message failed to send.</string>
+    <string name="try_again">Try Again</string>
+
 </resources>

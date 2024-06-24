@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-sdk android:minSdkVersion="@{minSdk}" />
 
@@ -37,10 +38,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.main">
         <activity
-            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectListingActivity"
+            android:name=".ComposeNewMessageActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
-
+            android:parentActivityName=".ThreadedConversationsActivity"/>
+        <activity
+            android:name="com.afkanerd.deku.Router.Settings.GatewayServerSettingsActivity"
+            android:exported="false"
+            android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
@@ -63,10 +67,6 @@
                 android:value="barcode" />
         </activity>
         <activity
-            android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientProjectAddActivity"
-            android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
-        <activity
             android:name="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientAddActivity"
             android:exported="false"
             android:parentActivityName="com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity" />
@@ -76,23 +76,6 @@
             android:parentActivityName=".SettingsActivity" />
         <activity
             android:name=".SettingsActivity"
-            android:exported="false"
-            android:parentActivityName=".ThreadedConversationsActivity" />
-        <activity
-            android:name=".ComposeNewMessageActivity"
-            android:exported="true"
-            android:parentActivityName=".ThreadedConversationsActivity"
-            android:windowSoftInputMode="stateAlwaysHidden">
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".ArchivedMessagesActivity"
             android:exported="false"
             android:parentActivityName=".ThreadedConversationsActivity" />
         <activity
@@ -109,13 +92,9 @@
         <activity
             android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity"
             android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity" />
+            android:parentActivityName="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity" />
         <activity
-            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerAddActivity"
-            android:exported="false"
-            android:parentActivityName="com.afkanerd.deku.Router.Router.RouterActivity" />
-        <activity
-            android:name="com.afkanerd.deku.Router.Router.RouterActivity"
+            android:name="com.afkanerd.deku.Router.GatewayServers.GatewayServerRoutedActivity"
             android:exported="false"
             android:parentActivityName=".ThreadedConversationsActivity" />
         <activity
@@ -133,7 +112,15 @@
         </activity>
         <activity
             android:name=".ThreadedConversationsActivity"
-            android:exported="false" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ConversationActivity"
             android:excludeFromRecents="true"
@@ -212,23 +199,6 @@
                 <action android:name="com.afkanerd.deku.MARK_AS_READ_BROADCAST_ACTION" />
             </intent-filter>
         </receiver>
-        <receiver
-            android:name=".BroadcastReceivers.OutgoingTextSMSBroadcastReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".BroadcastReceivers.OutgoingDataSMSBroadcastReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.afkanerd.deku.SMS_NEW_DATA_REGISTERED_PENDING_BROADCAST" />
-                <action android:name="com.afkanerd.deku.SMS_NEW_KEY_REGISTERED_PENDING_BROADCAST" />
-            </intent-filter>
-        </receiver>
 
         <service
             android:name=".RespondViaMessageActivity"
@@ -251,9 +221,31 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <meta-data
-            android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
+<!--        <meta-data-->
+<!--            android:name="preloaded_fonts"-->
+<!--            android:resource="@array/preloaded_fonts" /> &lt;!&ndash; <provider &ndash;&gt;-->
+        <!-- android:name="androidx.startup.InitializationProvider" -->
+        <!-- android:authorities="${applicationId}.androidx-startup" -->
+        <!-- android:exported="false" -->
+        <!-- tools:node="merge"> -->
+        <!-- &lt;!&ndash; If you are using androidx.startup to initialize other components &ndash;&gt; -->
+        <!-- <meta-data -->
+        <!-- android:name="androidx.work.WorkManagerInitializer" -->
+        <!-- android:value="androidx.startup" -->
+        <!-- tools:node="remove" /> -->
+        <!-- </provider> -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="com.afkanerd.deku.QueueListener.RMQ.RMQConnectionServiceInitializer"
+                android:value="androidx.startup" />
+            <!-- <meta-data -->
+            <!-- android:name="com.afkanerd.deku.NotificationsInitializer" -->
+            <!-- android:value="androidx.startup" /> -->
+        </provider>
     </application>
 
 </manifest>

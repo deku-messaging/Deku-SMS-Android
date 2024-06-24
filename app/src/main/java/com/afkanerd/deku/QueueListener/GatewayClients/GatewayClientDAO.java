@@ -1,5 +1,6 @@
 package com.afkanerd.deku.QueueListener.GatewayClients;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -15,6 +16,12 @@ public interface GatewayClientDAO {
 
     @Query("SELECT * FROM GatewayClient")
     List<GatewayClient> getAll();
+
+    @Query("SELECT * FROM GatewayClient")
+    LiveData<List<GatewayClient>> fetch();
+
+    @Query("SELECT * FROM GatewayClient WHERE activated = 1")
+    List<GatewayClient> fetchActivated();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insert(GatewayClient gatewayClient);
@@ -33,6 +40,9 @@ public interface GatewayClientDAO {
 
     @Query("SELECT * FROM GatewayClient WHERE id=:id")
     GatewayClient fetch(long id);
+
+    @Query("SELECT * FROM GatewayClient WHERE id=:id")
+    LiveData<GatewayClient> fetchLiveData(long id);
 
 //    @Query("UPDATE GatewayClient SET projectName=:projectName, projectBinding=:projectBinding WHERE id=:id")
 //    void updateProjectNameAndProjectBinding(String projectName, String projectBinding, int id);

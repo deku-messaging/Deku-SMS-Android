@@ -1,16 +1,8 @@
 package com.afkanerd.deku.E2EE;
 
-import android.content.Context;
-
 import androidx.room.Entity;
-import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
-import androidx.room.Room;
-
-import com.afkanerd.deku.DefaultSMS.Models.Database.Datastore;
-import com.afkanerd.deku.DefaultSMS.Models.Database.Migrations;
-import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
 
 @Entity(indices = {@Index(value={"keystoreAlias"}, unique=true)})
 public class ConversationsThreadsEncryption {

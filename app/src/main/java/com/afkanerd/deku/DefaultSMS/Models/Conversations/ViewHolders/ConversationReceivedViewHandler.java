@@ -1,6 +1,9 @@
 package com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders;
 
 
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.text.Spannable;
 import android.util.Base64;
 import android.view.View;
@@ -8,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.core.content.ContextCompat;
 
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
@@ -79,7 +83,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         }
         else
             Helpers.highlightLinks(receivedMessage, text,
-                    itemView.getContext().getColor(R.color.primary_text_color));
+                    itemView.getContext().getColor(R.color.md_theme_onPrimary));
 
         if(conversation.getSubscription_id() > 0) {
             String subscriptionName = SIMHandler.getSubscriptionName(itemView.getContext(),
@@ -99,7 +103,14 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
     @Override
     public void activate() {
-        receivedMessage.setBackgroundResource(R.drawable.received_messages_highlighted_drawable);
+        Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                R.drawable.received_messages_drawable);
+        drawable.setColorFilter(
+                new PorterDuffColorFilter(ContextCompat
+                        .getColor(itemView.getContext(),
+                                R.color.md_theme_outline),
+                        PorterDuff.Mode.SRC_IN));
+        receivedMessage.setBackground(drawable);
     }
 
     @Override
@@ -161,7 +172,25 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             timestamp.setVisibility(View.VISIBLE);
 
             receivedMessage.setBackground(
-                    itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
+                    itemView.getContext()
+                            .getDrawable(R.drawable.received_mesages_start_view_drawable));
+        }
+
+        @Override
+        public void activate() {
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.received_mesages_start_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(),
+                                    R.color.md_theme_outline),
+                            PorterDuff.Mode.SRC_IN));
+            receivedMessage.setBackground(drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_mesages_start_view_drawable);
         }
     }
 
@@ -175,6 +204,22 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
             receivedMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.received_mesages_start_view_drawable));
         }
+        @Override
+        public void activate() {
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.received_mesages_start_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(),
+                                    R.color.md_theme_outline),
+                            PorterDuff.Mode.SRC_IN));
+            receivedMessage.setBackground(drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_mesages_start_view_drawable);
+        }
     }
     public static class ConversationReceivedEndViewHandler extends ConversationReceivedViewHandler {
         public ConversationReceivedEndViewHandler(@NonNull View itemView) {
@@ -184,6 +229,22 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
             receivedMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.received_messages_end_view_drawable));
+        }
+        @Override
+        public void activate() {
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.received_messages_end_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(),
+                                    R.color.md_theme_outline),
+                            PorterDuff.Mode.SRC_IN));
+            receivedMessage.setBackground(drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_end_view_drawable);
         }
     }
 
@@ -195,6 +256,23 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
             receivedMessage.setBackground(
                     itemView.getContext().getDrawable(R.drawable.received_messages_middle_view_drawable));
+        }
+
+        @Override
+        public void activate() {
+            Drawable drawable = ContextCompat.getDrawable(itemView.getContext(),
+                    R.drawable.received_messages_middle_view_drawable);
+            drawable.setColorFilter(
+                    new PorterDuffColorFilter(ContextCompat
+                            .getColor(itemView.getContext(),
+                                    R.color.md_theme_outline),
+                            PorterDuff.Mode.SRC_IN));
+            receivedMessage.setBackground(drawable);
+        }
+
+        @Override
+        public void deactivate() {
+            receivedMessage.setBackgroundResource(R.drawable.received_messages_middle_view_drawable);
         }
     }
 

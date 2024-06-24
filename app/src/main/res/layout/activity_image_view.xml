@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="64dp"
         android:text="10%"
-        android:textColor="@color/primary_highlight_color"
+        android:textColor="@color/material_on_primary_disabled"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/image_details_original_resolution"
         app:layout_constraintStart_toEndOf="@+id/image_details_original_resolution" />
@@ -75,7 +75,7 @@
         android:layout_marginEnd="167dp"
         android:layout_marginBottom="22dp"
         android:background="@drawable/compose_message_drawable"
-        android:backgroundTint="@color/logo_secondary"
+        android:backgroundTint="@color/md_theme_secondary"
         android:onClick="sendImage"
         android:text="send"
         android:textAllCaps="false"
@@ -102,7 +102,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:text="25 Messages"
-        android:textColor="@color/primary_highlight_color"
+        android:textColor="@color/material_on_primary_disabled"
         android:textStyle="italic"
         app:layout_constraintStart_toStartOf="@+id/image_details_size"
         app:layout_constraintTop_toBottomOf="@+id/image_details_size" />
@@ -125,7 +125,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:text="1024 x 1024"
-        android:textColor="@color/primary_highlight_color"
+        android:textColor="@color/material_on_primary_disabled"
         android:textStyle="italic"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/image_view_toolbar" />

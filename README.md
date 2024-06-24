@@ -83,6 +83,11 @@ The content being forwarded to your cloud look like:
 }
 ```
 
+<b>Supported Protocols</b>
+- HTTP(s)
+- (S)FTP
+- SMTP
+
 ## <a name="sms_gateway"></a> Android phone as SMS Gateway
 You can transmit data from your to your cloud to Android devices, using your Android phones as your SMS Gateway.
 

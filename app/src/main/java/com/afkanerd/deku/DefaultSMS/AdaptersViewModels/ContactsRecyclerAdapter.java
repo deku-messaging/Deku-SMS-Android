@@ -21,20 +21,15 @@ import java.util.List;
 
 public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
 
-    Context context;
-
     String sharedMessage;
-    private final AsyncListDiffer<Contacts> mDiffer = new AsyncListDiffer(this, Contacts.DIFF_CALLBACK);
-
-    public ContactsRecyclerAdapter(Context context) {
-        this.context = context;
-    }
+    private final AsyncListDiffer<Contacts> mDiffer =
+            new AsyncListDiffer(this, Contacts.DIFF_CALLBACK);
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(this.context);
-        View view = inflater.inflate(R.layout.conversations_threads_layout, parent, false);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        View view = inflater.inflate(R.layout.layout_conversations_threads, parent, false);
         return new ContactsViewHolderThreadedConversations(view, true);
     }
 
@@ -83,7 +78,8 @@ public class ContactsRecyclerAdapter extends RecyclerView.Adapter{
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent singleMessageThreadIntent = new Intent(itemView.getContext(), ConversationActivity.class);
+                    Intent singleMessageThreadIntent = new Intent(itemView.getContext(),
+                            ConversationActivity.class);
                     singleMessageThreadIntent.putExtra(Conversation.ADDRESS, contacts.number);
 
                     if(sharedConversation != null && !sharedConversation.isEmpty())
