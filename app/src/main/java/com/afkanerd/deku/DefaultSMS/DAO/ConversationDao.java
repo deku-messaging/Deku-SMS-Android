@@ -43,7 +43,7 @@ public interface ConversationDao {
     @Insert
     long _insert(Conversation conversation);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     List<Long> insertAll(List<Conversation> conversationList);
 
     @Update

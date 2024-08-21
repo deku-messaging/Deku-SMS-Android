@@ -1,0 +1,3 @@
+- fix: issue with sent message not showing up
+- fix: tags now show up in forwarded messages
+- fix: issue with keys reseting after default app changes or reset button is clicked

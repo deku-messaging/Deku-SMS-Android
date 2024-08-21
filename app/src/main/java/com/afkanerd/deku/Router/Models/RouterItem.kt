@@ -16,6 +16,10 @@ class RouterItem(val conversation: Conversation) : Conversation(conversation) {
     var url: String? = null
     var routingStatus: String? = null
 
+    fun setConversationTag(tag: String) {
+        conversation.tag = tag
+    }
+
     fun serializeJson() : String {
         val json = Json {
             prettyPrint = true
