@@ -192,10 +192,10 @@ dependencies {
 
     implementation 'commons-net:commons-net:3.6'
 
-    def fuelVersion = "3.0.0-alpha03"
+    def fuelVersion = "2.3.1"
     implementation "com.github.kittinunf.fuel:fuel:$fuelVersion" //for JVM
     testImplementation "com.github.kittinunf.fuel:fuel:$fuelVersion" //for JVM
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1-Beta'//
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1'//
 
     implementation "com.github.kittinunf.fuel:fuel-android:$fuelVersion" //for Android
     implementation "com.github.kittinunf.fuel:fuel-coroutines:$fuelVersion"
