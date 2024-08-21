@@ -25,7 +25,7 @@ class RouterWorkManager (context: Context, workerParams: WorkerParameters)
         val conversation = datastore.conversationDao().getMessage(conversationId)
 
         val routerItem = RouterItem(conversation)
-        routerItem.tag = gatewayServer.getTag()
+        routerItem.setConversationTag(gatewayServer.getTag())
 
         val jsonStringBody = routerItem.serializeJson()
         println(jsonStringBody)
