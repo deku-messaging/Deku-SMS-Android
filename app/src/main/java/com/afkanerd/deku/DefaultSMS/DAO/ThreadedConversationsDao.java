@@ -72,12 +72,13 @@ public interface ThreadedConversationsDao {
     @Query("SELECT Conversation.address, " +
             "Conversation.text as snippet, " +
             "Conversation.thread_id, " +
-            "Conversation.date, Conversation.type, Conversation.read, " +
+            "Conversation.date, Conversation.type, " +
             "ThreadedConversations.msg_count, ThreadedConversations.is_archived, " +
             "ThreadedConversations.is_blocked, ThreadedConversations.is_read, " +
             "ThreadedConversations.is_shortcode, ThreadedConversations.contact_name, " +
             "ThreadedConversations.is_mute, ThreadedConversations.is_secured, " +
-            "ThreadedConversations.isSelf, ThreadedConversations.subscription_id " +
+            "ThreadedConversations.isSelf, ThreadedConversations.subscription_id, " +
+            "ThreadedConversations.formatted_datetime " +
             "FROM Conversation, ThreadedConversations WHERE " +
             "Conversation.type = :type AND ThreadedConversations.thread_id = Conversation.thread_id " +
             "ORDER BY Conversation.date DESC")
