@@ -6,15 +6,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
-import android.util.Base64;
-import android.util.Log;
 import android.util.Pair;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
 import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.CryptoHelpers;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
@@ -26,7 +22,6 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
