@@ -13,7 +13,6 @@ import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStore;
 import com.afkanerd.deku.E2EE.Security.CustomKeyStoreDao;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers;
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityECDH;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Headers;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States;

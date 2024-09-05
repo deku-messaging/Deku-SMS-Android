@@ -6,7 +6,6 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityECDH;
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityRSA;
 
 import java.io.IOException;
