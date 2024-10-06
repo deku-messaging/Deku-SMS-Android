@@ -46,8 +46,10 @@ public class SearchConversationRecyclerAdapter extends ThreadedConversationRecyc
             public void onClick(View view) {
                 Intent singleMessageThreadIntent = new Intent(holder.itemView.getContext(), ConversationActivity.class);
                 singleMessageThreadIntent.putExtra(Conversation.THREAD_ID, threadId);
-                singleMessageThreadIntent.putExtra(ConversationActivity.SEARCH_STRING, searchString);
-                singleMessageThreadIntent.putExtra(ConversationActivity.SEARCH_INDEX, searchIndex);
+                singleMessageThreadIntent.putExtra(ConversationActivity.Companion.getSEARCH_STRING(),
+                        searchString);
+                singleMessageThreadIntent.putExtra(ConversationActivity.Companion.getSEARCH_INDEX(),
+                        searchIndex);
                 singleMessageThreadIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 holder.itemView.getContext().startActivity(singleMessageThreadIntent);
             }

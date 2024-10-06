@@ -1,4 +1,4 @@
-package com.afkanerd.deku.E2EE;
+package com.afkanerd.deku.DefaultSMS.DAO;
 
 
 import androidx.lifecycle.LiveData;
@@ -7,6 +7,8 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
+
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadsEncryption;
 
 import java.util.List;
 

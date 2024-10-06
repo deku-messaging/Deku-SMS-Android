@@ -1,9 +1,6 @@
 package com.afkanerd.deku.DefaultSMS.AdaptersViewModels;
 
 import android.content.Context;
-import android.provider.Telephony;
-import android.util.Base64;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,10 +9,6 @@ import androidx.paging.PagingState;
 
 import com.afkanerd.deku.DefaultSMS.DAO.ConversationDao;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryptionDao;
-import com.afkanerd.deku.E2EE.E2EEHandler;
-import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.util.ArrayList;
 import java.util.List;

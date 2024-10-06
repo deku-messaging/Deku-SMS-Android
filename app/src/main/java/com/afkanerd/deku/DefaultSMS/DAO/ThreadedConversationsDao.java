@@ -16,7 +16,6 @@ import com.afkanerd.deku.DefaultSMS.Models.Archive;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.Datastore;
-import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.io.IOException;
@@ -278,16 +277,16 @@ public interface ThreadedConversationsDao {
     @Transaction
     default void delete(Context context, List<String> ids) {
         for(ThreadedConversations threadedConversations : getList(ids)) {
-            try {
-                String keystoreAlias =
-                        E2EEHandler.deriveKeystoreAlias(context, threadedConversations.getAddress(), 0);
-                E2EEHandler.clear(context, keystoreAlias);
-            } catch (KeyStoreException | NumberParseException |
-                     InterruptedException |
-                     NoSuchAlgorithmException | IOException |
-                     CertificateException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                String keystoreAlias =
+//                        E2EEHandler.deriveKeystoreAlias(context, threadedConversations.getAddress(), 0);
+//                E2EEHandler.clear(context, keystoreAlias);
+//            } catch (KeyStoreException | NumberParseException |
+//                     InterruptedException |
+//                     NoSuchAlgorithmException | IOException |
+//                     CertificateException e) {
+//                e.printStackTrace();
+//            }
         }
         _delete(ids);
         Datastore.getDatastore(context).conversationDao().deleteAll(ids);
@@ -295,16 +294,16 @@ public interface ThreadedConversationsDao {
 
     @Transaction
     default void delete(Context context, ThreadedConversations threadedConversations) {
-        try {
-            String keystoreAlias =
-                    E2EEHandler.deriveKeystoreAlias(context, threadedConversations.getAddress(), 0);
-            E2EEHandler.clear(context, keystoreAlias);
-        } catch (KeyStoreException | NumberParseException |
-                 InterruptedException |
-                 NoSuchAlgorithmException | IOException |
-                 CertificateException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            String keystoreAlias =
+//                    E2EEHandler.deriveKeystoreAlias(context, threadedConversations.getAddress(), 0);
+//            E2EEHandler.clear(context, keystoreAlias);
+//        } catch (KeyStoreException | NumberParseException |
+//                 InterruptedException |
+//                 NoSuchAlgorithmException | IOException |
+//                 CertificateException e) {
+//            e.printStackTrace();
+//        }
 
         _delete(threadedConversations);
         Datastore.getDatastore(context).conversationDao().deleteAll(Collections

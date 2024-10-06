@@ -1,4 +1,4 @@
-package com.afkanerd.deku.E2EE;
+package com.afkanerd.deku.DefaultSMS.Models.Conversations;
 
 import androidx.room.Entity;
 import androidx.room.Index;

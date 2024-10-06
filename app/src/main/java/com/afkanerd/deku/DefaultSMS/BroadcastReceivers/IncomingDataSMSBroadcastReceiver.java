@@ -14,7 +14,6 @@ import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
-import com.afkanerd.deku.E2EE.E2EEHandler;
 
 //import org.bouncycastle.operator.OperatorCreationException;
 
@@ -54,7 +53,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     final String date = regIncomingOutput[NativeSMSDB.DATE];
                     int subscriptionId = Integer.parseInt(strSubscriptionId);
 
-                    boolean isValidKey = E2EEHandler.isValidDefaultPublicKey( Base64.decode(data, Base64.DEFAULT));
+//                    boolean isValidKey = E2EEHandler.isValidDefaultPublicKey( Base64.decode(data, Base64.DEFAULT));
+                    boolean isValidKey = false;
 
                     Conversation conversation = new Conversation();
                     conversation.setData(data);
@@ -117,20 +117,20 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
      * @return true if isSelf and false otherwise
      * @throws Exception
      */
-    boolean[] processForEncryptionKey(Context context, Conversation conversation) throws
-            Exception {
-        byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-        final String keystoreAlias = E2EEHandler.deriveKeystoreAlias(context, conversation.getAddress(), 0);
-        byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
-
-        E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
-        final boolean isSelf = E2EEHandler.isSelf(context, keystoreAlias);
-//        Log.d(getClass().getName(), "Is self: " + isSelf);
-//        Log.d(getClass().getName(), "Is secured: " + E2EEHandler
-//                .canCommunicateSecurely(context, isSelf ?
-//                        E2EEHandler.buildForSelf(keystoreAlias) : keystoreAlias, true));
-        return new boolean[]{isSelf,
-                E2EEHandler.canCommunicateSecurely(context, isSelf ?
-                        E2EEHandler.buildForSelf(keystoreAlias) : keystoreAlias, true)};
+    boolean[] processForEncryptionKey(Context context, Conversation conversation) {
+//        byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
+//        final String keystoreAlias = E2EEHandler.deriveKeystoreAlias(context, conversation.getAddress(), 0);
+//        byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
+//
+//        E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
+//        final boolean isSelf = E2EEHandler.isSelf(context, keystoreAlias);
+////        Log.d(getClass().getName(), "Is self: " + isSelf);
+////        Log.d(getClass().getName(), "Is secured: " + E2EEHandler
+////                .canCommunicateSecurely(context, isSelf ?
+////                        E2EEHandler.buildForSelf(keystoreAlias) : keystoreAlias, true));
+//        return new boolean[]{isSelf,
+//                E2EEHandler.canCommunicateSecurely(context, isSelf ?
+//                        E2EEHandler.buildForSelf(keystoreAlias) : keystoreAlias, true)};
+        return new boolean[]{false, false};
     }
 }

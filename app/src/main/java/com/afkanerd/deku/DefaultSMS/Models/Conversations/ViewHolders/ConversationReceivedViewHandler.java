@@ -19,7 +19,6 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.E2EE.E2EEHandler;
 
 import java.sql.Date;
 import java.text.DateFormat;

@@ -16,8 +16,7 @@ import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
-import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadsEncryption;
 import com.google.i18n.phonenumbers.NumberParseException;
 
 import java.nio.charset.StandardCharsets;
@@ -76,30 +75,31 @@ public class CustomAppCompactActivity extends DualSIMConversationActivity {
                 messageId = String.valueOf(System.currentTimeMillis());
 
             final Conversation conversation = new Conversation();
-            if(_mk != null) {
-                try {
-                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(getApplicationContext(),
-                            threadedConversations.getAddress(), 0);
-                    if(threadedConversations.isSelf())
-                        keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);
-                    byte[] cipherText = E2EEHandler.extractTransmissionText(text);
-                    ConversationsThreadsEncryption conversationsThreadsEncryption =
-                            databaseConnector.conversationsThreadsEncryptionDao()
-                                    .fetch(keystoreAlias);
-                    byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP);
-                    String plainText = new String(E2EEHandler.decrypt(getApplicationContext(),
-                            keystoreAlias, cipherText, _mk, AD, threadedConversations.isSelf()),
-                            StandardCharsets.UTF_8);
-                    conversation.setText(plainText);
-                    conversation.setIs_encrypted(true);
-                } catch(Throwable e ) {
-                    e.printStackTrace();
-                    conversation.setText(text);
-                }
-            } else {
-                conversation.setText(text);
-            }
+//            if(_mk != null) {
+//                try {
+//                    String keystoreAlias = E2EEHandler.deriveKeystoreAlias(getApplicationContext(),
+//                            threadedConversations.getAddress(), 0);
+//                    if(threadedConversations.isSelf())
+//                        keystoreAlias = E2EEHandler.buildForSelf(keystoreAlias);
+//                    byte[] cipherText = E2EEHandler.extractTransmissionText(text);
+//                    ConversationsThreadsEncryption conversationsThreadsEncryption =
+//                            databaseConnector.conversationsThreadsEncryptionDao()
+//                                    .fetch(keystoreAlias);
+//                    byte[] AD = Base64.decode(conversationsThreadsEncryption.getPublicKey(), Base64.NO_WRAP);
+//                    String plainText = new String(E2EEHandler.decrypt(getApplicationContext(),
+//                            keystoreAlias, cipherText, _mk, AD, threadedConversations.isSelf()),
+//                            StandardCharsets.UTF_8);
+//                    conversation.setText(plainText);
+//                    conversation.setIs_encrypted(true);
+//                } catch(Throwable e ) {
+//                    e.printStackTrace();
+//                    conversation.setText(text);
+//                }
+//            } else {
+//                conversation.setText(text);
+//            }
 
+            conversation.setText(text);
             final String messageIdFinal = messageId;
             conversation.setMessage_id(messageId);
             conversation.setThread_id(threadId);

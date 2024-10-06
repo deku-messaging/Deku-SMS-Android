@@ -26,7 +26,6 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.List;

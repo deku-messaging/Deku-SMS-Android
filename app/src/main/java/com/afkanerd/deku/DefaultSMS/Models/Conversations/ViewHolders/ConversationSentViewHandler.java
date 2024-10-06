@@ -23,7 +23,6 @@ import com.afkanerd.deku.DefaultSMS.Commons.Helpers;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler;
 import com.afkanerd.deku.DefaultSMS.R;
-import com.afkanerd.deku.E2EE.E2EEHandler;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.sql.Date;

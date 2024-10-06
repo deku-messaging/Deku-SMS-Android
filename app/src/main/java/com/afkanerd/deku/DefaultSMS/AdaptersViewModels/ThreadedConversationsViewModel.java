@@ -21,8 +21,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.Datastore;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
-import com.afkanerd.deku.E2EE.ConversationsThreadsEncryption;
-import com.afkanerd.deku.E2EE.E2EEHandler;
+import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadsEncryption;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -129,23 +128,23 @@ public class ThreadedConversationsViewModel extends ViewModel {
 
     public LiveData<PagingData<ThreadedConversations>> getEncrypted() throws InterruptedException {
         List<String> address = new ArrayList<>();
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
-                        databaseConnector.conversationsThreadsEncryptionDao().getAll();
-                for(ConversationsThreadsEncryption conversationsThreadsEncryption :
-                        conversationsThreadsEncryptionList) {
-                    String derivedAddress =
-                            E2EEHandler.getAddressFromKeystore(
-                                    conversationsThreadsEncryption.getKeystoreAlias());
-                    address.add(derivedAddress);
-                }
-
-            }
-        });
-        thread.start();
-        thread.join();
+//        Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
+//                        databaseConnector.conversationsThreadsEncryptionDao().getAll();
+//                for(ConversationsThreadsEncryption conversationsThreadsEncryption :
+//                        conversationsThreadsEncryptionList) {
+//                    String derivedAddress =
+//                            E2EEHandler.getAddressFromKeystore(
+//                                    conversationsThreadsEncryption.getKeystoreAlias());
+//                    address.add(derivedAddress);
+//                }
+//
+//            }
+//        });
+//        thread.start();
+//        thread.join();
 
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,

@@ -17,7 +17,6 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import com.afkanerd.deku.DefaultSMS.Fragments.DevelopersFragment;
-import com.afkanerd.deku.E2EE.EndToEndFragments;
 //import com.afkanerd.deku.QueueListener.GatewayClients.GatewayClientListingActivity;
 //import com.afkanerd.deku.Router.GatewayServers.GatewayServerListingActivity;
 import com.afkanerd.deku.DefaultSMS.R;
