@@ -81,12 +81,12 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                         inflater.inflate(R.layout.layout_conversations_sent, parent, false));
                 break;
             case MESSAGE_KEY_OUTBOX:
-                View view = inflater.inflate(R.layout.layout_conversations_sent, parent, false);
+                View view = inflater.inflate(R.layout.layout_secure_requested_banner, parent, false);
                 returnView = new ConversationSentViewHandler.KeySentViewHandler(view);
                 break;
             case TIMESTAMP_KEY_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.TimestampKeySentViewHandler(
-                        inflater.inflate(R.layout.layout_conversations_sent, parent, false));
+                        inflater.inflate(R.layout.layout_secure_requested_banner, parent, false));
                 break;
             case MESSAGE_KEY_INBOX:
                 returnView = new ConversationReceivedViewHandler.KeyReceivedViewHandler(
@@ -130,7 +130,8 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 break;
             default:
                 returnView = new ConversationSentViewHandler(
-                        inflater.inflate(R.layout.layout_conversations_sent, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_sent, parent, false),
+                        ConversationSentViewHandler.TYPE_CONVERSATION);
         }
 
         return returnView;
@@ -144,8 +145,6 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         if(conversation == null) {
             return;
         }
-        setOnLongClickListeners(holder);
-        setOnClickListeners(holder, conversation);
 
         if(holder instanceof ConversationReceivedViewHandler) {
             ConversationReceivedViewHandler conversationReceivedViewHandler =
@@ -157,16 +156,21 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 lastReceivedItem = conversationReceivedViewHandler;
                 lastReceivedItem.date.setVisibility(View.VISIBLE);
             }
+            setOnLongClickListeners(holder);
+            setOnClickListeners(holder, conversation);
         }
 
         else if(holder instanceof ConversationSentViewHandler){
             ConversationSentViewHandler conversationSentViewHandler = (ConversationSentViewHandler) holder;
-            if(holder.getAbsoluteAdapterPosition() != 0 ) {
-                conversationSentViewHandler.hideDetails();
-            } else conversationSentViewHandler.showDetails();
+            if(conversationSentViewHandler.type == ConversationSentViewHandler.TYPE_CONVERSATION) {
+                if (holder.getAbsoluteAdapterPosition() != 0) {
+                    conversationSentViewHandler.hideDetails();
+                } else conversationSentViewHandler.showDetails();
+                setOnLongClickListeners(holder);
+                setOnClickListeners(holder, conversation);
+            }
             conversationSentViewHandler.bind(conversation, searchString);
         }
-
     }
 
     private void addSelectedItems(ConversationTemplateViewHandler holder) {

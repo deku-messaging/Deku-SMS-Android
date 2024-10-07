@@ -32,6 +32,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 public class ConversationSentViewHandler extends ConversationTemplateViewHandler {
+    public final static int TYPE_KEY = 1;
+    public final static int TYPE_CONVERSATION = 0;
 
     final static int BOTTOM_MARGIN = 4;
     public ImageView messageFailedIcon;
@@ -43,20 +45,23 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     LinearLayoutCompat.LayoutParams layoutParams;
     LinearLayoutCompat messageStatusTimestampLayout;
 
-    public ConversationSentViewHandler(@NonNull View itemView) {
-        super(itemView);
-        sentMessage = itemView.findViewById(R.id.message_sent_text);
-        sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
-        date = itemView.findViewById(R.id.message_thread_sent_date_text);
-        timestamp = itemView.findViewById(R.id.sent_message_date_segment);
-        messageStatusTimestampLayout = itemView.findViewById(R.id.message_status_timestamp);
-        messageFailedIcon = itemView.findViewById(R.id.message_failed_indicator_img);
+    public int type = TYPE_CONVERSATION;
 
-////        messageStatusLinearLayoutCompact = itemView.findViewById(R.id.conversation_status_linear_layout);
-        linearLayoutCompat = itemView.findViewById(R.id.sent_message_linear_layout);
-        layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
-        layoutParams.bottomMargin = Helpers.dpToPixel(16);
-        linearLayoutCompat.setLayoutParams(layoutParams);
+    public ConversationSentViewHandler(@NonNull View itemView, int type) {
+        super(itemView);
+        this.type = type;
+        if(type == TYPE_CONVERSATION) {
+            sentMessage = itemView.findViewById(R.id.message_sent_text);
+            sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
+            date = itemView.findViewById(R.id.message_thread_sent_date_text);
+            timestamp = itemView.findViewById(R.id.sent_message_date_segment);
+            messageStatusTimestampLayout = itemView.findViewById(R.id.message_status_timestamp);
+            messageFailedIcon = itemView.findViewById(R.id.message_failed_indicator_img);
+            linearLayoutCompat = itemView.findViewById(R.id.sent_message_linear_layout);
+            layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
+            layoutParams.bottomMargin = Helpers.dpToPixel(16);
+            linearLayoutCompat.setLayoutParams(layoutParams);
+        }
     }
 
     @Override
@@ -111,7 +116,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
             showDetails();
         }
         else {
-            sentMessageStatus.setTextAppearance(R.style.Theme_main);
+            sentMessageStatus.setTextAppearance(R.style.conversation_default);
             this.date.setTextAppearance(R.style.Theme_main);
             this.messageFailedIcon.setVisibility(View.GONE);
         }
@@ -177,21 +182,21 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     public static class TimestampConversationSentViewHandler extends ConversationSentViewHandler {
         public TimestampConversationSentViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_CONVERSATION);
             timestamp.setVisibility(View.VISIBLE);
         }
     }
 
     public static class KeySentViewHandler extends ConversationSentViewHandler {
         public KeySentViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_KEY);
         }
 
         @Override
         public void bind(Conversation conversation, String searchString) {
-            super.bind(conversation, searchString);
-            sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title_requested));
-            sentMessage.setTextAppearance(R.style.key_request_initiated);
+//            super.bind(conversation, searchString);
+//            sentMessage.setText(itemView.getContext().getString(R.string.conversation_key_title_requested));
+//            sentMessage.setTextAppearance(R.style.key_request_initiated);
         }
     }
 
@@ -231,7 +236,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     public static class ConversationSentStartViewHandler extends ConversationSentViewHandler {
         public ConversationSentStartViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_CONVERSATION);
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
             linearLayoutCompat.setLayoutParams(layoutParams);
 
@@ -256,7 +261,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     }
     public static class ConversationSentEndViewHandler extends ConversationSentViewHandler {
         public ConversationSentEndViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_CONVERSATION);
             layoutParams.bottomMargin = Helpers.dpToPixel(16);
             linearLayoutCompat.setLayoutParams(layoutParams);
 
@@ -282,7 +287,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
 
     public static class ConversationSentMiddleViewHandler extends ConversationSentViewHandler {
         public ConversationSentMiddleViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_CONVERSATION);
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
 //            linearLayoutCompat.setLayoutParams(layoutParams);
             itemView.setLayoutParams(layoutParams);

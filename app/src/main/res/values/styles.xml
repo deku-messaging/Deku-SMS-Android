@@ -26,6 +26,12 @@
         <item name="android:textColor">@color/md_theme_error</item>
     </style>
 
+    <style name="conversation_default">
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/md_theme_onPrimaryContainer</item>
+    </style>
+
     <style name="conversation_draft_style">
         <item name="android:textStyle">italic</item>
     </style>
