@@ -22,6 +22,7 @@ class ConversationSecureRequestModal(private val requestCallback: Runnable) :
         view.findViewById<MaterialButton>(R.id.conversation_secure_request_btn).setOnClickListener {
             it.isEnabled = false
             requestCallback.run()
+            activity?.recreate()
             dismiss()
         }
     }

@@ -31,6 +31,7 @@ class ConversationsSecureRequestModalSheetFragment(val contactName: String,
 
         view.findViewById<MaterialButton>(R.id.conversation_secure_request_agree_btn).setOnClickListener {
             acceptRunnable.run()
+            activity?.recreate()
             dismiss()
         }
     }

@@ -248,7 +248,11 @@ object E2EEHandler {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
 
-        return sharedPreferences.contains(derivePeerPublicKeystoreAlias(address)) &&
+
+        return if(isSelf(context, address))
+            sharedPreferences.contains(derivePeerPublicKeystoreAlias(address)) &&
+                sharedPreferences.contains(deriveSelfSecureRequestKeystoreAlias(address))
+        else sharedPreferences.contains(derivePeerPublicKeystoreAlias(address)) &&
                 sharedPreferences.contains(deriveSecureRequestKeystoreAlias(address))
     }
 

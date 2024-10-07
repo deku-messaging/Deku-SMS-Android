@@ -283,5 +283,6 @@
     <string name="request">Send request</string>
     <string name="secure_communication_requested">-- Secure communication request sent --</string>
     <string name="secure_communications_request_received">-- Secure communications request received --</string>
+    <string name="secured">Secured</string>
 
 </resources>

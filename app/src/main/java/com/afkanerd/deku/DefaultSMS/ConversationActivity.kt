@@ -583,8 +583,6 @@ class ConversationActivity() : CustomAppCompactActivity() {
                 // TODO: put a pending intent here that makes save on message delivered
                 sendDataMessage(txPublicKey)
             }
-            else
-                Toast.makeText(applicationContext, "Wont send cus self", Toast.LENGTH_SHORT).show()
         }
         fragmentTransaction.add(secureRequestModal, "secureRequestModal")
         fragmentTransaction.commit()
@@ -605,8 +603,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
     }
 
     private fun configureToolbars() {
-        title = null
-        //        View view = findViewById(R.id.conversation_toolbar_include_contact_card);
+        title = "\n"
         val contactTextView = findViewById<TextView>(R.id.conversation_contact_card_text_view)
         contactTextView.text = abTitle
 
@@ -626,7 +623,6 @@ class ConversationActivity() : CustomAppCompactActivity() {
             avatarView.visibility = View.INVISIBLE
         }
 
-        //        View view = getLayoutInflater().inflate(R.layout.layout_conversation_contact_card, null);
         materialCardView = findViewById(R.id.conversation_toolbar_contact_card)
         materialCardView!!.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View) {
@@ -644,6 +640,12 @@ class ConversationActivity() : CustomAppCompactActivity() {
                 fragmentTransaction.commitNow()
             }
         })
+
+        if(E2EEHandler.isSecured(applicationContext, address)) {
+            findViewById<View>(R.id.conversation_secured_text).visibility = View.VISIBLE
+        } else {
+            findViewById<View>(R.id.conversation_secured_text).visibility = View.GONE
+        }
     }
 
     private val abTitle: String
