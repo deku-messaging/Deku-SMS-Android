@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
 import android.util.Base64;
+import android.widget.Toast;
 
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
@@ -68,28 +69,28 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     conversation.setDate(dateSent);
                     conversation.setDate(date);
 
+                    boolean isSelf = false;
+                    boolean isSecured = false;
+                    if(isValidKey) {
+                        try {
+                            boolean[] res = processAndGetFlags(context, byteData, address);
+                            isSelf = res[0];
+                            isSecured = res[1];
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    conversation.setIs_key(true);
+                    conversation.setIs_encrypted(isSecured);
+
+                    boolean finalIsSelf = isSelf;
                     ThreadingPoolExecutor.executorService.execute(new Runnable() {
                         @Override
                         public void run() {
-
-                            boolean isSelf = false;
-                            boolean isSecured = false;
-                            if(isValidKey) {
-                                try {
-                                    boolean[] res = processAndGetFlags(context, byteData, address);
-                                    isSelf = res[0];
-                                    isSecured = res[1];
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            conversation.setIs_key(true);
-                            conversation.setIs_encrypted(isSecured);
-
                             ThreadedConversations threadedConversations =
                                     databaseConnector.threadedConversationsDao()
                                     .insertThreadAndConversation(context, conversation);
-                            threadedConversations.setSelf(isSelf);
+                            threadedConversations.setSelf(finalIsSelf);
                             databaseConnector.threadedConversationsDao()
                                     .update(context, threadedConversations);
 
@@ -117,14 +118,25 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
          * 1 - is conversation now encrypted (either request post agree or receiving agree)
          */
         boolean isSelf = false;
+        boolean isSecured = false;
 
-        switch (E2EEHandler.INSTANCE.getRequestType(data)) {
-            case REQUEST:
-                isSelf = E2EEHandler.INSTANCE.hasRequest(context, address);
-            case ACCEPT:
-                E2EEHandler.INSTANCE.secureStorePeerPublicKey(context, address, data);
-                break;
+        E2EEHandler.MagicNumber magicNumber = E2EEHandler.INSTANCE.getRequestType(data);
+        if(magicNumber != null) {
+            switch(magicNumber) {
+                case REQUEST:
+                    isSelf = E2EEHandler.INSTANCE.hasRequest(context, address);
+                    if(!isSelf) {
+                        E2EEHandler.INSTANCE.secureStorePeerPublicKey(context, address, data);
+                        break;
+                    }
+                case ACCEPT:
+                    E2EEHandler.INSTANCE.secureStorePeerPublicKey(context, address, data);
+                    isSecured = true;
+                    if(BuildConfig.DEBUG)
+                        Toast.makeText(context, "Accepting secured: " + isSelf, Toast.LENGTH_LONG).show();
+                    break;
+            }
         }
-        return new boolean[]{isSelf, false};
+        return new boolean[]{isSelf, isSecured};
     }
 }

@@ -147,12 +147,17 @@ object E2EEHandler {
         return address + "_peer_public_key"
     }
 
-    fun getRequestType(data: ByteArray) : MagicNumber {
-        val mn = ByteArray(4)
-        System.arraycopy(data, 0, mn, 0, 4)
-        val magicNumber = ByteBuffer.wrap(mn).order(ByteOrder.LITTLE_ENDIAN).getInt()
+    fun getRequestType(data: ByteArray) : MagicNumber? {
+        val magicNumber: Int = data[0].toInt()
+        var enumMagicNumber : MagicNumber? = null
 
-        return MagicNumber.valueOf(magicNumber.toString())
+        MagicNumber.entries.forEach {
+            if(it.num == magicNumber) {
+                enumMagicNumber = it
+                return@forEach
+            }
+        }
+        return enumMagicNumber
     }
 
     fun hasRequest(context: Context, address: String): Boolean {
