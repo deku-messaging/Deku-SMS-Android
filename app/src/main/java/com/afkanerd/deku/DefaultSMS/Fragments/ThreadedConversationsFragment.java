@@ -95,7 +95,7 @@ public class ThreadedConversationsFragment extends Fragment {
     ActionBar actionBar;
 
     public interface ViewModelsInterface {
-        ThreadedConversationsViewModel getThreadedConversationsViewModel();
+        ThreadedConversationsViewModel get_ThreadedConversationsViewModel();
     }
 
     @Nullable
@@ -411,7 +411,7 @@ public class ThreadedConversationsFragment extends Fragment {
                 LinearLayoutManager.VERTICAL, false);
 
 
-        threadedConversationsViewModel = viewModelsInterface.getThreadedConversationsViewModel();
+        threadedConversationsViewModel = viewModelsInterface.get_ThreadedConversationsViewModel();
 
         threadedConversationRecyclerAdapter = new ThreadedConversationRecyclerAdapter();
         threadedConversationRecyclerAdapter.selectedItems.observe(getViewLifecycleOwner(),

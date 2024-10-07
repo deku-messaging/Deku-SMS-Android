@@ -138,7 +138,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
                     applicationContext, 1, threadId,
                     null
                 )
-                conversationsViewModel.updateInformation(
+                conversationsViewModel?.updateInformation(
                     applicationContext,
                     if (isContact) contactName else null, defaultSubscriptionId.value
                 )
@@ -160,12 +160,14 @@ class ConversationActivity() : CustomAppCompactActivity() {
             e.printStackTrace()
         }
         CoroutineScope(Dispatchers.Default).launch {
-            val threadedConversations =
-                databaseConnector.threadedConversationsDao()[threadId]
-            if (threadedConversations != null && threadedConversations.isIs_mute) {
-                runOnUiThread {
-                    menu.findItem(R.id.conversations_menu_unmute).setVisible(true)
-                    menu.findItem(R.id.conversations_menu_mute).setVisible(false)
+            databaseConnector?.let {
+                val threadedConversations =
+                    it.threadedConversationsDao()[threadId]
+                if (threadedConversations != null && threadedConversations.isIs_mute) {
+                    runOnUiThread {
+                        menu.findItem(R.id.conversations_menu_unmute).setVisible(true)
+                        menu.findItem(R.id.conversations_menu_mute).setVisible(false)
+                    }
                 }
             }
         }
@@ -190,53 +192,52 @@ class ConversationActivity() : CustomAppCompactActivity() {
             }
             R.id.conversations_menu_delete -> {
                 CoroutineScope(Dispatchers.Default).launch {
-                    databaseConnector.threadedConversationsDao()
-                        .delete(applicationContext, listOf(threadId))
+                    databaseConnector?.threadedConversationsDao()
+                        ?.delete(applicationContext, listOf(threadId))
                 }
                 finish()
             }
             R.id.conversations_menu_mute -> {
                 CoroutineScope(Dispatchers.Default).launch {
-                    conversationsViewModel.mute()
-                    val threadedConversations =
-                        databaseConnector.threadedConversationsDao()[threadId]
-                    threadedConversations.isIs_mute = true
+                    conversationsViewModel?.mute()
+                    databaseConnector?.let {
+                        val threadedConversations =
+                            it.threadedConversationsDao()[threadId]
+                        threadedConversations.isIs_mute = true
 
-                    databaseConnector.threadedConversationsDao().update(
-                        applicationContext,
-                        threadedConversations
-                    )
-                    invalidateMenu()
-                    runOnUiThread {
-                        configureToolbars()
-                        Toast.makeText(
-                            applicationContext, getString(R.string.conversation_menu_muted),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        if (actionMode != null) actionMode!!.finish()
+                        it.threadedConversationsDao().update( applicationContext,
+                            threadedConversations )
+                        invalidateMenu()
+                        runOnUiThread {
+                            configureToolbars()
+                            Toast.makeText(
+                                applicationContext, getString(R.string.conversation_menu_muted),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            if (actionMode != null) actionMode!!.finish()
+                        }
                     }
                 }
                 return true
             }
             R.id.conversations_menu_unmute -> {
                 CoroutineScope(Dispatchers.Default).launch {
-                    conversationsViewModel.unMute()
-                    val threadedConversations =
-                        databaseConnector.threadedConversationsDao()[threadId]
-                    threadedConversations.isIs_mute = false
-                    databaseConnector.threadedConversationsDao().update(
-                        applicationContext,
-                        threadedConversations
-                    )
+                    conversationsViewModel?.unMute()
+                    databaseConnector?.let {
+                        val threadedConversations = it.threadedConversationsDao()[threadId]
+                        threadedConversations.isIs_mute = false
+                        it.threadedConversationsDao().update( applicationContext,
+                            threadedConversations )
 
-                    invalidateMenu()
-                    runOnUiThread {
-                        configureToolbars()
-                        Toast.makeText(
-                            applicationContext, getString(R.string.conversation_menu_unmuted),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        if (actionMode != null) actionMode!!.finish()
+                        invalidateMenu()
+                        runOnUiThread {
+                            configureToolbars()
+                            Toast.makeText(
+                                applicationContext, getString(R.string.conversation_menu_unmuted),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            if (actionMode != null) actionMode!!.finish()
+                        }
                     }
                 }
                 return true
@@ -245,11 +246,13 @@ class ConversationActivity() : CustomAppCompactActivity() {
                 val fragmentManager = supportFragmentManager
                 val fragmentTransaction = fragmentManager.beginTransaction()
                 val secureRequestModal = ConversationSecureRequestModal() {
-                    E2EEHandler.clear(applicationContext, address)
-                    val publicKey = E2EEHandler.generateKey(applicationContext, address)
-                    val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
-                        E2EEHandler.MagicNumber.REQUEST)
-                    sendDataMessage(txPublicKey)
+                    address?.let {
+                        E2EEHandler.clear(applicationContext, it)
+                        val publicKey = E2EEHandler.generateKey(applicationContext, it)
+                        val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
+                            E2EEHandler.MagicNumber.REQUEST)
+                        sendDataMessage(txPublicKey)
+                    }
                 }
                 fragmentTransaction.add(secureRequestModal, "secure_request")
                 fragmentTransaction.commit()
@@ -274,7 +277,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
                 conversation.date = System.currentTimeMillis().toString()
                 conversation.status = Telephony.Sms.STATUS_PENDING
 
-                val id = conversationsViewModel.insert(applicationContext, conversation)
+                val id = conversationsViewModel?.insert(applicationContext, conversation)
                 SMSDatabaseWrapper.send_data(applicationContext, conversation)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -371,20 +374,18 @@ class ConversationActivity() : CustomAppCompactActivity() {
             ThreadedConversationsHandler.get(applicationContext, address)
                 .thread_id
         if (address == null) {
-            val thread = Thread(object : Runnable {
-                override fun run() {
+            val thread = Thread {
+                databaseConnector?.let {
                     val threadedConversations =
-                        databaseConnector.threadedConversationsDao()[threadId]
+                        it.threadedConversationsDao()[threadId]
                     address = threadedConversations.address
                 }
-            })
+            }
             thread.start()
             thread.join()
         }
-        contactName = Contacts.retrieveContactName(
-            applicationContext,
-            Helpers.getFormatCompleteNumber(address, defaultRegion)
-        )
+        contactName = Contacts.retrieveContactName( applicationContext,
+            Helpers.getFormatCompleteNumber(address, defaultRegion) )
         if (contactName == null) {
             contactName = Helpers.getFormatForTransmission(address, defaultRegion)
         } else isContact = true
@@ -434,7 +435,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
 
         conversationsViewModel = ViewModelProvider(this)
             .get(ConversationsViewModel::class.java)
-        conversationsViewModel.datastore = databaseConnector
+        conversationsViewModel?.datastore = databaseConnector
 
         backSearchBtn!!.setOnClickListener(object : View.OnClickListener {
             override fun onClick(view: View) {
@@ -493,7 +494,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
         }
 
         if (intent.hasExtra(SEARCH_STRING)) {
-            conversationsViewModel.threadId = threadId
+            conversationsViewModel?.threadId = threadId
             findViewById<View>(R.id.conversations_search_results_found).visibility = View.VISIBLE
             val searching = intent.getStringExtra(SEARCH_STRING)
             CoroutineScope(Dispatchers.Default).launch { searchForInput(searching) }
@@ -503,15 +504,17 @@ class ConversationActivity() : CustomAppCompactActivity() {
                     intent.getIntExtra(SEARCH_INDEX, 0)
                 )
             )
-            conversationsViewModel.getSearch( applicationContext, threadId, searchPositions!!.value)
-                .observe(this) { conversationsRecyclerAdapter!!.submitData( lifecycle, it ) }
+            conversationsViewModel?.getSearch( applicationContext, threadId, searchPositions!!.value)
+                ?.observe(this) { conversationsRecyclerAdapter!!.submitData( lifecycle, it ) }
         }
-        conversationsViewModel[threadId].observe( this ) { value ->
+        conversationsViewModel?.get(threadId)?.observe( this ) { value ->
             value?.let {
                 conversationsRecyclerAdapter!!.submitData(lifecycle, value)
 
-                if(E2EEHandler.hasPendingApproval(applicationContext, address))
-                    showSecureRequestModal()
+                address?.let {
+                    if(E2EEHandler.hasPendingApproval(applicationContext, it))
+                        showSecureRequestModal()
+                }
             }
         }
 
@@ -521,12 +524,14 @@ class ConversationActivity() : CustomAppCompactActivity() {
 
             showFailedRetryModal {
                 CoroutineScope(Dispatchers.Default).launch {
-                    conversationsViewModel.deleteItems(applicationContext, list)
+                    conversationsViewModel?.deleteItems(applicationContext, list)
                     try {
-                        val threadedConversations =
-                            databaseConnector.threadedConversationsDao()[threadId]
-                        sendTextMessage( it.text, threadedConversations.subscription_id,
-                            it.message_id )
+                        databaseConnector?.let { db->
+                            val threadedConversations =
+                                db.threadedConversationsDao()[threadId]
+                            sendTextMessage( it.text, threadedConversations.subscription_id,
+                                it.message_id )
+                        }
                     } catch (e: Exception) {
                         Log.e(javaClass.name, "Exception sending failed message", e)
                     }
@@ -541,11 +546,13 @@ class ConversationActivity() : CustomAppCompactActivity() {
             list.add(it)
             showFailedRetryModal {
                 CoroutineScope(Dispatchers.Default).launch {
-                    conversationsViewModel.deleteItems(applicationContext, list)
+                    conversationsViewModel?.deleteItems(applicationContext, list)
                     try {
-                        val threadedConversations =
-                            databaseConnector.threadedConversationsDao()[threadId]
-                        //                                    sendDataMessage(threadedConversations);
+                        databaseConnector?.let { db ->
+                            val threadedConversations = db.threadedConversationsDao()[threadId]
+//                            sendDataMessage(threadedConversations);
+                            TODO("Implement method to resend failed data messages")
+                        }
                     } catch (e: Exception) {
                         Log.e( javaClass.name, "Exception sending failed data message", e)
                     }
@@ -574,19 +581,26 @@ class ConversationActivity() : CustomAppCompactActivity() {
     private fun showSecureRequestModal() {
         val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
-        val secureRequestModal = ConversationsSecureRequestModalSheetFragment(contactName) {
-            val publicKey = E2EEHandler.generateKey(applicationContext, address)
-            val isSelf = E2EEHandler.isSelf(applicationContext, address)
-            if(!isSelf) {
-                val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
-                    E2EEHandler.MagicNumber.ACCEPT)
 
-                // TODO: put a pending intent here that makes save on message delivered
-                sendDataMessage(txPublicKey)
+        val secureRequestModal = contactName?.let {
+            ConversationsSecureRequestModalSheetFragment(it) {
+                address?.let { ad ->
+                    val publicKey = E2EEHandler.generateKey(applicationContext, ad)
+                    val isSelf = E2EEHandler.isSelf(applicationContext, ad)
+                    if(!isSelf) {
+                        val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
+                            E2EEHandler.MagicNumber.ACCEPT)
+
+                        // TODO: put a pending intent here that makes save on message delivered
+                        sendDataMessage(txPublicKey)
+                    }
+                }
             }
         }
-        fragmentTransaction.add(secureRequestModal, "secureRequestModal")
-        fragmentTransaction.commit()
+        secureRequestModal?.let {
+            fragmentTransaction.add(secureRequestModal, "secureRequestModal")
+            fragmentTransaction.commit()
+        }
     }
 
     private fun showFailedRetryModal(runnable: Runnable) {
@@ -612,48 +626,50 @@ class ConversationActivity() : CustomAppCompactActivity() {
             findViewById<AvatarView>(R.id.conversation_contact_card_frame_avatar_initials)
         val imageView = findViewById<ImageView>(R.id.conversation_contact_card_frame_avatar_photo)
         val contactColor = Helpers.getColor(applicationContext, threadId)
-        if (isContact) {
-            avatarView.avatarInitials =
-                if (contactName.contains(" ")) contactName else contactName.substring(0, 1)
-            avatarView.avatarInitialsBackgroundColor = contactColor
-            imageView.visibility = View.INVISIBLE
-        } else {
-            val drawable = getDrawable(R.drawable.baseline_account_circle_24)
-            drawable?.setColorFilter(contactColor, PorterDuff.Mode.SRC_IN)
-            imageView.setImageDrawable(drawable)
-            avatarView.visibility = View.INVISIBLE
+        contactName?.let {
+            if (isContact) {
+                avatarView.avatarInitials =
+                    if (it.contains(" ")) contactName else it.substring(0, 1)
+                avatarView.avatarInitialsBackgroundColor = contactColor
+                imageView.visibility = View.INVISIBLE
+            } else {
+                val drawable = getDrawable(R.drawable.baseline_account_circle_24)
+                drawable?.setColorFilter(contactColor, PorterDuff.Mode.SRC_IN)
+                imageView.setImageDrawable(drawable)
+                avatarView.visibility = View.INVISIBLE
+            }
+
+            materialCardView = findViewById(R.id.conversation_toolbar_contact_card)
+            materialCardView!!.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View) {
+                    Log.d(javaClass.name, "Yes contact clicked")
+                    val fragmentManager = supportFragmentManager
+                    val fragmentTransaction = fragmentManager.beginTransaction()
+
+                    val modalSheetFragment =
+                        ConversationsContactModalFragment( it,
+                            Helpers.getFormatForTransmission(address, defaultRegion))
+                    fragmentTransaction.add(modalSheetFragment, ConversationsContactModalFragment.TAG)
+                    fragmentTransaction.show(modalSheetFragment)
+                    fragmentTransaction.commitNow()
+                }
+            })
         }
 
-        materialCardView = findViewById(R.id.conversation_toolbar_contact_card)
-        materialCardView!!.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
-                Log.d(javaClass.name, "Yes contact clicked")
-                val fragmentManager = supportFragmentManager
-                val fragmentTransaction = fragmentManager.beginTransaction()
-
-                val modalSheetFragment =
-                    ConversationsContactModalFragment(
-                        contactName,
-                        Helpers.getFormatForTransmission(address, defaultRegion)
-                    )
-                fragmentTransaction.add(modalSheetFragment, ConversationsContactModalFragment.TAG)
-                fragmentTransaction.show(modalSheetFragment)
-                fragmentTransaction.commitNow()
+        address?.let {
+            if(E2EEHandler.isSecured(applicationContext, it)) {
+                findViewById<View>(R.id.conversation_secured_text).visibility = View.VISIBLE
+            } else {
+                findViewById<View>(R.id.conversation_secured_text).visibility = View.GONE
             }
-        })
-
-        if(E2EEHandler.isSecured(applicationContext, address)) {
-            findViewById<View>(R.id.conversation_secured_text).visibility = View.VISIBLE
-        } else {
-            findViewById<View>(R.id.conversation_secured_text).visibility = View.GONE
         }
     }
 
     private val abTitle: String
-        get() = if (isContact) contactName else address
+        get() = if (isContact && !contactName.isNullOrBlank()) contactName!! else address!!
 
     private fun emptyDraft() {
-        conversationsViewModel.clearDraft(applicationContext)
+        conversationsViewModel?.clearDraft(applicationContext)
     }
 
     fun getSMSCount(text: String?): String {
@@ -708,7 +724,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
                             threadedConversations.setThread_id(threadId)
                         }
                         try {
-                            sendTextMessage( text, defaultSubscriptionId.value!!, null)
+                            sendTextMessage(text, defaultSubscriptionId.value!!, null)
                         } catch (e: NumberParseException) {
                             e.printStackTrace()
                         } catch (e: InterruptedException) {
@@ -755,7 +771,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
         ) CoroutineScope(Dispatchers.Default).launch {
             try {
                 val conversation =
-                    conversationsViewModel.fetchDraft()
+                    conversationsViewModel?.fetchDraft()
                 if (conversation != null) {
                     runOnUiThread(object : Runnable {
                         override fun run() {
@@ -808,7 +824,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
                 Datastore.getDatastore(applicationContext)
                     .threadedConversationsDao()[threadId]
             threadedConversations.isIs_blocked = true
-            databaseConnector.threadedConversationsDao().update(
+            databaseConnector?.threadedConversationsDao()?.update(
                 applicationContext,
                 threadedConversations
             )
@@ -886,14 +902,14 @@ class ConversationActivity() : CustomAppCompactActivity() {
             conversationList.add(conversation)
         }
         CoroutineScope(Dispatchers.Default).launch {
-            conversationsViewModel.deleteItems(applicationContext, conversationList)
+            conversationsViewModel?.deleteItems(applicationContext, conversationList)
         }
     }
 
     private fun searchForInput(search: String?) {
         conversationsRecyclerAdapter!!.searchString = search
         try {
-            searchPositions!!.postValue(conversationsViewModel.search(search))
+            searchPositions!!.postValue(conversationsViewModel?.search(search))
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
@@ -912,11 +928,11 @@ class ConversationActivity() : CustomAppCompactActivity() {
 
         CoroutineScope(Dispatchers.Default).launch {
             try {
-                val conversation = conversationsViewModel.fetch(messageId)
+                val conversation = conversationsViewModel?.fetch(messageId)
                 runOnUiThread {
                     detailsBuilder.append(getString(R.string.conversation_menu_view_details_type))
                         .append(
-                            if (conversation.text!!.isNotEmpty())
+                            if (conversation?.text!!.isNotEmpty())
                                 getString(R.string.conversation_menu_view_details_type_text)
                             else getString( R.string.conversation_menu_view_details_type_data )
                         )
@@ -1038,11 +1054,13 @@ class ConversationActivity() : CustomAppCompactActivity() {
                 copyItem()
                 if (actionMode != null) actionMode!!.finish()
                 return true
-            } else if (R.id.conversations_menu_share == id) {
+            }
+            else if (R.id.conversations_menu_share == id) {
                 shareItem()
                 if (actionMode != null) actionMode!!.finish()
                 return true
-            } else if (R.id.conversations_menu_delete == id ||
+            }
+            else if (R.id.conversations_menu_delete == id ||
                 R.id.conversations_menu_delete_multiple == id
             ) {
                 try {
@@ -1052,8 +1070,14 @@ class ConversationActivity() : CustomAppCompactActivity() {
                     e.printStackTrace()
                 }
                 return true
-            } else if (R.id.conversations_menu_replay == id) {
+            }
+            else if (R.id.conversations_menu_replay == id) {
                 replay()
+                if (actionMode != null) actionMode!!.finish()
+                return true
+            }
+            else if(R.id.conversations_menu_view_details == id) {
+                viewDetailsPopUp()
                 if (actionMode != null) actionMode!!.finish()
                 return true
             }

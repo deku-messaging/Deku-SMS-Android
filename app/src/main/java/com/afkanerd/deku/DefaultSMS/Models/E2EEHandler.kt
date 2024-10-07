@@ -18,7 +18,8 @@ object E2EEHandler {
 
     enum class MagicNumber(val num: Int) {
         REQUEST(0),
-        ACCEPT(1)
+        ACCEPT(1),
+        MESSAGE(2)
     }
 
     private fun getSharedPreferenceFilename(address: String): String {
@@ -116,10 +117,31 @@ object E2EEHandler {
     fun formatRequestPublicKey(publicKey: ByteArray, magicNumber: MagicNumber) : ByteArray {
         val mn: ByteArray = byteArrayOf(magicNumber.num.toByte())
         val lenPubKey = ByteArray(4)
-
         ByteBuffer.wrap(lenPubKey).order(ByteOrder.LITTLE_ENDIAN).putInt(publicKey.size)
 
         return mn + lenPubKey + publicKey
+    }
+
+    fun formatMessage(message: ByteArray) : ByteArray {
+        val mn: ByteArray = byteArrayOf(MagicNumber.MESSAGE.num.toByte())
+        val lenMsg = ByteArray(4)
+
+        ByteBuffer.wrap(lenMsg).order(ByteOrder.LITTLE_ENDIAN).putInt(message.size)
+        return mn + lenMsg + message
+    }
+
+    fun isValidMessage(data: ByteArray) : Boolean {
+        val magicNumber: Int = data[0].toInt()
+        val lenMsg = ByteArray(4)
+        System.arraycopy(data, 1, lenMsg, 0, 4)
+        val lenMessage = ByteBuffer.wrap(lenMsg).order(ByteOrder.LITTLE_ENDIAN).getInt()
+
+        // TODO: Can validate based on length
+        val pubKey = ByteArray(lenMessage)
+        System.arraycopy(data, 5, pubKey, 0, pubKey.size)
+
+        // TODO: wild guess
+        return magicNumber == MagicNumber.MESSAGE.num && lenMessage % 16 == 0
     }
 
     fun isValidPublicKey(data: ByteArray) : Boolean {
@@ -133,9 +155,11 @@ object E2EEHandler {
         val pubKey = ByteArray(lenPublicKey)
         System.arraycopy(data, 5, pubKey, 0, pubKey.size)
 
-        // TODO: wild guess
+        // TODO: wild guess - but would allow for bad public keys, be more strict for now
+//        return (magicNumber == MagicNumber.REQUEST.num || magicNumber == MagicNumber.ACCEPT.num)
+//                && lenPublicKey % 4 == 0
         return (magicNumber == MagicNumber.REQUEST.num || magicNumber == MagicNumber.ACCEPT.num)
-                && lenPublicKey % 4 == 0
+                && lenPublicKey == 32
     }
 
     private fun deriveSelfSecureRequestKeystoreAlias(address: String) : String{

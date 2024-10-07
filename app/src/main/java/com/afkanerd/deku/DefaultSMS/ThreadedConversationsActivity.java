@@ -56,8 +56,8 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         setSupportActionBar(toolbar);
         ab = getSupportActionBar();
 
-        threadedConversationsViewModel = new ViewModelProvider(this).get(
-                ThreadedConversationsViewModel.class);
+        setThreadedConversationsViewModel(new ViewModelProvider(this)
+                .get(ThreadedConversationsViewModel.class));
 
         _checkSharedContent();
         fragmentManagement();
@@ -80,7 +80,7 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         MenuItem blockedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_blocked);
         MenuItem mutedMenuItem = navigationView.getMenu().findItem(R.id.navigation_view_menu_muted);
 
-        threadedConversationsViewModel.folderMetrics.observe(this, new Observer<List<Integer>>() {
+        getThreadedConversationsViewModel().folderMetrics.observe(this, new Observer<List<Integer>>() {
             @Override
             public void onChanged(List<Integer> integers) {
                 draftMenuItem.setTitle(getString(R.string.conversations_navigation_view_drafts)
@@ -280,14 +280,13 @@ public class ThreadedConversationsActivity extends CustomAppCompactActivity impl
         ThreadingPoolExecutor.executorService.execute(new Runnable() {
             @Override
             public void run() {
-                threadedConversationsViewModel.getCount();
+                getThreadedConversationsViewModel().getCount();
             }
         });
     }
 
-
     @Override
-    public ThreadedConversationsViewModel getThreadedConversationsViewModel() {
-        return threadedConversationsViewModel;
+    public ThreadedConversationsViewModel get_ThreadedConversationsViewModel() {
+        return getThreadedConversationsViewModel();
     }
 }
