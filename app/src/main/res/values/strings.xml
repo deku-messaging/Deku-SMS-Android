@@ -280,5 +280,6 @@
     <string name="compose_new_message_title">New conversation</string>
     <string name="this_message_failed_to_send">This message failed to send.</string>
     <string name="try_again">Try Again</string>
+    <string name="request">Send request</string>
 
 </resources>

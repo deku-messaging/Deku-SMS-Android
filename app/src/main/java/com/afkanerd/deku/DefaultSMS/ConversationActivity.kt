@@ -39,6 +39,7 @@ import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsRecyclerAdapter
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
+import com.afkanerd.deku.DefaultSMS.Modals.ConversationSecureRequestModal
 import com.afkanerd.deku.DefaultSMS.Modals.ConversationsContactModalFragment
 import com.afkanerd.deku.DefaultSMS.Modals.FailedMessageRetryModal
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
@@ -57,6 +58,9 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textview.MaterialTextView
 import com.google.i18n.phonenumbers.NumberParseException
 import io.getstream.avatarview.AvatarView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.security.GeneralSecurityException
 import java.util.Objects
@@ -95,8 +99,6 @@ class ConversationActivity() : CustomAppCompactActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_conversations)
 
-
-        //        test();
         toolbar = findViewById<View>(R.id.conversation_toolbar) as Toolbar
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
@@ -129,7 +131,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
         super.onResume()
         val layout = findViewById<TextInputLayout>(R.id.conversations_send_text_layout)
         layout.requestFocus()
-        ThreadingPoolExecutor.executorService.execute(Runnable {
+        CoroutineScope(Dispatchers.Default).launch {
             try {
                 NativeSMSDB.Incoming.update_read(
                     applicationContext, 1, threadId,
@@ -143,7 +145,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        })
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -156,46 +158,44 @@ class ConversationActivity() : CustomAppCompactActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        ThreadingPoolExecutor.executorService.execute(object : Runnable {
-            override fun run() {
-                val threadedConversations =
-                    databaseConnector.threadedConversationsDao()[threadId]
-                if (threadedConversations != null && threadedConversations.isIs_mute) {
-                    runOnUiThread(object : Runnable {
-                        override fun run() {
-                            menu.findItem(R.id.conversations_menu_unmute).setVisible(true)
-                            menu.findItem(R.id.conversations_menu_mute).setVisible(false)
-                        }
-                    })
+        CoroutineScope(Dispatchers.Default).launch {
+            val threadedConversations =
+                databaseConnector.threadedConversationsDao()[threadId]
+            if (threadedConversations != null && threadedConversations.isIs_mute) {
+                runOnUiThread {
+                    menu.findItem(R.id.conversations_menu_unmute).setVisible(true)
+                    menu.findItem(R.id.conversations_menu_mute).setVisible(false)
                 }
             }
-        })
+        }
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (R.id.conversation_main_menu_call == item.itemId) {
-            ThreadedConversationsHandler.call(applicationContext, address)
-            return true
-        } else if (R.id.conversation_main_menu_search == item.itemId) {
-            val intent = Intent(applicationContext, SearchMessagesThreadsActivity::class.java)
-            intent.putExtra(Conversation.THREAD_ID, threadId)
-            startActivity(intent)
-        } else if (R.id.conversations_menu_block == item.itemId) {
-            blockContact()
-            if (actionMode != null) actionMode!!.finish()
-            return true
-        } else if (R.id.conversations_menu_delete == item.itemId) {
-            ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                override fun run() {
+        when(item.itemId) {
+            R.id.conversation_main_menu_call -> {
+                ThreadedConversationsHandler.call(applicationContext, address)
+                return true
+            }
+            R.id.conversation_main_menu_search -> {
+                val intent = Intent(applicationContext, SearchMessagesThreadsActivity::class.java)
+                intent.putExtra(Conversation.THREAD_ID, threadId)
+                startActivity(intent)
+            }
+            R.id.conversations_menu_block -> {
+                blockContact()
+                if (actionMode != null) actionMode!!.finish()
+                return true
+            }
+            R.id.conversations_menu_delete -> {
+                CoroutineScope(Dispatchers.Default).launch {
                     databaseConnector.threadedConversationsDao()
                         .delete(applicationContext, listOf(threadId))
                 }
-            })
-            finish()
-        } else if (R.id.conversations_menu_mute == item.itemId) {
-            ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                override fun run() {
+                finish()
+            }
+            R.id.conversations_menu_mute -> {
+                CoroutineScope(Dispatchers.Default).launch {
                     conversationsViewModel.mute()
                     val threadedConversations =
                         databaseConnector.threadedConversationsDao()[threadId]
@@ -206,22 +206,19 @@ class ConversationActivity() : CustomAppCompactActivity() {
                         threadedConversations
                     )
                     invalidateMenu()
-                    runOnUiThread(object : Runnable {
-                        override fun run() {
-                            configureToolbars()
-                            Toast.makeText(
-                                applicationContext, getString(R.string.conversation_menu_muted),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            if (actionMode != null) actionMode!!.finish()
-                        }
-                    })
+                    runOnUiThread {
+                        configureToolbars()
+                        Toast.makeText(
+                            applicationContext, getString(R.string.conversation_menu_muted),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        if (actionMode != null) actionMode!!.finish()
+                    }
                 }
-            })
-            return true
-        } else if (R.id.conversations_menu_unmute == item.itemId) {
-            ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                override fun run() {
+                return true
+            }
+            R.id.conversations_menu_unmute -> {
+                CoroutineScope(Dispatchers.Default).launch {
                     conversationsViewModel.unMute()
                     val threadedConversations =
                         databaseConnector.threadedConversationsDao()[threadId]
@@ -232,19 +229,24 @@ class ConversationActivity() : CustomAppCompactActivity() {
                     )
 
                     invalidateMenu()
-                    runOnUiThread(object : Runnable {
-                        override fun run() {
-                            configureToolbars()
-                            Toast.makeText(
-                                applicationContext, getString(R.string.conversation_menu_unmuted),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            if (actionMode != null) actionMode!!.finish()
-                        }
-                    })
+                    runOnUiThread {
+                        configureToolbars()
+                        Toast.makeText(
+                            applicationContext, getString(R.string.conversation_menu_unmuted),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        if (actionMode != null) actionMode!!.finish()
+                    }
                 }
-            })
-            return true
+                return true
+            }
+            R.id.conversation_main_menu_encrypt_lock -> {
+                val fragmentManager = supportFragmentManager
+                val fragmentTransaction = fragmentManager.beginTransaction()
+                val secureRequestModal = ConversationSecureRequestModal()
+                fragmentTransaction.add(secureRequestModal, "secure_request")
+                fragmentTransaction.commit()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -285,7 +287,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == SEND_SMS_PERMISSION_REQUEST_CODE) {
-            if (grantResults.size > 0) {
+            if (grantResults.isNotEmpty()) {
                 Toast.makeText(this, "Let's do this!!", Toast.LENGTH_LONG).show()
             } else {
                 Toast.makeText(this, "Permission denied!", Toast.LENGTH_LONG).show()
@@ -465,7 +467,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
             conversationsViewModel.threadId = threadId
             findViewById<View>(R.id.conversations_search_results_found).visibility = View.VISIBLE
             val searching = intent.getStringExtra(SEARCH_STRING)
-            ThreadingPoolExecutor.executorService.execute { searchForInput(searching) }
+            CoroutineScope(Dispatchers.Default).launch { searchForInput(searching) }
             configureSearchBox()
             searchPositions!!.value = ArrayList(
                 listOf(
@@ -486,18 +488,16 @@ class ConversationActivity() : CustomAppCompactActivity() {
             list.add(it)
 
             showFailedRetryModal {
-                ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                    override fun run() {
-                        conversationsViewModel.deleteItems(applicationContext, list)
-                        try {
-                            val threadedConversations =
-                                databaseConnector.threadedConversationsDao()[threadId]
-                            sendTextMessage( it, threadedConversations, it.message_id )
-                        } catch (e: Exception) {
-                            Log.e(javaClass.name, "Exception sending failed message", e)
-                        }
+                CoroutineScope(Dispatchers.Default).launch {
+                    conversationsViewModel.deleteItems(applicationContext, list)
+                    try {
+                        val threadedConversations =
+                            databaseConnector.threadedConversationsDao()[threadId]
+                        sendTextMessage( it, threadedConversations, it.message_id )
+                    } catch (e: Exception) {
+                        Log.e(javaClass.name, "Exception sending failed message", e)
                     }
-                })
+                }
             }
         }
 
@@ -507,21 +507,16 @@ class ConversationActivity() : CustomAppCompactActivity() {
             val list: MutableList<Conversation> = ArrayList()
             list.add(it)
             showFailedRetryModal {
-                ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                    override fun run() {
-                        conversationsViewModel.deleteItems(applicationContext, list)
-                        try {
-                            val threadedConversations =
-                                databaseConnector.threadedConversationsDao()[threadId]
-                            //                                    sendDataMessage(threadedConversations);
-                        } catch (e: Exception) {
-                            Log.e(
-                                javaClass.name,
-                                "Exception sending failed data message", e
-                            )
-                        }
+                CoroutineScope(Dispatchers.Default).launch {
+                    conversationsViewModel.deleteItems(applicationContext, list)
+                    try {
+                        val threadedConversations =
+                            databaseConnector.threadedConversationsDao()[threadId]
+                        //                                    sendDataMessage(threadedConversations);
+                    } catch (e: Exception) {
+                        Log.e( javaClass.name, "Exception sending failed data message", e)
                     }
-                })
+                }
             }
         }
 
@@ -636,45 +631,41 @@ class ConversationActivity() : CustomAppCompactActivity() {
             }
         }
 
-        smsTextView!!.setOnTouchListener(object : OnTouchListener {
-            override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
-                view.parent.requestDisallowInterceptTouchEvent(true)
-                if ((motionEvent.action and MotionEvent.ACTION_UP) != 0 &&
-                    (motionEvent.actionMasked and MotionEvent.ACTION_UP) != 0
-                ) {
-                    view.parent.requestDisallowInterceptTouchEvent(false)
-                }
-                return false
+        smsTextView!!.setOnTouchListener { view, motionEvent ->
+            view.parent.requestDisallowInterceptTouchEvent(true)
+            if ((motionEvent.action and MotionEvent.ACTION_UP) != 0 &&
+                (motionEvent.actionMasked and MotionEvent.ACTION_UP) != 0
+            ) {
+                view.parent.requestDisallowInterceptTouchEvent(false)
             }
-        })
+            false
+        }
 
         findViewById<View>(R.id.conversation_send_btn).setOnClickListener {
             try {
                 if (smsTextView!!.text != null && defaultSubscriptionId.value != null) {
                     val text = smsTextView!!.text.toString()
-                    ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                        override fun run() {
-                            var threadedConversations =
-                                Datastore.getDatastore(applicationContext)
-                                    .threadedConversationsDao()[threadId]
-                            if (threadedConversations == null) {
-                                threadedConversations = ThreadedConversations()
-                                threadedConversations.setThread_id(threadId)
-                            }
-                            try {
-                                sendTextMessage(
-                                    text, defaultSubscriptionId.value!!,
-                                    threadedConversations,
-                                    System.currentTimeMillis().toString(),
-                                    null
-                                )
-                            } catch (e: NumberParseException) {
-                                e.printStackTrace()
-                            } catch (e: InterruptedException) {
-                                e.printStackTrace()
-                            }
+                    CoroutineScope(Dispatchers.Default).launch {
+                        var threadedConversations =
+                            Datastore.getDatastore(applicationContext)
+                                .threadedConversationsDao()[threadId]
+                        if (threadedConversations == null) {
+                            threadedConversations = ThreadedConversations()
+                            threadedConversations.setThread_id(threadId)
                         }
-                    })
+                        try {
+                            sendTextMessage(
+                                text, defaultSubscriptionId.value!!,
+                                threadedConversations,
+                                System.currentTimeMillis().toString(),
+                                null
+                            )
+                        } catch (e: NumberParseException) {
+                            e.printStackTrace()
+                        } catch (e: InterruptedException) {
+                            e.printStackTrace()
+                        }
+                    }
                     smsTextView!!.setText(null)
                 }
             } catch (e: Exception) {
@@ -712,23 +703,21 @@ class ConversationActivity() : CustomAppCompactActivity() {
     private fun checkDrafts() {
         if (smsTextView!!.text == null || smsTextView!!.text.toString()
                 .isEmpty()
-        ) ThreadingPoolExecutor.executorService.execute(object : Runnable {
-            override fun run() {
-                try {
-                    val conversation =
-                        conversationsViewModel.fetchDraft()
-                    if (conversation != null) {
-                        runOnUiThread(object : Runnable {
-                            override fun run() {
-                                smsTextView!!.setText(conversation.text)
-                            }
-                        })
-                    }
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
+        ) CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val conversation =
+                    conversationsViewModel.fetchDraft()
+                if (conversation != null) {
+                    runOnUiThread(object : Runnable {
+                        override fun run() {
+                            smsTextView!!.setText(conversation.text)
+                        }
+                    })
                 }
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
             }
-        })
+        }
     }
 
     private fun configureLayoutForMessageType() {
@@ -765,18 +754,16 @@ class ConversationActivity() : CustomAppCompactActivity() {
     }
 
     private fun blockContact() {
-        ThreadingPoolExecutor.executorService.execute(object : Runnable {
-            override fun run() {
-                val threadedConversations =
-                    Datastore.getDatastore(applicationContext)
-                        .threadedConversationsDao()[threadId]
-                threadedConversations.isIs_blocked = true
-                databaseConnector.threadedConversationsDao().update(
-                    applicationContext,
-                    threadedConversations
-                )
-            }
-        })
+        CoroutineScope(Dispatchers.Default).launch {
+            val threadedConversations =
+                Datastore.getDatastore(applicationContext)
+                    .threadedConversationsDao()[threadId]
+            threadedConversations.isIs_blocked = true
+            databaseConnector.threadedConversationsDao().update(
+                applicationContext,
+                threadedConversations
+            )
+        }
 
         val contentValues = ContentValues()
         contentValues.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, address)
@@ -834,11 +821,9 @@ class ConversationActivity() : CustomAppCompactActivity() {
             conversation.id = viewHandler.id
             conversation.message_id = viewHandler.message_id
 
-            ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                override fun run() {
-                    GatewayServer.route(applicationContext, conversation)
-                }
-            })
+            CoroutineScope(Dispatchers.Default).launch {
+                GatewayServer.route(applicationContext, conversation)
+            }
         }
     }
 
@@ -851,11 +836,9 @@ class ConversationActivity() : CustomAppCompactActivity() {
             conversation.message_id = viewHandler.message_id
             conversationList.add(conversation)
         }
-        ThreadingPoolExecutor.executorService.execute(object : Runnable {
-            override fun run() {
-                conversationsViewModel.deleteItems(applicationContext, conversationList)
-            }
-        })
+        CoroutineScope(Dispatchers.Default).launch {
+            conversationsViewModel.deleteItems(applicationContext, conversationList)
+        }
     }
 
     private fun searchForInput(search: String?) {
@@ -878,53 +861,43 @@ class ConversationActivity() : CustomAppCompactActivity() {
             .setTitle(getString(R.string.conversation_menu_view_details_title))
             .setMessage(detailsBuilder)
 
-        ThreadingPoolExecutor.executorService.execute(object : Runnable {
-            override fun run() {
-                try {
-                    val conversation = conversationsViewModel.fetch(messageId)
-                    runOnUiThread(object : Runnable {
-                        override fun run() {
-                            detailsBuilder.append(getString(R.string.conversation_menu_view_details_type))
-                                .append(
-                                    if (!conversation.text!!.isEmpty()) getString(R.string.conversation_menu_view_details_type_text) else getString(
-                                        R.string.conversation_menu_view_details_type_data
-                                    )
-                                )
-                                .append("\n")
-                                .append(
-                                    if (conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) getString(
-                                        R.string.conversation_menu_view_details_from
-                                    ) else getString(R.string.conversation_menu_view_details_to)
-                                )
-                                .append(conversation.address)
-                                .append("\n")
-                                .append(getString(R.string.conversation_menu_view_details_sent))
-                                .append(
-                                    if (conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) Helpers.formatLongDate(
-                                        conversation.date_sent!!.toLong()
-                                    ) else Helpers.formatLongDate(
-                                        conversation.date!!.toLong()
-                                    )
-                                )
-                            if (conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
-                                detailsBuilder.append("\n")
-                                    .append(getString(R.string.conversation_menu_view_details_received))
-                                    .append(
-                                        Helpers.formatLongDate(
-                                            conversation.date!!.toLong()
-                                        )
-                                    )
-                            }
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val conversation = conversationsViewModel.fetch(messageId)
+                runOnUiThread {
+                    detailsBuilder.append(getString(R.string.conversation_menu_view_details_type))
+                        .append(
+                            if (conversation.text!!.isNotEmpty())
+                                getString(R.string.conversation_menu_view_details_type_text)
+                            else getString( R.string.conversation_menu_view_details_type_data )
+                        )
+                        .append("\n")
+                        .append(
+                            if (conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX)
+                                getString( R.string.conversation_menu_view_details_from )
+                            else getString(R.string.conversation_menu_view_details_to)
+                        )
+                        .append(conversation.address)
+                        .append("\n")
+                        .append(getString(R.string.conversation_menu_view_details_sent))
+                        .append(
+                            if (conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX)
+                                Helpers.formatLongDate( conversation.date_sent!!.toLong() )
+                            else Helpers.formatLongDate( conversation.date!!.toLong() )
+                        )
+                    if (conversation.type == Telephony.TextBasedSmsColumns.MESSAGE_TYPE_INBOX) {
+                        detailsBuilder.append("\n")
+                            .append(getString(R.string.conversation_menu_view_details_received))
+                            .append(Helpers.formatLongDate(conversation.date!!.toLong()))
+                    }
 
-                            val dialog = builder.create()
-                            dialog.show()
-                        }
-                    })
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
+                    val dialog = builder.create()
+                    dialog.show()
                 }
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
             }
-        })
+        }
     }
 
     private val searchActionModeCallback: ActionMode.Callback = object : ActionMode.Callback {
@@ -962,11 +935,9 @@ class ConversationActivity() : CustomAppCompactActivity() {
                     if (editable != null && editable.length > 1) {
                         conversationsRecyclerAdapter!!.searchString = editable.toString()
                         conversationsRecyclerAdapter!!.resetSearchItems(searchPositions!!.value)
-                        ThreadingPoolExecutor.executorService.execute(object : Runnable {
-                            override fun run() {
-                                searchForInput(editable.toString())
-                            }
-                        })
+                        CoroutineScope(Dispatchers.Default).launch{
+                            searchForInput(editable.toString())
+                        }
                     } else {
                         conversationsRecyclerAdapter!!.searchString = null
                         if (actionMode != null) actionMode!!.finish()
@@ -1042,7 +1013,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
 
         // Called when the user exits the action mode.
         override fun onDestroyActionMode(mode: ActionMode) {
-            Objects.requireNonNull(supportActionBar)?.show()
+            supportActionBar?.show()
             actionMode = null
             conversationsRecyclerAdapter!!.resetAllSelectedItems()
         }

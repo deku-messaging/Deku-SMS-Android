@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:icon="@drawable/baseline_enhanced_encryption_24"
+        android:icon="@drawable/round_lock_24"
         android:id="@+id/conversation_main_menu_encrypt_lock"
         app:showAsAction="never"
         android:title="@string/conversations_menu_secure_title"/>
