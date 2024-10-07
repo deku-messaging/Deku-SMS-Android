@@ -245,7 +245,8 @@ class ConversationActivity() : CustomAppCompactActivity() {
                 val fragmentManager = supportFragmentManager
                 val fragmentTransaction = fragmentManager.beginTransaction()
                 val secureRequestModal = ConversationSecureRequestModal() {
-                    val publicKey = E2EEHandler.generateKey(applicationContext, address)
+                    val publicKey = E2EEHandler.generateKey(applicationContext, address,
+                        E2EEHandler.MagicNumber.REQUEST)
                     val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey)
                     sendDataMessage(txPublicKey)
                 }

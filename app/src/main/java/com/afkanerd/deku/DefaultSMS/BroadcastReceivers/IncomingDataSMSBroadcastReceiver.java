@@ -10,6 +10,7 @@ import android.util.Base64;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.BuildConfig;
 import com.afkanerd.deku.DefaultSMS.Models.NotificationsHandler;
@@ -53,8 +54,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     final String date = regIncomingOutput[NativeSMSDB.DATE];
                     int subscriptionId = Integer.parseInt(strSubscriptionId);
 
-//                    boolean isValidKey = E2EEHandler.isValidDefaultPublicKey( Base64.decode(data, Base64.DEFAULT));
-                    boolean isValidKey = false;
+                    byte[] byteData = Base64.decode(data, Base64.DEFAULT);
+                    boolean isValidKey = E2EEHandler.INSTANCE.isValidPublicKey(byteData);
 
                     Conversation conversation = new Conversation();
                     conversation.setData(data);
@@ -75,7 +76,7 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                             boolean isSecured = false;
                             if(isValidKey) {
                                 try {
-                                    boolean[] res = processForEncryptionKey(context, conversation);
+                                    boolean[] res = processAndGetFlags(context, byteData, address);
                                     isSelf = res[0];
                                     isSecured = res[1];
                                 } catch (Exception e) {
@@ -110,27 +111,20 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    /**
-     *
-     * @param context
-     * @param conversation
-     * @return true if isSelf and false otherwise
-     * @throws Exception
-     */
-    boolean[] processForEncryptionKey(Context context, Conversation conversation) {
-//        byte[] data = Base64.decode(conversation.getData(), Base64.DEFAULT);
-//        final String keystoreAlias = E2EEHandler.deriveKeystoreAlias(context, conversation.getAddress(), 0);
-//        byte[] extractedTransmissionKey = E2EEHandler.extractTransmissionKey(data);
-//
-//        E2EEHandler.insertNewAgreementKeyDefault(context, extractedTransmissionKey, keystoreAlias);
-//        final boolean isSelf = E2EEHandler.isSelf(context, keystoreAlias);
-////        Log.d(getClass().getName(), "Is self: " + isSelf);
-////        Log.d(getClass().getName(), "Is secured: " + E2EEHandler
-////                .canCommunicateSecurely(context, isSelf ?
-////                        E2EEHandler.buildForSelf(keystoreAlias) : keystoreAlias, true));
-//        return new boolean[]{isSelf,
-//                E2EEHandler.canCommunicateSecurely(context, isSelf ?
-//                        E2EEHandler.buildForSelf(keystoreAlias) : keystoreAlias, true)};
-        return new boolean[]{false, false};
+    private boolean[] processAndGetFlags(Context context, byte[] data, String address) {
+        /**
+         * 0 - is Self
+         * 1 - is conversation now encrypted (either request post agree or receiving agree)
+         */
+        boolean isSelf = false;
+
+        switch (E2EEHandler.INSTANCE.getRequestType(data)) {
+            case REQUEST:
+                isSelf = E2EEHandler.INSTANCE.hasRequest(context, address);
+            case ACCEPT:
+                E2EEHandler.INSTANCE.secureStorePeerPublicKey(context, address, data);
+                break;
+        }
+        return new boolean[]{isSelf, false};
     }
 }

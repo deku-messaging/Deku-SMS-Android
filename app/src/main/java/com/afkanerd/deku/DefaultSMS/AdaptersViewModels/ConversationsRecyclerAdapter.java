@@ -140,7 +140,6 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
 
     @Override
     public void onBindViewHolder(@NonNull ConversationTemplateViewHandler holder, int position) {
-//        Log.d(getClass().getName(), "Binding: " + holder.getAbsoluteAdapterPosition());
         final Conversation conversation = getItem(position);
         if(conversation == null) {
             return;
