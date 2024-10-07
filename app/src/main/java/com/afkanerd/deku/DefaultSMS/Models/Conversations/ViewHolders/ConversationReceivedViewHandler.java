@@ -26,6 +26,10 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.ExecutorService;
 
 public class ConversationReceivedViewHandler extends ConversationTemplateViewHandler {
+
+    public final static int TYPE_KEY = 1;
+    public final static int TYPE_CONVERSATION = 0;
+
     TextView receivedMessage;
     public TextView date;
     TextView timestamp;
@@ -34,17 +38,22 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
     LinearLayoutCompat.LayoutParams layoutParams;
 
+    public int type = TYPE_CONVERSATION;
 
-    public ConversationReceivedViewHandler(@NonNull View itemView) {
+    public ConversationReceivedViewHandler(@NonNull View itemView, int type) {
         super(itemView);
-        receivedMessage = itemView.findViewById(R.id.message_received_text);
-        date = itemView.findViewById(R.id.message_thread_received_date_text);
-        timestamp = itemView.findViewById(R.id.received_message_date_segment);
-        linearLayoutCompat = itemView.findViewById(R.id.conversation_received_linear_layout);
+        this.type = type;
 
-        layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
-        layoutParams.bottomMargin = Helpers.dpToPixel(16);
-        linearLayoutCompat.setLayoutParams(layoutParams);
+        if(type == TYPE_CONVERSATION) {
+            receivedMessage = itemView.findViewById(R.id.message_received_text);
+            date = itemView.findViewById(R.id.message_thread_received_date_text);
+            timestamp = itemView.findViewById(R.id.received_message_date_segment);
+            linearLayoutCompat = itemView.findViewById(R.id.conversation_received_linear_layout);
+
+            layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
+            layoutParams.bottomMargin = Helpers.dpToPixel(16);
+            linearLayoutCompat.setLayoutParams(layoutParams);
+        }
     }
 
     @Override
@@ -136,7 +145,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
     public static class TimestampConversationReceivedViewHandler extends ConversationReceivedViewHandler {
         public TimestampConversationReceivedViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_CONVERSATION);
             timestamp.setVisibility(View.VISIBLE);
         }
     }
@@ -144,15 +153,15 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
     public static class KeyReceivedViewHandler extends ConversationReceivedViewHandler {
 
         public KeyReceivedViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_KEY);
         }
 
         @Override
         public void bind(Conversation conversation, String searchString) {
-            super.bind(conversation, searchString);
-            receivedMessage.setTextAppearance(R.style.key_request_initiated);
-            receivedMessage.setText(
-                    itemView.getContext().getString(R.string.conversation_threads_secured_content));
+//            super.bind(conversation, searchString);
+//            receivedMessage.setTextAppearance(R.style.key_request_initiated);
+//            receivedMessage.setText(
+//                    itemView.getContext().getString(R.string.conversation_threads_secured_content));
         }
     }
     public static class TimestampKeyReceivedViewHandler extends KeyReceivedViewHandler {
@@ -195,7 +204,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
     public static class ConversationReceivedStartViewHandler extends ConversationReceivedViewHandler {
         public ConversationReceivedStartViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_CONVERSATION);
 
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
             linearLayoutCompat.setLayoutParams(layoutParams);
@@ -222,7 +231,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
     }
     public static class ConversationReceivedEndViewHandler extends ConversationReceivedViewHandler {
         public ConversationReceivedEndViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_CONVERSATION);
             layoutParams.bottomMargin = Helpers.dpToPixel(16);
             linearLayoutCompat.setLayoutParams(layoutParams);
 
@@ -249,7 +258,7 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
 
     public static class ConversationReceivedMiddleViewHandler extends ConversationReceivedViewHandler {
         public ConversationReceivedMiddleViewHandler(@NonNull View itemView) {
-            super(itemView);
+            super(itemView, TYPE_CONVERSATION);
             layoutParams.bottomMargin = Helpers.dpToPixel(1);
             linearLayoutCompat.setLayoutParams(layoutParams);
 

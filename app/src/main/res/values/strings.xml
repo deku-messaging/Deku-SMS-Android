@@ -282,5 +282,6 @@
     <string name="try_again">Try Again</string>
     <string name="request">Send request</string>
     <string name="secure_communication_requested">-- Secure communication request sent --</string>
+    <string name="secure_communications_request_received">-- Secure communications request received --</string>
 
 </resources>

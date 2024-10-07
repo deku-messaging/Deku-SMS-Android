@@ -74,7 +74,9 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 break;
             case MESSAGE_TYPE_INBOX :
                 returnView = new ConversationReceivedViewHandler(
-                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
+                        inflater.inflate(R.layout.layout_conversations_received, parent,
+                                false),
+                        ConversationReceivedViewHandler.TYPE_CONVERSATION);
                 break;
             case TIMESTAMP_MESSAGE_TYPE_OUTBOX:
                 returnView = new ConversationSentViewHandler.TimestampConversationSentViewHandler(
@@ -90,11 +92,11 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
                 break;
             case MESSAGE_KEY_INBOX:
                 returnView = new ConversationReceivedViewHandler.KeyReceivedViewHandler(
-                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
+                        inflater.inflate(R.layout.layout_secure_received_banner, parent, false));
                 break;
             case TIMESTAMP_KEY_TYPE_INBOX:
                 returnView = new ConversationReceivedViewHandler.TimestampKeyReceivedViewHandler(
-                        inflater.inflate(R.layout.layout_conversations_received, parent, false));
+                        inflater.inflate(R.layout.layout_secure_received_banner, parent, false));
                 break;
             case TIMESTAMP_MESSAGE_START_TYPE_INBOX:
                 returnView = new ConversationReceivedViewHandler.TimestampKeyReceivedStartViewHandler(
@@ -148,15 +150,17 @@ public class ConversationsRecyclerAdapter extends PagingDataAdapter<Conversation
         if(holder instanceof ConversationReceivedViewHandler) {
             ConversationReceivedViewHandler conversationReceivedViewHandler =
                     (ConversationReceivedViewHandler) holder;
-            conversationReceivedViewHandler.bind(conversation, searchString);
-            if(holder.getAbsoluteAdapterPosition() == 0) {
-                if(lastReceivedItem != null)
-                    lastReceivedItem.hideDetails();
-                lastReceivedItem = conversationReceivedViewHandler;
-                lastReceivedItem.date.setVisibility(View.VISIBLE);
+            if(conversationReceivedViewHandler.type == ConversationReceivedViewHandler.TYPE_CONVERSATION) {
+                if(holder.getAbsoluteAdapterPosition() == 0) {
+                    if(lastReceivedItem != null)
+                        lastReceivedItem.hideDetails();
+                    lastReceivedItem = conversationReceivedViewHandler;
+                    lastReceivedItem.date.setVisibility(View.VISIBLE);
+                }
+                setOnLongClickListeners(holder);
+                setOnClickListeners(holder, conversation);
             }
-            setOnLongClickListeners(holder);
-            setOnClickListeners(holder, conversation);
+            conversationReceivedViewHandler.bind(conversation, searchString);
         }
 
         else if(holder instanceof ConversationSentViewHandler){
