@@ -117,7 +117,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
         }
         else {
             sentMessageStatus.setTextAppearance(R.style.conversation_default);
-            this.date.setTextAppearance(R.style.Theme_main);
+            this.date.setTextAppearance(R.style.conversation_default);
             this.messageFailedIcon.setVisibility(View.GONE);
         }
 

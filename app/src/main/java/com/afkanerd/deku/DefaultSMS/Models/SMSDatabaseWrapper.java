@@ -25,8 +25,6 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
         String[] nativeOutputs = NativeSMSDB.Outgoing._send_text(context, conversation.getMessage_id(),
                 transmissionAddress, conversation.getText(),
                 conversation.getSubscription_id(), bundle);
-
-//        conversation.setThread_id(nativeOutputs[NativeSMSDB.THREAD_ID]);
     }
 
     public static void send_text(Context context, Conversation conversation, String text, Bundle bundle) throws Exception {
@@ -34,15 +32,12 @@ public class SMSDatabaseWrapper extends NativeSMSDB.Outgoing {
                 Helpers.getUserCountry(context));
         String[] nativeOutputs = NativeSMSDB.Outgoing._send_text(context, conversation.getMessage_id(),
                 transmissionAddress, text, conversation.getSubscription_id(), bundle);
-
     }
 
     public static void saveDraft(Context context, Conversation conversation) {
         Log.d(SMSDatabaseWrapper.class.getName(), "Saving draft: " + conversation.getText());
         String[] outputs = NativeSMSDB.Outgoing.register_drafts(context, conversation.getMessage_id(),
                 conversation.getAddress(), conversation.getText(), conversation.getSubscription_id());
-
-//        return outputs[NativeSMSDB.THREAD_ID];
     }
 
     public static void deleteDraft(Context context, String threadId) {

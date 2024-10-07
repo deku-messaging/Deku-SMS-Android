@@ -525,7 +525,8 @@ class ConversationActivity() : CustomAppCompactActivity() {
                     try {
                         val threadedConversations =
                             databaseConnector.threadedConversationsDao()[threadId]
-                        sendTextMessage( it, threadedConversations, it.message_id )
+                        sendTextMessage( it.text, threadedConversations.subscription_id,
+                            it.message_id )
                     } catch (e: Exception) {
                         Log.e(javaClass.name, "Exception sending failed message", e)
                     }
@@ -707,12 +708,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
                             threadedConversations.setThread_id(threadId)
                         }
                         try {
-                            sendTextMessage(
-                                text, defaultSubscriptionId.value!!,
-                                threadedConversations,
-                                System.currentTimeMillis().toString(),
-                                null
-                            )
+                            sendTextMessage( text, defaultSubscriptionId.value!!, null)
                         } catch (e: NumberParseException) {
                             e.printStackTrace()
                         } catch (e: InterruptedException) {
