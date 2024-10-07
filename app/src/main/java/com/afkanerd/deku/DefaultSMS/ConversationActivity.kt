@@ -2,7 +2,7 @@ package com.afkanerd.deku.DefaultSMS
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import  android.content.ComponentName
+import android.content.ComponentName
 import android.content.ContentValues
 import android.content.DialogInterface
 import android.content.Intent
@@ -14,12 +14,12 @@ import android.telecom.TelecomManager
 import android.telephony.SmsManager
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Base64
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.OnTouchListener
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -32,7 +32,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.afkanerd.deku.Datastore
@@ -47,8 +46,10 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversationsHandler
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ViewHolders.ConversationTemplateViewHandler
+import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
+import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
 import com.google.android.material.card.MaterialCardView
@@ -243,12 +244,40 @@ class ConversationActivity() : CustomAppCompactActivity() {
             R.id.conversation_main_menu_encrypt_lock -> {
                 val fragmentManager = supportFragmentManager
                 val fragmentTransaction = fragmentManager.beginTransaction()
-                val secureRequestModal = ConversationSecureRequestModal()
+                val secureRequestModal = ConversationSecureRequestModal() {
+                    val publicKey = E2EEHandler.generateKey(applicationContext, address)
+                    val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey)
+                    sendDataMessage(txPublicKey)
+                }
                 fragmentTransaction.add(secureRequestModal, "secure_request")
                 fragmentTransaction.commit()
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun sendDataMessage(data: ByteArray) {
+        val subscriptionId = SIMHandler.getDefaultSimSubscription(applicationContext)
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val messageId = System.currentTimeMillis().toString()
+                val conversation = Conversation()
+                conversation.thread_id = threadId
+                conversation.address = address
+                conversation.isIs_key = true
+                conversation.message_id = messageId
+                conversation.data = Base64.encodeToString(data, Base64.DEFAULT)
+                conversation.subscription_id = subscriptionId
+                conversation.type = Telephony.Sms.MESSAGE_TYPE_OUTBOX
+                conversation.date = System.currentTimeMillis().toString()
+                conversation.status = Telephony.Sms.STATUS_PENDING
+
+                val id = conversationsViewModel.insert(applicationContext, conversation)
+                SMSDatabaseWrapper.send_data(applicationContext, conversation)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
@@ -313,9 +342,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
          * ==> If not ThreadId do not populate, everything else should take the pleasure of finding
          * and sending a threadID to this intent
          */
-        defaultRegion = Helpers.getUserCountry(
-            applicationContext
-        )
+        defaultRegion = Helpers.getUserCountry( applicationContext )
         if (intent.action != null && ((intent.action == Intent.ACTION_SENDTO) || (intent.action == Intent.ACTION_SEND))) {
             val sendToString = intent.dataString
             if (sendToString != null && (sendToString.contains("smsto:") ||
@@ -543,7 +570,6 @@ class ConversationActivity() : CustomAppCompactActivity() {
         val fragmentTransaction = fragmentManager.beginTransaction()
         val failedMessageRetryModal = FailedMessageRetryModal(runnable)
         fragmentTransaction.add(failedMessageRetryModal, "failed_message_modal")
-        //        fragmentTransaction.show(failedMessageRetryModal);
         fragmentTransaction.commit()
     }
 
