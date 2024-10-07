@@ -9,10 +9,10 @@ import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations
 import com.afkanerd.deku.DefaultSMS.R
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.button.MaterialButton
 
-class ConversationsSecureRequestModalSheetFragment(
-        var threadedConversations: ThreadedConversations,
-        val contactName: String)
+class ConversationsSecureRequestModalSheetFragment(val contactName: String,
+                                                   val acceptRunnable: Runnable)
     : BottomSheetDialogFragment(R.layout.fragment_modalsheet_secure_request_layout) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -28,6 +28,11 @@ class ConversationsSecureRequestModalSheetFragment(
 
         val requestAddress = view.findViewById<TextView>(R.id.conversation_secure_request_modal_text)
         requestAddress.text = requestAddress.text.replace(Regex("John"), contactName)
+
+        view.findViewById<MaterialButton>(R.id.conversation_secure_request_agree_btn).setOnClickListener {
+            acceptRunnable.run()
+            dismiss()
+        }
     }
 
     companion object {

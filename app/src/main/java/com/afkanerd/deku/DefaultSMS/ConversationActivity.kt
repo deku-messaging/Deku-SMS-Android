@@ -40,6 +40,7 @@ import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Commons.Helpers
 import com.afkanerd.deku.DefaultSMS.Modals.ConversationSecureRequestModal
 import com.afkanerd.deku.DefaultSMS.Modals.ConversationsContactModalFragment
+import com.afkanerd.deku.DefaultSMS.Modals.ConversationsSecureRequestModalSheetFragment
 import com.afkanerd.deku.DefaultSMS.Modals.FailedMessageRetryModal
 import com.afkanerd.deku.DefaultSMS.Models.Contacts
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
@@ -50,7 +51,6 @@ import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
-import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.snackbar.Snackbar
@@ -245,9 +245,10 @@ class ConversationActivity() : CustomAppCompactActivity() {
                 val fragmentManager = supportFragmentManager
                 val fragmentTransaction = fragmentManager.beginTransaction()
                 val secureRequestModal = ConversationSecureRequestModal() {
-                    val publicKey = E2EEHandler.generateKey(applicationContext, address,
+                    E2EEHandler.clear(applicationContext, address)
+                    val publicKey = E2EEHandler.generateKey(applicationContext, address)
+                    val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
                         E2EEHandler.MagicNumber.REQUEST)
-                    val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey)
                     sendDataMessage(txPublicKey)
                 }
                 fragmentTransaction.add(secureRequestModal, "secure_request")
@@ -508,6 +509,9 @@ class ConversationActivity() : CustomAppCompactActivity() {
         conversationsViewModel[threadId].observe( this ) { value ->
             value?.let {
                 conversationsRecyclerAdapter!!.submitData(lifecycle, value)
+
+                if(E2EEHandler.hasPendingApproval(applicationContext, address))
+                    showSecureRequestModal()
             }
         }
 
@@ -564,6 +568,26 @@ class ConversationActivity() : CustomAppCompactActivity() {
                     if (actionMode != null) actionMode!!.title = selectedItems.size.toString()
                 }
             })
+    }
+
+    private fun showSecureRequestModal() {
+        val fragmentManager = supportFragmentManager
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        val secureRequestModal = ConversationsSecureRequestModalSheetFragment(contactName) {
+            val publicKey = E2EEHandler.generateKey(applicationContext, address)
+            val isSelf = E2EEHandler.isSelf(applicationContext, address)
+            if(!isSelf) {
+                val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
+                    E2EEHandler.MagicNumber.ACCEPT)
+
+                // TODO: put a pending intent here that makes save on message delivered
+                sendDataMessage(txPublicKey)
+            }
+            else
+                Toast.makeText(applicationContext, "Wont send cus self", Toast.LENGTH_SHORT).show()
+        }
+        fragmentTransaction.add(secureRequestModal, "secureRequestModal")
+        fragmentTransaction.commit()
     }
 
     private fun showFailedRetryModal(runnable: Runnable) {

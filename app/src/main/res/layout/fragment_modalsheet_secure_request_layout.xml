@@ -35,7 +35,7 @@
 
         <Button
             android:id="@+id/conversation_secure_request_agree_btn"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

@@ -124,16 +124,11 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
         if(magicNumber != null) {
             switch(magicNumber) {
                 case REQUEST:
-                    isSelf = E2EEHandler.INSTANCE.hasRequest(context, address);
-                    if(!isSelf) {
-                        E2EEHandler.INSTANCE.secureStorePeerPublicKey(context, address, data);
-                        break;
-                    }
+                    if(E2EEHandler.INSTANCE.hasRequest(context, address))
+                        E2EEHandler.INSTANCE.makeSelfRequest(context, address);
                 case ACCEPT:
                     E2EEHandler.INSTANCE.secureStorePeerPublicKey(context, address, data);
-                    isSecured = true;
-                    if(BuildConfig.DEBUG)
-                        Toast.makeText(context, "Accepting secured: " + isSelf, Toast.LENGTH_LONG).show();
+                    isSecured = E2EEHandler.INSTANCE.isSecured(context, address);
                     break;
             }
         }
