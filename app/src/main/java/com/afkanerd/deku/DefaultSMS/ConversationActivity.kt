@@ -314,11 +314,8 @@ class ConversationActivity() : CustomAppCompactActivity() {
         super.onSaveInstanceState(savedInstanceState)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult( requestCode: Int, permissions: Array<String>,
+                                             grantResults: IntArray ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == SEND_SMS_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty()) {
@@ -586,7 +583,12 @@ class ConversationActivity() : CustomAppCompactActivity() {
             ConversationsSecureRequestModalSheetFragment(it) {
                 address?.let { ad ->
                     val publicKey = E2EEHandler.generateKey(applicationContext, ad)
+
                     val isSelf = E2EEHandler.isSelf(applicationContext, ad)
+
+                    E2EEHandler.secureStorePeerPublicKey(applicationContext, address!!, publicKey,
+                        isSelf)
+
                     if(!isSelf) {
                         val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
                             E2EEHandler.MagicNumber.ACCEPT)

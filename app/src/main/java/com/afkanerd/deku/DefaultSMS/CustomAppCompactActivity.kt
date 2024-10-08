@@ -14,6 +14,9 @@ import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 open class CustomAppCompactActivity : DualSIMConversationActivity() {
     protected var address: String? = null
@@ -62,16 +65,18 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
             conversation.status = Telephony.Sms.STATUS_PENDING
 
             if (conversationsViewModel != null) {
-                ThreadingPoolExecutor.executorService.execute(Runnable {
+                CoroutineScope(Dispatchers.Default).launch{
                     try {
                         conversationsViewModel!!.insert(applicationContext, conversation)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        return@Runnable
+                        return@launch
                     }
+
                     if(E2EEHandler.isSecured(applicationContext, address!!)) {
                         val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey(
-                            applicationContext, address!!), Base64.DEFAULT)
+                            applicationContext, address!!,
+                            E2EEHandler.isSelf(applicationContext, address!!)), Base64.DEFAULT)
                         var states = E2EEHandler.fetchStates(applicationContext, address!!)
                         if(states.isBlank()) {
                             val aliceState = States()
@@ -86,10 +91,11 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                         val msg = E2EEHandler.formatMessage(headerCipherText.first,
                             headerCipherText.second)
                         conversation.text = Base64.encodeToString(msg, Base64.DEFAULT)
-                        E2EEHandler.storeState(applicationContext, states, address!!)
+                        E2EEHandler.storeState(applicationContext, sendingState.serializedStates,
+                            address!!)
                     }
                     sendSMS(conversation)
-                })
+                }
             }
         }
     }

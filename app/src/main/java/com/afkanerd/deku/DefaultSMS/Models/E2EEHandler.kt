@@ -13,8 +13,6 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityRSA
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Headers
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import javax.crypto.SecretKey
-import javax.crypto.SecretKeyFactory
 
 
 object E2EEHandler {
@@ -30,10 +28,11 @@ object E2EEHandler {
         return address + HYBRID_KEYS_FILE;
     }
 
-    private fun secureStorePrivateKey(context: Context,
-                                      address: String,
-                                      keystoreAlias: String,
-                                      encryptedCipherPrivateKey: ByteArray) {
+    private fun secureStoreKeypair(context: Context,
+                                   address: String,
+                                   keystoreAlias: String,
+                                   encryptedCipherPrivateKey: ByteArray,
+                                   publicKey: ByteArray) {
         val masterKey: MasterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
@@ -48,11 +47,14 @@ object E2EEHandler {
 
         sharedPreferences.edit()
             .putString(keystoreAlias, Base64.encodeToString(encryptedCipherPrivateKey,
-                Base64.DEFAULT)).apply()
+                Base64.DEFAULT))
+            .putString(keystoreAlias + "_public_key", Base64.encodeToString(publicKey,
+                Base64.DEFAULT))
+            .apply()
     }
 
     fun secureStorePeerPublicKey(context: Context, keystoreAlias: String,
-                                 publicKey: ByteArray) {
+                                 publicKey: ByteArray, isSelf: Boolean = false) {
         val masterKey: MasterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
@@ -65,17 +67,29 @@ object E2EEHandler {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
 
-        sharedPreferences.edit()
+        if(isSelf) {
+            sharedPreferences.edit()
+                .putString(deriveSelfPeerPublicKeystoreAlias(keystoreAlias),
+                    Base64.encodeToString(publicKey, Base64.DEFAULT)).apply()
+        }
+        else sharedPreferences.edit()
             .putString(derivePeerPublicKeystoreAlias(keystoreAlias),
                 Base64.encodeToString(publicKey, Base64.DEFAULT)).apply()
     }
 
-    fun secureFetchPeerPublicKey(context: Context, keystoreAlias: String) : String {
+    fun secureFetchPeerPublicKey(context: Context, keystoreAlias: String, isSelf: Boolean = false) : String {
         val masterKey: MasterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
-        return EncryptedSharedPreferences.create(
+        return if(isSelf) EncryptedSharedPreferences.create(
+            context,
+            getSharedPreferenceFilename(keystoreAlias),
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        ).getString(deriveSelfPeerPublicKeystoreAlias(keystoreAlias), "")!!
+        else EncryptedSharedPreferences.create(
             context,
             getSharedPreferenceFilename(keystoreAlias),
             masterKey,
@@ -91,26 +105,28 @@ object E2EEHandler {
         if(isSelf(context, address)) {
             val encryptionPublicKey = SecurityRSA.generateKeyPair(
                 deriveSelfSecureRequestKeystoreAlias(address), 2048)
+
             val privateKeyCipherText = SecurityRSA.encrypt(encryptionPublicKey,
                 libSigCurve25519.privateKey)
-            secureStorePrivateKey(
-                context, address, deriveSelfSecureRequestKeystoreAlias(address),
-                privateKeyCipherText
-            )
+
+            secureStoreKeypair(context, address, deriveSelfSecureRequestKeystoreAlias(address),
+                privateKeyCipherText, publicKey)
         }
         else {
             val encryptionPublicKey = SecurityRSA.generateKeyPair(
                 deriveSecureRequestKeystoreAlias(address), 2048)
+
             val privateKeyCipherText = SecurityRSA.encrypt(encryptionPublicKey,
                 libSigCurve25519.privateKey)
-            secureStorePrivateKey(context, address, deriveSecureRequestKeystoreAlias(address),
-                privateKeyCipherText)
+
+            secureStoreKeypair(context, address, deriveSecureRequestKeystoreAlias(address),
+                privateKeyCipherText, publicKey)
         }
         return publicKey
     }
 
-    private fun getSecuredStoredPrivateKey(context: Context, address: String,
-                                           isSelf: Boolean= false) : String {
+    private fun getSecuredStoredKeypair(context: Context, address: String,
+                                        isSelf: Boolean= false) : Pair<String, String> {
         val masterKey: MasterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
@@ -122,25 +138,42 @@ object E2EEHandler {
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
-        return if(isSelf)
-            sharedPreferences.getString(deriveSecureRequestKeystoreAlias(address), "")!!
-        else sharedPreferences.getString(deriveSecureRequestKeystoreAlias(address), "")!!
+        var privateKey = ""
+        var publicKey = ""
+        if(isSelf) {
+            privateKey = sharedPreferences.getString(deriveSecureRequestKeystoreAlias(address),
+                "")!!
+            publicKey = sharedPreferences.getString(deriveSecureRequestKeystoreAlias(address)
+                    + "_public_key", "")!!
+        }
+        else {
+            privateKey = sharedPreferences.getString(deriveSecureRequestKeystoreAlias(address),
+                "")!!
+            publicKey = sharedPreferences.getString(deriveSecureRequestKeystoreAlias(address)
+                    + "_public_key", "")!!
+        }
+        return Pair(privateKey, publicKey)
     }
 
 
-    private fun fetchPrivateKey(context: Context, address: String) : ByteArray {
-        val cipherPrivateKeyString = getSecuredStoredPrivateKey(context, address)
+    fun fetchKeypair(context: Context, address: String, isSelf: Boolean = false) :
+            android.util.Pair<ByteArray, ByteArray> {
+        val keypair = getSecuredStoredKeypair(context, address, isSelf)
+        val cipherPrivateKeyString = keypair.first
         if(cipherPrivateKeyString.isBlank()) {
             throw Exception("Cipher private key is empty...")
         }
 
         val cipherPrivateKey = Base64.decode(cipherPrivateKeyString, Base64.DEFAULT)
-        val keypair = KeystoreHelpers.getKeyPairFromKeystore(deriveSecureRequestKeystoreAlias(address))
-        return SecurityRSA.decrypt(keypair.private, cipherPrivateKey)
+        val secretKeyKeypair = KeystoreHelpers.getKeyPairFromKeystore(deriveSecureRequestKeystoreAlias(address))
+
+        return android.util.Pair(SecurityRSA.decrypt(secretKeyKeypair.private, cipherPrivateKey),
+            Base64.decode(keypair.second, Base64.DEFAULT))
     }
 
     fun calculateSharedSecret(context: Context, address: String, publicKey: ByteArray): ByteArray {
-        val privateKey = fetchPrivateKey(context, address)
+        val keypair = fetchKeypair(context, address)
+        val privateKey = keypair.first
         val libSigCurve25519 = SecurityCurve25519(privateKey)
         return libSigCurve25519.calculateSharedSecret(publicKey)
     }
@@ -177,6 +210,26 @@ object E2EEHandler {
         // TODO: wild guess
         // TODO: check len header as well
         return magicNumber == MagicNumber.MESSAGE.num && lenMessage % 16 == 0
+    }
+
+    fun extractMessageFromPayload(data: ByteArray): Pair<Headers, ByteArray> {
+        val magicNumber: Int = data[0].toInt()
+
+        val lenHead = ByteArray(4)
+        System.arraycopy(data, 1, lenHead, 0, 4)
+        val lenHeader = ByteBuffer.wrap(lenHead).order(ByteOrder.LITTLE_ENDIAN).getInt()
+
+        val lenMsg = ByteArray(4)
+        System.arraycopy(data, 5, lenMsg, 0, 4)
+        val lenMessage = ByteBuffer.wrap(lenMsg).order(ByteOrder.LITTLE_ENDIAN).getInt()
+
+        val header = ByteArray(lenHeader)
+        System.arraycopy(data, 9, header, 0, header.size)
+
+        val message = ByteArray(lenMessage)
+        System.arraycopy(data, 9+header.size, message, 0, message.size)
+
+        return Pair(Headers.deSerializeHeader(header), message)
     }
 
     fun extractPublicKeyFromPayload(data: ByteArray): ByteArray {
@@ -218,6 +271,9 @@ object E2EEHandler {
 
     private fun derivePeerPublicKeystoreAlias(address: String) : String{
         return address + "_peer_public_key"
+    }
+    private fun deriveSelfPeerPublicKeystoreAlias(address: String) : String{
+        return address + "_self_peer_public_key"
     }
 
     private fun deriveSaveStatesKeystoreAlias(address: String) : String{
@@ -337,7 +393,7 @@ object E2EEHandler {
 
 
         return if(isSelf(context, address))
-            sharedPreferences.contains(derivePeerPublicKeystoreAlias(address)) &&
+            sharedPreferences.contains(deriveSelfPeerPublicKeystoreAlias(address)) &&
                 sharedPreferences.contains(deriveSelfSecureRequestKeystoreAlias(address))
         else sharedPreferences.contains(derivePeerPublicKeystoreAlias(address)) &&
                 sharedPreferences.contains(deriveSecureRequestKeystoreAlias(address))
