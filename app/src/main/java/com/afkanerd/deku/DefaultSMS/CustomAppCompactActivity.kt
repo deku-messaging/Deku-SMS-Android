@@ -70,18 +70,22 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                         return@Runnable
                     }
                     if(E2EEHandler.isSecured(applicationContext, address!!)) {
+                        val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey(
+                            applicationContext, address!!), Base64.DEFAULT)
                         var states = E2EEHandler.fetchStates(applicationContext, address!!)
                         if(states.isBlank()) {
                             val aliceState = States()
-                            val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey(
-                                applicationContext, address!!), Base64.DEFAULT)
                             val SK = E2EEHandler.calculateSharedSecret(applicationContext, address!!,
                                 peerPublicKey)
                             Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
                             states = aliceState.serializedStates
                         }
                         val sendingState = States(states)
-                        TODO("Implement message sending format and insert in conversation")
+                        val headerCipherText = Ratchets.ratchetEncrypt(sendingState,
+                            conversation.text!!.encodeToByteArray(), peerPublicKey)
+                        val msg = E2EEHandler.formatMessage(headerCipherText.first,
+                            headerCipherText.second)
+                        conversation.text = Base64.encodeToString(msg, Base64.DEFAULT)
                         E2EEHandler.storeState(applicationContext, states, address!!)
                     }
                     sendSMS(conversation)

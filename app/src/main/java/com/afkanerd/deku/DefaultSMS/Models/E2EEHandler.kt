@@ -10,6 +10,7 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityCurve25519
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityRSA
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Headers
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.crypto.SecretKey
@@ -152,25 +153,29 @@ object E2EEHandler {
         return mn + lenPubKey + publicKey
     }
 
-    fun formatMessage(message: ByteArray) : ByteArray {
+    fun formatMessage(header: Headers, cipherText: ByteArray) : ByteArray {
         val mn: ByteArray = byteArrayOf(MagicNumber.MESSAGE.num.toByte())
-        val lenMsg = ByteArray(4)
+        val lenHeader = ByteArray(4)
+        ByteBuffer.wrap(lenHeader).order(ByteOrder.LITTLE_ENDIAN).putInt(header.serialized.size)
 
-        ByteBuffer.wrap(lenMsg).order(ByteOrder.LITTLE_ENDIAN).putInt(message.size)
-        return mn + lenMsg + message
+        val lenMsg = ByteArray(4)
+        ByteBuffer.wrap(lenMsg).order(ByteOrder.LITTLE_ENDIAN).putInt(cipherText.size)
+
+        return mn + lenHeader + lenMsg + header.serialized + cipherText
     }
 
     fun isValidMessage(data: ByteArray) : Boolean {
         val magicNumber: Int = data[0].toInt()
+        val lenHead = ByteArray(4)
+        System.arraycopy(data, 1, lenHead, 0, 4)
+        val lenHeader = ByteBuffer.wrap(lenHead).order(ByteOrder.LITTLE_ENDIAN).getInt()
+
         val lenMsg = ByteArray(4)
-        System.arraycopy(data, 1, lenMsg, 0, 4)
+        System.arraycopy(data, 5, lenMsg, 0, 4)
         val lenMessage = ByteBuffer.wrap(lenMsg).order(ByteOrder.LITTLE_ENDIAN).getInt()
 
-        // TODO: Can validate based on length
-        val pubKey = ByteArray(lenMessage)
-        System.arraycopy(data, 5, pubKey, 0, pubKey.size)
-
         // TODO: wild guess
+        // TODO: check len header as well
         return magicNumber == MagicNumber.MESSAGE.num && lenMessage % 16 == 0
     }
 
@@ -370,7 +375,7 @@ object E2EEHandler {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
 
-        val secretKey = SecurityAES.generateSecretKey(32)
+        val secretKey = SecurityAES.generateSecretKey(256)
         val stateCipherText = Base64.encodeToString(SecurityAES
             .encryptAES256CBC(state.encodeToByteArray(), secretKey.encoded, null),
             Base64.DEFAULT)
