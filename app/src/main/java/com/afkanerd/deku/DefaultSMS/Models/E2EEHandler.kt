@@ -7,10 +7,13 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.BuildConfig
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.KeystoreHelpers
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityAES
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityCurve25519
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SecurityRSA
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import javax.crypto.SecretKey
+import javax.crypto.SecretKeyFactory
 
 
 object E2EEHandler {
@@ -367,21 +370,31 @@ object E2EEHandler {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
 
-        TODO("Use AES encryption here")
+        val secretKey = SecurityAES.generateSecretKey(32)
+        val stateCipherText = Base64.encodeToString(SecurityAES
+            .encryptAES256CBC(state.encodeToByteArray(), secretKey.encoded, null),
+            Base64.DEFAULT)
+
         if(isSelf) {
             val encryptionPublicKey = SecurityRSA.generateKeyPair(
                 deriveSelfSaveStatesEncryptKeystoreAlias(address), 2048)
-            val stateCipherText = Base64.encodeToString(SecurityRSA.encrypt(encryptionPublicKey,
-                state.encodeToByteArray()), Base64.DEFAULT)
-            sharedPreferences.edit().putString(deriveSelfSaveStatesKeystoreAlias(address),
-                stateCipherText).apply()
+
+            sharedPreferences.edit()
+                .putString(deriveSelfSaveStatesKeystoreAlias(address), stateCipherText)
+                .putString("self_secret_key",
+                    Base64.encodeToString(SecurityRSA.encrypt(encryptionPublicKey, secretKey.encoded),
+                        Base64.DEFAULT))
+                .apply()
         } else {
             val encryptionPublicKey = SecurityRSA.generateKeyPair(
                 deriveSaveStatesEncryptKeystoreAlias(address), 2048)
-            val stateCipherText = Base64.encodeToString(SecurityRSA.encrypt(encryptionPublicKey,
-                state.encodeToByteArray()), Base64.DEFAULT)
-            sharedPreferences.edit().putString(deriveSaveStatesKeystoreAlias(address),
-                stateCipherText).apply()
+
+            sharedPreferences.edit()
+                .putString(deriveSaveStatesKeystoreAlias(address), stateCipherText)
+                .putString("secret_key",
+                    Base64.encodeToString(SecurityRSA.encrypt(encryptionPublicKey, secretKey.encoded),
+                        Base64.DEFAULT))
+                .apply()
         }
     }
 
@@ -390,23 +403,28 @@ object E2EEHandler {
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
-         val encodedStates = if(!isSelf) EncryptedSharedPreferences.create(
+        val sharedPreferences = EncryptedSharedPreferences.create(
             context,
             getSharedPreferenceFilename(address),
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        ).getString(deriveSaveStatesKeystoreAlias(address), "")!!
-        else EncryptedSharedPreferences.create(
-            context,
-            getSharedPreferenceFilename(address),
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        ).getString(deriveSelfSaveStatesKeystoreAlias(address), "")!!
+        )
+
+         val encodedEncryptedState = if(!isSelf)
+             sharedPreferences.getString(deriveSaveStatesKeystoreAlias(address), "")!!
+        else sharedPreferences.getString(deriveSelfSaveStatesKeystoreAlias(address), "")!!
+
+        if(encodedEncryptedState.isNullOrBlank())
+            return ""
 
         val keypair = if(isSelf) KeystoreHelpers.getKeyPairFromKeystore(
             deriveSelfSaveStatesEncryptKeystoreAlias(address))
         else KeystoreHelpers.getKeyPairFromKeystore(deriveSaveStatesEncryptKeystoreAlias(address))
+
+        val secretKey = SecurityRSA.decrypt(keypair.private,
+            Base64.decode(encodedEncryptedState, Base64.DEFAULT))
+        return String(SecurityAES.decryptAES256CBC(Base64.decode(encodedEncryptedState,
+            Base64.DEFAULT), secretKey, null), Charsets.UTF_8)
     }
 }
