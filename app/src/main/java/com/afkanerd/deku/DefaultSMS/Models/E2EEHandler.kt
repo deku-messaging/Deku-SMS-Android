@@ -427,8 +427,12 @@ object E2EEHandler {
             deriveSelfSaveStatesEncryptKeystoreAlias(address))
         else KeystoreHelpers.getKeyPairFromKeystore(deriveSaveStatesEncryptKeystoreAlias(address))
 
+        val secretKeyEncrypted = if(isSelf)
+            sharedPreferences.getString("self_secret_key", "")!!
+        else sharedPreferences.getString("secret_key", "")!!
+
         val secretKey = SecurityRSA.decrypt(keypair.private,
-            Base64.decode(encodedEncryptedState, Base64.DEFAULT))
+            Base64.decode(secretKeyEncrypted, Base64.DEFAULT))
         return String(SecurityAES.decryptAES256CBC(Base64.decode(encodedEncryptedState,
             Base64.DEFAULT), secretKey, null), Charsets.UTF_8)
     }
