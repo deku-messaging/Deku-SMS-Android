@@ -3,13 +3,17 @@ package com.afkanerd.deku.DefaultSMS
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Telephony
+import android.util.Base64
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation
+import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Modules.ThreadingPoolExecutor
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.Ratchets
+import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States
 
 open class CustomAppCompactActivity : DualSIMConversationActivity() {
     protected var address: String? = null
@@ -65,21 +69,38 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                         e.printStackTrace()
                         return@Runnable
                     }
-                    try {
-                        SMSDatabaseWrapper.send_text(applicationContext, conversation, null)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        NativeSMSDB.Outgoing.register_failed(
-                            applicationContext,
-                            messageIdFinal, 1
-                        )
-                        conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-                        conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-                        conversation.error_code = 1
-                        conversationsViewModel!!.update(conversation)
+                    if(E2EEHandler.isSecured(applicationContext, address!!)) {
+                        var states = E2EEHandler.fetchStates(applicationContext, address!!)
+                        if(states.isBlank()) {
+                            val aliceState = States()
+                            val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey(
+                                applicationContext, address!!), Base64.DEFAULT)
+                            val SK = E2EEHandler.calculateSharedSecret(applicationContext, address!!,
+                                peerPublicKey)
+                            Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
+                            states = aliceState.serializedStates
+                        }
+                        val sendingState = States(states)
+                        TODO("Implement message sending format and insert in conversation")
+                        E2EEHandler.storeState(applicationContext, states, address!!)
                     }
+                    sendSMS(conversation)
                 })
             }
+        }
+    }
+
+    private fun sendSMS(conversation: Conversation) {
+        try {
+            SMSDatabaseWrapper.send_text(applicationContext, conversation, null)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            NativeSMSDB.Outgoing.register_failed( applicationContext, conversation.message_id,
+                1 )
+            conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
+            conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+            conversation.error_code = 1
+            conversationsViewModel!!.update(conversation)
         }
     }
 

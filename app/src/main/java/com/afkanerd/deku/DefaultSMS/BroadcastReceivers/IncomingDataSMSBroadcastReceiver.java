@@ -127,7 +127,8 @@ public class IncomingDataSMSBroadcastReceiver extends BroadcastReceiver {
                     if(E2EEHandler.INSTANCE.hasRequest(context, address))
                         E2EEHandler.INSTANCE.makeSelfRequest(context, address);
                 case ACCEPT:
-                    E2EEHandler.INSTANCE.secureStorePeerPublicKey(context, address, data);
+                    E2EEHandler.INSTANCE.secureStorePeerPublicKey(context, address,
+                            E2EEHandler.INSTANCE.extractPublicKeyFromPayload(data));
                     isSecured = E2EEHandler.INSTANCE.isSecured(context, address);
                     break;
             }
