@@ -255,4 +255,5 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         val notificationManager = NotificationManagerCompat.from(context)
         notificationManager.notify(notificationId, notification)
     }
+
 }

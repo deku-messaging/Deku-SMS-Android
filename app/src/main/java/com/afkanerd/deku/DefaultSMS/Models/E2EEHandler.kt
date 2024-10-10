@@ -141,9 +141,9 @@ object E2EEHandler {
         var privateKey = ""
         var publicKey = ""
         if(isSelf) {
-            privateKey = sharedPreferences.getString(deriveSecureRequestKeystoreAlias(address),
+            privateKey = sharedPreferences.getString(deriveSelfSecureRequestKeystoreAlias(address),
                 "")!!
-            publicKey = sharedPreferences.getString(deriveSecureRequestKeystoreAlias(address)
+            publicKey = sharedPreferences.getString(deriveSelfSecureRequestKeystoreAlias(address)
                     + "_public_key", "")!!
         }
         else {
@@ -342,7 +342,7 @@ object E2EEHandler {
             .apply()
     }
 
-    fun hasRequest(context: Context, address: String): Boolean {
+    fun hasRequest(context: Context, address: String, publicKey: ByteArray): Boolean {
         val masterKey: MasterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
@@ -355,7 +355,10 @@ object E2EEHandler {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
 
-        return sharedPreferences.contains(deriveSecureRequestKeystoreAlias(address))
+        return sharedPreferences.contains(deriveSecureRequestKeystoreAlias(address) + "_public_key")
+                && Base64.decode(sharedPreferences
+                    .getString(deriveSecureRequestKeystoreAlias(address) + "_public_key",
+                        ""), Base64.DEFAULT).contentEquals(publicKey)
     }
 
     fun hasPendingApproval(context: Context, address: String): Boolean {
