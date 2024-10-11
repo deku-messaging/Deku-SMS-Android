@@ -165,7 +165,10 @@ object E2EEHandler {
         }
 
         val cipherPrivateKey = Base64.decode(cipherPrivateKeyString, Base64.DEFAULT)
-        val secretKeyKeypair = KeystoreHelpers.getKeyPairFromKeystore(deriveSecureRequestKeystoreAlias(address))
+        val secretKeyKeypair = if(isSelf) KeystoreHelpers
+            .getKeyPairFromKeystore(deriveSelfSecureRequestKeystoreAlias(address))
+        else
+            KeystoreHelpers.getKeyPairFromKeystore(deriveSecureRequestKeystoreAlias(address))
 
         return android.util.Pair(SecurityRSA.decrypt(secretKeyKeypair.private, cipherPrivateKey),
             Base64.decode(keypair.second, Base64.DEFAULT))
@@ -214,6 +217,9 @@ object E2EEHandler {
 
     fun extractMessageFromPayload(data: ByteArray): Pair<Headers, ByteArray> {
         val magicNumber: Int = data[0].toInt()
+
+        if(magicNumber != MagicNumber.MESSAGE.num)
+            throw Exception("Invalid Message payload in extraction request")
 
         val lenHead = ByteArray(4)
         System.arraycopy(data, 1, lenHead, 0, 4)

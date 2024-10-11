@@ -17,6 +17,7 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.spongycastle.jcajce.provider.symmetric.ARC4.Base
 
 open class CustomAppCompactActivity : DualSIMConversationActivity() {
     protected var address: String? = null
@@ -82,6 +83,7 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                             val aliceState = States()
                             val SK = E2EEHandler.calculateSharedSecret(applicationContext, address!!,
                                 peerPublicKey)
+                            println("Using RK: ${Base64.encodeToString(SK, Base64.DEFAULT)}")
                             Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
                             states = aliceState.serializedStates
                         }
@@ -138,4 +140,5 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
             }
         }
     }
+
 }

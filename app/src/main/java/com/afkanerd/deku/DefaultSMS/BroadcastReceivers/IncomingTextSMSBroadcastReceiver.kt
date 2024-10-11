@@ -28,6 +28,7 @@ import com.afkanerd.smswithoutborders.libsignal_doubleratchet.libsignal.States
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.spongycastle.jcajce.provider.symmetric.ARC4.Base
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.concurrent.ExecutorService
@@ -172,6 +173,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
             conversation.isIs_encrypted = res.second
             res.first
         } catch (e: Throwable) {
+            e.printStackTrace()
             body
         }
         conversation.text = text
@@ -197,6 +199,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         var text = text
         var encrypted = false
         if (E2EEHandler.isValidMessage(Base64.decode(text, Base64.DEFAULT))) {
+            println("Message is a valid message...")
             val payload = E2EEHandler.extractMessageFromPayload(Base64.decode(text, Base64.DEFAULT))
 
             val keypair = E2EEHandler.fetchKeypair(context, address, true)
@@ -206,10 +209,13 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
             if(states.isBlank()) {
                 val bobState = States()
                 val SK = E2EEHandler.calculateSharedSecret(context, address, peerPublicKey)
+                println("Decrypting with RK: ${Base64.encodeToString(SK, Base64.DEFAULT)}")
                 Ratchets.ratchetInitBob(bobState, SK, keypair)
                 states = bobState.serializedStates
             }
             val receivingState = States(states)
+            println("Decrypting state: $states")
+            println("Decryption AD: ${Base64.encodeToString(keypair.second, Base64.DEFAULT)}")
             val decryptedText = Ratchets.ratchetDecrypt(receivingState, payload.first,
                 payload.second, keypair.second)
             text = String(decryptedText, Charsets.UTF_8)

@@ -466,8 +466,6 @@ class ConversationActivity() : CustomAppCompactActivity() {
     @Throws(InterruptedException::class)
     private fun configureRecyclerView() {
         singleMessagesThreadRecyclerView!!.adapter = conversationsRecyclerAdapter
-
-        //        singleMessagesThreadRecyclerView.setItemViewCacheSize(500);
         lifecycleOwner = this
 
         conversationsRecyclerAdapter!!.addOnPagesUpdatedListener {
@@ -496,14 +494,14 @@ class ConversationActivity() : CustomAppCompactActivity() {
             val searching = intent.getStringExtra(SEARCH_STRING)
             CoroutineScope(Dispatchers.Default).launch { searchForInput(searching) }
             configureSearchBox()
-            searchPositions!!.value = ArrayList(
-                listOf(
-                    intent.getIntExtra(SEARCH_INDEX, 0)
-                )
-            )
-            conversationsViewModel?.getSearch( applicationContext, threadId, searchPositions!!.value)
+
+            searchPositions!!.value = ArrayList(listOf(intent.getIntExtra(SEARCH_INDEX, 0)))
+
+            conversationsViewModel?.getSearch(applicationContext, threadId, searchPositions!!.value)
                 ?.observe(this) { conversationsRecyclerAdapter!!.submitData( lifecycle, it ) }
+
         }
+
         conversationsViewModel?.get(threadId)?.observe( this ) { value ->
             value?.let {
                 conversationsRecyclerAdapter!!.submitData(lifecycle, value)
@@ -536,9 +534,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
             }
         }
 
-        conversationsRecyclerAdapter!!.retryFailedDataMessage.observe(
-            this
-        ) {
+        conversationsRecyclerAdapter!!.retryFailedDataMessage.observe( this ) {
             val list: MutableList<Conversation> = ArrayList()
             list.add(it)
             showFailedRetryModal {
@@ -557,8 +553,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
             }
         }
 
-        conversationsRecyclerAdapter!!.mutableSelectedItems.observe(
-            this,
+        conversationsRecyclerAdapter!!.mutableSelectedItems.observe( this,
             object : Observer<HashMap<Long?, ConversationTemplateViewHandler?>?> {
                 override fun onChanged(selectedItems: HashMap<Long?, ConversationTemplateViewHandler?>?) {
                     if (selectedItems == null || selectedItems.isEmpty()) {
@@ -573,6 +568,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
                     if (actionMode != null) actionMode!!.title = selectedItems.size.toString()
                 }
             })
+
     }
 
     private fun showSecureRequestModal() {
@@ -733,7 +729,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
                             e.printStackTrace()
                         }
                     }
-                    smsTextView!!.setText(null)
+                    smsTextView!!.text = null
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
