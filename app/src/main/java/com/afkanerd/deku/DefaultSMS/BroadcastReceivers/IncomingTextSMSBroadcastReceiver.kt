@@ -9,6 +9,7 @@ import android.provider.Telephony
 import android.util.Base64
 import android.util.Log
 import android.util.Pair
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.afkanerd.deku.Datastore
@@ -199,27 +200,31 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
         var text = text
         var encrypted = false
         if (E2EEHandler.isValidMessage(Base64.decode(text, Base64.DEFAULT))) {
-            println("Message is a valid message...")
             val payload = E2EEHandler.extractMessageFromPayload(Base64.decode(text, Base64.DEFAULT))
 
-            val keypair = E2EEHandler.fetchKeypair(context, address, true)
-            val peerPublicKey = Base64.decode(E2EEHandler
-                .secureFetchPeerPublicKey(context, address), Base64.DEFAULT)
-            var states = E2EEHandler.fetchStates(context, address, true)
+            val isSelf = E2EEHandler.isSelf(context, address)
+            val keypair = E2EEHandler.fetchKeypair(context, address, isSelf)
+//            val peerPublicKey = Base64.decode(E2EEHandler
+//                .secureFetchPeerPublicKey(context, address), Base64.DEFAULT)
+            val peerPublicKey = if(isSelf) keypair.second else
+                Base64.decode(E2EEHandler.secureFetchPeerPublicKey(context, address), Base64.DEFAULT)
+            var states = E2EEHandler.fetchStates(context, address, isSelf)
             if(states.isBlank()) {
                 val bobState = States()
                 val SK = E2EEHandler.calculateSharedSecret(context, address, peerPublicKey)
-                println("Decrypting with RK: ${Base64.encodeToString(SK, Base64.DEFAULT)}")
                 Ratchets.ratchetInitBob(bobState, SK, keypair)
                 states = bobState.serializedStates
             }
             val receivingState = States(states)
-            println("Decrypting state: $states")
-            println("Decryption AD: ${Base64.encodeToString(keypair.second, Base64.DEFAULT)}")
             val decryptedText = Ratchets.ratchetDecrypt(receivingState, payload.first,
                 payload.second, keypair.second)
             text = String(decryptedText, Charsets.UTF_8)
             encrypted = true
+
+            if(BuildConfig.DEBUG)
+                Toast.makeText(context, "Decryption happened!", Toast.LENGTH_LONG).show()
+
+            E2EEHandler.storeState(context, receivingState.serializedStates, address)
         }
 
         return Pair(text, encrypted)

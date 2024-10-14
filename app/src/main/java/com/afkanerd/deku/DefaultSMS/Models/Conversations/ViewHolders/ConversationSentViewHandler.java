@@ -50,11 +50,12 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public ConversationSentViewHandler(@NonNull View itemView, int type) {
         super(itemView);
         this.type = type;
+        timestamp = itemView.findViewById(R.id.sent_message_date_segment);
+
         if(type == TYPE_CONVERSATION) {
             sentMessage = itemView.findViewById(R.id.message_sent_text);
             sentMessageStatus = itemView.findViewById(R.id.message_thread_sent_status_text);
             date = itemView.findViewById(R.id.message_thread_sent_date_text);
-            timestamp = itemView.findViewById(R.id.sent_message_date_segment);
             messageStatusTimestampLayout = itemView.findViewById(R.id.message_status_timestamp);
             messageFailedIcon = itemView.findViewById(R.id.message_failed_indicator_img);
             linearLayoutCompat = itemView.findViewById(R.id.sent_message_linear_layout);
@@ -203,6 +204,7 @@ public class ConversationSentViewHandler extends ConversationTemplateViewHandler
     public static class TimestampKeySentViewHandler extends KeySentViewHandler {
         public TimestampKeySentViewHandler(@NonNull View itemView) {
             super(itemView);
+            timestamp.setVisibility(View.VISIBLE);
         }
     }
 

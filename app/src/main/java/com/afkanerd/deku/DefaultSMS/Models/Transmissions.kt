@@ -1,65 +1,83 @@
-package com.afkanerd.deku.DefaultSMS.Models;
+package com.afkanerd.deku.DefaultSMS.Models
 
-import android.app.PendingIntent;
-import android.telephony.SmsManager;
-import android.widget.Toast;
+import android.app.PendingIntent
+import android.content.Context
+import android.telephony.SmsManager
 
-import java.util.ArrayList;
+object Transmissions {
+    private const val DATA_TRANSMISSION_PORT: Short = 8200
+    @Throws(Exception::class)
+    fun sendTextSMS(
+        context: Context,
+        destinationAddress: String, text: String,
+        sentIntent: PendingIntent?, deliveryIntent: PendingIntent?,
+        subscriptionId: Int
+    ) {
+        if (text.isNullOrEmpty()) return
 
-public class Transmissions {
+//        val smsManager = SmsManager.getSmsManagerForSubscriptionId(
+//            subscriptionId!!
+//        )
 
-    private static final short DATA_TRANSMISSION_PORT = 8200;
-    public static void sendTextSMS(String destinationAddress, String text,
-                             PendingIntent sentIntent, PendingIntent deliveryIntent,
-                             Integer subscriptionId) throws Exception {
-
-        if (text == null || text.isEmpty())
-            return;
-
-        SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
+        val smsManager = context.getSystemService(SmsManager::class.java)
+            .createForSubscriptionId(subscriptionId)
 
         try {
-            ArrayList<String> dividedMessage = smsManager.divideMessage(text);
-            if (dividedMessage.size() < 2)
-                smsManager.sendTextMessage(destinationAddress, null, text, sentIntent, deliveryIntent);
+            val dividedMessage = smsManager.divideMessage(text)
+            if (dividedMessage.size < 2) smsManager.sendTextMessage(
+                destinationAddress,
+                null,
+                text,
+                sentIntent,
+                deliveryIntent
+            )
             else {
-                ArrayList<PendingIntent> sentPendingIntents = new ArrayList<>();
-                ArrayList<PendingIntent> deliveredPendingIntents = new ArrayList<>();
+                val sentPendingIntents = ArrayList<PendingIntent?>()
+                val deliveredPendingIntents = ArrayList<PendingIntent?>()
 
-                for (int i = 0; i < dividedMessage.size() - 1; i++) {
-                    sentPendingIntents.add(null);
-                    deliveredPendingIntents.add(null);
+                for (i in 0 until dividedMessage.size - 1) {
+                    sentPendingIntents.add(null)
+                    deliveredPendingIntents.add(null)
                 }
 
-                sentPendingIntents.add(sentIntent);
-                deliveredPendingIntents.add(deliveryIntent);
+                sentPendingIntents.add(sentIntent)
+                deliveredPendingIntents.add(deliveryIntent)
 
-                smsManager.sendMultipartTextMessage(destinationAddress, null,
-                        dividedMessage, sentPendingIntents, deliveredPendingIntents);
-            }
-        } catch (Exception e) {
-            throw new Exception(e);
-        }
-
-    }
-
-    public static void sendDataSMS(String destinationAddress, byte[] data,
-                                     PendingIntent sentIntent, PendingIntent deliveryIntent,
-                                     Integer subscriptionId) throws Exception {
-        if (data == null)
-            return;
-
-        SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId);
-        try {
-            smsManager.sendDataMessage(
+                smsManager.sendMultipartTextMessage(
                     destinationAddress,
                     null,
-                    DATA_TRANSMISSION_PORT,
-                    data,
-                    sentIntent,
-                    deliveryIntent);
-        } catch (Exception e) {
-            throw new Exception(e);
+                    dividedMessage,
+                    sentPendingIntents,
+                    deliveredPendingIntents
+                )
+            }
+        } catch (e: Exception) {
+            throw Exception(e)
+        }
+    }
+
+    @Throws(Exception::class)
+    fun sendDataSMS(
+        destinationAddress: String?, data: ByteArray?,
+        sentIntent: PendingIntent?, deliveryIntent: PendingIntent?,
+        subscriptionId: Int?
+    ) {
+        if (data == null) return
+
+        val smsManager = SmsManager.getSmsManagerForSubscriptionId(
+            subscriptionId!!
+        )
+        try {
+            smsManager.sendDataMessage(
+                destinationAddress,
+                null,
+                DATA_TRANSMISSION_PORT,
+                data,
+                sentIntent,
+                deliveryIntent
+            )
+        } catch (e: Exception) {
+            throw Exception(e)
         }
     }
 }

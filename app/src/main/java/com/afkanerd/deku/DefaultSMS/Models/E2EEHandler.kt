@@ -348,7 +348,7 @@ object E2EEHandler {
             .apply()
     }
 
-    fun hasRequest(context: Context, address: String, publicKey: ByteArray): Boolean {
+    fun sameRequest(context: Context, address: String, publicKey: ByteArray): Boolean {
         val masterKey: MasterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
@@ -500,5 +500,19 @@ object E2EEHandler {
             Base64.decode(secretKeyEncrypted, Base64.DEFAULT))
         return String(SecurityAES.decryptAES256CBC(Base64.decode(encodedEncryptedState,
             Base64.DEFAULT), secretKey, null), Charsets.UTF_8)
+    }
+
+    fun containsPeer(context: Context, address: String) : Boolean{
+        val masterKey: MasterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+         return EncryptedSharedPreferences.create(
+            context,
+            getSharedPreferenceFilename(address),
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        ).contains(deriveSecureRequestKeystoreAlias(address))
     }
 }

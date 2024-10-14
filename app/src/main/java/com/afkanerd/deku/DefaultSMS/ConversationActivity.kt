@@ -582,15 +582,15 @@ class ConversationActivity() : CustomAppCompactActivity() {
 
                     val isSelf = E2EEHandler.isSelf(applicationContext, ad)
 
-                    E2EEHandler.secureStorePeerPublicKey(applicationContext, address!!, publicKey,
-                        isSelf)
-
                     if(!isSelf) {
                         val txPublicKey = E2EEHandler.formatRequestPublicKey(publicKey,
                             E2EEHandler.MagicNumber.ACCEPT)
 
                         // TODO: put a pending intent here that makes save on message delivered
                         sendDataMessage(txPublicKey)
+                    } else {
+                        E2EEHandler.secureStorePeerPublicKey(applicationContext, address!!,
+                            publicKey, true)
                     }
                 }
             }

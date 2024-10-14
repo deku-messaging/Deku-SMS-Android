@@ -8,7 +8,7 @@
     android:orientation="vertical"
     android:paddingBottom="1dp">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/received_message_date_segment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

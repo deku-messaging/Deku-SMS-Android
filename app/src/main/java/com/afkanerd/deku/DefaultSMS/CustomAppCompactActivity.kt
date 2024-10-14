@@ -1,9 +1,15 @@
 package com.afkanerd.deku.DefaultSMS
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Telephony
 import android.util.Base64
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.afkanerd.deku.Datastore
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ConversationsViewModel
 import com.afkanerd.deku.DefaultSMS.AdaptersViewModels.ThreadedConversationsViewModel
@@ -29,6 +35,8 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
 
     var databaseConnector: Datastore? = null
 
+    private var requestPermissionLauncher: ActivityResultLauncher<String>? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -38,6 +46,22 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
         }
 
         databaseConnector = Datastore.getDatastore(applicationContext)
+
+        requestPermissionLauncher =
+            registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { isGranted: Boolean ->
+                if (isGranted) {
+                    Toast.makeText(applicationContext, "Request granted...",
+                        Toast.LENGTH_LONG).show()
+                } else {
+                    // Explain to the user that the feature is unavailable because the
+                    // feature requires a permission that the user has denied. At the
+                    // same time, respect the user's decision. Don't link to system
+                    // settings in an effort to convince the user to change their
+                    // decision.
+                }
+            }
     }
 
     private fun _checkIsDefaultApp(): Boolean {
@@ -83,7 +107,6 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                             val aliceState = States()
                             val SK = E2EEHandler.calculateSharedSecret(applicationContext, address!!,
                                 peerPublicKey)
-                            println("Using RK: ${Base64.encodeToString(SK, Base64.DEFAULT)}")
                             Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
                             states = aliceState.serializedStates
                         }
@@ -102,7 +125,7 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
         }
     }
 
-    private fun sendSMS(conversation: Conversation) {
+    private fun sendTxt(conversation: Conversation) {
         try {
             SMSDatabaseWrapper.send_text(applicationContext, conversation, null)
         } catch (e: Exception) {
@@ -114,6 +137,42 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
             conversation.error_code = 1
             conversationsViewModel!!.update(conversation)
         }
+    }
+
+    private fun sendSMS(conversation: Conversation) {
+
+        when {
+            ContextCompat.checkSelfPermission( applicationContext,
+                android.Manifest.permission.READ_PHONE_STATE
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                sendTxt(conversation)
+            }
+//            ActivityCompat.shouldShowRequestPermissionRationale( this,
+//                android.Manifest.permission.READ_PHONE_STATE) -> {
+//                // In an educational UI, explain to the user why your app requires this
+//                // permission for a specific feature to behave as expected, and what
+//                // features are disabled if it's declined. In this UI, include a
+//                // "cancel" or "no thanks" button that lets the user continue
+//                // using your app without granting the permission.
+//            }
+            else -> {
+                // You can directly ask for the permission.
+                // The registered ActivityResultCallback gets the result of this request.
+                requestPermissionLauncher?.launch(android.Manifest.permission.READ_PHONE_STATE)
+            }
+        }
+
+//        try {
+//            SMSDatabaseWrapper.send_text(applicationContext, conversation, null)
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            NativeSMSDB.Outgoing.register_failed( applicationContext, conversation.message_id,
+//                1 )
+//            conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
+//            conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
+//            conversation.error_code = 1
+//            conversationsViewModel!!.update(conversation)
+//        }
     }
 
     @Throws(InterruptedException::class)

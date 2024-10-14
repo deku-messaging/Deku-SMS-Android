@@ -220,7 +220,7 @@ public class NativeSMSDB {
                                                  String text, int subscriptionId, Bundle bundle) throws Exception {
             String[] pendingOutputs = register_pending(context, messageId, destinationAddress, text, subscriptionId);
             PendingIntent[] pendingIntents = getPendingIntents(context, messageId, bundle);
-            Transmissions.sendTextSMS(destinationAddress, text,
+            Transmissions.INSTANCE.sendTextSMS(context, destinationAddress, text,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
             return pendingOutputs;
         }
@@ -236,7 +236,7 @@ public class NativeSMSDB {
             String[] outputs = register_pending_data(context, messageId, destinationAddress,
                     Base64.encodeToString(data, Base64.DEFAULT), subscriptionId);
             PendingIntent[] pendingIntents = getPendingIntentsForData(context, messageId, bundle);
-            Transmissions.sendDataSMS(destinationAddress, data,
+            Transmissions.INSTANCE.sendDataSMS(destinationAddress, data,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
             return outputs;
         }
@@ -244,7 +244,7 @@ public class NativeSMSDB {
         protected static void _send_key(Context context, String messageId, String destinationAddress,
                                              byte[] data, int subscriptionId, Bundle bundle) throws Exception {
             PendingIntent[] pendingIntents = getPendingIntentsForData(context, messageId, bundle);
-            Transmissions.sendDataSMS(destinationAddress, data,
+            Transmissions.INSTANCE.sendDataSMS(destinationAddress, data,
                     pendingIntents[0], pendingIntents[1], subscriptionId);
         }
 
@@ -342,11 +342,13 @@ public class NativeSMSDB {
         }
 
         public static PendingIntent[] getPendingIntentsForData(Context context, String messageId, Bundle bundle) {
-            Intent sentIntent = new Intent(IncomingDataSMSBroadcastReceiver.DATA_SENT_BROADCAST_INTENT);
+            Intent sentIntent = new Intent(IncomingDataSMSBroadcastReceiver.
+                    Companion.getDATA_SENT_BROADCAST_INTENT());
             sentIntent.setPackage(context.getPackageName());
             sentIntent.putExtra(ID, messageId);
 
-            Intent deliveredIntent = new Intent(IncomingDataSMSBroadcastReceiver.DATA_DELIVERED_BROADCAST_INTENT);
+            Intent deliveredIntent = new Intent(IncomingDataSMSBroadcastReceiver.
+                    Companion.getDATA_DELIVERED_BROADCAST_INTENT());
             deliveredIntent.setPackage(context.getPackageName());
             deliveredIntent.putExtra(Conversation.ID, messageId);
 

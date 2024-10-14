@@ -44,10 +44,10 @@ public class ConversationReceivedViewHandler extends ConversationTemplateViewHan
         super(itemView);
         this.type = type;
 
+        timestamp = itemView.findViewById(R.id.received_message_date_segment);
         if(type == TYPE_CONVERSATION) {
             receivedMessage = itemView.findViewById(R.id.message_received_text);
             date = itemView.findViewById(R.id.message_thread_received_date_text);
-            timestamp = itemView.findViewById(R.id.received_message_date_segment);
             linearLayoutCompat = itemView.findViewById(R.id.conversation_received_linear_layout);
 
             layoutParams = (LinearLayoutCompat.LayoutParams) linearLayoutCompat.getLayoutParams();
