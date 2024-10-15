@@ -143,7 +143,7 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
 
         when {
             ContextCompat.checkSelfPermission( applicationContext,
-                android.Manifest.permission.READ_PHONE_STATE
+                android.Manifest.permission.SEND_SMS
             ) == PackageManager.PERMISSION_GRANTED -> {
                 sendTxt(conversation)
             }
@@ -158,20 +158,29 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
             else -> {
                 // You can directly ask for the permission.
                 // The registered ActivityResultCallback gets the result of this request.
-                requestPermissionLauncher?.launch(android.Manifest.permission.READ_PHONE_STATE)
+                requestPermissionLauncher?.launch(android.Manifest.permission.SEND_SMS)
             }
         }
 
-//        try {
-//            SMSDatabaseWrapper.send_text(applicationContext, conversation, null)
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            NativeSMSDB.Outgoing.register_failed( applicationContext, conversation.message_id,
-//                1 )
-//            conversation.status = Telephony.TextBasedSmsColumns.STATUS_FAILED
-//            conversation.type = Telephony.TextBasedSmsColumns.MESSAGE_TYPE_FAILED
-//            conversation.error_code = 1
-//            conversationsViewModel!!.update(conversation)
+//        when {
+//            ContextCompat.checkSelfPermission( applicationContext,
+//                android.Manifest.permission.READ_PHONE_STATE
+//            ) == PackageManager.PERMISSION_GRANTED -> {
+//                sendTxt(conversation)
+//            }
+////            ActivityCompat.shouldShowRequestPermissionRationale( this,
+////                android.Manifest.permission.READ_PHONE_STATE) -> {
+////                // In an educational UI, explain to the user why your app requires this
+////                // permission for a specific feature to behave as expected, and what
+////                // features are disabled if it's declined. In this UI, include a
+////                // "cancel" or "no thanks" button that lets the user continue
+////                // using your app without granting the permission.
+////            }
+//            else -> {
+//                // You can directly ask for the permission.
+//                // The registered ActivityResultCallback gets the result of this request.
+//                requestPermissionLauncher?.launch(android.Manifest.permission.READ_PHONE_STATE)
+//            }
 //        }
     }
 

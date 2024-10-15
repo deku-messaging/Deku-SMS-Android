@@ -218,6 +218,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     int threadIdIndex = cursor.getColumnIndex("thread_id");
                     int typeIndex = cursor.getColumnIndex("type");
                     int readIndex = cursor.getColumnIndex("read");
+                    int sub_id = cursor.getColumnIndex("sub_id");
 
                     threadedConversations.setIs_read(cursor.getInt(readIndex) == 1);
 
@@ -234,6 +235,7 @@ public class ThreadedConversationsViewModel extends ViewModel {
                     String contactName = Contacts.retrieveContactName(context,
                             threadedConversations.getAddress());
                     threadedConversations.setContact_name(contactName);
+                    threadedConversations.setSubscription_id(cursor.getInt(sub_id));
                     threadedConversationsList.add(threadedConversations);
                 } while(cursor.moveToNext());
                 cursor.close();

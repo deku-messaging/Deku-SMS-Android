@@ -1,0 +1,1 @@
+- Encryption algorithm changed from EC (secp256k1) to X25519
