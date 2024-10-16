@@ -15,30 +15,56 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/conversation_secured_progress"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@+id/conversation_secured_text_preview"
+            app:layout_constraintStart_toStartOf="@+id/conversation_secured_text_preview"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/conversation_secured_text_preview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/md_theme_onSecondary"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/conversation_send_layout"
+            app:layout_constraintStart_toStartOf="@+id/conversations_send_text_layout"
+            app:layout_constraintTop_toBottomOf="@+id/conversation_secured_progress"
+            tools:text="Sample encrypted text would go up here and would look very good if everything is going alreight"
+            tools:visibility="visible" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/conversations_send_text_layout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            app:placeholderTextColor="@color/md_theme_onSecondary"
             app:boxStrokeWidth="0dp"
             app:boxStrokeWidthFocused="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/conversation_send_layout"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:placeholderText="@string/send_message_text_box_hint">
+            app:layout_constraintTop_toBottomOf="@+id/conversation_secured_text_preview"
+            app:placeholderText="@string/send_message_text_box_hint"
+            app:placeholderTextColor="@color/md_theme_onSecondary">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/conversation_send_text_input"
-                android:textColor="@color/md_theme_onSecondary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text|textAutoComplete|textAutoCorrect|textCapSentences|textEnableTextConversionSuggestions|textMultiLine"
                 android:maxLines="3"
                 android:paddingTop="8dp"
                 android:scrollbars="vertical"
+                android:textColor="@color/md_theme_onSecondary"
                 android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -66,13 +92,13 @@
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/conversation_compose_dual_sim_send_sim_name"
-                android:textColor="@color/md_theme_onSecondary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:ellipsize="end"
                 android:maxWidth="40dp"
                 android:maxLines="1"
+                android:textColor="@color/md_theme_onSecondary"
                 android:textSize="10sp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"

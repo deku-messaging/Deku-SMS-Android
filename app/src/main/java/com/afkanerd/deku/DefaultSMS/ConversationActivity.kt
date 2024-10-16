@@ -53,11 +53,13 @@ import com.afkanerd.deku.DefaultSMS.Models.SIMHandler
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper
 import com.afkanerd.deku.Router.GatewayServers.GatewayServer
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textview.MaterialTextView
 import com.google.i18n.phonenumbers.NumberParseException
+import com.jakewharton.rxbinding.widget.RxTextView
 import io.getstream.avatarview.AvatarView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,6 +67,7 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import java.security.GeneralSecurityException
 import java.util.Objects
+import java.util.concurrent.TimeUnit
 
 class ConversationActivity() : CustomAppCompactActivity() {
     var isContact: Boolean = false
@@ -683,7 +686,10 @@ class ConversationActivity() : CustomAppCompactActivity() {
     private fun configureMessagesTextBox() {
         if (mutableLiveDataComposeMessage.value == null ||
             mutableLiveDataComposeMessage.value!!.isEmpty()
-        ) findViewById<View>(R.id.conversation_send_btn).visibility = View.INVISIBLE
+        ) {
+            findViewById<View>(R.id.conversation_send_btn).visibility = View.INVISIBLE
+            findViewById<View>(R.id.conversation_secured_text_preview).visibility = View.GONE
+        }
 
         val counterView = findViewById<TextView>(R.id.conversation_compose_text_counter)
         val sendBtn = findViewById<View>(R.id.conversation_send_btn)
@@ -692,17 +698,33 @@ class ConversationActivity() : CustomAppCompactActivity() {
             findViewById<MaterialTextView>(R.id.conversation_compose_dual_sim_send_sim_name)
         mutableLiveDataComposeMessage.observe(this) {
             if (!it.isNullOrBlank()) {
-                val text = if(E2EEHandler.isSecured(applicationContext, address!!)) {
-                    encryptMessage(applicationContext, it, address!!).first
-                } else it
-                counterView.text = getSMSCount(text)
                 sendBtn.visibility = View.VISIBLE
                 if (isDualSim) dualSimCardName.visibility = View.VISIBLE
-                counterView.visibility = View.VISIBLE
+
+                CoroutineScope(Dispatchers.Default).launch {
+                    val text = if(E2EEHandler.isSecured(applicationContext, address!!)) {
+                        encryptMessage(applicationContext, it, address!!).first
+                    } else it
+
+                    runOnUiThread {
+                        counterView.visibility = View.VISIBLE
+                        counterView.text = getSMSCount(text)
+                    }
+
+                    if(E2EEHandler.isSecured(applicationContext, address!!)) {
+                        findViewById<MaterialTextView>(R.id.conversation_secured_text_preview).apply {
+                            runOnUiThread {
+                                visibility = View.VISIBLE
+                                this.text = text
+                            }
+                        }
+                    }
+                }
             } else {
                 sendBtn.visibility = View.GONE
                 dualSimCardName.visibility = View.GONE
                 counterView.visibility = View.GONE
+                findViewById<View>(R.id.conversation_secured_text_preview).visibility = View.GONE
             }
         }
 
@@ -751,9 +773,28 @@ class ConversationActivity() : CustomAppCompactActivity() {
             }
 
             override fun afterTextChanged(s: Editable) {
-                mutableLiveDataComposeMessage.value = s.toString()
+                if(E2EEHandler.isSecured(applicationContext, address!!)) {
+                    runOnUiThread {
+                        findViewById<LinearProgressIndicator>(R.id.conversation_secured_progress)
+                            .visibility = View.VISIBLE
+                    }
+                }
             }
         })
+
+        RxTextView.textChanges(smsTextView!!)
+            .debounce(2, TimeUnit.SECONDS)
+            .subscribe {
+                if(E2EEHandler.isSecured(applicationContext, address!!)) {
+                    runOnUiThread {
+                        findViewById<LinearProgressIndicator>(R.id.conversation_secured_progress)
+                            .visibility = View.GONE
+                    }
+                }
+                runOnUiThread {
+                    mutableLiveDataComposeMessage.value = smsTextView!!.text.toString()
+                }
+            }
 
 
         // Message has been shared from another app to send by SMS
