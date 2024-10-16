@@ -1,5 +1,6 @@
 package com.afkanerd.deku.DefaultSMS
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -98,28 +99,14 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                         return@launch
                     }
 
-                    val isSelf = E2EEHandler.isSelf(applicationContext, address!!)
-                    if(E2EEHandler.isSecured(applicationContext, address!!)) {
-                        val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey(
-                            applicationContext, address!!, isSelf), Base64.DEFAULT)
-                        var states = E2EEHandler.fetchStates(applicationContext, address!!)
-                        if(states.isBlank()) {
-                            val aliceState = States()
-                            val SK = E2EEHandler.calculateSharedSecret(applicationContext, address!!,
-                                peerPublicKey)
-                            Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
-                            states = aliceState.serializedStates
-                        }
-                        val sendingState = States(states)
-                        val headerCipherText = Ratchets.ratchetEncrypt(sendingState,
-                            conversation.text!!.encodeToByteArray(), peerPublicKey)
-                        val msg = E2EEHandler.formatMessage(headerCipherText.first,
-                            headerCipherText.second)
-                        conversation.text = Base64.encodeToString(msg, Base64.DEFAULT)
-                        E2EEHandler.storeState(applicationContext, sendingState.serializedStates,
+                    val payload = encryptMessage(applicationContext, text, address!!)
+                    conversation.text = payload.first
+                    sendSMS(conversation)
+
+                    payload.second?.let {
+                        E2EEHandler.storeState(applicationContext, payload.second!!.serializedStates,
                             address!!)
                     }
-                    sendSMS(conversation)
                 }
             }
         }
@@ -140,7 +127,6 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
     }
 
     private fun sendSMS(conversation: Conversation) {
-
         when {
             ContextCompat.checkSelfPermission( applicationContext,
                 android.Manifest.permission.SEND_SMS
@@ -161,27 +147,6 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                 requestPermissionLauncher?.launch(android.Manifest.permission.SEND_SMS)
             }
         }
-
-//        when {
-//            ContextCompat.checkSelfPermission( applicationContext,
-//                android.Manifest.permission.READ_PHONE_STATE
-//            ) == PackageManager.PERMISSION_GRANTED -> {
-//                sendTxt(conversation)
-//            }
-////            ActivityCompat.shouldShowRequestPermissionRationale( this,
-////                android.Manifest.permission.READ_PHONE_STATE) -> {
-////                // In an educational UI, explain to the user why your app requires this
-////                // permission for a specific feature to behave as expected, and what
-////                // features are disabled if it's declined. In this UI, include a
-////                // "cancel" or "no thanks" button that lets the user continue
-////                // using your app without granting the permission.
-////            }
-//            else -> {
-//                // You can directly ask for the permission.
-//                // The registered ActivityResultCallback gets the result of this request.
-//                requestPermissionLauncher?.launch(android.Manifest.permission.READ_PHONE_STATE)
-//            }
-//        }
     }
 
     @Throws(InterruptedException::class)
@@ -206,6 +171,31 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                     }
                 }
             }
+        }
+    }
+
+    companion object {
+        fun encryptMessage(context: Context, text: String, address: String) : Pair<String, States?> {
+            var sendingState: States? = null
+            var text = text
+            val isSelf = E2EEHandler.isSelf(context, address)
+            if(E2EEHandler.isSecured(context, address)) {
+                val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey( context,
+                    address, isSelf), Base64.DEFAULT)
+                var states = E2EEHandler.fetchStates(context, address)
+                if(states.isBlank()) {
+                    val aliceState = States()
+                    val SK = E2EEHandler.calculateSharedSecret(context, address, peerPublicKey)
+                    Ratchets.ratchetInitAlice(aliceState, SK, peerPublicKey)
+                    states = aliceState.serializedStates
+                }
+                sendingState = States(states)
+                val headerCipherText = Ratchets.ratchetEncrypt(sendingState,
+                    text.encodeToByteArray(), peerPublicKey)
+                val msg = E2EEHandler.formatMessage(headerCipherText.first, headerCipherText.second)
+                text = Base64.encodeToString(msg, Base64.DEFAULT)
+            }
+            return Pair(text, sendingState)
         }
     }
 

@@ -692,7 +692,10 @@ class ConversationActivity() : CustomAppCompactActivity() {
             findViewById<MaterialTextView>(R.id.conversation_compose_dual_sim_send_sim_name)
         mutableLiveDataComposeMessage.observe(this) {
             if (!it.isNullOrBlank()) {
-                counterView.text = getSMSCount(it)
+                val text = if(E2EEHandler.isSecured(applicationContext, address!!)) {
+                    encryptMessage(applicationContext, it, address!!).first
+                } else it
+                counterView.text = getSMSCount(text)
                 sendBtn.visibility = View.VISIBLE
                 if (isDualSim) dualSimCardName.visibility = View.VISIBLE
                 counterView.visibility = View.VISIBLE
@@ -748,7 +751,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
             }
 
             override fun afterTextChanged(s: Editable) {
-                mutableLiveDataComposeMessage.setValue(s.toString())
+                mutableLiveDataComposeMessage.value = s.toString()
             }
         })
 
