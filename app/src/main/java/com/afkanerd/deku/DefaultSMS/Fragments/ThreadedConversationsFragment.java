@@ -452,7 +452,7 @@ public class ThreadedConversationsFragment extends Fragment {
         switch(Objects.requireNonNull(messageType)) {
             case ENCRYPTED_MESSAGES_THREAD_FRAGMENT:
                 try {
-                    threadedConversationsViewModel.getEncrypted()
+                    threadedConversationsViewModel.getEncrypted(requireContext())
                             .observe(getViewLifecycleOwner(),
                             new Observer<PagingData<ThreadedConversations>>() {
                                 @Override

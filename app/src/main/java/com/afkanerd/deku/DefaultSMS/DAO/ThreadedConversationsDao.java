@@ -57,7 +57,7 @@ public interface ThreadedConversationsDao {
             "is_archived = 0 AND ThreadedConversations.is_read = 0 AND ThreadedConversations.thread_id IN(:ids)")
     int getCountUnread(List<String> ids);
 
-    @Query("SELECT COUNT(ConversationsThreadsEncryption.id) FROM ConversationsThreadsEncryption")
+    @Query("SELECT COUNT(*) FROM ThreadedConversations WHERE is_secured = 1")
     int getCountEncrypted();
 
     @Query("SELECT COUNT(ThreadedConversations.thread_id) FROM ThreadedConversations " +

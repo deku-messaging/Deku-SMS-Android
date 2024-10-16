@@ -19,6 +19,7 @@ import com.afkanerd.deku.DefaultSMS.Models.Contacts;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.Conversation;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ThreadedConversations;
 import com.afkanerd.deku.Datastore;
+import com.afkanerd.deku.DefaultSMS.Models.E2EEHandler;
 import com.afkanerd.deku.DefaultSMS.Models.NativeSMSDB;
 import com.afkanerd.deku.DefaultSMS.Models.SMSDatabaseWrapper;
 import com.afkanerd.deku.DefaultSMS.Models.Conversations.ConversationsThreadsEncryption;
@@ -126,25 +127,19 @@ public class ThreadedConversationsViewModel extends ViewModel {
         return gson.toJson(conversations);
     }
 
-    public LiveData<PagingData<ThreadedConversations>> getEncrypted() throws InterruptedException {
+    public LiveData<PagingData<ThreadedConversations>> getEncrypted(Context context) throws InterruptedException {
         List<String> address = new ArrayList<>();
-//        Thread thread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                List<ConversationsThreadsEncryption> conversationsThreadsEncryptionList =
-//                        databaseConnector.conversationsThreadsEncryptionDao().getAll();
-//                for(ConversationsThreadsEncryption conversationsThreadsEncryption :
-//                        conversationsThreadsEncryptionList) {
-//                    String derivedAddress =
-//                            E2EEHandler.getAddressFromKeystore(
-//                                    conversationsThreadsEncryption.getKeystoreAlias());
-//                    address.add(derivedAddress);
-//                }
-//
-//            }
-//        });
-//        thread.start();
-//        thread.join();
+        Thread thread = new Thread(() -> {
+            List<ThreadedConversations> threadedConversationsList =
+                    databaseConnector.threadedConversationsDao().getAll();
+            for(ThreadedConversations threadedConversations : threadedConversationsList) {
+                if(E2EEHandler.INSTANCE.isSecured(context, threadedConversations.getAddress()))
+                    address.add(threadedConversations.getAddress());
+            }
+
+        });
+        thread.start();
+        thread.join();
 
         Pager<Integer, ThreadedConversations> pager = new Pager<>(new PagingConfig(
                 pageSize,
