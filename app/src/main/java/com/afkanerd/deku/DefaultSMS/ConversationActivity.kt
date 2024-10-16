@@ -95,6 +95,9 @@ class ConversationActivity() : CustomAppCompactActivity() {
     var isDualSim: Boolean = false
     var smsManager: SmsManager = SmsManager.getDefault()
     var textInputEditText: TextInputEditText? = null
+    val fragmentManager = supportFragmentManager
+
+    val secureRequestFragmentModalTag = "secureRequestFragmentModalTag"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -507,8 +510,10 @@ class ConversationActivity() : CustomAppCompactActivity() {
                 conversationsRecyclerAdapter!!.submitData(lifecycle, value)
 
                 address?.let {
-                    if(E2EEHandler.hasPendingApproval(applicationContext, it))
-                        showSecureRequestModal()
+                    if(fragmentManager.findFragmentByTag(secureRequestFragmentModalTag) == null) {
+                        if(E2EEHandler.hasPendingApproval(applicationContext, it))
+                            showSecureRequestModal()
+                    }
                 }
             }
         }
@@ -572,7 +577,6 @@ class ConversationActivity() : CustomAppCompactActivity() {
     }
 
     private fun showSecureRequestModal() {
-        val fragmentManager = supportFragmentManager
         val fragmentTransaction = fragmentManager.beginTransaction()
 
         val secureRequestModal = contactName?.let {
@@ -596,7 +600,7 @@ class ConversationActivity() : CustomAppCompactActivity() {
             }
         }
         secureRequestModal?.let {
-            fragmentTransaction.add(secureRequestModal, "secureRequestModal")
+            fragmentTransaction.add(secureRequestModal, secureRequestFragmentModalTag)
             fragmentTransaction.commit()
         }
     }

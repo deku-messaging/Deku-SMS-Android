@@ -204,8 +204,6 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
 
             val isSelf = E2EEHandler.isSelf(context, address)
             val keypair = E2EEHandler.fetchKeypair(context, address, isSelf)
-//            val peerPublicKey = Base64.decode(E2EEHandler
-//                .secureFetchPeerPublicKey(context, address), Base64.DEFAULT)
             val peerPublicKey = if(isSelf) keypair.second else
                 Base64.decode(E2EEHandler.secureFetchPeerPublicKey(context, address), Base64.DEFAULT)
             var states = E2EEHandler.fetchStates(context, address, isSelf)
@@ -216,6 +214,8 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
                 states = bobState.serializedStates
             }
             val receivingState = States(states)
+            if(BuildConfig.DEBUG)
+                println(states)
             val decryptedText = Ratchets.ratchetDecrypt(receivingState, payload.first,
                 payload.second, keypair.second)
             text = String(decryptedText, Charsets.UTF_8)
@@ -224,7 +224,7 @@ class IncomingTextSMSBroadcastReceiver : BroadcastReceiver() {
             if(BuildConfig.DEBUG)
                 Toast.makeText(context, "Decryption happened!", Toast.LENGTH_LONG).show()
 
-            E2EEHandler.storeState(context, receivingState.serializedStates, address)
+            E2EEHandler.storeState(context, receivingState.serializedStates, address, isSelf)
         }
 
         return Pair(text, encrypted)

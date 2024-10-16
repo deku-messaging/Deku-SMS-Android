@@ -98,10 +98,10 @@ open class CustomAppCompactActivity : DualSIMConversationActivity() {
                         return@launch
                     }
 
+                    val isSelf = E2EEHandler.isSelf(applicationContext, address!!)
                     if(E2EEHandler.isSecured(applicationContext, address!!)) {
                         val peerPublicKey = Base64.decode(E2EEHandler.secureFetchPeerPublicKey(
-                            applicationContext, address!!,
-                            E2EEHandler.isSelf(applicationContext, address!!)), Base64.DEFAULT)
+                            applicationContext, address!!, isSelf), Base64.DEFAULT)
                         var states = E2EEHandler.fetchStates(applicationContext, address!!)
                         if(states.isBlank()) {
                             val aliceState = States()
