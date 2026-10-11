@@ -21,3 +21,6 @@ object RemoteForwardingScreen
 
 @Serializable
 object GatewayClientsListScreen
+
+@Serializable
+object GatewayClientsSettingsScreen

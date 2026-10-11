@@ -1,9 +1,8 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-	id "com.diffplug.spotless" version "8.2.1"
-    id 'org.jetbrains.kotlin.plugin.serialization' version '2.3.10'
-    id 'com.google.devtools.ksp' version '2.3.5'
+	id "com.diffplug.spotless" version "8.10.3"
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.4.20'
+    id 'com.google.devtools.ksp' version '2.3.6'
     alias(libs.plugins.compose.compiler)
 }
 
@@ -20,8 +19,9 @@ ext {
 }
 
 android {
-    compileSdk 36
+    compileSdk 37
     namespace 'com.afkanerd.deku.DefaultSMS'
+    buildToolsVersion "37.0.0"
 
     def _versionName = versionProperties['versionName']
     def tagVersion = Integer.parseInt(versionProperties['tagVersion'])
@@ -48,7 +48,7 @@ android {
     defaultConfig {
         applicationId "com.afkanerd.deku"
         minSdk 24
-        targetSdk 36
+        targetSdk 37
         versionCode tagVersion
         versionName _versionName
 
@@ -67,10 +67,7 @@ android {
 
     buildFeatures {
         compose true
-    }
-
-    dexOptions {
-        incremental true
+        buildConfig true
     }
 
     buildscript {
@@ -105,11 +102,10 @@ android {
 
     buildTypes {
         debug {
-//            minifyEnabled false
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            testProguardFiles 'proguard-rules.pro'
+//            minifyEnabled true
+//            shrinkResources true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//            testProguardFiles 'proguard-rules.pro'
         }
         release {
 //            minifyEnabled false
@@ -120,14 +116,9 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
 
     packaging {
         resources {
@@ -158,7 +149,7 @@ androidComponents {
 }
 
 dependencies {
-    implementation 'com.github.smswithoutborders:lib_smsmms_android:c403a77de8'
+    implementation 'com.github.smswithoutborders:lib_smsmms_android:5a72dd2ce'
     implementation 'com.github.smswithoutborders:lib_signal_double_ratchet_java:ad727a57b3'
     androidTestImplementation libs.androidx.room.testing
     implementation libs.androidx.activity

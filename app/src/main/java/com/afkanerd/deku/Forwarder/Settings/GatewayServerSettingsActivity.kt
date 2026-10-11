@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.Settings
+package com.afkanerd.deku.Forwarder.Settings
 
 import android.os.Bundle
 import android.view.View
