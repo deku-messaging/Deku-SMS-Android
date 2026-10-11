@@ -16,7 +16,7 @@ WORKDIR /android
 ENV ANDROID_HOME=/usr/local/android-sdk-linux
 ENV ANDROID_SDK_ROOT=/usr/local/android-sdk-linux
 ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-ENV ANDROID_BUILD_TOOLS_VERSION=35.0.0
+ENV ANDROID_BUILD_TOOLS_VERSION=37.0.0
 
 # Download and place commandline-tools into cmdline-tools/latest
 RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
@@ -31,14 +31,14 @@ RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
 RUN chmod -R 777 ${ANDROID_HOME}
 
 # Accept licenses first
-# RUN yes | sdkmanager --licenses --sdk_root="${ANDROID_HOME}"
+RUN yes | sdkmanager --licenses --sdk_root="${ANDROID_HOME}"
 # RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" --include_preview --channel=3 \
 #    "platforms;android-37" || true
 
 # Install valid stable packages (excluding non-existent android-37)
 RUN yes | sdkmanager --sdk_root="${ANDROID_HOME}" \
     "platform-tools" \
-    "platforms;android-36" \
+    "platforms;android-37.0" \
     "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
     "extras;google;m2repository" \
     "extras;android;m2repository" \
