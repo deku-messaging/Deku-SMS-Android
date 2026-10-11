@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.data.models;
+package com.afkanerd.deku.Forwarder.data.models;
 
 public class FTP {
     public static String PROTOCOL = "FTP";

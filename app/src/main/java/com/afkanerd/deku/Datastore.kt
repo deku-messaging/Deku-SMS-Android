@@ -1,17 +1,14 @@
 package com.afkanerd.deku
 
 import android.content.Context
-import androidx.annotation.NonNull
 import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.DeleteColumn
 import androidx.room.DeleteTable
 import androidx.room.RenameTable
-import androidx.room.Room
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
 import androidx.room.migration.AutoMigrationSpec
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.afkanerd.deku.Datastore.Migrate16To17
 import com.afkanerd.deku.Datastore.Migrate19To20
 import com.afkanerd.deku.Datastore.Migrate20To21
@@ -22,10 +19,9 @@ import com.afkanerd.deku.RemoteListeners.Models.RemoteListener.RemoteListenersQu
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenerDAO
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListeners
 import com.afkanerd.deku.RemoteListeners.Models.RemoteListenersQueues
-import com.afkanerd.deku.Router.data.dao.GatewayServerDAO
-import com.afkanerd.deku.Router.data.models.GatewayServer
+import com.afkanerd.deku.Forwarder.data.dao.GatewayServerDAO
+import com.afkanerd.deku.Forwarder.data.models.GatewayServer
 import com.afkanerd.smswithoutborders_libsmsmms.data.Cryptography.getDatabasePassword
-import com.afkanerd.smswithoutborders_libsmsmms.data.DatabaseImpl
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import kotlin.concurrent.Volatile
 

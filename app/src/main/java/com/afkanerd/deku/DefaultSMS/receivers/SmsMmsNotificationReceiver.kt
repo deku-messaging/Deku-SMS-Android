@@ -7,7 +7,7 @@ import android.provider.Telephony
 import android.widget.Toast
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
 import com.afkanerd.deku.MainActivity
-import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
+import com.afkanerd.deku.Forwarder.ui.viewModels.GatewayServerViewModel
 import com.afkanerd.lib_smsmms_android.R
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.EncryptionController
 import com.afkanerd.smswithoutborders.libsignal_doubleratchet.SavedEncryptedModes
