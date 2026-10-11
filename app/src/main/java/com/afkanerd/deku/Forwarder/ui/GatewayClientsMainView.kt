@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.ui
+package com.afkanerd.deku.Forwarder.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,15 +12,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -43,15 +39,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.room.util.TableInfo
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.GatewayClientsListScreen
-import com.afkanerd.deku.Router.data.models.GatewayServer
-import com.afkanerd.deku.Router.ui.modals.GatewayServerAddHttpModal
-import com.afkanerd.deku.Router.ui.modals.GatewayServerAddSmtpModal
-import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
-import com.afkanerd.smswithoutborders_libsmsmms.ui.navigation.SettingsScreenNav
+import com.afkanerd.deku.Forwarder.data.models.GatewayServer
+import com.afkanerd.deku.Forwarder.ui.modals.GatewayServerAddHttpModal
+import com.afkanerd.deku.Forwarder.ui.modals.GatewayServerAddSmtpModal
+import com.afkanerd.deku.Forwarder.ui.viewModels.GatewayServerViewModel
 import com.example.compose.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,7 +55,8 @@ fun GatewayClientsMainView(
     viewModel: GatewayServerViewModel
 ) {
     val context = LocalContext.current
-    val gatewayClients by viewModel[context].observeAsState(emptyList())
+    val gatewayClients by viewModel.fetch(context)
+        .collectAsStateWithLifecycle(emptyList())
 
     var rememberMenuExpanded by remember { mutableStateOf( false)}
 

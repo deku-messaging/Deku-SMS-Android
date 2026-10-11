@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.data.models
+package com.afkanerd.deku.Forwarder.data.models
 
 import androidx.room.ColumnInfo
 import androidx.room.Embedded

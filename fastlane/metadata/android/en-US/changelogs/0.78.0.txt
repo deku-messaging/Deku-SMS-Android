@@ -1,0 +1,9 @@
+Changes from lib_sms_mms:
+- Introduced using system's fonts rather than default font being shipped within the app
+
+Changes from within DekuSMS:
+- Message forwarding can now be set to pause when battery is low
+- Forwarded messages in history can now be cleared every 24 hours
+- Dialing code added to body of messages forwarded
+- Entire forwarding address can now be hashed for obscurity
+- Can now forward with LAN IP address (emphasises http)

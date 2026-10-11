@@ -1,20 +1,16 @@
-package com.afkanerd.deku.Router.Models
+package com.afkanerd.deku.Forwarder.data.models
 
-import android.database.Cursor
-import android.util.Pair
-import androidx.recyclerview.widget.DiffUtil
-import androidx.room.Embedded
-import androidx.work.DelegatingWorkerFactory
+import android.util.Log
+import com.afkanerd.deku.Forwarder.extensions.toSha256
 import com.afkanerd.smswithoutborders_libsmsmms.data.data.models.SmsMmsNatives
-import com.afkanerd.smswithoutborders_libsmsmms.data.entities.Conversations
-import com.google.gson.annotations.Expose
+import com.google.i18n.phonenumbers.PhoneNumberUtil
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 @Serializable
 data class RouterItem(
     val thread_id: Int,
     val address: String,
+    val dialing_code: String,
     val date: Long,
     val date_sent: Long,
     val read: Int,
@@ -26,9 +22,9 @@ data class RouterItem(
     val url: String? = null,
     var tag: String? = null
 ) {
-    constructor(sms: SmsMmsNatives.Sms) : this(
+    constructor(sms: SmsMmsNatives.Sms, isHashIncoming: Boolean) : this(
         thread_id = sms.thread_id,
-        address = sms.address!!,
+        address = if(isHashIncoming) sms.address!!.toSha256() else sms.address!!,
         date = sms.date,
         date_sent = sms.date_sent,
         read = sms.read,
@@ -36,7 +32,17 @@ data class RouterItem(
         type = sms.type,
         body = sms.body!!,
         text = sms.body!!,
-        sub_id = sms.sub_id
+        sub_id = sms.sub_id,
+        dialing_code = try {
+            PhoneNumberUtil
+                .getInstance()
+                .parse(sms.address!!, null)
+                .countryCode.toString()
+        } catch(e: Exception) {
+            e.printStackTrace()
+            Log.e("RouterItem", "Failed to get dialing code: ${sms.address!!}")
+            throw e
+        }
     )
 
     fun serializeJson(): String =

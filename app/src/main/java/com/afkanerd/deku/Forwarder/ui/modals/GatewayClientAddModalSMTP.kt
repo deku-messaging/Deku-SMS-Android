@@ -1,4 +1,4 @@
-package com.afkanerd.deku.Router.ui.modals
+package com.afkanerd.deku.Forwarder.ui.modals
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -35,9 +35,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.Router.data.models.GatewayServer
-import com.afkanerd.deku.Router.data.models.SMTP
-import com.afkanerd.deku.Router.ui.viewModels.GatewayServerViewModel
+import com.afkanerd.deku.Forwarder.data.models.GatewayServer
+import com.afkanerd.deku.Forwarder.data.models.SMTP
+import com.afkanerd.deku.Forwarder.ui.viewModels.GatewayServerViewModel
 import com.example.compose.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -7,10 +7,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Before
 import org.junit.Test
 import java.util.Properties
-import com.afkanerd.deku.DefaultSMS.R
-import com.afkanerd.deku.Router.Models.RouterItem
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.util.Date
 import javax.mail.Message
 import javax.mail.Session

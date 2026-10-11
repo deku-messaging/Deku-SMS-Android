@@ -455,5 +455,12 @@
     <string name="secure_message_requested">Secure message requested</string>
     <string name="secure_message_accepted">Secure message accepted</string>
     <string name="enter_subject">Enter subject</string>
+    <string name="gateway_client_settings">Gateway client settings</string>
+    <string name="route_on_low_battery">Route on low battery</string>
+    <string name="when_activated_would_ignore_low_battery_constraint_and_keep_routing">When activated would ignore low battery constraint and keep routing.</string>
+    <string name="clear_routed_cache">Clear routed cache</string>
+    <string name="this_would_automatically_remove_the_routed_history_after_24_hours">This would automatically remove the routed history after 24 hours.</string>
+    <string name="the_incoming_address_would_be_hashed_using_sha256_before_forwarding">The incoming address would be hashed using Sha256 before forwarding.</string>
+    <string name="hash_incoming_address">Hash incoming address</string>
 
 </resources>
