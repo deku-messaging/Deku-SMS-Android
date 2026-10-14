@@ -73,10 +73,6 @@
         </service>
 
         <activity
-            android:name=".AboutActivity"
-            android:exported="false"/>
-
-        <activity
             android:name="com.afkanerd.deku.Images.Images.ImageViewActivity"
             android:exported="false"/>
 
