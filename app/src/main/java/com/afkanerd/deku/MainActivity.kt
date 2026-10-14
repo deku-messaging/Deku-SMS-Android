@@ -28,7 +28,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.window.layout.WindowInfoTracker
-import com.afkanerd.deku.DefaultSMS.AboutActivity
 import com.afkanerd.deku.DefaultSMS.ui.SecureConversationComposable
 import com.afkanerd.deku.DefaultSMS.ui.components.KeyExchangeType
 import com.afkanerd.deku.DefaultSMS.ui.viewModels.SecureConversationViewModel
@@ -56,6 +55,7 @@ import com.example.compose.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.afkanerd.deku.DefaultSMS.ui.About
 
 
 class MainActivity : AppCompatActivity(){
@@ -204,10 +204,11 @@ class MainActivity : AppCompatActivity(){
                                             )
                                         }
                                         composable<AboutScreen> {
-                                            startActivity(
-                                                Intent(applicationContext,
-                                                    AboutActivity::class.java))
-                                            finish()
+                                           About(
+                                               onBack = {
+                                                   navController.popBackStack()
+                                               }
+                                           )
                                         }
                                     }
 
