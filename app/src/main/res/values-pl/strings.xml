@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">Deku SMS</string>
     <string name="privacy_policy_url" translatable="false">https://smswithoutborders.com/privacy-policy</string>
-    <string name="incoming_messages_channel_name">Przychodzące Wiadomości</string>
+    <string name="incoming_messages_channel_name">Wiadomości przychodzące</string>
     <string name="running_gateway_clients_channel_name" translatable="false">Running Gateway Listeners</string>
     <string name="foreground_service_failed_channel_name" translatable="false">Gateway clients auto-reconnect</string>
     <string name="message_failed_channel_name" translatable="false">Message Failed</string>
@@ -330,7 +330,7 @@
     <string name="choose_sim_card">Wybierz kartę SIM</string>
     <string name="conversation_is_secured">Rozmowa jest zabezpieczona</string>
     <string name="compose_new">Utwórz nowy</string>
-    <string name="compose">Komponować</string>
+    <string name="compose">Komponuj</string>
     <string name="notifications">Powiadomienia</string>
     <string name="block_report_spam"><![CDATA[Zablokuj i zgłoś spam]]></string>
     <string name="end_to_end_encryption">Szyfrowanie typu end-to-end</string>
@@ -349,13 +349,13 @@
     <string name="import_conversations">Importuj konwersacje</string>
     <string name="reset_and_import">Resetuj i importuj</string>
     <string name="block">Blok</string>
-    <string name="unblock">Odblokować</string>
+    <string name="unblock">Odblokuj</string>
     <string name="welcome_image">Obraz powitalny</string>
     <string name="remote_listeners">Zdalni słuchacze</string>
     <string name="port">"Port: "</string>
     <string name="virtual_host">Wirtualny host:</string>
     <string name="no_queues_added">Nie dodano kolejek</string>
-    <string name="friendly_name">Nazwa przyjazna:</string>
+    <string name="friendly_name">Przyjazna nazwa:</string>
     <string name="state">stan:</string>
     <string name="activated">Aktywowany</string>
     <string name="deactivated">Dezaktywowany</string>
@@ -424,7 +424,7 @@
     <string name="sms_mms_import_export">Import/eksport SMS/MMS</string>
     <string name="deku_sms_dev_mode_export">deku_sms_dev_mode_export_%1$d</string>
     <string name="export_native_sms_database">Eksportuj natywną bazę danych SMS</string>
-    <string name="delete">Usuwać</string>
+    <string name="delete">Usuń</string>
     <string name="messages_loaded">Wiadomości załadowane!</string>
     <string name="to_1">Do</string>
     <string name="secure">Bezpieczny</string>
@@ -441,7 +441,7 @@
     <string name="enter_password">Wprowadź hasło</string>
     <string name="enter_username">Wprowadź nazwę użytkownika</string>
     <string name="add_new_gateway_server">Dodaj nowy serwer bramy</string>
-    <string name="save">Ratować</string>
+    <string name="save">Zapisz</string>
     <string name="cloud_forward">Chmura do przodu</string>
     <string name="routed_messages">Przekierowane wiadomości</string>
     <string name="add_http_forwarders">Dodaj przekierowania HTTP</string>
