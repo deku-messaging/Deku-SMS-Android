@@ -7,4 +7,5 @@ object RustyRatchetBridge {
     }
 
     external fun newState(): Long
+    external fun initAlice(handle: Long, sk: ByteArray, bob_dh_public_key: ByteArray): Long
 }
